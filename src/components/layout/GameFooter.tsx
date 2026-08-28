@@ -6,7 +6,7 @@ export default function GameFooter() {
   const clock = useGameClock()
 
   return (
-    <footer className="tlg-v2-footer tlg-v4-footer">
+    <footer className="tlg-v2-footer tlg-v4-footer tlg-v6-footer">
       <div className="tlg-v4-game-clock" aria-live="polite">
         <Clock3 size={15} />
         {clock.loading ? (
@@ -23,10 +23,6 @@ export default function GameFooter() {
           </>
         )}
       </div>
-
-      <span className="tlg-v4-clock-speed">
-        {clock.loading || clock.error ? 'Server time' : `${clock.speedMultiplier}× game speed`}
-      </span>
     </footer>
   )
 }
