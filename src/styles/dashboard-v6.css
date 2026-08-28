@@ -3,21 +3,23 @@
  * Small visual refinements requested after the typography pass.
  */
 
-/* Centered compact logo -------------------------------------------------- */
+/* Centered logo ---------------------------------------------------------- */
 
 .tlg-v4-sidebar-brand {
-  min-height: 104px;
-  padding: 12px 16px 8px;
+  min-height: 112px;
+  padding: 8px 14px 6px;
   justify-content: center;
 }
 
 .tlg-v4-logo-image {
-  width: auto;
-  height: auto;
-  max-width: 152px;
-  max-height: 68px;
+  width: 202px;
+  height: 86px;
+  max-width: 202px;
+  max-height: 86px;
   object-fit: contain;
   object-position: center;
+  transform: scale(1.22);
+  transform-origin: center;
 }
 
 .tlg-v2-sidebar-collapsed .tlg-v4-sidebar-brand {
@@ -27,24 +29,21 @@
 }
 
 .tlg-v2-sidebar-collapsed .tlg-v4-logo-image {
-  width: 52px;
-  height: 52px;
-  max-width: 52px;
-  max-height: 52px;
+  width: 58px;
+  height: 58px;
+  max-width: 58px;
+  max-height: 58px;
   object-fit: contain;
   object-position: center;
+  transform: none;
 }
 
-/* Reliable country flag image ------------------------------------------- */
+/* Shared country presentation ------------------------------------------- */
 
-.tlg-v6-country-flag {
-  width: 20px;
-  height: 15px;
-  display: inline-block;
-  flex: 0 0 20px;
-  object-fit: cover;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px rgba(20, 39, 58, .08);
+.tlg-v7-country-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* Sidebar version -------------------------------------------------------- */
@@ -78,11 +77,14 @@
 
 @media (max-width: 760px) {
   .tlg-v4-sidebar-brand {
-    min-height: 92px;
+    min-height: 98px;
   }
 
   .tlg-v4-logo-image {
-    max-width: 138px;
-    max-height: 62px;
+    width: 170px;
+    height: 72px;
+    max-width: 170px;
+    max-height: 72px;
+    transform: scale(1.12);
   }
 }
