@@ -1,196 +1,282 @@
 /**
  * Overview.tsx
  *
- * Rich player overview dashboard placeholder for Tennis Legacy.
- * Provides a composed page with profile summary, next match, form,
- * skills preview, finance summary and notifications.
- *
- * All data presented here are placeholders. TODO: connect Supabase
- * to fetch live player, season and match data.
+ * Premium player command center. Identity data comes from the authenticated
+ * Tennis Legacy player record; gameplay systems that are not implemented yet
+ * are presented as deliberate empty states instead of fake statistics.
  */
 
 import { Link } from 'react-router'
 import {
   Activity,
-  BarChart2,
   CalendarDays,
+  Check,
+  ChevronRight,
+  CircleDollarSign,
   Clock3,
-  DollarSign,
-  LayoutDashboard,
-  MessageCircle,
-  User,
-  TrendingUp,
+  Dumbbell,
+  Flag,
+  Medal,
+  ShieldCheck,
+  Sparkles,
+  Trophy,
+  UserRound,
 } from 'lucide-react'
-import GameLayout from '../../components/layout/GameLayout'
-import PageHeading from '../../components/common/PageHeading'
-import AppCard from '../../components/common/AppCard'
 
-/**
- * Renders a small linear progress bar.
- * @param props - { value } progress 0..100
- */
-function Progress({ value = 0 }: { value?: number }) {
+import { useAuth } from '../../auth/AuthContext'
+import GameLayout from '../../components/layout/GameLayout'
+import AppButton from '../../components/common/AppButton'
+import { supabase } from '../../lib/supabase'
+
+function getCountryName(code?: string) {
+  if (!code) return 'Country not set'
+  try {
+    return new Intl.DisplayNames(['en'], { type: 'region' }).of(code) ?? code
+  } catch {
+    return code
+  }
+}
+
+export default function OverviewPage() {
+  const { player, user } = useAuth()
+
+  const displayName = player
+    ? `${player.first_name} ${player.last_name}`.trim()
+    : 'Tennis Legacy Player'
+  const initials = player
+    ? `${player.first_name.charAt(0)}${player.last_name.charAt(0)}`.toUpperCase()
+    : 'TL'
+  const countryName = getCountryName(player?.country_code)
+  const avatarUrl = player?.image_path
+    ? supabase.storage.from('player-avatars').getPublicUrl(player.image_path).data.publicUrl
+    : null
+
   return (
-    <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
-      <div
-        className="h-3 bg-gradient-to-r from-sky-600 to-sky-800"
-        style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
-        aria-valuenow={value}
-        role="progressbar"
-      />
+    <GameLayout
+      title="Overview"
+      subtitle="Your career command center"
+    >
+      <section className="tlg-overview-command">
+        <div className="tlg-overview-command-inner">
+          <div>
+            <span className="tlg-overview-command-kicker">Career command center</span>
+            <h2>Welcome back, {player?.first_name || 'manager'}.</h2>
+            <p>
+              This is the operating center for your professional career. Tournament entries,
+              training, finance, equipment and performance systems will surface here as the
+              persistent world comes online.
+            </p>
+
+            <div className="tlg-overview-command-meta">
+              <span className="tlg-overview-chip"><GlobeIcon /> {player?.world ?? '—'} World</span>
+              <span className="tlg-overview-chip"><Flag size={13} /> {countryName}</span>
+              <span className="tlg-overview-chip"><ShieldCheck size={13} /> {player?.moderation_status ?? 'pending'}</span>
+            </div>
+          </div>
+
+          <div className="tlg-overview-player-lockup">
+            <div className="tlg-overview-player-row">
+              <div className="tlg-overview-avatar">
+                {avatarUrl ? <img src={avatarUrl} alt={displayName} /> : initials}
+              </div>
+              <div className="tlg-overview-player-copy">
+                <span>Professional profile</span>
+                <strong>{displayName}</strong>
+                <p>{countryName}</p>
+              </div>
+            </div>
+
+            <div className="tlg-overview-lockup-grid">
+              <div><span>World</span><strong>{player?.world ?? '—'}</strong></div>
+              <div><span>Ranking</span><strong>Unranked</strong></div>
+              <div><span>Season</span><strong>1</strong></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="tlg-overview-stat-grid">
+        <OverviewStat icon={<Medal size={16} />} label="World ranking" value="Unranked" detail="Ranking engine pending" />
+        <OverviewStat icon={<Activity size={16} />} label="Career record" value="0–0" detail="No official matches yet" />
+        <OverviewStat icon={<Trophy size={16} />} label="Titles" value="0" detail="Career begins here" />
+        <OverviewStat icon={<CircleDollarSign size={16} />} label="Career finance" value="—" detail="Economy system pending" />
+      </div>
+
+      <div className="tlg-overview-grid">
+        <div className="tlg-overview-stack">
+          <OverviewPanel eyebrow="Next objective" title="Career launch checklist">
+            <div className="tlg-overview-checklist">
+              <ChecklistItem title="Manager account verified" detail={user?.email ?? 'Authenticated account'} done />
+              <ChecklistItem title="Professional player created" detail={`${displayName} · ${player?.world ?? 'World'}`} done />
+              <ChecklistItem title="Country registered" detail={countryName} done />
+              <ChecklistItem title="Enter first tournament" detail="Tournament entry system is the next career milestone" />
+            </div>
+          </OverviewPanel>
+
+          <OverviewPanel eyebrow="Competition" title="Tournament operations">
+            <div className="tlg-overview-empty">
+              <CalendarDays size={24} />
+              <strong>No active tournament</strong>
+              <p>
+                Tournament invitations, entries, draws and match preparation will appear here once the competition engine is connected.
+              </p>
+            </div>
+          </OverviewPanel>
+
+          <OverviewPanel eyebrow="Performance" title="Development snapshot">
+            <div className="grid gap-4 md:grid-cols-2">
+              <ProgressBlock label="Technical development" value={0} note="Skills model not initialized" />
+              <ProgressBlock label="Career experience" value={0} note="Earned through official play" />
+            </div>
+          </OverviewPanel>
+        </div>
+
+        <div className="tlg-overview-stack">
+          <OverviewPanel eyebrow="Today" title="Manager briefing">
+            <div className="space-y-3">
+              <BriefingRow icon={<Clock3 size={16} />} title="Career world" value={`${player?.world ?? '—'} · Season 1`} />
+              <BriefingRow icon={<UserRound size={16} />} title="Player status" value="Career initialized" />
+              <BriefingRow icon={<ShieldCheck size={16} />} title="Identity review" value={capitalize(player?.moderation_status ?? 'pending')} />
+            </div>
+          </OverviewPanel>
+
+          <OverviewPanel eyebrow="Quick access" title="Career operations">
+            <div className="grid gap-2">
+              <QuickLink to="/game/skills" icon={<Dumbbell size={17} />} title="Player skills" subtitle="Development and training profile" />
+              <QuickLink to="/game/calendar" icon={<CalendarDays size={17} />} title="Calendar" subtitle="Season and tournament planning" />
+              <QuickLink to="/game/equipment" icon={<Sparkles size={17} />} title="Equipment" subtitle="Rackets, apparel and performance gear" />
+              <QuickLink to="/game/finance" icon={<CircleDollarSign size={17} />} title="Finance" subtitle="Career income and expenses" />
+            </div>
+          </OverviewPanel>
+
+          <OverviewPanel eyebrow="Next build phase" title="Career systems">
+            <div className="tlg-overview-empty">
+              <Sparkles size={24} />
+              <strong>Foundation ready</strong>
+              <p>
+                Authentication, player identity, country reference data and avatar storage are connected. The next major phase is the actual career simulation layer.
+              </p>
+            </div>
+          </OverviewPanel>
+        </div>
+      </div>
+    </GameLayout>
+  )
+}
+
+function GlobeIcon() {
+  return <span aria-hidden="true" style={{ fontSize: 12 }}>◎</span>
+}
+
+function OverviewStat({
+  icon,
+  label,
+  value,
+  detail,
+}: {
+  icon: JSX.Element
+  label: string
+  value: string
+  detail: string
+}) {
+  return (
+    <div className="tlg-overview-stat">
+      <div className="tlg-overview-stat-head">
+        <span>{label}</span>
+        <span className="tlg-overview-stat-icon">{icon}</span>
+      </div>
+      <strong>{value}</strong>
+      <p>{detail}</p>
     </div>
   )
 }
 
-/**
- * OverviewPage
- *
- * Main overview dashboard composed of multiple cards and placeholders.
- */
-export default function OverviewPage() {
+function OverviewPanel({
+  eyebrow,
+  title,
+  children,
+}: {
+  eyebrow: string
+  title: string
+  children: React.ReactNode
+}) {
   return (
-    <GameLayout
-      title="Overview"
-      subtitle="High-level snapshot of your player, season and performance."
-    >
-      <PageHeading
-        eyebrow="Dashboard"
-        title="Overview"
-        description="This is the main in-game dashboard. All displayed values are placeholders."
-      />
-
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
-        {/* Left column: profile + ranking + form */}
-        <div className="lg:col-span-1 space-y-4">
-          <AppCard eyebrow="Profile" title="Player profile">
-            <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-md bg-slate-200 flex items-center justify-center text-slate-600">
-                <User className="h-7 w-7" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-semibold">Unnamed Player</div>
-                    <div className="text-xs text-slate-600">United States</div>
-                  </div>
-                  <div className="text-xs font-mono text-slate-500">#—</div>
-                </div>
-                <div className="mt-3 space-y-2">
-                  <div className="text-[0.82rem] text-slate-600">World</div>
-                  <div className="inline-flex items-center gap-2">
-                    <span className="px-2 py-1 rounded-md bg-[rgba(5,78,152,0.08)] text-xs font-medium border border-[rgba(5,78,152,0.12)]">
-                      ATP / WTA
-                    </span>
-                    <span className="px-2 py-1 rounded-md bg-[rgba(0,7,19,0.03)] text-xs">Future Professional</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </AppCard>
-
-          <AppCard eyebrow="Rank & Form" title="Ranking & current form" muted>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs text-slate-600">Ranking (placeholder)</div>
-                  <div className="text-lg font-semibold">—</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs text-slate-600">Form</div>
-                  <div className="text-sm font-medium">—</div>
-                </div>
-              </div>
-
-              <div>
-                <div className="text-xs text-slate-600 mb-1">Energy</div>
-                <Progress value={78} />
-              </div>
-              <div>
-                <div className="text-xs text-slate-600 mb-1">Condition</div>
-                <Progress value={64} />
-              </div>
-            </div>
-          </AppCard>
-
-          <AppCard eyebrow="Next event" title="Next match">
-            <div className="text-sm text-slate-600">
-              <div className="mb-2">No confirmed match — placeholder</div>
-              <div className="flex items-center gap-2 text-xs">
-                <Clock3 className="h-4 w-4 text-slate-500" />
-                <div>Season 1 · March 14 · 18:00</div>
-              </div>
-            </div>
-          </AppCard>
+    <section className="tlg-overview-panel">
+      <header className="tlg-overview-panel-header">
+        <div>
+          <span>{eyebrow}</span>
+          <h3>{title}</h3>
         </div>
-
-        {/* Middle and right: rich grid */}
-        <div className="lg:col-span-2 grid gap-4 md:grid-cols-2">
-          <AppCard eyebrow="Tournament" title="Current tournament">
-            <div className="text-sm text-slate-600">
-              Placeholder: no active tournament.
-            </div>
-          </AppCard>
-
-          <AppCard eyebrow="Upcoming" title="Upcoming schedule">
-            <div className="space-y-2 text-sm text-slate-600">
-              <div>• Practice session — Season 1 · Mar 15 · 10:00</div>
-              <div>• Qualifier — Season 1 · Mar 16 · 14:00</div>
-              <div className="mt-3 text-xs text-slate-500">All entries are placeholders.</div>
-            </div>
-          </AppCard>
-
-          <AppCard eyebrow="Results" title="Recent results">
-            <div className="grid gap-2">
-              <div className="flex items-center justify-between text-sm text-slate-600">
-                <div>vs Opponent — Match 1</div>
-                <div>—</div>
-              </div>
-              <div className="flex items-center justify-between text-sm text-slate-600">
-                <div>vs Opponent — Match 2</div>
-                <div>—</div>
-              </div>
-              <div className="mt-2 text-xs text-slate-500">Results are placeholder data.</div>
-            </div>
-          </AppCard>
-
-          <AppCard eyebrow="Development" title="Skill development summary">
-            <div className="space-y-3">
-              <div className="text-xs text-slate-600">Serve</div>
-              <Progress value={46} />
-              <div className="text-xs text-slate-600">Movement</div>
-              <Progress value={52} />
-              <div className="mt-2 text-xs text-slate-500">Detailed skill trees will be wired in a future step.</div>
-            </div>
-          </AppCard>
-
-          <AppCard eyebrow="Finance" title="Finance summary" muted>
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs text-slate-600">Coin balance</div>
-                <div className="text-lg font-semibold">—</div>
-              </div>
-              <div className="text-sm text-slate-600">
-                <div>Tournament income: —</div>
-                <div>Sponsorship: —</div>
-              </div>
-            </div>
-          </AppCard>
-
-          <AppCard eyebrow="Notifications" title="Alerts">
-            <div className="text-sm text-slate-600">
-              <MessageCircle className="inline-block mr-2" />
-              No notifications — placeholder.
-            </div>
-          </AppCard>
-        </div>
-      </div>
-
-      <div className="mt-6 flex items-center justify-between gap-3">
-        <Link to="/">
-          <button className="px-3 py-1 rounded-md bg-slate-100 text-slate-800 text-sm">Back to Home</button>
-        </Link>
-        <div className="text-xs text-slate-500">All data shown are placeholders. TODO: connect Supabase.</div>
-      </div>
-    </GameLayout>
+      </header>
+      <div className="tlg-overview-panel-body">{children}</div>
+    </section>
   )
+}
+
+function ChecklistItem({ title, detail, done = false }: { title: string; detail: string; done?: boolean }) {
+  return (
+    <div className="tlg-overview-check">
+      <span className="tlg-overview-check-icon">{done ? <Check size={15} /> : <Clock3 size={14} />}</span>
+      <div className="tlg-overview-check-copy">
+        <strong>{title}</strong>
+        <span>{detail}</span>
+      </div>
+      <span className="tlg-overview-check-state">{done ? 'Complete' : 'Upcoming'}</span>
+    </div>
+  )
+}
+
+function ProgressBlock({ label, value, note }: { label: string; value: number; note: string }) {
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between gap-3 text-xs">
+        <span className="text-[color:#a9bfd2]">{label}</span>
+        <span className="text-[color:#607a91]">{value}%</span>
+      </div>
+      <div className="tlg-overview-progress"><span style={{ width: `${value}%` }} /></div>
+      <p className="mt-2 text-[0.66rem] text-[color:#607a91]">{note}</p>
+    </div>
+  )
+}
+
+function BriefingRow({ icon, title, value }: { icon: JSX.Element; title: string; value: string }) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-[rgba(115,169,212,.08)] bg-[rgba(4,16,29,.4)] px-3 py-3">
+      <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(14,89,153,.14)] text-[color:#62baf8]">{icon}</span>
+      <div className="min-w-0 flex-1">
+        <div className="text-[0.64rem] uppercase tracking-[.08em] text-[color:#607a91]">{title}</div>
+        <div className="mt-0.5 truncate text-[0.76rem] font-semibold text-[color:#c9dae8]">{value}</div>
+      </div>
+    </div>
+  )
+}
+
+function QuickLink({
+  to,
+  icon,
+  title,
+  subtitle,
+}: {
+  to: string
+  icon: JSX.Element
+  title: string
+  subtitle: string
+}) {
+  return (
+    <Link
+      to={to}
+      className="group flex items-center gap-3 rounded-xl border border-[rgba(115,169,212,.08)] bg-[rgba(4,16,29,.38)] px-3 py-3 transition hover:border-[rgba(82,172,237,.22)] hover:bg-[rgba(11,48,78,.45)]"
+    >
+      <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[rgba(14,89,153,.14)] text-[color:#62baf8]">{icon}</span>
+      <div className="min-w-0 flex-1">
+        <strong className="block text-[0.75rem] text-[color:#cadbe8]">{title}</strong>
+        <span className="mt-0.5 block text-[0.64rem] text-[color:#607a91]">{subtitle}</span>
+      </div>
+      <ChevronRight size={16} className="text-[color:#49677f] transition group-hover:translate-x-0.5 group-hover:text-[color:#70c5ff]" />
+    </Link>
+  )
+}
+
+function capitalize(value: string) {
+  return value.length ? value.charAt(0).toUpperCase() + value.slice(1) : value
 }
