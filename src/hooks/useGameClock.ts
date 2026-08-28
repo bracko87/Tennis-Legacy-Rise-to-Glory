@@ -3,8 +3,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 const MONTH_NAMES = [
-  'Janu',
-  'Feb',
+  'January',
+  'February',
   'March',
   'April',
   'May',
