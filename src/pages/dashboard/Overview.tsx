@@ -13,6 +13,7 @@ import {
 import { Link } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
+import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
 import { supabase } from '../../lib/supabase'
 
@@ -61,7 +62,15 @@ export default function OverviewPage() {
               <div className="tlg-v2-player-copy">
                 <span>Professional profile</span>
                 <strong>{displayName}</strong>
-                <p>{countryName} · {player?.world ?? '—'} World</p>
+                <p className="tlg-v7-country-line">
+                  <CountryFlag
+                    countryCode={player?.country_code}
+                    countryName={countryName}
+                    width={20}
+                    height={15}
+                  />
+                  <span>{countryName} · {player?.world ?? '—'} World</span>
+                </p>
               </div>
             </div>
           </div>
