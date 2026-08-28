@@ -1,7 +1,7 @@
 /**
  * Login.tsx
  *
- * Production sign-in interface connected to Tennis Legacy Supabase Auth.
+ * Premium production sign-in connected to Tennis Legacy Supabase Auth.
  */
 
 import type { FormEvent, ReactNode } from 'react'
@@ -11,7 +11,6 @@ import {
   ArrowLeft,
   ArrowRight,
   CalendarDays,
-  Clock3,
   Eye,
   EyeOff,
   Globe2,
@@ -26,8 +25,8 @@ import FormField from '../../components/common/FormField'
 import { supabase } from '../../lib/supabase'
 
 interface FormStatus {
-  readonly type: 'information' | 'success' | 'error'
-  readonly message: string
+  type: 'information' | 'success' | 'error'
+  message: string
 }
 
 export default function LoginPage() {
@@ -42,10 +41,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (searchParams.get('password') === 'updated') {
-      setStatus({
-        type: 'success',
-        message: 'Your password has been updated. Sign in with your new password.',
-      })
+      setStatus({ type: 'success', message: 'Your password has been updated. Sign in with your new password.' })
     }
   }, [searchParams])
 
@@ -57,23 +53,18 @@ export default function LoginPage() {
     setSubmitted(true)
     setStatus(null)
 
-    if (!emailValid || !passwordValid) return
+    if (!emailValid || !passwordValid || loading) return
 
     setLoading(true)
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    })
+    const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
 
     if (error || !data.user) {
       setLoading(false)
       setStatus({
         type: 'error',
-        message:
-          error?.message.toLowerCase().includes('email not confirmed')
-            ? 'Confirm your email address before signing in. Check the verification email sent after registration.'
-            : 'Unable to sign in with those credentials. Check your email and password and try again.',
+        message: error?.message.toLowerCase().includes('email not confirmed')
+          ? 'Confirm your email address before signing in. Use the verification email sent after registration.'
+          : 'Those sign-in details were not accepted. Check your email and password and try again.',
       })
       return
     }
@@ -87,10 +78,7 @@ export default function LoginPage() {
     setLoading(false)
 
     if (playerError) {
-      setStatus({
-        type: 'error',
-        message: 'You are signed in, but your player profile could not be loaded. Please try again.',
-      })
+      setStatus({ type: 'error', message: 'Your account is signed in, but your player profile could not be loaded. Try again.' })
       return
     }
 
@@ -104,37 +92,37 @@ export default function LoginPage() {
       <header className="tlg-auth-topbar">
         <Link to="/" className="tlg-auth-brand" aria-label="Tennis Legacy homepage">
           <span className="tlg-auth-brand-mark"><TennisBallMark /></span>
-          <span className="tlg-auth-brand-copy">
-            <strong>Tennis Legacy</strong>
-            <small>Rise to Glory</small>
-          </span>
+          <span className="tlg-auth-brand-copy"><strong>Tennis Legacy</strong><small>Rise to Glory</small></span>
         </Link>
-
-        <Link to="/" className="tlg-auth-home-link">
-          <ArrowLeft size={16} />
-          Home
-        </Link>
+        <Link to="/" className="tlg-auth-home-link"><ArrowLeft size={16} /> Home</Link>
       </header>
 
       <main className="tlg-auth-main">
         <section className="tlg-auth-showcase">
           <div className="tlg-auth-showcase-content">
             <span className="tlg-auth-eyebrow">Manager Access</span>
-            <h1>
-              Welcome back to
-              <strong> your tennis legacy.</strong>
-            </h1>
+            <h1>Continue building<strong> your tennis legacy.</strong></h1>
             <p>
-              Return to your professional career, prepare for upcoming tournaments and continue competing in a persistent multiplayer tennis world.
+              Return to your professional career, manage the next decisions and continue competing in a persistent multiplayer tennis universe.
             </p>
 
             <div className="tlg-auth-feature-list">
-              <AuthFeature icon={<Globe2 size={18} />} title="Persistent world" description="Your career continues across connected game seasons." />
-              <AuthFeature icon={<CalendarDays size={18} />} title="Complete schedule" description="Manage tournaments, training, travel and recovery." />
-              <AuthFeature icon={<Trophy size={18} />} title="Career progression" description="Build rankings, titles, records and reputation." />
+              <AuthFeature icon={<Globe2 size={18} />} title="Persistent career world" description="Your professional identity remains connected across every game season." />
+              <AuthFeature icon={<CalendarDays size={18} />} title="Manager operations" description="Prepare tournaments, training, travel, recovery and career decisions." />
+              <AuthFeature icon={<Trophy size={18} />} title="Long-term legacy" description="Rankings, titles, records and milestones will build one continuous career history." />
             </div>
 
-            <CareerPreview />
+            <div className="tlg-auth-career-preview">
+              <div className="tlg-auth-career-preview-header">
+                <span><ShieldCheck size={15} /> Secure career access</span>
+                <span className="tlg-auth-preview-status"><i /> Online</span>
+              </div>
+              <div className="tlg-auth-career-preview-body">
+                <div><span>World</span><strong>ATP or WTA</strong></div>
+                <div><span>Career</span><strong>Persistent</strong></div>
+                <div><span>Session</span><strong>Protected</strong></div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -142,164 +130,59 @@ export default function LoginPage() {
           <div className="tlg-auth-card">
             <div className="tlg-auth-card-heading">
               <span className="tlg-auth-card-icon"><LockKeyhole size={21} /></span>
-              <div>
-                <span>Secure manager access</span>
-                <h2>Sign in</h2>
-              </div>
+              <div><span>Secure manager access</span><h2>Sign in</h2></div>
             </div>
 
-            <p className="tlg-auth-card-description">
-              Enter your account details to access your player dashboard.
-            </p>
+            <p className="tlg-auth-card-description">Enter the credentials for your Tennis Legacy manager account.</p>
 
             <form className="tlg-auth-form" onSubmit={handleSubmit} noValidate>
-              <FormField
-                id="login-email"
-                label="Email address"
-                required
-                error={submitted && !emailValid ? 'Enter a valid email address.' : undefined}
-              >
+              <FormField id="login-email" label="Email address" required error={submitted && !emailValid ? 'Enter a valid email address.' : undefined}>
                 <div className="tlg-input-shell">
-                  <Mail className="tlg-input-leading-icon" size={18} aria-hidden="true" />
-                  <input
-                    id="login-email"
-                    name="email"
-                    type="email"
-                    value={email}
-                    onChange={(event) => {
-                      setEmail(event.target.value)
-                      setStatus(null)
-                    }}
-                    className={`tlg-input tlg-input-with-leading-icon ${submitted && !emailValid ? 'tlg-input-error' : ''}`}
-                    placeholder="manager@example.com"
-                    autoComplete="email"
-                    aria-invalid={submitted && !emailValid}
-                  />
+                  <Mail className="tlg-input-leading-icon" size={18} />
+                  <input id="login-email" type="email" value={email} onChange={(event) => { setEmail(event.target.value); setStatus(null) }} className={`tlg-input tlg-input-with-leading-icon ${submitted && !emailValid ? 'tlg-input-error' : ''}`} placeholder="manager@example.com" autoComplete="email" />
                 </div>
               </FormField>
 
-              <FormField
-                id="login-password"
-                label="Password"
-                required
-                labelAction={
-                  <Link className="tlg-auth-inline-action" to="/forgot-password">
-                    Forgot password?
-                  </Link>
-                }
-                error={submitted && !passwordValid ? 'Password must contain at least 6 characters.' : undefined}
-              >
+              <FormField id="login-password" label="Password" required labelAction={<Link className="tlg-auth-inline-action" to="/forgot-password">Forgot password?</Link>} error={submitted && !passwordValid ? 'Enter your account password.' : undefined}>
                 <div className="tlg-input-shell">
-                  <LockKeyhole className="tlg-input-leading-icon" size={18} aria-hidden="true" />
-                  <input
-                    id="login-password"
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(event) => {
-                      setPassword(event.target.value)
-                      setStatus(null)
-                    }}
-                    className={`tlg-input tlg-input-with-leading-icon tlg-input-with-action ${submitted && !passwordValid ? 'tlg-input-error' : ''}`}
-                    placeholder="Enter your password"
-                    autoComplete="current-password"
-                    aria-invalid={submitted && !passwordValid}
-                  />
-                  <button
-                    type="button"
-                    className="tlg-input-action"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    onClick={() => setShowPassword((current) => !current)}
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
+                  <LockKeyhole className="tlg-input-leading-icon" size={18} />
+                  <input id="login-password" type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => { setPassword(event.target.value); setStatus(null) }} className={`tlg-input tlg-input-with-leading-icon tlg-input-with-action ${submitted && !passwordValid ? 'tlg-input-error' : ''}`} placeholder="Enter your password" autoComplete="current-password" />
+                  <button type="button" className="tlg-input-action" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
                 </div>
               </FormField>
 
               {status && (
-                <div
-                  className={`tlg-auth-status ${status.type === 'error' ? 'tlg-auth-status-information' : `tlg-auth-status-${status.type}`}`}
-                  role={status.type === 'error' ? 'alert' : 'status'}
-                >
-                  <ShieldCheck size={18} />
-                  <span>{status.message}</span>
+                <div className={`tlg-auth-status ${status.type === 'success' ? 'tlg-auth-status-success' : 'tlg-auth-status-information'}`} role={status.type === 'error' ? 'alert' : 'status'}>
+                  <ShieldCheck size={18} /><span>{status.message}</span>
                 </div>
               )}
 
-              <AppButton
-                type="submit"
-                variant="primary"
-                size="large"
-                fullWidth
-                disabled={loading}
-                rightIcon={<ArrowRight size={18} />}
-              >
-                {loading ? 'Signing In…' : 'Sign In'}
+              <AppButton type="submit" variant="primary" size="large" fullWidth loading={loading} rightIcon={<ArrowRight size={18} />}>
+                {loading ? 'Signing in…' : 'Enter manager center'}
               </AppButton>
             </form>
 
             <div className="tlg-auth-divider"><span>New to Tennis Legacy?</span></div>
+            <Link to="/register" className="tlg-auth-outline-button">Create a manager account <ArrowRight size={17} /></Link>
 
-            <Link to="/register" className="tlg-auth-outline-button">
-              Create a manager account
-              <ArrowRight size={17} />
-            </Link>
-
-            <p className="tlg-auth-supabase-note">
-              Authentication is handled by the dedicated Tennis Legacy Supabase project. Only the Supabase authentication session is persisted in the browser.
-            </p>
+            <p className="tlg-auth-supabase-note">Secure authentication · server-side career data · protected manager session</p>
           </div>
         </section>
       </main>
 
-      <footer className="tlg-auth-footer">
-        <span>Tennis Legacy: Rise to Glory</span>
-        <span>Season 1 · March 14 · 18:00</span>
-      </footer>
+      <footer className="tlg-auth-footer"><span>Tennis Legacy: Rise to Glory</span><span>Persistent multiplayer tennis management</span></footer>
     </div>
   )
 }
 
-interface AuthFeatureProps {
-  readonly icon: ReactNode
-  readonly title: string
-  readonly description: string
-}
-
-function AuthFeature({ icon, title, description }: AuthFeatureProps) {
-  return (
-    <div className="tlg-auth-feature">
-      <span className="tlg-auth-feature-icon">{icon}</span>
-      <div><strong>{title}</strong><p>{description}</p></div>
-    </div>
-  )
-}
-
-function CareerPreview() {
-  return (
-    <div className="tlg-auth-career-preview">
-      <div className="tlg-auth-career-preview-header">
-        <span><Clock3 size={15} /> Career world</span>
-        <span className="tlg-auth-preview-status"><i /> Online</span>
-      </div>
-      <div className="tlg-auth-career-preview-body">
-        <div><span>Current season</span><strong>Season 1</strong></div>
-        <div><span>Player world</span><strong>ATP or WTA</strong></div>
-        <div><span>Manager status</span><strong>Ready to compete</strong></div>
-      </div>
-    </div>
-  )
+function AuthFeature({ icon, title, description }: { icon: ReactNode; title: string; description: string }) {
+  return <div className="tlg-auth-feature"><span className="tlg-auth-feature-icon">{icon}</span><div><strong>{title}</strong><p>{description}</p></div></div>
 }
 
 function TennisBallMark() {
   return (
     <svg viewBox="0 0 48 48" aria-hidden="true">
-      <defs>
-        <linearGradient id="loginBrandGradient" x1="5" y1="4" x2="44" y2="46" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#0874D1" />
-          <stop offset="1" stopColor="#001D3F" />
-        </linearGradient>
-      </defs>
+      <defs><linearGradient id="loginBrandGradient" x1="5" y1="4" x2="44" y2="46" gradientUnits="userSpaceOnUse"><stop stopColor="#0874D1" /><stop offset="1" stopColor="#001D3F" /></linearGradient></defs>
       <rect x="2" y="2" width="44" height="44" rx="12" fill="url(#loginBrandGradient)" />
       <circle cx="24" cy="24" r="12.5" fill="none" stroke="#FFFFFF" strokeWidth="2" />
       <path d="M15.8 14.6c5.5 3.1 9.4 8.2 11.2 14.7" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
@@ -309,12 +192,5 @@ function TennisBallMark() {
 }
 
 function AuthBackground() {
-  return (
-    <div className="tlg-auth-background" aria-hidden="true">
-      <div className="tlg-auth-background-grid" />
-      <div className="tlg-auth-background-glow-one" />
-      <div className="tlg-auth-background-glow-two" />
-      <div className="tlg-auth-background-court" />
-    </div>
-  )
+  return <div className="tlg-auth-background" aria-hidden="true"><div className="tlg-auth-background-grid" /><div className="tlg-auth-background-glow-one" /><div className="tlg-auth-background-glow-two" /><div className="tlg-auth-background-court" /></div>
 }
