@@ -7,6 +7,7 @@
  */
 
 import './styles/globals.css'
+import './styles/premium.css'
 
 import {
   BrowserRouter,
