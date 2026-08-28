@@ -1,0 +1,104 @@
+/*
+ * Homepage branding overrides.
+ *
+ * Uses the exact Tennis Legacy asset supplied by the project owner. The source
+ * image itself is not edited, recoloured, cropped or regenerated; CSS only
+ * controls its on-page size/placement and the requested edge fade.
+ */
+
+:root {
+  --tlg-home-supplied-brand-asset: url("https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/logo%20333.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9sb2dvIDMzMy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg3OTQ1MDc5LCJleHAiOjQ5MTAwMDkwNzl9.Q7Ocay_B1kouWo_XmmgtVcGOCh0xtzhzaIm713AhU-ci-xJPY3JanaT3xhdkptAuKV5kUJGHov34fSM2TGjmcQ");
+}
+
+/* Header: keep the existing Tennis Legacy text, replace only the logo mark. */
+.tlg-brand-mark {
+  background: var(--tlg-home-supplied-brand-asset) center / contain no-repeat !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.tlg-brand-mark > * {
+  visibility: hidden !important;
+}
+
+/*
+ * Hero: replace the old court/preview UI with the supplied artwork.
+ * background-size: contain guarantees that the full original image remains
+ * visible and is never cropped. The mask only fades its outer edges into the
+ * existing page background, as requested.
+ */
+.tlg-hero-visual-column {
+  position: relative !important;
+  isolation: isolate;
+  min-height: 560px;
+}
+
+.tlg-hero-visual-column > * {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.tlg-hero-visual-column::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: -4% -7%;
+  background-image: var(--tlg-home-supplied-brand-asset);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(
+    ellipse 78% 76% at center,
+    #000 0%,
+    #000 50%,
+    rgba(0, 0, 0, 0.96) 62%,
+    rgba(0, 0, 0, 0.62) 76%,
+    rgba(0, 0, 0, 0.18) 89%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 78% 76% at center,
+    #000 0%,
+    #000 50%,
+    rgba(0, 0, 0, 0.96) 62%,
+    rgba(0, 0, 0, 0.62) 76%,
+    rgba(0, 0, 0, 0.18) 89%,
+    transparent 100%
+  );
+}
+
+@media (max-width: 980px) {
+  .tlg-hero-visual-column {
+    min-height: 430px;
+  }
+
+  .tlg-hero-visual-column::before {
+    inset: -2% -4%;
+  }
+}
+
+@media (max-width: 640px) {
+  .tlg-hero-visual-column {
+    min-height: 330px;
+  }
+
+  .tlg-hero-visual-column::before {
+    inset: 0;
+    -webkit-mask-image: radial-gradient(
+      ellipse 86% 78% at center,
+      #000 0%,
+      #000 54%,
+      rgba(0, 0, 0, 0.68) 78%,
+      transparent 100%
+    );
+    mask-image: radial-gradient(
+      ellipse 86% 78% at center,
+      #000 0%,
+      #000 54%,
+      rgba(0, 0, 0, 0.68) 78%,
+      transparent 100%
+    );
+  }
+}
