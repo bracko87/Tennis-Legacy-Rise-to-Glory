@@ -1,0 +1,277 @@
+/*
+ * Tennis Legacy dashboard v4
+ * Header/sidebar refinements requested after the light workspace redesign.
+ */
+
+/* Logo-only sidebar brand ------------------------------------------------ */
+
+.tlg-v4-sidebar-brand {
+  min-height: 96px;
+  padding: 14px 18px 8px;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+.tlg-v4-logo-image {
+  display: block;
+  width: auto;
+  max-width: 172px;
+  max-height: 58px;
+  object-fit: contain;
+  object-position: left center;
+  background: transparent;
+  filter: drop-shadow(0 5px 12px rgba(0, 0, 0, .14));
+}
+
+.tlg-v2-sidebar-collapsed .tlg-v4-sidebar-brand {
+  padding-left: 10px;
+  padding-right: 10px;
+  justify-content: center;
+}
+
+.tlg-v2-sidebar-collapsed .tlg-v4-logo-image {
+  width: 44px;
+  height: 48px;
+  max-width: 44px;
+  max-height: 48px;
+  object-fit: cover;
+  object-position: left center;
+}
+
+/* Simplified player header ----------------------------------------------- */
+
+.tlg-v4-header {
+  min-height: 78px;
+}
+
+.tlg-v4-player-identity {
+  min-width: 180px;
+}
+
+.tlg-v4-player-name {
+  display: block;
+  color: #14273a;
+  font-size: .92rem;
+  font-weight: 780;
+  letter-spacing: -.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tlg-v4-player-country {
+  display: block;
+  margin-top: 4px;
+  color: #75899a;
+  font-size: .63rem;
+  font-weight: 600;
+}
+
+.tlg-v4-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tlg-v4-header-action {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 8px;
+  color: #587084;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  font-size: .67rem;
+  font-weight: 700;
+  transition: color 150ms ease, background 150ms ease;
+}
+
+.tlg-v4-header-action:hover {
+  color: #0d69a6;
+  background: #edf5fa;
+}
+
+.tlg-v4-header-action svg {
+  flex: 0 0 auto;
+}
+
+.tlg-v4-chevron-open {
+  transform: rotate(180deg);
+}
+
+.tlg-v4-settings {
+  position: relative;
+}
+
+.tlg-v4-settings-menu {
+  position: absolute;
+  top: calc(100% + 9px);
+  right: 0;
+  width: 248px;
+  z-index: 60;
+  overflow: hidden;
+  padding: 8px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #dce5ec;
+  box-shadow: 0 18px 44px rgba(20, 43, 66, .16);
+}
+
+.tlg-v4-settings-heading {
+  padding: 7px 9px 8px;
+  color: #8293a2;
+  font-size: .54rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+
+.tlg-v4-settings-row {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 9px;
+  border-radius: 8px;
+  color: #426077;
+  text-align: left;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.tlg-v4-settings-row:hover:not(:disabled) {
+  color: #0c689f;
+  background: #eef6fb;
+}
+
+.tlg-v4-settings-row:disabled {
+  cursor: default;
+  opacity: .52;
+}
+
+.tlg-v4-settings-row > span {
+  min-width: 0;
+  flex: 1;
+}
+
+.tlg-v4-settings-row strong,
+.tlg-v4-settings-row small {
+  display: block;
+}
+
+.tlg-v4-settings-row strong {
+  font-size: .65rem;
+  font-weight: 740;
+}
+
+.tlg-v4-settings-row small {
+  margin-top: 3px;
+  color: #8a9aa7;
+  font-size: .55rem;
+}
+
+/* Sign out in the sidebar ------------------------------------------------ */
+
+.tlg-v4-sidebar-footer {
+  margin-top: auto;
+  padding: 16px 14px 20px;
+  border-top: 1px solid rgba(255, 255, 255, .05);
+}
+
+.tlg-v4-signout-button {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  color: #8298aa;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  font-size: .68rem;
+  font-weight: 700;
+  transition: color 150ms ease, background 150ms ease;
+}
+
+.tlg-v4-signout-button:hover {
+  color: #ffb5bd;
+  background: rgba(159, 49, 63, .14);
+}
+
+.tlg-v2-sidebar-collapsed .tlg-v4-sidebar-footer {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.tlg-v2-sidebar-collapsed .tlg-v4-signout-button {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Overview starts directly with its operational content ----------------- */
+
+.tlg-v2-content > .tlg-v2-command:first-child {
+  margin-top: 2px;
+}
+
+/* Live global game clock ------------------------------------------------- */
+
+.tlg-v4-footer {
+  min-height: 52px;
+}
+
+.tlg-v4-game-clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #536c80;
+  font-size: .62rem;
+}
+
+.tlg-v4-game-clock svg {
+  color: #1680c4;
+}
+
+.tlg-v4-game-clock strong {
+  color: #19364e;
+  font-weight: 780;
+}
+
+.tlg-v4-clock-speed {
+  color: #8798a6;
+  font-size: .58rem;
+  font-weight: 650;
+}
+
+@media (max-width: 760px) {
+  .tlg-v4-header {
+    min-height: 72px;
+  }
+
+  .tlg-v4-player-name {
+    font-size: .8rem;
+  }
+
+  .tlg-v4-header-action {
+    width: 36px;
+    padding: 0;
+  }
+
+  .tlg-v4-header-action > span {
+    display: none;
+  }
+
+  .tlg-v4-settings-menu {
+    right: -4px;
+    width: min(248px, calc(100vw - 28px));
+  }
+
+  .tlg-v4-footer {
+    align-items: flex-start;
+  }
+}
