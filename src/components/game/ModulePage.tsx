@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react'
-import { CheckCircle2, Clock3, Construction, Sparkles } from 'lucide-react'
+import { CheckCircle2, Clock3, Construction, Database } from 'lucide-react'
 
 import GameLayout from '../layout/GameLayout'
-import PageHeading from '../common/PageHeading'
 
 export interface ModuleMilestone {
   title: string
@@ -35,40 +34,44 @@ export default function ModulePage({
 }: ModulePageProps) {
   return (
     <GameLayout title={title} subtitle={subtitle}>
-      <PageHeading
-        eyebrow={eyebrow}
-        title={title}
-        description={intro}
-      />
+      <header className="tlg-v2-page-head">
+        <div className="tlg-v2-page-head-copy">
+          <div className="tlg-v2-page-eyebrow">{eyebrow}</div>
+          <h2 className="tlg-v2-page-title">{title}</h2>
+          <p className="tlg-v2-page-description">{intro}</p>
+        </div>
+      </header>
 
-      <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(300px,.8fr)]">
-        <section className="tlg-overview-panel">
-          <header className="tlg-overview-panel-header">
+      <div className="tlg-v2-module-grid">
+        <section className="tlg-v2-panel">
+          <header className="tlg-v2-panel-header">
             <div>
-              <span>Module roadmap</span>
-              <h3>{title} systems</h3>
+              <span>System roadmap</span>
+              <h3>{title} operations</h3>
             </div>
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[rgba(89,174,238,.13)] bg-[rgba(14,89,153,.12)] text-[color:#69c2fb]">
-              {icon}
-            </span>
+            <div className="tlg-v2-panel-icon">{icon}</div>
           </header>
-          <div className="tlg-overview-panel-body">
-            <div className="grid gap-2">
+
+          <div className="tlg-v2-panel-body">
+            <div className="tlg-v2-roadmap">
               {milestones.map((milestone) => {
                 const ready = milestone.state === 'ready'
+
                 return (
                   <div
                     key={milestone.title}
-                    className="grid grid-cols-[34px_1fr_auto] items-center gap-3 rounded-xl border border-[rgba(115,169,212,.08)] bg-[rgba(4,16,29,.4)] px-3 py-3"
+                    className={`tlg-v2-roadmap-row ${ready ? 'tlg-v2-roadmap-row-ready' : ''}`}
                   >
-                    <span className={`inline-flex h-8 w-8 items-center justify-center rounded-lg ${ready ? 'bg-[rgba(41,138,81,.11)] text-[color:#73d89a]' : 'bg-[rgba(14,89,153,.12)] text-[color:#67bdf7]'}`}>
+                    <span className="tlg-v2-roadmap-icon">
                       {ready ? <CheckCircle2 size={16} /> : <Clock3 size={15} />}
                     </span>
-                    <div className="min-w-0">
-                      <strong className="block text-[0.76rem] font-semibold text-[color:#cbddea]">{milestone.title}</strong>
-                      <span className="mt-0.5 block text-[0.65rem] leading-relaxed text-[color:#627c92]">{milestone.detail}</span>
+
+                    <div className="tlg-v2-roadmap-copy">
+                      <strong>{milestone.title}</strong>
+                      <span>{milestone.detail}</span>
                     </div>
-                    <span className="text-[0.58rem] font-bold uppercase tracking-[.08em] text-[color:#557189]">
+
+                    <span className="tlg-v2-roadmap-state">
                       {ready ? 'Ready' : 'Planned'}
                     </span>
                   </div>
@@ -80,42 +83,44 @@ export default function ModulePage({
           </div>
         </section>
 
-        <div className="grid content-start gap-4">
-          <section className="tlg-overview-panel">
-            <header className="tlg-overview-panel-header">
+        <aside className="tlg-v2-stack">
+          <section className="tlg-v2-panel">
+            <header className="tlg-v2-panel-header">
               <div>
-                <span>System status</span>
+                <span>Module status</span>
                 <h3>{sideTitle}</h3>
               </div>
+              <div className="tlg-v2-panel-icon"><Construction size={17} /></div>
             </header>
-            <div className="tlg-overview-panel-body">
-              <div className="tlg-overview-empty">
-                <Construction size={25} />
-                <strong>Designed for live game data</strong>
+            <div className="tlg-v2-panel-body">
+              <div className="tlg-v2-empty">
+                <Construction size={24} />
+                <strong>Built for live game data</strong>
                 <p>{sideDescription}</p>
               </div>
             </div>
           </section>
 
-          <section className="tlg-overview-panel">
-            <header className="tlg-overview-panel-header">
+          <section className="tlg-v2-panel">
+            <header className="tlg-v2-panel-header">
               <div>
-                <span>Design principle</span>
-                <h3>No fake career data</h3>
+                <span>Data policy</span>
+                <h3>Server-backed career state</h3>
               </div>
+              <div className="tlg-v2-panel-icon"><Database size={17} /></div>
             </header>
-            <div className="tlg-overview-panel-body">
-              <div className="flex gap-3 rounded-xl border border-[rgba(115,169,212,.08)] bg-[rgba(4,16,29,.4)] p-3">
-                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[rgba(14,89,153,.12)] text-[color:#67bdf7]">
-                  <Sparkles size={17} />
-                </span>
-                <p className="text-[0.69rem] leading-relaxed text-[color:#70899f]">
-                  This page intentionally shows clear system states until its Supabase-backed simulation data exists. Live values will replace these states as each engine is implemented.
+            <div className="tlg-v2-panel-body">
+              <div className="tlg-v2-info-row">
+                <span className="tlg-v2-info-row-icon"><Database size={16} /></span>
+                <p>
+                  This workspace intentionally avoids fake career values. Live rankings,
+                  finances, skills, schedules and results will appear only after their
+                  Supabase-backed systems are implemented.
                 </p>
               </div>
             </div>
           </section>
-        </div>
+        </aside>
       </div>
     </GameLayout>
   )
