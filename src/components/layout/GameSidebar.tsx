@@ -17,7 +17,7 @@ import { Link, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../../auth/AuthContext'
 import { supabase } from '../../lib/supabase'
 
-const TENNIS_LEGACY_LOGO_PATH = 'Branding/01e18414-8243-48da-b6b7-6d758a3d59f9.png'
+const TENNIS_LEGACY_LOGO_PATH = 'Branding/logo 333.png'
 
 export interface GameSidebarProps {
   isCollapsed: boolean
@@ -168,6 +168,7 @@ export default function GameSidebar({
             <LogOut size={16} />
             {!isCollapsed && <span>Sign out</span>}
           </button>
+          {!isCollapsed && <div className="tlg-v6-version">Version 1.0.0</div>}
         </div>
       </aside>
     </>
