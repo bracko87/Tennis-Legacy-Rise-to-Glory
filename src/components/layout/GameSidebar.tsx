@@ -8,10 +8,15 @@ import {
   CircleDollarSign,
   Clock3,
   LayoutDashboard,
+  LogOut,
   Shield,
-  Trophy,
 } from 'lucide-react'
-import { Link, useLocation } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
+
+import { useAuth } from '../../auth/AuthContext'
+
+const TENNIS_LEGACY_LOGO =
+  'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/public/email-branding/tennis-legacy-logo.png'
 
 export interface GameSidebarProps {
   isCollapsed: boolean
@@ -45,6 +50,16 @@ export default function GameSidebar({
   onMobileClose,
 }: GameSidebarProps) {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { signOut } = useAuth()
+
+  async function handleSignOut() {
+    try {
+      await signOut()
+    } finally {
+      navigate('/login', { replace: true })
+    }
+  }
 
   return (
     <>
@@ -64,17 +79,12 @@ export default function GameSidebar({
           !isMobileOpen && 'tlg-v2-sidebar-mobile-closed',
         )}
       >
-        <div className="tlg-v2-sidebar-brand">
-          <span className="tlg-v2-brand-mark" aria-hidden="true">
-            <Trophy size={18} />
-          </span>
-
-          {!isCollapsed && (
-            <div className="tlg-v2-brand-copy">
-              <strong>Tennis Legacy</strong>
-              <span>Rise to Glory</span>
-            </div>
-          )}
+        <div className="tlg-v2-sidebar-brand tlg-v4-sidebar-brand">
+          <img
+            src={TENNIS_LEGACY_LOGO}
+            alt="Tennis Legacy: Rise to Glory"
+            className="tlg-v4-logo-image"
+          />
         </div>
 
         <button
@@ -118,20 +128,16 @@ export default function GameSidebar({
           })}
         </nav>
 
-        <div className="tlg-v2-sidebar-footer">
-          {!isCollapsed ? (
-            <div className="tlg-v2-server-card">
-              <div className="tlg-v2-server-line">
-                <span className="tlg-v2-status-dot" />
-                Career world online
-              </div>
-              <p>Account and player identity are synchronized with Tennis Legacy servers.</p>
-            </div>
-          ) : (
-            <div className="flex justify-center py-2" title="Career world online">
-              <span className="tlg-v2-status-dot" />
-            </div>
-          )}
+        <div className="tlg-v2-sidebar-footer tlg-v4-sidebar-footer">
+          <button
+            type="button"
+            className="tlg-v4-signout-button"
+            onClick={() => void handleSignOut()}
+            title="Sign out"
+          >
+            <LogOut size={16} />
+            {!isCollapsed && <span>Sign out</span>}
+          </button>
         </div>
       </aside>
     </>
