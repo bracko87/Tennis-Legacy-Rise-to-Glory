@@ -6,7 +6,6 @@ import {
   CircleDollarSign,
   Clock3,
   Dumbbell,
-  Flag,
   Medal,
   ShieldCheck,
   Trophy,
@@ -52,12 +51,6 @@ export default function OverviewPage() {
               central decision point for tournaments, training, finance, equipment and
               performance as those career engines are introduced.
             </p>
-
-            <div className="tlg-v2-command-tags">
-              <span className="tlg-v2-tag"><Trophy size={13} /> {player?.world ?? '—'} World</span>
-              <span className="tlg-v2-tag"><Flag size={13} /> {countryName}</span>
-              <span className="tlg-v2-tag"><ShieldCheck size={13} /> {capitalize(player?.moderation_status ?? 'pending')}</span>
-            </div>
           </div>
 
           <div className="tlg-v2-player-card">
@@ -203,8 +196,4 @@ function QuickLink({ to, icon, title, subtitle }: { to: string; icon: JSX.Elemen
       <ChevronRight size={15} />
     </Link>
   )
-}
-
-function capitalize(value: string) {
-  return value.length ? value.charAt(0).toUpperCase() + value.slice(1) : value
 }
