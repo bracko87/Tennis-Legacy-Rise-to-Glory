@@ -1,18 +1,19 @@
 /*
  * Homepage branding overrides.
  *
- * Uses the exact Tennis Legacy asset supplied by the project owner. The source
- * image itself is never edited, recoloured, cropped or regenerated; CSS only
- * controls its on-page size/placement and the requested background fade.
+ * The header and hero intentionally use two different owner-supplied assets.
+ * Neither source image is edited, recoloured, cropped or regenerated; CSS only
+ * controls display size, placement and the requested fade into the background.
  */
 
 :root {
-  --tlg-home-supplied-brand-asset: url("https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/logo%20333.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9sb2dvIDMzMy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg3OTQ1MDc5LCJleHAiOjQ5MTAwMDkwNzl9.Q7Ocay_B1kouWo_XmmgtVcGOCh0xtzhzaIm713AhU-ci-xJPY3JanaT3xhdkptAuKV5kUJGHov34fSM2TGjmcQ");
+  --tlg-home-header-logo: url("https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/logo%20333.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9sb2dvIDMzMy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg3OTQ1MDc5LCJleHAiOjQ5MTAwMDkwNzl9.Q7Ocay_B1kouWo_XmmgtVcGOCh0xtzhzaIm713AhU-ci-xJPY3JanaT3xhdkptAuKV5kUJGHov34fSM2TGjmcQ");
+  --tlg-home-hero-image: url("https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/acef20b4-e13b-4a67-8f4e-56c6a1bc39ef.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9hY2VmMjBiNC1lMTNiLTRhNjctOGY0ZS01NmM2YTFiYzM5ZWYucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4Nzk0NTgyOCwiZXhwIjo0OTEwMDA5ODI4fQ.ntlwrn1iKi1C7DyNTA3hV-_-5PN3P1bF-K4Q3HLPOAhdJSO3wFgdfyAtzS-zcGsJbleZAtyyK0Q4xZAlC2uPrg");
 }
 
 /* Header: keep the existing Tennis Legacy text, replace only the logo mark. */
 .tlg-brand-mark {
-  background: var(--tlg-home-supplied-brand-asset) center / contain no-repeat !important;
+  background: var(--tlg-home-header-logo) center / contain no-repeat !important;
   border: 0 !important;
   box-shadow: none !important;
   overflow: visible !important;
@@ -25,20 +26,25 @@
 /*
  * HERO ARTWORK
  *
- * The old court/ranking preview stays in the source code for now but is hidden
- * visually. The exact supplied artwork is rendered twice with CSS:
+ * The old court/ranking preview remains in the component but is hidden. The
+ * exact supplied acef20b4... artwork is shown in its place.
  *
- *   ::after  = the untouched, sharp original artwork
- *   ::before = a larger blurred copy which creates the requested stretched /
- *              dissolved transition into the existing dark-blue background
- *
- * No pixels of the original source asset are changed.
+ * ::after  = sharp original image
+ * ::before = enlarged blurred copy that stretches the outer colours into the
+ *            surrounding dark-blue page so there is no hard image rectangle
  */
 .tlg-hero-visual-column {
   position: relative !important;
   isolation: isolate;
   min-height: 570px;
   overflow: visible;
+  background:
+    radial-gradient(
+      ellipse 74% 72% at center,
+      rgba(8, 93, 170, 0.10) 0%,
+      rgba(5, 64, 119, 0.06) 48%,
+      rgba(1, 31, 63, 0) 79%
+    );
 }
 
 .tlg-hero-visual-column > * {
@@ -46,81 +52,69 @@
   pointer-events: none !important;
 }
 
-/* Soft stretched colour/light bleed around the supplied image. */
+/* Stretched / dissolved colour continuation beyond the image edges. */
 .tlg-hero-visual-column::before {
   content: "";
   position: absolute;
   z-index: 1;
-  inset: -14% -18% -12%;
+  inset: -16% -20% -14%;
   pointer-events: none;
-  background-image: var(--tlg-home-supplied-brand-asset);
+  background-image: var(--tlg-home-hero-image);
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 118% 104%;
-  opacity: 0.28;
-  filter: blur(34px) saturate(1.18);
-  transform: scaleX(1.08);
+  background-size: 122% 108%;
+  opacity: 0.34;
+  filter: blur(38px) saturate(1.14);
+  transform: scaleX(1.12);
   transform-origin: center;
   -webkit-mask-image: radial-gradient(
-    ellipse 72% 68% at center,
+    ellipse 76% 70% at center,
     #000 0%,
-    rgba(0, 0, 0, 0.98) 38%,
-    rgba(0, 0, 0, 0.72) 58%,
-    rgba(0, 0, 0, 0.30) 75%,
-    transparent 96%
+    rgba(0, 0, 0, 0.96) 40%,
+    rgba(0, 0, 0, 0.72) 59%,
+    rgba(0, 0, 0, 0.30) 77%,
+    transparent 98%
   );
   mask-image: radial-gradient(
-    ellipse 72% 68% at center,
+    ellipse 76% 70% at center,
     #000 0%,
-    rgba(0, 0, 0, 0.98) 38%,
-    rgba(0, 0, 0, 0.72) 58%,
-    rgba(0, 0, 0, 0.30) 75%,
-    transparent 96%
+    rgba(0, 0, 0, 0.96) 40%,
+    rgba(0, 0, 0, 0.72) 59%,
+    rgba(0, 0, 0, 0.30) 77%,
+    transparent 98%
   );
 }
 
-/* Exact original artwork, with only its outer presentation faded into blue. */
+/* Exact supplied image. contain keeps the complete artwork visible. */
 .tlg-hero-visual-column::after {
   content: "";
   position: absolute;
   z-index: 2;
-  inset: -2% -5% 0;
+  inset: -3% -7% -1%;
   pointer-events: none;
-  background-image: var(--tlg-home-supplied-brand-asset);
+  background-image: var(--tlg-home-hero-image);
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  filter: drop-shadow(0 20px 42px rgba(0, 20, 46, 0.34));
+  filter: drop-shadow(0 20px 44px rgba(0, 20, 46, 0.28));
   -webkit-mask-image: radial-gradient(
-    ellipse 82% 78% at center,
+    ellipse 85% 80% at center,
     #000 0%,
-    #000 54%,
-    rgba(0, 0, 0, 0.96) 64%,
-    rgba(0, 0, 0, 0.72) 76%,
-    rgba(0, 0, 0, 0.36) 88%,
+    #000 56%,
+    rgba(0, 0, 0, 0.96) 66%,
+    rgba(0, 0, 0, 0.72) 78%,
+    rgba(0, 0, 0, 0.34) 90%,
     transparent 100%
   );
   mask-image: radial-gradient(
-    ellipse 82% 78% at center,
+    ellipse 85% 80% at center,
     #000 0%,
-    #000 54%,
-    rgba(0, 0, 0, 0.96) 64%,
-    rgba(0, 0, 0, 0.72) 76%,
-    rgba(0, 0, 0, 0.36) 88%,
+    #000 56%,
+    rgba(0, 0, 0, 0.96) 66%,
+    rgba(0, 0, 0, 0.72) 78%,
+    rgba(0, 0, 0, 0.34) 90%,
     transparent 100%
   );
-}
-
-/* Extra blue veil at the outermost edges so no rectangular image boundary
-   can ever be visible, even if the source artwork later contains edge pixels. */
-.tlg-hero-visual-column {
-  background:
-    radial-gradient(
-      ellipse 72% 72% at center,
-      rgba(8, 93, 170, 0.08) 0%,
-      rgba(5, 64, 119, 0.06) 46%,
-      rgba(1, 31, 63, 0) 76%
-    );
 }
 
 @media (max-width: 980px) {
@@ -129,13 +123,13 @@
   }
 
   .tlg-hero-visual-column::before {
-    inset: -12% -14%;
-    background-size: 116% 102%;
-    filter: blur(28px) saturate(1.14);
+    inset: -12% -15%;
+    background-size: 118% 104%;
+    filter: blur(30px) saturate(1.12);
   }
 
   .tlg-hero-visual-column::after {
-    inset: -1% -3% 0;
+    inset: -1% -4% 0;
   }
 }
 
@@ -146,25 +140,25 @@
 
   .tlg-hero-visual-column::before {
     inset: -8% -10%;
-    background-size: 114% 100%;
-    opacity: 0.24;
-    filter: blur(22px) saturate(1.1);
+    background-size: 116% 102%;
+    opacity: 0.28;
+    filter: blur(24px) saturate(1.08);
   }
 
   .tlg-hero-visual-column::after {
     inset: 0;
     -webkit-mask-image: radial-gradient(
-      ellipse 88% 82% at center,
+      ellipse 90% 84% at center,
       #000 0%,
-      #000 58%,
-      rgba(0, 0, 0, 0.72) 80%,
+      #000 60%,
+      rgba(0, 0, 0, 0.70) 82%,
       transparent 100%
     );
     mask-image: radial-gradient(
-      ellipse 88% 82% at center,
+      ellipse 90% 84% at center,
       #000 0%,
-      #000 58%,
-      rgba(0, 0, 0, 0.72) 80%,
+      #000 60%,
+      rgba(0, 0, 0, 0.70) 82%,
       transparent 100%
     );
   }
