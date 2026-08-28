@@ -1,15 +1,14 @@
 /**
  * GameHeader.tsx
  *
- * Header bar used on all in-game dashboard pages. Uses the authenticated
- * Tennis Legacy player record and exposes a direct sign-out action.
+ * Shared premium command bar for all authenticated game routes.
  */
 
-import { LogOut } from 'lucide-react'
+import { Bell, ChevronDown, LogOut, Menu, Radio } from 'lucide-react'
 import { useNavigate } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
-import AppButton from '../common/AppButton'
+import { supabase } from '../../lib/supabase'
 
 export interface GameHeaderProps {
   title: string
@@ -31,6 +30,9 @@ export default function GameHeader({
   const initials = player
     ? `${player.first_name.charAt(0)}${player.last_name.charAt(0)}`.toUpperCase()
     : 'TL'
+  const avatarUrl = player?.image_path
+    ? supabase.storage.from('player-avatars').getPublicUrl(player.image_path).data.publicUrl
+    : null
 
   async function handleSignOut() {
     try {
@@ -42,68 +44,79 @@ export default function GameHeader({
 
   return (
     <header className="tlg-game-header">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-6">
-        <div className="flex items-center gap-3">
+      <div className="flex min-h-[72px] items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
           <button
             type="button"
             onClick={onToggleSidebarMobile}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[rgba(15,23,42,0.7)] bg-[rgba(15,23,42,0.8)] text-[rgba(226,232,240,0.9)] hover:bg-[rgba(15,23,42,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(191,219,254,0.9)] md:hidden"
-            aria-label="Toggle navigation"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[rgba(118,174,218,.12)] bg-[rgba(10,30,50,.7)] text-[color:#8ea9bf] transition hover:border-[rgba(82,172,237,.25)] hover:text-white md:hidden"
+            aria-label="Open navigation"
           >
-            <span className="h-3 w-3">
-              <span className="block h-0.5 w-full bg-[rgba(226,232,240,0.9)]" />
-              <span className="mt-1 block h-0.5 w-full bg-[rgba(226,232,240,0.9)]" />
-            </span>
+            <Menu size={17} />
           </button>
 
-          <div className="space-y-0.5">
-            <p className="tlg-page-heading-eyebrow">Tennis Legacy · Manager View</p>
-            <div>
-              <h1 className="text-base font-semibold tracking-wide text-[color:var(--tlg-white)] md:text-lg">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="hidden text-[0.62rem] font-extrabold uppercase tracking-[.15em] text-[color:#5faee8] sm:inline">
+                Tennis Legacy
+              </span>
+              <span className="hidden h-1 w-1 rounded-full bg-[color:#32516b] sm:inline" />
+              <span className="hidden items-center gap-1 text-[0.62rem] text-[color:#68839a] sm:inline-flex">
+                <Radio size={11} /> Live career world
+              </span>
+            </div>
+            <div className="mt-0.5 flex min-w-0 items-baseline gap-3">
+              <h1 className="truncate text-[1rem] font-bold tracking-[-.025em] text-[color:#f0f7fd] md:text-[1.08rem]">
                 {title}
               </h1>
               {subtitle && (
-                <p className="text-[0.8rem] text-[rgba(226,232,240,0.82)]">
+                <span className="hidden truncate text-[0.69rem] text-[color:#69849a] lg:inline">
                   {subtitle}
-                </p>
+                </span>
               )}
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden items-center gap-2 rounded-full border border-[rgba(191,219,254,0.45)] bg-[rgba(15,23,42,0.35)] px-2 py-1 text-[0.8rem] font-medium text-[rgba(226,232,240,0.9)] sm:flex">
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[rgba(37,99,235,0.8)] text-[0.6rem] font-bold">
-              {player?.world?.charAt(0) ?? 'W'}
+        <div className="flex items-center gap-2">
+          <div className="hidden items-center gap-2 rounded-xl border border-[rgba(116,174,218,.1)] bg-[rgba(6,22,38,.55)] px-3 py-2 md:flex">
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-[rgba(15,96,164,.18)] text-[0.62rem] font-extrabold text-[color:#71c4fb]">
+              {player?.world ?? '—'}
             </span>
-            <span>{player ? `${player.world} World` : 'World'}</span>
+            <div className="leading-tight">
+              <span className="block text-[0.56rem] uppercase tracking-[.08em] text-[color:#55738c]">Career world</span>
+              <strong className="block text-[0.68rem] font-semibold text-[color:#a9c0d2]">Season 1</strong>
+            </div>
           </div>
 
           <button
             type="button"
             aria-label="Notifications"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[rgba(191,219,254,0.5)] bg-[rgba(15,23,42,0.4)] text-[rgba(226,232,240,0.9)] hover:bg-[rgba(15,23,42,0.95)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(191,219,254,0.9)]"
+            className="relative inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[rgba(116,174,218,.1)] bg-[rgba(6,22,38,.55)] text-[color:#7793a9] transition hover:border-[rgba(82,172,237,.25)] hover:text-white"
           >
-            <span className="h-3 w-3 rounded-full border border-[rgba(226,232,240,0.9)]" />
+            <Bell size={16} />
+            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[color:#2d9be7] shadow-[0_0_0_3px_rgba(45,155,231,.1)]" />
           </button>
 
-          <div className="hidden items-center gap-2 rounded-md border border-[rgba(191,219,254,0.35)] bg-[rgba(15,23,42,0.35)] px-2 py-1 sm:flex">
-            <span className="max-w-40 truncate text-xs text-[rgba(226,232,240,0.9)]">
-              {displayName}
+          <div className="hidden items-center gap-2 rounded-xl border border-[rgba(116,174,218,.1)] bg-[rgba(6,22,38,.55)] p-1.5 pr-2 sm:flex">
+            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[rgba(94,177,235,.14)] bg-[linear-gradient(145deg,rgba(18,101,174,.34),rgba(5,31,55,.72))] text-[0.62rem] font-extrabold text-[color:#b6def6]">
+              {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : initials}
             </span>
-            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-[rgba(191,219,254,0.5)] text-[0.65rem]">
-              {initials}
-            </span>
+            <div className="max-w-[150px] leading-tight">
+              <strong className="block truncate text-[0.7rem] font-semibold text-[color:#c9dce9]">{displayName}</strong>
+              <span className="block text-[0.58rem] text-[color:#607a91]">{player?.world ?? '—'} professional</span>
+            </div>
+            <ChevronDown size={13} className="text-[color:#4e6d85]" />
           </div>
 
-          <AppButton
-            variant="secondary"
-            size="small"
-            leftIcon={<LogOut size={15} />}
+          <button
+            type="button"
             onClick={() => void handleSignOut()}
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[rgba(116,174,218,.1)] bg-[rgba(6,22,38,.55)] px-2.5 text-[0.67rem] font-semibold text-[color:#7893aa] transition hover:border-[rgba(239,120,120,.22)] hover:bg-[rgba(105,33,41,.16)] hover:text-[color:#ffc2c2]"
           >
-            Sign Out
-          </AppButton>
+            <LogOut size={14} />
+            <span className="hidden lg:inline">Sign out</span>
+          </button>
         </div>
       </div>
     </header>
