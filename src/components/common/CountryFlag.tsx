@@ -39,8 +39,8 @@ export default function CountryFlag({
 
   return (
     <img
-      src={`https://flagcdn.com/${width}x${height}/${code}.png`}
-      srcSet={`https://flagcdn.com/${width * 2}x${height * 2}/${code}.png 2x`}
+      src={`https://flagcdn.com/24x18/${code}.png`}
+      srcSet={`https://flagcdn.com/48x36/${code}.png 2x`}
       alt={label}
       className={className}
       style={style}
