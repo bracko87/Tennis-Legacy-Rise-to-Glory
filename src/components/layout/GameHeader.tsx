@@ -20,6 +20,16 @@ function getCountryName(code?: string) {
   }
 }
 
+function getCountryFlag(code?: string) {
+  if (!code || code.length !== 2) return '🌐'
+
+  return code
+    .toUpperCase()
+    .split('')
+    .map((character) => String.fromCodePoint(127397 + character.charCodeAt(0)))
+    .join('')
+}
+
 export default function GameHeader({
   onToggleSidebarMobile,
 }: GameHeaderProps) {
@@ -32,6 +42,7 @@ export default function GameHeader({
     ? `${player.first_name} ${player.last_name}`.trim()
     : 'Tennis Legacy Player'
   const countryName = getCountryName(player?.country_code)
+  const countryFlag = getCountryFlag(player?.country_code)
 
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
@@ -67,7 +78,10 @@ export default function GameHeader({
 
         <div className="min-w-0">
           <strong className="tlg-v4-player-name">{displayName}</strong>
-          <span className="tlg-v4-player-country">{countryName}</span>
+          <span className="tlg-v4-player-country">
+            <span className="tlg-v5-country-flag" aria-hidden="true">{countryFlag}</span>
+            <span>{countryName}</span>
+          </span>
         </div>
       </div>
 
