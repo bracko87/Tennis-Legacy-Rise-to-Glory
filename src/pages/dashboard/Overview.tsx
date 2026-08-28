@@ -42,17 +42,6 @@ export default function OverviewPage() {
 
   return (
     <GameLayout title="Overview" subtitle="Career command center">
-      <header className="tlg-v2-page-head">
-        <div className="tlg-v2-page-head-copy">
-          <div className="tlg-v2-page-eyebrow">Professional career</div>
-          <h2 className="tlg-v2-page-title">Manager Overview</h2>
-          <p className="tlg-v2-page-description">
-            One serious operating view for your player identity, competition readiness,
-            career status and the systems that will drive your season.
-          </p>
-        </div>
-      </header>
-
       <section className="tlg-v2-command">
         <div className="tlg-v2-command-inner">
           <div>
