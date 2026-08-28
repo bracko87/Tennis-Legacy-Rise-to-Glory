@@ -2,8 +2,8 @@
  * Homepage branding overrides.
  *
  * The header and hero intentionally use two different owner-supplied assets.
- * Neither source image is edited, recoloured, cropped or regenerated; CSS only
- * controls display size, placement and the requested fade into the background.
+ * Neither source image is edited, recoloured or regenerated; CSS only controls
+ * its display size and the requested torn/destroyed presentation on the hero.
  */
 
 :root {
@@ -26,25 +26,17 @@
 /*
  * HERO ARTWORK
  *
- * The old court/ranking preview remains in the component but is hidden. The
- * exact supplied acef20b4... artwork is shown in its place.
- *
- * ::after  = sharp original image
- * ::before = enlarged blurred copy that stretches the outer colours into the
- *            surrounding dark-blue page so there is no hard image rectangle
+ * The old court/ranking preview remains in the component but is hidden.
+ * There is deliberately NO blurred background copy or surrounding frame.
+ * The supplied image itself is enlarged and clipped with an irregular torn
+ * perimeter so sections of its outside edge appear damaged / missing.
  */
 .tlg-hero-visual-column {
   position: relative !important;
   isolation: isolate;
   min-height: 570px;
   overflow: visible;
-  background:
-    radial-gradient(
-      ellipse 74% 72% at center,
-      rgba(8, 93, 170, 0.10) 0%,
-      rgba(5, 64, 119, 0.06) 48%,
-      rgba(1, 31, 63, 0) 79%
-    );
+  background: none !important;
 }
 
 .tlg-hero-visual-column > * {
@@ -52,68 +44,77 @@
   pointer-events: none !important;
 }
 
-/* Stretched / dissolved colour continuation beyond the image edges. */
+/* Remove the previous blurred halo/frame completely. */
 .tlg-hero-visual-column::before {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  inset: -16% -20% -14%;
-  pointer-events: none;
-  background-image: var(--tlg-home-hero-image);
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 122% 108%;
-  opacity: 0.34;
-  filter: blur(38px) saturate(1.14);
-  transform: scaleX(1.12);
-  transform-origin: center;
-  -webkit-mask-image: radial-gradient(
-    ellipse 76% 70% at center,
-    #000 0%,
-    rgba(0, 0, 0, 0.96) 40%,
-    rgba(0, 0, 0, 0.72) 59%,
-    rgba(0, 0, 0, 0.30) 77%,
-    transparent 98%
-  );
-  mask-image: radial-gradient(
-    ellipse 76% 70% at center,
-    #000 0%,
-    rgba(0, 0, 0, 0.96) 40%,
-    rgba(0, 0, 0, 0.72) 59%,
-    rgba(0, 0, 0, 0.30) 77%,
-    transparent 98%
-  );
+  content: none !important;
+  display: none !important;
 }
 
-/* Exact supplied image. contain keeps the complete artwork visible. */
+/*
+ * Large sharp source image with deliberately rough, broken edges.
+ * The source image itself is untouched; the damaged look is presentation-only.
+ */
 .tlg-hero-visual-column::after {
   content: "";
   position: absolute;
   z-index: 2;
-  inset: -3% -7% -1%;
+  inset: -8% -12% -6% -10%;
   pointer-events: none;
   background-image: var(--tlg-home-hero-image);
   background-repeat: no-repeat;
   background-position: center;
-  background-size: contain;
-  filter: drop-shadow(0 20px 44px rgba(0, 20, 46, 0.28));
-  -webkit-mask-image: radial-gradient(
-    ellipse 85% 80% at center,
-    #000 0%,
-    #000 56%,
-    rgba(0, 0, 0, 0.96) 66%,
-    rgba(0, 0, 0, 0.72) 78%,
-    rgba(0, 0, 0, 0.34) 90%,
-    transparent 100%
-  );
-  mask-image: radial-gradient(
-    ellipse 85% 80% at center,
-    #000 0%,
-    #000 56%,
-    rgba(0, 0, 0, 0.96) 66%,
-    rgba(0, 0, 0, 0.72) 78%,
-    rgba(0, 0, 0, 0.34) 90%,
-    transparent 100%
+  background-size: 116% auto;
+  filter: drop-shadow(0 18px 36px rgba(0, 20, 46, 0.22));
+
+  /* Rough torn perimeter: several edge sections are intentionally missing. */
+  clip-path: polygon(
+    4% 9%,
+    12% 5%,
+    20% 7%,
+    27% 3%,
+    39% 5%,
+    48% 4%,
+    55% 9%,
+    61% 9%,
+    67% 4%,
+    74% 7%,
+    83% 5%,
+    91% 9%,
+    97% 8%,
+
+    94% 16%,
+    99% 23%,
+    96% 31%,
+    98% 39%,
+    94% 47%,
+    99% 54%,
+    96% 63%,
+    98% 72%,
+    94% 79%,
+    97% 88%,
+
+    88% 91%,
+    80% 88%,
+    72% 94%,
+    64% 90%,
+    57% 96%,
+    49% 91%,
+    42% 95%,
+    34% 89%,
+    26% 94%,
+    19% 89%,
+    11% 92%,
+    5% 87%,
+
+    7% 78%,
+    2% 71%,
+    6% 64%,
+    3% 57%,
+    7% 50%,
+    2% 43%,
+    6% 35%,
+    3% 28%,
+    7% 20%
   );
 }
 
@@ -122,14 +123,9 @@
     min-height: 440px;
   }
 
-  .tlg-hero-visual-column::before {
-    inset: -12% -15%;
-    background-size: 118% 104%;
-    filter: blur(30px) saturate(1.12);
-  }
-
   .tlg-hero-visual-column::after {
-    inset: -1% -4% 0;
+    inset: -6% -9% -4%;
+    background-size: 112% auto;
   }
 }
 
@@ -138,28 +134,14 @@
     min-height: 340px;
   }
 
-  .tlg-hero-visual-column::before {
-    inset: -8% -10%;
-    background-size: 116% 102%;
-    opacity: 0.28;
-    filter: blur(24px) saturate(1.08);
-  }
-
   .tlg-hero-visual-column::after {
-    inset: 0;
-    -webkit-mask-image: radial-gradient(
-      ellipse 90% 84% at center,
-      #000 0%,
-      #000 60%,
-      rgba(0, 0, 0, 0.70) 82%,
-      transparent 100%
-    );
-    mask-image: radial-gradient(
-      ellipse 90% 84% at center,
-      #000 0%,
-      #000 60%,
-      rgba(0, 0, 0, 0.70) 82%,
-      transparent 100%
+    inset: -3% -5%;
+    background-size: 108% auto;
+    clip-path: polygon(
+      4% 8%, 17% 5%, 29% 8%, 42% 4%, 55% 7%, 67% 4%, 81% 8%, 96% 6%,
+      94% 18%, 98% 31%, 95% 45%, 98% 58%, 94% 72%, 97% 87%,
+      84% 92%, 69% 89%, 56% 95%, 43% 90%, 29% 94%, 16% 89%, 5% 92%,
+      7% 77%, 3% 63%, 6% 49%, 2% 35%, 6% 21%
     );
   }
 }
