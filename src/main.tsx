@@ -1,0 +1,43 @@
+/**
+ * main.tsx
+ *
+ * React application entry point.
+ *
+ * Sider projects may expose #app, #root, or both. The application mounts into
+ * the first supported container and removes the unused one so it cannot create
+ * an additional empty viewport below every page.
+ */
+
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+
+import './shadcn.css'
+import App from './App'
+
+const appElement =
+  document.getElementById('app')
+
+const rootElement =
+  document.getElementById('root')
+
+const mountElement =
+  appElement ?? rootElement
+
+if (!mountElement) {
+  throw new Error(
+    'Unable to start the application because neither #app nor #root exists.',
+  )
+}
+
+const unusedMountElement =
+  mountElement === appElement
+    ? rootElement
+    : appElement
+
+unusedMountElement?.remove()
+
+createRoot(mountElement).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
