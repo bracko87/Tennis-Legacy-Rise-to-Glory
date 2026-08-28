@@ -6,6 +6,7 @@
  * are presented as deliberate empty states instead of fake statistics.
  */
 
+import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import {
   Activity,
@@ -25,7 +26,6 @@ import {
 
 import { useAuth } from '../../auth/AuthContext'
 import GameLayout from '../../components/layout/GameLayout'
-import AppButton from '../../components/common/AppButton'
 import { supabase } from '../../lib/supabase'
 
 function getCountryName(code?: string) {
@@ -52,10 +52,7 @@ export default function OverviewPage() {
     : null
 
   return (
-    <GameLayout
-      title="Overview"
-      subtitle="Your career command center"
-    >
+    <GameLayout title="Overview" subtitle="Your career command center">
       <section className="tlg-overview-command">
         <div className="tlg-overview-command-inner">
           <div>
@@ -198,7 +195,7 @@ function OverviewPanel({
 }: {
   eyebrow: string
   title: string
-  children: React.ReactNode
+  children: ReactNode
 }) {
   return (
     <section className="tlg-overview-panel">
