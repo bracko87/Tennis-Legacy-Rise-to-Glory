@@ -11,8 +11,8 @@ export interface CountryFlagProps {
 /**
  * Shared Tennis Legacy country-flag standard.
  *
- * Uses the flag-icons SVG set so every flag is rendered as a clean, flat,
- * rectangular national flag rather than an operating-system emoji/waving flag.
+ * Renders flat rectangular national flags from FlagCDN so the game does not
+ * depend on operating-system emoji/waving flag rendering or an extra CSS package.
  * All country displays in Tennis Legacy should use this component.
  */
 export default function CountryFlag({
@@ -32,21 +32,21 @@ export default function CountryFlag({
     height,
     flex: `0 0 ${width}px`,
     display: 'inline-block',
-    lineHeight: 1,
-    borderRadius: 2,
-    boxShadow: '0 0 0 1px rgba(20, 39, 58, 0.12)',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
+    objectFit: 'cover',
+    objectPosition: 'center',
+    borderRadius: 1,
+    boxShadow: '0 0 0 1px rgba(20, 39, 58, 0.14)',
     verticalAlign: 'middle',
   }
 
   return (
-    <span
-      className={`fi fi-${code} ${className}`.trim()}
+    <img
+      src={`https://flagcdn.com/${code}.svg`}
+      alt={label}
+      className={className}
       style={style}
-      role="img"
-      aria-label={label}
+      loading="lazy"
+      decoding="async"
       title={countryName ?? countryCode.toUpperCase()}
     />
   )
