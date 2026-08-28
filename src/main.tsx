@@ -12,6 +12,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
 import './shadcn.css'
+import './styles/home-branding.css'
 import App from './App'
 
 const appElement =
