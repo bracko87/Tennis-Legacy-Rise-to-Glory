@@ -1,38 +1,41 @@
 /**
  * CreatePlayer.tsx
  *
- * First-login onboarding for an authenticated Tennis Legacy manager. Player
- * identity is stored in Supabase. Image files remain preview-only until the
- * dedicated Supabase Storage bucket is introduced in the next backend phase.
+ * Premium first-login onboarding. Player identity, country reference data and
+ * optional avatar storage are connected directly to the Tennis Legacy
+ * Supabase project.
  */
 
+import type { FormEvent } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { ArrowRight, Check, Globe2, ImagePlus, ShieldCheck, UserRound } from 'lucide-react'
 
 import { useAuth } from '../../auth/AuthContext'
 import AppButton from '../../components/common/AppButton'
-import AppCard from '../../components/common/AppCard'
 import FormField from '../../components/common/FormField'
-import MarketingHeader from '../../components/layout/MarketingHeader'
-import type { Country } from '../../data/countries'
 import { COUNTRIES } from '../../data/countries'
 import { supabase } from '../../lib/supabase'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_FILE_BYTES = 2 * 1024 * 1024
 
-type PlayerWorld = 'ATP' | 'WTA' | null
+type PlayerWorld = 'ATP' | 'WTA'
+
+interface CountryOption {
+  code: string
+  name: string
+}
 
 export default function CreatePlayerPage(): JSX.Element {
-  const navigate = useNavigate()
   const { user, refreshPlayer } = useAuth()
 
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
-  const [country, setCountry] = useState<string>('US')
+  const [country, setCountry] = useState('')
+  const [countries, setCountries] = useState<CountryOption[]>([])
+  const [countriesLoading, setCountriesLoading] = useState(true)
   const [world, setWorld] = useState<PlayerWorld>('ATP')
   const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imageUrl, setImageUrl] = useState('')
   const [fileError, setFileError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -40,336 +43,378 @@ export default function CreatePlayerPage(): JSX.Element {
 
   const objectUrlRef = useRef<string | null>(null)
 
-  const previewSrc = useMemo(() => {
-    if (imageFile) {
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current)
-        objectUrlRef.current = null
-      }
-      const objectUrl = URL.createObjectURL(imageFile)
-      objectUrlRef.current = objectUrl
-      return objectUrl
-    }
-
-    try {
-      if (imageUrl && new URL(imageUrl)) return imageUrl
-    } catch {
-      // Invalid URL simply falls back to the placeholder preview.
-    }
-
-    return null
-  }, [imageFile, imageUrl])
-
   useEffect(() => {
-    return () => {
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current)
-        objectUrlRef.current = null
+    let active = true
+
+    async function loadCountries() {
+      const { data, error } = await supabase
+        .from('countries')
+        .select('code, name')
+        .eq('is_active', true)
+        .order('name')
+
+      if (!active) return
+
+      if (error || !data?.length) {
+        setCountries(COUNTRIES.map((item) => ({ code: item.code, name: item.name })))
+      } else {
+        setCountries(data as CountryOption[])
       }
+      setCountriesLoading(false)
+    }
+
+    void loadCountries()
+    return () => {
+      active = false
     }
   }, [])
 
+  const previewSrc = useMemo(() => {
+    if (!imageFile) return null
+    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
+    const nextUrl = URL.createObjectURL(imageFile)
+    objectUrlRef.current = nextUrl
+    return nextUrl
+  }, [imageFile])
+
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
+    }
+  }, [])
+
+  const selectedCountryName =
+    countries.find((item) => item.code === country)?.name ?? 'Country not selected'
+
+  const firstNameValid = firstName.trim().length >= 2
+  const lastNameValid = lastName.trim().length >= 2
+  const countryValid = country.length === 2
+  const formValid = firstNameValid && lastNameValid && countryValid && !fileError
+
   function handleFileChange(files?: FileList | null) {
     setFileError(null)
+    setSaveError(null)
     setImageFile(null)
 
-    if (!files || files.length === 0) return
+    if (!files?.length) return
 
     const file = files[0]
     if (!ALLOWED_TYPES.includes(file.type)) {
-      setFileError('Invalid file type. Use JPG, PNG or WebP.')
+      setFileError('Use a JPG, PNG or WebP image.')
       return
     }
     if (file.size > MAX_FILE_BYTES) {
-      setFileError('File too large. Maximum size is 2 MB.')
+      setFileError('The image must be 2 MB or smaller.')
       return
     }
 
     setImageFile(file)
   }
 
-  function isFormValid() {
-    const firstNameValid = firstName.trim().length >= 2
-    const lastNameValid = lastName.trim().length >= 2
-    const countryValid = Boolean(country && country.length === 2)
-    const worldValid = world === 'ATP' || world === 'WTA'
-    return firstNameValid && lastNameValid && countryValid && worldValid && !fileError
+  async function uploadAvatar(): Promise<string | null> {
+    if (!imageFile || !user) return null
+
+    const extension =
+      imageFile.type === 'image/png'
+        ? 'png'
+        : imageFile.type === 'image/webp'
+          ? 'webp'
+          : 'jpg'
+    const path = `${user.id}/avatar-${Date.now()}.${extension}`
+
+    const { error } = await supabase.storage
+      .from('player-avatars')
+      .upload(path, imageFile, {
+        cacheControl: '3600',
+        contentType: imageFile.type,
+        upsert: false,
+      })
+
+    if (error) throw error
+    return path
   }
 
-  async function handleCreate(event?: React.FormEvent) {
-    event?.preventDefault()
+  async function handleCreate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
     setSubmitted(true)
     setSaveError(null)
 
-    if (!isFormValid() || !user || !world || saving) return
+    if (!formValid || !user || saving) return
 
     setSaving(true)
+    let uploadedPath: string | null = null
 
-    const { error } = await supabase.from('players').insert({
-      owner_user_id: user.id,
-      world,
-      first_name: firstName.trim(),
-      last_name: lastName.trim(),
-      country_code: country,
-      image_path: null,
-    })
+    try {
+      uploadedPath = await uploadAvatar()
 
-    if (error) {
-      setSaving(false)
+      const { error } = await supabase.from('players').insert({
+        owner_user_id: user.id,
+        world,
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        country_code: country,
+        image_path: uploadedPath,
+      })
 
-      if (error.code === '23505') {
-        await refreshPlayer()
-        navigate('/game/overview', { replace: true })
-        return
+      if (error) {
+        if (uploadedPath) {
+          await supabase.storage.from('player-avatars').remove([uploadedPath])
+        }
+
+        if (error.code === '23505') {
+          await refreshPlayer()
+          window.location.replace('/game/overview')
+          return
+        }
+
+        throw error
       }
 
+      await refreshPlayer()
+      window.location.replace('/game/overview')
+    } catch (error) {
+      console.error('Unable to create Tennis Legacy player:', error)
+      setSaving(false)
       setSaveError(
-        'Your player could not be created. Please review the details and try again.',
+        'Your player could not be created. Check the selected details and try again.',
       )
-      return
     }
-
-    await refreshPlayer()
-    setSaving(false)
-    navigate('/game/overview', { replace: true })
   }
 
   return (
-    <div>
-      <MarketingHeader />
-
-      <main className="min-h-screen bg-transparent pb-12">
-        <section className="max-w-6xl mx-auto px-6 pt-8">
-          <div className="mb-6 flex items-center justify-between gap-4">
-            <div>
-              <p className="tlg-page-heading-eyebrow">Manager onboarding</p>
-              <h1 className="text-2xl font-semibold text-[color:var(--tlg-white)]">
-                Create Player
-              </h1>
-            </div>
-            <Link to="/" className="text-sm text-[var(--tlg-text-muted)] underline">
-              Home
-            </Link>
+    <div className="tlg-onboarding-page">
+      <header className="tlg-onboarding-topbar">
+        <div className="tlg-onboarding-brand">
+          <span className="tlg-onboarding-brand-mark"><ShieldCheck size={18} /></span>
+          <div>
+            <strong>Tennis Legacy</strong>
+            <span>Player onboarding</span>
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2 space-y-6">
-              <AppCard title="Player details">
-                <form onSubmit={handleCreate} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <FormField
-                      id="first"
-                      label="Player First Name"
-                      required
-                      error={submitted && firstName.trim().length < 2 ? 'Enter at least 2 characters.' : undefined}
-                    >
-                      <input
-                        id="first"
-                        value={firstName}
-                        onChange={(event) => {
-                          setFirstName(event.target.value)
-                          setSaveError(null)
-                        }}
-                        className={`tlg-input ${submitted && firstName.trim().length < 2 ? 'tlg-input-error' : ''}`}
-                        placeholder="First name"
-                        aria-invalid={submitted && firstName.trim().length < 2}
-                      />
-                    </FormField>
+        <div className="tlg-onboarding-progress" aria-label="Onboarding progress">
+          <span>Account</span><i className="active" />
+          <span>Player</span><i className="active" />
+          <span>Career</span><i />
+        </div>
+      </header>
 
-                    <FormField
-                      id="last"
-                      label="Player Last Name"
-                      required
-                      error={submitted && lastName.trim().length < 2 ? 'Enter at least 2 characters.' : undefined}
-                    >
-                      <input
-                        id="last"
-                        value={lastName}
-                        onChange={(event) => {
-                          setLastName(event.target.value)
-                          setSaveError(null)
-                        }}
-                        className={`tlg-input ${submitted && lastName.trim().length < 2 ? 'tlg-input-error' : ''}`}
-                        placeholder="Last name"
-                        aria-invalid={submitted && lastName.trim().length < 2}
-                      />
-                    </FormField>
-                  </div>
+      <main className="tlg-onboarding-main">
+        <div className="tlg-onboarding-hero">
+          <div>
+            <p className="tlg-page-heading-eyebrow">Build your professional</p>
+            <h1>Create your player identity.</h1>
+            <p>
+              Choose the identity that will represent your entire Tennis Legacy career.
+              Your world and core player identity become part of the shared multiplayer universe.
+            </p>
+          </div>
+        </div>
 
-                  <FormField id="country" label="Player Country" required>
-                    <select
-                      id="country"
-                      value={country}
+        <form className="tlg-onboarding-grid" onSubmit={handleCreate} noValidate>
+          <div className="space-y-4">
+            <section className="tlg-onboarding-section">
+              <header className="tlg-onboarding-section-header">
+                <div>
+                  <span>01 · Identity</span>
+                  <h2>Professional profile</h2>
+                </div>
+                <UserRound size={20} className="text-[color:var(--tlg-cyan)]" />
+              </header>
+              <div className="tlg-onboarding-section-body space-y-4">
+                <div className="tlg-onboarding-form-grid">
+                  <FormField
+                    id="first-name"
+                    label="First name"
+                    required
+                    error={submitted && !firstNameValid ? 'Enter at least 2 characters.' : undefined}
+                  >
+                    <input
+                      id="first-name"
+                      value={firstName}
                       onChange={(event) => {
-                        setCountry(event.target.value)
+                        setFirstName(event.target.value)
                         setSaveError(null)
                       }}
-                      className="tlg-input"
-                    >
-                      {COUNTRIES.map((countryOption: Country) => (
-                        <option key={countryOption.code} value={countryOption.code}>
-                          {countryOption.name}
-                        </option>
-                      ))}
-                    </select>
+                      className={`tlg-input ${submitted && !firstNameValid ? 'tlg-input-error' : ''}`}
+                      placeholder="First name"
+                      maxLength={40}
+                      autoComplete="off"
+                    />
                   </FormField>
 
-                  <AppCard eyebrow="World selection" title="Choose a world" className="mt-2">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setWorld('ATP')
-                          setSaveError(null)
-                        }}
-                        className={`w-full text-left p-4 border rounded-md transition-colors ${
-                          world === 'ATP'
-                            ? 'bg-[linear-gradient(135deg,#054E98,#001D3F)] text-white border-transparent'
-                            : 'bg-[rgba(0,7,19,0.6)] border-[rgba(148,163,184,0.06)] text-[var(--tlg-text-muted)]'
-                        }`}
-                        aria-pressed={world === 'ATP'}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-sm font-semibold">ATP World</div>
-                            <div className="text-xs mt-1">Male professional tennis world</div>
-                          </div>
-                          <div className="text-xs font-mono text-[rgba(226,232,240,0.6)]">Select</div>
-                        </div>
-                      </button>
+                  <FormField
+                    id="last-name"
+                    label="Last name"
+                    required
+                    error={submitted && !lastNameValid ? 'Enter at least 2 characters.' : undefined}
+                  >
+                    <input
+                      id="last-name"
+                      value={lastName}
+                      onChange={(event) => {
+                        setLastName(event.target.value)
+                        setSaveError(null)
+                      }}
+                      className={`tlg-input ${submitted && !lastNameValid ? 'tlg-input-error' : ''}`}
+                      placeholder="Last name"
+                      maxLength={40}
+                      autoComplete="off"
+                    />
+                  </FormField>
+                </div>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setWorld('WTA')
-                          setSaveError(null)
-                        }}
-                        className={`w-full text-left p-4 border rounded-md transition-colors ${
-                          world === 'WTA'
-                            ? 'bg-[linear-gradient(135deg,#054E98,#001D3F)] text-white border-transparent'
-                            : 'bg-[rgba(0,7,19,0.6)] border-[rgba(148,163,184,0.06)] text-[var(--tlg-text-muted)]'
-                        }`}
-                        aria-pressed={world === 'WTA'}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-sm font-semibold">WTA World</div>
-                            <div className="text-xs mt-1">Female professional tennis world</div>
-                          </div>
-                          <div className="text-xs font-mono text-[rgba(226,232,240,0.6)]">Select</div>
-                        </div>
-                      </button>
-                    </div>
-                  </AppCard>
+                <FormField
+                  id="country"
+                  label="Representing country"
+                  required
+                  error={submitted && !countryValid ? 'Choose the country your player represents.' : undefined}
+                >
+                  <select
+                    id="country"
+                    value={country}
+                    onChange={(event) => {
+                      setCountry(event.target.value)
+                      setSaveError(null)
+                    }}
+                    className={`tlg-input ${submitted && !countryValid ? 'tlg-input-error' : ''}`}
+                    disabled={countriesLoading}
+                  >
+                    <option value="">{countriesLoading ? 'Loading countries…' : 'Choose a country'}</option>
+                    {countries.map((item) => (
+                      <option key={item.code} value={item.code}>{item.name}</option>
+                    ))}
+                  </select>
+                </FormField>
 
-                  <AppCard eyebrow="Player image" title="Image options" className="mt-2">
-                    <div className="space-y-3">
-                      <FormField id="upload" label="Upload image (JPG, PNG, WEBP) - max 2 MB">
-                        <input
-                          id="upload"
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
-                          onChange={(event) => handleFileChange(event.target.files)}
-                          className="tlg-input"
-                        />
-                        {fileError && <p className="tlg-field-error">{fileError}</p>}
-                        <p className="tlg-field-hint">
-                          The selected image is a temporary preview only. Supabase Storage will be connected in the image-storage phase.
-                        </p>
-                      </FormField>
-
-                      <FormField id="imageUrl" label="Image URL (preview only, optional)">
-                        <input
-                          id="imageUrl"
-                          value={imageUrl}
-                          onChange={(event) => setImageUrl(event.target.value)}
-                          className="tlg-input"
-                          placeholder="https://example.com/player.jpg"
-                        />
-                      </FormField>
-                    </div>
-                  </AppCard>
-
-                  <div className="mt-2 text-sm text-[var(--tlg-text-muted)]">
-                    <strong>Player name notice</strong>
-                    <p className="mt-1">
-                      To protect the authenticity of the game world, player names should resemble realistic first and last names. Clearly fictional, offensive or deliberately misleading names may be reviewed and removed by the moderation team.
-                    </p>
-                  </div>
-
-                  {saveError && (
-                    <div className="tlg-auth-status tlg-auth-status-information" role="alert">
-                      {saveError}
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-3 mt-4">
-                    <Link to="/" className="inline-block">
-                      <AppButton variant="secondary">Back Home</AppButton>
-                    </Link>
-                    <AppButton
-                      type="submit"
-                      variant="primary"
-                      loading={saving}
-                      disabled={!user}
-                    >
-                      {saving ? 'Creating Player…' : 'Create Player'}
-                    </AppButton>
-                  </div>
-                </form>
-              </AppCard>
-            </div>
-
-            <aside className="md:col-span-1">
-              <div className="sticky top-24">
-                <AppCard title="Live preview">
-                  <div className="flex flex-col items-center text-center gap-3">
-                    <div className="w-44 h-44 rounded-md overflow-hidden border border-[rgba(148,163,184,0.08)] bg-[rgba(0,7,19,0.6)] flex items-center justify-center">
-                      {previewSrc ? (
-                        <img src={previewSrc} alt="Player preview" className="w-full h-full object-cover" />
-                      ) : (
-                        <svg viewBox="0 0 120 120" className="w-full h-full">
-                          <rect width="120" height="120" fill="#001D3F" />
-                          <g fill="#FFFFFF" fillOpacity="0.06"><rect x="8" y="8" width="104" height="104" rx="6" /></g>
-                          <text x="50%" y="54%" dominantBaseline="middle" textAnchor="middle" fontSize="10" fill="#ffffff" fillOpacity="0.18">No image</text>
-                        </svg>
-                      )}
-                    </div>
-
-                    <div className="w-full">
-                      <h3 className="text-lg font-semibold text-[color:var(--tlg-white)]">
-                        {firstName || lastName ? `${firstName} ${lastName}`.trim() : 'Unnamed Player'}
-                      </h3>
-                      <p className="text-sm text-[var(--tlg-text-muted)] mt-1">
-                        {COUNTRIES.find((countryOption) => countryOption.code === country)?.name || 'Unknown country'}
-                      </p>
-
-                      <div className="mt-3 inline-flex items-center gap-3">
-                        <span className="px-3 py-1 rounded-md bg-[rgba(5,78,152,0.12)] text-sm font-medium border border-[rgba(5,78,152,0.14)]">
-                          {world === 'ATP' ? 'ATP' : world === 'WTA' ? 'WTA' : 'World'}
-                        </span>
-                        <span className="px-3 py-1 rounded-md bg-[rgba(0,7,19,0.6)] border border-[rgba(148,163,184,0.06)] text-sm">
-                          Future Professional
-                        </span>
-                      </div>
-
-                      <div className="mt-4 flex items-center justify-between text-xs text-[var(--tlg-text-muted)]">
-                        <div>Manager account</div>
-                        <div className="font-mono">{user?.email ?? '—'}</div>
-                      </div>
-                    </div>
-                  </div>
-                </AppCard>
-
-                <div className="mt-4 text-sm text-[var(--tlg-text-muted)]">
-                  <p><strong>Game-time example</strong></p>
-                  <p className="mt-1">Season 1 · March 14 · 18:00</p>
-                  <p className="mt-1 text-xs">1 real-life hour equals 2 in-game hours. The game uses seasons instead of real-world years.</p>
+                <div className="tlg-onboarding-notice">
+                  Use a realistic first and last name. Clearly offensive, misleading or deliberately fictional identities can be reviewed by game moderation.
                 </div>
               </div>
-            </aside>
+            </section>
+
+            <section className="tlg-onboarding-section">
+              <header className="tlg-onboarding-section-header">
+                <div>
+                  <span>02 · Competition</span>
+                  <h2>Choose your professional world</h2>
+                </div>
+                <Globe2 size={20} className="text-[color:var(--tlg-cyan)]" />
+              </header>
+              <div className="tlg-onboarding-section-body">
+                <div className="tlg-world-grid">
+                  {(['ATP', 'WTA'] as PlayerWorld[]).map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      className={`tlg-world-option ${world === option ? 'active' : ''}`}
+                      onClick={() => {
+                        setWorld(option)
+                        setSaveError(null)
+                      }}
+                      aria-pressed={world === option}
+                    >
+                      <span className="tlg-world-option-badge">{world === option ? 'SELECTED' : 'WORLD'}</span>
+                      <strong>{option}</strong>
+                      <p>
+                        {option === 'ATP'
+                          ? 'Enter the men’s professional multiplayer ecosystem.'
+                          : 'Enter the women’s professional multiplayer ecosystem.'}
+                      </p>
+                      {world === option && <Check size={17} className="absolute right-4 top-4 text-[color:var(--tlg-cyan)]" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            <section className="tlg-onboarding-section">
+              <header className="tlg-onboarding-section-header">
+                <div>
+                  <span>03 · Presentation</span>
+                  <h2>Player portrait</h2>
+                </div>
+                <ImagePlus size={20} className="text-[color:var(--tlg-cyan)]" />
+              </header>
+              <div className="tlg-onboarding-section-body">
+                <div className="tlg-upload-zone">
+                  <FormField
+                    id="player-avatar"
+                    label="Upload portrait · optional"
+                    hint="JPG, PNG or WebP · maximum 2 MB. The image is stored in Tennis Legacy Supabase Storage."
+                    error={fileError ?? undefined}
+                  >
+                    <input
+                      id="player-avatar"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={(event) => handleFileChange(event.target.files)}
+                      className="tlg-input"
+                    />
+                  </FormField>
+                </div>
+              </div>
+            </section>
+
+            {saveError && (
+              <div className="tlg-auth-status tlg-auth-status-information" role="alert">
+                <ShieldCheck size={18} />
+                <span>{saveError}</span>
+              </div>
+            )}
+
+            <div className="tlg-onboarding-actions">
+              <AppButton
+                type="submit"
+                variant="primary"
+                size="large"
+                loading={saving}
+                disabled={!user || countriesLoading}
+                rightIcon={<ArrowRight size={18} />}
+              >
+                {saving ? 'Creating player…' : 'Enter Tennis Legacy'}
+              </AppButton>
+            </div>
           </div>
-        </section>
+
+          <aside className="tlg-player-preview-card">
+            <div className="tlg-player-preview-visual">
+              {previewSrc ? (
+                <img src={previewSrc} alt="Selected player portrait" />
+              ) : (
+                <div className="tlg-player-preview-placeholder">
+                  <UserRound size={45} />
+                </div>
+              )}
+            </div>
+
+            <div className="tlg-player-preview-copy">
+              <p className="tlg-page-heading-eyebrow">Career identity</p>
+              <h3>{`${firstName} ${lastName}`.trim() || 'Your Player'}</h3>
+              <p>{selectedCountryName}</p>
+
+              <div className="tlg-player-preview-tags">
+                <span className="tlg-player-preview-tag">{world} World</span>
+                <span className="tlg-player-preview-tag">New Professional</span>
+              </div>
+
+              <div className="tlg-player-preview-meta">
+                <div className="tlg-player-preview-meta-row">
+                  <span>Manager account</span>
+                  <strong>{user?.email ?? 'Authenticated'}</strong>
+                </div>
+                <div className="tlg-player-preview-meta-row">
+                  <span>Moderation</span>
+                  <strong>Review on creation</strong>
+                </div>
+                <div className="tlg-player-preview-meta-row">
+                  <span>Career status</span>
+                  <strong>Ready to initialize</strong>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </form>
       </main>
     </div>
   )
