@@ -1,0 +1,239 @@
+/*
+ * Tennis Legacy dashboard v5
+ * Typography, readable sizing, larger logo treatment and country flag polish.
+ */
+
+/* Dashboard typography --------------------------------------------------- */
+
+.tlg-v2-shell,
+.tlg-v2-shell button,
+.tlg-v2-shell input,
+.tlg-v2-shell select,
+.tlg-v2-shell textarea {
+  font-family: "Segoe UI Variable", "Segoe UI", Arial, sans-serif;
+}
+
+.tlg-v2-nav-label {
+  font-size: .66rem;
+  letter-spacing: .14em;
+}
+
+.tlg-v2-nav-copy strong {
+  font-size: .82rem;
+  font-weight: 650;
+}
+
+.tlg-v2-nav-copy small,
+.tlg-v2-server-card p {
+  font-size: .68rem;
+  line-height: 1.4;
+}
+
+.tlg-v4-player-name {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -.015em;
+}
+
+.tlg-v4-player-country {
+  margin-top: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .72rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.tlg-v5-country-flag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .92rem;
+  line-height: 1;
+}
+
+.tlg-v4-header-action {
+  font-size: .74rem;
+  font-weight: 650;
+}
+
+.tlg-v4-settings-heading {
+  font-size: .68rem;
+}
+
+.tlg-v4-settings-row strong {
+  font-size: .74rem;
+}
+
+.tlg-v4-settings-row small {
+  font-size: .66rem;
+}
+
+.tlg-v4-signout-button {
+  font-size: .75rem;
+}
+
+.tlg-v2-page-eyebrow,
+.tlg-v2-command-kicker,
+.tlg-v2-panel-header > div > span,
+.tlg-v2-kpi-head > span:first-child {
+  font-size: .68rem;
+  letter-spacing: .12em;
+}
+
+.tlg-v2-page-title {
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  font-weight: 720;
+}
+
+.tlg-v2-page-description {
+  font-size: .92rem;
+  line-height: 1.6;
+}
+
+.tlg-v2-command h2 {
+  font-weight: 720;
+}
+
+.tlg-v2-command p {
+  font-size: .86rem;
+  line-height: 1.65;
+}
+
+.tlg-v2-tag {
+  font-size: .72rem;
+}
+
+.tlg-v2-player-copy span {
+  font-size: .67rem;
+}
+
+.tlg-v2-player-copy strong {
+  font-size: .86rem;
+}
+
+.tlg-v2-player-copy p {
+  font-size: .70rem;
+}
+
+.tlg-v2-kpi > strong {
+  font-size: 1.08rem;
+}
+
+.tlg-v2-kpi > p {
+  font-size: .67rem;
+}
+
+.tlg-v2-panel-header h3 {
+  font-size: .86rem;
+}
+
+.tlg-v2-check-copy strong,
+.tlg-v2-roadmap-copy strong {
+  font-size: .76rem;
+}
+
+.tlg-v2-check-copy span,
+.tlg-v2-roadmap-copy span {
+  font-size: .68rem;
+  line-height: 1.5;
+}
+
+.tlg-v2-check-state,
+.tlg-v2-roadmap-state {
+  font-size: .64rem;
+}
+
+.tlg-v2-empty strong {
+  font-size: .82rem;
+}
+
+.tlg-v2-empty p,
+.tlg-v2-info-row p {
+  font-size: .72rem;
+  line-height: 1.6;
+}
+
+.tlg-v2-quick-copy strong {
+  font-size: .76rem;
+}
+
+.tlg-v2-quick-copy span {
+  font-size: .67rem;
+}
+
+.tlg-v4-game-clock {
+  font-size: .72rem;
+}
+
+.tlg-v4-clock-speed {
+  font-size: .68rem;
+}
+
+/* Larger real logo ------------------------------------------------------- */
+
+.tlg-v4-sidebar-brand {
+  min-height: 112px;
+  padding: 12px 18px 10px;
+  display: flex;
+  align-items: center;
+}
+
+.tlg-v4-logo-image {
+  width: auto;
+  height: auto;
+  max-width: 226px;
+  max-height: 82px;
+  object-fit: contain;
+  object-position: left center;
+  background: transparent;
+  filter: none;
+}
+
+.tlg-v2-sidebar-collapsed .tlg-v4-sidebar-brand {
+  min-height: 92px;
+  padding: 10px;
+}
+
+.tlg-v2-sidebar-collapsed .tlg-v4-logo-image {
+  width: 58px;
+  height: 58px;
+  max-width: 58px;
+  max-height: 58px;
+  object-fit: cover;
+  object-position: left center;
+}
+
+/* Slightly more breathing room for larger type -------------------------- */
+
+.tlg-v2-nav-link {
+  min-height: 58px;
+}
+
+.tlg-v2-check,
+.tlg-v2-roadmap-row {
+  min-height: 64px;
+}
+
+.tlg-v2-quick-link {
+  min-height: 62px;
+}
+
+.tlg-v2-panel-header {
+  min-height: 70px;
+}
+
+@media (max-width: 760px) {
+  .tlg-v4-player-name {
+    font-size: .9rem;
+  }
+
+  .tlg-v4-player-country {
+    font-size: .69rem;
+  }
+
+  .tlg-v4-header-action {
+    font-size: .72rem;
+  }
+}
