@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 
-import '../../styles/dashboard-v2.css'
+import '../../styles/dashboard-v3.css'
 import GameFooter from './GameFooter'
 import GameHeader from './GameHeader'
 import GameSidebar from './GameSidebar'
