@@ -1,74 +1,24 @@
-/**
- * Finance.tsx
- *
- * Finance dashboard placeholder showing coin balance, incomes and costs.
- *
- * TODO: Hook up Supabase to retrieve transactions, balances and forecasts.
- */
+import { CircleDollarSign } from 'lucide-react'
 
-import GameLayout from '../../components/layout/GameLayout'
-import PageHeading from '../../components/common/PageHeading'
-import AppCard from '../../components/common/AppCard'
+import ModulePage from '../../components/game/ModulePage'
 
-/**
- * FinancePage
- *
- * Displays financial placeholders and a recent transaction scaffold.
- */
 export default function FinancePage() {
   return (
-    <GameLayout title="Finance" subtitle="Track prize money, sponsorships and long-term career investments.">
-      <PageHeading eyebrow="Dashboard" title="Finance" description="Financial overview. All numbers are placeholders." />
-
-      <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <AppCard title="Coin balance" eyebrow="Wallet">
-          <div>
-            <div className="text-sm text-slate-600">Balance</div>
-            <div className="text-2xl font-semibold">—</div>
-            <div className="mt-2 text-xs text-slate-500">Coins are placeholder and not persisted.</div>
-          </div>
-        </AppCard>
-
-        <AppCard eyebrow="Income" title="Recent income">
-          <div className="text-sm text-slate-600">
-            <div>Tournament income: —</div>
-            <div>Sponsorship: —</div>
-            <div className="mt-2 text-xs text-slate-500">Sums will be computed from server-side records later.</div>
-          </div>
-        </AppCard>
-
-        <AppCard eyebrow="Costs" title="Recent costs" muted>
-          <div className="text-sm text-slate-600">
-            <div>Coaching: —</div>
-            <div>Travel: —</div>
-            <div>Equipment: —</div>
-          </div>
-        </AppCard>
-
-        <AppCard eyebrow="Transactions" title="Recent transactions">
-          <div className="text-sm text-slate-600">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr>
-                    <th className="pr-4">Date</th>
-                    <th className="pr-4">Description</th>
-                    <th className="pr-4">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="pr-4">—</td>
-                    <td className="pr-4">Placeholder</td>
-                    <td className="pr-4">—</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-2 text-xs text-slate-500">No transactions are stored locally. TODO: Supabase</div>
-          </div>
-        </AppCard>
-      </div>
-    </GameLayout>
+    <ModulePage
+      title="Finance"
+      subtitle="Career income, costs and commercial growth"
+      eyebrow="Career economy"
+      intro="Manage the financial side of a professional tennis career: prize money, sponsorships, travel costs, coaching expenses, equipment and long-term career sustainability."
+      icon={<CircleDollarSign size={18} />}
+      sideTitle="Economy engine pending"
+      sideDescription="Balances and transactions will remain empty until the game economy rules are finalized. We are intentionally not inventing placeholder money values that could later conflict with game balance."
+      milestones={[
+        { title: 'Authenticated owner linked', detail: 'Financial records will be isolated to the manager who owns the player.', state: 'ready' },
+        { title: 'Career ledger', detail: 'Immutable history of income, costs, rewards and adjustments.' },
+        { title: 'Prize money', detail: 'Tournament earnings based on event category and result.' },
+        { title: 'Sponsorship contracts', detail: 'Commercial offers, obligations, bonuses and duration.' },
+        { title: 'Operating costs', detail: 'Travel, training, coaching, equipment and career services.' },
+      ]}
+    />
   )
 }
