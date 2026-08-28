@@ -11,12 +11,13 @@ import {
   LogOut,
   Shield,
 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
+import { supabase } from '../../lib/supabase'
 
-const TENNIS_LEGACY_LOGO =
-  'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/public/email-branding/tennis-legacy-logo.png'
+const TENNIS_LEGACY_LOGO_PATH = 'Branding/01e18414-8243-48da-b6b7-6d758a3d59f9.png'
 
 export interface GameSidebarProps {
   isCollapsed: boolean
@@ -52,6 +53,33 @@ export default function GameSidebar({
   const location = useLocation()
   const navigate = useNavigate()
   const { signOut } = useAuth()
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+
+    async function loadLogo() {
+      const { data, error } = await supabase.storage
+        .from('Admin')
+        .createSignedUrl(TENNIS_LEGACY_LOGO_PATH, 60 * 60)
+
+      if (!mounted) return
+
+      if (error) {
+        console.error('Unable to load Tennis Legacy logo:', error.message)
+        setLogoUrl(null)
+        return
+      }
+
+      setLogoUrl(data.signedUrl)
+    }
+
+    void loadLogo()
+
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   async function handleSignOut() {
     try {
@@ -80,11 +108,13 @@ export default function GameSidebar({
         )}
       >
         <div className="tlg-v2-sidebar-brand tlg-v4-sidebar-brand">
-          <img
-            src={TENNIS_LEGACY_LOGO}
-            alt="Tennis Legacy: Rise to Glory"
-            className="tlg-v4-logo-image"
-          />
+          {logoUrl && (
+            <img
+              src={logoUrl}
+              alt="Tennis Legacy: Rise to Glory"
+              className="tlg-v4-logo-image"
+            />
+          )}
         </div>
 
         <button
