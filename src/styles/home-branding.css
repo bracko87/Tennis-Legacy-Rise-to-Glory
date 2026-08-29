@@ -130,12 +130,12 @@
 
 /* ATP card: isolated male player. */
 .tlg-world-card-left::before {
-  background-image: url("/marketing/atp-player.webp");
+  background-image: url("../../public/marketing/atp-player.webp");
 }
 
 /* WTA card: isolated female player. */
 .tlg-world-card-right::before {
-  background-image: url("/marketing/wta-player.webp");
+  background-image: url("../../public/marketing/wta-player.webp");
 }
 
 /* Keep every label/action clearly above the artwork. */
