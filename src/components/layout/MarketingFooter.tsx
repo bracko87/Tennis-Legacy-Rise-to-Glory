@@ -9,10 +9,12 @@ import {
   Link,
   useNavigate,
 } from 'react-router'
-import {
-  Clock3,
-  Globe2,
-} from 'lucide-react'
+import { Clock3 } from 'lucide-react'
+
+import { useGameClock } from '../../hooks/useGameClock'
+
+const FOOTER_LOGO_URL =
+  'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/logo%20333.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9sb2dvIDMzMy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg3OTQ1MDc5LCJleHAiOjQ5MTAwMDkwNzl9.Q7Ocay_B1kouWo_XmmgtVcGOCh0xtzhzaIm713AhU-ci-xJPY3JanaT3xhdkptAuKV5kUJGHov34fSM2TGjmcQ'
 
 export interface MarketingFooterProps {
   readonly children?: ReactNode
@@ -22,6 +24,7 @@ export default function MarketingFooter({
   children,
 }: MarketingFooterProps) {
   const navigate = useNavigate()
+  const clock = useGameClock()
 
   const goToSection = (
     sectionId: string,
@@ -50,7 +53,16 @@ export default function MarketingFooter({
               className="tlg-footer-brand"
             >
               <span className="tlg-footer-brand-icon">
-                <Globe2 size={21} />
+                <img
+                  src={FOOTER_LOGO_URL}
+                  alt=""
+                  aria-hidden="true"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                  }}
+                />
               </span>
 
               <span>
@@ -66,13 +78,17 @@ export default function MarketingFooter({
               of your professional player.
             </p>
 
-            <div className="tlg-footer-time">
+            <div
+              className="tlg-footer-time"
+              aria-live="polite"
+            >
               <Clock3 size={17} />
 
               <div>
-                <span>Game-time example</span>
+                <span>In-game time</span>
                 <strong>
-                  Season 1 · March 14 · 18:00
+                  Season {clock.season} · {clock.month}{' '}
+                  {clock.day} · {clock.formattedTime}
                 </strong>
               </div>
             </div>
@@ -140,8 +156,8 @@ export default function MarketingFooter({
           </p>
 
           <p>
-            Game state, authentication and statistics
-            will be powered by Supabase.
+            Tennis Legacy is published and operated by
+            Next Quest Studio.
           </p>
         </div>
       </div>
