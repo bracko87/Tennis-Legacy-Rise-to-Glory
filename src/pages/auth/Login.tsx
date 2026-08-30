@@ -90,9 +90,12 @@ export default function LoginPage() {
       <AuthBackground />
 
       <header className="tlg-auth-topbar">
-        <Link to="/" className="tlg-auth-brand" aria-label="Tennis Legacy homepage">
-          <span className="tlg-auth-brand-mark"><TennisBallMark /></span>
-          <span className="tlg-auth-brand-copy"><strong>Tennis Legacy</strong><small>Rise to Glory</small></span>
+        <Link to="/" className="tlg-brand" aria-label="Tennis Legacy homepage">
+          <span className="tlg-brand-mark" aria-hidden="true" />
+          <span className="tlg-brand-copy">
+            <strong className="tlg-brand-name">Tennis Legacy</strong>
+            <span className="tlg-brand-subtitle">Rise to Glory</span>
+          </span>
         </Link>
         <Link to="/" className="tlg-auth-home-link"><ArrowLeft size={16} /> Home</Link>
       </header>
@@ -177,18 +180,6 @@ export default function LoginPage() {
 
 function AuthFeature({ icon, title, description }: { icon: ReactNode; title: string; description: string }) {
   return <div className="tlg-auth-feature"><span className="tlg-auth-feature-icon">{icon}</span><div><strong>{title}</strong><p>{description}</p></div></div>
-}
-
-function TennisBallMark() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <defs><linearGradient id="loginBrandGradient" x1="5" y1="4" x2="44" y2="46" gradientUnits="userSpaceOnUse"><stop stopColor="#0874D1" /><stop offset="1" stopColor="#001D3F" /></linearGradient></defs>
-      <rect x="2" y="2" width="44" height="44" rx="12" fill="url(#loginBrandGradient)" />
-      <circle cx="24" cy="24" r="12.5" fill="none" stroke="#FFFFFF" strokeWidth="2" />
-      <path d="M15.8 14.6c5.5 3.1 9.4 8.2 11.2 14.7" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
-      <path d="M21 33.9c3.1-5.9 7.1-10.1 12-12.5" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  )
 }
 
 function AuthBackground() {
