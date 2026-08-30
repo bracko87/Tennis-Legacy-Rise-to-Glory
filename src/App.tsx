@@ -8,6 +8,7 @@
 
 import './styles/globals.css'
 import './styles/premium.css'
+import './styles/onboarding-enhancements.css'
 
 import {
   BrowserRouter,
