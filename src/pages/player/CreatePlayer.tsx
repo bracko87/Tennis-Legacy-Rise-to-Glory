@@ -8,7 +8,7 @@
 
 import type { FormEvent } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import {
   ArrowRight,
   Check,
@@ -22,6 +22,7 @@ import {
 
 import { useAuth } from '../../auth/AuthContext'
 import AppButton from '../../components/common/AppButton'
+import SharedCountryFlag from '../../components/common/CountryFlag'
 import FormField from '../../components/common/FormField'
 import { COUNTRIES } from '../../data/countries'
 import { supabase } from '../../lib/supabase'
@@ -52,6 +53,7 @@ interface AvatarOption {
 
 export default function CreatePlayerPage(): JSX.Element {
   const { user, refreshPlayer } = useAuth()
+  const navigate = useNavigate()
 
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -241,7 +243,7 @@ export default function CreatePlayerPage(): JSX.Element {
         if (error.code === '23505') {
           const existingPlayer = await refreshPlayer()
           if (existingPlayer) {
-            window.location.replace('/game/overview')
+            navigate('/game/overview', { replace: true })
             return
           }
 
@@ -258,7 +260,7 @@ export default function CreatePlayerPage(): JSX.Element {
       }
 
       await refreshPlayer()
-      window.location.replace('/game/overview')
+      navigate('/game/overview', { replace: true })
     } catch (error) {
       console.error('Unable to create Tennis Legacy player:', error)
       setSaving(false)
@@ -606,15 +608,11 @@ export default function CreatePlayerPage(): JSX.Element {
 
 function CountryFlag({ code, name }: { code: string; name: string }) {
   return (
-    <img
-      className="tlg-country-flag"
-      src={`https://flagcdn.com/24x18/${code.toLowerCase()}.png`}
-      srcSet={`https://flagcdn.com/48x36/${code.toLowerCase()}.png 2x`}
-      alt={`${name} flag`}
-      loading="lazy"
-      onError={(event) => {
-        event.currentTarget.style.visibility = 'hidden'
-      }}
+    <SharedCountryFlag
+      countryCode={code}
+      countryName={name}
+      width={22}
+      height={16}
     />
   )
 }
