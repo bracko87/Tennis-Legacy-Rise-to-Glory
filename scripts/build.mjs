@@ -48,7 +48,10 @@ if (isProd) {
 } else {
   const ctx = await esbuild.context(esbuildOpts)
   await ctx.watch()
-  const { hosts, port } = await ctx.serve()
+  const { hosts, port } = await ctx.serve({
+    servedir: 'dist',
+    fallback: 'index.html',
+  })
   console.log(`Running on:`)
   hosts.forEach((host) => {
     console.log(`http://${host}:${port}`)
