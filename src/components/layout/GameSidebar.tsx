@@ -11,13 +11,11 @@ import {
   LogOut,
   Shield,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
-import { supabase } from '../../lib/supabase'
 
-const TENNIS_LEGACY_LOGO_PATH = 'Branding/logo 333.png'
+const TENNIS_LEGACY_LOGO_URL = 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/logo%20333.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9sb2dvIDMzMy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg3OTQ1MDc5LCJleHAiOjQ5MTAwMDkwNzl9.Q7Ocay_B1kouWo_XmmgtVcGOCh0xtzhzaIm713AhU-ci-xJPY3JanaT3xhdkptAuKV5kUJGHov34fSM2TGjmcQ'
 
 export interface GameSidebarProps {
   isCollapsed: boolean
@@ -53,33 +51,6 @@ export default function GameSidebar({
   const location = useLocation()
   const navigate = useNavigate()
   const { signOut } = useAuth()
-  const [logoUrl, setLogoUrl] = useState<string | null>(null)
-
-  useEffect(() => {
-    let mounted = true
-
-    async function loadLogo() {
-      const { data, error } = await supabase.storage
-        .from('Admin')
-        .createSignedUrl(TENNIS_LEGACY_LOGO_PATH, 60 * 60)
-
-      if (!mounted) return
-
-      if (error) {
-        console.error('Unable to load Tennis Legacy logo:', error.message)
-        setLogoUrl(null)
-        return
-      }
-
-      setLogoUrl(data.signedUrl)
-    }
-
-    void loadLogo()
-
-    return () => {
-      mounted = false
-    }
-  }, [])
 
   async function handleSignOut() {
     try {
@@ -108,13 +79,14 @@ export default function GameSidebar({
         )}
       >
         <div className="tlg-v2-sidebar-brand tlg-v4-sidebar-brand">
-          {logoUrl && (
-            <img
-              src={logoUrl}
-              alt="Tennis Legacy: Rise to Glory"
-              className="tlg-v4-logo-image"
-            />
-          )}
+          <img
+            src={TENNIS_LEGACY_LOGO_URL}
+            alt="Tennis Legacy: Rise to Glory"
+            className="tlg-v4-logo-image"
+            width="152"
+            height="82"
+            decoding="async"
+          />
         </div>
 
         <button
