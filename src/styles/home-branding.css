@@ -9,6 +9,7 @@
   --tlg-home-header-logo: url("https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/logo%20333.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9sb2dvIDMzMy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg3OTQ1MDc5LCJleHAiOjQ5MTAwMDkwNzl9.Q7Ocay_B1kouWo_XmmgtVcGOCh0xtzhzaIm713AhU-ci-xJPY3JanaT3xhdkptAuKV5kUJGHov34fSM2TGjmcQ");
   --tlg-home-hero-image: url("https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/new%20image555.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9uZXcgaW1hZ2U1NTUucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4Nzk4OTQ4MywiZXhwIjo0OTEwMDUzNDgzfQ.ful9ZAYjAXr6uqkzRVAo_gVM1Gj874hNNVTJQ9D14chcvPivDkkq9kyMQNRNcGqM-sui7zZTa4i7fFtDm_C96Q");
   --tlg-home-journey-background: url("https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/70857978-f7d3-4a24-a3b2-9974473ba790.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy83MDg1Nzk3OC1mN2QzLTRhMjQtYTNiMi05OTc0NDczYmE3OTAucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4Nzk5MDEyMSwiZXhwIjo0OTEwMDU0MTIxfQ.e0M2GvfmtNfJ7NfhAPiWX26wbXilRVv0UTHBRdSorhn_98GLXzoLfejCbNc-gMJKRAA_maPMfC_F_X3RrIrkTQ");
+  --tlg-home-features-background: url("https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/9912ca44-2a4a-4c53-bf0c-bc1077b3f8aa.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy85OTEyY2E0NC0yYTRhLTRjNTMtYmYwYy1iYzEwNzdiM2Y4YWEucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4ODEwOTk3OSwiZXhwIjo0OTEwMTczOTc5fQ.32Oy0WpmJUlWMEXYnQYFLHXbE_4kK-r3sXgMpg_AaVDY-T545l6-hG2R7Fdj2-abQj_WYxOUZmp_PgvtAX8K9A");
   --tlg-home-atp-player: url("https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/ChatGPT%20Image%20Aug%2029,%202026,%2007_24_17%20PM.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9DaGF0R1BUIEltYWdlIEF1ZyAyOSwgMjAyNiwgMDdfMjRfMTcgUE0ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4ODAyNDMxMiwiZXhwIjo0OTEwMDg4MzEyfQ.ZQIdum-q0rCdf1xxEsMrKIgXOwKjs0aY5jhnbw_2vfmKvZitVtWnNN3EtC-XaZFhxITgfTiR_m0tjLsoZXgiqw");
   --tlg-home-wta-player: url("https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/ChatGPT%20Image%20Aug%2029,%202026,%2007_24_25%20PM.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9DaGF0R1BUIEltYWdlIEF1ZyAyOSwgMjAyNiwgMDdfMjRfMjUgUE0ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4ODAyNDM1NiwiZXhwIjo0OTEwMDg4MzU2fQ.jXVjx-TuOIstE-QB5lZaI-ekDfg7mYVwCOH6mDRmCFmWorT05X5NU46c6XfG2mFQ8JETFcCDUR8SLfnHF-_hmQ");
 }
@@ -76,6 +77,31 @@
 }
 
 #how-it-works > .tlg-section {
+  position: relative;
+  z-index: 1;
+}
+
+/* Complete Career Management: exact supplied image at 10% visibility. */
+#features {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+#features::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--tlg-home-features-background);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  opacity: 0.10;
+}
+
+#features > .tlg-section {
   position: relative;
   z-index: 1;
 }
