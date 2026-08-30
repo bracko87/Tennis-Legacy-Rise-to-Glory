@@ -14,7 +14,6 @@ import {
   ArrowRight,
   CalendarDays,
   Check,
-  Coins,
   Eye,
   EyeOff,
   Globe2,
@@ -81,9 +80,11 @@ export default function RegisterPage() {
 
     if (!formValid || loading) return
 
+    const normalizedEmail = email.trim().toLowerCase()
+
     setLoading(true)
     const { data, error } = await supabase.auth.signUp({
-      email: email.trim(),
+      email: normalizedEmail,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/create-player`,
@@ -118,11 +119,11 @@ export default function RegisterPage() {
       <AuthBackground />
 
       <header className="tlg-auth-topbar">
-        <Link to="/" className="tlg-auth-brand" aria-label="Tennis Legacy homepage">
-          <span className="tlg-auth-brand-mark"><TennisBallMark /></span>
-          <span className="tlg-auth-brand-copy">
-            <strong>Tennis Legacy</strong>
-            <small>Rise to Glory</small>
+        <Link to="/" className="tlg-brand" aria-label="Tennis Legacy homepage">
+          <span className="tlg-brand-mark" aria-hidden="true" />
+          <span className="tlg-brand-copy">
+            <strong className="tlg-brand-name">Tennis Legacy</strong>
+            <span className="tlg-brand-subtitle">Rise to Glory</span>
           </span>
         </Link>
         <Link to="/" className="tlg-auth-home-link"><ArrowLeft size={16} /> Home</Link>
@@ -141,15 +142,6 @@ export default function RegisterPage() {
               <AuthFeature icon={<UserRound size={18} />} title="Own one professional career" description="Create a realistic identity and build it season after season." />
               <AuthFeature icon={<Globe2 size={18} />} title="Join a shared universe" description="Your player lives in the same competitive ecosystem as other managers." />
               <AuthFeature icon={<Trophy size={18} />} title="Build a legacy" description="Rankings, titles, records and career history will persist across seasons." />
-            </div>
-
-            <div className="tlg-auth-reward-card">
-              <span className="tlg-auth-reward-icon"><Coins size={22} /></span>
-              <div>
-                <span>Birthday reward</span>
-                <strong>10 account coins</strong>
-                <p>The birthday reward will activate with the game economy. Your birthday is immutable after registration.</p>
-              </div>
             </div>
           </div>
         </section>
@@ -172,7 +164,7 @@ export default function RegisterPage() {
                   </div>
                 </FormField>
 
-                <FormField id="register-email" label="Email address" required error={submitted && !emailValid ? 'Enter a valid email address.' : undefined}>
+                <FormField id="register-email" label="Email address" required hint={!submitted ? 'One manager account per email address.' : undefined} error={submitted && !emailValid ? 'Enter a valid email address.' : undefined}>
                   <div className="tlg-input-shell">
                     <Mail className="tlg-input-leading-icon" size={18} />
                     <input id="register-email" type="email" value={email} onChange={(event) => { setEmail(event.target.value); clearStatus() }} className={`tlg-input tlg-input-with-leading-icon ${submitted && !emailValid ? 'tlg-input-error' : ''}`} placeholder="manager@example.com" autoComplete="email" />
@@ -198,7 +190,20 @@ export default function RegisterPage() {
                 </FormField>
               </div>
 
-              <div className="tlg-password-requirements">
+              <div
+                className="tlg-password-requirements"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'nowrap',
+                  gap: '18px',
+                  width: '100%',
+                  background: 'transparent',
+                  border: 0,
+                  padding: 0,
+                  boxShadow: 'none',
+                }}
+              >
                 <PasswordRequirement passed={passwordChecks.length} text="At least 8 characters" />
                 <PasswordRequirement passed={passwordChecks.letter} text="At least one letter" />
                 <PasswordRequirement passed={passwordChecks.number} text="At least one number" />
@@ -258,7 +263,10 @@ function mapSignupError(message: string) {
   if (normalized.includes('weak') || normalized.includes('easy to guess') || normalized.includes('pwned') || normalized.includes('leaked')) {
     return 'That password appears in known password-leak data or is too easy to guess. Choose a different, unique password.'
   }
-  if (normalized.includes('already') || normalized.includes('duplicate') || normalized.includes('database error')) {
+  if (normalized.includes('already') || normalized.includes('duplicate') || normalized.includes('registered')) {
+    return 'An account already exists with this email address or username. Sign in if this email belongs to you, or use another available username.'
+  }
+  if (normalized.includes('database error')) {
     return 'That username or email address is already unavailable. Choose another username or sign in if you already have an account.'
   }
   if (normalized.includes('rate') || normalized.includes('too many')) {
@@ -283,23 +291,33 @@ function isLeapYear(year: number) {
 }
 
 function PasswordRequirement({ passed, text }: { passed: boolean; text: string }) {
-  return <span className={passed ? 'tlg-password-requirement tlg-password-requirement-passed' : 'tlg-password-requirement'}><Check size={13} />{text}</span>
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '5px',
+        flex: '0 0 auto',
+        whiteSpace: 'nowrap',
+        padding: 0,
+        margin: 0,
+        border: 0,
+        borderRadius: 0,
+        background: 'transparent',
+        boxShadow: 'none',
+        color: passed ? '#9ED7B9' : '#9EB1C5',
+        fontSize: '12px',
+        fontWeight: 600,
+      }}
+    >
+      <Check size={13} />
+      {text}
+    </span>
+  )
 }
 
 function AuthFeature({ icon, title, description }: { icon: ReactNode; title: string; description: string }) {
   return <div className="tlg-auth-feature"><span className="tlg-auth-feature-icon">{icon}</span><div><strong>{title}</strong><p>{description}</p></div></div>
-}
-
-function TennisBallMark() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <defs><linearGradient id="registerBrandGradient" x1="5" y1="4" x2="44" y2="46" gradientUnits="userSpaceOnUse"><stop stopColor="#0874D1" /><stop offset="1" stopColor="#001D3F" /></linearGradient></defs>
-      <rect x="2" y="2" width="44" height="44" rx="12" fill="url(#registerBrandGradient)" />
-      <circle cx="24" cy="24" r="12.5" fill="none" stroke="#FFFFFF" strokeWidth="2" />
-      <path d="M15.8 14.6c5.5 3.1 9.4 8.2 11.2 14.7" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
-      <path d="M21 33.9c3.1-5.9 7.1-10.1 12-12.5" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  )
 }
 
 function AuthBackground() {
