@@ -15,7 +15,7 @@ import { Link } from 'react-router'
 import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
-import { supabase } from '../../lib/supabase'
+import usePlayerAvatarUrl from '../../hooks/usePlayerAvatarUrl'
 
 function getCountryName(code?: string) {
   if (!code) return 'Country not set'
@@ -36,9 +36,7 @@ export default function OverviewPage() {
     ? `${player.first_name.charAt(0)}${player.last_name.charAt(0)}`.toUpperCase()
     : 'TL'
   const countryName = getCountryName(player?.country_code)
-  const avatarUrl = player?.image_path
-    ? supabase.storage.from('player-avatars').getPublicUrl(player.image_path).data.publicUrl
-    : null
+  const avatarUrl = usePlayerAvatarUrl(player?.image_path)
 
   return (
     <GameLayout title="Overview" subtitle="Career command center">
