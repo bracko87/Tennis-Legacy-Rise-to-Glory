@@ -107,6 +107,18 @@
 }
 
 /*
+ * Homepage ending
+ *
+ * The landing page intentionally ends immediately after Complete Career
+ * Management. Remove the Game Clock section and the final Begin Your Career
+ * CTA from layout so the footer connects directly to #features.
+ */
+.tlg-content-section:has(.tlg-game-time-panel),
+.tlg-final-cta-section {
+  display: none !important;
+}
+
+/*
  * Choose Your World
  *
  * Keep the approved placement and sizing; only the ATP/WTA artwork source is
