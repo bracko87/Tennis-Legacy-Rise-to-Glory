@@ -37,6 +37,17 @@ import SchedulePage from './pages/dashboard/Schedule'
 import FinancePage from './pages/dashboard/Finance'
 import EquipmentPage from './pages/dashboard/Equipment'
 import StatisticsPage from './pages/dashboard/Statistics'
+import {
+  ContactUsPage,
+  ForumPage,
+  GamePreferencesPage,
+  HelpPage,
+  InboxPage,
+  InviteFriendsPage,
+  NotificationsPage,
+  PlayerAccountPage,
+  ProPackagesPage,
+} from './pages/manager/ManagerPages'
 
 export default function App() {
   return (
@@ -143,6 +154,16 @@ export default function App() {
               </RequirePlayer>
             }
           />
+
+          <Route path="/game/notifications" element={<RequirePlayer><NotificationsPage /></RequirePlayer>} />
+          <Route path="/game/player-account" element={<RequirePlayer><PlayerAccountPage /></RequirePlayer>} />
+          <Route path="/game/preferences" element={<RequirePlayer><GamePreferencesPage /></RequirePlayer>} />
+          <Route path="/game/inbox" element={<RequirePlayer><InboxPage /></RequirePlayer>} />
+          <Route path="/game/help" element={<RequirePlayer><HelpPage /></RequirePlayer>} />
+          <Route path="/game/forum" element={<RequirePlayer><ForumPage /></RequirePlayer>} />
+          <Route path="/game/pro-packages" element={<RequirePlayer><ProPackagesPage /></RequirePlayer>} />
+          <Route path="/game/contact" element={<RequirePlayer><ContactUsPage /></RequirePlayer>} />
+          <Route path="/game/invite-friends" element={<RequirePlayer><InviteFriendsPage /></RequirePlayer>} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
