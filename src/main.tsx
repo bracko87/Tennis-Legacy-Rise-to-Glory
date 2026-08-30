@@ -13,6 +13,7 @@ import { createRoot } from 'react-dom/client'
 
 import './shadcn.css'
 import './styles/home-branding.css'
+import './styles/dashboard-avatar-adjustment.css'
 import App from './App'
 
 const appElement =
