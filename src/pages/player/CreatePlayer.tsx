@@ -1,14 +1,24 @@
 /**
  * CreatePlayer.tsx
  *
- * Premium first-login onboarding. Player identity, country reference data and
- * optional avatar storage are connected directly to the Tennis Legacy
- * Supabase project.
+ * First-login player onboarding connected to the Tennis Legacy Supabase
+ * project. Countries come from the canonical database reference table and
+ * profile portraits come from the curated ATP/WTA avatar catalog.
  */
 
 import type { FormEvent } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowRight, Check, Globe2, ImagePlus, ShieldCheck, UserRound } from 'lucide-react'
+import { Link } from 'react-router'
+import {
+  ArrowRight,
+  Check,
+  ChevronDown,
+  Globe2,
+  ImagePlus,
+  Search,
+  ShieldCheck,
+  UserRound,
+} from 'lucide-react'
 
 import { useAuth } from '../../auth/AuthContext'
 import AppButton from '../../components/common/AppButton'
@@ -16,14 +26,28 @@ import FormField from '../../components/common/FormField'
 import { COUNTRIES } from '../../data/countries'
 import { supabase } from '../../lib/supabase'
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
-const MAX_FILE_BYTES = 2 * 1024 * 1024
-
 type PlayerWorld = 'ATP' | 'WTA'
 
 interface CountryOption {
   code: string
   name: string
+}
+
+interface AvatarCatalogRow {
+  path: string
+  is_available: boolean
+}
+
+interface SignedAvatarRow {
+  path?: string | null
+  signedUrl?: string | null
+}
+
+interface AvatarOption {
+  path: string
+  signedUrl: string
+  available: boolean
+  label: string
 }
 
 export default function CreatePlayerPage(): JSX.Element {
@@ -34,14 +58,19 @@ export default function CreatePlayerPage(): JSX.Element {
   const [country, setCountry] = useState('')
   const [countries, setCountries] = useState<CountryOption[]>([])
   const [countriesLoading, setCountriesLoading] = useState(true)
+  const [countryOpen, setCountryOpen] = useState(false)
+  const [countryQuery, setCountryQuery] = useState('')
   const [world, setWorld] = useState<PlayerWorld>('ATP')
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [fileError, setFileError] = useState<string | null>(null)
+  const [avatars, setAvatars] = useState<AvatarOption[]>([])
+  const [avatarsLoading, setAvatarsLoading] = useState(true)
+  const [avatarError, setAvatarError] = useState<string | null>(null)
+  const [selectedAvatarPath, setSelectedAvatarPath] = useState<string | null>(null)
+  const [avatarRefreshKey, setAvatarRefreshKey] = useState(0)
   const [submitted, setSubmitted] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
-  const objectUrlRef = useRef<string | null>(null)
+  const countryPickerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     let active = true
@@ -56,7 +85,11 @@ export default function CreatePlayerPage(): JSX.Element {
       if (!active) return
 
       if (error || !data?.length) {
-        setCountries(COUNTRIES.map((item) => ({ code: item.code, name: item.name })))
+        setCountries(
+          [...COUNTRIES]
+            .map((item) => ({ code: item.code, name: item.name }))
+            .sort((a, b) => a.name.localeCompare(b.name)),
+        )
       } else {
         setCountries(data as CountryOption[])
       }
@@ -69,70 +102,121 @@ export default function CreatePlayerPage(): JSX.Element {
     }
   }, [])
 
-  const previewSrc = useMemo(() => {
-    if (!imageFile) return null
-    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
-    const nextUrl = URL.createObjectURL(imageFile)
-    objectUrlRef.current = nextUrl
-    return nextUrl
-  }, [imageFile])
-
   useEffect(() => {
-    return () => {
-      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
+    function handleDocumentPointerDown(event: MouseEvent) {
+      const target = event.target as Node
+      if (!countryPickerRef.current?.contains(target)) {
+        setCountryOpen(false)
+      }
     }
+
+    document.addEventListener('mousedown', handleDocumentPointerDown)
+    return () => document.removeEventListener('mousedown', handleDocumentPointerDown)
   }, [])
 
-  const selectedCountryName =
-    countries.find((item) => item.code === country)?.name ?? 'Country not selected'
+  useEffect(() => {
+    let active = true
+
+    async function loadAvatars() {
+      setAvatarsLoading(true)
+      setAvatarError(null)
+
+      const { data, error } = await supabase.rpc('get_player_avatar_catalog', {
+        p_world: world,
+      })
+
+      if (!active) return
+
+      if (error) {
+        console.error('Unable to load Tennis Legacy avatar catalog:', error.message)
+        setAvatars([])
+        setAvatarsLoading(false)
+        setAvatarError('Player portraits could not be loaded. Refresh the page and try again.')
+        return
+      }
+
+      const rows = (data ?? []) as AvatarCatalogRow[]
+
+      if (!rows.length) {
+        setAvatars([])
+        setSelectedAvatarPath(null)
+        setAvatarsLoading(false)
+        return
+      }
+
+      const paths = rows.map((row) => row.path)
+      const { data: signedData, error: signedError } = await supabase.storage
+        .from('Admin')
+        .createSignedUrls(paths, 7200)
+
+      if (!active) return
+
+      if (signedError) {
+        console.error('Unable to sign Tennis Legacy avatar URLs:', signedError.message)
+        setAvatars([])
+        setAvatarsLoading(false)
+        setAvatarError('Player portraits could not be displayed. Refresh the page and try again.')
+        return
+      }
+
+      const signedRows = (signedData ?? []) as SignedAvatarRow[]
+      const signedByPath = new Map<string, string>()
+
+      signedRows.forEach((item, index) => {
+        const path = item.path ?? rows[index]?.path
+        if (path && item.signedUrl) signedByPath.set(path, item.signedUrl)
+      })
+
+      const nextAvatars = rows
+        .map((row) => ({
+          path: row.path,
+          signedUrl: signedByPath.get(row.path) ?? '',
+          available: row.is_available,
+          label: avatarLabel(row.path),
+        }))
+        .filter((item) => item.signedUrl.length > 0)
+
+      setAvatars(nextAvatars)
+      setSelectedAvatarPath((current) =>
+        current && nextAvatars.some((item) => item.path === current && item.available)
+          ? current
+          : null,
+      )
+      setAvatarsLoading(false)
+    }
+
+    void loadAvatars()
+    return () => {
+      active = false
+    }
+  }, [world, avatarRefreshKey])
+
+  const selectedCountry = useMemo(
+    () => countries.find((item) => item.code === country) ?? null,
+    [countries, country],
+  )
+
+  const filteredCountries = useMemo(() => {
+    const query = countryQuery.trim().toLocaleLowerCase()
+    if (!query) return countries
+
+    return countries.filter((item) =>
+      `${item.name} ${item.code}`.toLocaleLowerCase().includes(query),
+    )
+  }, [countries, countryQuery])
+
+  const selectedAvatar = useMemo(
+    () => avatars.find((item) => item.path === selectedAvatarPath) ?? null,
+    [avatars, selectedAvatarPath],
+  )
+
+  const selectedCountryName = selectedCountry?.name ?? 'Country not selected'
+  const availableAvatarCount = avatars.filter((item) => item.available).length
 
   const firstNameValid = firstName.trim().length >= 2
   const lastNameValid = lastName.trim().length >= 2
   const countryValid = country.length === 2
-  const formValid = firstNameValid && lastNameValid && countryValid && !fileError
-
-  function handleFileChange(files?: FileList | null) {
-    setFileError(null)
-    setSaveError(null)
-    setImageFile(null)
-
-    if (!files?.length) return
-
-    const file = files[0]
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      setFileError('Use a JPG, PNG or WebP image.')
-      return
-    }
-    if (file.size > MAX_FILE_BYTES) {
-      setFileError('The image must be 2 MB or smaller.')
-      return
-    }
-
-    setImageFile(file)
-  }
-
-  async function uploadAvatar(): Promise<string | null> {
-    if (!imageFile || !user) return null
-
-    const extension =
-      imageFile.type === 'image/png'
-        ? 'png'
-        : imageFile.type === 'image/webp'
-          ? 'webp'
-          : 'jpg'
-    const path = `${user.id}/avatar-${Date.now()}.${extension}`
-
-    const { error } = await supabase.storage
-      .from('player-avatars')
-      .upload(path, imageFile, {
-        cacheControl: '3600',
-        contentType: imageFile.type,
-        upsert: false,
-      })
-
-    if (error) throw error
-    return path
-  }
+  const formValid = firstNameValid && lastNameValid && countryValid
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -142,28 +226,31 @@ export default function CreatePlayerPage(): JSX.Element {
     if (!formValid || !user || saving) return
 
     setSaving(true)
-    let uploadedPath: string | null = null
 
     try {
-      uploadedPath = await uploadAvatar()
-
       const { error } = await supabase.from('players').insert({
         owner_user_id: user.id,
         world,
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         country_code: country,
-        image_path: uploadedPath,
+        image_path: selectedAvatarPath,
       })
 
       if (error) {
-        if (uploadedPath) {
-          await supabase.storage.from('player-avatars').remove([uploadedPath])
-        }
-
         if (error.code === '23505') {
-          await refreshPlayer()
-          window.location.replace('/game/overview')
+          const existingPlayer = await refreshPlayer()
+          if (existingPlayer) {
+            window.location.replace('/game/overview')
+            return
+          }
+
+          setSelectedAvatarPath(null)
+          setAvatarRefreshKey((value) => value + 1)
+          setSaving(false)
+          setSaveError(
+            'That player portrait was just selected by another manager. Choose another available portrait and try again.',
+          )
           return
         }
 
@@ -184,13 +271,13 @@ export default function CreatePlayerPage(): JSX.Element {
   return (
     <div className="tlg-onboarding-page">
       <header className="tlg-onboarding-topbar">
-        <div className="tlg-onboarding-brand">
-          <span className="tlg-onboarding-brand-mark"><ShieldCheck size={18} /></span>
-          <div>
-            <strong>Tennis Legacy</strong>
-            <span>Player onboarding</span>
-          </div>
-        </div>
+        <Link to="/" className="tlg-brand" aria-label="Tennis Legacy homepage">
+          <span className="tlg-brand-mark" aria-hidden="true" />
+          <span className="tlg-brand-copy">
+            <strong className="tlg-brand-name">Tennis Legacy</strong>
+            <span className="tlg-brand-subtitle">Rise to Glory</span>
+          </span>
+        </Link>
 
         <div className="tlg-onboarding-progress" aria-label="Onboarding progress">
           <span>Account</span><i className="active" />
@@ -270,21 +357,77 @@ export default function CreatePlayerPage(): JSX.Element {
                   required
                   error={submitted && !countryValid ? 'Choose the country your player represents.' : undefined}
                 >
-                  <select
-                    id="country"
-                    value={country}
-                    onChange={(event) => {
-                      setCountry(event.target.value)
-                      setSaveError(null)
-                    }}
-                    className={`tlg-input ${submitted && !countryValid ? 'tlg-input-error' : ''}`}
-                    disabled={countriesLoading}
-                  >
-                    <option value="">{countriesLoading ? 'Loading countries…' : 'Choose a country'}</option>
-                    {countries.map((item) => (
-                      <option key={item.code} value={item.code}>{item.name}</option>
-                    ))}
-                  </select>
+                  <div className="tlg-country-picker" ref={countryPickerRef}>
+                    <button
+                      id="country"
+                      type="button"
+                      className={`tlg-country-trigger ${countryOpen ? 'open' : ''} ${submitted && !countryValid ? 'tlg-input-error' : ''}`}
+                      onClick={() => {
+                        if (countriesLoading) return
+                        setCountryOpen((value) => !value)
+                        setCountryQuery('')
+                      }}
+                      aria-haspopup="listbox"
+                      aria-expanded={countryOpen}
+                      disabled={countriesLoading}
+                    >
+                      <span className="tlg-country-trigger-main">
+                        {selectedCountry ? (
+                          <>
+                            <CountryFlag code={selectedCountry.code} name={selectedCountry.name} />
+                            <span>{selectedCountry.name}</span>
+                          </>
+                        ) : (
+                          <span className="tlg-country-trigger-placeholder">
+                            {countriesLoading ? 'Loading countries…' : 'Choose a country'}
+                          </span>
+                        )}
+                      </span>
+                      <ChevronDown size={18} />
+                    </button>
+
+                    {countryOpen && (
+                      <div className="tlg-country-menu">
+                        <div className="tlg-country-search">
+                          <Search size={16} />
+                          <input
+                            autoFocus
+                            value={countryQuery}
+                            onChange={(event) => setCountryQuery(event.target.value)}
+                            placeholder="Search country…"
+                            aria-label="Search countries"
+                            onKeyDown={(event) => {
+                              if (event.key === 'Escape') setCountryOpen(false)
+                            }}
+                          />
+                        </div>
+                        <div className="tlg-country-options" role="listbox" aria-label="Countries">
+                          {filteredCountries.map((item) => (
+                            <button
+                              key={item.code}
+                              type="button"
+                              role="option"
+                              aria-selected={country === item.code}
+                              className={`tlg-country-option ${country === item.code ? 'selected' : ''}`}
+                              onClick={() => {
+                                setCountry(item.code)
+                                setCountryOpen(false)
+                                setCountryQuery('')
+                                setSaveError(null)
+                              }}
+                            >
+                              <CountryFlag code={item.code} name={item.name} />
+                              <span>{item.name}</span>
+                              {country === item.code && <Check size={15} />}
+                            </button>
+                          ))}
+                          {!filteredCountries.length && (
+                            <div className="tlg-country-empty">No country matches your search.</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </FormField>
 
                 <div className="tlg-onboarding-notice">
@@ -310,6 +453,7 @@ export default function CreatePlayerPage(): JSX.Element {
                       className={`tlg-world-option ${world === option ? 'active' : ''}`}
                       onClick={() => {
                         setWorld(option)
+                        setSelectedAvatarPath(null)
                         setSaveError(null)
                       }}
                       aria-pressed={world === option}
@@ -337,22 +481,59 @@ export default function CreatePlayerPage(): JSX.Element {
                 <ImagePlus size={20} className="text-[color:var(--tlg-cyan)]" />
               </header>
               <div className="tlg-onboarding-section-body">
-                <div className="tlg-upload-zone">
-                  <FormField
-                    id="player-avatar"
-                    label="Upload portrait · optional"
-                    hint="JPG, PNG or WebP · maximum 2 MB. The image is stored in Tennis Legacy Supabase Storage."
-                    error={fileError ?? undefined}
-                  >
-                    <input
-                      id="player-avatar"
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      onChange={(event) => handleFileChange(event.target.files)}
-                      className="tlg-input"
-                    />
-                  </FormField>
+                <div className="tlg-avatar-picker-header">
+                  <div>
+                    <strong>Choose a {world} portrait · optional</strong>
+                    <p>Curated portraits are shared across the game world. A portrait already used by another active player cannot be selected.</p>
+                  </div>
+                  {!avatarsLoading && avatars.length > 0 && (
+                    <span className="tlg-avatar-count">{availableAvatarCount} available</span>
+                  )}
                 </div>
+
+                {avatarsLoading ? (
+                  <div className="tlg-avatar-state">Loading {world} player portraits…</div>
+                ) : avatarError ? (
+                  <div className="tlg-avatar-state">{avatarError}</div>
+                ) : avatars.length === 0 ? (
+                  <div className="tlg-avatar-state">
+                    No {world} portraits are available in the avatar library yet.
+                  </div>
+                ) : (
+                  <div className="tlg-avatar-grid" aria-label={`${world} player portraits`}>
+                    {avatars.map((avatar) => {
+                      const selected = selectedAvatarPath === avatar.path
+                      return (
+                        <button
+                          key={avatar.path}
+                          type="button"
+                          className={`tlg-avatar-option ${selected ? 'selected' : ''} ${!avatar.available ? 'unavailable' : ''}`}
+                          disabled={!avatar.available}
+                          onClick={() => {
+                            setSelectedAvatarPath(avatar.path)
+                            setSaveError(null)
+                          }}
+                          aria-label={
+                            avatar.available
+                              ? `Select ${avatar.label}`
+                              : `${avatar.label} is already in use`
+                          }
+                          aria-pressed={selected}
+                        >
+                          <img src={avatar.signedUrl} alt="" loading="lazy" />
+                          {selected && (
+                            <span className="tlg-avatar-selected-mark"><Check size={15} /></span>
+                          )}
+                          {!avatar.available && <span className="tlg-avatar-in-use">In use</span>}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+
+                <p className="tlg-avatar-note">
+                  Portrait upload is disabled during player creation. Custom image upload can be offered later from the in-game profile settings.
+                </p>
               </div>
             </section>
 
@@ -379,8 +560,8 @@ export default function CreatePlayerPage(): JSX.Element {
 
           <aside className="tlg-player-preview-card">
             <div className="tlg-player-preview-visual">
-              {previewSrc ? (
-                <img src={previewSrc} alt="Selected player portrait" />
+              {selectedAvatar ? (
+                <img src={selectedAvatar.signedUrl} alt="Selected player portrait" />
               ) : (
                 <div className="tlg-player-preview-placeholder">
                   <UserRound size={45} />
@@ -391,7 +572,10 @@ export default function CreatePlayerPage(): JSX.Element {
             <div className="tlg-player-preview-copy">
               <p className="tlg-page-heading-eyebrow">Career identity</p>
               <h3>{`${firstName} ${lastName}`.trim() || 'Your Player'}</h3>
-              <p>{selectedCountryName}</p>
+              <p className="tlg-player-preview-country">
+                {selectedCountry && <CountryFlag code={selectedCountry.code} name={selectedCountry.name} />}
+                <span>{selectedCountryName}</span>
+              </p>
 
               <div className="tlg-player-preview-tags">
                 <span className="tlg-player-preview-tag">{world} World</span>
@@ -418,4 +602,24 @@ export default function CreatePlayerPage(): JSX.Element {
       </main>
     </div>
   )
+}
+
+function CountryFlag({ code, name }: { code: string; name: string }) {
+  return (
+    <img
+      className="tlg-country-flag"
+      src={`https://flagcdn.com/24x18/${code.toLowerCase()}.png`}
+      srcSet={`https://flagcdn.com/48x36/${code.toLowerCase()}.png 2x`}
+      alt={`${name} flag`}
+      loading="lazy"
+      onError={(event) => {
+        event.currentTarget.style.visibility = 'hidden'
+      }}
+    />
+  )
+}
+
+function avatarLabel(path: string) {
+  const fileName = path.split('/').pop() ?? path
+  return fileName.replace(/\.[^.]+$/, '')
 }
