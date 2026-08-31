@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import { createPortal } from 'react-dom'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 
@@ -8,17 +8,22 @@ import TournamentPageV3 from './TournamentV3'
 
 interface TournamentLogoRow {
   logo_url: string | null
+  tournament_name: string
 }
+
+type LogoStatus = 'none' | 'loading' | 'ready' | 'error'
 
 export default function TournamentPage() {
   const { competitionId } = useParams()
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
-  const [logoReady, setLogoReady] = useState(false)
+  const [logoStatus, setLogoStatus] = useState<LogoStatus>('none')
+  const [logoTarget, setLogoTarget] = useState<HTMLElement | null>(null)
+  const [tournamentName, setTournamentName] = useState('Tournament')
 
   useEffect(() => {
     if (!competitionId) {
       setLogoUrl(null)
-      setLogoReady(false)
+      setLogoStatus('none')
       return
     }
 
@@ -32,8 +37,11 @@ export default function TournamentPage() {
       if (cancelled || error) return
 
       const row = (Array.isArray(data) ? data[0] : data) as TournamentLogoRow | null
-      setLogoUrl(row?.logo_url ?? null)
-      setLogoReady(false)
+      const nextLogoUrl = row?.logo_url ?? null
+
+      setLogoUrl(nextLogoUrl)
+      setTournamentName(row?.tournament_name ?? 'Tournament')
+      setLogoStatus(nextLogoUrl ? 'loading' : 'none')
     }
 
     void loadLogo()
@@ -43,26 +51,49 @@ export default function TournamentPage() {
     }
   }, [competitionId])
 
-  const logoStyle = logoReady && logoUrl
-    ? ({ '--tlg-tournament-logo': `url("${logoUrl}")` } as CSSProperties)
-    : undefined
+  useEffect(() => {
+    let frame = 0
+    let cancelled = false
+
+    function findLogoTarget() {
+      if (cancelled) return
+
+      const target = document.querySelector<HTMLElement>('.tlg-detail-logo-slot')
+      if (target) {
+        setLogoTarget(target)
+        return
+      }
+
+      frame = window.requestAnimationFrame(findLogoTarget)
+    }
+
+    frame = window.requestAnimationFrame(findLogoTarget)
+
+    return () => {
+      cancelled = true
+      window.cancelAnimationFrame(frame)
+      setLogoTarget(null)
+    }
+  }, [competitionId])
+
+  const showRealLogo = Boolean(logoTarget && logoUrl && logoStatus !== 'error')
 
   return (
-    <div
-      className={logoReady && logoUrl ? 'tlg-tournament-logo-context' : undefined}
-      style={logoStyle}
-    >
-      {logoUrl && (
-        <img
-          className="tlg-tournament-logo-preload"
-          src={logoUrl}
-          alt=""
-          aria-hidden="true"
-          onLoad={() => setLogoReady(true)}
-          onError={() => setLogoReady(false)}
-        />
-      )}
+    <div className={logoStatus === 'ready' ? 'tlg-tournament-logo-context' : undefined}>
       <TournamentPageV3 />
+
+      {showRealLogo && logoTarget && logoUrl && createPortal(
+        <img
+          className={`tlg-tournament-logo-image ${logoStatus === 'ready' ? 'tlg-tournament-logo-image-ready' : ''}`}
+          src={logoUrl}
+          alt={`${tournamentName} tournament logo`}
+          decoding="async"
+          fetchPriority="high"
+          onLoad={() => setLogoStatus('ready')}
+          onError={() => setLogoStatus('error')}
+        />,
+        logoTarget,
+      )}
     </div>
   )
 }
