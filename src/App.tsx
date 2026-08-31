@@ -37,6 +37,7 @@ import SkillsPage from './pages/dashboard/Skills'
 import TrainingPage from './pages/dashboard/Training'
 import StaffPage from './pages/dashboard/Staff'
 import CalendarPage from './pages/dashboard/Calendar'
+import TournamentPage from './pages/dashboard/Tournament'
 import RankingsPage from './pages/dashboard/Rankings'
 import SchedulePage from './pages/dashboard/Schedule'
 import EquipmentPage from './pages/dashboard/Equipment'
@@ -74,6 +75,7 @@ export default function App() {
           <Route path="/game/training" element={<RequirePlayer><TrainingPage /></RequirePlayer>} />
           <Route path="/game/staff" element={<RequirePlayer><StaffPage /></RequirePlayer>} />
           <Route path="/game/calendar" element={<RequirePlayer><CalendarPage /></RequirePlayer>} />
+          <Route path="/game/tournaments/:competitionId" element={<RequirePlayer><TournamentPage /></RequirePlayer>} />
           <Route path="/game/rankings" element={<RequirePlayer><RankingsPage /></RequirePlayer>} />
           <Route path="/game/schedule" element={<RequirePlayer><SchedulePage /></RequirePlayer>} />
           <Route path="/game/equipment" element={<RequirePlayer><EquipmentPage /></RequirePlayer>} />
