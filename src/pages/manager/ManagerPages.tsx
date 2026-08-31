@@ -7,7 +7,6 @@ import {
   Mail,
   MessageSquare,
   Settings2,
-  Sparkles,
   UserRound,
   UsersRound,
 } from 'lucide-react'
@@ -175,23 +174,6 @@ export function ForumPage() {
         icon={<MessageSquare size={26} />}
         title="Forum opening later"
         text="The community forum is not live yet. This page is ready for the forum integration when it is introduced."
-      />
-    </GameLayout>
-  )
-}
-
-export function ProPackagesPage() {
-  return (
-    <GameLayout title="Pro Packages" subtitle="Optional premium game services">
-      <ManagerPageIntro
-        eyebrow="Tennis Legacy Pro"
-        title="Pro Packages"
-        description="Optional premium services and packages will be presented here without changing the separation between ATP and WTA competitive worlds."
-      />
-      <EmptyPanel
-        icon={<Sparkles size={26} />}
-        title="Packages are being prepared"
-        text="No Tennis Legacy Pro package is available for purchase yet."
       />
     </GameLayout>
   )
