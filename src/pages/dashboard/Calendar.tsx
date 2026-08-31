@@ -1,23 +1,52 @@
 import { CalendarDays } from 'lucide-react'
 
-import ModulePage from '../../components/game/ModulePage'
+import TabbedModulePage, { PlannedModuleContent } from '../../components/game/TabbedModulePage'
 
 export default function CalendarPage() {
   return (
-    <ModulePage
+    <TabbedModulePage
       title="Calendar"
-      subtitle="Season planning and tournament visibility"
+      subtitle="Season calendar and tournament calendar"
       eyebrow="Competition planning"
-      intro="See the entire career season in one place: tournament windows, travel periods, training blocks, recovery days and important deadlines."
+      intro="Use the calendar for your complete season timeline, while the Tournament Calendar focuses specifically on official ATP or WTA singles events available in your professional world."
       icon={<CalendarDays size={18} />}
-      sideTitle="Season calendar pending"
-      sideDescription="The calendar will be driven by the global Tennis Legacy clock and tournament database rather than browser-local dates or hardcoded events."
-      milestones={[
-        { title: 'Season framework', detail: 'Tennis Legacy uses numbered seasons instead of real-world years.', state: 'ready' },
-        { title: 'Global game clock', detail: 'Synchronize every manager to the same season date and time.' },
-        { title: 'Tournament calendar', detail: 'Publish ATP and WTA events, entry windows, qualifying and main draws.' },
-        { title: 'Personal commitments', detail: 'Overlay training, travel, recovery and match obligations.' },
-        { title: 'Deadline intelligence', detail: 'Surface registration cutoffs and upcoming manager decisions.' },
+      sideTitle="Calendar engine pending"
+      sideDescription="Both calendar views will use the global Tennis Legacy game clock and server-backed tournament data rather than local browser dates."
+      tabs={[
+        {
+          id: 'season-calendar',
+          label: 'Calendar',
+          content: (
+            <PlannedModuleContent
+              title="Season calendar"
+              description="Your complete career calendar will combine tournaments with training, travel, recovery, staff commitments and deadlines."
+              items={[
+                'Full season date view',
+                'Training and training-camp blocks',
+                'Travel and recovery periods',
+                'Personal commitments',
+                'Important career deadlines',
+              ]}
+            />
+          ),
+        },
+        {
+          id: 'tournament-calendar',
+          label: 'Tournament Calendar',
+          content: (
+            <PlannedModuleContent
+              title="Tournament calendar"
+              description="Browse official singles tournaments belonging only to your player's world: ATP for male professionals or WTA for female professionals."
+              items={[
+                'ATP or WTA events only',
+                'Tournament category and surface',
+                'Entry and withdrawal deadlines',
+                'Qualifying and main-draw dates',
+                'Travel and scheduling conflicts',
+              ]}
+            />
+          ),
+        },
       ]}
     />
   )
