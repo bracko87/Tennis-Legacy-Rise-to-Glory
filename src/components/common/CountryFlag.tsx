@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 export interface CountryFlagProps {
   countryCode?: string | null
@@ -8,12 +9,24 @@ export interface CountryFlagProps {
   className?: string
 }
 
+function normalizeCountryCode(countryCode?: string | null) {
+  if (!countryCode || countryCode.length !== 2) return null
+
+  const code = countryCode.toUpperCase()
+  return code === 'UK' ? 'GB' : code
+}
+
+export function getFlagImageUrl(countryCode: string) {
+  const code = normalizeCountryCode(countryCode)
+  return code ? `https://flagcdn.com/w40/${code.toLowerCase()}.png` : ''
+}
+
 /**
  * Shared Tennis Legacy country-flag standard.
  *
- * Uses high-resolution FlagCDN raster assets with contain-fit rendering so
- * national flags stay sharp and keep their proper aspect ratio instead of being
- * cropped or stretched inside small UI slots.
+ * Matches the ProPeloton Manager flag treatment: ISO alpha-2 codes internally,
+ * FlagCDN w40 PNG assets, flat 24x16 presentation, cover fit, subtle border,
+ * lazy loading, and a neutral fallback if the image cannot be loaded.
  */
 export default function CountryFlag({
   countryCode,
@@ -22,36 +35,49 @@ export default function CountryFlag({
   height = 16,
   className = '',
 }: CountryFlagProps) {
-  if (!countryCode || countryCode.length !== 2) return null
+  const normalizedCode = useMemo(() => normalizeCountryCode(countryCode), [countryCode])
+  const [failed, setFailed] = useState(false)
 
-  const code = countryCode.toLowerCase()
-  const label = countryName ? `${countryName} flag` : `${countryCode.toUpperCase()} flag`
+  useEffect(() => {
+    setFailed(false)
+  }, [normalizedCode])
 
   const style: CSSProperties = {
     width,
     height,
     flex: `0 0 ${width}px`,
     display: 'inline-block',
-    objectFit: 'contain',
+    objectFit: 'cover',
     objectPosition: 'center',
     borderRadius: 2,
-    boxShadow: '0 0 0 1px rgba(20, 39, 58, 0.16)',
-    backgroundColor: '#fff',
+    border: '1px solid rgba(203, 213, 225, 0.9)',
+    backgroundColor: '#eef2f6',
     verticalAlign: 'middle',
-    imageRendering: 'auto',
+  }
+
+  if (!normalizedCode || failed) {
+    return (
+      <span
+        className={className}
+        style={style}
+        role="img"
+        aria-label={countryName ? `${countryName} flag unavailable` : 'Country flag unavailable'}
+        title={countryName ?? normalizedCode ?? 'Country unavailable'}
+      />
+    )
   }
 
   return (
     <img
-      src={`https://flagcdn.com/w160/${code}.png`}
-      srcSet={`https://flagcdn.com/w80/${code}.png 1x, https://flagcdn.com/w160/${code}.png 2x, https://flagcdn.com/w320/${code}.png 3x`}
-      alt={label}
+      src={getFlagImageUrl(normalizedCode)}
+      alt={countryName ? `${countryName} flag` : normalizedCode}
       className={className}
       style={style}
       loading="lazy"
       decoding="async"
       draggable={false}
-      title={countryName ?? countryCode.toUpperCase()}
+      onError={() => setFailed(true)}
+      title={countryName ?? normalizedCode}
     />
   )
 }
