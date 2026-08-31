@@ -8,14 +8,12 @@ import TournamentPageV3 from './TournamentV3'
 
 interface TournamentLogoRow {
   logo_url: string | null
-  tournament_name: string
 }
 
 export default function TournamentPage() {
   const { competitionId } = useParams()
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [logoReady, setLogoReady] = useState(false)
-  const [tournamentName, setTournamentName] = useState('Tournament')
 
   useEffect(() => {
     if (!competitionId) {
@@ -35,7 +33,6 @@ export default function TournamentPage() {
 
       const row = (Array.isArray(data) ? data[0] : data) as TournamentLogoRow | null
       setLogoUrl(row?.logo_url ?? null)
-      setTournamentName(row?.tournament_name ?? 'Tournament')
       setLogoReady(false)
     }
 
@@ -66,9 +63,6 @@ export default function TournamentPage() {
         />
       )}
       <TournamentPageV3 />
-      {logoReady && logoUrl && (
-        <span className="sr-only">Official in-game logo for {tournamentName}</span>
-      )}
     </div>
   )
 }
