@@ -21,6 +21,7 @@ export interface TabbedModulePageProps {
   sideTitle: string
   sideDescription: string
   wide?: boolean
+  initialTabId?: string
 }
 
 export function PlannedModuleContent({
@@ -58,8 +59,12 @@ export default function TabbedModulePage({
   sideTitle,
   sideDescription,
   wide = false,
+  initialTabId,
 }: TabbedModulePageProps) {
-  const [activeTabId, setActiveTabId] = useState(tabs[0]?.id ?? '')
+  const initialTab = tabs.some((tab) => tab.id === initialTabId)
+    ? initialTabId ?? tabs[0]?.id ?? ''
+    : tabs[0]?.id ?? ''
+  const [activeTabId, setActiveTabId] = useState(initialTab)
   const activeTab = useMemo(
     () => tabs.find((tab) => tab.id === activeTabId) ?? tabs[0],
     [activeTabId, tabs],
