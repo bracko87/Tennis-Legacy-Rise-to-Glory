@@ -2,6 +2,7 @@ import {
   Bell,
   ChevronDown,
   CircleHelp,
+  Crown,
   Gift,
   Inbox,
   LogOut,
@@ -17,6 +18,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
+import { useCommerce } from '../../hooks/useCommerce'
 import CountryFlag from '../common/CountryFlag'
 
 export interface GameHeaderProps {
@@ -40,6 +42,7 @@ export default function GameHeader({
 }: GameHeaderProps) {
   const navigate = useNavigate()
   const { player, signOut } = useAuth()
+  const { isPremium } = useCommerce()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const settingsRef = useRef<HTMLDivElement | null>(null)
 
@@ -116,6 +119,18 @@ export default function GameHeader({
           <span>Notifications</span>
         </button>
 
+        {isPremium && (
+          <button
+            type="button"
+            className="tlg-v4-header-action tlg-commerce-premium-tab"
+            aria-label="Premium membership"
+            onClick={() => navigate('/game/pro-packages')}
+          >
+            <Crown size={16} />
+            <span>Premium</span>
+          </button>
+        )}
+
         <div className="tlg-v4-settings" ref={settingsRef}>
           <button
             type="button"
@@ -160,7 +175,7 @@ export default function GameHeader({
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/pro-packages')}>
                 <Sparkles size={15} />
-                <span><strong>Pro Packages</strong><small>Premium services</small></span>
+                <span><strong>Pro Packages</strong><small>Premium services & coins</small></span>
               </button>
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/contact')}>
