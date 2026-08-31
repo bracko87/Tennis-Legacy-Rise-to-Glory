@@ -9,6 +9,7 @@
 import './styles/globals.css'
 import './styles/premium.css'
 import './styles/onboarding-enhancements.css'
+import './styles/dashboard-modules.css'
 
 import {
   BrowserRouter,
@@ -32,10 +33,15 @@ import ResetPasswordPage from './pages/auth/ResetPassword'
 import CreatePlayerPage from './pages/player/CreatePlayer'
 import OverviewPage from './pages/dashboard/Overview'
 import SkillsPage from './pages/dashboard/Skills'
+import TrainingPage from './pages/dashboard/Training'
+import StaffPage from './pages/dashboard/Staff'
 import CalendarPage from './pages/dashboard/Calendar'
+import RankingsPage from './pages/dashboard/Rankings'
 import SchedulePage from './pages/dashboard/Schedule'
-import FinancePage from './pages/dashboard/Finance'
 import EquipmentPage from './pages/dashboard/Equipment'
+import FinancePage from './pages/dashboard/Finance'
+import PrivateLifePage from './pages/dashboard/PrivateLife'
+import TennisClubPage from './pages/dashboard/TennisClub'
 import StatisticsPage from './pages/dashboard/Statistics'
 import ProPackagesPage from './pages/manager/ProPackages'
 import {
@@ -56,104 +62,24 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
 
-          <Route
-            path="/login"
-            element={
-              <AnonymousOnly>
-                <LoginPage />
-              </AnonymousOnly>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <AnonymousOnly>
-                <RegisterPage />
-              </AnonymousOnly>
-            }
-          />
-          <Route
-            path="/forgot-password"
-            element={
-              <AnonymousOnly>
-                <ForgotPasswordPage />
-              </AnonymousOnly>
-            }
-          />
-          <Route
-            path="/reset-password"
-            element={
-              <RequireAuth>
-                <ResetPasswordPage />
-              </RequireAuth>
-            }
-          />
+          <Route path="/login" element={<AnonymousOnly><LoginPage /></AnonymousOnly>} />
+          <Route path="/register" element={<AnonymousOnly><RegisterPage /></AnonymousOnly>} />
+          <Route path="/forgot-password" element={<AnonymousOnly><ForgotPasswordPage /></AnonymousOnly>} />
+          <Route path="/reset-password" element={<RequireAuth><ResetPasswordPage /></RequireAuth>} />
+          <Route path="/create-player" element={<RequireNoPlayer><CreatePlayerPage /></RequireNoPlayer>} />
 
-          <Route
-            path="/create-player"
-            element={
-              <RequireNoPlayer>
-                <CreatePlayerPage />
-              </RequireNoPlayer>
-            }
-          />
-
-          <Route
-            path="/game/overview"
-            element={
-              <RequirePlayer>
-                <OverviewPage />
-              </RequirePlayer>
-            }
-          />
-          <Route
-            path="/game/skills"
-            element={
-              <RequirePlayer>
-                <SkillsPage />
-              </RequirePlayer>
-            }
-          />
-          <Route
-            path="/game/calendar"
-            element={
-              <RequirePlayer>
-                <CalendarPage />
-              </RequirePlayer>
-            }
-          />
-          <Route
-            path="/game/schedule"
-            element={
-              <RequirePlayer>
-                <SchedulePage />
-              </RequirePlayer>
-            }
-          />
-          <Route
-            path="/game/finance"
-            element={
-              <RequirePlayer>
-                <FinancePage />
-              </RequirePlayer>
-            }
-          />
-          <Route
-            path="/game/equipment"
-            element={
-              <RequirePlayer>
-                <EquipmentPage />
-              </RequirePlayer>
-            }
-          />
-          <Route
-            path="/game/statistics"
-            element={
-              <RequirePlayer>
-                <StatisticsPage />
-              </RequirePlayer>
-            }
-          />
+          <Route path="/game/overview" element={<RequirePlayer><OverviewPage /></RequirePlayer>} />
+          <Route path="/game/skills" element={<RequirePlayer><SkillsPage /></RequirePlayer>} />
+          <Route path="/game/training" element={<RequirePlayer><TrainingPage /></RequirePlayer>} />
+          <Route path="/game/staff" element={<RequirePlayer><StaffPage /></RequirePlayer>} />
+          <Route path="/game/calendar" element={<RequirePlayer><CalendarPage /></RequirePlayer>} />
+          <Route path="/game/rankings" element={<RequirePlayer><RankingsPage /></RequirePlayer>} />
+          <Route path="/game/schedule" element={<RequirePlayer><SchedulePage /></RequirePlayer>} />
+          <Route path="/game/equipment" element={<RequirePlayer><EquipmentPage /></RequirePlayer>} />
+          <Route path="/game/finance" element={<RequirePlayer><FinancePage /></RequirePlayer>} />
+          <Route path="/game/private-life" element={<RequirePlayer><PrivateLifePage /></RequirePlayer>} />
+          <Route path="/game/tennis-club" element={<RequirePlayer><TennisClubPage /></RequirePlayer>} />
+          <Route path="/game/statistics" element={<RequirePlayer><StatisticsPage /></RequirePlayer>} />
 
           <Route path="/game/notifications" element={<RequirePlayer><NotificationsPage /></RequirePlayer>} />
           <Route path="/game/player-account" element={<RequirePlayer><PlayerAccountPage /></RequirePlayer>} />
