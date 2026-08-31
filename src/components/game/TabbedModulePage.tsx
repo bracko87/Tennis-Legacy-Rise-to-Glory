@@ -54,7 +54,6 @@ export default function TabbedModulePage({
   subtitle,
   eyebrow,
   intro,
-  icon,
   tabs,
   sideTitle,
   sideDescription,
@@ -101,7 +100,6 @@ export default function TabbedModulePage({
               <span>Career module</span>
               <h3>{activeTab?.label ?? title}</h3>
             </div>
-            <div className="tlg-v2-panel-icon">{icon}</div>
           </header>
 
           <div className="tlg-v2-panel-body">{activeTab?.content}</div>
@@ -115,7 +113,6 @@ export default function TabbedModulePage({
                   <span>Module status</span>
                   <h3>{sideTitle}</h3>
                 </div>
-                <div className="tlg-v2-panel-icon"><Construction size={17} /></div>
               </header>
               <div className="tlg-v2-panel-body">
                 <div className="tlg-v2-empty">
@@ -132,7 +129,6 @@ export default function TabbedModulePage({
                   <span>Data policy</span>
                   <h3>Live career state only</h3>
                 </div>
-                <div className="tlg-v2-panel-icon"><Database size={17} /></div>
               </header>
               <div className="tlg-v2-panel-body">
                 <div className="tlg-v2-info-row">
