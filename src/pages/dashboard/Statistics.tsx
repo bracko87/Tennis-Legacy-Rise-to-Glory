@@ -1,23 +1,69 @@
 import { BarChart3 } from 'lucide-react'
 
-import ModulePage from '../../components/game/ModulePage'
+import TabbedModulePage, { PlannedModuleContent } from '../../components/game/TabbedModulePage'
 
 export default function StatisticsPage() {
   return (
-    <ModulePage
+    <TabbedModulePage
       title="Statistics"
-      subtitle="Career analytics and historical performance"
+      subtitle="Player, tournament and career analytics"
       eyebrow="Performance intelligence"
-      intro="Turn every official match into a long-term career record with rankings, win-loss splits, tournament performance, surface analysis and milestone tracking."
+      intro="Statistics will be generated only from official Tennis Legacy singles matches and tournament results. ATP and WTA records remain separate according to the player's professional world."
       icon={<BarChart3 size={18} />}
-      sideTitle="Match analytics pending"
-      sideDescription="Statistics will be generated exclusively from official simulation results so this page never displays fabricated career numbers."
-      milestones={[
-        { title: 'Player identity linked', detail: 'Statistics will be scoped to the authenticated Tennis Legacy professional.', state: 'ready' },
-        { title: 'Career record', detail: 'Official wins, losses, matches played and retirement history.' },
-        { title: 'Ranking history', detail: 'Ranking and points progression across every game season.' },
-        { title: 'Surface splits', detail: 'Performance across hard, clay, grass and future surface types.' },
-        { title: 'Tournament history', detail: 'Draw progress, titles, finals and event-category performance.' },
+      sideTitle="Statistics engine pending"
+      sideDescription="No career values are fabricated. Real analytics will populate from official match, tournament and ranking systems."
+      tabs={[
+        {
+          id: 'player',
+          label: 'Player Statistics',
+          content: (
+            <PlannedModuleContent
+              title="Player statistics"
+              description="Analyse the overall performance profile of your professional player."
+              items={[
+                'Matches played, wins and losses',
+                'Surface performance',
+                'Set and game records',
+                'Opponent-level splits',
+                'Form and performance trends',
+              ]}
+            />
+          ),
+        },
+        {
+          id: 'tournaments',
+          label: 'Tournament Statistics',
+          content: (
+            <PlannedModuleContent
+              title="Tournament statistics"
+              description="Track how your player performs across official tournaments and event categories."
+              items={[
+                'Tournament appearances',
+                'Titles and finals',
+                'Best round reached',
+                'Results by tournament category',
+                'Tournament win percentage',
+              ]}
+            />
+          ),
+        },
+        {
+          id: 'career',
+          label: 'Career Records',
+          content: (
+            <PlannedModuleContent
+              title="Career records"
+              description="Preserve the long-term milestones and historical records of the player's entire career."
+              items={[
+                'Best world ranking',
+                'Ranking history',
+                'Season-by-season records',
+                'Career prize-money records',
+                'Major milestones and achievements',
+              ]}
+            />
+          ),
+        },
       ]}
     />
   )
