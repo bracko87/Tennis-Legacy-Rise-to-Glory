@@ -1,5 +1,6 @@
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
@@ -280,7 +281,12 @@ function TournamentCalendarView() {
                     const currentPhaseLabel = phaseLabel(event.phase)
 
                     return (
-                      <div key={event.schedule_slot_id} className="tlg-tournament-row">
+                      <Link
+                        key={event.schedule_slot_id}
+                        to={`/game/tournaments/${event.competition_id}`}
+                        className="tlg-tournament-row tlg-tournament-row-link"
+                        aria-label={`Open ${event.tournament_name}`}
+                      >
                         <div className="tlg-tournament-name-cell">
                           <strong>{event.tournament_name}</strong>
                           {currentPhaseLabel && <span className="tlg-tournament-phase-chip">{currentPhaseLabel}</span>}
@@ -312,7 +318,7 @@ function TournamentCalendarView() {
                           <strong>Main {event.main_draw_capacity}</strong>
                           <small>Qual. max {event.qualifying_capacity_max} · Winner {event.winner_points} pts</small>
                         </div>
-                      </div>
+                      </Link>
                     )
                   })}
                 </div>
