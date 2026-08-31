@@ -1,1 +1,1 @@
-export { default } from './TournamentV2'
+export { default } from './TournamentV3'
