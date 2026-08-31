@@ -414,11 +414,11 @@ export default function CalendarPage() {
   const [searchParams] = useSearchParams()
   const requestedMonth = parsePositiveInteger(searchParams.get('month'), 1, 12)
   const requestedWeek = parsePositiveInteger(searchParams.get('week'), 1, 4)
-  const [savedReturn] = useState<TournamentReturnPosition | null>(() => (
-    requestedMonth ? null : consumeTournamentReturnPosition()
-  ))
+  const [savedReturn] = useState<TournamentReturnPosition | null>(() => consumeTournamentReturnPosition())
   const initialMonth = requestedMonth ?? savedReturn?.month
-  const initialWeek = requestedWeek ?? savedReturn?.week
+  const initialWeek = requestedWeek ?? (
+    savedReturn && savedReturn.month === initialMonth ? savedReturn.week : undefined
+  )
   const initialTabId = searchParams.get('tab') === 'tournament-calendar' || initialMonth
     ? 'tournament-calendar'
     : 'season-calendar'
