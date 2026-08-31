@@ -26,7 +26,6 @@ export default function ModulePage({
   subtitle,
   eyebrow,
   intro,
-  icon,
   milestones,
   sideTitle,
   sideDescription,
@@ -49,7 +48,6 @@ export default function ModulePage({
               <span>System roadmap</span>
               <h3>{title} operations</h3>
             </div>
-            <div className="tlg-v2-panel-icon">{icon}</div>
           </header>
 
           <div className="tlg-v2-panel-body">
@@ -90,7 +88,6 @@ export default function ModulePage({
                 <span>Module status</span>
                 <h3>{sideTitle}</h3>
               </div>
-              <div className="tlg-v2-panel-icon"><Construction size={17} /></div>
             </header>
             <div className="tlg-v2-panel-body">
               <div className="tlg-v2-empty">
@@ -107,7 +104,6 @@ export default function ModulePage({
                 <span>Data policy</span>
                 <h3>Server-backed career state</h3>
               </div>
-              <div className="tlg-v2-panel-icon"><Database size={17} /></div>
             </header>
             <div className="tlg-v2-panel-body">
               <div className="tlg-v2-info-row">
