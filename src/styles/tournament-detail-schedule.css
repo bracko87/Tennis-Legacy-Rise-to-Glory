@@ -1,0 +1,125 @@
+/* Tournament day-by-day schedule --------------------------------------- */
+
+.tlg-detail-schedule-list-expanded {
+  grid-template-columns: 1fr;
+  gap: 14px;
+  padding: 16px 18px 6px;
+}
+
+.tlg-detail-schedule-list-expanded .tlg-detail-schedule-card {
+  min-height: 0;
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.tlg-detail-schedule-card-head {
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #e5edf3;
+  background: #f8fbfd;
+}
+
+.tlg-detail-schedule-card-head > div > span,
+.tlg-detail-schedule-card-head > div > strong {
+  display: block;
+}
+
+.tlg-detail-schedule-card-head > div > span {
+  color: #0b6fc8;
+  font-size: .56rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.tlg-detail-schedule-card-head > div > strong {
+  margin-top: 4px;
+  color: #29465c;
+  font-size: .78rem;
+}
+
+.tlg-detail-schedule-card-head > p {
+  margin: 0;
+  color: #607a8e;
+  font-size: .7rem;
+  font-weight: 760;
+  white-space: nowrap;
+}
+
+.tlg-detail-day-plan {
+  width: 100%;
+}
+
+.tlg-detail-day-plan-row {
+  min-height: 42px;
+  display: grid;
+  grid-template-columns: 78px 120px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 8px 14px;
+  border-bottom: 1px solid #edf2f5;
+}
+
+.tlg-detail-day-plan-row:last-child {
+  border-bottom: 0;
+}
+
+.tlg-detail-day-plan-row > span {
+  color: #7c8e9c;
+  font-size: .61rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.tlg-detail-day-plan-row > strong {
+  color: #29465c;
+  font-size: .68rem;
+  font-weight: 760;
+}
+
+.tlg-detail-day-plan-row > p {
+  margin: 0;
+  color: #18364e;
+  font-size: .7rem;
+  font-weight: 720;
+}
+
+.tlg-detail-day-plan-qualification {
+  box-shadow: inset 3px 0 0 #6baedf;
+}
+
+.tlg-detail-day-plan-main {
+  box-shadow: inset 3px 0 0 #0b6fc8;
+}
+
+.tlg-detail-day-plan-rest,
+.tlg-detail-day-plan-preparation {
+  background: #fafcfd;
+}
+
+.tlg-detail-day-plan-rest > p,
+.tlg-detail-day-plan-preparation > p {
+  color: #738899;
+  font-weight: 680;
+}
+
+@media (max-width: 620px) {
+  .tlg-detail-schedule-card-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .tlg-detail-day-plan-row {
+    grid-template-columns: 62px 94px minmax(0, 1fr);
+    gap: 8px;
+    padding: 9px 10px;
+  }
+}
