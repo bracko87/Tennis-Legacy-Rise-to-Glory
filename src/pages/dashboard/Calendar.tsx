@@ -1,6 +1,6 @@
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
@@ -28,6 +28,7 @@ const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Satur
 const TOURNAMENT_WEEKS = [1, 2, 3, 4] as const
 const DAYS_PER_SEASON = 366
 const SEASON_ONE_JANUARY_ONE_WEEKDAY = 5 // Saturday in a Monday-first calendar.
+const TOURNAMENT_RETURN_STORAGE_KEY = 'tlg-tournament-calendar-return'
 
 interface TournamentCalendarRow {
   competition_id: string
@@ -51,6 +52,52 @@ interface TournamentCalendarRow {
   default_qualifier_slots: number
   surface: 'hard' | 'clay' | 'grass'
   environment: 'indoor' | 'outdoor'
+}
+
+interface TournamentReturnPosition {
+  month: number
+  week: number
+}
+
+function parsePositiveInteger(value: string | null, minimum: number, maximum: number) {
+  if (!value) return null
+  const parsed = Number.parseInt(value, 10)
+  return Number.isInteger(parsed) && parsed >= minimum && parsed <= maximum ? parsed : null
+}
+
+function saveTournamentReturnPosition(month: number, week: number) {
+  try {
+    window.sessionStorage.setItem(
+      TOURNAMENT_RETURN_STORAGE_KEY,
+      JSON.stringify({ month, week } satisfies TournamentReturnPosition),
+    )
+  } catch {
+    // Browser storage can be unavailable in privacy-restricted contexts.
+  }
+}
+
+function consumeTournamentReturnPosition(): TournamentReturnPosition | null {
+  try {
+    const raw = window.sessionStorage.getItem(TOURNAMENT_RETURN_STORAGE_KEY)
+    window.sessionStorage.removeItem(TOURNAMENT_RETURN_STORAGE_KEY)
+    if (!raw) return null
+
+    const parsed = JSON.parse(raw) as Partial<TournamentReturnPosition>
+    if (
+      typeof parsed.month === 'number'
+      && parsed.month >= 1
+      && parsed.month <= 12
+      && typeof parsed.week === 'number'
+      && parsed.week >= 1
+      && parsed.week <= 4
+    ) {
+      return { month: parsed.month, week: parsed.week }
+    }
+  } catch {
+    // Invalid or unavailable browser storage should not block Calendar.
+  }
+
+  return null
 }
 
 function daysBeforeMonth(monthIndex: number) {
@@ -153,17 +200,25 @@ function SeasonCalendarView() {
   )
 }
 
-function TournamentCalendarView() {
+function TournamentCalendarView({
+  initialMonth,
+  initialWeek,
+}: {
+  initialMonth?: number
+  initialWeek?: number
+}) {
   const { player } = useAuth()
   const clock = useGameClock()
-  const [monthIndex, setMonthIndex] = useState(0)
+  const [, setSearchParams] = useSearchParams()
+  const [monthIndex, setMonthIndex] = useState(() => initialMonth ? initialMonth - 1 : 0)
+  const [restoreWeek, setRestoreWeek] = useState<number | null>(initialWeek ?? null)
   const [events, setEvents] = useState<TournamentCalendarRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!clock.loading) setMonthIndex(clock.monthIndex)
-  }, [clock.loading, clock.monthIndex])
+    if (!clock.loading && !initialMonth) setMonthIndex(clock.monthIndex)
+  }, [clock.loading, clock.monthIndex, initialMonth])
 
   const month = MONTHS[monthIndex]
   const world = player?.world ?? 'ATP'
@@ -203,10 +258,31 @@ function TournamentCalendarView() {
     }
   }, [clock.loading, clock.season, monthIndex, world])
 
+  useEffect(() => {
+    if (loading || !restoreWeek) return
+
+    const target = document.getElementById(`tournament-week-${restoreWeek}`)
+    if (!target) return
+
+    window.requestAnimationFrame(() => {
+      target.scrollIntoView({ block: 'start', behavior: 'auto' })
+      setRestoreWeek(null)
+    })
+  }, [loading, restoreWeek, events])
+
   const uniqueTournamentCount = useMemo(
     () => new Set(events.map((event) => event.tournament_id)).size,
     [events],
   )
+
+  function selectMonth(index: number) {
+    setMonthIndex(index)
+    setRestoreWeek(null)
+    setSearchParams({
+      tab: 'tournament-calendar',
+      month: String(index + 1),
+    }, { replace: true })
+  }
 
   return (
     <div className="tlg-tournament-calendar">
@@ -228,7 +304,7 @@ function TournamentCalendarView() {
             role="tab"
             aria-selected={index === monthIndex}
             className={index === monthIndex ? 'tlg-tournament-month-tab tlg-tournament-month-tab-active' : 'tlg-tournament-month-tab'}
-            onClick={() => setMonthIndex(index)}
+            onClick={() => selectMonth(index)}
           >
             {item.name}
           </button>
@@ -254,7 +330,7 @@ function TournamentCalendarView() {
           const weekEvents = events.filter((event) => event.month_week === week)
 
           return (
-            <section key={week} className="tlg-tournament-week">
+            <section key={week} id={`tournament-week-${week}`} className="tlg-tournament-week">
               <header className="tlg-tournament-week-head">
                 <div>
                   <span>{month.name}</span>
@@ -279,13 +355,16 @@ function TournamentCalendarView() {
 
                   {weekEvents.map((event) => {
                     const currentPhaseLabel = phaseLabel(event.phase)
+                    const returnQuery = `tab=tournament-calendar&month=${monthIndex + 1}&week=${week}`
 
                     return (
                       <Link
                         key={event.schedule_slot_id}
-                        to={`/game/tournaments/${event.competition_id}`}
+                        to={`/game/tournaments/${event.competition_id}?fromMonth=${monthIndex + 1}&fromWeek=${week}`}
+                        onClick={() => saveTournamentReturnPosition(monthIndex + 1, week)}
                         className="tlg-tournament-row tlg-tournament-row-link"
                         aria-label={`Open ${event.tournament_name}`}
+                        state={{ tournamentCalendarReturn: `/game/calendar?${returnQuery}#tournament-week-${week}` }}
                       >
                         <div className="tlg-tournament-name-cell">
                           <strong>{event.tournament_name}</strong>
@@ -332,6 +411,18 @@ function TournamentCalendarView() {
 }
 
 export default function CalendarPage() {
+  const [searchParams] = useSearchParams()
+  const requestedMonth = parsePositiveInteger(searchParams.get('month'), 1, 12)
+  const requestedWeek = parsePositiveInteger(searchParams.get('week'), 1, 4)
+  const [savedReturn] = useState<TournamentReturnPosition | null>(() => (
+    requestedMonth ? null : consumeTournamentReturnPosition()
+  ))
+  const initialMonth = requestedMonth ?? savedReturn?.month
+  const initialWeek = requestedWeek ?? savedReturn?.week
+  const initialTabId = searchParams.get('tab') === 'tournament-calendar' || initialMonth
+    ? 'tournament-calendar'
+    : 'season-calendar'
+
   return (
     <TabbedModulePage
       title="Calendar"
@@ -342,6 +433,7 @@ export default function CalendarPage() {
       sideTitle="Calendar engine pending"
       sideDescription="Calendar views use the global Tennis Legacy game clock and fixed 366-day season structure. Tournament data is server-backed and separated into ATP and WTA competitions."
       wide
+      initialTabId={initialTabId}
       tabs={[
         {
           id: 'season-calendar',
@@ -351,7 +443,7 @@ export default function CalendarPage() {
         {
           id: 'tournament-calendar',
           label: 'Tournament Calendar',
-          content: <TournamentCalendarView />,
+          content: <TournamentCalendarView initialMonth={initialMonth} initialWeek={initialWeek} />,
         },
       ]}
     />
