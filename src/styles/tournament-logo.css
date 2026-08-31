@@ -1,0 +1,22 @@
+.tlg-tournament-logo-preload {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tlg-tournament-logo-context .tlg-detail-logo-slot {
+  background-color: #fff;
+  background-image: var(--tlg-tournament-logo);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  border-style: solid;
+}
+
+.tlg-tournament-logo-context .tlg-detail-logo-slot > span,
+.tlg-tournament-logo-context .tlg-detail-logo-slot > small {
+  visibility: hidden;
+}
