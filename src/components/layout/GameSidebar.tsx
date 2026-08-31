@@ -2,14 +2,19 @@ import clsx from 'clsx'
 import {
   Activity,
   BarChart3,
+  Building2,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
   CircleDollarSign,
   Clock3,
+  Crown,
+  Dumbbell,
   LayoutDashboard,
   LogOut,
   Shield,
+  Trophy,
+  UsersRound,
 } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router'
 
@@ -30,15 +35,21 @@ interface NavItem {
   description: string
   to: string
   icon: JSX.Element
+  premiumOnly?: boolean
 }
 
 const items: NavItem[] = [
   { key: 'overview', label: 'Overview', description: 'Career command center', to: '/game/overview', icon: <LayoutDashboard size={17} /> },
-  { key: 'skills', label: 'Skills', description: 'Development & training', to: '/game/skills', icon: <Activity size={17} /> },
-  { key: 'calendar', label: 'Calendar', description: 'Season planning', to: '/game/calendar', icon: <CalendarDays size={17} /> },
+  { key: 'skills', label: 'Skills', description: 'Attributes & development', to: '/game/skills', icon: <Activity size={17} /> },
+  { key: 'training', label: 'Training', description: 'Regular training & camps', to: '/game/training', icon: <Dumbbell size={17} /> },
+  { key: 'staff', label: 'Staff', description: 'Coach & support team', to: '/game/staff', icon: <UsersRound size={17} /> },
+  { key: 'calendar', label: 'Calendar', description: 'Season & tournaments', to: '/game/calendar', icon: <CalendarDays size={17} /> },
+  { key: 'rankings', label: 'Rankings', description: 'ATP / WTA singles', to: '/game/rankings', icon: <Trophy size={17} /> },
   { key: 'schedule', label: 'Schedule', description: 'Events & commitments', to: '/game/schedule', icon: <Clock3 size={17} /> },
-  { key: 'finance', label: 'Finance', description: 'Career economy', to: '/game/finance', icon: <CircleDollarSign size={17} /> },
   { key: 'equipment', label: 'Equipment', description: 'Performance gear', to: '/game/equipment', icon: <Shield size={17} /> },
+  { key: 'finance', label: 'Finance', description: 'Career economy', to: '/game/finance', icon: <CircleDollarSign size={17} /> },
+  { key: 'private-life', label: 'Private Life', description: 'Premium career lifestyle', to: '/game/private-life', icon: <Crown size={17} />, premiumOnly: true },
+  { key: 'tennis-club', label: 'Tennis Club', description: 'Shared club community', to: '/game/tennis-club', icon: <Building2 size={17} /> },
   { key: 'statistics', label: 'Statistics', description: 'Results & analytics', to: '/game/statistics', icon: <BarChart3 size={17} /> },
 ]
 
@@ -113,15 +124,19 @@ export default function GameSidebar({
                 className={clsx(
                   'tlg-v2-nav-link',
                   active && 'tlg-v2-nav-link-active',
+                  item.premiumOnly && 'tlg-v2-nav-link-premium',
                 )}
-                title={isCollapsed ? item.label : undefined}
+                title={isCollapsed ? `${item.label}${item.premiumOnly ? ' · Premium' : ''}` : undefined}
                 aria-current={active ? 'page' : undefined}
               >
                 <span className="tlg-v2-nav-icon">{item.icon}</span>
 
                 {!isCollapsed && (
                   <span className="tlg-v2-nav-copy">
-                    <strong>{item.label}</strong>
+                    <span className="tlg-v8-nav-title-line">
+                      <strong>{item.label}</strong>
+                      {item.premiumOnly && <em>Premium</em>}
+                    </span>
                     <small>{item.description}</small>
                   </span>
                 )}
