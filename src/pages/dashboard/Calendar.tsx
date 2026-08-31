@@ -2,8 +2,11 @@ import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { useAuth } from '../../auth/AuthContext'
+import CountryFlag from '../../components/common/CountryFlag'
 import TabbedModulePage from '../../components/game/TabbedModulePage'
 import { useGameClock } from '../../hooks/useGameClock'
+import { supabase } from '../../lib/supabase'
+import '../../styles/tournament-calendar.css'
 
 const MONTHS = [
   { name: 'January', days: 31 },
@@ -21,8 +24,33 @@ const MONTHS = [
 ] as const
 
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const
+const TOURNAMENT_WEEKS = [1, 2, 3, 4] as const
 const DAYS_PER_SEASON = 366
 const SEASON_ONE_JANUARY_ONE_WEEKDAY = 5 // Saturday in a Monday-first calendar.
+
+interface TournamentCalendarRow {
+  competition_id: string
+  tournament_id: string
+  edition_id: string
+  schedule_slot_id: string
+  world: 'ATP' | 'WTA'
+  season_number: number
+  calendar_month: number
+  month_week: number
+  phase: 'full' | 'qualification' | 'main_draw'
+  tournament_name: string
+  city: string
+  country_code: string
+  country_name: string
+  category_code: string
+  category_label: string
+  winner_points: number
+  main_draw_capacity: number
+  qualifying_capacity_max: number
+  default_qualifier_slots: number
+  surface: 'hard' | 'clay' | 'grass'
+  environment: 'indoor' | 'outdoor'
+}
 
 function daysBeforeMonth(monthIndex: number) {
   return MONTHS.slice(0, monthIndex).reduce((total, month) => total + month.days, 0)
@@ -35,6 +63,16 @@ function firstWeekdayIndex(season: number, monthIndex: number) {
 
 function weekdayForDate(season: number, monthIndex: number, day: number) {
   return WEEKDAYS[(firstWeekdayIndex(season, monthIndex) + day - 1) % 7]
+}
+
+function titleCase(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
+function phaseLabel(phase: TournamentCalendarRow['phase']) {
+  if (phase === 'qualification') return 'Qualification'
+  if (phase === 'main_draw') return 'Main draw'
+  return null
 }
 
 function SeasonCalendarView() {
@@ -118,6 +156,9 @@ function TournamentCalendarView() {
   const { player } = useAuth()
   const clock = useGameClock()
   const [monthIndex, setMonthIndex] = useState(0)
+  const [events, setEvents] = useState<TournamentCalendarRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!clock.loading) setMonthIndex(clock.monthIndex)
@@ -126,13 +167,53 @@ function TournamentCalendarView() {
   const month = MONTHS[monthIndex]
   const world = player?.world ?? 'ATP'
 
+  useEffect(() => {
+    if (clock.loading) return
+
+    let cancelled = false
+
+    async function loadTournamentCalendar() {
+      setLoading(true)
+      setError(null)
+
+      const { data, error: calendarError } = await supabase.rpc('get_tournament_calendar_v1', {
+        p_season_number: clock.season,
+        p_calendar_month: monthIndex + 1,
+        p_world: world,
+      })
+
+      if (cancelled) return
+
+      if (calendarError) {
+        setEvents([])
+        setError(calendarError.message)
+        setLoading(false)
+        return
+      }
+
+      setEvents((data ?? []) as TournamentCalendarRow[])
+      setLoading(false)
+    }
+
+    void loadTournamentCalendar()
+
+    return () => {
+      cancelled = true
+    }
+  }, [clock.loading, clock.season, monthIndex, world])
+
+  const uniqueTournamentCount = useMemo(
+    () => new Set(events.map((event) => event.tournament_id)).size,
+    [events],
+  )
+
   return (
     <div className="tlg-tournament-calendar">
       <div className="tlg-tournament-calendar-head">
         <div>
           <h4>Season {clock.season} Tournament Calendar</h4>
           <p>
-            Browse official {world} singles tournaments month by month. ATP and WTA tournament schedules remain completely separate.
+            ATP and WTA use the same tournament locations, weeks, categories and surfaces. You only see the separate {world} competition belonging to your player.
           </p>
         </div>
         <span className="tlg-tournament-world-chip">{world} singles</span>
@@ -153,13 +234,92 @@ function TournamentCalendarView() {
         ))}
       </div>
 
-      <div className="tlg-tournament-list">
-        <div className="tlg-tournament-empty">
-          <strong>No {world} tournaments published for {month.name} yet.</strong>
-          <p>
-            When the tournament database is populated, every event scheduled in {month.name} will appear here as a linked tournament row with dates, location, surface, category and entry status.
-          </p>
+      <div className="tlg-tournament-month-summary">
+        <div>
+          <span>{month.name}</span>
+          <strong>{loading ? 'Loading tournaments…' : `${uniqueTournamentCount} tournaments`}</strong>
         </div>
+        <p>Competition weeks are fixed to Week 1–4. A tournament remains assigned to its starting month even if its competition window later crosses into the next month.</p>
+      </div>
+
+      {error && (
+        <div className="tlg-tournament-load-error">
+          Unable to load the tournament calendar: {error}
+        </div>
+      )}
+
+      <div className="tlg-tournament-weeks">
+        {TOURNAMENT_WEEKS.map((week) => {
+          const weekEvents = events.filter((event) => event.month_week === week)
+
+          return (
+            <section key={week} className="tlg-tournament-week">
+              <header className="tlg-tournament-week-head">
+                <div>
+                  <span>{month.name}</span>
+                  <h5>Week {week}</h5>
+                </div>
+                <strong>{loading ? '—' : `${weekEvents.length} calendar ${weekEvents.length === 1 ? 'entry' : 'entries'}`}</strong>
+              </header>
+
+              {loading ? (
+                <div className="tlg-tournament-week-empty">Loading {month.name} Week {week}…</div>
+              ) : weekEvents.length === 0 ? (
+                <div className="tlg-tournament-week-empty">No {world} tournaments published for {month.name} Week {week} yet.</div>
+              ) : (
+                <div className="tlg-tournament-week-list">
+                  <div className="tlg-tournament-row tlg-tournament-row-head" aria-hidden="true">
+                    <span>Tournament</span>
+                    <span>Location</span>
+                    <span>Category</span>
+                    <span>Surface</span>
+                    <span>Draw / Points</span>
+                  </div>
+
+                  {weekEvents.map((event) => {
+                    const currentPhaseLabel = phaseLabel(event.phase)
+
+                    return (
+                      <div key={event.schedule_slot_id} className="tlg-tournament-row">
+                        <div className="tlg-tournament-name-cell">
+                          <strong>{event.tournament_name}</strong>
+                          {currentPhaseLabel && <span className="tlg-tournament-phase-chip">{currentPhaseLabel}</span>}
+                        </div>
+
+                        <div className="tlg-tournament-location-cell">
+                          <CountryFlag
+                            countryCode={event.country_code}
+                            countryName={event.country_name}
+                            width={24}
+                            height={16}
+                          />
+                          <div>
+                            <strong>{event.city}</strong>
+                            <small>{event.country_name}</small>
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="tlg-tournament-category-chip">{event.category_label}</span>
+                        </div>
+
+                        <div className="tlg-tournament-surface-cell">
+                          <strong>{titleCase(event.surface)}</strong>
+                          <small>{titleCase(event.environment)}</small>
+                        </div>
+
+                        <div className="tlg-tournament-draw-cell">
+                          <strong>Main {event.main_draw_capacity}</strong>
+                          <small>Qual. max {event.qualifying_capacity_max} · Winner {event.winner_points} pts</small>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </section>
+          )
+        })}
       </div>
     </div>
   )
@@ -171,10 +331,10 @@ export default function CalendarPage() {
       title="Calendar"
       subtitle="Season calendar and tournament calendar"
       eyebrow="Competition planning"
-      intro="Use the Calendar for the complete Tennis Legacy season timeline. Tournament Calendar focuses only on official singles events belonging to your ATP or WTA world."
+      intro="Use the Calendar for the complete Tennis Legacy season timeline. Tournament Calendar shows the shared world schedule while keeping ATP and WTA entries, draws, matches, results and rankings completely separate."
       icon={<CalendarDays size={18} />}
       sideTitle="Calendar engine pending"
-      sideDescription="Calendar views use the global Tennis Legacy game clock and the fixed 366-day season structure. Tournament rows will be populated only from official server-backed event data."
+      sideDescription="Calendar views use the global Tennis Legacy game clock and fixed 366-day season structure. Tournament data is server-backed and separated into ATP and WTA competitions."
       wide
       tabs={[
         {
