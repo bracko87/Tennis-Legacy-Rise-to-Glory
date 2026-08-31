@@ -9,6 +9,7 @@
 import './styles/globals.css'
 import './styles/premium.css'
 import './styles/onboarding-enhancements.css'
+import './styles/commerce.css'
 
 import {
   BrowserRouter,
@@ -37,6 +38,7 @@ import SchedulePage from './pages/dashboard/Schedule'
 import FinancePage from './pages/dashboard/Finance'
 import EquipmentPage from './pages/dashboard/Equipment'
 import StatisticsPage from './pages/dashboard/Statistics'
+import ProPackagesPage from './pages/manager/ProPackages'
 import {
   ContactUsPage,
   ForumPage,
@@ -46,7 +48,6 @@ import {
   InviteFriendsPage,
   NotificationsPage,
   PlayerAccountPage,
-  ProPackagesPage,
 } from './pages/manager/ManagerPages'
 
 export default function App() {
