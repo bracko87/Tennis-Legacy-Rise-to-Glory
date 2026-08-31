@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react'
 import {
   ArrowLeft,
   CalendarDays,
@@ -29,6 +28,18 @@ const MONTHS = [
   { name: 'November', days: 30 },
   { name: 'December', days: 31 },
 ] as const
+
+const SURFACE_IMAGES: Record<'hard' | 'clay' | 'grass', string> = {
+  hard: 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/hard.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9oYXJkLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODgxODM3MTgsImV4cCI6NDkxMDI0NzcxOH0.A8nFMfrv24zncDCqjuE5PihskAwMLdak04-Qz64_2ksvFiHfzDpunlMMdcGqy9IDh-qPQCfoFe5HP0Hu9pcfow',
+  grass: 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/grass.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9ncmFzcy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg4MTgzNzM2LCJleHAiOjQ5MTAyNDc3MzZ9.wENm_84C6GKo4fyTBxTsJ04OiNa8SZwLrEIxACdxJQN5D8EQDd6WhiRVDUbM5pwqQPgrovW009ULGRV92alrOQ',
+  clay: 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/clay.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9jbGF5LnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODgxODM3NTUsImV4cCI6NDkxMDI0Nzc1NX0.8AJ27KTGHBvo0Sf4xnNqHv8KXY9Sh2lVo7Fi1mbjtPY_Wi7_hqAVkFkC8GfiYbhN5mS3d4QI03HWyQ5wT9PVpA',
+}
+
+const BRACKET_MATCH_WIDTH = 210
+const BRACKET_MATCH_HEIGHT = 62
+const BRACKET_COLUMN_GAP = 72
+const BRACKET_FIRST_ROUND_GAP = 12
+const BRACKET_STEP = BRACKET_MATCH_HEIGHT + BRACKET_FIRST_ROUND_GAP
 
 interface TournamentScheduleSlot {
   calendar_month: number
@@ -136,6 +147,15 @@ function qualificationRounds(capacity: number, qualifierSlots: number): BracketR
   }))
 }
 
+function bracketMatchCenter(roundIndex: number, matchIndex: number) {
+  const firstRoundMatchSpan = 2 ** roundIndex
+  const representedFirstMatchCenter = (
+    matchIndex * firstRoundMatchSpan + (firstRoundMatchSpan - 1) / 2
+  )
+
+  return BRACKET_MATCH_HEIGHT / 2 + representedFirstMatchCenter * BRACKET_STEP
+}
+
 function TournamentBracket({
   rounds,
   emptyMessage,
@@ -147,38 +167,81 @@ function TournamentBracket({
     return <div className="tlg-detail-bracket-empty">{emptyMessage}</div>
   }
 
+  const width = rounds.length * BRACKET_MATCH_WIDTH + (rounds.length - 1) * BRACKET_COLUMN_GAP
+  const height = Math.max(
+    BRACKET_MATCH_HEIGHT,
+    (rounds[0].matches - 1) * BRACKET_STEP + BRACKET_MATCH_HEIGHT,
+  )
+
   return (
     <div className="tlg-detail-bracket-scroll">
-      <div className="tlg-detail-bracket-tree">
-        {rounds.map((round, roundIndex) => {
-          const spacing = Math.min(10 + roundIndex * 14, 80)
-          const offset = roundIndex === 0 ? 0 : Math.min(roundIndex * 12, 54)
+      <div className="tlg-detail-bracket-headings" style={{ width }}>
+        {rounds.map((round, roundIndex) => (
+          <header
+            key={`${round.label}-${round.matches}`}
+            style={{ left: roundIndex * (BRACKET_MATCH_WIDTH + BRACKET_COLUMN_GAP) }}
+          >
+            <strong>{round.label}</strong>
+            <span>{round.matches} {round.matches === 1 ? 'match' : 'matches'}</span>
+          </header>
+        ))}
+      </div>
 
-          return (
-            <section
-              key={`${round.label}-${round.matches}`}
-              className="tlg-detail-bracket-round"
-              style={{
-                '--bracket-gap': `${spacing}px`,
-                '--bracket-offset': `${offset}px`,
-              } as CSSProperties}
-            >
-              <header>
-                <strong>{round.label}</strong>
-                <span>{round.matches} {round.matches === 1 ? 'match' : 'matches'}</span>
-              </header>
+      <div className="tlg-detail-bracket-tree" style={{ width, height }}>
+        <svg
+          className="tlg-detail-bracket-connectors"
+          width={width}
+          height={height}
+          viewBox={`0 0 ${width} ${height}`}
+          aria-hidden="true"
+        >
+          {rounds.slice(0, -1).flatMap((round, roundIndex) => {
+            const parentRound = rounds[roundIndex + 1]
+            const startX = roundIndex * (BRACKET_MATCH_WIDTH + BRACKET_COLUMN_GAP) + BRACKET_MATCH_WIDTH
+            const middleX = startX + BRACKET_COLUMN_GAP / 2
+            const endX = (roundIndex + 1) * (BRACKET_MATCH_WIDTH + BRACKET_COLUMN_GAP)
 
-              <div className="tlg-detail-bracket-matches">
-                {Array.from({ length: round.matches }, (_, index) => (
-                  <div key={`${round.label}-${index}`} className="tlg-detail-bracket-match">
-                    <div><span>{index * 2 + 1}</span><strong>TBD</strong></div>
-                    <div><span>{index * 2 + 2}</span><strong>TBD</strong></div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )
-        })}
+            return Array.from({ length: parentRound.matches }, (_, parentIndex) => {
+              const firstChildIndex = parentIndex * 2
+              const secondChildIndex = firstChildIndex + 1
+              const firstY = bracketMatchCenter(roundIndex, firstChildIndex)
+              const secondY = bracketMatchCenter(roundIndex, secondChildIndex)
+              const parentY = bracketMatchCenter(roundIndex + 1, parentIndex)
+
+              return (
+                <path
+                  key={`connector-${roundIndex}-${parentIndex}`}
+                  d={`M ${startX} ${firstY} H ${middleX} M ${startX} ${secondY} H ${middleX} M ${middleX} ${firstY} V ${secondY} M ${middleX} ${parentY} H ${endX}`}
+                />
+              )
+            })
+          })}
+        </svg>
+
+        {rounds.map((round, roundIndex) => (
+          <section
+            key={`${round.label}-${round.matches}`}
+            className="tlg-detail-bracket-round"
+            style={{ left: roundIndex * (BRACKET_MATCH_WIDTH + BRACKET_COLUMN_GAP) }}
+          >
+            {Array.from({ length: round.matches }, (_, matchIndex) => {
+              const top = bracketMatchCenter(roundIndex, matchIndex) - BRACKET_MATCH_HEIGHT / 2
+              const firstSource = matchIndex * 2 + 1
+              const secondSource = matchIndex * 2 + 2
+
+              return (
+                <div
+                  key={`${round.label}-${matchIndex}`}
+                  className="tlg-detail-bracket-match"
+                  style={{ top }}
+                >
+                  <div><span>{firstSource}</span><strong>TBD</strong></div>
+                  <div><span>{secondSource}</span><strong>TBD</strong></div>
+                </div>
+              )
+            })}
+          </section>
+        ))}
       </div>
     </div>
   )
@@ -291,9 +354,16 @@ export default function TournamentPage() {
         </Link>
 
         <section className="tlg-detail-hero">
-          <div className="tlg-detail-logo-slot" aria-label="Tournament logo placeholder">
-            <span>{tournamentInitials(detail.tournament_name)}</span>
-            <small>Tournament logo</small>
+          <div className="tlg-detail-surface-card">
+            <img
+              src={SURFACE_IMAGES[detail.surface]}
+              alt={`${titleCase(detail.surface)} tennis court surface`}
+              className="tlg-detail-surface-image"
+            />
+            <div className="tlg-detail-surface-copy">
+              <strong>{titleCase(detail.surface)}</strong>
+              <span>{titleCase(detail.environment)} court</span>
+            </div>
           </div>
 
           <div className="tlg-detail-hero-copy">
@@ -325,14 +395,9 @@ export default function TournamentPage() {
             </div>
           </div>
 
-          <div className={`tlg-detail-surface-card tlg-detail-surface-${detail.surface}`}>
-            <div className="tlg-detail-court-graphic" aria-hidden="true">
-              <i />
-              <i />
-              <i />
-            </div>
-            <strong>{titleCase(detail.surface)}</strong>
-            <span>{titleCase(detail.environment)} court</span>
+          <div className="tlg-detail-logo-slot" aria-label="Tournament logo placeholder">
+            <span>{tournamentInitials(detail.tournament_name)}</span>
+            <small>{detail.tournament_name}</small>
           </div>
         </section>
 
