@@ -1,0 +1,144 @@
+import type { ReactNode } from 'react'
+import { Construction, Database } from 'lucide-react'
+import { useMemo, useState } from 'react'
+
+import GameLayout from '../layout/GameLayout'
+
+export interface DashboardModuleTab {
+  id: string
+  label: string
+  content: ReactNode
+}
+
+export interface TabbedModulePageProps {
+  title: string
+  subtitle: string
+  eyebrow: string
+  intro: string
+  icon: ReactNode
+  tabs: DashboardModuleTab[]
+  sideTitle: string
+  sideDescription: string
+}
+
+export function PlannedModuleContent({
+  title,
+  description,
+  items,
+}: {
+  title: string
+  description: string
+  items: string[]
+}) {
+  return (
+    <div className="tlg-module-tab-content">
+      <h4>{title}</h4>
+      <p>{description}</p>
+      <div className="tlg-module-planned-list">
+        {items.map((item) => (
+          <div key={item} className="tlg-module-planned-row">
+            <span />
+            <strong>{item}</strong>
+            <small>Planned</small>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export default function TabbedModulePage({
+  title,
+  subtitle,
+  eyebrow,
+  intro,
+  icon,
+  tabs,
+  sideTitle,
+  sideDescription,
+}: TabbedModulePageProps) {
+  const [activeTabId, setActiveTabId] = useState(tabs[0]?.id ?? '')
+  const activeTab = useMemo(
+    () => tabs.find((tab) => tab.id === activeTabId) ?? tabs[0],
+    [activeTabId, tabs],
+  )
+
+  return (
+    <GameLayout title={title} subtitle={subtitle}>
+      <header className="tlg-v2-page-head">
+        <div className="tlg-v2-page-head-copy">
+          <div className="tlg-v2-page-eyebrow">{eyebrow}</div>
+          <h2 className="tlg-v2-page-title">{title}</h2>
+          <p className="tlg-v2-page-description">{intro}</p>
+        </div>
+      </header>
+
+      <div className="tlg-v2-module-grid">
+        <section className="tlg-v2-panel">
+          <header className="tlg-v2-panel-header">
+            <div>
+              <span>Career module</span>
+              <h3>{title}</h3>
+            </div>
+            <div className="tlg-v2-panel-icon">{icon}</div>
+          </header>
+
+          <div className="tlg-module-tabs" role="tablist" aria-label={`${title} sections`}>
+            {tabs.map((tab) => {
+              const active = tab.id === activeTab?.id
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  className={active ? 'tlg-module-tab tlg-module-tab-active' : 'tlg-module-tab'}
+                  onClick={() => setActiveTabId(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              )
+            })}
+          </div>
+
+          <div className="tlg-v2-panel-body">{activeTab?.content}</div>
+        </section>
+
+        <aside className="tlg-v2-stack">
+          <section className="tlg-v2-panel">
+            <header className="tlg-v2-panel-header">
+              <div>
+                <span>Module status</span>
+                <h3>{sideTitle}</h3>
+              </div>
+              <div className="tlg-v2-panel-icon"><Construction size={17} /></div>
+            </header>
+            <div className="tlg-v2-panel-body">
+              <div className="tlg-v2-empty">
+                <Construction size={24} />
+                <strong>Ready for server-backed rules</strong>
+                <p>{sideDescription}</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="tlg-v2-panel">
+            <header className="tlg-v2-panel-header">
+              <div>
+                <span>Data policy</span>
+                <h3>Live career state only</h3>
+              </div>
+              <div className="tlg-v2-panel-icon"><Database size={17} /></div>
+            </header>
+            <div className="tlg-v2-panel-body">
+              <div className="tlg-v2-info-row">
+                <span className="tlg-v2-info-row-icon"><Database size={16} /></span>
+                <p>Values will appear only when their Tennis Legacy server systems are implemented. Placeholder career results are not fabricated.</p>
+              </div>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </GameLayout>
+  )
+}
