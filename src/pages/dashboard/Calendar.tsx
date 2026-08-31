@@ -6,28 +6,18 @@ import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
 import TabbedModulePage from '../../components/game/TabbedModulePage'
 import { useGameClock } from '../../hooks/useGameClock'
+import {
+  MONTHS,
+  WEEKDAYS,
+  competitionWeeksForMonth,
+  firstWeekdayIndex,
+  formatCompetitionWeekRange,
+  isSeasonOpeningDay,
+  weekdayForDate,
+} from '../../lib/competitionCalendar'
 import { supabase } from '../../lib/supabase'
 import '../../styles/tournament-calendar.css'
 
-const MONTHS = [
-  { name: 'January', days: 31 },
-  { name: 'February', days: 29 },
-  { name: 'March', days: 31 },
-  { name: 'April', days: 30 },
-  { name: 'May', days: 31 },
-  { name: 'June', days: 30 },
-  { name: 'July', days: 31 },
-  { name: 'August', days: 31 },
-  { name: 'September', days: 30 },
-  { name: 'October', days: 31 },
-  { name: 'November', days: 30 },
-  { name: 'December', days: 31 },
-] as const
-
-const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const
-const TOURNAMENT_WEEKS = [1, 2, 3, 4] as const
-const DAYS_PER_SEASON = 366
-const SEASON_ONE_JANUARY_ONE_WEEKDAY = 5 // Saturday in a Monday-first calendar.
 const TOURNAMENT_RETURN_STORAGE_KEY = 'tlg-tournament-calendar-return'
 
 interface TournamentCalendarRow {
@@ -37,6 +27,7 @@ interface TournamentCalendarRow {
   schedule_slot_id: string
   world: 'ATP' | 'WTA'
   season_number: number
+  season_week: number
   calendar_month: number
   month_week: number
   phase: 'full' | 'qualification' | 'main_draw'
@@ -89,7 +80,7 @@ function consumeTournamentReturnPosition(): TournamentReturnPosition | null {
       && parsed.month <= 12
       && typeof parsed.week === 'number'
       && parsed.week >= 1
-      && parsed.week <= 4
+      && parsed.week <= 5
     ) {
       return { month: parsed.month, week: parsed.week }
     }
@@ -98,19 +89,6 @@ function consumeTournamentReturnPosition(): TournamentReturnPosition | null {
   }
 
   return null
-}
-
-function daysBeforeMonth(monthIndex: number) {
-  return MONTHS.slice(0, monthIndex).reduce((total, month) => total + month.days, 0)
-}
-
-function firstWeekdayIndex(season: number, monthIndex: number) {
-  const elapsedDays = (season - 1) * DAYS_PER_SEASON + daysBeforeMonth(monthIndex)
-  return (SEASON_ONE_JANUARY_ONE_WEEKDAY + elapsedDays) % 7
-}
-
-function weekdayForDate(season: number, monthIndex: number, day: number) {
-  return WEEKDAYS[(firstWeekdayIndex(season, monthIndex) + day - 1) % 7]
 }
 
 function titleCase(value: string) {
@@ -132,7 +110,7 @@ function SeasonCalendarView() {
   }, [clock.loading, clock.monthIndex])
 
   const month = MONTHS[monthIndex]
-  const leadingEmptyCells = firstWeekdayIndex(clock.season, monthIndex)
+  const leadingEmptyCells = firstWeekdayIndex(monthIndex)
 
   const cells = useMemo(() => {
     const values: Array<number | null> = []
@@ -142,7 +120,7 @@ function SeasonCalendarView() {
     return values
   }, [leadingEmptyCells, month.days])
 
-  const todayWeekday = weekdayForDate(clock.season, clock.monthIndex, clock.day)
+  const todayWeekday = weekdayForDate(clock.monthIndex, clock.day)
 
   return (
     <div className="tlg-season-calendar">
@@ -150,7 +128,7 @@ function SeasonCalendarView() {
         <div className="tlg-season-calendar-copy">
           <h4>Season {clock.season} · {month.name}</h4>
           <p>
-            Today: Season {clock.season} · {todayWeekday} · {clock.month} {clock.day}. Every Tennis Legacy season uses the same fixed month lengths.
+            Today: Season {clock.season} · {todayWeekday} · {clock.month} {clock.day}. Every season uses the same 366-day calendar and weekday layout.
           </p>
         </div>
 
@@ -184,6 +162,7 @@ function SeasonCalendarView() {
           }
 
           const current = monthIndex === clock.monthIndex && day === clock.day
+          const openingDay = isSeasonOpeningDay(monthIndex, day)
 
           return (
             <div
@@ -192,6 +171,7 @@ function SeasonCalendarView() {
             >
               <span className="tlg-calendar-day-number">{month.name} {day}</span>
               {current && <span className="tlg-calendar-today-badge">Today</span>}
+              {openingDay && !current && <span className="tlg-calendar-today-badge">Season opening</span>}
             </div>
           )
         })}
@@ -222,6 +202,7 @@ function TournamentCalendarView({
 
   const month = MONTHS[monthIndex]
   const world = player?.world ?? 'ATP'
+  const monthCompetitionWeeks = useMemo(() => competitionWeeksForMonth(monthIndex), [monthIndex])
 
   useEffect(() => {
     if (clock.loading) return
@@ -290,7 +271,7 @@ function TournamentCalendarView({
         <div>
           <h4>Season {clock.season} Tournament Calendar</h4>
           <p>
-            ATP and WTA use the same tournament locations, weeks, categories and surfaces. You only see the separate {world} competition belonging to your player.
+            Competition weeks always run Monday to Sunday. ATP and WTA use the same locations and week structure, while entries, draws, matches and results remain separate.
           </p>
         </div>
         <span className="tlg-tournament-world-chip">{world} singles</span>
@@ -316,8 +297,20 @@ function TournamentCalendarView({
           <span>{month.name}</span>
           <strong>{loading ? 'Loading tournaments…' : `${uniqueTournamentCount} tournaments`}</strong>
         </div>
-        <p>Competition weeks are fixed to Week 1–4. A tournament remains assigned to its starting month even if its competition window later crosses into the next month.</p>
+        <p>
+          {monthCompetitionWeeks.length} Monday–Sunday competition weeks are assigned to {month.name}. A cross-month week belongs to the month containing at least four of its seven days.
+        </p>
       </div>
+
+      {monthIndex === 0 && (
+        <div className="tlg-tournament-month-summary">
+          <div>
+            <span>Season opening</span>
+            <strong>January 1–2</strong>
+          </div>
+          <p>No tournament week runs on these opening days. They are reserved for applications, travel, training and preparation before Week 1 begins Monday, January 3.</p>
+        </div>
+      )}
 
       {error && (
         <div className="tlg-tournament-load-error">
@@ -326,15 +319,16 @@ function TournamentCalendarView({
       )}
 
       <div className="tlg-tournament-weeks">
-        {TOURNAMENT_WEEKS.map((week) => {
-          const weekEvents = events.filter((event) => event.month_week === week)
+        {monthCompetitionWeeks.map((weekInfo) => {
+          const week = weekInfo.monthWeek
+          const weekEvents = events.filter((event) => event.season_week === weekInfo.seasonWeek)
 
           return (
-            <section key={week} id={`tournament-week-${week}`} className="tlg-tournament-week">
+            <section key={weekInfo.seasonWeek} id={`tournament-week-${week}`} className="tlg-tournament-week">
               <header className="tlg-tournament-week-head">
                 <div>
-                  <span>{month.name}</span>
-                  <h5>Week {week}</h5>
+                  <span>{month.name} · Season Week {weekInfo.seasonWeek}</span>
+                  <h5>Week {week} · {formatCompetitionWeekRange(weekInfo.seasonWeek)}</h5>
                 </div>
                 <strong>{loading ? '—' : `${weekEvents.length} calendar ${weekEvents.length === 1 ? 'entry' : 'entries'}`}</strong>
               </header>
@@ -413,7 +407,7 @@ function TournamentCalendarView({
 export default function CalendarPage() {
   const [searchParams] = useSearchParams()
   const requestedMonth = parsePositiveInteger(searchParams.get('month'), 1, 12)
-  const requestedWeek = parsePositiveInteger(searchParams.get('week'), 1, 4)
+  const requestedWeek = parsePositiveInteger(searchParams.get('week'), 1, 5)
   const [savedReturn] = useState<TournamentReturnPosition | null>(() => consumeTournamentReturnPosition())
   const initialMonth = requestedMonth ?? savedReturn?.month
   const initialWeek = requestedWeek ?? (
@@ -428,7 +422,7 @@ export default function CalendarPage() {
       title="Calendar"
       subtitle="Season calendar and tournament calendar"
       eyebrow="Competition planning"
-      intro="Use the Calendar for the complete Tennis Legacy season timeline. Tournament Calendar shows the shared world schedule while keeping ATP and WTA entries, draws, matches, results and rankings completely separate."
+      intro="Use the Calendar for the complete Tennis Legacy season timeline. Tournament Calendar uses 52 continuous Monday-to-Sunday competition weeks while ATP and WTA entries, draws, matches, results and rankings remain completely separate."
       icon={<CalendarDays size={18} />}
       sideTitle="Calendar engine pending"
       sideDescription="Calendar views use the global Tennis Legacy game clock and fixed 366-day season structure. Tournament data is server-backed and separated into ATP and WTA competitions."
