@@ -56,9 +56,9 @@
   gap: 10px;
   padding: 12px 14px;
   border-radius: 10px;
-  color: #6f5500;
-  background: #fff8d8;
-  border: 1px solid #f2d76a;
+  color: #0a4f87;
+  background: #eaf5fd;
+  border: 1px solid #b7d9f0;
   font-size: .86rem;
   font-weight: 600;
 }
@@ -67,7 +67,7 @@
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(290px, .95fr);
   overflow: hidden;
-  border: 1px solid #f1c400;
+  border: 1px solid #2f95d8;
   border-radius: 16px;
   background: #fff;
   box-shadow: 0 16px 36px rgba(29, 47, 62, .08);
@@ -99,8 +99,8 @@
 }
 
 .tlg-commerce-badge-premium {
-  color: #111;
-  background: #ffd21a;
+  color: #fff;
+  background: #0b6fc8;
 }
 
 .tlg-commerce-badge-active {
@@ -177,13 +177,13 @@
   justify-content: center;
   align-items: flex-start;
   padding: 30px 32px;
-  background: linear-gradient(145deg, #fffdf0, #fff8c9);
-  border-left: 1px solid #f0e3a2;
+  background: linear-gradient(145deg, #f7fbff, #e6f3fd);
+  border-left: 1px solid #b7d9f0;
 }
 
 .tlg-commerce-premium-side > svg {
   margin-bottom: 15px;
-  color: #d6a800;
+  color: #0b6fc8;
 }
 
 .tlg-commerce-premium-side > span {
@@ -214,7 +214,7 @@
 
 .tlg-commerce-premium-side button {
   color: #fff;
-  background: #05080c;
+  background: #054e98;
 }
 
 .tlg-commerce-premium-side p {
@@ -296,15 +296,15 @@
 }
 
 .tlg-commerce-pack-best {
-  border: 2px solid #f0c600;
+  border: 2px solid #0b6fc8;
 }
 
 .tlg-commerce-pack-badge {
   position: absolute;
   top: 18px;
   right: 18px;
-  color: #111;
-  background: #ffd21a;
+  color: #fff;
+  background: #0b6fc8;
 }
 
 .tlg-commerce-pack > span:first-of-type {
@@ -343,8 +343,8 @@
 }
 
 .tlg-commerce-pack button {
-  color: #111;
-  background: #ffd21a;
+  color: #fff;
+  background: #0b6fc8;
 }
 
 .tlg-commerce-pack .tlg-commerce-pack-footnote {
@@ -429,7 +429,7 @@
   border: 0;
   border-radius: 8px;
   color: #fff;
-  background: #05080c;
+  background: #054e98;
   font-size: .76rem;
   font-weight: 750;
 }
@@ -490,7 +490,7 @@
 }
 
 .tlg-commerce-coin-balance svg {
-  color: #d8a900;
+  color: #0b6fc8;
 }
 
 .tlg-commerce-coin-balance strong {
@@ -503,13 +503,13 @@
 }
 
 .tlg-commerce-premium-tab {
-  color: #8a6900 !important;
-  background: #fff8d6 !important;
-  border-color: #efd16e !important;
+  color: #07538e !important;
+  background: #eaf5fd !important;
+  border-color: #b7d9f0 !important;
 }
 
 .tlg-commerce-premium-tab svg {
-  color: #c89c00;
+  color: #0b6fc8;
 }
 
 @media (max-width: 1120px) {
@@ -519,7 +519,7 @@
 
   .tlg-commerce-premium-side {
     border-left: 0;
-    border-top: 1px solid #f0e3a2;
+    border-top: 1px solid #b7d9f0;
   }
 
   .tlg-commerce-pack-grid {
