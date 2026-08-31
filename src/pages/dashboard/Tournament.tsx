@@ -7,12 +7,13 @@ import {
   Users,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router'
 
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
 import { supabase } from '../../lib/supabase'
 import '../../styles/tournament-detail.css'
+import '../../styles/tournament-detail-schedule.css'
 
 const MONTHS = [
   { name: 'January', days: 31 },
@@ -65,6 +66,13 @@ interface TournamentDetailRow {
   main_draw_capacity: number
   qualifying_capacity_max: number
   default_qualifier_slots: number
+  competition_weeks: number
+  qualification_rounds_max: number
+  main_draw_rounds: number
+  qualification_rest_day_first: boolean
+  main_draw_rest_day_first: boolean
+  one_match_per_player_per_day: boolean
+  same_city_for_qualification: boolean
   surface: 'hard' | 'clay' | 'grass'
   environment: 'indoor' | 'outdoor'
   schedule_slots: TournamentScheduleSlot[]
@@ -75,10 +83,23 @@ interface BracketRound {
   matches: number
 }
 
+interface TournamentDayPlan {
+  day: number
+  date: string
+  activity: string
+  kind: 'rest' | 'qualification' | 'main' | 'preparation'
+}
+
 type DrawView = 'main' | 'qualification'
 
 function titleCase(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
+function parseIntegerParam(value: string | null, minimum: number, maximum: number) {
+  if (!value) return null
+  const parsed = Number.parseInt(value, 10)
+  return Number.isInteger(parsed) && parsed >= minimum && parsed <= maximum ? parsed : null
 }
 
 function phaseLabel(phase: TournamentScheduleSlot['phase']) {
@@ -87,27 +108,34 @@ function phaseLabel(phase: TournamentScheduleSlot['phase']) {
   return 'Tournament Week'
 }
 
+function weekStartDay(monthWeek: number) {
+  if (monthWeek === 1) return 1
+  if (monthWeek === 2) return 8
+  if (monthWeek === 3) return 15
+  return 22
+}
+
 function weekWindow(slot: TournamentScheduleSlot) {
   const month = MONTHS[slot.calendar_month - 1]
   if (!month) return `Month ${slot.calendar_month} · Week ${slot.month_week}`
+  const start = weekStartDay(slot.month_week)
+  return `${month.name} ${start}–${start + 6}`
+}
 
-  const start = slot.month_week === 1
-    ? 1
-    : slot.month_week === 2
-      ? 8
-      : slot.month_week === 3
-        ? 15
-        : 22
+function formatCompetitionDate(calendarMonth: number, monthWeek: number, competitionDay: number) {
+  let monthIndex = calendarMonth - 1
+  let day = weekStartDay(monthWeek) + competitionDay - 1
 
-  const end = slot.month_week === 1
-    ? 7
-    : slot.month_week === 2
-      ? 14
-      : slot.month_week === 3
-        ? 21
-        : month.days
+  while (monthIndex < MONTHS.length && day > MONTHS[monthIndex].days) {
+    day -= MONTHS[monthIndex].days
+    monthIndex += 1
+  }
 
-  return `${month.name} ${start}–${end}`
+  if (monthIndex >= MONTHS.length) {
+    monthIndex = 0
+  }
+
+  return `${MONTHS[monthIndex].name} ${day}`
 }
 
 function mainDrawRounds(capacity: number): BracketRound[] {
@@ -144,6 +172,54 @@ function qualificationRounds(capacity: number, qualifierSlots: number): BracketR
   return raw.map((round, index) => ({
     ...round,
     label: index === raw.length - 1 ? 'Final Qualifying Round' : `Qualifying Round ${index + 1}`,
+  }))
+}
+
+function buildTournamentDayPlan(detail: TournamentDetailRow, slot: TournamentScheduleSlot): TournamentDayPlan[] {
+  const qualificationLabels = qualificationRounds(
+    detail.qualifying_capacity_max,
+    detail.default_qualifier_slots,
+  ).map((round) => round.label)
+  const mainLabels = mainDrawRounds(detail.main_draw_capacity).map((round) => round.label)
+
+  let activities: Array<{ activity: string; kind: TournamentDayPlan['kind'] }> = []
+
+  if (slot.phase === 'qualification') {
+    if (detail.qualification_rest_day_first && qualificationLabels.length < 7) {
+      activities.push({ activity: 'Arrival / Rest', kind: 'rest' })
+    }
+    activities.push(...qualificationLabels.map((activity) => ({ activity, kind: 'qualification' as const })))
+    while (activities.length < 7) {
+      activities.push({ activity: 'Recovery / Preparation', kind: 'preparation' })
+    }
+  } else if (slot.phase === 'main_draw') {
+    if (detail.main_draw_rest_day_first && mainLabels.length < 7) {
+      activities.push({ activity: 'Arrival / Rest', kind: 'rest' })
+    }
+    activities.push(...mainLabels.map((activity) => ({ activity, kind: 'main' as const })))
+    while (activities.length < 7) {
+      activities.push({ activity: 'Recovery / Preparation', kind: 'preparation' })
+    }
+  } else {
+    const combinedMatchDays = [...qualificationLabels, ...mainLabels]
+    const canUseFirstRestDay = combinedMatchDays.length < 7
+      && (detail.qualification_rest_day_first || detail.main_draw_rest_day_first)
+
+    if (canUseFirstRestDay) {
+      activities.push({ activity: 'Arrival / Rest', kind: 'rest' })
+    }
+    activities.push(...qualificationLabels.map((activity) => ({ activity, kind: 'qualification' as const })))
+    activities.push(...mainLabels.map((activity) => ({ activity, kind: 'main' as const })))
+    while (activities.length < 7) {
+      activities.push({ activity: 'Recovery / Preparation', kind: 'preparation' })
+    }
+  }
+
+  return activities.slice(0, 7).map((item, index) => ({
+    day: index + 1,
+    date: formatCompetitionDate(slot.calendar_month, slot.month_week, index + 1),
+    activity: item.activity,
+    kind: item.kind,
   }))
 }
 
@@ -208,8 +284,8 @@ function TournamentBracket({
                 x2={boundaryX}
                 y1={0}
                 y2={height}
-                stroke="#6f9fbe"
-                strokeWidth="1.1"
+                stroke="#0b6fc8"
+                strokeWidth="1.4"
                 opacity="0.72"
                 vectorEffect="non-scaling-stroke"
               />
@@ -279,10 +355,20 @@ function tournamentInitials(name: string) {
 
 export default function TournamentPage() {
   const { competitionId } = useParams()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
   const [detail, setDetail] = useState<TournamentDetailRow | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [drawView, setDrawView] = useState<DrawView>('main')
+
+  const fromMonth = parseIntegerParam(searchParams.get('fromMonth'), 1, 12)
+  const fromWeek = parseIntegerParam(searchParams.get('fromWeek'), 1, 4)
+  const locationState = location.state as { tournamentCalendarReturn?: string } | null
+  const backTarget = locationState?.tournamentCalendarReturn
+    ?? (fromMonth && fromWeek
+      ? `/game/calendar?tab=tournament-calendar&month=${fromMonth}&week=${fromWeek}#tournament-week-${fromWeek}`
+      : '/game/calendar?tab=tournament-calendar')
 
   useEffect(() => {
     if (!competitionId) {
@@ -358,7 +444,7 @@ export default function TournamentPage() {
         <div className="tlg-detail-error">
           <strong>Unable to open tournament</strong>
           <p>{error ?? 'Tournament data is unavailable.'}</p>
-          <Link to="/game/calendar">Back to Tournament Calendar</Link>
+          <Link to={backTarget}>Back to Tournament Calendar</Link>
         </div>
       </GameLayout>
     )
@@ -370,7 +456,7 @@ export default function TournamentPage() {
       subtitle={`${detail.world} · Season ${detail.season_number} · ${detail.category_label}`}
     >
       <div className="tlg-detail-page">
-        <Link to="/game/calendar" className="tlg-detail-back-link">
+        <Link to={backTarget} className="tlg-detail-back-link">
           <ArrowLeft size={15} /> Back to Tournament Calendar
         </Link>
 
@@ -395,8 +481,8 @@ export default function TournamentPage() {
               <CountryFlag
                 countryCode={detail.country_code}
                 countryName={detail.country_name}
-                width={30}
-                height={20}
+                width={24}
+                height={16}
               />
               <div>
                 <strong>{detail.city}, {detail.country_name}</strong>
@@ -454,20 +540,39 @@ export default function TournamentPage() {
             <CalendarDays size={18} />
           </header>
 
-          <div className="tlg-detail-schedule-list">
-            {detail.schedule_slots.map((slot) => (
-              <article key={`${slot.calendar_month}-${slot.month_week}-${slot.phase}`}>
-                <div>
-                  <span>{phaseLabel(slot.phase)}</span>
-                  <strong>{MONTHS[slot.calendar_month - 1]?.name ?? `Month ${slot.calendar_month}`} · Week {slot.month_week}</strong>
-                </div>
-                <p>{weekWindow(slot)}</p>
-              </article>
-            ))}
+          <div className="tlg-detail-schedule-list tlg-detail-schedule-list-expanded">
+            {detail.schedule_slots.map((slot) => {
+              const dayPlan = buildTournamentDayPlan(detail, slot)
+
+              return (
+                <article
+                  key={`${slot.calendar_month}-${slot.month_week}-${slot.phase}`}
+                  className="tlg-detail-schedule-card"
+                >
+                  <div className="tlg-detail-schedule-card-head">
+                    <div>
+                      <span>{phaseLabel(slot.phase)}</span>
+                      <strong>{MONTHS[slot.calendar_month - 1]?.name ?? `Month ${slot.calendar_month}`} · Week {slot.month_week}</strong>
+                    </div>
+                    <p>{weekWindow(slot)}</p>
+                  </div>
+
+                  <div className="tlg-detail-day-plan" role="table" aria-label={`${phaseLabel(slot.phase)} day schedule`}>
+                    {dayPlan.map((item) => (
+                      <div key={item.day} className={`tlg-detail-day-plan-row tlg-detail-day-plan-${item.kind}`} role="row">
+                        <span role="cell">Day {item.day}</span>
+                        <strong role="cell">{item.date}</strong>
+                        <p role="cell">{item.activity}</p>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              )
+            })}
           </div>
 
           <p className="tlg-detail-schedule-note">
-            These are the fixed calendar competition windows. Exact qualifying and round-by-round match dates will be attached later when the tournament scheduling engine is implemented.
+            This is the planned maximum tournament schedule. Qualification days are used only when qualification is required by the final entry list. Qualification and main draw are held in the same tournament city, and players are not normally scheduled for more than one singles match per in-game day.
           </p>
         </section>
 
