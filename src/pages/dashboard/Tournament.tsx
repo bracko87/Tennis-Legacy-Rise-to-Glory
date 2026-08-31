@@ -195,6 +195,27 @@ function TournamentBracket({
           viewBox={`0 0 ${width} ${height}`}
           aria-hidden="true"
         >
+          {rounds.slice(0, -1).map((_, roundIndex) => {
+            const boundaryX = (
+              (roundIndex + 1) * (BRACKET_MATCH_WIDTH + BRACKET_COLUMN_GAP)
+              - BRACKET_COLUMN_GAP / 2
+            )
+
+            return (
+              <line
+                key={`round-separator-${roundIndex}`}
+                x1={boundaryX}
+                x2={boundaryX}
+                y1={0}
+                y2={height}
+                stroke="#6f9fbe"
+                strokeWidth="1.1"
+                opacity="0.72"
+                vectorEffect="non-scaling-stroke"
+              />
+            )
+          })}
+
           {rounds.slice(0, -1).flatMap((round, roundIndex) => {
             const parentRound = rounds[roundIndex + 1]
             const startX = roundIndex * (BRACKET_MATCH_WIDTH + BRACKET_COLUMN_GAP) + BRACKET_MATCH_WIDTH
