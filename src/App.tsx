@@ -9,7 +9,6 @@
 import './styles/globals.css'
 import './styles/premium.css'
 import './styles/onboarding-enhancements.css'
-import './styles/commerce.css'
 
 import {
   BrowserRouter,
