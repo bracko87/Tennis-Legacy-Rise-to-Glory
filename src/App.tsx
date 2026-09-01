@@ -46,10 +46,10 @@ import PrivateLifePage from './pages/dashboard/PrivateLife'
 import TennisClubPage from './pages/dashboard/TennisClub'
 import StatisticsPage from './pages/dashboard/Statistics'
 import ProPackagesPage from './pages/manager/ProPackages'
+import GamePreferencesPage from './pages/manager/GamePreferences'
 import {
   ContactUsPage,
   ForumPage,
-  GamePreferencesPage,
   HelpPage,
   InboxPage,
   InviteFriendsPage,
