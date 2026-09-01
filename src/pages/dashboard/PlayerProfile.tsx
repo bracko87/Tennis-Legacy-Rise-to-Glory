@@ -1,4 +1,4 @@
-import { ArrowLeft, Mail, Trophy, UserRound } from 'lucide-react'
+import { ArrowLeft, Mail, UserRound } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
@@ -82,27 +82,47 @@ export default function PlayerProfilePage() {
             </div>
 
             <div className="tlg-public-player-main">
-              <span className="tlg-public-player-kicker">{profile.world} singles player</span>
-              <h1>{name}</h1>
-              <div className="tlg-public-player-country">
-                <CountryFlag countryCode={profile.country_code} countryName={profile.country_code} width={26} height={17} />
-                <span>{profile.country_code}</span>
+              <div className="tlg-public-player-heading-row">
+                <div>
+                  <span className="tlg-public-player-kicker">{profile.world} singles player</span>
+                  <h1>{name}</h1>
+                  <div className="tlg-public-player-country">
+                    <CountryFlag countryCode={profile.country_code} countryName={profile.country_code} width={26} height={17} />
+                    <span>{profile.country_code}</span>
+                  </div>
+                </div>
+
+                <div className="tlg-public-player-primary-action">
+                  {profile.is_own_player ? (
+                    <button type="button" onClick={() => navigate('/game/inbox')}>
+                      Open inbox
+                    </button>
+                  ) : (
+                    <button type="button" onClick={startConversation} disabled={messageBusy}>
+                      <Mail size={16} /> {messageBusy ? 'Opening…' : 'Send message'}
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="tlg-public-player-stats">
-                <article><Trophy size={17} /><span>World ranking</span><strong>#{profile.rank_position}</strong></article>
-                <article><Trophy size={17} /><span>Ranking points</span><strong>{profile.ranking_points.toLocaleString()}</strong></article>
-                <article><UserRound size={17} /><span>Competition world</span><strong>{profile.world}</strong></article>
+                <article><span>World ranking</span><strong>#{profile.rank_position}</strong></article>
+                <article><span>Ranking points</span><strong>{profile.ranking_points.toLocaleString()}</strong></article>
+                <article><span>Competition world</span><strong>{profile.world}</strong></article>
               </div>
 
-              <div className="tlg-public-player-actions">
-                {profile.is_own_player ? (
-                  <span className="tlg-public-player-own">This is your player profile.</span>
-                ) : (
-                  <button type="button" onClick={startConversation} disabled={messageBusy}>
-                    <Mail size={17} /> {messageBusy ? 'Opening…' : 'Send message'}
-                  </button>
-                )}
+              <div className="tlg-public-player-info">
+                <header>
+                  <span>Player information</span>
+                  <h2>Career overview</h2>
+                </header>
+                <div className="tlg-public-player-info-grid">
+                  <div><span>Discipline</span><strong>Singles</strong></div>
+                  <div><span>Tour</span><strong>{profile.world}</strong></div>
+                  <div><span>Country</span><strong>{profile.country_code}</strong></div>
+                  <div><span>Ranking status</span><strong>{profile.rank_position > 0 ? `Ranked #${profile.rank_position}` : 'Unranked'}</strong></div>
+                </div>
+                <p>Player skills and match-performance attributes will appear here when the Tennis Legacy skill and results systems are connected to public profiles.</p>
               </div>
 
               {error && <p className="tlg-public-player-error">{error}</p>}
