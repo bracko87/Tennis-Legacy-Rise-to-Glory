@@ -29,6 +29,7 @@ import '../../styles/create-player-enhancements.css'
 
 type PlayerWorld = 'ATP' | 'WTA'
 type PreferredSurface = 'Hard' | 'Clay' | 'Grass'
+type PlayingStyle = 'Aggressive Baseliner' | 'Defensive Baseliner' | 'All-court' | 'Serve & Volley'
 
 interface CountryOption {
   code: string
@@ -53,10 +54,18 @@ interface AvatarOption {
 }
 
 const NAME_PATTERN = /^[\p{L}][\p{L}'’ -]*$/u
+
 const SURFACES: Array<{ value: PreferredSurface; text: string }> = [
   { value: 'Hard', text: 'Balanced modern surface' },
   { value: 'Clay', text: 'Long rallies and movement' },
   { value: 'Grass', text: 'Fast points and attacking play' },
+]
+
+const PLAYING_STYLES: Array<{ value: PlayingStyle; text: string }> = [
+  { value: 'Aggressive Baseliner', text: 'More emphasis on forehand pressure and attacking from the baseline.' },
+  { value: 'Defensive Baseliner', text: 'More emphasis on return, backhand stability and absorbing pressure.' },
+  { value: 'All-court', text: 'Neutral style with no additional starting redistribution.' },
+  { value: 'Serve & Volley', text: 'More emphasis on serve, volley and moving forward quickly.' },
 ]
 
 export default function CreatePlayerPage(): JSX.Element {
@@ -72,6 +81,7 @@ export default function CreatePlayerPage(): JSX.Element {
   const [countryQuery, setCountryQuery] = useState('')
   const [world, setWorld] = useState<PlayerWorld>('ATP')
   const [preferredSurface, setPreferredSurface] = useState<PreferredSurface | null>(null)
+  const [playingStyle, setPlayingStyle] = useState<PlayingStyle | null>(null)
   const [avatars, setAvatars] = useState<AvatarOption[]>([])
   const [avatarsLoading, setAvatarsLoading] = useState(true)
   const [avatarError, setAvatarError] = useState<string | null>(null)
@@ -206,21 +216,21 @@ export default function CreatePlayerPage(): JSX.Element {
 
   const selectedCountryName = selectedCountry?.name ?? 'Country not selected'
   const availableAvatarCount = avatars.filter((item) => item.available).length
-
   const cleanFirstName = firstName.trim()
   const cleanLastName = lastName.trim()
   const firstNameValid = cleanFirstName.length >= 2 && NAME_PATTERN.test(cleanFirstName)
   const lastNameValid = cleanLastName.length >= 2 && NAME_PATTERN.test(cleanLastName)
   const countryValid = country.length === 2
   const surfaceValid = preferredSurface !== null
-  const formValid = firstNameValid && lastNameValid && countryValid && surfaceValid
+  const styleValid = playingStyle !== null
+  const formValid = firstNameValid && lastNameValid && countryValid && surfaceValid && styleValid
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitted(true)
     setSaveError(null)
 
-    if (!formValid || !user || !preferredSurface || saving) return
+    if (!formValid || !user || !preferredSurface || !playingStyle || saving) return
     setSaving(true)
 
     try {
@@ -232,6 +242,7 @@ export default function CreatePlayerPage(): JSX.Element {
         country_code: country,
         image_path: selectedAvatarPath,
         preferred_surface: preferredSurface,
+        playing_style: playingStyle,
       })
 
       if (error) {
@@ -388,6 +399,7 @@ export default function CreatePlayerPage(): JSX.Element {
 
             {saveError && <div className="tlg-auth-status tlg-auth-status-information" role="alert"><ShieldCheck size={18} /><span>{saveError}</span></div>}
             {submitted && !surfaceValid && <div className="tlg-auth-status tlg-auth-status-information" role="alert"><ShieldCheck size={18} /><span>Choose your preferred playing surface before entering Tennis Legacy.</span></div>}
+            {submitted && !styleValid && <div className="tlg-auth-status tlg-auth-status-information" role="alert"><ShieldCheck size={18} /><span>Choose your player style before entering Tennis Legacy.</span></div>}
 
             <div className="tlg-onboarding-actions">
               <AppButton type="submit" variant="primary" size="large" loading={saving} disabled={!user || countriesLoading} rightIcon={<ArrowRight size={18} />}>
@@ -405,20 +417,25 @@ export default function CreatePlayerPage(): JSX.Element {
                 <p className="tlg-page-heading-eyebrow">Career identity</p>
                 <h3>{`${firstName} ${lastName}`.trim() || 'Your Player'}</h3>
                 <p className="tlg-player-preview-country">{selectedCountry && <CountryFlag code={selectedCountry.code} name={selectedCountry.name} />}<span>{selectedCountryName}</span></p>
-                <div className="tlg-player-preview-tags"><span className="tlg-player-preview-tag">{world} World</span><span className="tlg-player-preview-tag">New Professional</span>{preferredSurface && <span className="tlg-player-preview-tag">{preferredSurface} preference</span>}</div>
+                <div className="tlg-player-preview-tags">
+                  <span className="tlg-player-preview-tag">{world} World</span>
+                  <span className="tlg-player-preview-tag">New Professional</span>
+                  {preferredSurface && <span className="tlg-player-preview-tag">{preferredSurface}</span>}
+                  {playingStyle && <span className="tlg-player-preview-tag">{playingStyle}</span>}
+                </div>
                 <div className="tlg-player-preview-meta">
                   <div className="tlg-player-preview-meta-row"><span>Manager account</span><strong>{user?.email ?? 'Authenticated'}</strong></div>
                   <div className="tlg-player-preview-meta-row"><span>Moderation</span><strong>Review on creation</strong></div>
-                  <div className="tlg-player-preview-meta-row"><span>Career status</span><strong>Ready to initialize</strong></div>
+                  <div className="tlg-player-preview-meta-row"><span>Starting tennis points</span><strong>350 for every player</strong></div>
                 </div>
               </div>
             </aside>
 
             <section className={`tlg-surface-preference-card ${submitted && !surfaceValid ? 'tlg-surface-preference-error' : ''}`} aria-labelledby="preferred-surface-heading">
               <div className="tlg-surface-preference-head">
-                <span>04 · PLAYING STYLE</span>
+                <span>04 · SURFACE IDENTITY</span>
                 <h2 id="preferred-surface-heading">Preferred surface</h2>
-                <p>Choose the court surface your player prefers. This choice will affect future skill bonuses, but no bonus is active yet.</p>
+                <p>Choose the surface your player prefers. It redistributes starting tennis skills but never changes the total starting strength.</p>
               </div>
               <div className="tlg-surface-options">
                 {SURFACES.map((surface) => (
@@ -429,7 +446,30 @@ export default function CreatePlayerPage(): JSX.Element {
                   </button>
                 ))}
               </div>
-              <p className="tlg-surface-future-note">Selection is permanent for the initial career setup. Exact bonuses will be defined later.</p>
+              <p className="tlg-surface-future-note">Every new player starts with the same 350 total tennis-skill points. Surface preference only changes where those points begin.</p>
+            </section>
+
+            <section className={`tlg-style-preference-card ${submitted && !styleValid ? 'tlg-style-preference-error' : ''}`} aria-labelledby="playing-style-heading">
+              <div className="tlg-style-preference-head">
+                <span>05 · PLAYER STYLE</span>
+                <h2 id="playing-style-heading">Choose your playing style</h2>
+                <p>This is a second small redistribution of the same starting points. No style creates a stronger new player.</p>
+              </div>
+              <div className="tlg-style-options">
+                {PLAYING_STYLES.map((style) => (
+                  <button
+                    key={style.value}
+                    type="button"
+                    className={`tlg-style-option ${playingStyle === style.value ? 'selected' : ''}`}
+                    onClick={() => { setPlayingStyle(style.value); setSaveError(null) }}
+                    aria-pressed={playingStyle === style.value}
+                  >
+                    <span><strong>{style.value}</strong><small>{style.text}</small></span>
+                    <em>{playingStyle === style.value ? 'Selected' : 'Choose'}</em>
+                  </button>
+                ))}
+              </div>
+              <p className="tlg-style-note">The choice is permanent for the initial career identity. Development later comes from training and gameplay, not from join date or starting rank.</p>
             </section>
           </div>
         </form>
