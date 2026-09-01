@@ -36,6 +36,7 @@ interface AttributeItem {
   value: number
   note: string
   inverse?: boolean
+  previewGain?: number
 }
 
 const SURFACE_COPY: Record<PreferredSurface, string> = {
@@ -115,7 +116,7 @@ export default function SkillsPage() {
 
   const tennis = useMemo<AttributeItem[]>(() => skills ? [
     { label: 'Serve', value: skills.serve, note: 'Power, placement and reliability' },
-    { label: 'Forehand', value: skills.forehand, note: 'Primary attacking groundstroke' },
+    { label: 'Forehand', value: skills.forehand, note: 'Primary attacking groundstroke', previewGain: 1 },
     { label: 'Backhand', value: skills.backhand, note: 'Quality, control and stability' },
     { label: 'Return', value: skills.return_skill, note: 'Neutralizing and attacking serve' },
     { label: 'Volley', value: skills.volley, note: 'Net play and finishing ability' },
@@ -152,12 +153,6 @@ export default function SkillsPage() {
             <p>
               Build your professional through technical and physical development while monitoring the current condition that changes throughout the season.
             </p>
-          </div>
-
-          <div className="tlg-skills-command-summary">
-            <SummaryItem label="Tennis strength" value={loading || !skills ? '—' : String(tennisTotal)} />
-            <SummaryItem label="Preferred surface" value={skills?.preferred_surface ?? '—'} />
-            <SummaryItem label="Playing style" value={skills?.playing_style ?? '—'} />
           </div>
         </div>
       </section>
@@ -259,35 +254,49 @@ export default function SkillsPage() {
   )
 }
 
-function SummaryItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="tlg-skills-summary-item">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  )
-}
-
 function SkillCard({ item }: { item: AttributeItem }) {
   const normalized = Math.max(0, Math.min(100, item.value))
+  const previewGain = Math.max(0, Math.min(100 - normalized, item.previewGain ?? 0))
+  const previewValue = normalized + previewGain
   const displayFill = item.inverse ? 100 - normalized : normalized
+  const hasPreviewGain = previewGain > 0 && !item.inverse
 
   return (
-    <article className={`tlg-skill-card ${item.inverse ? 'inverse' : ''}`}>
+    <article className={`tlg-skill-card ${item.inverse ? 'inverse' : ''} ${hasPreviewGain ? 'skill-up-preview' : ''}`}>
       <div className="tlg-skill-card-top">
         <div>
           <span>{item.label}</span>
           <p>{item.note}</p>
         </div>
-        <strong>{item.value}</strong>
+        {hasPreviewGain ? (
+          <div className="tlg-skill-gain-value" aria-label={`${item.label} skill-up preview: ${normalized} to ${previewValue}`}>
+            <span>{normalized}</span>
+            <strong>{previewValue}</strong>
+            <em>+{previewGain}</em>
+          </div>
+        ) : (
+          <strong>{item.value}</strong>
+        )}
       </div>
       <div className="tlg-skill-card-meter" aria-label={`${item.label}: ${item.value} out of 100`}>
-        <span style={{ width: `${displayFill}%` }} />
+        <span className="tlg-skill-meter-current" style={{ width: `${displayFill}%` }} />
+        {hasPreviewGain && (
+          <span
+            className="tlg-skill-meter-gain"
+            style={{ left: `${normalized}%`, width: `${previewGain}%` }}
+          />
+        )}
       </div>
       <div className="tlg-skill-card-scale" aria-hidden="true">
         <span>{item.inverse ? 'Fresh' : '0'}</span>
         <span>{item.inverse ? 'Tired' : '100'}</span>
       </div>
+      {hasPreviewGain && (
+        <div className="tlg-skill-gain-note">
+          <strong>Skill-up preview</strong>
+          <span>Improved from {normalized} to {previewValue}</span>
+        </div>
+      )}
     </article>
   )
 }
