@@ -63,27 +63,26 @@
 
 .tlg-account-profile-layout {
   display: grid;
-  grid-template-columns: 210px minmax(0, 1fr);
-  gap: 28px;
+  grid-template-columns: 270px minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
   padding: 22px;
 }
 
 .tlg-account-avatar-card {
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
   align-self: start;
-  gap: 5px;
-  padding: 16px;
+  padding: 10px;
   border: 1px solid #e1e9ef;
-  border-radius: 12px;
+  border-radius: 14px;
   background: #f8fbfd;
-  text-align: center;
 }
 
 .tlg-account-avatar-frame {
-  width: 148px;
-  height: 148px;
+  width: 238px;
+  height: 238px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -99,17 +98,6 @@
   display: block;
   object-fit: cover;
   object-position: center;
-}
-
-.tlg-account-avatar-card > strong {
-  margin-top: 7px;
-  color: #18344b;
-  font-size: .82rem;
-}
-
-.tlg-account-avatar-card > span {
-  color: #73899a;
-  font-size: .64rem;
 }
 
 .tlg-account-fields {
@@ -134,7 +122,8 @@
 .tlg-account-field input,
 .tlg-account-field select,
 .tlg-account-field textarea,
-.tlg-account-password-body input {
+.tlg-account-password-body input,
+.tlg-account-danger-confirm input {
   width: 100%;
   border: 1px solid #ccd9e2;
   border-radius: 7px;
@@ -148,7 +137,8 @@
 
 .tlg-account-field input,
 .tlg-account-field select,
-.tlg-account-password-body input {
+.tlg-account-password-body input,
+.tlg-account-danger-confirm input {
   min-height: 42px;
   padding: 0 12px;
 }
@@ -162,7 +152,8 @@
 
 .tlg-account-field input:focus,
 .tlg-account-field select:focus,
-.tlg-account-field textarea:focus {
+.tlg-account-field textarea:focus,
+.tlg-account-danger-confirm input:focus {
   border-color: #80b9df;
   box-shadow: 0 0 0 3px rgba(11, 111, 200, .08);
 }
@@ -196,7 +187,9 @@
 }
 
 .tlg-account-primary-button,
-.tlg-account-secondary-button {
+.tlg-account-secondary-button,
+.tlg-account-danger-button,
+.tlg-account-danger-cancel {
   min-height: 40px;
   display: inline-flex;
   align-items: center;
@@ -222,7 +215,9 @@
 }
 
 .tlg-account-primary-button:disabled,
-.tlg-account-secondary-button:disabled {
+.tlg-account-secondary-button:disabled,
+.tlg-account-danger-button:disabled,
+.tlg-account-danger-cancel:disabled {
   cursor: not-allowed;
   opacity: .55;
 }
@@ -240,14 +235,170 @@
   font-weight: 720;
 }
 
+.tlg-account-danger-zone {
+  border-color: #efc5c5;
+}
+
+.tlg-account-danger-head {
+  border-bottom-color: #f3d5d5;
+  background: #fff8f8;
+}
+
+.tlg-account-danger-head > div > span,
+.tlg-account-danger-head > svg {
+  color: #bb2d2d;
+}
+
+.tlg-account-danger-head h3 {
+  color: #7c2020;
+}
+
+.tlg-account-danger-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 22px;
+}
+
+.tlg-account-danger-card {
+  min-height: 172px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid #efd1d1;
+  border-radius: 10px;
+  background: #fffafa;
+}
+
+.tlg-account-danger-card-critical {
+  border-color: #e7adad;
+  background: #fff5f5;
+}
+
+.tlg-account-danger-copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.tlg-account-danger-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: #ad2b2b;
+  background: #ffeaea;
+}
+
+.tlg-account-danger-copy strong {
+  color: #762323;
+  font-size: .79rem;
+}
+
+.tlg-account-danger-copy p {
+  margin: 6px 0 0;
+  color: #805555;
+  font-size: .65rem;
+  line-height: 1.55;
+}
+
+.tlg-account-danger-button {
+  width: fit-content;
+  border: 1px solid #c94a4a;
+  color: #a62525;
+  background: #fff;
+}
+
+.tlg-account-danger-button:hover {
+  background: #fff1f1;
+}
+
+.tlg-account-danger-button-critical {
+  color: #fff;
+  background: #b82929;
+  border-color: #b82929;
+}
+
+.tlg-account-danger-button-critical:hover {
+  background: #9e2222;
+}
+
+.tlg-account-danger-confirm {
+  display: grid;
+  gap: 14px;
+  margin: 0 22px 22px;
+  padding: 18px;
+  border: 1px solid #e7b0b0;
+  border-radius: 10px;
+  background: #fff7f7;
+}
+
+.tlg-account-danger-confirm > div > strong {
+  color: #742020;
+  font-size: .8rem;
+}
+
+.tlg-account-danger-confirm > div > p {
+  margin: 5px 0 0;
+  color: #805555;
+  font-size: .65rem;
+  line-height: 1.5;
+}
+
+.tlg-account-danger-confirm label {
+  display: grid;
+  gap: 6px;
+}
+
+.tlg-account-danger-confirm label > span {
+  color: #7d2c2c;
+  font-size: .65rem;
+  font-weight: 800;
+}
+
+.tlg-account-danger-confirm input {
+  max-width: 340px;
+  border-color: #ddb3b3;
+}
+
+.tlg-account-danger-status {
+  margin: 0;
+  color: #a32929;
+  font-size: .65rem;
+  font-weight: 760;
+}
+
+.tlg-account-danger-confirm-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tlg-account-danger-cancel {
+  border: 1px solid #d2dce3;
+  color: #3f596d;
+  background: #fff;
+}
+
 @media (max-width: 900px) {
   .tlg-account-profile-layout {
-    grid-template-columns: 170px minmax(0, 1fr);
+    grid-template-columns: 220px minmax(0, 1fr);
     gap: 20px;
   }
 
+  .tlg-account-avatar-frame {
+    width: 190px;
+    height: 190px;
+  }
+
   .tlg-account-fields,
-  .tlg-account-avatar-form {
+  .tlg-account-avatar-form,
+  .tlg-account-danger-grid {
     grid-template-columns: 1fr;
   }
 
@@ -268,14 +419,32 @@
     width: 100%;
   }
 
+  .tlg-account-avatar-frame {
+    width: min(100%, 280px);
+    aspect-ratio: 1 / 1;
+    height: auto;
+  }
+
   .tlg-account-section-head,
   .tlg-account-avatar-form,
-  .tlg-account-password-body {
+  .tlg-account-password-body,
+  .tlg-account-danger-grid {
     padding: 16px;
   }
 
+  .tlg-account-danger-confirm {
+    margin: 0 16px 16px;
+  }
+
+  .tlg-account-danger-confirm-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .tlg-account-primary-button,
-  .tlg-account-secondary-button {
+  .tlg-account-secondary-button,
+  .tlg-account-danger-button,
+  .tlg-account-danger-cancel {
     width: 100%;
   }
 }
