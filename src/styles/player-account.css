@@ -1,0 +1,281 @@
+.tlg-account-page {
+  display: grid;
+  gap: 18px;
+}
+
+.tlg-account-section {
+  overflow: hidden;
+  border: 1px solid #dbe5ec;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(22, 50, 72, .035);
+}
+
+.tlg-account-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px 22px;
+  border-bottom: 1px solid #e8eef2;
+  background: #fbfdff;
+}
+
+.tlg-account-section-head > div {
+  min-width: 0;
+}
+
+.tlg-account-section-head > div > span {
+  color: #0b6fc8;
+  font-size: .58rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+
+.tlg-account-section-head h2,
+.tlg-account-section-head h3 {
+  margin: 5px 0 0;
+  color: #152f46;
+  font-weight: 820;
+}
+
+.tlg-account-section-head h2 {
+  font-size: 1.25rem;
+}
+
+.tlg-account-section-head h3 {
+  font-size: 1rem;
+}
+
+.tlg-account-section-head p {
+  max-width: 760px;
+  margin: 6px 0 0;
+  color: #6e8293;
+  font-size: .69rem;
+  line-height: 1.55;
+}
+
+.tlg-account-section-head-icon > svg {
+  flex: 0 0 auto;
+  color: #0b6fc8;
+}
+
+.tlg-account-profile-layout {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  gap: 28px;
+  padding: 22px;
+}
+
+.tlg-account-avatar-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-self: start;
+  gap: 5px;
+  padding: 16px;
+  border: 1px solid #e1e9ef;
+  border-radius: 12px;
+  background: #f8fbfd;
+  text-align: center;
+}
+
+.tlg-account-avatar-frame {
+  width: 148px;
+  height: 148px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #eaf2f7;
+  color: #7890a1;
+}
+
+.tlg-account-avatar-frame img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+
+.tlg-account-avatar-card > strong {
+  margin-top: 7px;
+  color: #18344b;
+  font-size: .82rem;
+}
+
+.tlg-account-avatar-card > span {
+  color: #73899a;
+  font-size: .64rem;
+}
+
+.tlg-account-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.tlg-account-field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tlg-account-field > span {
+  color: #203d54;
+  font-size: .68rem;
+  font-weight: 800;
+}
+
+.tlg-account-field input,
+.tlg-account-field select,
+.tlg-account-field textarea,
+.tlg-account-password-body input {
+  width: 100%;
+  border: 1px solid #ccd9e2;
+  border-radius: 7px;
+  color: #203b51;
+  background: #fff;
+  font: inherit;
+  font-size: .73rem;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.tlg-account-field input,
+.tlg-account-field select,
+.tlg-account-password-body input {
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.tlg-account-field textarea {
+  min-height: 110px;
+  resize: vertical;
+  padding: 11px 12px;
+  line-height: 1.5;
+}
+
+.tlg-account-field input:focus,
+.tlg-account-field select:focus,
+.tlg-account-field textarea:focus {
+  border-color: #80b9df;
+  box-shadow: 0 0 0 3px rgba(11, 111, 200, .08);
+}
+
+.tlg-account-field input:disabled {
+  cursor: not-allowed;
+  color: #6d8190;
+  background: #f3f6f8;
+}
+
+.tlg-account-field small,
+.tlg-account-form-actions small,
+.tlg-account-password-body small {
+  color: #718696;
+  font-size: .61rem;
+  line-height: 1.5;
+}
+
+.tlg-account-avatar-form {
+  display: grid;
+  grid-template-columns: minmax(220px, .75fr) minmax(0, 1.25fr);
+  gap: 18px;
+  padding: 22px;
+}
+
+.tlg-account-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tlg-account-primary-button,
+.tlg-account-secondary-button {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 15px;
+  border-radius: 7px;
+  font-size: .68rem;
+  font-weight: 820;
+  cursor: pointer;
+}
+
+.tlg-account-primary-button {
+  border: 1px solid #0b6fc8;
+  color: #fff;
+  background: #0b6fc8;
+}
+
+.tlg-account-secondary-button {
+  width: fit-content;
+  border: 1px solid #12283d;
+  color: #fff;
+  background: #12283d;
+}
+
+.tlg-account-primary-button:disabled,
+.tlg-account-secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+.tlg-account-password-body {
+  display: grid;
+  gap: 11px;
+  padding: 22px;
+}
+
+.tlg-account-status {
+  margin: 0;
+  color: #286a46;
+  font-size: .65rem;
+  font-weight: 720;
+}
+
+@media (max-width: 900px) {
+  .tlg-account-profile-layout {
+    grid-template-columns: 170px minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .tlg-account-fields,
+  .tlg-account-avatar-form {
+    grid-template-columns: 1fr;
+  }
+
+  .tlg-account-form-actions {
+    grid-column: auto;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .tlg-account-profile-layout {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .tlg-account-avatar-card {
+    width: 100%;
+  }
+
+  .tlg-account-section-head,
+  .tlg-account-avatar-form,
+  .tlg-account-password-body {
+    padding: 16px;
+  }
+
+  .tlg-account-primary-button,
+  .tlg-account-secondary-button {
+    width: 100%;
+  }
+}
