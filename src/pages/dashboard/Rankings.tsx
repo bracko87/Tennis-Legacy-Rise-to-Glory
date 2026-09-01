@@ -54,8 +54,6 @@ export default function RankingsPage() {
     void loadRankings()
   }, [loadRankings])
 
-  const ownRow = rows.find((row) => row.player_id === player?.id)
-
   return (
     <GameLayout title="Rankings" subtitle={`${world} singles world ranking`}>
       <header className="tlg-v2-page-head">
@@ -68,71 +66,55 @@ export default function RankingsPage() {
         </div>
       </header>
 
-      <div className="tlg-ranking-layout">
-        <section className="tlg-v2-panel">
-          <header className="tlg-v2-panel-header">
-            <div>
-              <span>{world} singles</span>
-              <h3>World Ranking</h3>
-            </div>
-            <div className="tlg-v2-panel-icon"><Trophy size={17} /></div>
-          </header>
-
-          <div className="tlg-ranking-table-head">
-            <span>Rank</span>
-            <span>Player</span>
-            <span>Country</span>
-            <span>Points</span>
+      <section className="tlg-v2-panel">
+        <header className="tlg-v2-panel-header">
+          <div>
+            <span>{world} singles</span>
+            <h3>World Ranking</h3>
           </div>
+          <div className="tlg-v2-panel-icon"><Trophy size={17} /></div>
+        </header>
 
-          {loading ? (
-            <div className="tlg-ranking-empty"><strong>Loading ranking…</strong></div>
-          ) : error ? (
-            <div className="tlg-ranking-empty"><strong>Unable to load ranking</strong><p>{error}</p></div>
-          ) : rows.length === 0 ? (
-            <div className="tlg-ranking-empty">
-              <Trophy size={25} />
-              <strong>No ranked players yet</strong>
-              <p>Created players will appear here automatically.</p>
-            </div>
-          ) : (
-            <div className="tlg-live-ranking-rows">
-              {rows.map((row) => (
-                <Link
-                  key={row.player_id}
-                  to={`/game/players/${row.player_id}`}
-                  className={`tlg-live-ranking-row ${row.player_id === player?.id ? 'tlg-live-ranking-row-own' : ''}`}
-                >
-                  <strong className="tlg-live-rank-number">{row.rank_position}</strong>
-                  <span className="tlg-live-player-name">{row.first_name} {row.last_name}</span>
-                  <span className="tlg-live-country"><CountryFlag countryCode={row.country_code} countryName={row.country_code} width={22} height={15} /> {row.country_code}</span>
-                  <strong className="tlg-live-points">{row.ranking_points.toLocaleString()}</strong>
-                </Link>
-              ))}
-            </div>
-          )}
+        <div className="tlg-ranking-table-head">
+          <span>Rank</span>
+          <span>Player</span>
+          <span>Country</span>
+          <span>Points</span>
+        </div>
 
-          <div className="tlg-ranking-pagination">
-            <button type="button" disabled={page === 0 || loading} onClick={() => setPage((value) => Math.max(0, value - 1))}><ChevronLeft size={15} /> Previous 50</button>
-            <span>Positions {page * PAGE_SIZE + 1}–{page * PAGE_SIZE + Math.max(rows.length, 1)}</span>
-            <button type="button" disabled={rows.length < PAGE_SIZE || loading} onClick={() => setPage((value) => value + 1)}>Next 50 <ChevronRight size={15} /></button>
+        {loading ? (
+          <div className="tlg-ranking-empty"><strong>Loading ranking…</strong></div>
+        ) : error ? (
+          <div className="tlg-ranking-empty"><strong>Unable to load ranking</strong><p>{error}</p></div>
+        ) : rows.length === 0 ? (
+          <div className="tlg-ranking-empty">
+            <Trophy size={25} />
+            <strong>No ranked players yet</strong>
+            <p>Created players will appear here automatically.</p>
           </div>
-        </section>
-
-        <aside className="tlg-v2-panel">
-          <header className="tlg-v2-panel-header">
-            <div><span>Your player</span><h3>Current position</h3></div>
-          </header>
-          <div className="tlg-ranking-player-position">
-            <span>{ownRow?.rank_position ?? '—'}</span>
-            <div>
-              <strong>{ownRow ? `#${ownRow.rank_position}` : 'Outside this page'}</strong>
-              <small>{player ? `${player.first_name} ${player.last_name}` : 'Current player'}</small>
-              <p>Open any player from the ranking to view their profile and start a private conversation.</p>
-            </div>
+        ) : (
+          <div className="tlg-live-ranking-rows">
+            {rows.map((row) => (
+              <Link
+                key={row.player_id}
+                to={`/game/players/${row.player_id}`}
+                className={`tlg-live-ranking-row ${row.player_id === player?.id ? 'tlg-live-ranking-row-own' : ''}`}
+              >
+                <strong className="tlg-live-rank-number">{row.rank_position}</strong>
+                <span className="tlg-live-player-name">{row.first_name} {row.last_name}</span>
+                <span className="tlg-live-country"><CountryFlag countryCode={row.country_code} countryName={row.country_code} width={22} height={15} /> {row.country_code}</span>
+                <strong className="tlg-live-points">{row.ranking_points.toLocaleString()}</strong>
+              </Link>
+            ))}
           </div>
-        </aside>
-      </div>
+        )}
+
+        <div className="tlg-ranking-pagination">
+          <button type="button" disabled={page === 0 || loading} onClick={() => setPage((value) => Math.max(0, value - 1))}><ChevronLeft size={15} /> Previous 50</button>
+          <span>Positions {page * PAGE_SIZE + 1}–{page * PAGE_SIZE + Math.max(rows.length, 1)}</span>
+          <button type="button" disabled={rows.length < PAGE_SIZE || loading} onClick={() => setPage((value) => value + 1)}>Next 50 <ChevronRight size={15} /></button>
+        </div>
+      </section>
     </GameLayout>
   )
 }
