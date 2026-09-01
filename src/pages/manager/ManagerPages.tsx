@@ -91,7 +91,7 @@ export function NotificationsPage() {
 }
 
 export function PlayerAccountPage() {
-  const { player, user, refreshPlayer } = useAuth()
+  const { player, user } = useAuth()
   const avatarUrl = usePlayerAvatarUrl(player?.image_path)
   const playerName = player ? `${player.first_name} ${player.last_name}`.trim() : 'Player not available'
   const [avatarReason, setAvatarReason] = useState('')
@@ -178,8 +178,7 @@ export function PlayerAccountPage() {
         return
       }
 
-      await refreshPlayer()
-      window.location.assign('/create-player')
+      window.location.assign('/game/overview')
       return
     }
 
@@ -330,8 +329,8 @@ export function PlayerAccountPage() {
               <div className="tlg-account-danger-copy">
                 <span className="tlg-account-danger-icon"><RotateCcw size={18} /></span>
                 <div>
-                  <strong>Restart career</strong>
-                  <p>Delete the current player and player-specific career data, but keep this login account and email. You will be sent to Create Player to start again.</p>
+                  <strong>Restart account</strong>
+                  <p>Reset current tournament/career activity while keeping the same player name, avatar, ATP/WTA world, country, login email, wallet and membership.</p>
                 </div>
               </div>
               <button type="button" className="tlg-account-danger-button" onClick={() => openDangerAction('restart')}>
@@ -343,8 +342,8 @@ export function PlayerAccountPage() {
               <div className="tlg-account-danger-copy">
                 <span className="tlg-account-danger-icon"><Trash2 size={18} /></span>
                 <div>
-                  <strong>Delete account permanently</strong>
-                  <p>Delete the player, profile, account data and authentication email. This permanently closes the Tennis Legacy account.</p>
+                  <strong>Delete player & account</strong>
+                  <p>Delete the player, profile, account data and authentication email. This permanently closes the Tennis Legacy account and cannot be undone.</p>
                 </div>
               </div>
               <button type="button" className="tlg-account-danger-button tlg-account-danger-button-critical" onClick={() => openDangerAction('delete')}>
@@ -356,10 +355,10 @@ export function PlayerAccountPage() {
           {dangerAction && (
             <div className="tlg-account-danger-confirm" role="group" aria-label="Confirm destructive account action">
               <div>
-                <strong>{dangerAction === 'restart' ? 'Confirm career restart' : 'Confirm permanent account deletion'}</strong>
+                <strong>{dangerAction === 'restart' ? 'Confirm account restart' : 'Confirm permanent player and account deletion'}</strong>
                 <p>
                   {dangerAction === 'restart'
-                    ? 'This removes your current player. Your login email remains active.'
+                    ? 'This resets current tournament/career activity but keeps your player identity, avatar and login email.'
                     : 'This removes your player, profile, account data and login email permanently.'}
                 </p>
               </div>
@@ -389,8 +388,8 @@ export function PlayerAccountPage() {
                   {dangerBusy
                     ? 'Processing…'
                     : dangerAction === 'restart'
-                      ? 'Restart career permanently'
-                      : 'Delete account permanently'}
+                      ? 'Restart account now'
+                      : 'Delete player & account permanently'}
                 </button>
               </div>
             </div>
