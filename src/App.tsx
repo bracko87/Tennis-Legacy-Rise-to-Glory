@@ -49,10 +49,9 @@ import StatisticsPage from './pages/dashboard/Statistics'
 import ProPackagesPage from './pages/manager/ProPackages'
 import GamePreferencesPage from './pages/manager/GamePreferences'
 import InboxPage from './pages/manager/Inbox'
+import { ForumPage, HelpPage } from './pages/manager/CommunitySupport'
 import {
   ContactUsPage,
-  ForumPage,
-  HelpPage,
   InviteFriendsPage,
   NotificationsPage,
   PlayerAccountPage,
