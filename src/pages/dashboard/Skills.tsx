@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 
 import { useAuth } from '../../auth/AuthContext'
 import GameLayout from '../../components/layout/GameLayout'
@@ -572,7 +572,7 @@ function Gauge({ label, value, detail }: { label: string; value: number; detail:
   const normalized = Math.max(0, Math.min(100, value))
   return (
     <div className="tlg-gauge-card">
-      <div className="tlg-gauge" style={{ '--gauge-value': `${normalized * 3.6}deg` } as React.CSSProperties}>
+      <div className="tlg-gauge" style={{ '--gauge-value': `${normalized * 3.6}deg` } as CSSProperties}>
         <div>
           <strong>{normalized.toFixed(0)}</strong>
           <span>/100</span>
@@ -710,13 +710,18 @@ function MultiHistoryChart({ history }: { history: SkillHistoryRow[] }) {
         {rows.length > 1 && <polyline points={linePoints('physical')} className="trend physical" />}
         {rows.length > 1 && <polyline points={linePoints('readiness')} className="trend readiness" />}
 
-        {rows.map((row, index) => (
-          <g key={`${row.date}-${index}`}>
-            <circle {...coordinate(row.technical, index)} r="4" className="trend-point technical" />
-            <circle {...coordinate(row.physical, index)} r="4" className="trend-point physical" />
-            <circle {...coordinate(row.readiness, index)} r="4" className="trend-point readiness" />
-          </g>
-        ))}
+        {rows.map((row, index) => {
+          const technicalPoint = coordinate(row.technical, index)
+          const physicalPoint = coordinate(row.physical, index)
+          const readinessPoint = coordinate(row.readiness, index)
+          return (
+            <g key={`${row.date}-${index}`}>
+              <circle cx={technicalPoint.x} cy={technicalPoint.y} r="4" className="trend-point technical" />
+              <circle cx={physicalPoint.x} cy={physicalPoint.y} r="4" className="trend-point physical" />
+              <circle cx={readinessPoint.x} cy={readinessPoint.y} r="4" className="trend-point readiness" />
+            </g>
+          )
+        })}
 
         {labelIndexes.map((index) => {
           const row = rows[index]
