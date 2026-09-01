@@ -11,6 +11,7 @@ import './styles/premium.css'
 import './styles/onboarding-enhancements.css'
 import './styles/commerce.css'
 import './styles/dashboard-modules.css'
+import './styles/typography-sharp.css'
 
 import {
   BrowserRouter,
