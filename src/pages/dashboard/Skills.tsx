@@ -127,6 +127,18 @@ function heatLevel(value: number) {
   return 'development'
 }
 
+function developmentDirection(history: SkillHistoryRow[]) {
+  const updates = Math.max(0, history.length - 1)
+  if (!updates) return 'Baseline established'
+  const latest = history[history.length - 1]
+  const previous = history[history.length - 2]
+  const technicalMove = scoreCategory(latest, 'tennis') - scoreCategory(previous, 'tennis')
+  const physicalMove = scoreCategory(latest, 'physical') - scoreCategory(previous, 'physical')
+  if (technicalMove > 0.05 || physicalMove > 0.05) return 'Improving'
+  if (technicalMove < -0.05 || physicalMove < -0.05) return 'Declining'
+  return 'Stable'
+}
+
 export default function SkillsPage() {
   const { player } = useAuth()
   const [tab, setTab] = useState<SkillsTab>('tennis')
@@ -228,6 +240,15 @@ export default function SkillsPage() {
       ? `${physicalTotal} total points · 4 skills`
       : '5 live values · fatigue counts as freshness'
 
+  const technical = skills ? scoreCategory(skills, 'tennis') : 0
+  const physicalScore = skills ? scoreCategory(skills, 'physical') : 0
+  const readiness = skills ? scoreCategory(skills, 'condition') : 0
+  const baseline = history[0] ?? null
+  const technicalChange = baseline && skills ? technical - scoreCategory(baseline, 'tennis') : 0
+  const physicalChange = baseline && skills ? physicalScore - scoreCategory(baseline, 'physical') : 0
+  const updates = Math.max(0, history.length - 1)
+  const direction = developmentDirection(history)
+
   return (
     <GameLayout title="Skills" subtitle="Player development center">
       <section className="tlg-v2-command tlg-skills-command">
@@ -265,6 +286,37 @@ export default function SkillsPage() {
               </button>
             )
           })}
+
+          {!loading && skills && (
+            <div
+              style={{
+                gridColumn: '1 / -1',
+                padding: '14px 13px 15px',
+                borderTop: '1px solid #e7eef4',
+                background: '#f8fbfd',
+              }}
+            >
+              <span
+                style={{
+                  display: 'block',
+                  marginBottom: 9,
+                  color: '#0874d1',
+                  fontSize: '.58rem',
+                  fontWeight: 700,
+                  letterSpacing: '.09em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Performance snapshot
+              </span>
+              <div style={{ display: 'grid', gap: 8 }}>
+                <SidebarMetric label="Technical" value={technical.toFixed(1)} detail={`${signed(technicalChange)} since start`} />
+                <SidebarMetric label="Physical" value={physicalScore.toFixed(1)} detail={`${signed(physicalChange)} since start`} />
+                <SidebarMetric label="Readiness" value={readiness.toFixed(1)} detail={readinessLabel(readiness)} />
+                <SidebarMetric label="Recorded development" value={String(updates)} detail={direction} />
+              </div>
+            </div>
+          )}
         </nav>
 
         <div className="tlg-skills-main">
@@ -339,6 +391,16 @@ export default function SkillsPage() {
   )
 }
 
+function SidebarMetric({ label, value, detail }: { label: string; value: string; detail: string }) {
+  return (
+    <div style={{ padding: '10px 11px', border: '1px solid #dce7ef', borderRadius: 8, background: '#fff' }}>
+      <span style={{ display: 'block', color: '#8295a4', fontSize: '.54rem', textTransform: 'uppercase', letterSpacing: '.05em' }}>{label}</span>
+      <strong style={{ display: 'block', marginTop: 4, color: '#102f47', fontSize: '.92rem' }}>{value}</strong>
+      <small style={{ display: 'block', marginTop: 3, color: '#8295a4', fontSize: '.56rem', lineHeight: 1.35 }}>{detail}</small>
+    </div>
+  )
+}
+
 function SkillCard({ item }: { item: AttributeItem }) {
   const normalized = Math.max(0, Math.min(100, item.value))
   const displayFill = item.inverse ? 100 - normalized : normalized
@@ -391,15 +453,7 @@ function BuildCard({ label, value, description }: { label: string; value: string
   )
 }
 
-function PerformanceCentre({
-  skills,
-  history,
-  historyError,
-}: {
-  skills: PlayerSkillsRow
-  history: SkillHistoryRow[]
-  historyError: string | null
-}) {
+function PerformanceCentre({ skills, history, historyError }: { skills: PlayerSkillsRow; history: SkillHistoryRow[]; historyError: string | null }) {
   const technical = scoreCategory(skills, 'tennis')
   const physical = scoreCategory(skills, 'physical')
   const readiness = scoreCategory(skills, 'condition')
@@ -409,6 +463,7 @@ function PerformanceCentre({
   const physicalChange = baseline ? physical - scoreCategory(baseline, 'physical') : 0
   const readinessChange = baseline ? readiness - scoreCategory(baseline, 'condition') : 0
   const updates = Math.max(0, history.length - 1)
+  const direction = developmentDirection(history)
 
   const tennisValues = [
     { label: 'Serve', value: skills.serve },
@@ -438,22 +493,6 @@ function PerformanceCentre({
   const strongestTennis = tennisValues.reduce((best, item) => item.value > best.value ? item : best)
   const priorityTennis = tennisValues.reduce((lowest, item) => item.value < lowest.value ? item : lowest)
   const strongestPhysical = physicalValues.reduce((best, item) => item.value > best.value ? item : best)
-  const latestHistory = history.length > 1 ? history[history.length - 1] : null
-  const previousHistory = history.length > 1 ? history[history.length - 2] : null
-  const latestTechnicalMovement = latestHistory && previousHistory
-    ? scoreCategory(latestHistory, 'tennis') - scoreCategory(previousHistory, 'tennis')
-    : 0
-  const latestPhysicalMovement = latestHistory && previousHistory
-    ? scoreCategory(latestHistory, 'physical') - scoreCategory(previousHistory, 'physical')
-    : 0
-  const developmentDirection = updates === 0
-    ? 'Baseline established'
-    : latestTechnicalMovement > 0.05 || latestPhysicalMovement > 0.05
-      ? 'Improving'
-      : latestTechnicalMovement < -0.05 || latestPhysicalMovement < -0.05
-        ? 'Declining'
-        : 'Stable'
-
   const heatmap = [
     ...tennisValues.map((item) => ({ ...item, group: 'Tennis' })),
     ...physicalValues.map((item) => ({ ...item, group: 'Physical' })),
@@ -461,21 +500,7 @@ function PerformanceCentre({
   ]
 
   return (
-    <section className="tlg-performance-centre">
-      <header className="tlg-performance-hero">
-        <div>
-          <span>Performance analysis</span>
-          <h3>Player Performance Centre</h3>
-          <p>Live analysis built from your real skills, physical profile and current condition. No estimated or fictional performance values are used.</p>
-        </div>
-        <div className="tlg-performance-kpis">
-          <PerformanceKpi label="Technical" value={technical.toFixed(1)} detail={`${signed(technicalChange)} since start`} />
-          <PerformanceKpi label="Physical" value={physical.toFixed(1)} detail={`${signed(physicalChange)} since start`} />
-          <PerformanceKpi label="Readiness" value={readiness.toFixed(1)} detail={readinessLabel(readiness)} />
-          <PerformanceKpi label="Recorded development" value={String(updates)} detail={developmentDirection} />
-        </div>
-      </header>
-
+    <section className="tlg-performance-centre" style={{ marginTop: 14 }}>
       <div className="tlg-performance-top-grid">
         <AnalysisPanel title="Technical radar" description="Seven-dimensional view of the player's current tennis profile.">
           <TennisRadar values={tennisValues} />
@@ -510,7 +535,7 @@ function PerformanceCentre({
             <InsightCard label="Technical priority area" value={priorityTennis.label} detail={`${priorityTennis.value}/100`} />
             <InsightCard label="Strongest physical area" value={strongestPhysical.label} detail={`${strongestPhysical.value}/100`} />
             <InsightCard label="Current status" value={readinessLabel(readiness)} detail={`${readiness.toFixed(1)}/100 readiness`} />
-            <InsightCard label="Development direction" value={developmentDirection} detail={`${updates} recorded update${updates === 1 ? '' : 's'}`} />
+            <InsightCard label="Development direction" value={direction} detail={`${updates} recorded update${updates === 1 ? '' : 's'}`} />
             <InsightCard label="Career identity" value={skills.playing_style} detail={`${skills.preferred_surface ?? 'Neutral'} surface`} />
           </div>
         </AnalysisPanel>
@@ -543,16 +568,6 @@ function PerformanceCentre({
         )}
       </AnalysisPanel>
     </section>
-  )
-}
-
-function PerformanceKpi({ label, value, detail }: { label: string; value: string; detail: string }) {
-  return (
-    <div className="tlg-performance-kpi">
-      <span>{label}</span>
-      <strong>{value}</strong>
-      <small>{detail}</small>
-    </div>
   )
 }
 
@@ -594,10 +609,7 @@ function TennisRadar({ values }: { values: Array<{ label: string; value: number 
 
   const pointAt = (index: number, scale: number) => {
     const angle = -Math.PI / 2 + (index / count) * Math.PI * 2
-    return {
-      x: cx + Math.cos(angle) * radius * scale,
-      y: cy + Math.sin(angle) * radius * scale,
-    }
+    return { x: cx + Math.cos(angle) * radius * scale, y: cy + Math.sin(angle) * radius * scale }
   }
 
   const ringPoints = (scale: number) => values.map((_, index) => {
@@ -612,9 +624,7 @@ function TennisRadar({ values }: { values: Array<{ label: string; value: number 
 
   return (
     <svg className="tlg-tennis-radar" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Current tennis skill radar">
-      {[0.25, 0.5, 0.75, 1].map((scale) => (
-        <polygon key={scale} points={ringPoints(scale)} className="radar-ring" />
-      ))}
+      {[0.25, 0.5, 0.75, 1].map((scale) => <polygon key={scale} points={ringPoints(scale)} className="radar-ring" />)}
       {values.map((item, index) => {
         const outer = pointAt(index, 1)
         const label = pointAt(index, 1.27)
