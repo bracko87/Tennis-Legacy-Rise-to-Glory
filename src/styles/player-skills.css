@@ -1,0 +1,205 @@
+.tlg-skills-shell {
+  border: 1px solid #d8e3ec;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(19, 50, 76, .06);
+  overflow: hidden;
+}
+
+.tlg-skills-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 12px 14px 0;
+  border-bottom: 1px solid #e5edf3;
+  background: #fbfdff;
+}
+
+.tlg-skills-tabs button {
+  min-height: 42px;
+  padding: 0 18px;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: #71869a;
+  font-size: .78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tlg-skills-tabs button.active {
+  border-bottom-color: #0874d1;
+  color: #0d3554;
+}
+
+.tlg-skills-state {
+  padding: 34px 24px;
+  color: #62798d;
+  font-size: .84rem;
+}
+
+.tlg-skills-state-error {
+  color: #a12c2c;
+}
+
+.tlg-skills-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  padding: 20px;
+}
+
+.tlg-skills-grid-tennis {
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, .7fr);
+}
+
+.tlg-skill-panel,
+.tlg-surface-profile {
+  border: 1px solid #dbe5ed;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.tlg-skill-panel > header {
+  padding: 18px 18px 16px;
+  border-bottom: 1px solid #e7eef4;
+}
+
+.tlg-skill-panel > header > span,
+.tlg-surface-profile > span {
+  display: block;
+  margin-bottom: 5px;
+  color: #0874d1;
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.tlg-skill-panel h3 {
+  margin: 0;
+  color: #102f49;
+  font-size: 1rem;
+}
+
+.tlg-skill-panel header p {
+  margin: 7px 0 0;
+  color: #70869a;
+  font-size: .73rem;
+  line-height: 1.55;
+}
+
+.tlg-skill-list {
+  display: grid;
+}
+
+.tlg-skill-row {
+  padding: 13px 18px 14px;
+  border-bottom: 1px solid #edf2f6;
+}
+
+.tlg-skill-row:last-child {
+  border-bottom: 0;
+}
+
+.tlg-skill-row-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.tlg-skill-row-head > div {
+  min-width: 0;
+}
+
+.tlg-skill-row-head strong {
+  display: block;
+  color: #18374f;
+  font-size: .78rem;
+}
+
+.tlg-skill-row-head small {
+  display: block;
+  margin-top: 3px;
+  color: #7b8fa1;
+  font-size: .66rem;
+  line-height: 1.4;
+}
+
+.tlg-skill-row-head b {
+  min-width: 32px;
+  color: #0b6fc8;
+  font-size: .84rem;
+  text-align: right;
+}
+
+.tlg-skill-meter {
+  height: 6px;
+  margin-top: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf3f7;
+}
+
+.tlg-skill-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #1885d6;
+}
+
+.tlg-skill-meter.inverse span {
+  background: #d98a35;
+}
+
+.tlg-surface-profile {
+  align-self: start;
+  padding: 20px;
+  background: #f8fbfe;
+}
+
+.tlg-surface-profile > strong {
+  display: block;
+  color: #0e3554;
+  font-size: 1.5rem;
+}
+
+.tlg-surface-profile > p {
+  margin: 9px 0 0;
+  color: #60798f;
+  font-size: .76rem;
+  line-height: 1.6;
+}
+
+.tlg-surface-rule {
+  margin-top: 18px;
+  padding: 12px 13px;
+  border: 1px solid #d6e6f2;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #38566d;
+  font-size: .7rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 900px) {
+  .tlg-skills-grid,
+  .tlg-skills-grid-tennis {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .tlg-skills-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tlg-skills-tabs button {
+    padding: 0 8px;
+    font-size: .71rem;
+  }
+
+  .tlg-skills-grid {
+    padding: 12px;
+  }
+}
