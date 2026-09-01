@@ -1,0 +1,56 @@
+/*
+ * Tennis Legacy typography test
+ *
+ * Use a non-variable system font stack and standard rasterization settings.
+ * This intentionally avoids synthesized/variable faces that can look soft in
+ * some Windows + Chromium combinations. Easy to remove if we prefer the old
+ * typography later.
+ */
+
+html,
+body,
+button,
+input,
+select,
+textarea,
+.tlg-v2-shell,
+.tlg-v2-shell button,
+.tlg-v2-shell input,
+.tlg-v2-shell select,
+.tlg-v2-shell textarea {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-synthesis: none;
+  text-rendering: auto;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+}
+
+body {
+  font-weight: 400;
+}
+
+strong,
+b,
+button {
+  font-synthesis: none;
+}
+
+/* Keep common UI emphasis on real, standard font weights. */
+.tlg-v2-nav-copy strong,
+.tlg-v4-player-name,
+.tlg-v4-header-action,
+.tlg-v2-page-title,
+.tlg-v2-command h2,
+.tlg-v2-panel-header h3,
+.tlg-live-player-name,
+.tlg-live-points {
+  font-weight: 700 !important;
+}
+
+.tlg-v2-page-description,
+.tlg-v2-command p,
+.tlg-v2-nav-copy small,
+.tlg-v4-player-country,
+.tlg-live-country {
+  font-weight: 400 !important;
+}
