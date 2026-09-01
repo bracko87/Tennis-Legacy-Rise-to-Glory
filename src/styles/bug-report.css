@@ -1,0 +1,208 @@
+.tlg-bug-launcher {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid rgba(74, 165, 231, .28);
+  border-radius: 8px;
+  background: rgba(8, 116, 209, .08);
+  color: #dbeaf7;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tlg-bug-launcher:hover {
+  background: rgba(8, 116, 209, .15);
+  border-color: rgba(74, 165, 231, .48);
+}
+
+.tlg-bug-launcher > span {
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+.tlg-bug-launcher > small {
+  font-size: .62rem;
+  color: #7491a8;
+}
+
+.tlg-v2-sidebar-collapsed .tlg-bug-launcher {
+  align-items: center;
+  padding: 9px 4px;
+  text-align: center;
+}
+
+.tlg-bug-success {
+  margin-top: 6px;
+  padding: 7px 9px;
+  border-radius: 7px;
+  background: rgba(31, 147, 92, .14);
+  color: #8ed6b1;
+  font-size: .66rem;
+}
+
+.tlg-bug-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 8, 18, .74);
+}
+
+.tlg-bug-modal {
+  width: min(760px, 100%);
+  max-height: min(90vh, 880px);
+  overflow-y: auto;
+  border: 1px solid #d8e4ee;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(0, 20, 40, .28);
+  color: #102a43;
+}
+
+.tlg-bug-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 24px;
+  border-bottom: 1px solid #e5edf4;
+}
+
+.tlg-bug-modal-header span {
+  display: block;
+  margin-bottom: 5px;
+  color: #0874d1;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.tlg-bug-modal-header h2 {
+  margin: 0;
+  font-size: 1.45rem;
+}
+
+.tlg-bug-modal-header p {
+  margin: 6px 0 0;
+  color: #6a7f92;
+  font-size: .78rem;
+}
+
+.tlg-bug-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #f2f6f9;
+  color: #365268;
+  cursor: pointer;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.tlg-bug-form {
+  display: grid;
+  gap: 16px;
+  padding: 22px 24px 24px;
+}
+
+.tlg-bug-form label {
+  display: grid;
+  gap: 7px;
+}
+
+.tlg-bug-form label > span {
+  color: #16364f;
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+.tlg-bug-form select,
+.tlg-bug-form textarea,
+.tlg-bug-form input[type="file"] {
+  width: 100%;
+  border: 1px solid #cbd9e5;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #173149;
+  font-size: .82rem;
+}
+
+.tlg-bug-form select {
+  min-height: 40px;
+  padding: 0 10px;
+}
+
+.tlg-bug-form textarea {
+  resize: vertical;
+  padding: 10px 11px;
+  line-height: 1.5;
+}
+
+.tlg-bug-form input[type="file"] {
+  padding: 8px;
+}
+
+.tlg-bug-two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.tlg-bug-file small {
+  color: #71869a;
+  font-size: .68rem;
+}
+
+.tlg-bug-error {
+  padding: 10px 12px;
+  border: 1px solid #f0b8b8;
+  border-radius: 8px;
+  background: #fff6f6;
+  color: #a92d2d;
+  font-size: .76rem;
+}
+
+.tlg-bug-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.tlg-bug-actions button {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-size: .78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tlg-bug-secondary {
+  border: 1px solid #cad8e4;
+  background: #ffffff;
+  color: #28465d;
+}
+
+.tlg-bug-primary {
+  background: #0874d1;
+  color: #ffffff;
+}
+
+.tlg-bug-actions button:disabled {
+  cursor: default;
+  opacity: .58;
+}
+
+@media (max-width: 640px) {
+  .tlg-bug-modal-backdrop { padding: 10px; }
+  .tlg-bug-two-col { grid-template-columns: 1fr; }
+  .tlg-bug-modal-header,
+  .tlg-bug-form { padding-left: 16px; padding-right: 16px; }
+}
