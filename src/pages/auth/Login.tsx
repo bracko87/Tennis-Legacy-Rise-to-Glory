@@ -146,7 +146,7 @@ export default function LoginPage() {
                 </div>
               </FormField>
 
-              <FormField id="login-password" label="Password" required labelAction={<Link className="tlg-auth-inline-action" to="/forgot-password">Forgot password?</Link>} error={submitted && !passwordValid ? 'Enter your account password.' : undefined}>
+              <FormField id="login-password" label="Password" required labelAction={<Link className="tlg-auth-inline-action" to="/forgot-password">Reset password by email</Link>} error={submitted && !passwordValid ? 'Enter your account password.' : undefined}>
                 <div className="tlg-input-shell">
                   <LockKeyhole className="tlg-input-leading-icon" size={18} />
                   <input id="login-password" type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => { setPassword(event.target.value); setStatus(null) }} className={`tlg-input tlg-input-with-leading-icon tlg-input-with-action ${submitted && !passwordValid ? 'tlg-input-error' : ''}`} placeholder="Enter your password" autoComplete="current-password" />
