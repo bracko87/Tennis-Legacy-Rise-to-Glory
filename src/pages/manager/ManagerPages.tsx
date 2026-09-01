@@ -1,9 +1,11 @@
 import {
   Bell,
+  Camera,
   CircleHelp,
   Gift,
   Inbox,
   LifeBuoy,
+  LockKeyhole,
   Mail,
   MessageSquare,
   Settings2,
@@ -14,6 +16,9 @@ import { useState } from 'react'
 
 import { useAuth } from '../../auth/AuthContext'
 import GameLayout from '../../components/layout/GameLayout'
+import usePlayerAvatarUrl from '../../hooks/usePlayerAvatarUrl'
+import { supabase } from '../../lib/supabase'
+import '../../styles/player-account.css'
 
 function ManagerPageIntro({
   eyebrow,
@@ -84,29 +89,173 @@ export function NotificationsPage() {
 
 export function PlayerAccountPage() {
   const { player, user } = useAuth()
+  const avatarUrl = usePlayerAvatarUrl(player?.image_path)
   const playerName = player ? `${player.first_name} ${player.last_name}`.trim() : 'Player not available'
+  const [avatarReason, setAvatarReason] = useState('')
+  const [avatarMessage, setAvatarMessage] = useState('')
+  const [passwordStatus, setPasswordStatus] = useState<string | null>(null)
+  const [passwordBusy, setPasswordBusy] = useState(false)
+
+  function requestAvatarReplacement(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!player || !user?.email) return
+
+    const subject = encodeURIComponent(`Avatar replacement request — ${playerName}`)
+    const body = encodeURIComponent(
+      [
+        'Tennis Legacy avatar replacement request',
+        '',
+        `Player: ${playerName}`,
+        `Player ID: ${player.id}`,
+        `World: ${player.world}`,
+        `Country: ${player.country_code}`,
+        `Account email: ${user.email}`,
+        `Reason: ${avatarReason || 'Not specified'}`,
+        '',
+        'Request details:',
+        avatarMessage || 'No additional details provided.',
+      ].join('\n'),
+    )
+
+    window.location.href = `mailto:contact@tennislegacygame.com?subject=${subject}&body=${body}`
+  }
+
+  async function sendPasswordChangeEmail() {
+    if (!user?.email || passwordBusy) return
+    setPasswordBusy(true)
+    setPasswordStatus(null)
+
+    const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+
+    if (error) {
+      setPasswordStatus(error.message)
+    } else {
+      setPasswordStatus('Password change email sent. Check your inbox.')
+    }
+
+    setPasswordBusy(false)
+  }
 
   return (
     <GameLayout title="Player & account" subtitle="Identity and account information">
-      <ManagerPageIntro
-        eyebrow="Manager settings"
-        title="Player & account"
-        description="Review the identity connected to your Tennis Legacy manager account and professional career."
-      />
-      <section className="tlg-v2-panel">
-        <header className="tlg-v2-panel-header">
-          <div><span>Account</span><h3>Current identity</h3></div>
-          <div className="tlg-v2-panel-icon"><UserRound size={17} /></div>
-        </header>
-        <div className="tlg-v2-panel-body">
-          <div className="tlg-v2-checklist">
-            <AccountRow label="Manager email" value={user?.email ?? 'Authenticated account'} />
-            <AccountRow label="Professional player" value={playerName} />
-            <AccountRow label="Competition world" value={player ? `${player.world} World` : '—'} />
-            <AccountRow label="Country code" value={player?.country_code ?? '—'} />
+      <div className="tlg-account-page">
+        <section className="tlg-account-section">
+          <header className="tlg-account-section-head">
+            <div>
+              <span>Player profile</span>
+              <h2>Player & account</h2>
+              <p>Review the identity connected to your Tennis Legacy account and professional career.</p>
+            </div>
+          </header>
+
+          <div className="tlg-account-profile-layout">
+            <div className="tlg-account-avatar-card">
+              <div className="tlg-account-avatar-frame">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={`${playerName} avatar`} />
+                ) : (
+                  <UserRound size={58} aria-hidden="true" />
+                )}
+              </div>
+              <strong>{playerName}</strong>
+              <span>{player ? `${player.world} singles` : 'Professional player'}</span>
+            </div>
+
+            <div className="tlg-account-fields">
+              <label className="tlg-account-field">
+                <span>Player name</span>
+                <input value={playerName} readOnly disabled />
+                <small>Player name is fixed when the career is created and cannot be changed.</small>
+              </label>
+
+              <label className="tlg-account-field">
+                <span>Account email</span>
+                <input value={user?.email ?? ''} readOnly />
+                <small>This is the email connected to your Tennis Legacy account.</small>
+              </label>
+
+              <label className="tlg-account-field">
+                <span>Competition world</span>
+                <input value={player ? `${player.world} World` : '—'} readOnly />
+              </label>
+
+              <label className="tlg-account-field">
+                <span>Country</span>
+                <input value={player?.country_code ?? '—'} readOnly />
+              </label>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        <section className="tlg-account-section">
+          <header className="tlg-account-section-head tlg-account-section-head-icon">
+            <div>
+              <span>Player image</span>
+              <h3>Avatar replacement request</h3>
+              <p>Your avatar cannot be changed directly. Submit a request and the Tennis Legacy team can review it.</p>
+            </div>
+            <Camera size={20} />
+          </header>
+
+          <form className="tlg-account-avatar-form" onSubmit={requestAvatarReplacement}>
+            <label className="tlg-account-field">
+              <span>Reason for replacement</span>
+              <select value={avatarReason} onChange={(event) => setAvatarReason(event.target.value)} required>
+                <option value="">Choose a reason</option>
+                <option value="I selected the wrong avatar">I selected the wrong avatar</option>
+                <option value="Avatar does not fit my player">Avatar does not fit my player</option>
+                <option value="Avatar display problem">Avatar display problem</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+
+            <label className="tlg-account-field">
+              <span>Request details</span>
+              <textarea
+                rows={4}
+                value={avatarMessage}
+                onChange={(event) => setAvatarMessage(event.target.value)}
+                placeholder="Tell us why you want the avatar replaced and, if relevant, what kind of replacement you prefer."
+                required
+              />
+            </label>
+
+            <div className="tlg-account-form-actions">
+              <button type="submit" className="tlg-account-primary-button" disabled={!player || !user?.email}>
+                Request avatar replacement
+              </button>
+              <small>The request opens your email client with the player details already prepared. The avatar is not changed automatically.</small>
+            </div>
+          </form>
+        </section>
+
+        <section className="tlg-account-section">
+          <header className="tlg-account-section-head tlg-account-section-head-icon">
+            <div>
+              <span>Security</span>
+              <h3>Change password</h3>
+              <p>For security, password changes are completed by email verification.</p>
+            </div>
+            <LockKeyhole size={20} />
+          </header>
+
+          <div className="tlg-account-password-body">
+            <input value={user?.email ?? ''} readOnly aria-label="Account email for password change" />
+            <button
+              type="button"
+              className="tlg-account-secondary-button"
+              onClick={sendPasswordChangeEmail}
+              disabled={!user?.email || passwordBusy}
+            >
+              {passwordBusy ? 'Sending…' : 'Send Password Change Email'}
+            </button>
+            {passwordStatus && <p className="tlg-account-status">{passwordStatus}</p>}
+            <small>After opening the email link, you can choose a new password on the reset-password page.</small>
+          </div>
+        </section>
+      </div>
     </GameLayout>
   )
 }
