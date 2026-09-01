@@ -39,6 +39,7 @@ import StaffPage from './pages/dashboard/Staff'
 import CalendarPage from './pages/dashboard/Calendar'
 import TournamentPage from './pages/dashboard/Tournament'
 import RankingsPage from './pages/dashboard/Rankings'
+import PlayerProfilePage from './pages/dashboard/PlayerProfile'
 import SchedulePage from './pages/dashboard/Schedule'
 import EquipmentPage from './pages/dashboard/Equipment'
 import FinancePage from './pages/dashboard/Finance'
@@ -47,11 +48,11 @@ import TennisClubPage from './pages/dashboard/TennisClub'
 import StatisticsPage from './pages/dashboard/Statistics'
 import ProPackagesPage from './pages/manager/ProPackages'
 import GamePreferencesPage from './pages/manager/GamePreferences'
+import InboxPage from './pages/manager/Inbox'
 import {
   ContactUsPage,
   ForumPage,
   HelpPage,
-  InboxPage,
   InviteFriendsPage,
   NotificationsPage,
   PlayerAccountPage,
@@ -77,6 +78,7 @@ export default function App() {
           <Route path="/game/calendar" element={<RequirePlayer><CalendarPage /></RequirePlayer>} />
           <Route path="/game/tournaments/:competitionId" element={<RequirePlayer><TournamentPage /></RequirePlayer>} />
           <Route path="/game/rankings" element={<RequirePlayer><RankingsPage /></RequirePlayer>} />
+          <Route path="/game/players/:playerId" element={<RequirePlayer><PlayerProfilePage /></RequirePlayer>} />
           <Route path="/game/schedule" element={<RequirePlayer><SchedulePage /></RequirePlayer>} />
           <Route path="/game/equipment" element={<RequirePlayer><EquipmentPage /></RequirePlayer>} />
           <Route path="/game/finance" element={<RequirePlayer><FinancePage /></RequirePlayer>} />
