@@ -19,6 +19,7 @@ import {
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
+import BugReportButton from '../dashboard/BugReportButton'
 
 const TENNIS_LEGACY_LOGO_URL = 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/logo%20333.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9sb2dvIDMzMy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg3OTQ1MDc5LCJleHAiOjQ5MTAwMDkwNzl9.Q7Ocay_B1kouWo_XmmgtVcGOCh0xtzhzaIm713AhU-ci-xJPY3JanaT3xhdkptAuKV5kUJGHov34fSM2TGjmcQ'
 
@@ -53,6 +54,23 @@ const items: NavItem[] = [
   { key: 'statistics', label: 'Statistics', description: 'Results & analytics', to: '/game/statistics', icon: <BarChart3 size={17} /> },
 ]
 
+function pageLabelForPath(pathname: string) {
+  const exact = items.find((item) => item.to === pathname)
+  if (exact) return exact.label
+  if (pathname.startsWith('/game/players/')) return 'Player Profile'
+  if (pathname.startsWith('/game/tournaments/')) return 'Tournament'
+  if (pathname === '/game/inbox') return 'Manager Inbox'
+  if (pathname === '/game/player-account') return 'Player & Account'
+  if (pathname === '/game/preferences') return 'Game Preferences'
+  if (pathname === '/game/help') return 'Help Center'
+  if (pathname === '/game/forum') return 'Forum / Discord'
+  if (pathname === '/game/contact') return 'Contact Us'
+  if (pathname === '/game/invite-friends') return 'Invite Friends'
+  if (pathname === '/game/notifications') return 'Notifications'
+  if (pathname === '/game/pro-packages') return 'Pro Packages'
+  return pathname.replace('/game/', '').replaceAll('-', ' ') || 'Game'
+}
+
 export default function GameSidebar({
   isCollapsed,
   onToggleCollapse,
@@ -62,6 +80,7 @@ export default function GameSidebar({
   const location = useLocation()
   const navigate = useNavigate()
   const { signOut } = useAuth()
+  const currentPageLabel = pageLabelForPath(location.pathname)
 
   async function handleSignOut() {
     try {
@@ -146,6 +165,11 @@ export default function GameSidebar({
         </nav>
 
         <div className="tlg-v2-sidebar-footer tlg-v4-sidebar-footer">
+          <BugReportButton
+            collapsed={isCollapsed}
+            currentPageLabel={currentPageLabel}
+            currentPath={location.pathname}
+          />
           <button
             type="button"
             className="tlg-v4-signout-button"
