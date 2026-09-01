@@ -1,0 +1,233 @@
+.tlg-invite-page {
+  display: grid;
+  gap: 18px;
+}
+
+.tlg-invite-intro,
+.tlg-invite-panel {
+  border: 1px solid #dbe5ee;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 26px rgba(29, 65, 91, 0.05);
+}
+
+.tlg-invite-intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 26px;
+}
+
+.tlg-invite-intro span:first-child,
+.tlg-invite-panel header span {
+  color: #0874c9;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.tlg-invite-intro h2,
+.tlg-invite-panel h3 {
+  margin: 6px 0 6px;
+  color: #132f46;
+}
+
+.tlg-invite-intro h2 {
+  font-size: 1.55rem;
+}
+
+.tlg-invite-intro p,
+.tlg-invite-panel p,
+.tlg-invite-note,
+.tlg-invite-empty p,
+.tlg-invite-how-it-works li,
+.tlg-invite-info-box p {
+  color: #607a8f;
+  line-height: 1.55;
+}
+
+.tlg-invite-status {
+  flex: 0 0 auto;
+  border: 1px solid #f0c85d;
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: #fff9df;
+  color: #896200;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.tlg-invite-panel {
+  padding: 22px 24px;
+}
+
+.tlg-invite-panel header {
+  margin-bottom: 16px;
+}
+
+.tlg-invite-panel header h3 {
+  font-size: 1rem;
+}
+
+.tlg-invite-panel header p {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+}
+
+.tlg-invite-link-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.tlg-invite-link-placeholder {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid #cfdbe5;
+  border-radius: 8px;
+  background: #f7fafc;
+  color: #8ba0af;
+  font-size: 0.78rem;
+}
+
+.tlg-invite-link-row button {
+  min-height: 44px;
+  border: 1px solid #a9b9c7;
+  border-radius: 8px;
+  padding: 0 18px;
+  font-weight: 700;
+  background: #e5edf3;
+  color: #7f909c;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.tlg-invite-secondary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.tlg-invite-note {
+  display: block;
+  margin-top: 9px;
+  font-size: 0.69rem;
+}
+
+.tlg-invite-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.tlg-invite-overview-grid article {
+  min-height: 82px;
+  padding: 14px;
+  border: 1px solid #dbe5ee;
+  border-radius: 10px;
+  background: #f9fbfd;
+}
+
+.tlg-invite-overview-grid span {
+  display: block;
+  color: #71889a;
+  font-size: 0.7rem;
+}
+
+.tlg-invite-overview-grid strong {
+  display: block;
+  margin-top: 8px;
+  color: #102d45;
+  font-size: 1.2rem;
+}
+
+.tlg-invite-empty {
+  min-height: 170px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px dashed #d4e0e9;
+  border-radius: 10px;
+  background: #fbfcfd;
+  text-align: center;
+}
+
+.tlg-invite-empty svg {
+  color: #91a7b8;
+}
+
+.tlg-invite-empty strong {
+  color: #28465d;
+}
+
+.tlg-invite-empty p {
+  max-width: 560px;
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+.tlg-invite-how-it-works ol {
+  margin: 0;
+  padding-left: 22px;
+}
+
+.tlg-invite-how-it-works li {
+  margin-bottom: 9px;
+  font-size: 0.78rem;
+}
+
+.tlg-invite-info-box {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid #f1d47f;
+  border-radius: 9px;
+  background: #fffbea;
+}
+
+.tlg-invite-info-box strong {
+  color: #6c5108;
+  font-size: 0.78rem;
+}
+
+.tlg-invite-info-box p {
+  margin: 5px 0 0;
+  color: #7e6b34;
+  font-size: 0.72rem;
+}
+
+@media (max-width: 1000px) {
+  .tlg-invite-overview-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .tlg-invite-intro {
+    flex-direction: column;
+  }
+
+  .tlg-invite-link-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tlg-invite-link-placeholder {
+    grid-column: 1 / -1;
+  }
+
+  .tlg-invite-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 460px) {
+  .tlg-invite-overview-grid {
+    grid-template-columns: 1fr;
+  }
+}
