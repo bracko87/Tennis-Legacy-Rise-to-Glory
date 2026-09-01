@@ -12,6 +12,20 @@
     )
   </script>
   <body>
+    <!-- Static declaration lets Netlify discover the React contact form at deploy time. -->
+    <form name="tennis-legacy-contact" data-netlify="true" hidden>
+      <input type="hidden" name="form-name" value="tennis-legacy-contact" />
+      <input name="request_id" />
+      <input name="support_destination" />
+      <input name="account_email" />
+      <input name="player_name" />
+      <input name="world" />
+      <input name="country_code" />
+      <input name="category" />
+      <input name="subject" />
+      <textarea name="message"></textarea>
+      <input name="page_url" />
+    </form>
     <div id="app"></div>
     <script src="main.js"></script>
   </body>
