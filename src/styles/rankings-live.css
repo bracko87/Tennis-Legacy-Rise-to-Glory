@@ -1,9 +1,71 @@
 .tlg-live-ranking-rows { display: grid; }
-.tlg-live-ranking-row { display: grid; grid-template-columns: 72px minmax(0,1.4fr) minmax(120px,.8fr) 100px; align-items: center; gap: 12px; min-height: 54px; padding: 8px 16px; border-top: 1px solid #edf1f4; color: #26465c; background: #fff; text-decoration: none; transition: background .15s ease; }
+
+.tlg-ranking-table-head,
+.tlg-live-ranking-row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1.4fr) minmax(170px, .8fr) 100px;
+  align-items: center;
+  column-gap: 12px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.tlg-ranking-table-head {
+  min-height: 42px;
+}
+
+.tlg-ranking-table-head > span:nth-child(1),
+.tlg-live-ranking-row > :nth-child(1) {
+  justify-self: start;
+}
+
+.tlg-ranking-table-head > span:nth-child(2),
+.tlg-live-ranking-row > :nth-child(2) {
+  justify-self: start;
+}
+
+.tlg-ranking-table-head > span:nth-child(3),
+.tlg-live-ranking-row > :nth-child(3) {
+  justify-self: start;
+}
+
+.tlg-ranking-table-head > span:nth-child(4),
+.tlg-live-ranking-row > :nth-child(4) {
+  justify-self: end;
+  text-align: right;
+}
+
+.tlg-live-ranking-row {
+  min-height: 54px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border-top: 1px solid #edf1f4;
+  color: #26465c;
+  background: #fff;
+  text-decoration: none;
+  transition: background .15s ease;
+}
+
 .tlg-live-ranking-row:hover { background: #f5faff; }
 .tlg-live-ranking-row-own { background: #eef7fd; }
 .tlg-live-rank-number { color: #0b6fc8; font-size: .8rem; }
-.tlg-live-player-name { color: #173149; font-size: .72rem; font-weight: 800; }
-.tlg-live-country { display: inline-flex; align-items: center; gap: 7px; color: #678094; font-size: .65rem; }
-.tlg-live-points { text-align: right; color: #173149; font-size: .72rem; }
-@media (max-width: 680px) { .tlg-live-ranking-row, .tlg-ranking-table-head { grid-template-columns: 48px minmax(0,1fr) 74px; } .tlg-live-ranking-row > :nth-child(3), .tlg-ranking-table-head > :nth-child(3) { display: none; } }
+.tlg-live-player-name { color: #173149; font-size: .72rem; font-weight: 700; }
+.tlg-live-country { display: inline-flex; align-items: center; justify-content: flex-start; gap: 7px; color: #678094; font-size: .65rem; }
+.tlg-live-points { text-align: right; color: #173149; font-size: .72rem; font-weight: 700; }
+
+@media (max-width: 680px) {
+  .tlg-ranking-table-head,
+  .tlg-live-ranking-row {
+    grid-template-columns: 48px minmax(0, 1fr) 74px;
+  }
+
+  .tlg-live-ranking-row > :nth-child(3),
+  .tlg-ranking-table-head > :nth-child(3) {
+    display: none;
+  }
+
+  .tlg-ranking-table-head > span:nth-child(4),
+  .tlg-live-ranking-row > :nth-child(4) {
+    grid-column: 3;
+  }
+}
