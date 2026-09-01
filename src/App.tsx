@@ -50,9 +50,9 @@ import ProPackagesPage from './pages/manager/ProPackages'
 import GamePreferencesPage from './pages/manager/GamePreferences'
 import InboxPage from './pages/manager/Inbox'
 import ContactUsPage from './pages/manager/ContactUs'
+import InviteFriendsPage from './pages/manager/InviteFriends'
 import { ForumPage, HelpPage } from './pages/manager/CommunitySupport'
 import {
-  InviteFriendsPage,
   NotificationsPage,
   PlayerAccountPage,
 } from './pages/manager/ManagerPages'
