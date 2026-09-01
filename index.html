@@ -3,14 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Web Creator</title>
-    <link href="main.css" rel="stylesheet">
+    <title>Tennis Legacy: Rise to Glory</title>
+    <link href="/main.css" rel="stylesheet">
   </head>
-  <script>
-    new EventSource('/esbuild').addEventListener('change', () =>
-      location.reload()
-    )
-  </script>
   <body>
     <!-- Static declaration lets Netlify discover the React contact form at deploy time. -->
     <form name="tennis-legacy-contact" data-netlify="true" hidden>
@@ -27,6 +22,6 @@
       <input name="page_url" />
     </form>
     <div id="app"></div>
-    <script src="main.js"></script>
+    <script src="/main.js"></script>
   </body>
 </html>
