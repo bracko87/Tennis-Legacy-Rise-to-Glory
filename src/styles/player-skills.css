@@ -36,9 +36,7 @@
   font-size: .84rem;
 }
 
-.tlg-skills-state-error {
-  color: #a12c2c;
-}
+.tlg-skills-state-error { color: #a12c2c; }
 
 .tlg-skills-grid {
   display: grid;
@@ -47,12 +45,12 @@
   padding: 20px;
 }
 
-.tlg-skills-grid-tennis {
-  grid-template-columns: minmax(0, 1.5fr) minmax(260px, .7fr);
-}
+.tlg-skills-grid-tennis { grid-template-columns: minmax(0, 1.5fr) minmax(280px, .72fr); }
+.tlg-skills-grid-single { grid-template-columns: minmax(0, 1.45fr) minmax(260px, .65fr); }
 
 .tlg-skill-panel,
-.tlg-surface-profile {
+.tlg-player-build-profile,
+.tlg-skill-explainer {
   border: 1px solid #dbe5ed;
   border-radius: 10px;
   background: #ffffff;
@@ -64,7 +62,8 @@
 }
 
 .tlg-skill-panel > header > span,
-.tlg-surface-profile > span {
+.tlg-player-build-profile section > span,
+.tlg-skill-explainer > span {
   display: block;
   margin-bottom: 5px;
   color: #0874d1;
@@ -87,18 +86,14 @@
   line-height: 1.55;
 }
 
-.tlg-skill-list {
-  display: grid;
-}
+.tlg-skill-list { display: grid; }
 
 .tlg-skill-row {
   padding: 13px 18px 14px;
   border-bottom: 1px solid #edf2f6;
 }
 
-.tlg-skill-row:last-child {
-  border-bottom: 0;
-}
+.tlg-skill-row:last-child { border-bottom: 0; }
 
 .tlg-skill-row-head {
   display: flex;
@@ -107,9 +102,7 @@
   gap: 16px;
 }
 
-.tlg-skill-row-head > div {
-  min-width: 0;
-}
+.tlg-skill-row-head > div { min-width: 0; }
 
 .tlg-skill-row-head strong {
   display: block;
@@ -147,27 +140,34 @@
   background: #1885d6;
 }
 
-.tlg-skill-meter.inverse span {
-  background: #d98a35;
-}
+.tlg-skill-meter.inverse span { background: #d98a35; }
 
-.tlg-surface-profile {
+.tlg-player-build-profile,
+.tlg-skill-explainer {
   align-self: start;
   padding: 20px;
   background: #f8fbfe;
 }
 
-.tlg-surface-profile > strong {
-  display: block;
-  color: #0e3554;
-  font-size: 1.5rem;
+.tlg-player-build-profile section + section {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #dce7ef;
 }
 
-.tlg-surface-profile > p {
-  margin: 9px 0 0;
+.tlg-player-build-profile section > strong,
+.tlg-skill-explainer > strong {
+  display: block;
+  color: #0e3554;
+  font-size: 1.35rem;
+}
+
+.tlg-player-build-profile section > p,
+.tlg-skill-explainer > p {
+  margin: 8px 0 0;
   color: #60798f;
-  font-size: .76rem;
-  line-height: 1.6;
+  font-size: .75rem;
+  line-height: 1.58;
 }
 
 .tlg-surface-rule {
@@ -183,23 +183,24 @@
 
 @media (max-width: 900px) {
   .tlg-skills-grid,
-  .tlg-skills-grid-tennis {
+  .tlg-skills-grid-tennis,
+  .tlg-skills-grid-single {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 620px) {
   .tlg-skills-tabs {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+    padding: 8px 10px 0;
   }
 
   .tlg-skills-tabs button {
+    min-height: 38px;
     padding: 0 8px;
-    font-size: .71rem;
+    font-size: .72rem;
   }
 
-  .tlg-skills-grid {
-    padding: 12px;
-  }
+  .tlg-skills-grid { padding: 12px; }
 }
