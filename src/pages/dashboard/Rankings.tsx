@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Trophy } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 
@@ -72,7 +72,6 @@ export default function RankingsPage() {
             <span>{world} singles</span>
             <h3>World Ranking</h3>
           </div>
-          <div className="tlg-v2-panel-icon"><Trophy size={17} /></div>
         </header>
 
         <div className="tlg-ranking-table-head">
@@ -88,7 +87,6 @@ export default function RankingsPage() {
           <div className="tlg-ranking-empty"><strong>Unable to load ranking</strong><p>{error}</p></div>
         ) : rows.length === 0 ? (
           <div className="tlg-ranking-empty">
-            <Trophy size={25} />
             <strong>No ranked players yet</strong>
             <p>Created players will appear here automatically.</p>
           </div>
