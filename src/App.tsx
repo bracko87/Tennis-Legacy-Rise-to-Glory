@@ -52,11 +52,9 @@ import GamePreferencesPage from './pages/manager/GamePreferences'
 import InboxPage from './pages/manager/Inbox'
 import ContactUsPage from './pages/manager/ContactUs'
 import InviteFriendsPage from './pages/manager/InviteFriends'
+import NotificationsPage from './pages/manager/Notifications'
 import { ForumPage, HelpPage } from './pages/manager/CommunitySupport'
-import {
-  NotificationsPage,
-  PlayerAccountPage,
-} from './pages/manager/ManagerPages'
+import { PlayerAccountPage } from './pages/manager/ManagerPages'
 
 export default function App() {
   return (
