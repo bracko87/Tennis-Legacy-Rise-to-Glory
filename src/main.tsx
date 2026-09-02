@@ -14,6 +14,7 @@ import { createRoot } from 'react-dom/client'
 import './shadcn.css'
 import './styles/home-branding.css'
 import './styles/skills-layout-fixes.css'
+import './styles/page-header-standard.css'
 import App from './App'
 
 const appElement =
