@@ -20,6 +20,8 @@ interface PlayerSkillsRow {
   volley: number
   slice: number
   drop_shot: number
+  lob: number
+  smash: number
   fitness: number
   stamina: number
   recovery: number
@@ -43,6 +45,8 @@ interface SkillHistoryRow {
   volley: number
   slice: number
   drop_shot: number
+  lob: number
+  smash: number
   fitness: number
   stamina: number
   recovery: number
@@ -63,16 +67,16 @@ interface AttributeItem {
 }
 
 const SURFACE_COPY: Record<PreferredSurface, string> = {
-  Hard: 'Balanced court identity with a small emphasis on groundstrokes, serve and return.',
-  Clay: 'Rally-oriented identity with extra emphasis on groundstrokes and return.',
-  Grass: 'Fast-court identity with extra emphasis on serve, volley and slice.',
+  Hard: 'Balanced court identity with a neutral Lob and Smash base.',
+  Clay: 'Rally-oriented identity with extra emphasis on groundstrokes, return and Lob.',
+  Grass: 'Fast-court identity with extra emphasis on serve, volley, slice and Smash.',
 }
 
 const STYLE_COPY: Record<PlayingStyle, string> = {
-  'Aggressive Baseliner': 'Baseline pressure with extra emphasis on attacking groundstrokes.',
-  'Defensive Baseliner': 'Return, backhand stability and defensive resistance are emphasized.',
+  'Aggressive Baseliner': 'Baseline pressure with extra emphasis on attacking groundstrokes and finishing overheads.',
+  'Defensive Baseliner': 'Return, backhand stability and Lob are emphasized while attacking overhead play is reduced.',
   'All-court': 'Balanced style with no extra redistribution beyond the preferred surface.',
-  'Serve & Volley': 'Serve, volley and forward-court play receive the extra emphasis.',
+  'Serve & Volley': 'Serve, volley, Smash and forward-court play receive the extra emphasis.',
 }
 
 const TAB_COPY: Record<SkillsTab, { label: string; kicker: string; title: string; description: string }> = {
@@ -80,7 +84,7 @@ const TAB_COPY: Record<SkillsTab, { label: string; kicker: string; title: string
     label: 'Tennis Skills',
     kicker: 'Developable attributes',
     title: 'Technical profile',
-    description: 'The racket skills that define how your player performs on court. Training and match development will improve these values over time.',
+    description: 'The nine racket skills that define how your player performs on court. Training and match development will improve these values over time.',
   },
   physical: {
     label: 'Physical',
@@ -98,7 +102,10 @@ const TAB_COPY: Record<SkillsTab, { label: string; kicker: string; title: string
 
 function scoreCategory(row: PlayerSkillsRow | SkillHistoryRow, tab: SkillsTab) {
   if (tab === 'tennis') {
-    return (row.serve + row.forehand + row.backhand + row.return_skill + row.volley + row.slice + row.drop_shot) / 7
+    return (
+      row.serve + row.forehand + row.backhand + row.return_skill + row.volley +
+      row.slice + row.drop_shot + row.lob + row.smash
+    ) / 9
   }
   if (tab === 'physical') {
     return (row.fitness + row.stamina + row.recovery + row.movement) / 4
@@ -166,12 +173,12 @@ export default function SkillsPage() {
       const [skillsResult, historyResult] = await Promise.all([
         supabase
           .from('player_skills')
-          .select('player_id, preferred_surface, playing_style, serve, forehand, backhand, return_skill, volley, slice, drop_shot, fitness, stamina, recovery, movement, fatigue, sharpness, morale, confidence, focus')
+          .select('player_id, preferred_surface, playing_style, serve, forehand, backhand, return_skill, volley, slice, drop_shot, lob, smash, fitness, stamina, recovery, movement, fatigue, sharpness, morale, confidence, focus')
           .eq('player_id', player.id)
           .maybeSingle(),
         supabase
           .from('player_skill_history')
-          .select('id, player_id, recorded_at, source, serve, forehand, backhand, return_skill, volley, slice, drop_shot, fitness, stamina, recovery, movement, fatigue, sharpness, morale, confidence, focus')
+          .select('id, player_id, recorded_at, source, serve, forehand, backhand, return_skill, volley, slice, drop_shot, lob, smash, fitness, stamina, recovery, movement, fatigue, sharpness, morale, confidence, focus')
           .eq('player_id', player.id)
           .order('recorded_at', { ascending: true })
           .limit(120),
@@ -210,6 +217,8 @@ export default function SkillsPage() {
     { label: 'Volley', value: skills.volley, note: 'Net play and finishing ability', change: previousSnapshot ? skills.volley - previousSnapshot.volley : 0 },
     { label: 'Slice', value: skills.slice, note: 'Variation and low-ball control', change: previousSnapshot ? skills.slice - previousSnapshot.slice : 0 },
     { label: 'Drop Shot', value: skills.drop_shot, note: 'Touch and short-court variation', change: previousSnapshot ? skills.drop_shot - previousSnapshot.drop_shot : 0 },
+    { label: 'Lob', value: skills.lob, note: 'Height, depth and accuracy over an opponent', change: previousSnapshot ? skills.lob - previousSnapshot.lob : 0 },
+    { label: 'Smash', value: skills.smash, note: 'Overhead timing, power and finishing', change: previousSnapshot ? skills.smash - previousSnapshot.smash : 0 },
   ] : [], [skills, previousSnapshot])
 
   const physical = useMemo<AttributeItem[]>(() => skills ? [
@@ -235,7 +244,7 @@ export default function SkillsPage() {
   const baselineScore = history.length ? scoreCategory(history[0], tab) : activeScore
   const scoreChange = activeScore - baselineScore
   const categoryDetail = tab === 'tennis'
-    ? `${tennisTotal} total points · 7 skills`
+    ? `${tennisTotal} total points · 9 skills`
     : tab === 'physical'
       ? `${physicalTotal} total points · 4 skills`
       : '5 live values · fatigue counts as freshness'
@@ -362,8 +371,8 @@ export default function SkillsPage() {
                   />
                   <BuildCard
                     label="Starting balance"
-                    value={`${tennisTotal} points`}
-                    description="Surface and style change distribution, never the total starting tennis strength."
+                    value="450 points"
+                    description="Nine starting tennis skills average 50. Surface and style change distribution, never the total starting strength."
                   />
                 </div>
               )}
@@ -473,6 +482,8 @@ function PerformanceCentre({ skills, history, historyError }: { skills: PlayerSk
     { label: 'Volley', value: skills.volley },
     { label: 'Slice', value: skills.slice },
     { label: 'Drop Shot', value: skills.drop_shot },
+    { label: 'Lob', value: skills.lob },
+    { label: 'Smash', value: skills.smash },
   ]
 
   const physicalValues = [
@@ -502,7 +513,7 @@ function PerformanceCentre({ skills, history, historyError }: { skills: PlayerSk
   return (
     <section className="tlg-performance-centre" style={{ marginTop: 14 }}>
       <div className="tlg-performance-top-grid">
-        <AnalysisPanel title="Technical radar" description="Seven-dimensional view of the player's current tennis profile.">
+        <AnalysisPanel title="Technical radar" description="Nine-dimensional view of the player's current tennis profile.">
           <TennisRadar values={tennisValues} />
         </AnalysisPanel>
 
@@ -601,10 +612,10 @@ function Gauge({ label, value, detail }: { label: string; value: number; detail:
 
 function TennisRadar({ values }: { values: Array<{ label: string; value: number }> }) {
   const width = 470
-  const height = 330
+  const height = 350
   const cx = 235
-  const cy = 162
-  const radius = 108
+  const cy = 172
+  const radius = 105
   const count = values.length
 
   const pointAt = (index: number, scale: number) => {
@@ -623,11 +634,11 @@ function TennisRadar({ values }: { values: Array<{ label: string; value: number 
   }).join(' ')
 
   return (
-    <svg className="tlg-tennis-radar" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Current tennis skill radar">
+    <svg className="tlg-tennis-radar" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Current nine-skill tennis radar">
       {[0.25, 0.5, 0.75, 1].map((scale) => <polygon key={scale} points={ringPoints(scale)} className="radar-ring" />)}
       {values.map((item, index) => {
         const outer = pointAt(index, 1)
-        const label = pointAt(index, 1.27)
+        const label = pointAt(index, 1.3)
         const anchor = label.x < cx - 10 ? 'end' : label.x > cx + 10 ? 'start' : 'middle'
         return (
           <g key={item.label}>
