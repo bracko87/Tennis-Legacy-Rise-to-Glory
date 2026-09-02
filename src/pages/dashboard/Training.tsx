@@ -4,6 +4,7 @@ import GameLayout from '../../components/layout/GameLayout'
 import TrainingCampsPanel from '../../components/training/TrainingCampsPanel'
 import {
   type TrainingIntensity,
+  type TrainingSessionRole,
   type TrainingType,
   useTraining,
 } from '../../hooks/useTraining'
@@ -76,6 +77,24 @@ function trainingLabel(type: TrainingType, focus: string | null) {
   return focus ? `${ATTRIBUTE_LABELS[focus] ?? titleCase(focus)} focus` : type === 'technical' ? 'Technical training' : 'Physical training'
 }
 
+function sessionRoleLabel(role?: TrainingSessionRole | null) {
+  if (role === 'active_recovery') return 'Active Recovery'
+  if (role === 'full_rest') return 'Full Rest'
+  if (role === 'user_day_off') return 'Day Off'
+  return 'Development Day'
+}
+
+function developmentMultiplier(value: number | null) {
+  if (value === null) return 1
+  if (value >= 100) return 0
+  if (value >= 95) return 0.20
+  if (value >= 90) return 0.35
+  if (value >= 80) return 0.55
+  if (value >= 70) return 0.75
+  if (value >= 60) return 0.90
+  return 1
+}
+
 function scoreReadiness(skills: NonNullable<ReturnType<typeof useTraining>['dashboard']>['skills']) {
   return (
     skills.morale + skills.confidence + skills.sharpness + skills.focus + (100 - skills.fatigue)
@@ -114,6 +133,7 @@ export default function TrainingPage() {
   }, [dashboard?.plan])
 
   const readiness = dashboard ? scoreReadiness(dashboard.skills) : 0
+  const scheduledRole = dashboard?.game_day.scheduled_role ?? 'planned_training'
 
   const planDirty = Boolean(dashboard && (
     dashboard.plan.training_type !== trainingType ||
@@ -135,9 +155,10 @@ export default function TrainingPage() {
       dashboard.skills.focus + (100 - dashboard.skills.fatigue)
     ) / 500
     const efficiency = clamp(0.78 + 0.37 * conditionReadiness, 0.70, 1.05)
-    const budget = ({ light: 0.10, standard: 0.16, hard: 0.22 } as const)[intensity] * efficiency
-    const target = budget * 0.85
-    const others = budget * 0.15
+    const developmentDayScale = dashboard.game_day.season_week && dashboard.game_day.season_week > 0 ? 1.40 : 1
+    const budget = ({ light: 0.10, standard: 0.16, hard: 0.22 } as const)[intensity] * efficiency * developmentDayScale
+    const multiplier = developmentMultiplier(selectedValue)
+    const target = budget * 0.85 * multiplier
     const baseFatigue = trainingType === 'technical'
       ? ({ light: 3, standard: 6, hard: 10 } as const)[intensity]
       : ({ light: 4, standard: 7, hard: 11 } as const)[intensity]
@@ -145,8 +166,8 @@ export default function TrainingPage() {
       dashboard.skills.fitness + dashboard.skills.stamina + dashboard.skills.recovery
     ) / 300
     const fatigue = Math.max(1, Math.round(baseFatigue * (1.15 - 0.30 * resilience)))
-    return { efficiency, target, others, fatigue }
-  }, [dashboard, intensity, trainingType])
+    return { efficiency, target, fatigue, multiplier }
+  }, [dashboard, intensity, selectedValue, trainingType])
 
   function chooseType(type: TrainingType) {
     setTrainingType(type)
@@ -173,6 +194,10 @@ export default function TrainingPage() {
       setActionMessage(result.reason ?? 'Training is unavailable today.')
     } else if (result.status === 'already_processed') {
       setActionMessage('Today has already been processed.')
+    } else if (result.session_role === 'active_recovery') {
+      setActionMessage('Scheduled Active Recovery completed. Fatigue recovery has been applied.')
+    } else if (result.session_role === 'full_rest') {
+      setActionMessage('Scheduled Full Rest completed. Recovery effects have been applied.')
     } else {
       setActionMessage(
         result.training_type === 'day_off'
@@ -207,7 +232,7 @@ export default function TrainingPage() {
               <div>
                 <span>TODAY</span>
                 <strong>{activityLabel(dashboard.activity_type)}</strong>
-                <small>Season {dashboard.game_day.season} · {MONTH_NAMES[dashboard.game_day.month - 1]} {dashboard.game_day.day}</small>
+                <small>Season {dashboard.game_day.season} · {MONTH_NAMES[dashboard.game_day.month - 1]} {dashboard.game_day.day}{dashboard.activity_type === 'home' ? ` · ${sessionRoleLabel(scheduledRole)}` : ''}</small>
               </div>
               <div>
                 <span>READINESS</span>
@@ -239,11 +264,11 @@ export default function TrainingPage() {
                   <div>
                     <span>TODAY'S PLAN</span>
                     <h2>Choose the work for this home day</h2>
-                    <p>One regular training action can be processed per in-game day. Your saved plan is ready for future automatic daily processing.</p>
+                    <p>Your saved plan follows a professional weekly rhythm: five development days, one active-recovery day and one full-rest day. Recovery days are scheduled automatically.</p>
                   </div>
                   <div className={`tlg-training-status ${dashboard.eligible ? 'available' : 'blocked'}`}>
                     <span>{dashboard.eligible ? 'AVAILABLE' : 'BLOCKED'}</span>
-                    <strong>{activityLabel(dashboard.activity_type)}</strong>
+                    <strong>{dashboard.activity_type === 'home' ? sessionRoleLabel(scheduledRole) : activityLabel(dashboard.activity_type)}</strong>
                   </div>
                 </header>
 
@@ -323,9 +348,11 @@ export default function TrainingPage() {
                     <span>
                       {trainingType === 'day_off'
                         ? 'Recovery day selected.'
-                        : impactPreview
-                          ? `Estimated focus progress +${impactPreview.target.toFixed(3)} · expected fatigue +${impactPreview.fatigue}`
-                          : 'Choose your training focus.'}
+                        : scheduledRole !== 'planned_training'
+                          ? `${sessionRoleLabel(scheduledRole)} is scheduled today. No permanent skill development is applied on this recovery day.`
+                          : impactPreview
+                            ? `Estimated focus progress +${impactPreview.target.toFixed(3)} · development rate ${Math.round(impactPreview.multiplier * 100)}% · expected fatigue +${impactPreview.fatigue}`
+                            : 'Choose your training focus.'}
                     </span>
                   </div>
                   <button type="button" className="secondary" onClick={handleSavePlan} disabled={saving || !focusAttribute && trainingType !== 'day_off'}>
@@ -337,7 +364,17 @@ export default function TrainingPage() {
                     onClick={handleCompleteToday}
                     disabled={processing || !dashboard.eligible || Boolean(dashboard.today_session) || planDirty}
                   >
-                    {processing ? 'Processing…' : dashboard.today_session ? 'Today Completed' : trainingType === 'day_off' ? 'Take Day Off' : 'Complete Today’s Training'}
+                    {processing
+                      ? 'Processing…'
+                      : dashboard.today_session
+                        ? 'Today Completed'
+                        : trainingType === 'day_off'
+                          ? 'Take Day Off'
+                          : scheduledRole === 'active_recovery'
+                            ? 'Complete Active Recovery'
+                            : scheduledRole === 'full_rest'
+                              ? 'Take Full Rest'
+                              : 'Complete Today’s Training'}
                   </button>
                 </footer>
               </section>
@@ -387,7 +424,7 @@ export default function TrainingPage() {
                       <div><span>Progress to next point</span><strong>{Math.round(selectedProgress * 100)}%</strong></div>
                       <div><i style={{ width: `${clamp(selectedProgress * 100, 0, 100)}%` }} /></div>
                     </div>
-                    <p>Fractional progress accumulates between sessions. At 100%, the permanent skill increases by one point and the Skill Improved notification is generated automatically.</p>
+                    <p>Fractional progress accumulates between sessions. At 100%, the permanent skill increases by one point. Development naturally slows as an attribute becomes elite; there is no age-based decline or retirement modifier.</p>
                   </section>
                 )}
               </aside>
@@ -395,9 +432,9 @@ export default function TrainingPage() {
 
             <section className="tlg-training-engine-strip">
               <div><span>FOCUS DISTRIBUTION</span><strong>85% / 15%</strong><small>Selected attribute / remaining category</small></div>
-              <div><span>DEVELOPMENT MODEL</span><strong>Fractional</strong><small>Progress carries forward until a full +1</small></div>
-              <div><span>LOAD CONTROL</span><strong>Condition based</strong><small>Fatigue and readiness modify training efficiency</small></div>
-              <div><span>TRAVEL</span><strong>+6 fatigue</strong><small>No regular training or skill development</small></div>
+              <div><span>WEEKLY RHYTHM</span><strong>5 + 1 + 1</strong><small>Development / active recovery / full rest</small></div>
+              <div><span>DEVELOPMENT CURVE</span><strong>Skill based</strong><small>100% below 60, gradually falling to 20% at 95–99</small></div>
+              <div><span>CAMP RHYTHM</span><strong>6 + 1</strong><small>Six development days plus one recovery day</small></div>
             </section>
 
             <section className="tlg-training-history">
@@ -421,8 +458,8 @@ export default function TrainingPage() {
                       </div>
                       <div className="session">
                         <span>{session.training_type === 'day_off' ? 'RECOVERY' : session.training_type.toUpperCase()}</span>
-                        <strong>{trainingLabel(session.training_type, session.focus_attribute)}</strong>
-                        <small>{session.training_type === 'day_off' ? 'Day Off' : `${titleCase(session.intensity)} intensity · ${Math.round(Number(session.efficiency) * 100)}% efficiency`}</small>
+                        <strong>{session.session_role && session.session_role !== 'planned_training' ? sessionRoleLabel(session.session_role) : trainingLabel(session.training_type, session.focus_attribute)}</strong>
+                        <small>{session.training_type === 'day_off' ? sessionRoleLabel(session.session_role) : `${titleCase(session.intensity)} intensity · ${Math.round(Number(session.efficiency) * 100)}% efficiency`}</small>
                       </div>
                       <div className="change">
                         <span>FATIGUE</span>
