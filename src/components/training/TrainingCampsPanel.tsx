@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { useTrainingCamps, type TrainingCampProgram } from '../../hooks/useTrainingCamps'
+import {
+  useTrainingCamps,
+  type TrainingCampAccommodationTier,
+  type TrainingCampProgram,
+  type TrainingCampQuote,
+} from '../../hooks/useTrainingCamps'
 import '../../styles/training-camps.css'
 
 const MONTH_NAMES = [
@@ -12,6 +17,7 @@ const PAGE_SIZE = 10
 
 type GameDay = { season: number; month: number; day: number }
 type CampFilter = 'all' | 'hard' | 'clay' | 'grass' | 'physical' | 'recovery'
+type WeekOption = { season: number; week: number; start: GameDay; end: GameDay }
 
 function absoluteDay(day: GameDay) {
   const prior = MONTH_LENGTHS.slice(0, day.month - 1).reduce((sum, value) => sum + value, 0)
@@ -32,8 +38,36 @@ function fromAbsolute(value: number): GameDay {
   return { season, month, day: remaining + 1 }
 }
 
+function weekStartAbsolute(season: number, week: number) {
+  return (season - 1) * 366 + 2 + (week - 1) * 7
+}
+
 function formatDay(day: GameDay, includeSeason = false) {
   return `${MONTH_NAMES[day.month - 1]} ${day.day}${includeSeason ? ` · Season ${day.season}` : ''}`
+}
+
+function formatWeek(option: WeekOption) {
+  const endNeedsMonth = option.start.month !== option.end.month
+  const endText = endNeedsMonth ? formatDay(option.end) : `${option.end.day}`
+  return `Season ${option.season} · Week ${option.week} · ${formatDay(option.start)}–${endText}`
+}
+
+function buildWeekOptions(currentAbsolute: number, count = 52): WeekOption[] {
+  const options: WeekOption[] = []
+  const currentSeason = Math.floor(currentAbsolute / 366) + 1
+  for (let season = currentSeason; season <= currentSeason + 2 && options.length < count; season += 1) {
+    for (let week = 1; week <= 52 && options.length < count; week += 1) {
+      const startAbsolute = weekStartAbsolute(season, week)
+      if (startAbsolute < currentAbsolute) continue
+      options.push({
+        season,
+        week,
+        start: fromAbsolute(startAbsolute),
+        end: fromAbsolute(startAbsolute + 6),
+      })
+    }
+  }
+  return options
 }
 
 function categoryLabel(program: TrainingCampProgram) {
@@ -65,6 +99,10 @@ function filterMatches(program: TrainingCampProgram, filter: CampFilter) {
   return program.category === 'tennis_skills' && program.surface === filter
 }
 
+function hotelWeeklyEstimate(tier: TrainingCampAccommodationTier, program: TrainingCampProgram) {
+  return Math.round((tier.base_weekly_cost * program.location.cost_index) / 10) * 10
+}
+
 function CampArtwork({ program, large = false }: { program: TrainingCampProgram; large?: boolean }) {
   const image = large ? (program.location.image_url ?? program.location.thumbnail_url) : (program.location.thumbnail_url ?? program.location.image_url)
   if (image) return <img src={image} alt="" />
@@ -80,8 +118,8 @@ function CampArtwork({ program, large = false }: { program: TrainingCampProgram;
 
 export default function TrainingCampsPanel({ gameDay }: { gameDay: GameDay }) {
   const {
-    programs, bookings, loading, saving, processing, error,
-    bookCamp, cancelCamp, processToday,
+    programs, accommodations, bookings, loading, saving, processing, error,
+    quoteCamp, bookCamp, cancelCamp, processToday,
   } = useTrainingCamps()
 
   const [continent, setContinent] = useState('all')
@@ -89,11 +127,17 @@ export default function TrainingCampsPanel({ gameDay }: { gameDay: GameDay }) {
   const [maxCost, setMaxCost] = useState(3400)
   const [page, setPage] = useState(1)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [startOffset, setStartOffset] = useState(0)
+  const [startKey, setStartKey] = useState('')
   const [durationWeeks, setDurationWeeks] = useState(1)
+  const [accommodationSlug, setAccommodationSlug] = useState('standard-3-star')
+  const [quote, setQuote] = useState<TrainingCampQuote | null>(null)
+  const [quoteError, setQuoteError] = useState<string | null>(null)
+  const [quoteLoading, setQuoteLoading] = useState(false)
   const [actionMessage, setActionMessage] = useState<string | null>(null)
 
   const currentAbsolute = absoluteDay(gameDay)
+  const weekOptions = useMemo(() => buildWeekOptions(currentAbsolute), [currentAbsolute])
+  const selectedWeek = weekOptions.find((option) => `${option.season}-${option.week}` === startKey) ?? weekOptions[0] ?? null
   const continents = useMemo(() => Array.from(new Set(programs.map((program) => program.location.continent))).sort(), [programs])
 
   const filtered = useMemo(() => programs.filter((program) => (
@@ -110,14 +154,22 @@ export default function TrainingCampsPanel({ gameDay }: { gameDay: GameDay }) {
     booking.status === 'active' || (booking.status === 'booked' && currentAbsolute <= booking.end_absolute_day)
   )) ?? null
 
-  const startOptions = useMemo(() => Array.from({ length: 85 }, (_, offset) => ({
-    offset,
-    day: fromAbsolute(currentAbsolute + offset),
-  })), [currentAbsolute])
+  const maxDuration = selectedWeek ? Math.min(4, 53 - selectedWeek.week) : 1
 
-  const selectedStart = fromAbsolute(currentAbsolute + startOffset)
-  const selectedEnd = fromAbsolute(currentAbsolute + startOffset + durationWeeks * 7 - 1)
-  const totalCost = selected ? selected.weekly_cost * durationWeeks : 0
+  useEffect(() => {
+    if (!startKey && weekOptions[0]) setStartKey(`${weekOptions[0].season}-${weekOptions[0].week}`)
+  }, [startKey, weekOptions])
+
+  useEffect(() => {
+    if (durationWeeks > maxDuration) setDurationWeeks(maxDuration)
+  }, [durationWeeks, maxDuration])
+
+  useEffect(() => {
+    if (!accommodations.some((tier) => tier.slug === accommodationSlug) && accommodations[0]) {
+      const preferred = accommodations.find((tier) => tier.slug === 'standard-3-star') ?? accommodations[0]
+      setAccommodationSlug(preferred.slug)
+    }
+  }, [accommodations, accommodationSlug])
 
   useEffect(() => {
     setPage(1)
@@ -133,10 +185,32 @@ export default function TrainingCampsPanel({ gameDay }: { gameDay: GameDay }) {
     if (page > pageCount) setPage(pageCount)
   }, [page, pageCount])
 
+  useEffect(() => {
+    let cancelled = false
+    if (!selected || !selectedWeek || !accommodationSlug) {
+      setQuote(null)
+      return
+    }
+
+    setQuoteLoading(true)
+    setQuoteError(null)
+    void quoteCamp(selected.id, selectedWeek.season, selectedWeek.week, durationWeeks, accommodationSlug)
+      .then((result) => {
+        if (cancelled) return
+        setQuote(result.quote)
+        setQuoteError(result.error)
+      })
+      .finally(() => {
+        if (!cancelled) setQuoteLoading(false)
+      })
+
+    return () => { cancelled = true }
+  }, [selected, selectedWeek, durationWeeks, accommodationSlug, quoteCamp])
+
   async function handleBook() {
-    if (!selected) return
+    if (!selected || !selectedWeek) return
     setActionMessage(null)
-    const result = await bookCamp(selected.id, selectedStart, durationWeeks)
+    const result = await bookCamp(selected.id, selectedWeek.season, selectedWeek.week, durationWeeks, accommodationSlug)
     if (result) setActionMessage(`${selected.name} booked successfully.`)
   }
 
@@ -172,13 +246,13 @@ export default function TrainingCampsPanel({ gameDay }: { gameDay: GameDay }) {
             <>
               <h2>{activeOrPlanned.program.name}</h2>
               <p>
-                {activeOrPlanned.program.location.city}, {activeOrPlanned.program.location.country} · {formatDay({ season: activeOrPlanned.start_season, month: activeOrPlanned.start_month, day: activeOrPlanned.start_day })}–{formatDay({ season: activeOrPlanned.end_season, month: activeOrPlanned.end_month, day: activeOrPlanned.end_day })} · {activeOrPlanned.duration_weeks} week{activeOrPlanned.duration_weeks === 1 ? '' : 's'}
+                {activeOrPlanned.program.location.city}, {activeOrPlanned.program.location.country} · Season {activeOrPlanned.start_season} · Week {activeOrPlanned.start_season_week ?? '—'} · {activeOrPlanned.duration_weeks} week{activeOrPlanned.duration_weeks === 1 ? '' : 's'}
               </p>
             </>
           ) : (
             <>
               <h2>No training camp booked</h2>
-              <p>Select a destination, choose a start day and reserve up to four consecutive weeks.</p>
+              <p>Select a destination, choose a starting competition week and reserve up to four consecutive weeks.</p>
             </>
           )}
         </div>
@@ -218,7 +292,7 @@ export default function TrainingCampsPanel({ gameDay }: { gameDay: GameDay }) {
           </select>
         </label>
         <label className="cost">
-          <span>Max weekly cost: <strong>${maxCost.toLocaleString()}</strong></span>
+          <span>Max training fee / week: <strong>${maxCost.toLocaleString()}</strong></span>
           <input type="range" min="1200" max="3400" step="100" value={maxCost} onChange={(event) => setMaxCost(Number(event.target.value))} />
           <small><span>$1,200</span><span>$3,400</span></small>
         </label>
@@ -241,10 +315,10 @@ export default function TrainingCampsPanel({ gameDay }: { gameDay: GameDay }) {
                       <strong>{program.name}</strong>
                       <span>{program.location.city}, {program.location.country_code} · {qualityLabel(program.quality_tier)}</span>
                     </div>
-                    <b>{program.rating.toFixed(1)} ★</b>
+                    <b>{program.rating.toFixed(1)}/5</b>
                   </div>
                   <p>{program.description}</p>
-                  <div className="price">From <strong>${program.weekly_cost.toLocaleString()}</strong> / week</div>
+                  <div className="price">Training fee from <strong>${program.weekly_cost.toLocaleString()}</strong> / week</div>
                   <div className="best">Best for: {program.benefit_summary}</div>
                   <div className="tags"><span>{categoryLabel(program)}</span><span>{qualityLabel(program.quality_tier)}</span></div>
                 </div>
@@ -267,14 +341,27 @@ export default function TrainingCampsPanel({ gameDay }: { gameDay: GameDay }) {
               <div className="detail-body">
                 <div className="detail-title">
                   <div><h2>{selected.name}</h2><p>{selected.location.city}, {selected.location.country} · {selected.location.continent}</p></div>
-                  <div className="rating"><strong>{selected.rating.toFixed(1)} ★</strong><span>{qualityLabel(selected.quality_tier)}</span></div>
+                  <div className="rating">
+                    <strong>{selected.rating.toFixed(1)}/5</strong>
+                    <span>Facility rating</span>
+                    <b>{qualityLabel(selected.quality_tier)} · {selected.quality_multiplier.toFixed(2)}×</b>
+                  </div>
                 </div>
 
-                <p className="description">{selected.description}</p>
+                <div className="tlg-camp-information">
+                  <section>
+                    <span>ABOUT {selected.location.city.toUpperCase()}</span>
+                    <p>{selected.location.description}</p>
+                  </section>
+                  <section>
+                    <span>ABOUT THIS CAMP</span>
+                    <p>{selected.description}</p>
+                  </section>
+                </div>
 
                 <div className="benefits">
                   <div><span>BEST FOR</span><strong>{selected.benefit_summary}</strong></div>
-                  <div><span>PROGRAM</span><strong>{categoryLabel(selected)}</strong><small>{selected.quality_multiplier.toFixed(2)}× quality multiplier</small></div>
+                  <div><span>PROGRAM</span><strong>{categoryLabel(selected)}</strong><small>{selected.quality_multiplier.toFixed(2)}× development quality</small></div>
                 </div>
 
                 <div className="profile-grid">
@@ -288,33 +375,83 @@ export default function TrainingCampsPanel({ gameDay }: { gameDay: GameDay }) {
 
                 <div className="booking-grid">
                   <label>
-                    <span>Start day</span>
-                    <select value={startOffset} onChange={(event) => setStartOffset(Number(event.target.value))}>
-                      {startOptions.map((option) => <option value={option.offset} key={option.offset}>{formatDay(option.day, option.day.season !== gameDay.season)}</option>)}
+                    <span>Start week</span>
+                    <select value={selectedWeek ? `${selectedWeek.season}-${selectedWeek.week}` : ''} onChange={(event) => setStartKey(event.target.value)}>
+                      {weekOptions.map((option) => <option value={`${option.season}-${option.week}`} key={`${option.season}-${option.week}`}>{formatWeek(option)}</option>)}
                     </select>
                   </label>
                   <label>
                     <span>Duration</span>
                     <select value={durationWeeks} onChange={(event) => setDurationWeeks(Number(event.target.value))}>
-                      {[1, 2, 3, 4].map((weeks) => <option key={weeks} value={weeks}>{weeks} week{weeks === 1 ? '' : 's'} · {weeks * 7} days</option>)}
+                      {Array.from({ length: maxDuration }, (_, index) => index + 1).map((weeks) => <option key={weeks} value={weeks}>{weeks} week{weeks === 1 ? '' : 's'} · {weeks * 7} days</option>)}
                     </select>
                   </label>
                 </div>
 
                 <div className="date-warning">
-                  <strong>Check the dates before booking</strong>
-                  <p>Camp days take ownership of the calendar and block regular training. A reservation is rejected if it overlaps travel, injury, processed training, another camp, or an active tournament application/commitment.</p>
-                  <span>Selected period: {formatDay(selectedStart)} – {formatDay(selectedEnd, selectedEnd.season !== selectedStart.season)}</span>
+                  <strong>Whole-week booking only</strong>
+                  <p>Training camps always begin on Monday at the start of a competition week. Camp weeks take ownership of the calendar and are rejected if they overlap travel, injury, processed training or a tournament commitment.</p>
+                  {quote && <span>Selected period: Season {quote.start_season} · Week {quote.start_week} · {formatDay(quote.start)} – {formatDay(quote.end, quote.end.season !== quote.start.season)}</span>}
                 </div>
 
-                <div className="cost-summary">
-                  <div><span>Weekly cost</span><strong>${selected.weekly_cost.toLocaleString()}</strong></div>
-                  <div><span>Duration</span><strong>{durationWeeks} week{durationWeeks === 1 ? '' : 's'}</strong></div>
-                  <div><span>Total camp cost</span><strong>${totalCost.toLocaleString()}</strong></div>
-                </div>
+                <section className="tlg-camp-accommodation">
+                  <header>
+                    <div><span>ACCOMMODATION</span><h3>Choose hotel level</h3></div>
+                    <small>Hotel quality affects rest and fatigue recovery, not permanent tennis-skill gains.</small>
+                  </header>
+                  <div className="tlg-camp-hotel-grid">
+                    {accommodations.map((tier) => {
+                      const weekly = hotelWeeklyEstimate(tier, selected)
+                      return (
+                        <button type="button" key={tier.id} className={accommodationSlug === tier.slug ? 'selected' : ''} onClick={() => setAccommodationSlug(tier.slug)}>
+                          <span>{'★'.repeat(tier.star_rating)}</span>
+                          <strong>{tier.name}</strong>
+                          <b>${weekly.toLocaleString()} / week</b>
+                          <p>{tier.description}</p>
+                          <small>
+                            Rest {Math.round(tier.rest_quality * 100)}% · Fatigue mitigation {tier.fatigue_mitigation}/day
+                            {tier.weekly_morale_bonus > 0 ? ` · Morale +${tier.weekly_morale_bonus}/week` : ''}
+                            {tier.weekly_focus_bonus > 0 ? ` · Focus +${tier.weekly_focus_bonus}/week` : ''}
+                          </small>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </section>
 
-                <button type="button" className="book" onClick={handleBook} disabled={saving || Boolean(activeOrPlanned)}>
-                  {saving ? 'Booking…' : activeOrPlanned ? 'Another camp is already planned' : 'Book Training Camp'}
+                <section className="tlg-camp-staff-future" aria-disabled="true">
+                  <div><span>TRAVELLING STAFF</span><strong>Staff selection will be added with the Staff system</strong></div>
+                  <p>Future staff members will add their own transport and accommodation costs to this booking quote. Current quote: 0 staff / $0.</p>
+                </section>
+
+                <section className="tlg-camp-cost-card">
+                  <header>
+                    <div><span>BOOKING COST</span><h3>Transparent camp quote</h3></div>
+                    {quoteLoading && <small>Updating quote…</small>}
+                  </header>
+
+                  {quoteError && <div className="tlg-camp-quote-error">{quoteError}</div>}
+                  {quote && (
+                    <>
+                      <div className="tlg-camp-travel-summary">
+                        <div><span>TRAVEL FROM</span><strong>{quote.origin.city}, {quote.origin.country_code}</strong><small>{quote.origin.precision === 'country_estimate' ? 'Country-level estimate — set Home city in Player & Account for a city-based origin.' : 'Current database location'}</small></div>
+                        <div><span>DESTINATION</span><strong>{quote.destination.city}, {quote.destination.country_code}</strong><small>{quote.travel_type}</small></div>
+                      </div>
+
+                      <div className="tlg-camp-cost-lines">
+                        <div><span>Training program</span><small>${quote.training_fee_weekly.toLocaleString()} × {quote.duration_weeks} week{quote.duration_weeks === 1 ? '' : 's'}</small><strong>${quote.training_fee_total.toLocaleString()}</strong></div>
+                        <div><span>{quote.accommodation.stars}★ {quote.accommodation.name}</span><small>${quote.accommodation.weekly_cost.toLocaleString()} × {quote.duration_weeks} week{quote.duration_weeks === 1 ? '' : 's'}</small><strong>${quote.accommodation.total.toLocaleString()}</strong></div>
+                        <div><span>Player transfer</span><small>Estimated round trip from current location</small><strong>${quote.travel_cost.toLocaleString()}</strong></div>
+                        <div className="future"><span>Staff travel & hotel</span><small>Prepared for the future Staff system</small><strong>$0</strong></div>
+                      </div>
+
+                      <div className="tlg-camp-grand-total"><span>FINAL CAMP COST</span><strong>${quote.grand_total.toLocaleString()}</strong></div>
+                    </>
+                  )}
+                </section>
+
+                <button type="button" className="book" onClick={handleBook} disabled={saving || Boolean(activeOrPlanned) || quoteLoading || !quote || Boolean(quoteError)}>
+                  {saving ? 'Booking…' : activeOrPlanned ? 'Another camp is already planned' : quote ? `Book Training Camp · $${quote.grand_total.toLocaleString()}` : 'Book Training Camp'}
                 </button>
                 <small className="diminishing">Development remains strongest in week 1. Longer camps use the agreed diminishing-return factors: 100% · 95% · 85% · 75%.</small>
               </div>
