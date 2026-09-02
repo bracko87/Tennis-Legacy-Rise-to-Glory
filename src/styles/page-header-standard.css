@@ -1,0 +1,183 @@
+/* Shared dashboard page-heading standard.
+ * Staff/ModulePage is the canonical visual reference for page headings.
+ * Skills and Training intentionally reuse the same typography, spacing and tone.
+ */
+
+:root {
+  --tlg-page-eyebrow-color: #1675b7;
+  --tlg-page-eyebrow-size: .59rem;
+  --tlg-page-title-color: #112338;
+  --tlg-page-title-size: clamp(1.9rem, 3vw, 2.65rem);
+  --tlg-page-description-color: #697f92;
+  --tlg-page-description-size: .84rem;
+}
+
+/* Skills: remove the bespoke command-card treatment and render the same
+ * lightweight heading used by Staff/ModulePage. */
+.tlg-skills-command.tlg-v2-command {
+  overflow: visible !important;
+  margin-bottom: 22px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tlg-skills-command.tlg-v2-command::before {
+  content: none !important;
+}
+
+.tlg-skills-command .tlg-v2-command-inner,
+.tlg-skills-command-inner {
+  display: block !important;
+  padding: 0 !important;
+}
+
+.tlg-skills-command-copy {
+  max-width: 920px !important;
+}
+
+.tlg-skills-command .tlg-v2-command-kicker {
+  color: var(--tlg-page-eyebrow-color) !important;
+  font-family: inherit !important;
+  font-size: var(--tlg-page-eyebrow-size) !important;
+  font-weight: 850 !important;
+  letter-spacing: .13em !important;
+  text-transform: uppercase !important;
+}
+
+.tlg-skills-command-copy h2 {
+  margin: 7px 0 0 !important;
+  color: var(--tlg-page-title-color) !important;
+  font-family: inherit !important;
+  font-size: var(--tlg-page-title-size) !important;
+  font-weight: 760 !important;
+  letter-spacing: -.045em !important;
+  line-height: 1.02 !important;
+}
+
+.tlg-skills-command-copy p {
+  max-width: 920px !important;
+  margin: 8px 0 0 !important;
+  color: var(--tlg-page-description-color) !important;
+  font-family: inherit !important;
+  font-size: var(--tlg-page-description-size) !important;
+  font-weight: 400 !important;
+  line-height: 1.65 !important;
+}
+
+/* Training: use the same Staff-style heading instead of a separate hero card. */
+.tlg-training-page {
+  position: relative;
+}
+
+.tlg-training-hero {
+  display: block !important;
+  min-height: 0 !important;
+  margin: 0 0 4px !important;
+  padding: 0 330px 0 0 !important;
+  border: 0 !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tlg-training-hero-copy {
+  max-width: 920px !important;
+}
+
+.tlg-training-hero-copy > span {
+  color: var(--tlg-page-eyebrow-color) !important;
+  font-family: inherit !important;
+  font-size: var(--tlg-page-eyebrow-size) !important;
+  font-weight: 850 !important;
+  letter-spacing: .13em !important;
+  text-transform: uppercase !important;
+}
+
+.tlg-training-hero h1 {
+  margin: 7px 0 0 !important;
+  color: var(--tlg-page-title-color) !important;
+  font-family: inherit !important;
+  font-size: var(--tlg-page-title-size) !important;
+  font-weight: 760 !important;
+  letter-spacing: -.045em !important;
+  line-height: 1.02 !important;
+}
+
+.tlg-training-hero p {
+  max-width: 920px !important;
+  margin: 8px 0 0 !important;
+  color: var(--tlg-page-description-color) !important;
+  font-family: inherit !important;
+  font-size: var(--tlg-page-description-size) !important;
+  font-weight: 400 !important;
+  line-height: 1.65 !important;
+}
+
+/* The Staff page does not use a hero KPI strip. These values already exist
+ * in the real Training workspace, so keep the heading clean and consistent. */
+.tlg-training-hero-metrics {
+  display: none !important;
+}
+
+/* Training section switch belongs in the upper-right corner of the page head. */
+.tlg-training-main-tabs {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  z-index: 3;
+  justify-self: auto !important;
+  width: auto !important;
+  margin: 0 !important;
+  font-family: inherit !important;
+}
+
+.tlg-training-main-tabs button {
+  font-family: inherit !important;
+  font-size: .74rem !important;
+}
+
+/* Keep the shared Staff heading itself tied to the same tokens so this stays
+ * one visual system if the project typography is adjusted later. */
+.tlg-v2-page-eyebrow {
+  color: var(--tlg-page-eyebrow-color);
+  font-family: inherit;
+  font-size: var(--tlg-page-eyebrow-size);
+}
+
+.tlg-v2-page-title {
+  color: var(--tlg-page-title-color);
+  font-family: inherit;
+  font-size: var(--tlg-page-title-size);
+}
+
+.tlg-v2-page-description {
+  color: var(--tlg-page-description-color);
+  font-family: inherit;
+  font-size: var(--tlg-page-description-size);
+}
+
+@media (max-width: 1080px) {
+  .tlg-training-hero {
+    padding-right: 0 !important;
+  }
+
+  .tlg-training-main-tabs {
+    position: static !important;
+    justify-self: end !important;
+    margin-top: -6px !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .tlg-training-main-tabs {
+    justify-self: stretch !important;
+    width: 100% !important;
+  }
+
+  .tlg-training-main-tabs button {
+    flex: 1;
+  }
+}
