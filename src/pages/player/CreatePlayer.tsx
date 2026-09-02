@@ -36,6 +36,13 @@ interface CountryOption {
   name: string
 }
 
+interface HomeCityOption {
+  city: string
+  sort_order: number
+  latitude?: number | null
+  longitude?: number | null
+}
+
 interface AvatarCatalogRow {
   path: string
   is_available: boolean
@@ -79,6 +86,10 @@ export default function CreatePlayerPage(): JSX.Element {
   const [countriesLoading, setCountriesLoading] = useState(true)
   const [countryOpen, setCountryOpen] = useState(false)
   const [countryQuery, setCountryQuery] = useState('')
+  const [homeCity, setHomeCity] = useState('')
+  const [homeCities, setHomeCities] = useState<HomeCityOption[]>([])
+  const [homeCitiesLoading, setHomeCitiesLoading] = useState(false)
+  const [homeCityLoadError, setHomeCityLoadError] = useState<string | null>(null)
   const [world, setWorld] = useState<PlayerWorld>('ATP')
   const [preferredSurface, setPreferredSurface] = useState<PreferredSurface | null>(null)
   const [playingStyle, setPlayingStyle] = useState<PlayingStyle | null>(null)
@@ -97,11 +108,7 @@ export default function CreatePlayerPage(): JSX.Element {
     let active = true
 
     async function loadCountries() {
-      const { data, error } = await supabase
-        .from('countries')
-        .select('code, name')
-        .eq('is_active', true)
-        .order('name')
+      const { data, error } = await supabase.rpc('get_player_creation_countries_v1')
 
       if (!active) return
 
@@ -120,6 +127,40 @@ export default function CreatePlayerPage(): JSX.Element {
     void loadCountries()
     return () => { active = false }
   }, [])
+
+  useEffect(() => {
+    let active = true
+
+    setHomeCity('')
+    setHomeCities([])
+    setHomeCityLoadError(null)
+
+    if (!country) {
+      setHomeCitiesLoading(false)
+      return () => { active = false }
+    }
+
+    setHomeCitiesLoading(true)
+
+    async function loadHomeCities() {
+      const { data, error } = await supabase.rpc('get_player_home_city_options_v1', {
+        p_country_code: country,
+      })
+
+      if (!active) return
+
+      if (error || !data?.length) {
+        setHomeCities([])
+        setHomeCityLoadError('Home cities could not be loaded for this country. Choose the country again or refresh the page.')
+      } else {
+        setHomeCities(data as HomeCityOption[])
+      }
+      setHomeCitiesLoading(false)
+    }
+
+    void loadHomeCities()
+    return () => { active = false }
+  }, [country])
 
   useEffect(() => {
     function handleDocumentPointerDown(event: MouseEvent) {
@@ -221,9 +262,10 @@ export default function CreatePlayerPage(): JSX.Element {
   const firstNameValid = cleanFirstName.length >= 2 && NAME_PATTERN.test(cleanFirstName)
   const lastNameValid = cleanLastName.length >= 2 && NAME_PATTERN.test(cleanLastName)
   const countryValid = country.length === 2
+  const homeCityValid = homeCity.length > 0 && homeCities.some((item) => item.city === homeCity)
   const surfaceValid = preferredSurface !== null
   const styleValid = playingStyle !== null
-  const formValid = firstNameValid && lastNameValid && countryValid && surfaceValid && styleValid
+  const formValid = firstNameValid && lastNameValid && countryValid && homeCityValid && surfaceValid && styleValid
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -240,6 +282,7 @@ export default function CreatePlayerPage(): JSX.Element {
         first_name: cleanFirstName,
         last_name: cleanLastName,
         country_code: country,
+        home_city: homeCity,
         image_path: selectedAvatarPath,
         preferred_surface: preferredSurface,
         playing_style: playingStyle,
@@ -267,7 +310,7 @@ export default function CreatePlayerPage(): JSX.Element {
     } catch (error) {
       console.error('Unable to create Tennis Legacy player:', error)
       setSaving(false)
-      setSaveError('Your player could not be created. Check the selected details and try again.')
+      setSaveError('Your player could not be created. Check the selected details, including the home city, and try again.')
     }
   }
 
@@ -327,13 +370,48 @@ export default function CreatePlayerPage(): JSX.Element {
                         <div className="tlg-country-search"><Search size={16} /><input autoFocus value={countryQuery} onChange={(event) => setCountryQuery(event.target.value)} placeholder="Search country…" aria-label="Search countries" onKeyDown={(event) => { if (event.key === 'Escape') setCountryOpen(false) }} /></div>
                         <div className="tlg-country-options" role="listbox" aria-label="Countries">
                           {filteredCountries.map((item) => (
-                            <button key={item.code} type="button" role="option" aria-selected={country === item.code} className={`tlg-country-option ${country === item.code ? 'selected' : ''}`} onClick={() => { setCountry(item.code); setCountryOpen(false); setCountryQuery(''); setSaveError(null) }}>
+                            <button key={item.code} type="button" role="option" aria-selected={country === item.code} className={`tlg-country-option ${country === item.code ? 'selected' : ''}`} onClick={() => { setCountry(item.code); setCountryOpen(false); setCountryQuery(''); setHomeCity(''); setSaveError(null) }}>
                               <CountryFlag code={item.code} name={item.name} /><span>{item.name}</span>{country === item.code && <Check size={15} />}
                             </button>
                           ))}
                           {!filteredCountries.length && <div className="tlg-country-empty">No country matches your search.</div>}
                         </div>
                       </div>
+                    )}
+                  </div>
+                </FormField>
+
+                <FormField
+                  id="home-city"
+                  label="Home city"
+                  required
+                  hint="Your home city is your player’s permanent home base. It is used for travel origins and will also support future private-life features."
+                  error={submitted && !homeCityValid ? (homeCityLoadError ?? 'Choose one of the 10 available home cities for your country.') : undefined}
+                >
+                  <div className="tlg-home-city-control">
+                    <select
+                      id="home-city"
+                      value={homeCity}
+                      onChange={(event) => { setHomeCity(event.target.value); setSaveError(null) }}
+                      className={`tlg-input tlg-home-city-select ${submitted && !homeCityValid ? 'tlg-input-error' : ''}`}
+                      disabled={!country || homeCitiesLoading || Boolean(homeCityLoadError)}
+                    >
+                      <option value="">
+                        {!country
+                          ? 'Choose a country first'
+                          : homeCitiesLoading
+                            ? 'Loading 10 home cities…'
+                            : homeCityLoadError
+                              ? 'Home cities unavailable'
+                              : 'Choose your home city'}
+                      </option>
+                      {homeCities.map((item) => <option key={`${country}-${item.city}`} value={item.city}>{item.city}</option>)}
+                    </select>
+                    {selectedCountry && homeCity && (
+                      <span className="tlg-home-city-selected" aria-label={`${homeCity}, ${selectedCountry.name}`}>
+                        <span>{homeCity}</span>
+                        <CountryFlag code={selectedCountry.code} name={selectedCountry.name} />
+                      </span>
                     )}
                   </div>
                 </FormField>
@@ -402,7 +480,7 @@ export default function CreatePlayerPage(): JSX.Element {
             {submitted && !styleValid && <div className="tlg-auth-status tlg-auth-status-information" role="alert"><ShieldCheck size={18} /><span>Choose your player style before entering Tennis Legacy.</span></div>}
 
             <div className="tlg-onboarding-actions">
-              <AppButton type="submit" variant="primary" size="large" loading={saving} disabled={!user || countriesLoading} rightIcon={<ArrowRight size={18} />}>
+              <AppButton type="submit" variant="primary" size="large" loading={saving} disabled={!user || countriesLoading || homeCitiesLoading} rightIcon={<ArrowRight size={18} />}>
                 {saving ? 'Creating player…' : 'Enter Tennis Legacy'}
               </AppButton>
             </div>
@@ -424,9 +502,10 @@ export default function CreatePlayerPage(): JSX.Element {
                   {playingStyle && <span className="tlg-player-preview-tag">{playingStyle}</span>}
                 </div>
                 <div className="tlg-player-preview-meta">
+                  <div className="tlg-player-preview-meta-row"><span>Home base</span><strong>{homeCity || 'Choose a city'}</strong></div>
                   <div className="tlg-player-preview-meta-row"><span>Manager account</span><strong>{user?.email ?? 'Authenticated'}</strong></div>
                   <div className="tlg-player-preview-meta-row"><span>Moderation</span><strong>Review on creation</strong></div>
-                  <div className="tlg-player-preview-meta-row"><span>Starting tennis points</span><strong>350 for every player</strong></div>
+                  <div className="tlg-player-preview-meta-row"><span>Starting tennis points</span><strong>450 for every player</strong></div>
                 </div>
               </div>
             </aside>
@@ -446,7 +525,7 @@ export default function CreatePlayerPage(): JSX.Element {
                   </button>
                 ))}
               </div>
-              <p className="tlg-surface-future-note">Every new player starts with the same 350 total tennis-skill points. Surface preference only changes where those points begin.</p>
+              <p className="tlg-surface-future-note">Every new player starts with the same 450 total tennis-skill points. Surface preference only changes where those points begin.</p>
             </section>
 
             <section className={`tlg-style-preference-card ${submitted && !styleValid ? 'tlg-style-preference-error' : ''}`} aria-labelledby="playing-style-heading">
