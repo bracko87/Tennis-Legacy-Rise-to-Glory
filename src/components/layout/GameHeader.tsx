@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import { useCommerce } from '../../hooks/useCommerce'
+import useUnreadNotificationCount from '../../hooks/useUnreadNotificationCount'
 import CountryFlag from '../common/CountryFlag'
 
 export interface GameHeaderProps {
@@ -43,6 +44,7 @@ export default function GameHeader({
   const navigate = useNavigate()
   const { player, signOut } = useAuth()
   const { isPremium } = useCommerce()
+  const { unreadCount } = useUnreadNotificationCount()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const settingsRef = useRef<HTMLDivElement | null>(null)
 
@@ -111,12 +113,17 @@ export default function GameHeader({
       <div className="tlg-v4-header-actions">
         <button
           type="button"
-          className="tlg-v4-header-action"
-          aria-label="Notifications"
+          className="tlg-v4-header-action tlg-v4-notification-button"
+          aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
           onClick={() => navigate('/game/notifications')}
         >
           <Bell size={16} />
           <span>Notifications</span>
+          {unreadCount > 0 && (
+            <span className="tlg-v4-notification-badge" aria-hidden="true">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
         </button>
 
         {isPremium && (
