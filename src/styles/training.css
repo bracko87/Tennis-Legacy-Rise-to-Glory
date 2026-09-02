@@ -1,0 +1,417 @@
+.tlg-training-page {
+  display: grid;
+  gap: 18px;
+}
+
+.tlg-training-loading {
+  min-height: 360px;
+  display: grid;
+  place-items: center;
+  color: #6a8295;
+  background: #fff;
+  border: 1px solid #dbe5ec;
+  border-radius: 16px;
+}
+
+.tlg-training-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(430px, 620px);
+  gap: 28px;
+  align-items: center;
+  padding: 28px 30px;
+  border: 1px solid #d8e5ee;
+  border-left: 4px solid #1592dc;
+  border-radius: 16px;
+  background: linear-gradient(115deg, #fff 0%, #f7fbfe 60%, #eef8fe 100%);
+  box-shadow: 0 12px 30px rgba(25, 53, 77, .055);
+}
+
+.tlg-training-hero-copy > span,
+.tlg-training-section-head > div > span,
+.tlg-training-builder-title span,
+.tlg-training-readiness-card > div > span,
+.tlg-training-condition-card header span,
+.tlg-training-focus-card > span,
+.tlg-training-day-rules header span,
+.tlg-training-camps header span,
+.tlg-training-engine-strip span,
+.tlg-training-status span,
+.tlg-training-type-grid button > span,
+.tlg-training-intensity-grid button > span,
+.tlg-training-history article span {
+  color: #0872bb;
+  font-size: .62rem;
+  font-weight: 850;
+  letter-spacing: .095em;
+  text-transform: uppercase;
+}
+
+.tlg-training-hero h1 {
+  margin: 5px 0 0;
+  color: #10283e;
+  font-size: clamp(1.75rem, 2.5vw, 2.5rem);
+  line-height: 1.05;
+}
+
+.tlg-training-hero p {
+  max-width: 760px;
+  margin: 10px 0 0;
+  color: #607a8f;
+  font-size: .86rem;
+  line-height: 1.65;
+}
+
+.tlg-training-hero-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid #d8e5ee;
+  border-radius: 13px;
+  background: rgba(255,255,255,.83);
+}
+
+.tlg-training-hero-metrics > div {
+  min-height: 92px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 15px 17px;
+  border-left: 1px solid #e3ebf1;
+}
+
+.tlg-training-hero-metrics > div:first-child { border-left: 0; }
+.tlg-training-hero-metrics span { color: #7a8fa0; font-size: .56rem; font-weight: 800; letter-spacing: .08em; }
+.tlg-training-hero-metrics strong { margin-top: 5px; color: #12314a; font-size: 1.1rem; }
+.tlg-training-hero-metrics strong em { color: #8ca0b0; font-size: .65rem; font-style: normal; font-weight: 650; }
+.tlg-training-hero-metrics small { margin-top: 4px; color: #7a8fa0; font-size: .62rem; }
+
+.tlg-training-main-tabs {
+  display: inline-flex;
+  justify-self: start;
+  gap: 5px;
+  padding: 5px;
+  border: 1px solid #dce6ed;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.tlg-training-main-tabs button {
+  min-height: 38px;
+  padding: 0 17px;
+  border: 0;
+  border-radius: 8px;
+  color: #61798c;
+  background: transparent;
+  font-size: .74rem;
+  font-weight: 760;
+}
+
+.tlg-training-main-tabs button.active {
+  color: #076db5;
+  background: #eaf5fc;
+  box-shadow: inset 0 0 0 1px #cfe8f8;
+}
+
+.tlg-training-alert {
+  padding: 11px 14px;
+  border: 1px solid #cce7f8;
+  border-radius: 10px;
+  color: #24627f;
+  background: #eef8fe;
+  font-size: .74rem;
+  font-weight: 650;
+}
+
+.tlg-training-alert-error {
+  color: #8f3d3d;
+  border-color: #f0cece;
+  background: #fff4f4;
+}
+
+.tlg-training-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 16px;
+  align-items: start;
+}
+
+.tlg-training-plan-panel,
+.tlg-training-side > section,
+.tlg-training-history,
+.tlg-training-camps {
+  border: 1px solid #dbe5ec;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 10px 26px rgba(29, 57, 82, .045);
+}
+
+.tlg-training-plan-panel { overflow: hidden; }
+
+.tlg-training-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 21px 23px;
+  border-bottom: 1px solid #e4ebf0;
+}
+
+.tlg-training-section-head.compact { border-bottom: 0; }
+.tlg-training-section-head h2 { margin: 5px 0 0; color: #142d43; font-size: 1.15rem; }
+.tlg-training-section-head p { max-width: 800px; margin: 7px 0 0; color: #6d8294; font-size: .74rem; line-height: 1.55; }
+
+.tlg-training-status {
+  flex: 0 0 auto;
+  min-width: 118px;
+  padding: 11px 13px;
+  border-radius: 10px;
+  border: 1px solid #d9e6ed;
+  background: #f8fbfd;
+}
+
+.tlg-training-status strong { display: block; margin-top: 4px; color: #244157; font-size: .78rem; }
+.tlg-training-status.available { border-color: #bfe9d4; background: #f1fbf6; }
+.tlg-training-status.available span { color: #168557; }
+.tlg-training-status.blocked { border-color: #efcfbf; background: #fff7f2; }
+.tlg-training-status.blocked span { color: #b05b32; }
+
+.tlg-training-block-reason {
+  margin: 18px 20px 0;
+  padding: 11px 13px;
+  border: 1px solid #efd6c8;
+  border-radius: 9px;
+  color: #8b5234;
+  background: #fff8f4;
+  font-size: .72rem;
+  font-weight: 650;
+}
+
+.tlg-training-type-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 11px;
+  padding: 20px;
+}
+
+.tlg-training-type-grid button,
+.tlg-training-intensity-grid button,
+.tlg-training-skill-grid button {
+  text-align: left;
+  border: 1px solid #dce6ed;
+  background: #fbfdfe;
+  transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.tlg-training-type-grid button {
+  min-height: 142px;
+  padding: 15px;
+  border-radius: 12px;
+}
+
+.tlg-training-type-grid button:hover,
+.tlg-training-intensity-grid button:hover,
+.tlg-training-skill-grid button:hover {
+  border-color: #b8dcef;
+  background: #f7fbfe;
+}
+
+.tlg-training-type-grid button.selected,
+.tlg-training-intensity-grid button.selected,
+.tlg-training-skill-grid button.selected {
+  border-color: #49a9df;
+  background: #edf8fe;
+  box-shadow: 0 0 0 2px rgba(47, 158, 219, .08);
+}
+
+.tlg-training-type-grid strong { display: block; margin-top: 7px; color: #18354c; font-size: .84rem; }
+.tlg-training-type-grid p { margin: 8px 0 0; color: #718697; font-size: .67rem; line-height: 1.55; }
+
+.tlg-training-builder {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid #e7edf2;
+}
+
+.tlg-training-builder-block { padding: 19px 20px 21px; border-bottom: 1px solid #e7edf2; }
+.tlg-training-builder-title { display: flex; justify-content: space-between; gap: 14px; align-items: end; margin-bottom: 13px; }
+.tlg-training-builder-title strong { display: block; margin-top: 4px; color: #18344a; font-size: .82rem; }
+.tlg-training-builder-title small { color: #7890a2; font-size: .64rem; font-weight: 700; }
+
+.tlg-training-skill-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.tlg-training-skill-grid.physical { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.tlg-training-skill-grid button { min-height: 94px; padding: 11px 12px; border-radius: 10px; }
+.tlg-training-skill-grid button > span { color: #334e63; font-size: .7rem; font-weight: 720; text-transform: none; letter-spacing: 0; }
+.tlg-training-skill-grid button > strong { float: right; color: #0873c7; font-size: 1rem; }
+.tlg-training-skill-grid button > div { clear: both; height: 5px; margin-top: 18px; overflow: hidden; border-radius: 999px; background: #e9f0f4; }
+.tlg-training-skill-grid button > div i { display: block; height: 100%; border-radius: inherit; background: #168bd3; }
+.tlg-training-skill-grid button > small { display: block; margin-top: 6px; color: #8a9aa8; font-size: .57rem; }
+
+.tlg-training-intensity-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+.tlg-training-intensity-grid button { min-height: 105px; padding: 13px 14px; border-radius: 10px; }
+.tlg-training-intensity-grid strong { display: block; margin-top: 5px; color: #17344b; font-size: .8rem; }
+.tlg-training-intensity-grid p { margin: 7px 0 0; color: #728798; font-size: .64rem; line-height: 1.5; }
+
+.tlg-training-plan-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 20px;
+  background: #f8fbfd;
+}
+
+.tlg-training-plan-actions > div strong { display: block; color: #18364d; font-size: .77rem; }
+.tlg-training-plan-actions > div span { display: block; margin-top: 4px; color: #72889a; font-size: .63rem; }
+.tlg-training-plan-actions button { min-height: 39px; padding: 0 14px; border-radius: 8px; font-size: .7rem; font-weight: 800; }
+.tlg-training-plan-actions button.secondary { color: #176f9f; border: 1px solid #c9e0ed; background: #fff; }
+.tlg-training-plan-actions button.primary { color: #fff; border: 1px solid #0877bd; background: #0877bd; }
+.tlg-training-plan-actions button:disabled { opacity: .52; cursor: not-allowed; }
+
+.tlg-training-side { display: grid; gap: 13px; }
+.tlg-training-side > section { padding: 17px; }
+
+.tlg-training-readiness-card { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 14px; align-items: center; }
+.tlg-training-readiness-ring {
+  --score: 0deg;
+  width: 94px;
+  height: 94px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(#128bd1 var(--score), #e6edf2 0);
+  position: relative;
+}
+.tlg-training-readiness-ring::after { content: ''; position: absolute; inset: 10px; border-radius: 50%; background: #fff; }
+.tlg-training-readiness-ring > div { position: relative; z-index: 1; text-align: center; }
+.tlg-training-readiness-ring strong { display: block; color: #153249; font-size: 1.35rem; line-height: 1; }
+.tlg-training-readiness-ring span { color: #8296a5; font-size: .55rem; }
+.tlg-training-readiness-card h3 { margin: 5px 0 0; color: #18354d; font-size: .85rem; }
+.tlg-training-readiness-card p { margin: 7px 0 0; color: #718798; font-size: .64rem; line-height: 1.55; }
+
+.tlg-training-condition-card header,
+.tlg-training-day-rules header { margin-bottom: 13px; }
+.tlg-training-condition-card header strong,
+.tlg-training-day-rules header strong { display: block; margin-top: 4px; color: #1c3b52; font-size: .8rem; }
+.tlg-training-condition-row { margin-top: 12px; }
+.tlg-training-condition-row > div:first-child { display: flex; align-items: center; justify-content: space-between; color: #597286; font-size: .66rem; }
+.tlg-training-condition-row > div:first-child strong { color: #18374f; font-size: .72rem; }
+.tlg-training-condition-row > div:last-child { height: 6px; margin-top: 5px; overflow: hidden; border-radius: 999px; background: #e8eef2; }
+.tlg-training-condition-row > div:last-child i { display: block; height: 100%; border-radius: inherit; background: #168bd3; }
+
+.tlg-training-focus-value { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #e6edf2; }
+.tlg-training-focus-value strong { display: block; color: #17354c; font-size: .85rem; }
+.tlg-training-focus-value small { display: block; margin-top: 3px; color: #8093a2; font-size: .61rem; }
+.tlg-training-focus-value b { color: #0876c5; font-size: 1.65rem; }
+.tlg-training-next-level { margin-top: 12px; }
+.tlg-training-next-level > div:first-child { display: flex; justify-content: space-between; color: #6c8293; font-size: .64rem; }
+.tlg-training-next-level > div:first-child strong { color: #17364d; }
+.tlg-training-next-level > div:last-child { height: 7px; margin-top: 7px; overflow: hidden; border-radius: 999px; background: #e6edf2; }
+.tlg-training-next-level i { display: block; height: 100%; background: #168bd3; }
+.tlg-training-focus-card p { margin: 11px 0 0; color: #728696; font-size: .64rem; line-height: 1.55; }
+
+.tlg-training-day-rules > div { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; padding: 9px 0; border-top: 1px solid #edf1f4; }
+.tlg-training-day-rules > div:first-of-type { border-top: 0; }
+.tlg-training-day-rules > div span { color: #6e8394; font-size: .64rem; font-weight: 700; }
+.tlg-training-day-rules > div strong { color: #29475d; font-size: .65rem; font-weight: 700; }
+.tlg-training-day-rules > div.home strong { color: #10845a; }
+
+.tlg-training-engine-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid #dbe5ec;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.tlg-training-engine-strip > div { min-height: 90px; padding: 15px 17px; border-left: 1px solid #e5ecf1; }
+.tlg-training-engine-strip > div:first-child { border-left: 0; }
+.tlg-training-engine-strip strong { display: block; margin-top: 5px; color: #18364d; font-size: .82rem; }
+.tlg-training-engine-strip small { display: block; margin-top: 5px; color: #788d9d; font-size: .61rem; line-height: 1.45; }
+
+.tlg-training-history { overflow: hidden; }
+.tlg-training-history-empty { padding: 34px; text-align: center; color: #8094a3; font-size: .72rem; border-top: 1px solid #e7edf2; }
+.tlg-training-history-list { border-top: 1px solid #e7edf2; }
+.tlg-training-history article {
+  display: grid;
+  grid-template-columns: 125px minmax(220px, 1fr) 120px minmax(180px, .8fr);
+  gap: 14px;
+  align-items: center;
+  padding: 13px 18px;
+  border-top: 1px solid #edf1f4;
+}
+.tlg-training-history article:first-child { border-top: 0; }
+.tlg-training-history article strong { display: block; margin-top: 3px; color: #234158; font-size: .7rem; }
+.tlg-training-history article small { display: block; margin-top: 3px; color: #8293a0; font-size: .59rem; }
+
+.tlg-training-automation-note {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 13px 15px;
+  border: 1px dashed #cbdde9;
+  border-radius: 11px;
+  color: #58768c;
+  background: #f8fbfd;
+  font-size: .68rem;
+}
+.tlg-training-automation-note strong { color: #264c67; }
+
+.tlg-training-camps { overflow: hidden; }
+.tlg-training-camps > header { padding: 26px; border-bottom: 1px solid #e5ecf1; background: linear-gradient(115deg,#fff,#f5fbfe); }
+.tlg-training-camps h2 { margin: 5px 0 0; color: #142f46; font-size: 1.35rem; }
+.tlg-training-camps header p { max-width: 900px; margin: 9px 0 0; color: #6a8295; font-size: .77rem; line-height: 1.6; }
+.tlg-training-camp-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; padding: 20px; }
+.tlg-training-camp-grid article { min-height: 160px; padding: 16px; border: 1px solid #dee7ed; border-radius: 11px; background: #fbfdfe; }
+.tlg-training-camp-grid article > span { display: inline-flex; width: 29px; height: 29px; align-items: center; justify-content: center; border-radius: 8px; color: #0874bd; background: #e9f5fc; font-size: .65rem; font-weight: 850; }
+.tlg-training-camp-grid strong { display: block; margin-top: 13px; color: #1c3b52; font-size: .78rem; }
+.tlg-training-camp-grid p { margin: 7px 0 0; color: #748899; font-size: .65rem; line-height: 1.55; }
+.tlg-training-camp-coming { margin: 0 20px 20px; padding: 12px 14px; border-radius: 9px; color: #5e7b8f; background: #eef7fc; border: 1px solid #d3e9f5; font-size: .7rem; font-weight: 700; }
+
+@media (max-width: 1240px) {
+  .tlg-training-hero { grid-template-columns: 1fr; }
+  .tlg-training-workspace { grid-template-columns: 1fr; }
+  .tlg-training-side { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .tlg-training-day-rules { grid-column: span 2; }
+  .tlg-training-camp-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+
+@media (max-width: 820px) {
+  .tlg-training-hero { padding: 22px; }
+  .tlg-training-hero-metrics { grid-template-columns: 1fr; }
+  .tlg-training-hero-metrics > div { border-left: 0; border-top: 1px solid #e3ebf1; }
+  .tlg-training-hero-metrics > div:first-child { border-top: 0; }
+  .tlg-training-type-grid,
+  .tlg-training-intensity-grid,
+  .tlg-training-skill-grid,
+  .tlg-training-skill-grid.physical { grid-template-columns: 1fr 1fr; }
+  .tlg-training-plan-actions { grid-template-columns: 1fr; }
+  .tlg-training-plan-actions button { width: 100%; }
+  .tlg-training-engine-strip { grid-template-columns: 1fr 1fr; }
+  .tlg-training-engine-strip > div { border-left: 0; border-top: 1px solid #e5ecf1; }
+  .tlg-training-engine-strip > div:nth-child(-n+2) { border-top: 0; }
+  .tlg-training-history article { grid-template-columns: 1fr 1fr; }
+  .tlg-training-automation-note { flex-direction: column; }
+}
+
+@media (max-width: 560px) {
+  .tlg-training-main-tabs { width: 100%; }
+  .tlg-training-main-tabs button { flex: 1; padding: 0 8px; }
+  .tlg-training-section-head { flex-direction: column; }
+  .tlg-training-status { width: 100%; }
+  .tlg-training-type-grid,
+  .tlg-training-intensity-grid,
+  .tlg-training-skill-grid,
+  .tlg-training-skill-grid.physical,
+  .tlg-training-side,
+  .tlg-training-engine-strip,
+  .tlg-training-camp-grid,
+  .tlg-training-history article { grid-template-columns: 1fr; }
+  .tlg-training-day-rules { grid-column: auto; }
+  .tlg-training-engine-strip > div:nth-child(2) { border-top: 1px solid #e5ecf1; }
+}
