@@ -7,6 +7,9 @@ module.exports = {
       center: true,
     },
     extend: {
+      fontFamily: {
+        sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'],
+      },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
