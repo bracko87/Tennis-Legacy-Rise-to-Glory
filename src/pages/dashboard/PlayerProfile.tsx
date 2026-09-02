@@ -14,10 +14,14 @@ interface PlayerProfileRow {
   last_name: string
   world: 'ATP' | 'WTA'
   country_code: string
+  home_city: string | null
   image_path: string | null
+  preferred_surface: 'Hard' | 'Clay' | 'Grass' | null
+  playing_style: 'Aggressive Baseliner' | 'Defensive Baseliner' | 'All-court' | 'Serve & Volley'
   ranking_points: number
   rank_position: number
   is_own_player: boolean
+  is_ai: boolean
 }
 
 export default function PlayerProfilePage() {
@@ -35,7 +39,7 @@ export default function PlayerProfilePage() {
       if (!playerId) return
       setLoading(true)
       setError(null)
-      const { data, error: loadError } = await supabase.rpc('get_player_profile_v1', { p_player_id: playerId })
+      const { data, error: loadError } = await supabase.rpc('get_player_profile_v2', { p_player_id: playerId })
       if (!active) return
       const row = (Array.isArray(data) ? data[0] : data) as PlayerProfileRow | undefined
       if (loadError || !row) {
@@ -51,7 +55,7 @@ export default function PlayerProfilePage() {
   }, [playerId])
 
   async function startConversation() {
-    if (!profile || profile.is_own_player || messageBusy) return
+    if (!profile || profile.is_own_player || profile.is_ai || messageBusy) return
     setMessageBusy(true)
     const { data, error: conversationError } = await supabase.rpc('get_or_create_player_conversation_v1', {
       p_target_player_id: profile.player_id,
@@ -88,7 +92,7 @@ export default function PlayerProfilePage() {
                   <h1>{name}</h1>
                   <div className="tlg-public-player-country">
                     <CountryFlag countryCode={profile.country_code} countryName={profile.country_code} width={26} height={17} />
-                    <span>{profile.country_code}</span>
+                    <span>{profile.home_city ? `${profile.home_city}, ${profile.country_code}` : profile.country_code}</span>
                   </div>
                 </div>
 
@@ -97,11 +101,11 @@ export default function PlayerProfilePage() {
                     <button type="button" onClick={() => navigate('/game/inbox')}>
                       Open inbox
                     </button>
-                  ) : (
+                  ) : !profile.is_ai ? (
                     <button type="button" onClick={startConversation} disabled={messageBusy}>
                       <Mail size={16} /> {messageBusy ? 'Opening…' : 'Send message'}
                     </button>
-                  )}
+                  ) : null}
                 </div>
               </div>
 
@@ -117,12 +121,15 @@ export default function PlayerProfilePage() {
                   <h2>Career overview</h2>
                 </header>
                 <div className="tlg-public-player-info-grid">
+                  <div><span>Home city</span><strong>{profile.home_city ?? 'Not set'}</strong></div>
+                  <div><span>Country</span><strong>{profile.country_code}</strong></div>
+                  <div><span>Preferred surface</span><strong>{profile.preferred_surface ?? 'Not set'}</strong></div>
+                  <div><span>Playing style</span><strong>{profile.playing_style}</strong></div>
                   <div><span>Discipline</span><strong>Singles</strong></div>
                   <div><span>Tour</span><strong>{profile.world}</strong></div>
-                  <div><span>Country</span><strong>{profile.country_code}</strong></div>
                   <div><span>Ranking status</span><strong>{profile.rank_position > 0 ? `Ranked #${profile.rank_position}` : 'Unranked'}</strong></div>
                 </div>
-                <p>Player skills and match-performance attributes will appear here when the Tennis Legacy skill and results systems are connected to public profiles.</p>
+                <p>Tournament history, head-to-head records and career statistics will expand here as the competitive match systems are connected.</p>
               </div>
 
               {error && <p className="tlg-public-player-error">{error}</p>}
