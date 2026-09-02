@@ -70,10 +70,17 @@ export interface TrainingCampQuote {
   end: { season: number; month: number; day: number }
   duration_weeks: number
   origin: {
-    city: string
+    city: string | null
     country_code: string
     continent: string | null
-    precision: 'city' | 'city_label' | 'country' | 'country_estimate'
+    precision?: 'city' | 'city_label' | 'country' | 'country_estimate'
+    latitude?: number | null
+    longitude?: number | null
+    basis?: 'exact' | 'country_reference' | 'unknown'
+    location_type?: string
+    reference_id?: string | null
+    continuity?: 'current_location' | 'direct_from_previous_commitment' | 'home_base'
+    gap_days?: number
   }
   destination: {
     city: string
@@ -360,6 +367,8 @@ export function useTrainingCamps() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'player_daily_activity', filter: `player_id=eq.${player.id}` }, scheduleRefresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'player_training_progress', filter: `player_id=eq.${player.id}` }, scheduleRefresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'player_skills', filter: `player_id=eq.${player.id}` }, scheduleRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'player_travel_legs', filter: `player_id=eq.${player.id}` }, scheduleRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'player_location_state', filter: `player_id=eq.${player.id}` }, scheduleRefresh)
       .subscribe()
 
     return () => {
