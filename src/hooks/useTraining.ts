@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { useAuth } from '../auth/AuthContext'
 import { supabase } from '../lib/supabase'
 
 export type TrainingType = 'technical' | 'physical' | 'day_off'
@@ -113,11 +114,13 @@ interface TrainingActionResult {
 }
 
 export function useTraining() {
+  const { player } = useAuth()
   const [dashboard, setDashboard] = useState<TrainingDashboard | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [processing, setProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const realtimeRefreshTimer = useRef<number | null>(null)
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -182,8 +185,45 @@ export function useTraining() {
   }, [refresh])
 
   useEffect(() => {
+    if (!player?.id) {
+      setDashboard(null)
+      setLoading(false)
+      return
+    }
+
     void refresh()
-  }, [refresh])
+  }, [player?.id, refresh])
+
+  useEffect(() => {
+    if (!player?.id) return
+
+    const scheduleRefresh = () => {
+      if (realtimeRefreshTimer.current !== null) {
+        window.clearTimeout(realtimeRefreshTimer.current)
+      }
+      realtimeRefreshTimer.current = window.setTimeout(() => {
+        realtimeRefreshTimer.current = null
+        void refresh()
+      }, 150)
+    }
+
+    const channel = supabase
+      .channel(`training-account-sync:${player.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'player_training_plans', filter: `player_id=eq.${player.id}` }, scheduleRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'player_training_progress', filter: `player_id=eq.${player.id}` }, scheduleRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'player_training_sessions', filter: `player_id=eq.${player.id}` }, scheduleRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'player_daily_activity', filter: `player_id=eq.${player.id}` }, scheduleRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'player_skills', filter: `player_id=eq.${player.id}` }, scheduleRefresh)
+      .subscribe()
+
+    return () => {
+      if (realtimeRefreshTimer.current !== null) {
+        window.clearTimeout(realtimeRefreshTimer.current)
+        realtimeRefreshTimer.current = null
+      }
+      void supabase.removeChannel(channel)
+    }
+  }, [player?.id, refresh])
 
   return {
     dashboard,
