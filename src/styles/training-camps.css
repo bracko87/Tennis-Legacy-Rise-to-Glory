@@ -1,0 +1,608 @@
+.tlg-camp-page {
+  display: grid;
+  gap: 18px;
+}
+
+.tlg-camp-loading {
+  min-height: 360px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #dbe5ec;
+  border-radius: 14px;
+  color: #6c8395;
+  background: #fff;
+}
+
+.tlg-camp-current,
+.tlg-camp-filters,
+.tlg-camp-list-panel,
+.tlg-camp-detail {
+  border: 1px solid #dbe5ec;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(26, 52, 75, .045);
+}
+
+.tlg-camp-current {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 21px 23px;
+}
+
+.tlg-camp-current > div:first-child > span,
+.tlg-camp-list-panel > header span,
+.tlg-camp-detail .benefits span,
+.tlg-camp-detail .booking-grid label > span,
+.tlg-camp-detail .cost-summary span {
+  color: #0872bb;
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.tlg-camp-current h2 {
+  margin: 6px 0 0;
+  color: #172f45;
+  font-size: 1rem;
+}
+
+.tlg-camp-current p {
+  margin: 7px 0 0;
+  color: #6f8394;
+  font-size: .72rem;
+}
+
+.tlg-camp-current-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.tlg-camp-current-actions .status {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #eef6fb;
+  color: #2776a5;
+  font-size: .62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.tlg-camp-current-actions .status.active {
+  background: #eefaf3;
+  color: #178259;
+}
+
+.tlg-camp-current-actions > strong {
+  color: #17344b;
+  font-size: .9rem;
+}
+
+.tlg-camp-current-actions button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #cfdee7;
+  border-radius: 8px;
+  background: #fff;
+  color: #3b6178;
+  font-size: .68rem;
+  font-weight: 750;
+}
+
+.tlg-camp-current-actions button.primary {
+  color: #fff;
+  border-color: #0877bd;
+  background: #0877bd;
+}
+
+.tlg-camp-filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr minmax(280px, 1.4fr);
+  gap: 16px;
+  padding: 17px;
+}
+
+.tlg-camp-filters label {
+  display: grid;
+  gap: 7px;
+}
+
+.tlg-camp-filters label > span {
+  color: #27465e;
+  font-size: .7rem;
+  font-weight: 760;
+}
+
+.tlg-camp-filters select,
+.tlg-camp-detail select {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 11px;
+  border: 1px solid #ccdbe4;
+  border-radius: 8px;
+  background: #fff;
+  color: #203d53;
+  font-size: .72rem;
+}
+
+.tlg-camp-filters .cost {
+  align-content: center;
+}
+
+.tlg-camp-filters input[type='range'] {
+  width: 100%;
+  accent-color: #128bd1;
+}
+
+.tlg-camp-filters .cost small {
+  display: flex;
+  justify-content: space-between;
+  color: #8495a2;
+  font-size: .59rem;
+}
+
+.tlg-camp-browser {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(430px, .88fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.tlg-camp-list-panel {
+  overflow: hidden;
+}
+
+.tlg-camp-list-panel > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 12px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #e6edf2;
+}
+
+.tlg-camp-list-panel > header h2 {
+  margin: 4px 0 0;
+  color: #18364d;
+  font-size: 1rem;
+}
+
+.tlg-camp-list-panel > header small {
+  color: #7e91a0;
+  font-size: .63rem;
+}
+
+.tlg-camp-list {
+  display: grid;
+  gap: 10px;
+  padding: 13px;
+}
+
+.tlg-camp-list > button {
+  display: grid;
+  grid-template-columns: 176px minmax(0, 1fr);
+  min-height: 162px;
+  overflow: hidden;
+  padding: 0;
+  text-align: left;
+  border: 1px solid #dce5eb;
+  border-radius: 11px;
+  background: #fff;
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.tlg-camp-list > button:hover {
+  border-color: #a9d8f3;
+  transform: translateY(-1px);
+}
+
+.tlg-camp-list > button.selected {
+  border-color: #42a9e4;
+  box-shadow: 0 0 0 2px rgba(24, 143, 207, .08);
+}
+
+.tlg-camp-list .art,
+.tlg-camp-detail .hero {
+  overflow: hidden;
+  background: #eaf2f7;
+}
+
+.tlg-camp-list .art img,
+.tlg-camp-detail .hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tlg-camp-art-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px;
+  color: #fff;
+  background: linear-gradient(145deg, #486d87, #183a51);
+}
+
+.tlg-camp-art-placeholder.tennis_skills.hard { background: linear-gradient(145deg, #2594d0, #165a86); }
+.tlg-camp-art-placeholder.tennis_skills.clay { background: linear-gradient(145deg, #bf724e, #78432e); }
+.tlg-camp-art-placeholder.tennis_skills.grass { background: linear-gradient(145deg, #4b9b69, #28613f); }
+.tlg-camp-art-placeholder.physical { background: linear-gradient(145deg, #667c93, #304558); }
+.tlg-camp-art-placeholder.recovery_mindset { background: linear-gradient(145deg, #62a8a2, #356b71); }
+
+.tlg-camp-art-placeholder > span {
+  align-self: flex-start;
+  padding: 4px 7px;
+  margin-bottom: auto;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 999px;
+  background: rgba(0,0,0,.12);
+  font-size: .56rem;
+  font-weight: 800;
+}
+
+.tlg-camp-art-placeholder strong {
+  font-size: 1.05rem;
+}
+
+.tlg-camp-art-placeholder small {
+  margin-top: 3px;
+  opacity: .78;
+  font-size: .6rem;
+}
+
+.tlg-camp-list .copy {
+  padding: 13px 15px;
+}
+
+.tlg-camp-list .title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.tlg-camp-list .title-row strong {
+  display: block;
+  color: #18374e;
+  font-size: .83rem;
+}
+
+.tlg-camp-list .title-row span {
+  display: block;
+  margin-top: 4px;
+  color: #7890a1;
+  font-size: .61rem;
+}
+
+.tlg-camp-list .title-row b {
+  color: #d4881d;
+  white-space: nowrap;
+  font-size: .68rem;
+}
+
+.tlg-camp-list .copy p {
+  margin: 8px 0 0;
+  color: #667e90;
+  font-size: .65rem;
+  line-height: 1.45;
+}
+
+.tlg-camp-list .price {
+  margin-top: 9px;
+  color: #314c61;
+  font-size: .66rem;
+}
+
+.tlg-camp-list .best {
+  margin-top: 8px;
+  padding: 7px 9px;
+  border-radius: 999px;
+  color: #2576aa;
+  background: #edf7fd;
+  font-size: .6rem;
+  line-height: 1.35;
+}
+
+.tlg-camp-list .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.tlg-camp-list .tags span {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f1f4f6;
+  color: #637789;
+  font-size: .56rem;
+}
+
+.tlg-camp-list .empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: #8395a3;
+  font-size: .72rem;
+}
+
+.tlg-camp-list-panel > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-top: 1px solid #e6edf2;
+  background: #f9fbfc;
+}
+
+.tlg-camp-list-panel > footer button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid #d2e0e8;
+  border-radius: 8px;
+  background: #fff;
+  color: #4c687c;
+  font-size: .64rem;
+  font-weight: 700;
+}
+
+.tlg-camp-list-panel > footer button:disabled {
+  opacity: .45;
+}
+
+.tlg-camp-list-panel > footer span {
+  color: #7b8e9d;
+  font-size: .62rem;
+}
+
+.tlg-camp-detail {
+  overflow: hidden;
+  position: sticky;
+  top: 16px;
+}
+
+.tlg-camp-detail .hero {
+  height: 220px;
+}
+
+.tlg-camp-detail .hero .tlg-camp-art-placeholder {
+  min-height: 220px;
+  padding: 24px;
+}
+
+.tlg-camp-detail .hero .tlg-camp-art-placeholder strong {
+  font-size: 1.55rem;
+}
+
+.tlg-camp-detail .detail-body {
+  padding: 18px;
+}
+
+.tlg-camp-detail .detail-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.tlg-camp-detail .detail-title h2 {
+  margin: 0;
+  color: #142f46;
+  font-size: 1.2rem;
+}
+
+.tlg-camp-detail .detail-title p {
+  margin: 5px 0 0;
+  color: #74899a;
+  font-size: .66rem;
+}
+
+.tlg-camp-detail .rating {
+  text-align: right;
+}
+
+.tlg-camp-detail .rating strong {
+  display: block;
+  color: #d88617;
+  font-size: .75rem;
+}
+
+.tlg-camp-detail .rating span {
+  display: block;
+  margin-top: 3px;
+  color: #7e91a0;
+  font-size: .6rem;
+}
+
+.tlg-camp-detail .description {
+  margin: 15px 0 0;
+  color: #536f83;
+  font-size: .71rem;
+  line-height: 1.55;
+}
+
+.tlg-camp-detail .benefits {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.tlg-camp-detail .benefits > div {
+  min-height: 102px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #f7f9fb;
+}
+
+.tlg-camp-detail .benefits strong {
+  display: block;
+  margin-top: 5px;
+  color: #244158;
+  font-size: .7rem;
+  line-height: 1.45;
+}
+
+.tlg-camp-detail .benefits small {
+  display: block;
+  margin-top: 4px;
+  color: #7f91a0;
+  font-size: .58rem;
+}
+
+.tlg-camp-detail .profile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 13px;
+}
+
+.tlg-camp-detail .profile-grid > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 9px;
+  border: 1px solid #e1e9ee;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.tlg-camp-detail .profile-grid span {
+  color: #677e90;
+  font-size: .6rem;
+}
+
+.tlg-camp-detail .profile-grid strong {
+  color: #0876c1;
+  font-size: .65rem;
+}
+
+.tlg-camp-detail .booking-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 11px;
+  margin-top: 15px;
+}
+
+.tlg-camp-detail .booking-grid label {
+  display: grid;
+  gap: 6px;
+}
+
+.tlg-camp-detail .date-warning {
+  margin-top: 14px;
+  padding: 12px 13px;
+  border: 1px solid #ead9a3;
+  border-radius: 9px;
+  color: #815d17;
+  background: #fff9e8;
+}
+
+.tlg-camp-detail .date-warning strong {
+  display: block;
+  font-size: .69rem;
+}
+
+.tlg-camp-detail .date-warning p {
+  margin: 5px 0 0;
+  font-size: .62rem;
+  line-height: 1.5;
+}
+
+.tlg-camp-detail .date-warning span {
+  display: block;
+  margin-top: 7px;
+  font-size: .61rem;
+  font-weight: 700;
+}
+
+.tlg-camp-detail .cost-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 14px;
+  overflow: hidden;
+  border: 1px solid #dfe8ee;
+  border-radius: 9px;
+}
+
+.tlg-camp-detail .cost-summary > div {
+  padding: 10px;
+  border-left: 1px solid #e4ebf0;
+}
+
+.tlg-camp-detail .cost-summary > div:first-child {
+  border-left: 0;
+}
+
+.tlg-camp-detail .cost-summary strong {
+  display: block;
+  margin-top: 5px;
+  color: #18364c;
+  font-size: .76rem;
+}
+
+.tlg-camp-detail button.book {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 14px;
+  border: 1px solid #0877bd;
+  border-radius: 9px;
+  color: #fff;
+  background: #0877bd;
+  font-size: .72rem;
+  font-weight: 800;
+}
+
+.tlg-camp-detail button.book:disabled {
+  opacity: .5;
+}
+
+.tlg-camp-detail .diminishing {
+  display: block;
+  margin-top: 9px;
+  color: #8595a2;
+  font-size: .58rem;
+  line-height: 1.45;
+}
+
+.tlg-camp-detail .detail-empty {
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+  color: #8193a1;
+  font-size: .72rem;
+}
+
+@media (max-width: 1180px) {
+  .tlg-camp-browser { grid-template-columns: 1fr; }
+  .tlg-camp-detail { position: static; }
+  .tlg-camp-filters { grid-template-columns: 1fr 1fr; }
+  .tlg-camp-filters .cost { grid-column: 1 / -1; }
+}
+
+@media (max-width: 760px) {
+  .tlg-camp-current { align-items: flex-start; flex-direction: column; }
+  .tlg-camp-current-actions { justify-content: flex-start; }
+  .tlg-camp-filters { grid-template-columns: 1fr; }
+  .tlg-camp-filters .cost { grid-column: auto; }
+  .tlg-camp-list > button { grid-template-columns: 120px minmax(0, 1fr); }
+  .tlg-camp-detail .benefits,
+  .tlg-camp-detail .booking-grid,
+  .tlg-camp-detail .cost-summary { grid-template-columns: 1fr; }
+  .tlg-camp-detail .cost-summary > div { border-left: 0; border-top: 1px solid #e4ebf0; }
+  .tlg-camp-detail .cost-summary > div:first-child { border-top: 0; }
+}
+
+@media (max-width: 520px) {
+  .tlg-camp-list > button { grid-template-columns: 1fr; }
+  .tlg-camp-list .art { height: 150px; }
+  .tlg-camp-detail .profile-grid { grid-template-columns: 1fr 1fr; }
+}
