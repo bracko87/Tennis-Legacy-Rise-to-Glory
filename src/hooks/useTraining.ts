@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase'
 export type TrainingType = 'technical' | 'physical' | 'day_off'
 export type TrainingIntensity = 'light' | 'standard' | 'hard'
 export type DailyActivityType = 'home' | 'travel' | 'tournament' | 'training_camp' | 'injured'
+export type TrainingSessionRole = 'planned_training' | 'active_recovery' | 'full_rest' | 'user_day_off'
 
 export interface TrainingPlan {
   training_type: TrainingType
@@ -73,6 +74,7 @@ export interface TrainingSession {
   focus_before?: number
   focus_after?: number
   processed_by?: 'manual' | 'daily_engine'
+  session_role?: TrainingSessionRole
   created_at: string
 }
 
@@ -81,6 +83,9 @@ export interface TrainingDashboard {
     season: number
     month: number
     day: number
+    season_week?: number
+    weekday_in_training_week?: number
+    scheduled_role?: Exclude<TrainingSessionRole, 'user_day_off'>
   }
   activity_type: DailyActivityType
   eligible: boolean
@@ -94,10 +99,20 @@ export interface TrainingDashboard {
     focus_share: number
     other_share: number
     travel_fatigue_only: boolean
-    travel_fatigue_cost?: number
     regular_training_states: string[]
     blocked_states: string[]
     automatic_scheduler_enabled: boolean
+    weekly_rhythm?: {
+      development_days: number
+      active_recovery_days: number
+      full_rest_days: number
+    }
+    camp_weekly_rhythm?: {
+      development_days: number
+      recovery_days: number
+    }
+    attribute_development_multiplier?: Record<string, number>
+    age_modifier_used?: boolean
   }
 }
 
@@ -111,6 +126,7 @@ interface TrainingActionResult {
   efficiency?: number
   development_gains?: Record<string, number>
   level_ups?: Record<string, number>
+  session_role?: TrainingSessionRole
 }
 
 export function useTraining() {
