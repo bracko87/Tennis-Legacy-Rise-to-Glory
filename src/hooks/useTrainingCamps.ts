@@ -55,8 +55,12 @@ export interface TrainingCampAccommodationTier {
 export interface TrainingCampQuote {
   program_id: string
   camp_name: string
+  training_quality: {
+    tier: TrainingCampQuality
+    multiplier: number
+  }
   quality_tier: TrainingCampQuality
-  facility_rating: number
+  facility_rating?: number
   quality_multiplier: number
   start_season: number
   start_week: number
@@ -69,13 +73,14 @@ export interface TrainingCampQuote {
     city: string
     country_code: string
     continent: string | null
-    precision: 'city' | 'country_estimate'
+    precision: 'city' | 'city_label' | 'country' | 'country_estimate'
   }
   destination: {
     city: string
     country: string
     country_code: string
     continent: string
+    cost_index: number
   }
   training_fee_weekly: number
   training_fee_total: number
@@ -84,6 +89,8 @@ export interface TrainingCampQuote {
     slug: string
     name: string
     stars: number
+    base_weekly_cost: number
+    destination_cost_index: number
     weekly_cost: number
     total: number
     rest_quality: number
@@ -91,6 +98,15 @@ export interface TrainingCampQuote {
     weekly_morale_bonus: number
     weekly_focus_bonus: number
     description: string
+  }
+  travel: {
+    cost: number
+    one_way_km: number | null
+    round_trip_km: number | null
+    band: 'same_city' | 'domestic' | 'regional' | 'intercontinental'
+    basis: 'exact_city_match' | 'same_country_estimate' | 'country_centroid_distance' | 'continent_fallback'
+    arrival_fatigue: number
+    formula: string
   }
   travel_cost: number
   travel_type: string
@@ -119,6 +135,11 @@ export interface TrainingCampBooking {
   accommodation_weekly_cost: number
   accommodation_total: number
   travel_cost: number
+  travel_distance_km: number | null
+  travel_round_trip_km: number | null
+  travel_band: string | null
+  travel_basis: string | null
+  travel_arrival_fatigue: number | null
   staff_count: number
   staff_total_cost: number
   origin_city: string | null
@@ -193,6 +214,7 @@ export function useTrainingCamps() {
           start_season, start_season_week, start_month, start_day, end_season, end_month, end_day,
           duration_weeks, weekly_cost, total_cost, training_fee_total,
           accommodation_weekly_cost, accommodation_total, travel_cost,
+          travel_distance_km, travel_round_trip_km, travel_band, travel_basis, travel_arrival_fatigue,
           staff_count, staff_total_cost, origin_city, origin_country_code, origin_continent,
           status, booked_at, started_at, completed_at,
           accommodation:training_camp_accommodation_tiers(
