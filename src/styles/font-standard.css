@@ -4,12 +4,20 @@
  * The Training Camp cards are the visual reference: they inherit Tailwind's
  * system sans-serif stack. Keep that same typeface throughout the entire game.
  * This file is intentionally loaded LAST so legacy/page-specific styles cannot
- * introduce a different font family. Font sizes and weights remain owned by
- * each component; this file standardizes only the typeface.
+ * introduce a different font family.
+ *
+ * Readability rule: the whole project uses a 17px root instead of the browser
+ * 16px default. That moves rem-based UI text up by one consistent size step
+ * while preserving the existing hierarchy between captions, body copy and
+ * headings. New screens should continue using the same rem-based scale.
  */
 
 :root {
   --tlg-font-ui: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+html {
+  font-size: 17px;
 }
 
 html,
