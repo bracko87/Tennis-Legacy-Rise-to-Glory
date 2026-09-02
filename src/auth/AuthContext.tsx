@@ -18,6 +18,7 @@ export interface TennisPlayerRecord {
   first_name: string
   last_name: string
   country_code: string
+  home_city: string | null
   image_path: string | null
   preferred_surface: 'Hard' | 'Clay' | 'Grass' | null
   playing_style: 'Aggressive Baseliner' | 'Defensive Baseliner' | 'All-court' | 'Serve & Volley'
@@ -53,7 +54,7 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     const { data, error } = await supabase
       .from('players')
       .select(
-        'id, owner_user_id, world, first_name, last_name, country_code, image_path, preferred_surface, playing_style, moderation_status',
+        'id, owner_user_id, world, first_name, last_name, country_code, home_city, image_path, preferred_surface, playing_style, moderation_status',
       )
       .eq('owner_user_id', currentUser.id)
       .maybeSingle()
