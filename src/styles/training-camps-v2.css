@@ -1,0 +1,296 @@
+/* Training Camp booking v2: richer destination info, hotel choice and cost quote. */
+
+.tlg-camp-detail .rating {
+  min-width: 92px;
+  padding: 8px 10px;
+  border: 1px solid #dce7ee;
+  border-radius: 10px;
+  background: #fbfdfe;
+}
+
+.tlg-camp-detail .rating strong {
+  font-size: .78rem;
+}
+
+.tlg-camp-detail .rating b {
+  display: block;
+  margin-top: 5px;
+  color: #385970;
+  font-size: .56rem;
+  font-weight: 750;
+}
+
+.tlg-camp-information {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.tlg-camp-information section {
+  padding: 11px 12px;
+  border: 1px solid #e2eaf0;
+  border-radius: 9px;
+  background: #fbfcfd;
+}
+
+.tlg-camp-information span,
+.tlg-camp-accommodation header span,
+.tlg-camp-staff-future span,
+.tlg-camp-cost-card header span,
+.tlg-camp-travel-summary span,
+.tlg-camp-grand-total span {
+  color: #0872bb;
+  font-size: .59rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.tlg-camp-information p {
+  margin: 5px 0 0;
+  color: #536f83;
+  font-size: .66rem;
+  line-height: 1.55;
+}
+
+.tlg-camp-accommodation,
+.tlg-camp-cost-card,
+.tlg-camp-staff-future {
+  margin-top: 14px;
+  border: 1px solid #dfe8ee;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.tlg-camp-accommodation > header,
+.tlg-camp-cost-card > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 13px;
+  border-bottom: 1px solid #e8eef2;
+}
+
+.tlg-camp-accommodation h3,
+.tlg-camp-cost-card h3 {
+  margin: 4px 0 0;
+  color: #19384f;
+  font-size: .82rem;
+}
+
+.tlg-camp-accommodation header small,
+.tlg-camp-cost-card header small {
+  max-width: 250px;
+  color: #7a8e9d;
+  font-size: .58rem;
+  line-height: 1.45;
+  text-align: right;
+}
+
+.tlg-camp-hotel-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+}
+
+.tlg-camp-hotel-grid button {
+  min-height: 128px;
+  padding: 10px;
+  text-align: left;
+  border: 1px solid #dce6ec;
+  border-radius: 9px;
+  background: #fbfcfd;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+
+.tlg-camp-hotel-grid button:hover {
+  border-color: #9bcdeb;
+}
+
+.tlg-camp-hotel-grid button.selected {
+  border-color: #168dd0;
+  background: #f2faff;
+  box-shadow: 0 0 0 2px rgba(22,141,208,.08);
+}
+
+.tlg-camp-hotel-grid button > span {
+  display: block;
+  color: #d68b18;
+  font-size: .63rem;
+  letter-spacing: .03em;
+}
+
+.tlg-camp-hotel-grid button strong {
+  display: block;
+  margin-top: 4px;
+  color: #17374e;
+  font-size: .7rem;
+}
+
+.tlg-camp-hotel-grid button b {
+  display: block;
+  margin-top: 4px;
+  color: #0876bd;
+  font-size: .66rem;
+}
+
+.tlg-camp-hotel-grid button p {
+  margin: 7px 0 0;
+  color: #61798b;
+  font-size: .58rem;
+  line-height: 1.45;
+}
+
+.tlg-camp-hotel-grid button small {
+  display: block;
+  margin-top: 7px;
+  color: #718796;
+  font-size: .55rem;
+  line-height: 1.4;
+}
+
+.tlg-camp-staff-future {
+  display: grid;
+  gap: 5px;
+  padding: 11px 13px;
+  background: #f8fafb;
+  border-style: dashed;
+}
+
+.tlg-camp-staff-future strong {
+  display: block;
+  margin-top: 4px;
+  color: #405d72;
+  font-size: .67rem;
+}
+
+.tlg-camp-staff-future p {
+  margin: 0;
+  color: #7b8e9d;
+  font-size: .58rem;
+  line-height: 1.45;
+}
+
+.tlg-camp-travel-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-bottom: 1px solid #e8eef2;
+}
+
+.tlg-camp-travel-summary > div {
+  padding: 11px 13px;
+}
+
+.tlg-camp-travel-summary > div + div {
+  border-left: 1px solid #e8eef2;
+}
+
+.tlg-camp-travel-summary strong {
+  display: block;
+  margin-top: 4px;
+  color: #18384f;
+  font-size: .69rem;
+}
+
+.tlg-camp-travel-summary small {
+  display: block;
+  margin-top: 3px;
+  color: #8293a0;
+  font-size: .55rem;
+  line-height: 1.35;
+}
+
+.tlg-camp-cost-lines {
+  display: grid;
+}
+
+.tlg-camp-cost-lines > div {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(140px,.8fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 8px 13px;
+  border-bottom: 1px solid #edf1f4;
+}
+
+.tlg-camp-cost-lines > div.future {
+  background: #fafbfc;
+}
+
+.tlg-camp-cost-lines span {
+  color: #2a475c;
+  font-size: .64rem;
+  font-weight: 700;
+}
+
+.tlg-camp-cost-lines small {
+  color: #7b8e9c;
+  font-size: .56rem;
+}
+
+.tlg-camp-cost-lines strong {
+  color: #17364d;
+  font-size: .7rem;
+  white-space: nowrap;
+}
+
+.tlg-camp-grand-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px;
+  background: #eef8fe;
+}
+
+.tlg-camp-grand-total strong {
+  color: #0875bd;
+  font-size: 1.02rem;
+}
+
+.tlg-camp-quote-error {
+  margin: 10px;
+  padding: 9px 10px;
+  border: 1px solid #efcaca;
+  border-radius: 8px;
+  color: #a23a3a;
+  background: #fff7f7;
+  font-size: .61rem;
+  line-height: 1.45;
+}
+
+.tlg-camp-detail .book {
+  margin-top: 14px;
+}
+
+@media (max-width: 1180px) {
+  .tlg-camp-hotel-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .tlg-camp-information,
+  .tlg-camp-travel-summary,
+  .tlg-camp-hotel-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tlg-camp-travel-summary > div + div {
+    border-left: 0;
+    border-top: 1px solid #e8eef2;
+  }
+
+  .tlg-camp-cost-lines > div {
+    grid-template-columns: 1fr auto;
+  }
+
+  .tlg-camp-cost-lines small {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
