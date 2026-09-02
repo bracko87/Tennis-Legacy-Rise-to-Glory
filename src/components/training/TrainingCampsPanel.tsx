@@ -313,14 +313,14 @@ export default function TrainingCampsPanel({ gameDay }: { gameDay: GameDay }) {
                   <div className="title-row">
                     <div>
                       <strong>{program.name}</strong>
-                      <span>{program.location.city}, {program.location.country_code} · {qualityLabel(program.quality_tier)}</span>
+                      <span>{program.location.city}, {program.location.country_code} · {qualityLabel(program.quality_tier)} training center</span>
                     </div>
-                    <b>{program.rating.toFixed(1)}/5</b>
+                    <b>{qualityLabel(program.quality_tier)}</b>
                   </div>
                   <p>{program.description}</p>
                   <div className="price">Training fee from <strong>${program.weekly_cost.toLocaleString()}</strong> / week</div>
                   <div className="best">Best for: {program.benefit_summary}</div>
-                  <div className="tags"><span>{categoryLabel(program)}</span><span>{qualityLabel(program.quality_tier)}</span></div>
+                  <div className="tags"><span>{categoryLabel(program)}</span><span>{program.quality_multiplier.toFixed(2)}× training quality</span></div>
                 </div>
               </button>
             ))}
@@ -342,9 +342,9 @@ export default function TrainingCampsPanel({ gameDay }: { gameDay: GameDay }) {
                 <div className="detail-title">
                   <div><h2>{selected.name}</h2><p>{selected.location.city}, {selected.location.country} · {selected.location.continent}</p></div>
                   <div className="rating">
-                    <strong>{selected.rating.toFixed(1)}/5</strong>
-                    <span>Facility rating</span>
-                    <b>{qualityLabel(selected.quality_tier)} · {selected.quality_multiplier.toFixed(2)}×</b>
+                    <strong>{qualityLabel(selected.quality_tier)}</strong>
+                    <span>Training quality</span>
+                    <b>{selected.quality_multiplier.toFixed(2)}× development</b>
                   </div>
                 </div>
 
@@ -396,8 +396,8 @@ export default function TrainingCampsPanel({ gameDay }: { gameDay: GameDay }) {
 
                 <section className="tlg-camp-accommodation">
                   <header>
-                    <div><span>ACCOMMODATION</span><h3>Choose hotel level</h3></div>
-                    <small>Hotel quality affects rest and fatigue recovery, not permanent tennis-skill gains.</small>
+                    <div><span>ACCOMMODATION</span><h3>Choose hotel rating</h3></div>
+                    <small>Stars belong to the hotel only. Better accommodation improves rest and recovery; it never directly increases permanent tennis skills.</small>
                   </header>
                   <div className="tlg-camp-hotel-grid">
                     {accommodations.map((tier) => {
@@ -434,14 +434,46 @@ export default function TrainingCampsPanel({ gameDay }: { gameDay: GameDay }) {
                   {quote && (
                     <>
                       <div className="tlg-camp-travel-summary">
-                        <div><span>TRAVEL FROM</span><strong>{quote.origin.city}, {quote.origin.country_code}</strong><small>{quote.origin.precision === 'country_estimate' ? 'Country-level estimate — set Home city in Player & Account for a city-based origin.' : 'Current database location'}</small></div>
-                        <div><span>DESTINATION</span><strong>{quote.destination.city}, {quote.destination.country_code}</strong><small>{quote.travel_type}</small></div>
+                        <div>
+                          <span>TRAVEL FROM</span>
+                          <strong>{quote.origin.city}, {quote.origin.country_code}</strong>
+                          <small>
+                            {quote.travel.basis === 'country_centroid_distance'
+                              ? 'Country-based distance estimate. Exact city coordinates can replace this later automatically.'
+                              : quote.travel.basis === 'same_country_estimate'
+                                ? 'Domestic estimate because exact city distance is not available.'
+                                : quote.travel.basis === 'exact_city_match'
+                                  ? 'Same-city local transfer.'
+                                  : 'Fallback regional estimate.'}
+                          </small>
+                        </div>
+                        <div>
+                          <span>DESTINATION</span>
+                          <strong>{quote.destination.city}, {quote.destination.country_code}</strong>
+                          <small>
+                            {quote.travel.one_way_km !== null
+                              ? `Approx. ${quote.travel.one_way_km.toLocaleString()} km one way · ${quote.travel.band}`
+                              : `${quote.travel.band} travel`}
+                          </small>
+                        </div>
                       </div>
 
                       <div className="tlg-camp-cost-lines">
-                        <div><span>Training program</span><small>${quote.training_fee_weekly.toLocaleString()} × {quote.duration_weeks} week{quote.duration_weeks === 1 ? '' : 's'}</small><strong>${quote.training_fee_total.toLocaleString()}</strong></div>
-                        <div><span>{quote.accommodation.stars}★ {quote.accommodation.name}</span><small>${quote.accommodation.weekly_cost.toLocaleString()} × {quote.duration_weeks} week{quote.duration_weeks === 1 ? '' : 's'}</small><strong>${quote.accommodation.total.toLocaleString()}</strong></div>
-                        <div><span>Player transfer</span><small>Estimated round trip from current location</small><strong>${quote.travel_cost.toLocaleString()}</strong></div>
+                        <div>
+                          <span>Training program</span>
+                          <small>${quote.training_fee_weekly.toLocaleString()} × {quote.duration_weeks} week{quote.duration_weeks === 1 ? '' : 's'} · {qualityLabel(quote.training_quality.tier)} {quote.training_quality.multiplier.toFixed(2)}×</small>
+                          <strong>${quote.training_fee_total.toLocaleString()}</strong>
+                        </div>
+                        <div>
+                          <span>{quote.accommodation.stars}★ {quote.accommodation.name}</span>
+                          <small>${quote.accommodation.base_weekly_cost.toLocaleString()} base × {quote.accommodation.destination_cost_index.toFixed(2)} city index = ${quote.accommodation.weekly_cost.toLocaleString()}/week</small>
+                          <strong>${quote.accommodation.total.toLocaleString()}</strong>
+                        </div>
+                        <div>
+                          <span>Player transfer</span>
+                          <small>{quote.travel.formula}{quote.travel.round_trip_km !== null ? ` · ${quote.travel.round_trip_km.toLocaleString()} km round trip` : ''} · expected arrival fatigue +{quote.travel.arrival_fatigue}</small>
+                          <strong>${quote.travel_cost.toLocaleString()}</strong>
+                        </div>
                         <div className="future"><span>Staff travel & hotel</span><small>Prepared for the future Staff system</small><strong>$0</strong></div>
                       </div>
 
