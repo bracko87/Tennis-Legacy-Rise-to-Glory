@@ -1,0 +1,56 @@
+/*
+ * Tennis Legacy global typography standard
+ *
+ * The Training Camp cards are the visual reference: they inherit Tailwind's
+ * system sans-serif stack. Keep that same typeface throughout the entire game.
+ * This file is intentionally loaded LAST so legacy/page-specific styles cannot
+ * introduce a different font family. Font sizes and weights remain owned by
+ * each component; this file standardizes only the typeface.
+ */
+
+:root {
+  --tlg-font-ui: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+html,
+body,
+#app,
+#root {
+  font-family: var(--tlg-font-ui) !important;
+}
+
+/* Authenticated game, marketing pages, auth pages and ordinary React content. */
+html body #app *,
+html body #root *,
+html body #app *::before,
+html body #app *::after,
+html body #root *::before,
+html body #root *::after {
+  font-family: var(--tlg-font-ui) !important;
+}
+
+/* Native form controls do not always inherit typography consistently. */
+button,
+input,
+select,
+textarea,
+optgroup,
+option,
+label {
+  font-family: var(--tlg-font-ui) !important;
+}
+
+/* Radix/shadcn overlays are commonly portalled directly under <body>. */
+html body [data-radix-portal] *,
+html body [role="dialog"] *,
+html body [role="menu"] *,
+html body [role="listbox"] *,
+html body [role="tooltip"] * {
+  font-family: var(--tlg-font-ui) !important;
+}
+
+/* Recharts and any future SVG-based statistics should match the UI too. */
+svg text,
+svg tspan {
+  font-family: var(--tlg-font-ui) !important;
+}
