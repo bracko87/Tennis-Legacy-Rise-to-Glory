@@ -1,0 +1,13 @@
+/* Skills workspace alignment fixes.
+ * Keep the left development/snapshot panel the same height as the active skills panel.
+ */
+
+.tlg-skills-workspace > .tlg-skills-side-tabs {
+  align-self: stretch;
+}
+
+@media (max-width: 900px) {
+  .tlg-skills-workspace > .tlg-skills-side-tabs {
+    align-self: auto;
+  }
+}
