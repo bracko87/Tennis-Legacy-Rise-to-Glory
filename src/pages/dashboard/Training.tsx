@@ -389,15 +389,6 @@ export default function TrainingPage() {
                     <p>Fractional progress accumulates between sessions. At 100%, the permanent skill increases by one point and the Skill Improved notification is generated automatically.</p>
                   </section>
                 )}
-
-                <section className="tlg-training-day-rules">
-                  <header><span>DAILY ACTIVITY RULE</span><strong>Who owns the day?</strong></header>
-                  <div className="home"><span>Home</span><strong>Regular Training / Day Off</strong></div>
-                  <div><span>Travel</span><strong>No skills · Fatigue only</strong></div>
-                  <div><span>Tournament</span><strong>Match engine</strong></div>
-                  <div><span>Training Camp</span><strong>Camp engine</strong></div>
-                  <div><span>Injured</span><strong>Recovery / injury engine</strong></div>
-                </section>
               </aside>
             </div>
 
