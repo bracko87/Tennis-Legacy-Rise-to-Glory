@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import GameLayout from '../../components/layout/GameLayout'
+import TrainingCampsPanel from '../../components/training/TrainingCampsPanel'
 import {
   type TrainingIntensity,
   type TrainingType,
@@ -444,21 +445,8 @@ export default function TrainingPage() {
           </>
         )}
 
-        {view === 'camps' && (
-          <section className="tlg-training-camps">
-            <header>
-              <span>NEXT TRAINING LAYER</span>
-              <h2>Training Camps</h2>
-              <p>Camp training will be a separate, stronger development system and will completely replace regular training for every day that the player is inside the camp.</p>
-            </header>
-            <div className="tlg-training-camp-grid">
-              <article><span>01</span><strong>Destination & duration</strong><p>Choose where the player travels and how many in-game days the camp lasts.</p></article>
-              <article><span>02</span><strong>Specialization</strong><p>Different camps will emphasize technical skills, physical qualities, recovery or selected court surfaces.</p></article>
-              <article><span>03</span><strong>Stronger development</strong><p>Camp development will exceed regular daily training but will use its own fatigue, cost and availability model.</p></article>
-              <article><span>04</span><strong>Calendar ownership</strong><p>Camp days will be marked as Training Camp days, automatically blocking regular training and tournament conflicts.</p></article>
-            </div>
-            <div className="tlg-training-camp-coming">Camp booking and camp effects will be connected in the next phase.</div>
-          </section>
+        {view === 'camps' && dashboard && (
+          <TrainingCampsPanel gameDay={dashboard.game_day} />
         )}
       </div>
     </GameLayout>
