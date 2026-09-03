@@ -23,6 +23,7 @@ import './styles/training-weekly-save.css'
 import './styles/font-standard.css'
 import './styles/tournament-match-modal-expanded.css'
 import './styles/tournament-match-side-mirror.css'
+import './styles/tournament-match-avatar-normalization.css'
 import App from './App'
 
 const appElement =
