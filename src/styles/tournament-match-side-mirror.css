@@ -1,0 +1,41 @@
+/* Mirror the second player card: identity on the left, portrait on the right. */
+.tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-portrait-stage {
+  inset: 0 0 0 auto;
+}
+
+.tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-portrait-stage::after {
+  background: linear-gradient(270deg,rgba(248,251,253,0) 45%,var(--match-card-bg) 96%);
+}
+
+.tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-summary {
+  margin-left: 0;
+  margin-right: 42%;
+  padding: 38px 16px 28px 28px;
+  align-items: flex-start;
+  text-align: left;
+}
+
+/* Disable the previous temporary generic opponent mock now that real avatars are assigned. */
+.tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-portrait-stage:not(.has-image) {
+  background-image: none !important;
+}
+
+.tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-portrait-stage:not(.has-image) > span {
+  display: block !important;
+}
+
+@media(max-width:980px) {
+  .tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-summary {
+    margin-left: 0;
+    margin-right: 40%;
+    padding: 26px 12px 24px 20px;
+  }
+}
+
+@media(max-width:680px) {
+  .tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-summary {
+    margin-left: 0;
+    margin-right: 43%;
+    padding: 22px 8px 20px 12px;
+  }
+}
