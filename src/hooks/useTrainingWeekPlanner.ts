@@ -43,6 +43,13 @@ export interface TrainingWeekPlanner {
   }
 }
 
+export interface TrainingDaySaveDraft {
+  absolute_day: number
+  training_type: TrainingType
+  focus_attribute: string | null
+  intensity: TrainingIntensity
+}
+
 export function useTrainingWeekPlanner() {
   const { player } = useAuth()
   const [currentWeek, setCurrentWeek] = useState<TrainingWeekPlanner | null>(null)
@@ -95,6 +102,28 @@ export function useTrainingWeekPlanner() {
     await refresh()
     setSaving(false)
     return true
+  }, [refresh])
+
+  const saveDays = useCallback(async (changes: TrainingDaySaveDraft[]) => {
+    if (changes.length === 0) return { status: 'saved', saved_days: 0 }
+    setSaving(true)
+    setError(null)
+    const { data, error: rpcError } = await supabase.rpc('set_training_week_days_v1', {
+      p_days: changes.map((change) => ({
+        absolute_day: change.absolute_day,
+        training_type: change.training_type,
+        focus_attribute: change.training_type === 'day_off' ? null : change.focus_attribute,
+        intensity: change.intensity,
+      })),
+    })
+    if (rpcError) {
+      setError(rpcError.message)
+      setSaving(false)
+      return null
+    }
+    await refresh()
+    setSaving(false)
+    return data as { status: string; saved_days: number }
   }, [refresh])
 
   const applyWeek = useCallback(async (
@@ -165,6 +194,7 @@ export function useTrainingWeekPlanner() {
     error,
     refresh,
     saveDay,
+    saveDays,
     applyWeek,
   }
 }
