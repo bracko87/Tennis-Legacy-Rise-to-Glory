@@ -24,12 +24,109 @@ interface PlayerProfileRow {
   is_ai: boolean
 }
 
+interface TournamentSummaryItem {
+  competition_id: string
+  result_id?: string
+  season: number
+  start_week: number
+  end_week: number
+  tournament_name: string
+  city: string
+  country_code: string
+  category_code: string
+  category_label: string
+  surface: string
+  logo_url: string | null
+  result_code?: string
+  result_label?: string
+  ranking_points_earned?: number
+}
+
+interface PlayerTournamentSummary {
+  next_tournaments: TournamentSummaryItem[]
+  recent_tournaments: TournamentSummaryItem[]
+  best_results: TournamentSummaryItem[]
+}
+
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+const EMPTY_TOURNAMENT_SUMMARY: PlayerTournamentSummary = {
+  next_tournaments: [],
+  recent_tournaments: [],
+  best_results: [],
+}
+
+function fromAbsoluteDay(value: number) {
+  const season = Math.floor(value / 366) + 1
+  let remaining = value % 366
+  let month = 1
+  for (let index = 0; index < MONTH_LENGTHS.length; index += 1) {
+    if (remaining < MONTH_LENGTHS[index]) {
+      month = index + 1
+      break
+    }
+    remaining -= MONTH_LENGTHS[index]
+  }
+  return { season, month, day: remaining + 1 }
+}
+
+function tournamentStartDate(item: TournamentSummaryItem) {
+  const absolute = (item.season - 1) * 366 + 2 + (item.start_week - 1) * 7
+  const day = fromAbsoluteDay(absolute)
+  return `${MONTH_SHORT[day.month - 1]} ${String(day.day).padStart(2, '0')}`
+}
+
+function tournamentWeekLabel(item: TournamentSummaryItem) {
+  if (item.start_week === item.end_week) return `Season ${item.season} · Week ${item.start_week}`
+  return `Season ${item.season} · Weeks ${item.start_week}–${item.end_week}`
+}
+
+function TournamentRows({ items, emptyText, showResult = false, ranked = false }: {
+  items: TournamentSummaryItem[]
+  emptyText: string
+  showResult?: boolean
+  ranked?: boolean
+}) {
+  if (items.length === 0) return <div className="tlg-public-tournament-empty">{emptyText}</div>
+
+  return (
+    <div className="tlg-public-tournament-list">
+      {items.map((item, index) => (
+        <article className="tlg-public-tournament-row" key={item.result_id ?? item.competition_id}>
+          {ranked && <strong className="tlg-public-tournament-place">{index + 1}</strong>}
+          <span className="tlg-public-tournament-date">{tournamentStartDate(item)}</span>
+          <div className="tlg-public-tournament-name">
+            <CountryFlag countryCode={item.country_code} countryName={item.country_code} width={23} height={16} />
+            <div>
+              <strong>{item.tournament_name}</strong>
+              <small>{item.city} · {tournamentWeekLabel(item)}</small>
+            </div>
+          </div>
+          <div className="tlg-public-tournament-meta">
+            <span>{item.category_code}</span>
+            <small>{item.surface}</small>
+          </div>
+          {showResult && (
+            <div className="tlg-public-tournament-result">
+              <strong>{item.result_label ?? 'Completed'}</strong>
+              {(item.ranking_points_earned ?? 0) > 0 && <small>+{item.ranking_points_earned} pts</small>}
+            </div>
+          )}
+        </article>
+      ))}
+    </div>
+  )
+}
+
 export default function PlayerProfilePage() {
   const { playerId } = useParams()
   const navigate = useNavigate()
   const [profile, setProfile] = useState<PlayerProfileRow | null>(null)
+  const [tournaments, setTournaments] = useState<PlayerTournamentSummary>(EMPTY_TOURNAMENT_SUMMARY)
   const [loading, setLoading] = useState(true)
+  const [tournamentsLoading, setTournamentsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [tournamentError, setTournamentError] = useState<string | null>(null)
   const [messageBusy, setMessageBusy] = useState(false)
   const avatarUrl = usePlayerAvatarUrl(profile?.image_path)
 
@@ -38,17 +135,34 @@ export default function PlayerProfilePage() {
     async function loadProfile() {
       if (!playerId) return
       setLoading(true)
+      setTournamentsLoading(true)
       setError(null)
-      const { data, error: loadError } = await supabase.rpc('get_player_profile_v2', { p_player_id: playerId })
+      setTournamentError(null)
+
+      const [profileResponse, tournamentResponse] = await Promise.all([
+        supabase.rpc('get_player_profile_v2', { p_player_id: playerId }),
+        supabase.rpc('get_player_tournament_summary_v1', { p_player_id: playerId }),
+      ])
+
       if (!active) return
-      const row = (Array.isArray(data) ? data[0] : data) as PlayerProfileRow | undefined
-      if (loadError || !row) {
+      const row = (Array.isArray(profileResponse.data) ? profileResponse.data[0] : profileResponse.data) as PlayerProfileRow | undefined
+      if (profileResponse.error || !row) {
         setProfile(null)
-        setError(loadError?.message ?? 'Player profile not found.')
+        setError(profileResponse.error?.message ?? 'Player profile not found.')
       } else {
         setProfile(row)
       }
+
+      if (tournamentResponse.error) {
+        setTournaments(EMPTY_TOURNAMENT_SUMMARY)
+        setTournamentError(tournamentResponse.error.message)
+      } else {
+        const summary = tournamentResponse.data as PlayerTournamentSummary | null
+        setTournaments(summary ?? EMPTY_TOURNAMENT_SUMMARY)
+      }
+
       setLoading(false)
+      setTournamentsLoading(false)
     }
     void loadProfile()
     return () => { active = false }
@@ -80,61 +194,112 @@ export default function PlayerProfilePage() {
         ) : error && !profile ? (
           <div className="tlg-public-player-state">{error}</div>
         ) : profile ? (
-          <section className="tlg-public-player-card">
-            <div className="tlg-public-player-avatar">
-              {avatarUrl ? <img src={avatarUrl} alt={`${name} avatar`} /> : <UserRound size={72} />}
-            </div>
+          <>
+            <section className="tlg-public-player-card">
+              <div className="tlg-public-player-avatar">
+                {avatarUrl ? <img src={avatarUrl} alt={`${name} avatar`} /> : <UserRound size={72} />}
+              </div>
 
-            <div className="tlg-public-player-main">
-              <div className="tlg-public-player-heading-row">
-                <div>
-                  <span className="tlg-public-player-kicker">{profile.world} singles player</span>
-                  <h1>{name}</h1>
-                  <div className="tlg-public-player-country">
-                    <CountryFlag countryCode={profile.country_code} countryName={profile.country_code} width={26} height={17} />
-                    <span>{profile.home_city ? `${profile.home_city}, ${profile.country_code}` : profile.country_code}</span>
+              <div className="tlg-public-player-main">
+                <div className="tlg-public-player-heading-row">
+                  <div>
+                    <span className="tlg-public-player-kicker">{profile.world} singles player</span>
+                    <h1>{name}</h1>
+                    <div className="tlg-public-player-country">
+                      <CountryFlag countryCode={profile.country_code} countryName={profile.country_code} width={26} height={17} />
+                      <span>{profile.home_city ? `${profile.home_city}, ${profile.country_code}` : profile.country_code}</span>
+                    </div>
+                  </div>
+
+                  <div className="tlg-public-player-primary-action">
+                    {profile.is_own_player ? (
+                      <button type="button" onClick={() => navigate('/game/inbox')}>
+                        Open inbox
+                      </button>
+                    ) : !profile.is_ai ? (
+                      <button type="button" onClick={startConversation} disabled={messageBusy}>
+                        <Mail size={16} /> {messageBusy ? 'Opening…' : 'Send message'}
+                      </button>
+                    ) : null}
                   </div>
                 </div>
 
-                <div className="tlg-public-player-primary-action">
-                  {profile.is_own_player ? (
-                    <button type="button" onClick={() => navigate('/game/inbox')}>
-                      Open inbox
-                    </button>
-                  ) : !profile.is_ai ? (
-                    <button type="button" onClick={startConversation} disabled={messageBusy}>
-                      <Mail size={16} /> {messageBusy ? 'Opening…' : 'Send message'}
-                    </button>
-                  ) : null}
+                <div className="tlg-public-player-stats">
+                  <article><span>World ranking</span><strong>#{profile.rank_position}</strong></article>
+                  <article><span>Ranking points</span><strong>{profile.ranking_points.toLocaleString()}</strong></article>
+                  <article><span>Competition world</span><strong>{profile.world}</strong></article>
                 </div>
-              </div>
 
-              <div className="tlg-public-player-stats">
-                <article><span>World ranking</span><strong>#{profile.rank_position}</strong></article>
-                <article><span>Ranking points</span><strong>{profile.ranking_points.toLocaleString()}</strong></article>
-                <article><span>Competition world</span><strong>{profile.world}</strong></article>
-              </div>
+                <div className="tlg-public-player-info">
+                  <header>
+                    <span>Player information</span>
+                    <h2>Career overview</h2>
+                  </header>
+                  <div className="tlg-public-player-info-grid">
+                    <div><span>Home city</span><strong>{profile.home_city ?? 'Not set'}</strong></div>
+                    <div><span>Country</span><strong>{profile.country_code}</strong></div>
+                    <div><span>Preferred surface</span><strong>{profile.preferred_surface ?? 'Not set'}</strong></div>
+                    <div><span>Playing style</span><strong>{profile.playing_style}</strong></div>
+                    <div><span>Discipline</span><strong>Singles</strong></div>
+                    <div><span>Tour</span><strong>{profile.world}</strong></div>
+                    <div><span>Ranking status</span><strong>{profile.rank_position > 0 ? `Ranked #${profile.rank_position}` : 'Unranked'}</strong></div>
+                  </div>
+                  <p>Head-to-head records and deeper career statistics will expand here as the competitive match system is connected.</p>
+                </div>
 
-              <div className="tlg-public-player-info">
+                {error && <p className="tlg-public-player-error">{error}</p>}
+              </div>
+            </section>
+
+            <section className="tlg-public-player-career-grid">
+              <article className="tlg-public-player-career-card">
                 <header>
-                  <span>Player information</span>
-                  <h2>Career overview</h2>
+                  <div>
+                    <span>COMING UP</span>
+                    <h2>Next tournaments</h2>
+                    <p>Up to five registered tournaments that have not finished yet.</p>
+                  </div>
                 </header>
-                <div className="tlg-public-player-info-grid">
-                  <div><span>Home city</span><strong>{profile.home_city ?? 'Not set'}</strong></div>
-                  <div><span>Country</span><strong>{profile.country_code}</strong></div>
-                  <div><span>Preferred surface</span><strong>{profile.preferred_surface ?? 'Not set'}</strong></div>
-                  <div><span>Playing style</span><strong>{profile.playing_style}</strong></div>
-                  <div><span>Discipline</span><strong>Singles</strong></div>
-                  <div><span>Tour</span><strong>{profile.world}</strong></div>
-                  <div><span>Ranking status</span><strong>{profile.rank_position > 0 ? `Ranked #${profile.rank_position}` : 'Unranked'}</strong></div>
-                </div>
-                <p>Tournament history, head-to-head records and career statistics will expand here as the competitive match systems are connected.</p>
-              </div>
+                {tournamentsLoading ? (
+                  <div className="tlg-public-tournament-empty">Loading tournament schedule…</div>
+                ) : (
+                  <TournamentRows items={tournaments.next_tournaments} emptyText="No upcoming registered tournaments." />
+                )}
+              </article>
 
-              {error && <p className="tlg-public-player-error">{error}</p>}
-            </div>
-          </section>
+              <article className="tlg-public-player-career-card">
+                <header>
+                  <div>
+                    <span>RECENT FORM</span>
+                    <h2>Recent tournaments</h2>
+                    <p>The player's five most recently completed tournaments.</p>
+                  </div>
+                </header>
+                {tournamentsLoading ? (
+                  <div className="tlg-public-tournament-empty">Loading tournament history…</div>
+                ) : (
+                  <TournamentRows items={tournaments.recent_tournaments} emptyText="No completed tournaments yet." showResult />
+                )}
+              </article>
+
+              <article className="tlg-public-player-career-card best-results">
+                <header>
+                  <div>
+                    <span>CAREER HIGHLIGHTS</span>
+                    <h2>Best results</h2>
+                    <p>Top five career results, weighted by tournament level and the round reached.</p>
+                  </div>
+                </header>
+                {tournamentsLoading ? (
+                  <div className="tlg-public-tournament-empty">Loading best results…</div>
+                ) : (
+                  <TournamentRows items={tournaments.best_results} emptyText="No tournament results yet." showResult ranked />
+                )}
+              </article>
+            </section>
+
+            {tournamentError && <p className="tlg-public-player-error tlg-public-player-tournament-error">Tournament statistics could not be loaded: {tournamentError}</p>}
+          </>
         ) : null}
       </div>
     </GameLayout>
