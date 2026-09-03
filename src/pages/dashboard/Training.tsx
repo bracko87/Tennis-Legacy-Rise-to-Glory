@@ -1,14 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 
 import GameLayout from '../../components/layout/GameLayout'
 import TrainingCampsPanel from '../../components/training/TrainingCampsPanel'
+import TrainingProgressOverview from '../../components/training/TrainingProgressOverview'
+import WeeklyTrainingPlanner from '../../components/training/WeeklyTrainingPlanner'
 import {
-  type TrainingIntensity,
   type TrainingSessionRole,
   type TrainingType,
   useTraining,
 } from '../../hooks/useTraining'
 import '../../styles/training.css'
+import '../../styles/training-weekly-planner.css'
 
 type TrainingView = 'regular' | 'camps'
 
@@ -17,50 +19,20 @@ const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ]
 
-const TECHNICAL_SKILLS = [
-  ['serve', 'Serve'],
-  ['forehand', 'Forehand'],
-  ['backhand', 'Backhand'],
-  ['return_skill', 'Return'],
-  ['volley', 'Volley'],
-  ['slice', 'Slice'],
-  ['drop_shot', 'Drop Shot'],
-  ['lob', 'Lob'],
-  ['smash', 'Smash'],
-] as const
-
-const PHYSICAL_SKILLS = [
-  ['fitness', 'Fitness'],
-  ['stamina', 'Stamina'],
-  ['recovery', 'Recovery'],
-  ['movement', 'Movement'],
-] as const
-
-const ATTRIBUTE_LABELS: Record<string, string> = Object.fromEntries([
-  ...TECHNICAL_SKILLS,
-  ...PHYSICAL_SKILLS,
-])
-
-const INTENSITY_COPY: Record<TrainingIntensity, { title: string; load: string; note: string }> = {
-  light: {
-    title: 'Light',
-    load: 'Low load',
-    note: 'Smaller gains with limited fatigue. Useful around competition periods.',
-  },
-  standard: {
-    title: 'Standard',
-    load: 'Normal load',
-    note: 'The regular development setting for most home training days.',
-  },
-  hard: {
-    title: 'Hard',
-    load: 'High load',
-    note: 'Faster development, but fatigue rises much more quickly.',
-  },
-}
-
-function clamp(value: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, value))
+const ATTRIBUTE_LABELS: Record<string, string> = {
+  serve: 'Serve',
+  forehand: 'Forehand',
+  backhand: 'Backhand',
+  return_skill: 'Return',
+  volley: 'Volley',
+  slice: 'Slice',
+  drop_shot: 'Drop Shot',
+  lob: 'Lob',
+  smash: 'Smash',
+  fitness: 'Fitness',
+  stamina: 'Stamina',
+  recovery: 'Recovery',
+  movement: 'Movement',
 }
 
 function titleCase(value: string) {
@@ -84,17 +56,6 @@ function sessionRoleLabel(role?: TrainingSessionRole | null) {
   return 'Development Day'
 }
 
-function developmentMultiplier(value: number | null) {
-  if (value === null) return 1
-  if (value >= 100) return 0
-  if (value >= 95) return 0.20
-  if (value >= 90) return 0.35
-  if (value >= 80) return 0.55
-  if (value >= 70) return 0.75
-  if (value >= 60) return 0.90
-  return 1
-}
-
 function scoreReadiness(skills: NonNullable<ReturnType<typeof useTraining>['dashboard']>['skills']) {
   return (
     skills.morale + skills.confidence + skills.sharpness + skills.focus + (100 - skills.fatigue)
@@ -112,79 +73,15 @@ export default function TrainingPage() {
   const {
     dashboard,
     loading,
-    saving,
     processing,
     error,
-    savePlan,
     completeToday,
   } = useTraining()
 
   const [view, setView] = useState<TrainingView>('regular')
-  const [trainingType, setTrainingType] = useState<TrainingType>('day_off')
-  const [focusAttribute, setFocusAttribute] = useState<string | null>(null)
-  const [intensity, setIntensity] = useState<TrainingIntensity>('standard')
   const [actionMessage, setActionMessage] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!dashboard?.plan) return
-    setTrainingType(dashboard.plan.training_type)
-    setFocusAttribute(dashboard.plan.focus_attribute)
-    setIntensity(dashboard.plan.intensity)
-  }, [dashboard?.plan])
-
   const readiness = dashboard ? scoreReadiness(dashboard.skills) : 0
-  const scheduledRole = dashboard?.game_day.scheduled_role ?? 'planned_training'
-
-  const planDirty = Boolean(dashboard && (
-    dashboard.plan.training_type !== trainingType ||
-    dashboard.plan.focus_attribute !== focusAttribute ||
-    dashboard.plan.intensity !== intensity
-  ))
-
-  const selectedValue = dashboard && focusAttribute
-    ? Number((dashboard.skills as unknown as Record<string, number>)[focusAttribute] ?? 0)
-    : null
-  const selectedProgress = dashboard && focusAttribute
-    ? Number((dashboard.progress as unknown as Record<string, number>)[focusAttribute] ?? 0)
-    : 0
-
-  const impactPreview = useMemo(() => {
-    if (!dashboard || trainingType === 'day_off') return null
-    const conditionReadiness = (
-      dashboard.skills.morale + dashboard.skills.confidence + dashboard.skills.sharpness +
-      dashboard.skills.focus + (100 - dashboard.skills.fatigue)
-    ) / 500
-    const efficiency = clamp(0.78 + 0.37 * conditionReadiness, 0.70, 1.05)
-    const developmentDayScale = dashboard.game_day.season_week && dashboard.game_day.season_week > 0 ? 1.40 : 1
-    const budget = ({ light: 0.10, standard: 0.16, hard: 0.22 } as const)[intensity] * efficiency * developmentDayScale
-    const multiplier = developmentMultiplier(selectedValue)
-    const target = budget * 0.85 * multiplier
-    const baseFatigue = trainingType === 'technical'
-      ? ({ light: 3, standard: 6, hard: 10 } as const)[intensity]
-      : ({ light: 4, standard: 7, hard: 11 } as const)[intensity]
-    const resilience = (
-      dashboard.skills.fitness + dashboard.skills.stamina + dashboard.skills.recovery
-    ) / 300
-    const fatigue = Math.max(1, Math.round(baseFatigue * (1.15 - 0.30 * resilience)))
-    return { efficiency, target, fatigue, multiplier }
-  }, [dashboard, intensity, selectedValue, trainingType])
-
-  function chooseType(type: TrainingType) {
-    setTrainingType(type)
-    setActionMessage(null)
-    if (type === 'technical') {
-      if (!TECHNICAL_SKILLS.some(([key]) => key === focusAttribute)) setFocusAttribute('forehand')
-    } else if (type === 'physical') {
-      if (!PHYSICAL_SKILLS.some(([key]) => key === focusAttribute)) setFocusAttribute('fitness')
-    } else {
-      setFocusAttribute(null)
-    }
-  }
-
-  async function handleSavePlan() {
-    const saved = await savePlan(trainingType, focusAttribute, intensity)
-    setActionMessage(saved ? 'Training plan saved.' : null)
-  }
 
   async function handleCompleteToday() {
     setActionMessage(null)
@@ -223,7 +120,7 @@ export default function TrainingPage() {
             <span>PLAYER DEVELOPMENT CENTER</span>
             <h1>Training Center</h1>
             <p>
-              Develop your player on home days, balance training load against fatigue, and use recovery days before the next competitive period.
+              Build your weekly routine around tournaments, travel and recovery. Regular Training is available only when the calendar says your player is at home.
             </p>
           </div>
 
@@ -232,7 +129,7 @@ export default function TrainingPage() {
               <div>
                 <span>TODAY</span>
                 <strong>{activityLabel(dashboard.activity_type)}</strong>
-                <small>Season {dashboard.game_day.season} · {MONTH_NAMES[dashboard.game_day.month - 1]} {dashboard.game_day.day}{dashboard.activity_type === 'home' ? ` · ${sessionRoleLabel(scheduledRole)}` : ''}</small>
+                <small>Season {dashboard.game_day.season} · {MONTH_NAMES[dashboard.game_day.month - 1]} {dashboard.game_day.day}</small>
               </div>
               <div>
                 <span>READINESS</span>
@@ -262,121 +159,22 @@ export default function TrainingPage() {
               <section className="tlg-training-plan-panel">
                 <header className="tlg-training-section-head">
                   <div>
-                    <span>TODAY'S PLAN</span>
-                    <h2>Choose the work for this home day</h2>
-                    <p>Your saved plan follows a professional weekly rhythm: five development days, one active-recovery day and one full-rest day. Recovery days are scheduled automatically.</p>
+                    <span>WEEKLY TRAINING PLAN</span>
+                    <h2>Plan this week and next week</h2>
+                    <p>Choose a different skill and load for every Home day, use Day Off whenever you want recovery, or apply one plan across the whole available week. Tournament, travel, camp and injury days automatically take priority.</p>
                   </div>
                   <div className={`tlg-training-status ${dashboard.eligible ? 'available' : 'blocked'}`}>
-                    <span>{dashboard.eligible ? 'AVAILABLE' : 'BLOCKED'}</span>
-                    <strong>{dashboard.activity_type === 'home' ? sessionRoleLabel(scheduledRole) : activityLabel(dashboard.activity_type)}</strong>
+                    <span>{dashboard.eligible ? 'HOME DAY' : 'CALENDAR'}</span>
+                    <strong>{activityLabel(dashboard.activity_type)}</strong>
                   </div>
                 </header>
 
-                {!dashboard.eligible && (
-                  <div className="tlg-training-block-reason">{dashboard.block_reason}</div>
-                )}
-
-                <div className="tlg-training-type-grid">
-                  <button type="button" className={trainingType === 'technical' ? 'selected' : ''} onClick={() => chooseType('technical')}>
-                    <span>TECHNICAL</span>
-                    <strong>Tennis Skills</strong>
-                    <p>85% of technical development targets one selected tennis skill. The remaining 15% is shared by the other eight.</p>
-                  </button>
-                  <button type="button" className={trainingType === 'physical' ? 'selected' : ''} onClick={() => chooseType('physical')}>
-                    <span>PHYSICAL</span>
-                    <strong>Athletic Development</strong>
-                    <p>Focus on Fitness, Stamina, Recovery or Movement while still receiving a very small technical carry-over.</p>
-                  </button>
-                  <button type="button" className={trainingType === 'day_off' ? 'selected' : ''} onClick={() => chooseType('day_off')}>
-                    <span>RECOVERY</span>
-                    <strong>Day Off</strong>
-                    <p>No permanent skill development. Fatigue falls, Morale and Focus recover slightly, while Sharpness can cool down.</p>
-                  </button>
-                </div>
-
-                {trainingType !== 'day_off' && (
-                  <div className="tlg-training-builder">
-                    <div className="tlg-training-builder-block">
-                      <div className="tlg-training-builder-title">
-                        <div>
-                          <span>PRIMARY FOCUS</span>
-                          <strong>{trainingType === 'technical' ? 'Select tennis skill' : 'Select physical skill'}</strong>
-                        </div>
-                        <small>85% focus / 15% shared</small>
-                      </div>
-
-                      <div className={`tlg-training-skill-grid ${trainingType === 'physical' ? 'physical' : ''}`}>
-                        {(trainingType === 'technical' ? TECHNICAL_SKILLS : PHYSICAL_SKILLS).map(([key, label]) => {
-                          const value = Number((dashboard.skills as unknown as Record<string, number>)[key] ?? 0)
-                          const progress = Number((dashboard.progress as unknown as Record<string, number>)[key] ?? 0)
-                          return (
-                            <button key={key} type="button" className={focusAttribute === key ? 'selected' : ''} onClick={() => setFocusAttribute(key)}>
-                              <span>{label}</span>
-                              <strong>{value}</strong>
-                              <div><i style={{ width: `${clamp(progress * 100, 0, 100)}%` }} /></div>
-                              <small>{Math.round(progress * 100)}% to next point</small>
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-
-                    <div className="tlg-training-builder-block">
-                      <div className="tlg-training-builder-title">
-                        <div>
-                          <span>TRAINING LOAD</span>
-                          <strong>Choose intensity</strong>
-                        </div>
-                      </div>
-
-                      <div className="tlg-training-intensity-grid">
-                        {(['light', 'standard', 'hard'] as TrainingIntensity[]).map((item) => (
-                          <button key={item} type="button" className={intensity === item ? 'selected' : ''} onClick={() => setIntensity(item)}>
-                            <span>{INTENSITY_COPY[item].load}</span>
-                            <strong>{INTENSITY_COPY[item].title}</strong>
-                            <p>{INTENSITY_COPY[item].note}</p>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <footer className="tlg-training-plan-actions">
-                  <div>
-                    <strong>{trainingLabel(trainingType, focusAttribute)}</strong>
-                    <span>
-                      {trainingType === 'day_off'
-                        ? 'Recovery day selected.'
-                        : scheduledRole !== 'planned_training'
-                          ? `${sessionRoleLabel(scheduledRole)} is scheduled today. No permanent skill development is applied on this recovery day.`
-                          : impactPreview
-                            ? `Estimated focus progress +${impactPreview.target.toFixed(3)} · development rate ${Math.round(impactPreview.multiplier * 100)}% · expected fatigue +${impactPreview.fatigue}`
-                            : 'Choose your training focus.'}
-                    </span>
-                  </div>
-                  <button type="button" className="secondary" onClick={handleSavePlan} disabled={saving || !focusAttribute && trainingType !== 'day_off'}>
-                    {saving ? 'Saving…' : planDirty ? 'Save Plan' : 'Plan Saved'}
-                  </button>
-                  <button
-                    type="button"
-                    className="primary"
-                    onClick={handleCompleteToday}
-                    disabled={processing || !dashboard.eligible || Boolean(dashboard.today_session) || planDirty}
-                  >
-                    {processing
-                      ? 'Processing…'
-                      : dashboard.today_session
-                        ? 'Today Completed'
-                        : trainingType === 'day_off'
-                          ? 'Take Day Off'
-                          : scheduledRole === 'active_recovery'
-                            ? 'Complete Active Recovery'
-                            : scheduledRole === 'full_rest'
-                              ? 'Take Full Rest'
-                              : 'Complete Today’s Training'}
-                  </button>
-                </footer>
+                <WeeklyTrainingPlanner
+                  defaultPlan={dashboard.plan}
+                  processing={processing}
+                  todayProcessed={Boolean(dashboard.today_session)}
+                  onCompleteToday={handleCompleteToday}
+                />
               </section>
 
               <aside className="tlg-training-side">
@@ -410,29 +208,13 @@ export default function TrainingPage() {
                   })}
                 </section>
 
-                {focusAttribute && trainingType !== 'day_off' && (
-                  <section className="tlg-training-focus-card">
-                    <span>SELECTED DEVELOPMENT</span>
-                    <div className="tlg-training-focus-value">
-                      <div>
-                        <strong>{ATTRIBUTE_LABELS[focusAttribute]}</strong>
-                        <small>Current skill</small>
-                      </div>
-                      <b>{selectedValue}</b>
-                    </div>
-                    <div className="tlg-training-next-level">
-                      <div><span>Progress to next point</span><strong>{Math.round(selectedProgress * 100)}%</strong></div>
-                      <div><i style={{ width: `${clamp(selectedProgress * 100, 0, 100)}%` }} /></div>
-                    </div>
-                    <p>Fractional progress accumulates between sessions. At 100%, the permanent skill increases by one point. Development naturally slows as an attribute becomes elite; there is no age-based decline or retirement modifier.</p>
-                  </section>
-                )}
+                <TrainingProgressOverview dashboard={dashboard} />
               </aside>
             </div>
 
             <section className="tlg-training-engine-strip">
               <div><span>FOCUS DISTRIBUTION</span><strong>85% / 15%</strong><small>Selected attribute / remaining category</small></div>
-              <div><span>WEEKLY RHYTHM</span><strong>5 + 1 + 1</strong><small>Development / active recovery / full rest</small></div>
+              <div><span>WEEKLY PLANNER</span><strong>7 days</strong><small>User plan on Home days · calendar ownership always wins</small></div>
               <div><span>DEVELOPMENT CURVE</span><strong>Skill based</strong><small>100% below 60, gradually falling to 20% at 95–99</small></div>
               <div><span>CAMP RHYTHM</span><strong>6 + 1</strong><small>Six development days plus one recovery day</small></div>
             </section>
@@ -442,7 +224,7 @@ export default function TrainingPage() {
                 <div>
                   <span>TRAINING HISTORY</span>
                   <h2>Recent development days</h2>
-                  <p>The last ten processed regular-training or recovery days are kept here.</p>
+                  <p>The last ten processed Regular Training or recovery days are kept here.</p>
                 </div>
               </header>
 
@@ -476,8 +258,8 @@ export default function TrainingPage() {
             </section>
 
             <div className="tlg-training-automation-note">
-              <strong>Daily automation is prepared but intentionally not switched on yet.</strong>
-              <span>It will be activated once tournament participation assigns exact travel, match, camp and injury days. Until then, today’s regular plan is processed from this page.</span>
+              <strong>The weekly planner is already compatible with automatic daily processing.</strong>
+              <span>When the Match Engine starts assigning exact tournament days and tournament exits, those days will override training automatically; after elimination, the travel-home day remains blocked and the remaining Home days become trainable again.</span>
             </div>
           </>
         )}
