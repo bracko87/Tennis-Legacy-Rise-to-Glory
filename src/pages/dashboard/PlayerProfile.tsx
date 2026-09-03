@@ -7,6 +7,7 @@ import GameLayout from '../../components/layout/GameLayout'
 import usePlayerAvatarUrl from '../../hooks/usePlayerAvatarUrl'
 import { supabase } from '../../lib/supabase'
 import '../../styles/player-public-profile.css'
+import '../../styles/player-public-profile-avatar.css'
 
 interface PlayerProfileRow {
   player_id: string
@@ -154,7 +155,6 @@ export default function PlayerProfilePage() {
   }
 
   const name = profile ? `${profile.first_name} ${profile.last_name}` : 'Player'
-  const profileTypeLabel = profile ? (profile.is_own_player ? 'Your player' : profile.is_ai ? 'AI player' : 'User player') : 'Player'
 
   return (
     <GameLayout title="Player profile" subtitle="Professional player identity">
@@ -165,15 +165,6 @@ export default function PlayerProfilePage() {
             <section className="tlg-public-player-card">
               <aside className="tlg-public-player-visual">
                 <div className={`tlg-public-player-avatar${avatarUrl ? ' has-avatar' : ''}`}>{avatarUrl ? <img src={avatarUrl} alt={`${name} avatar`} /> : <UserRound size={72} />}</div>
-                <div className="tlg-public-player-quick">
-                  <span className="tlg-public-player-quick-kicker">Player snapshot</span>
-                  <div className="tlg-public-player-quick-list">
-                    <div><span>World rank</span><strong>{profile.rank_position > 0 ? `#${profile.rank_position}` : 'Unranked'}</strong></div>
-                    <div><span>Surface</span><strong>{profile.preferred_surface ?? 'Not set'}</strong></div>
-                    <div><span>Style</span><strong>{profile.playing_style}</strong></div>
-                    <div><span>Profile</span><strong>{profileTypeLabel}</strong></div>
-                  </div>
-                </div>
               </aside>
               <div className="tlg-public-player-main">
                 <div className="tlg-public-player-heading-row">
