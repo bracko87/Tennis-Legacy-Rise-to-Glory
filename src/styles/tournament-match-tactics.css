@@ -1,0 +1,223 @@
+.tlg-match-tactic-section {
+  margin: 0 32px 30px;
+  padding: 20px;
+  border: 1px solid #d9e6ef;
+  border-radius: 14px;
+  background: linear-gradient(180deg,#fbfdff 0%,#f7fbfe 100%);
+}
+
+.tlg-match-tactic-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.tlg-match-tactic-head > div {
+  min-width: 0;
+}
+
+.tlg-match-tactic-head span,
+.tlg-match-tactic-source span,
+.tlg-match-tactic-message {
+  color: #0b6fc8;
+  font-size: .59rem;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.tlg-match-tactic-head h3 {
+  margin: 5px 0 0;
+  color: #173149;
+  font-size: 1.05rem;
+}
+
+.tlg-match-tactic-head p {
+  max-width: 760px;
+  margin: 6px 0 0;
+  color: #718697;
+  font-size: .7rem;
+  line-height: 1.5;
+}
+
+.tlg-match-tactic-source {
+  min-width: 180px;
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid #d9e5ed;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.tlg-match-tactic-source strong {
+  color: #29465c;
+  font-size: .72rem;
+}
+
+.tlg-match-tactic-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.tlg-match-tactic-presets button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #d8e4eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #536f83;
+  font-size: .67rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.tlg-match-tactic-presets button.selected {
+  border-color: #0b6fc8;
+  background: #edf6fd;
+  color: #0b6fc8;
+  box-shadow: inset 0 0 0 1px #0b6fc8;
+}
+
+.tlg-match-tactic-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 11px;
+}
+
+.tlg-match-tactic-field {
+  display: grid;
+  gap: 6px;
+}
+
+.tlg-match-tactic-field > span {
+  color: #718697;
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.tlg-match-tactic-field select {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid #d7e3ea;
+  border-radius: 8px;
+  background: #fff;
+  color: #29465c;
+  font-size: .69rem;
+  font-weight: 700;
+}
+
+.tlg-match-tactic-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 15px;
+  border-top: 1px solid #e3ebf1;
+}
+
+.tlg-match-tactic-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.tlg-match-tactic-buttons button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid #cfdce5;
+  border-radius: 8px;
+  background: #fff;
+  color: #35566e;
+  font-size: .67rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.tlg-match-tactic-buttons button.primary {
+  border-color: #0b6fc8;
+  background: #0b6fc8;
+  color: #fff;
+}
+
+.tlg-match-tactic-buttons button:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+.tlg-match-tactic-locked,
+.tlg-match-tactic-loading {
+  padding: 14px;
+  border: 1px dashed #cbdbe5;
+  border-radius: 9px;
+  background: #fff;
+  color: #718697;
+  font-size: .69rem;
+  line-height: 1.5;
+}
+
+.tlg-match-tactic-effective {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tlg-match-tactic-effective div {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid #e0e8ee;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.tlg-match-tactic-effective span {
+  color: #8293a0;
+  font-size: .54rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.tlg-match-tactic-effective strong {
+  color: #29465c;
+  font-size: .65rem;
+}
+
+@media(max-width:900px) {
+  .tlg-match-tactic-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+  .tlg-match-tactic-effective {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+}
+
+@media(max-width:620px) {
+  .tlg-match-tactic-section {
+    margin: 0 14px 20px;
+    padding: 14px;
+  }
+  .tlg-match-tactic-head,
+  .tlg-match-tactic-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .tlg-match-tactic-source {
+    min-width: 0;
+  }
+  .tlg-match-tactic-grid,
+  .tlg-match-tactic-effective {
+    grid-template-columns: 1fr;
+  }
+  .tlg-match-tactic-buttons {
+    flex-direction: column;
+  }
+}
