@@ -5,12 +5,14 @@ import TrainingCampsPanel from '../../components/training/TrainingCampsPanel'
 import TrainingProgressOverview from '../../components/training/TrainingProgressOverview'
 import WeeklyTrainingPlanner from '../../components/training/WeeklyTrainingPlanner'
 import {
+  type TrainingSession,
   type TrainingSessionRole,
   type TrainingType,
   useTraining,
 } from '../../hooks/useTraining'
 import '../../styles/training.css'
 import '../../styles/training-weekly-planner.css'
+import '../../styles/training-history.css'
 
 type TrainingView = 'regular' | 'camps'
 
@@ -67,6 +69,29 @@ function levelUpText(levelUps: Record<string, number> | undefined) {
   return Object.entries(levelUps)
     .map(([key, value]) => `${ATTRIBUTE_LABELS[key] ?? titleCase(key)} +${value}`)
     .join(', ')
+}
+
+function signedDelta(before?: number, after?: number) {
+  if (before === undefined || after === undefined) return '—'
+  const delta = Number(after) - Number(before)
+  if (delta === 0) return '±0'
+  return `${delta > 0 ? '+' : ''}${delta}`
+}
+
+function progressGain(value: number) {
+  return `+${(Number(value) * 100).toFixed(1)}%`
+}
+
+function focusDevelopment(session: TrainingSession) {
+  if (session.training_type === 'day_off' || !session.focus_attribute) return null
+  return Number(session.development_gains?.[session.focus_attribute] ?? 0)
+}
+
+function sharedDevelopment(session: TrainingSession) {
+  if (session.training_type === 'day_off') return 0
+  return Object.entries(session.development_gains ?? {}).reduce((total, [key, value]) => (
+    key === session.focus_attribute ? total : total + Number(value ?? 0)
+  ), 0)
 }
 
 export default function TrainingPage() {
@@ -224,7 +249,7 @@ export default function TrainingPage() {
                 <div>
                   <span>TRAINING HISTORY</span>
                   <h2>Recent development days</h2>
-                  <p>The last ten processed Regular Training or recovery days are kept here.</p>
+                  <p>The last ten processed Regular Training or recovery days are kept here, including development and condition changes from each session.</p>
                 </div>
               </header>
 
@@ -232,27 +257,57 @@ export default function TrainingPage() {
                 <div className="tlg-training-history-empty">No training days have been processed yet.</div>
               ) : (
                 <div className="tlg-training-history-list">
-                  {dashboard.recent_sessions.map((session) => (
-                    <article key={session.id}>
-                      <div className="date">
-                        <span>S{session.season}</span>
-                        <strong>{MONTH_NAMES[(session.month ?? 1) - 1]} {session.day}</strong>
-                      </div>
-                      <div className="session">
-                        <span>{session.training_type === 'day_off' ? 'RECOVERY' : session.training_type.toUpperCase()}</span>
-                        <strong>{session.session_role && session.session_role !== 'planned_training' ? sessionRoleLabel(session.session_role) : trainingLabel(session.training_type, session.focus_attribute)}</strong>
-                        <small>{session.training_type === 'day_off' ? sessionRoleLabel(session.session_role) : `${titleCase(session.intensity)} intensity · ${Math.round(Number(session.efficiency) * 100)}% efficiency`}</small>
-                      </div>
-                      <div className="change">
-                        <span>FATIGUE</span>
-                        <strong>{session.fatigue_before} → {session.fatigue_after}</strong>
-                      </div>
-                      <div className="change">
-                        <span>SKILL UPS</span>
-                        <strong>{levelUpText(session.level_ups)}</strong>
-                      </div>
-                    </article>
-                  ))}
+                  {dashboard.recent_sessions.map((session) => {
+                    const focusGain = focusDevelopment(session)
+                    const sharedGain = sharedDevelopment(session)
+                    const fatigueDelta = Number(session.fatigue_after) - Number(session.fatigue_before)
+                    const sharpnessDelta = Number(session.sharpness_after) - Number(session.sharpness_before)
+                    return (
+                      <article className="tlg-training-history-row" key={session.id}>
+                        <div className="date">
+                          <span>Season {session.season}</span>
+                          <strong>{MONTH_NAMES[(session.month ?? 1) - 1]} {session.day}</strong>
+                          <small>{session.session_role ? sessionRoleLabel(session.session_role) : 'Training day'}</small>
+                        </div>
+
+                        <div className="session">
+                          <span>{session.training_type === 'day_off' ? 'RECOVERY' : session.training_type.toUpperCase()}</span>
+                          <strong>{session.session_role && session.session_role !== 'planned_training' ? sessionRoleLabel(session.session_role) : trainingLabel(session.training_type, session.focus_attribute)}</strong>
+                          <small>{session.training_type === 'day_off' ? 'Recovery session' : `${titleCase(session.intensity)} load`}</small>
+                        </div>
+
+                        <div className="metric development">
+                          <span>DEVELOPMENT</span>
+                          {session.training_type === 'day_off' ? (
+                            <>
+                              <strong>Recovery day</strong>
+                              <small>No permanent attribute development</small>
+                            </>
+                          ) : (
+                            <>
+                              <strong>{focusGain !== null ? `${ATTRIBUTE_LABELS[session.focus_attribute ?? ''] ?? 'Focus'} ${progressGain(focusGain)}` : 'Development applied'}</strong>
+                              <small>Shared attributes {progressGain(sharedGain)}</small>
+                            </>
+                          )}
+                        </div>
+
+                        <div className="metric condition">
+                          <span>CONDITION</span>
+                          <strong className={fatigueDelta > 0 ? 'fatigue-up' : fatigueDelta < 0 ? 'fatigue-down' : ''}>
+                            Fatigue {signedDelta(session.fatigue_before, session.fatigue_after)} · {session.fatigue_before} → {session.fatigue_after}
+                          </strong>
+                          <small>Sharpness {signedDelta(session.sharpness_before, session.sharpness_after)} · {session.sharpness_before} → {session.sharpness_after}{session.morale_before !== undefined && session.morale_after !== undefined ? ` · Morale ${signedDelta(session.morale_before, session.morale_after)}` : ''}{session.focus_before !== undefined && session.focus_after !== undefined ? ` · Focus ${signedDelta(session.focus_before, session.focus_after)}` : ''}</small>
+                        </div>
+
+                        <div className="result">
+                          <span>SESSION RESULT</span>
+                          <strong>{levelUpText(session.level_ups)}</strong>
+                          <small>Sharpness {sharpnessDelta >= 0 ? '+' : ''}{sharpnessDelta}</small>
+                          <b className="history-efficiency">{Math.round(Number(session.efficiency) * 100)}% efficiency</b>
+                        </div>
+                      </article>
+                    )
+                  })}
                 </div>
               )}
             </section>
