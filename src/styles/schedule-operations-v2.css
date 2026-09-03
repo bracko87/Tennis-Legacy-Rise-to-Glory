@@ -124,6 +124,28 @@
   opacity: .55;
 }
 
+/* Keep the preparation dialog below the fixed game header. */
+.tlg-tournament-prep-backdrop {
+  place-items: start center;
+  padding: 112px 24px 24px;
+}
+
+.tlg-tournament-prep-dialog {
+  max-height: calc(100vh - 136px);
+}
+
+/* Preparation controls are text-led; remove decorative icons but retain the close control. */
+.tlg-tournament-prep-tabs button > svg,
+.tlg-prep-rule > svg,
+.tlg-prep-hotel-grid button > svg {
+  display: none !important;
+}
+
+.tlg-tournament-prep-tabs button,
+.tlg-prep-rule {
+  gap: 0;
+}
+
 @media(max-width:760px) {
   .tlg-next-tournament-actions {
     flex-direction: column;
@@ -137,5 +159,11 @@
   .tlg-prep-impact {
     align-items: flex-start;
     flex-direction: column;
+  }
+  .tlg-tournament-prep-backdrop {
+    padding: 84px 10px 10px;
+  }
+  .tlg-tournament-prep-dialog {
+    max-height: calc(100vh - 94px);
   }
 }
