@@ -1,0 +1,8 @@
+.tlg-week-plan-day.unsaved{background:#f8fcff;box-shadow:inset 3px 0 #0b83cf}
+.tlg-week-plan-date .draft-label{color:#0b78bd;font-weight:700}
+.tlg-week-plan-footer-actions{display:flex!important;align-items:center;justify-content:flex-end;gap:9px}
+.tlg-week-plan-footer-actions .save-plan{min-width:180px;background:#0878bd;border-color:#0878bd}
+.tlg-week-plan-footer-actions .save-plan:disabled{background:#d7e4ec;border-color:#d7e4ec;color:#738896;opacity:1}
+.tlg-week-plan-footer-actions .complete-today{background:#fff;color:#0878bd}
+.tlg-week-plan-footer-actions .complete-today:disabled{background:#86bee0;border-color:#86bee0;color:#fff;opacity:1}
+@media(max-width:760px){.tlg-week-plan-footer-actions{width:100%;display:grid!important;grid-template-columns:1fr}.tlg-week-plan-footer-actions button{width:100%}}
