@@ -21,6 +21,7 @@ import './styles/staff-negotiation.css'
 import './styles/staff-visual-standard.css'
 import './styles/training-weekly-save.css'
 import './styles/font-standard.css'
+import './styles/tournament-match-modal-expanded.css'
 import App from './App'
 
 const appElement =
