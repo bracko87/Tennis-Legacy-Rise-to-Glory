@@ -154,6 +154,7 @@ export default function PlayerProfilePage() {
   }
 
   const name = profile ? `${profile.first_name} ${profile.last_name}` : 'Player'
+  const profileTypeLabel = profile ? (profile.is_own_player ? 'Your player' : profile.is_ai ? 'AI player' : 'User player') : 'Player'
 
   return (
     <GameLayout title="Player profile" subtitle="Professional player identity">
@@ -162,7 +163,18 @@ export default function PlayerProfilePage() {
         {loading ? <div className="tlg-public-player-state">Loading player profile…</div> : error && !profile ? <div className="tlg-public-player-state">{error}</div> : profile ? (
           <>
             <section className="tlg-public-player-card">
-              <div className="tlg-public-player-avatar">{avatarUrl ? <img src={avatarUrl} alt={`${name} avatar`} /> : <UserRound size={72} />}</div>
+              <aside className="tlg-public-player-visual">
+                <div className={`tlg-public-player-avatar${avatarUrl ? ' has-avatar' : ''}`}>{avatarUrl ? <img src={avatarUrl} alt={`${name} avatar`} /> : <UserRound size={72} />}</div>
+                <div className="tlg-public-player-quick">
+                  <span className="tlg-public-player-quick-kicker">Player snapshot</span>
+                  <div className="tlg-public-player-quick-list">
+                    <div><span>World rank</span><strong>{profile.rank_position > 0 ? `#${profile.rank_position}` : 'Unranked'}</strong></div>
+                    <div><span>Surface</span><strong>{profile.preferred_surface ?? 'Not set'}</strong></div>
+                    <div><span>Style</span><strong>{profile.playing_style}</strong></div>
+                    <div><span>Profile</span><strong>{profileTypeLabel}</strong></div>
+                  </div>
+                </div>
+              </aside>
               <div className="tlg-public-player-main">
                 <div className="tlg-public-player-heading-row">
                   <div><span className="tlg-public-player-kicker">{profile.world} singles player</span><h1>{name}</h1><div className="tlg-public-player-country"><CountryFlag countryCode={profile.country_code} countryName={profile.country_code} width={26} height={17} /><span>{profile.home_city ? `${profile.home_city}, ${profile.country_code}` : profile.country_code}</span></div></div>
