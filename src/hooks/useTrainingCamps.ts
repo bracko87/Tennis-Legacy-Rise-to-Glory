@@ -52,13 +52,23 @@ export interface TrainingCampAccommodationTier {
   sort_order: number
 }
 
+export interface TrainingCampStaffQuoteItem {
+  contract_id: string
+  staff_id: string
+  role: string
+  role_label: string
+  first_name: string
+  last_name: string
+  country_code: string
+  travel_cost: number
+  accommodation_cost: number
+  total_cost: number
+}
+
 export interface TrainingCampQuote {
   program_id: string
   camp_name: string
-  training_quality: {
-    tier: TrainingCampQuality
-    multiplier: number
-  }
+  training_quality: { tier: TrainingCampQuality; multiplier: number }
   quality_tier: TrainingCampQuality
   facility_rating?: number
   quality_multiplier: number
@@ -82,13 +92,7 @@ export interface TrainingCampQuote {
     continuity?: 'current_location' | 'direct_from_previous_commitment' | 'home_base'
     gap_days?: number
   }
-  destination: {
-    city: string
-    country: string
-    country_code: string
-    continent: string
-    cost_index: number
-  }
+  destination: { city: string; country: string; country_code: string; continent: string; cost_index: number }
   training_fee_weekly: number
   training_fee_total: number
   accommodation: {
@@ -118,7 +122,10 @@ export interface TrainingCampQuote {
   travel_cost: number
   travel_type: string
   staff_count: number
+  staff_travel_cost: number
+  staff_accommodation_cost: number
   staff_cost: number
+  staff: TrainingCampStaffQuoteItem[]
   grand_total: number
 }
 
@@ -148,6 +155,8 @@ export interface TrainingCampBooking {
   travel_basis: string | null
   travel_arrival_fatigue: number | null
   staff_count: number
+  staff_travel_cost: number
+  staff_accommodation_cost: number
   staff_total_cost: number
   origin_city: string | null
   origin_country_code: string | null
@@ -186,20 +195,34 @@ export function useTrainingCamps() {
 
   const refresh = useCallback(async () => {
     if (!player?.id) {
-      setPrograms([])
-      setAccommodations([])
-      setBookings([])
-      setLoading(false)
-      return
+      setPrograms([]); setAccommodations([]); setBookings([]); setLoading(false); return
     }
-
-    setLoading(true)
-    setError(null)
-
+    setLoading(true); setError(null)
     const [programResult, accommodationResult, bookingResult] = await Promise.all([
-      supabase
-        .from('training_camp_programs')
-        .select(`
+      supabase.from('training_camp_programs').select(`
+        id, slug, name, category, surface, quality_tier, quality_multiplier,
+        weekly_cost, rating, development_profile, condition_profile,
+        benefit_summary, description,
+        location:training_camp_locations!inner(
+          id, slug, city, country, country_code, continent,
+          image_url, thumbnail_url, description, cost_index, sort_order
+        )
+      `).eq('is_active', true),
+      supabase.from('training_camp_accommodation_tiers').select('id, slug, name, star_rating, base_weekly_cost, rest_quality, fatigue_mitigation, weekly_morale_bonus, weekly_focus_bonus, description, sort_order').eq('is_active', true).order('sort_order', { ascending: true }),
+      supabase.from('player_training_camp_bookings').select(`
+        id, player_id, program_id, start_absolute_day, end_absolute_day,
+        start_season, start_season_week, start_month, start_day, end_season, end_month, end_day,
+        duration_weeks, weekly_cost, total_cost, training_fee_total,
+        accommodation_weekly_cost, accommodation_total, travel_cost,
+        travel_distance_km, travel_round_trip_km, travel_band, travel_basis, travel_arrival_fatigue,
+        staff_count, staff_travel_cost, staff_accommodation_cost, staff_total_cost,
+        origin_city, origin_country_code, origin_continent,
+        status, booked_at, started_at, completed_at,
+        accommodation:training_camp_accommodation_tiers(
+          id, slug, name, star_rating, base_weekly_cost, rest_quality,
+          fatigue_mitigation, weekly_morale_bonus, weekly_focus_bonus, description, sort_order
+        ),
+        program:training_camp_programs!inner(
           id, slug, name, category, surface, quality_tier, quality_multiplier,
           weekly_cost, rating, development_profile, condition_profile,
           benefit_summary, description,
@@ -207,159 +230,71 @@ export function useTrainingCamps() {
             id, slug, city, country, country_code, continent,
             image_url, thumbnail_url, description, cost_index, sort_order
           )
-        `)
-        .eq('is_active', true),
-      supabase
-        .from('training_camp_accommodation_tiers')
-        .select('id, slug, name, star_rating, base_weekly_cost, rest_quality, fatigue_mitigation, weekly_morale_bonus, weekly_focus_bonus, description, sort_order')
-        .eq('is_active', true)
-        .order('sort_order', { ascending: true }),
-      supabase
-        .from('player_training_camp_bookings')
-        .select(`
-          id, player_id, program_id, start_absolute_day, end_absolute_day,
-          start_season, start_season_week, start_month, start_day, end_season, end_month, end_day,
-          duration_weeks, weekly_cost, total_cost, training_fee_total,
-          accommodation_weekly_cost, accommodation_total, travel_cost,
-          travel_distance_km, travel_round_trip_km, travel_band, travel_basis, travel_arrival_fatigue,
-          staff_count, staff_total_cost, origin_city, origin_country_code, origin_continent,
-          status, booked_at, started_at, completed_at,
-          accommodation:training_camp_accommodation_tiers(
-            id, slug, name, star_rating, base_weekly_cost, rest_quality,
-            fatigue_mitigation, weekly_morale_bonus, weekly_focus_bonus, description, sort_order
-          ),
-          program:training_camp_programs!inner(
-            id, slug, name, category, surface, quality_tier, quality_multiplier,
-            weekly_cost, rating, development_profile, condition_profile,
-            benefit_summary, description,
-            location:training_camp_locations!inner(
-              id, slug, city, country, country_code, continent,
-              image_url, thumbnail_url, description, cost_index, sort_order
-            )
-          )
-        `)
-        .in('status', ['booked', 'active'])
-        .order('start_absolute_day', { ascending: true }),
+        )
+      `).in('status', ['booked', 'active']).order('start_absolute_day', { ascending: true }),
     ])
 
-    if (programResult.error) {
-      setError(programResult.error.message)
-      setPrograms([])
-    } else {
+    if (programResult.error) { setError(programResult.error.message); setPrograms([]) }
+    else {
       const next = (programResult.data ?? []) as unknown as TrainingCampProgram[]
-      next.sort((a, b) => (a.location.sort_order - b.location.sort_order) || (a.weekly_cost - b.weekly_cost))
-      setPrograms(next)
+      next.sort((a, b) => (a.location.sort_order - b.location.sort_order) || (a.weekly_cost - b.weekly_cost)); setPrograms(next)
     }
-
-    if (accommodationResult.error) {
-      setError((current) => current ?? accommodationResult.error?.message ?? 'Unable to load accommodation options.')
-      setAccommodations([])
-    } else {
-      setAccommodations((accommodationResult.data ?? []) as unknown as TrainingCampAccommodationTier[])
-    }
-
-    if (bookingResult.error) {
-      setError((current) => current ?? bookingResult.error?.message ?? 'Unable to load training camp bookings.')
-      setBookings([])
-    } else {
-      setBookings((bookingResult.data ?? []) as unknown as TrainingCampBooking[])
-    }
-
+    if (accommodationResult.error) { setError((current) => current ?? accommodationResult.error?.message ?? 'Unable to load accommodation options.'); setAccommodations([]) }
+    else setAccommodations((accommodationResult.data ?? []) as unknown as TrainingCampAccommodationTier[])
+    if (bookingResult.error) { setError((current) => current ?? bookingResult.error?.message ?? 'Unable to load training camp bookings.'); setBookings([]) }
+    else setBookings((bookingResult.data ?? []) as unknown as TrainingCampBooking[])
     setLoading(false)
   }, [player?.id])
 
-  const quoteCamp = useCallback(async (
-    programId: string,
-    startSeason: number,
-    startWeek: number,
-    durationWeeks: number,
-    accommodationSlug: string,
-  ) => {
-    const { data, error: rpcError } = await supabase.rpc('quote_training_camp_v2', {
+  const quoteCamp = useCallback(async (programId: string, startSeason: number, startWeek: number, durationWeeks: number, accommodationSlug: string, staffContractIds: string[] = []) => {
+    const { data, error: rpcError } = await supabase.rpc('quote_training_camp_v3', {
       p_program_id: programId,
       p_start_season: startSeason,
       p_start_week: startWeek,
       p_duration_weeks: durationWeeks,
       p_accommodation_slug: accommodationSlug,
+      p_staff_contract_ids: staffContractIds,
     })
     if (rpcError) return { quote: null, error: rpcError.message }
     return { quote: data as TrainingCampQuote, error: null }
   }, [])
 
-  const bookCamp = useCallback(async (
-    programId: string,
-    startSeason: number,
-    startWeek: number,
-    durationWeeks: number,
-    accommodationSlug: string,
-  ) => {
-    setSaving(true)
-    setError(null)
-
-    const { data, error: rpcError } = await supabase.rpc('book_training_camp_v2', {
+  const bookCamp = useCallback(async (programId: string, startSeason: number, startWeek: number, durationWeeks: number, accommodationSlug: string, staffContractIds: string[] = []) => {
+    setSaving(true); setError(null)
+    const { data, error: rpcError } = await supabase.rpc('book_training_camp_v3', {
       p_program_id: programId,
       p_start_season: startSeason,
       p_start_week: startWeek,
       p_duration_weeks: durationWeeks,
       p_accommodation_slug: accommodationSlug,
+      p_staff_contract_ids: staffContractIds,
     })
-
-    if (rpcError) {
-      setError(rpcError.message)
-      setSaving(false)
-      return null
-    }
-
-    await refresh()
-    setSaving(false)
-    return data as TrainingCampActionResult
+    if (rpcError) { setError(rpcError.message); setSaving(false); return null }
+    await refresh(); setSaving(false); return data as TrainingCampActionResult
   }, [refresh])
 
   const cancelCamp = useCallback(async (bookingId: string) => {
-    setSaving(true)
-    setError(null)
-    const { data, error: rpcError } = await supabase.rpc('cancel_training_camp_v1', {
-      p_booking_id: bookingId,
-    })
-    if (rpcError) {
-      setError(rpcError.message)
-      setSaving(false)
-      return null
-    }
-    await refresh()
-    setSaving(false)
-    return data as TrainingCampActionResult
+    setSaving(true); setError(null)
+    const { data, error: rpcError } = await supabase.rpc('cancel_training_camp_v1', { p_booking_id: bookingId })
+    if (rpcError) { setError(rpcError.message); setSaving(false); return null }
+    await refresh(); setSaving(false); return data as TrainingCampActionResult
   }, [refresh])
 
   const processToday = useCallback(async () => {
-    setProcessing(true)
-    setError(null)
+    setProcessing(true); setError(null)
     const { data, error: rpcError } = await supabase.rpc('complete_training_camp_today_v1')
-    if (rpcError) {
-      setError(rpcError.message)
-      setProcessing(false)
-      return null
-    }
-    await refresh()
-    setProcessing(false)
-    return data as TrainingCampActionResult
+    if (rpcError) { setError(rpcError.message); setProcessing(false); return null }
+    await refresh(); setProcessing(false); return data as TrainingCampActionResult
   }, [refresh])
 
-  useEffect(() => {
-    void refresh()
-  }, [refresh])
+  useEffect(() => { void refresh() }, [refresh])
 
   useEffect(() => {
     if (!player?.id) return
-
     const scheduleRefresh = () => {
       if (refreshTimer.current !== null) window.clearTimeout(refreshTimer.current)
-      refreshTimer.current = window.setTimeout(() => {
-        refreshTimer.current = null
-        void refresh()
-      }, 160)
+      refreshTimer.current = window.setTimeout(() => { refreshTimer.current = null; void refresh() }, 160)
     }
-
     const channel = supabase
       .channel(`training-camps:${player.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'player_training_camp_bookings', filter: `player_id=eq.${player.id}` }, scheduleRefresh)
@@ -370,25 +305,8 @@ export function useTrainingCamps() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'player_travel_legs', filter: `player_id=eq.${player.id}` }, scheduleRefresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'player_location_state', filter: `player_id=eq.${player.id}` }, scheduleRefresh)
       .subscribe()
-
-    return () => {
-      if (refreshTimer.current !== null) window.clearTimeout(refreshTimer.current)
-      void supabase.removeChannel(channel)
-    }
+    return () => { if (refreshTimer.current !== null) window.clearTimeout(refreshTimer.current); void supabase.removeChannel(channel) }
   }, [player?.id, refresh])
 
-  return {
-    programs,
-    accommodations,
-    bookings,
-    loading,
-    saving,
-    processing,
-    error,
-    refresh,
-    quoteCamp,
-    bookCamp,
-    cancelCamp,
-    processToday,
-  }
+  return { programs, accommodations, bookings, loading, saving, processing, error, refresh, quoteCamp, bookCamp, cancelCamp, processToday }
 }
