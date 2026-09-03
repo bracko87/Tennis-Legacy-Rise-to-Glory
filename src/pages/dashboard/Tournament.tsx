@@ -17,6 +17,7 @@ import '../../styles/tournament-logo.css'
 import '../../styles/tournament-live-draw.css'
 import '../../styles/tournament-match-modal-expanded.css'
 import '../../styles/tournament-match-tactics.css'
+import '../../styles/tournament-match-polish.css'
 import TournamentPageV3 from './TournamentV3'
 
 interface TournamentLogoRow {
@@ -120,6 +121,13 @@ interface MatchTacticResponse {
   effective: TournamentTactic
 }
 
+interface TacticEffect {
+  label: string
+  value: number | null
+  text: string
+  tone: 'positive' | 'warning' | 'neutral'
+}
+
 type LogoStatus = 'none' | 'loading' | 'ready' | 'error'
 
 const BRACKET_MATCH_WIDTH = 240
@@ -154,6 +162,24 @@ function statusLabel(status: MatchDetail['status']) {
   if (status === 'bye') return 'BYE'
   if (status === 'cancelled') return 'CANCELLED'
   return 'SCHEDULED'
+}
+
+function playerName(player: MatchPlayerDetail | null) {
+  return player ? `${player.first_name} ${player.last_name}` : 'BYE'
+}
+
+function drawPlayerName(match: TournamentDrawMatch, side: 1 | 2) {
+  const first = side === 1 ? match.player1_first_name : match.player2_first_name
+  const last = side === 1 ? match.player1_last_name : match.player2_last_name
+  return `${first ?? ''} ${last ?? ''}`.trim() || 'BYE'
+}
+
+function formatDrawScore(match: TournamentDrawMatch, perspectivePlayerId: string) {
+  const playerIsOne = match.player1_id === perspectivePlayerId
+  const own = playerIsOne ? match.player1_set_scores : match.player2_set_scores
+  const opponent = playerIsOne ? match.player2_set_scores : match.player1_set_scores
+  if (!own.length || own.length !== opponent.length) return 'Result recorded'
+  return own.map((games, index) => `${games}–${opponent[index]}`).join(', ')
 }
 
 export default function TournamentPage() {
@@ -272,7 +298,7 @@ export default function TournamentPage() {
       )}
 
       {selectedMatchId && (
-        <MatchDetailModal detail={matchDetail} loading={matchLoading} error={matchError} currentPlayerId={player?.id ?? null} returnPath={returnPath} tournamentName={tournamentName} onClose={() => setSelectedMatchId(null)} />
+        <MatchDetailModal detail={matchDetail} drawMatches={mainDrawMatches} loading={matchLoading} error={matchError} currentPlayerId={player?.id ?? null} returnPath={returnPath} tournamentName={tournamentName} onClose={() => setSelectedMatchId(null)} />
       )}
     </div>
   )
@@ -361,22 +387,23 @@ function BracketPlayer({ matchExists, playerId, firstName, lastName, countryCode
   )
 }
 
-function MatchDetailModal({ detail, loading, error, currentPlayerId, returnPath, tournamentName, onClose }: { detail: MatchDetail | null; loading: boolean; error: string | null; currentPlayerId: string | null; returnPath: string; tournamentName: string; onClose: () => void }) {
+function MatchDetailModal({ detail, drawMatches, loading, error, currentPlayerId, returnPath, tournamentName, onClose }: { detail: MatchDetail | null; drawMatches: TournamentDrawMatch[]; loading: boolean; error: string | null; currentPlayerId: string | null; returnPath: string; tournamentName: string; onClose: () => void }) {
   return createPortal(
     <div className="tlg-match-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose() }}>
       <section className="tlg-match-modal" role="dialog" aria-modal="true" aria-label="Tournament match details">
         <button type="button" className="tlg-match-modal-close" onClick={onClose} aria-label="Close match details">×</button>
-        {loading ? <div className="tlg-match-modal-state">Loading match…</div> : error || !detail ? <div className="tlg-match-modal-state">{error ?? 'Match details are unavailable.'}</div> : <MatchDetailContent detail={detail} currentPlayerId={currentPlayerId} returnPath={returnPath} tournamentName={tournamentName} />}
+        {loading ? <div className="tlg-match-modal-state">Loading match…</div> : error || !detail ? <div className="tlg-match-modal-state">{error ?? 'Match details are unavailable.'}</div> : <MatchDetailContent detail={detail} drawMatches={drawMatches} currentPlayerId={currentPlayerId} returnPath={returnPath} tournamentName={tournamentName} />}
       </section>
     </div>,
     document.body,
   )
 }
 
-function MatchDetailContent({ detail, currentPlayerId, returnPath, tournamentName }: { detail: MatchDetail; currentPlayerId: string | null; returnPath: string; tournamentName: string }) {
+function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, tournamentName }: { detail: MatchDetail; drawMatches: TournamentDrawMatch[]; currentPlayerId: string | null; returnPath: string; tournamentName: string }) {
   const p1Avatar = usePlayerAvatarUrl(detail.player1?.image_path)
   const p2Avatar = usePlayerAvatarUrl(detail.player2?.image_path)
   const hasStats = Object.keys(detail.player1_stats ?? {}).length > 0 || Object.keys(detail.player2_stats ?? {}).length > 0
+  const isScheduledPreview = detail.status === 'scheduled' && detail.sets.length === 0
 
   return (
     <>
@@ -388,12 +415,72 @@ function MatchDetailContent({ detail, currentPlayerId, returnPath, tournamentNam
         <MatchPlayerCard player={detail.player2} avatarUrl={p2Avatar} winner={detail.winner_id === detail.player2?.id} returnPath={returnPath} tournamentName={tournamentName} />
       </div>
 
-      <section className="tlg-match-score-section"><header><span>Score</span><h3>Set-by-set result</h3></header>{detail.sets.length === 0 ? <div className="tlg-match-empty">The match has not started. Set scores will appear here as play begins.</div> : <div className="tlg-match-score-table"><div className="head"><span>Player</span>{detail.sets.map((set) => <strong key={set.set_number}>Set {set.set_number}</strong>)}</div><ScoreRow player={detail.player1} sets={detail.sets.map((set) => set.player1_games)} winner={detail.winner_id === detail.player1?.id} /><ScoreRow player={detail.player2} sets={detail.sets.map((set) => set.player2_games)} winner={detail.winner_id === detail.player2?.id} /></div>}</section>
+      {isScheduledPreview ? (
+        <PreMatchInsights detail={detail} drawMatches={drawMatches} />
+      ) : (
+        <>
+          <section className="tlg-match-score-section"><header><span>Score</span><h3>Set-by-set result</h3></header>{detail.sets.length === 0 ? <div className="tlg-match-empty">Set scores will appear here as play begins.</div> : <div className="tlg-match-score-table"><div className="head"><span>Player</span>{detail.sets.map((set) => <strong key={set.set_number}>Set {set.set_number}</strong>)}</div><ScoreRow player={detail.player1} sets={detail.sets.map((set) => set.player1_games)} winner={detail.winner_id === detail.player1?.id} /><ScoreRow player={detail.player2} sets={detail.sets.map((set) => set.player2_games)} winner={detail.winner_id === detail.player2?.id} /></div>}</section>
 
-      <section className="tlg-match-stats-section"><header><span>Match statistics</span><h3>{detail.status === 'in_progress' ? 'Live statistics' : 'Match statistics'}</h3></header>{!hasStats ? <div className="tlg-match-empty">Statistics will appear here when the match engine begins recording points.</div> : <div className="tlg-match-stats-table"><StatRow label="Aces" left={detail.player1_stats.aces ?? 0} right={detail.player2_stats.aces ?? 0} /><StatRow label="Double faults" left={detail.player1_stats.double_faults ?? 0} right={detail.player2_stats.double_faults ?? 0} /><StatRow label="First serve %" left={percent(detail.player1_stats.first_serves_in, detail.player1_stats.first_serves_total)} right={percent(detail.player2_stats.first_serves_in, detail.player2_stats.first_serves_total)} /><StatRow label="1st serve points won" left={ratio(detail.player1_stats.first_serve_points_won, detail.player1_stats.first_serve_points_played)} right={ratio(detail.player2_stats.first_serve_points_won, detail.player2_stats.first_serve_points_played)} /><StatRow label="2nd serve points won" left={ratio(detail.player1_stats.second_serve_points_won, detail.player1_stats.second_serve_points_played)} right={ratio(detail.player2_stats.second_serve_points_won, detail.player2_stats.second_serve_points_played)} /><StatRow label="Break points won" left={ratio(detail.player1_stats.break_points_won, detail.player1_stats.break_points_total)} right={ratio(detail.player2_stats.break_points_won, detail.player2_stats.break_points_total)} /><StatRow label="Winners" left={detail.player1_stats.winners ?? 0} right={detail.player2_stats.winners ?? 0} /><StatRow label="Unforced errors" left={detail.player1_stats.unforced_errors ?? 0} right={detail.player2_stats.unforced_errors ?? 0} /><StatRow label="Total points won" left={detail.player1_stats.total_points_won ?? 0} right={detail.player2_stats.total_points_won ?? 0} /></div>}</section>
+          <section className="tlg-match-stats-section"><header><span>Match statistics</span><h3>{detail.status === 'in_progress' ? 'Live statistics' : 'Match statistics'}</h3></header>{!hasStats ? <div className="tlg-match-empty">Statistics will appear here when the match engine begins recording points.</div> : <div className="tlg-match-stats-table"><StatRow label="Aces" left={detail.player1_stats.aces ?? 0} right={detail.player2_stats.aces ?? 0} /><StatRow label="Double faults" left={detail.player1_stats.double_faults ?? 0} right={detail.player2_stats.double_faults ?? 0} /><StatRow label="First serve %" left={percent(detail.player1_stats.first_serves_in, detail.player1_stats.first_serves_total)} right={percent(detail.player2_stats.first_serves_in, detail.player2_stats.first_serves_total)} /><StatRow label="1st serve points won" left={ratio(detail.player1_stats.first_serve_points_won, detail.player1_stats.first_serve_points_played)} right={ratio(detail.player2_stats.first_serve_points_won, detail.player2_stats.first_serve_points_played)} /><StatRow label="2nd serve points won" left={ratio(detail.player1_stats.second_serve_points_won, detail.player1_stats.second_serve_points_played)} right={ratio(detail.player2_stats.second_serve_points_won, detail.player2_stats.second_serve_points_played)} /><StatRow label="Break points won" left={ratio(detail.player1_stats.break_points_won, detail.player1_stats.break_points_total)} right={ratio(detail.player2_stats.break_points_won, detail.player2_stats.break_points_total)} /><StatRow label="Winners" left={detail.player1_stats.winners ?? 0} right={detail.player2_stats.winners ?? 0} /><StatRow label="Unforced errors" left={detail.player1_stats.unforced_errors ?? 0} right={detail.player2_stats.unforced_errors ?? 0} /><StatRow label="Total points won" left={detail.player1_stats.total_points_won ?? 0} right={detail.player2_stats.total_points_won ?? 0} /></div>}</section>
+        </>
+      )}
 
       <MatchTacticPanel detail={detail} currentPlayerId={currentPlayerId} />
     </>
+  )
+}
+
+function PreMatchInsights({ detail, drawMatches }: { detail: MatchDetail; drawMatches: TournamentDrawMatch[] }) {
+  const current = drawMatches.find((match) => match.match_id === detail.match_id)
+  const currentRound = current?.round_number ?? Number.MAX_SAFE_INTEGER
+  return (
+    <section className="tlg-prematch-insights">
+      <div className="tlg-prematch-panel">
+        <header><div><span>This tournament</span><h3>Road to this match</h3></div><small>Actual Palm Springs results</small></header>
+        <div className="tlg-prematch-form-grid">
+          <TournamentPlayerForm player={detail.player1} drawMatches={drawMatches} beforeRound={currentRound} />
+          <TournamentPlayerForm player={detail.player2} drawMatches={drawMatches} beforeRound={currentRound} />
+        </div>
+      </div>
+
+      <div className="tlg-prematch-panel">
+        <header><div><span>Head to head</span><h3>Previous meetings</h3></div><small className="mock-badge">Preview / test history</small></header>
+        <MockHeadToHead player1={detail.player1} player2={detail.player2} />
+      </div>
+    </section>
+  )
+}
+
+function TournamentPlayerForm({ player, drawMatches, beforeRound }: { player: MatchPlayerDetail | null; drawMatches: TournamentDrawMatch[]; beforeRound: number }) {
+  if (!player) return <div className="tlg-prematch-form-card"><strong>BYE</strong></div>
+  const matches = drawMatches
+    .filter((match) => match.round_number < beforeRound && match.match_status === 'completed' && match.winner_id === player.id && (match.player1_id === player.id || match.player2_id === player.id))
+    .sort((a, b) => b.round_number - a.round_number)
+  const latest = matches[0]
+  const playerWasOne = latest?.player1_id === player.id
+  const opponent = latest ? drawPlayerName(latest, playerWasOne ? 2 : 1) : null
+  return (
+    <div className="tlg-prematch-form-card">
+      <div className="identity"><CountryFlag countryCode={player.country_code} countryName={player.country_code} width={24} height={16} /><strong>{playerName(player)}</strong></div>
+      {latest ? <><span>{latest.round_label}</span><p>Defeated <b>{opponent}</b></p><small>{formatDrawScore(latest, player.id)}</small></> : <><span>Tournament debut</span><p>First match at this event.</p><small>No previous-round result</small></>}
+    </div>
+  )
+}
+
+function MockHeadToHead({ player1, player2 }: { player1: MatchPlayerDetail | null; player2: MatchPlayerDetail | null }) {
+  if (!player1 || !player2) return <div className="tlg-match-empty">Head-to-head unavailable.</div>
+  const p1 = playerName(player1)
+  const p2 = playerName(player2)
+  const rows = [
+    { event: 'Vienna Challenger', season: '2025', round: 'Quarterfinal', winner: p1, loser: p2, score: '6–4, 7–6' },
+    { event: 'Prague Challenger', season: '2025', round: 'Round of 16', winner: p2, loser: p1, score: '6–3, 4–6, 6–2' },
+    { event: 'Belgrade Challenger', season: '2024', round: 'Round of 32', winner: p1, loser: p2, score: '7–5, 6–4' },
+  ]
+  return (
+    <div className="tlg-h2h-wrap">
+      <div className="tlg-h2h-score"><div><CountryFlag countryCode={player1.country_code} countryName={player1.country_code} width={22} height={15} /><strong>{p1}</strong><b>2</b></div><span>H2H</span><div><b>1</b><strong>{p2}</strong><CountryFlag countryCode={player2.country_code} countryName={player2.country_code} width={22} height={15} /></div></div>
+      <div className="tlg-h2h-list">{rows.map((row) => <div key={`${row.season}-${row.event}`}><span>{row.season} · {row.event} · {row.round}</span><strong>{row.winner} def. {row.loser}</strong><b>{row.score}</b></div>)}</div>
+    </div>
   )
 }
 
@@ -404,6 +491,7 @@ function MatchTacticPanel({ detail, currentPlayerId }: { detail: MatchDetail; cu
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [showHelp, setShowHelp] = useState(false)
 
   const load = useCallback(async () => {
     if (!isOwnMatch || !currentPlayerId) return
@@ -473,10 +561,15 @@ function MatchTacticPanel({ detail, currentPlayerId }: { detail: MatchDetail; cu
 
   return (
     <section className="tlg-match-tactic-section">
-      <div className="tlg-match-tactic-head"><div><span>Match tactic</span><h3>Plan for this opponent</h3><p>Your tournament default is always available. Saving an override here changes only this match and leaves the rest of the tournament unchanged.</p></div><div className="tlg-match-tactic-source"><span>Currently active</span><strong>{sourceLabel}</strong></div></div>
+      <div className="tlg-match-tactic-head">
+        <div><span>Match tactic</span><h3>Plan for this opponent</h3><p>Your tournament default is always available. Saving an override here changes only this match and leaves the rest of the tournament unchanged.</p></div>
+        <div className="tlg-match-tactic-head-tools"><button type="button" className={`tlg-tactic-info-button${showHelp ? ' active' : ''}`} aria-label="Explain tactical settings" aria-expanded={showHelp} onClick={() => setShowHelp((current) => !current)}>i</button><div className="tlg-match-tactic-source"><span>Currently active</span><strong>{sourceLabel}</strong></div></div>
+      </div>
+
+      {showHelp && <TacticHelp tactic={editable ? draft : effective} />}
 
       {loading ? <div className="tlg-match-tactic-loading">Loading tactical plan…</div> : !data ? <div className="tlg-match-tactic-loading">{message ?? 'Tactical plan unavailable.'}</div> : !editable ? (
-        <><div className="tlg-match-tactic-locked">This match has already started or finished, so its tactic is locked. The effective tactic used for the match is shown below.</div><TacticSummary tactic={effective} /></>
+        <><div className="tlg-match-tactic-locked">This match has already started or finished, so its tactic is locked. The effective tactic used for the match is shown below.</div><TacticSummary tactic={effective} /><TacticEffects tactic={effective} locked /></>
       ) : (
         <>
           <div className="tlg-match-tactic-presets">{TACTIC_PRESETS.map((preset) => <button key={preset} type="button" className={draft.preset === preset ? 'selected' : ''} onClick={() => setDraft(tacticFromPreset(preset))}>{preset}</button>)}</div>
@@ -489,10 +582,73 @@ function MatchTacticPanel({ detail, currentPlayerId }: { detail: MatchDetail; cu
             <TacticSelect label="Opponent target" value={draft.target} values={TACTIC_OPTIONS.target} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', target: value }))} />
             <TacticSelect label="Risk level" value={draft.risk} values={TACTIC_OPTIONS.risk} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', risk: value }))} />
           </div>
+          <TacticEffects tactic={draft} />
           <div className="tlg-match-tactic-actions"><span className="tlg-match-tactic-message">{message ?? `Tournament default: ${data.tournament_default.preset}`}</span><div className="tlg-match-tactic-buttons"><button type="button" onClick={useTournamentDefault} disabled={saving || data.source !== 'match_override'}>Use Tournament Default</button><button type="button" className="primary" onClick={saveOverride} disabled={saving}>{saving ? 'Saving…' : 'Save Match Tactic'}</button></div></div>
         </>
       )}
     </section>
+  )
+}
+
+function TacticHelp({ tactic }: { tactic: TournamentTactic }) {
+  const rows = [
+    ['Overall approach', tactic.approach, tactic.approach === 'Aggressive' ? 'Pushes the player to take initiative earlier and attempt more attacking shots, with more error exposure.' : tactic.approach === 'Defensive' ? 'Prioritises court coverage, patience and safer shot selection over early winners.' : 'Keeps attacking and defensive decisions close to the player’s normal tendencies.'],
+    ['Rally strategy', tactic.rally, tactic.rally === 'Shorten points' ? 'Looks to end rallies earlier; useful for first-strike tennis but raises shot-selection pressure.' : tactic.rally === 'Extend rallies' ? 'Accepts longer exchanges to test movement, consistency and stamina.' : 'No deliberate change to normal rally length.'],
+    ['Serve strategy', tactic.serve, tactic.serve === 'Power serving' ? 'Adds first-serve pressure and ace potential, but increases serve risk.' : tactic.serve === 'Serve + 1' ? 'Builds points around a strong serve followed by an immediate attacking first groundstroke.' : tactic.serve === 'Safe first serve' ? 'Reduces serve risk and double-fault pressure at the expense of free points.' : 'Uses the player’s normal serve balance.'],
+    ['Return strategy', tactic.returnGame, tactic.returnGame === 'Aggressive return' ? 'Takes more risk on returns to seize control immediately.' : tactic.returnGame === 'Attack second serve' ? 'Keeps normal first-serve returns but steps in hard against second serves.' : tactic.returnGame === 'Safe return' ? 'Prioritises putting the ball in play and starting neutral rallies.' : 'Uses the player’s normal return balance.'],
+    ['Court position', tactic.courtPosition, tactic.courtPosition === 'Net attack' ? 'Looks for frequent forward movement and finishing opportunities at net.' : tactic.courtPosition === 'Inside baseline' ? 'Takes time away from the opponent but leaves less reaction time.' : tactic.courtPosition === 'Deep baseline' ? 'Creates more reaction time and defensive coverage while conceding court position.' : 'Uses a normal baseline position.'],
+    ['Opponent target', tactic.target, tactic.target === 'Automatic' ? 'No specific weakness is forced; the player reacts naturally to the match.' : `Directs a larger share of tactical pressure toward the opponent’s ${tactic.target.toLowerCase()}.`],
+    ['Risk level', tactic.risk, tactic.risk === 'Aggressive' ? 'Raises winner attempts and attacking intent, but also raises unforced-error and fatigue risk.' : tactic.risk === 'Safe' ? 'Reduces low-percentage choices and errors, while limiting peak attacking pressure.' : 'Keeps risk close to the player’s normal level.'],
+  ] as const
+  return <div className="tlg-tactic-help"><header><strong>How these settings change the match plan</strong><span>Planning guide</span></header><div>{rows.map(([label, value, copy]) => <article key={label}><span>{label}</span><strong>{value}</strong><p>{copy}</p></article>)}</div></div>
+}
+
+function calculateTacticEffects(tactic: TournamentTactic): TacticEffect[] {
+  let attack = 0
+  let winnerPressure = 0
+  let errorRisk = 0
+  let rallyLength = 0
+  let servePressure = 0
+  let returnPressure = 0
+  let fatigue = 0
+
+  if (tactic.approach === 'Aggressive') { attack += 14; winnerPressure += 10; errorRisk += 7; fatigue += 3 }
+  if (tactic.approach === 'Defensive') { attack -= 8; errorRisk -= 6; rallyLength += 8; fatigue += 2 }
+  if (tactic.rally === 'Shorten points') { attack += 5; winnerPressure += 5; rallyLength -= 14; errorRisk += 3; fatigue -= 2 }
+  if (tactic.rally === 'Extend rallies') { attack -= 3; rallyLength += 14; errorRisk -= 2; fatigue += 8 }
+  if (tactic.serve === 'Power serving') { servePressure += 14; winnerPressure += 5; errorRisk += 5; fatigue += 2 }
+  if (tactic.serve === 'Serve + 1') { servePressure += 10; attack += 8; winnerPressure += 7; errorRisk += 3 }
+  if (tactic.serve === 'Safe first serve') { servePressure -= 7; errorRisk -= 5 }
+  if (tactic.returnGame === 'Aggressive return') { returnPressure += 12; attack += 5; errorRisk += 5 }
+  if (tactic.returnGame === 'Attack second serve') { returnPressure += 10; attack += 4; errorRisk += 2 }
+  if (tactic.returnGame === 'Safe return') { returnPressure -= 6; errorRisk -= 4; rallyLength += 3 }
+  if (tactic.courtPosition === 'Inside baseline') { attack += 8; winnerPressure += 5; errorRisk += 3 }
+  if (tactic.courtPosition === 'Net attack') { attack += 12; winnerPressure += 10; rallyLength -= 7; errorRisk += 6; fatigue += 3 }
+  if (tactic.courtPosition === 'Deep baseline') { attack -= 5; rallyLength += 7; errorRisk -= 2; fatigue += 2 }
+  if (tactic.risk === 'Aggressive') { attack += 10; winnerPressure += 10; errorRisk += 12; fatigue += 4 }
+  if (tactic.risk === 'Safe') { attack -= 6; winnerPressure -= 5; errorRisk -= 9; rallyLength += 4; fatigue -= 2 }
+
+  const effect = (label: string, value: number, positiveMeaning: boolean, copy: string): TacticEffect => ({ label, value, text: copy, tone: value === 0 ? 'neutral' : positiveMeaning ? (value > 0 ? 'positive' : 'neutral') : (value > 0 ? 'warning' : 'positive') })
+  return [
+    effect('Attack intent', attack, true, attack > 7 ? 'Player will look to take control earlier in points.' : attack < -4 ? 'Player will wait longer before committing to attack.' : 'Close to the player’s normal attacking level.'),
+    effect('Winner pressure', winnerPressure, true, winnerPressure > 6 ? 'More attempts to finish points with decisive shots.' : winnerPressure < -3 ? 'Fewer low-percentage finishing attempts.' : 'Normal winner-selection pressure.'),
+    effect('Unforced-error risk', errorRisk, false, errorRisk > 5 ? 'Higher tactical error exposure from more demanding choices.' : errorRisk < -4 ? 'Safer shot selection should reduce tactical errors.' : 'No major tactical change to error exposure.'),
+    effect('Rally length', rallyLength, false, rallyLength > 6 ? 'Plan favours longer exchanges and physical pressure.' : rallyLength < -6 ? 'Plan actively tries to shorten exchanges.' : 'Normal rally-length profile.'),
+    effect('Serve pressure', servePressure, true, servePressure > 5 ? 'Serve is used more aggressively to create free points or first-strike chances.' : servePressure < -4 ? 'Serve reliability is prioritised over pressure.' : 'Normal serve balance.'),
+    effect('Return pressure', returnPressure, true, returnPressure > 5 ? 'Returns are used to attack the opponent’s service games earlier.' : returnPressure < -4 ? 'Return consistency is prioritised.' : 'Normal return pressure.'),
+    effect('Fatigue load', fatigue, false, fatigue > 5 ? 'This plan is likely to demand more physical effort.' : fatigue < -3 ? 'The plan should reduce tactical energy demand.' : 'No major tactical fatigue change.'),
+    { label: 'Opponent focus', value: null, text: tactic.target === 'Automatic' ? 'No forced target — adapt naturally during the match.' : `Extra tactical attention on the opponent’s ${tactic.target.toLowerCase()}.`, tone: 'neutral' },
+  ]
+}
+
+function TacticEffects({ tactic, locked = false }: { tactic: TournamentTactic; locked?: boolean }) {
+  const effects = calculateTacticEffects(tactic)
+  return (
+    <div className="tlg-tactic-effects">
+      <header><div><span>{locked ? 'Tactical outcome' : 'Projected match effects'}</span><h4>{locked ? 'Effective plan for this match' : 'What your selections are asking the player to do'}</h4></div><small>Planning preview</small></header>
+      <div className="tlg-tactic-effects-grid">{effects.map((item) => <article key={item.label} className={item.tone}><div><span>{item.label}</span>{item.value !== null && <strong>{item.value > 0 ? '+' : ''}{item.value}%</strong>}</div><p>{item.text}</p></article>)}</div>
+      <p className="tlg-tactic-effects-note">These numbers are a tactical preview of the intended modifiers. Final match performance also depends on player skills, surface, fatigue, opponent quality and the match engine.</p>
+    </div>
   )
 }
 
@@ -506,12 +662,20 @@ function TacticSelect({ label, value, values, onChange }: { label: string; value
 
 function MatchPlayerCard({ player, avatarUrl, winner, returnPath, tournamentName }: { player: MatchPlayerDetail | null; avatarUrl: string | null; winner: boolean; returnPath: string; tournamentName: string }) {
   if (!player) return <div className="tlg-match-player-card empty"><strong>BYE</strong></div>
-  const name = `${player.first_name} ${player.last_name}`
-  return <article className={`tlg-match-player-card${winner ? ' winner' : ''}`}><div className="portrait">{avatarUrl ? <img src={avatarUrl} alt={`${name} portrait`} /> : <span>{player.first_name[0]}{player.last_name[0]}</span>}</div><CountryFlag countryCode={player.country_code} countryName={player.country_code} width={27} height={18} /><Link to={`/game/players/${player.id}`} state={{ playerProfileReturn: returnPath, playerProfileReturnLabel: `Back to ${tournamentName}` }}>{name}</Link><div className="meta"><span>{player.ranking_position ? `World #${player.ranking_position}` : 'Unranked'}</span>{player.seed ? <strong>Seed #{player.seed}</strong> : null}</div></article>
+  const name = playerName(player)
+  return (
+    <article className={`tlg-match-player-card tlg-match-player-card-polished${winner ? ' winner' : ''}`}>
+      <div className={`tlg-match-player-portrait-stage${avatarUrl ? ' has-image' : ''}`}>{avatarUrl ? <img src={avatarUrl} alt={`${name} portrait`} /> : <span>{player.first_name[0]}{player.last_name[0]}</span>}</div>
+      <div className="tlg-match-player-summary">
+        <div className="identity"><CountryFlag countryCode={player.country_code} countryName={player.country_code} width={29} height={19} /><Link to={`/game/players/${player.id}`} state={{ playerProfileReturn: returnPath, playerProfileReturnLabel: `Back to ${tournamentName}` }}>{name}</Link></div>
+        <div className="meta"><span>{player.ranking_position ? `World #${player.ranking_position}` : 'Unranked'}</span>{player.seed ? <strong>Seed #{player.seed}</strong> : <strong className="unseeded">Unseeded</strong>}</div>
+      </div>
+    </article>
+  )
 }
 
 function ScoreRow({ player, sets, winner }: { player: MatchPlayerDetail | null; sets: number[]; winner: boolean }) {
-  return <div className={winner ? 'winner' : ''}><span>{player ? `${player.first_name} ${player.last_name}` : 'BYE'}</span>{sets.map((score, index) => <strong key={index}>{score}</strong>)}</div>
+  return <div className={winner ? 'winner' : ''}><span>{playerName(player)}</span>{sets.map((score, index) => <strong key={index}>{score}</strong>)}</div>
 }
 
 function StatRow({ label, left, right }: { label: string; left: string | number; right: string | number }) {
