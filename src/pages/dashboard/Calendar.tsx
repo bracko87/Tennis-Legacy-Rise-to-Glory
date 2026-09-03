@@ -17,6 +17,7 @@ import {
 } from '../../lib/competitionCalendar'
 import { supabase } from '../../lib/supabase'
 import '../../styles/tournament-calendar.css'
+import '../../styles/calendar-player-activity.css'
 
 const TOURNAMENT_RETURN_STORAGE_KEY = 'tlg-tournament-calendar-return'
 
@@ -48,6 +49,16 @@ interface TournamentCalendarRow {
 interface TournamentReturnPosition {
   month: number
   week: number
+}
+
+interface PlayerCalendarActivityRow {
+  season: number
+  month: number
+  day: number
+  activity_type: 'travel' | 'tournament' | 'training_camp' | 'injured' | 'home'
+  source: string | null
+  note: string | null
+  reference_id: string | null
 }
 
 function parsePositiveInteger(value: string | null, minimum: number, maximum: number) {
@@ -101,13 +112,66 @@ function phaseLabel(phase: TournamentCalendarRow['phase']) {
   return null
 }
 
+function playerActivityLabel(activity: PlayerCalendarActivityRow['activity_type']) {
+  if (activity === 'training_camp') return 'Training Camp'
+  if (activity === 'tournament') return 'Tournament'
+  if (activity === 'travel') return 'Travel'
+  if (activity === 'injured') return 'Injury / Recovery'
+  return 'Home'
+}
+
 function SeasonCalendarView() {
+  const { player } = useAuth()
   const clock = useGameClock()
   const [monthIndex, setMonthIndex] = useState(0)
+  const [activities, setActivities] = useState<PlayerCalendarActivityRow[]>([])
+  const [activityError, setActivityError] = useState<string | null>(null)
+  const [activityVersion, setActivityVersion] = useState(0)
 
   useEffect(() => {
     if (!clock.loading) setMonthIndex(clock.monthIndex)
   }, [clock.loading, clock.monthIndex])
+
+  useEffect(() => {
+    if (!player?.id || clock.loading) {
+      setActivities([])
+      return
+    }
+
+    let cancelled = false
+
+    async function loadPlayerActivity() {
+      const { data, error } = await supabase.rpc('get_player_calendar_activity_v1', {
+        p_season: clock.season,
+        p_month: monthIndex + 1,
+      })
+
+      if (cancelled) return
+      if (error) {
+        setActivities([])
+        setActivityError(error.message)
+        return
+      }
+
+      setActivityError(null)
+      setActivities((data ?? []) as PlayerCalendarActivityRow[])
+    }
+
+    void loadPlayerActivity()
+    return () => { cancelled = true }
+  }, [player?.id, clock.loading, clock.season, monthIndex, activityVersion])
+
+  useEffect(() => {
+    if (!player?.id) return
+    const channel = supabase
+      .channel(`season-calendar-activity:${player.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'player_daily_activity', filter: `player_id=eq.${player.id}` }, () => {
+        setActivityVersion((value) => value + 1)
+      })
+      .subscribe()
+
+    return () => { void supabase.removeChannel(channel) }
+  }, [player?.id])
 
   const month = MONTHS[monthIndex]
   const leadingEmptyCells = firstWeekdayIndex(monthIndex)
@@ -120,6 +184,10 @@ function SeasonCalendarView() {
     return values
   }, [leadingEmptyCells, month.days])
 
+  const activityByDay = useMemo(
+    () => new Map(activities.map((activity) => [activity.day, activity])),
+    [activities],
+  )
   const todayWeekday = weekdayForDate(clock.monthIndex, clock.day)
 
   return (
@@ -128,7 +196,7 @@ function SeasonCalendarView() {
         <div className="tlg-season-calendar-copy">
           <h4>Season {clock.season} · {month.name}</h4>
           <p>
-            Today: Season {clock.season} · {todayWeekday} · {clock.month} {clock.day}. Every season uses the same 366-day calendar and weekday layout.
+            Today: Season {clock.season} · {todayWeekday} · {clock.month} {clock.day}. Training camps, travel, tournament participation and injuries use the same player calendar as Training.
           </p>
         </div>
 
@@ -151,6 +219,8 @@ function SeasonCalendarView() {
         </div>
       </div>
 
+      {activityError && <div className="tlg-calendar-player-activity-error">Unable to load your player schedule: {activityError}</div>}
+
       <div className="tlg-calendar-weekdays" aria-hidden="true">
         {WEEKDAYS.map((weekday) => <span key={weekday}>{weekday}</span>)}
       </div>
@@ -163,15 +233,22 @@ function SeasonCalendarView() {
 
           const current = monthIndex === clock.monthIndex && day === clock.day
           const openingDay = isSeasonOpeningDay(monthIndex, day)
+          const activity = activityByDay.get(day)
+          const classes = ['tlg-calendar-day']
+          if (current) classes.push('tlg-calendar-day-current')
+          if (activity && activity.activity_type !== 'home') classes.push(`tlg-calendar-day-${activity.activity_type}`)
 
           return (
-            <div
-              key={`${month.name}-${day}`}
-              className={current ? 'tlg-calendar-day tlg-calendar-day-current' : 'tlg-calendar-day'}
-            >
+            <div key={`${month.name}-${day}`} className={classes.join(' ')}>
               <span className="tlg-calendar-day-number">{month.name} {day}</span>
               {current && <span className="tlg-calendar-today-badge">Today</span>}
               {openingDay && !current && <span className="tlg-calendar-today-badge">Season opening</span>}
+              {activity && activity.activity_type !== 'home' && (
+                <div className={`tlg-calendar-player-activity ${activity.activity_type}`}>
+                  <span>{playerActivityLabel(activity.activity_type)}</span>
+                  <strong>{activity.note || playerActivityLabel(activity.activity_type)}</strong>
+                </div>
+              )}
             </div>
           )
         })}
@@ -424,8 +501,8 @@ export default function CalendarPage() {
       eyebrow="Competition planning"
       intro="Use the Calendar for the complete Tennis Legacy season timeline. Tournament Calendar uses 52 continuous Monday-to-Sunday competition weeks while ATP and WTA entries, draws, matches, results and rankings remain completely separate."
       icon={<CalendarDays size={18} />}
-      sideTitle="Calendar engine pending"
-      sideDescription="Calendar views use the global Tennis Legacy game clock and fixed 366-day season structure. Tournament data is server-backed and separated into ATP and WTA competitions."
+      sideTitle="Player calendar synchronization"
+      sideDescription="Training camps, travel, tournament participation and injuries are shown from the same server-backed activity calendar that controls Training availability."
       wide
       initialTabId={initialTabId}
       tabs={[
