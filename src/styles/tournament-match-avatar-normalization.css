@@ -1,0 +1,42 @@
+/* Standardize portrait scale inside tournament match cards.
+   Source avatars can have slightly different crops; every match card therefore
+   uses the same inset portrait canvas instead of letting the image fill 100% of
+   the media area. */
+.tlg-match-player-portrait-stage.has-image {
+  place-items: center;
+}
+
+.tlg-match-player-portrait-stage.has-image img {
+  width: 88% !important;
+  height: 88% !important;
+  max-width: 88%;
+  max-height: 88%;
+  object-fit: contain !important;
+  object-position: center center !important;
+  transform: none !important;
+}
+
+/* Keep the same framing on both mirrored sides. */
+.tlg-match-versus > .tlg-match-player-card-polished:first-child .tlg-match-player-portrait-stage.has-image img,
+.tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-portrait-stage.has-image img {
+  width: 88% !important;
+  height: 88% !important;
+}
+
+@media(max-width:980px) {
+  .tlg-match-player-portrait-stage.has-image img {
+    width: 90% !important;
+    height: 90% !important;
+    max-width: 90%;
+    max-height: 90%;
+  }
+}
+
+@media(max-width:680px) {
+  .tlg-match-player-portrait-stage.has-image img {
+    width: 92% !important;
+    height: 92% !important;
+    max-width: 92%;
+    max-height: 92%;
+  }
+}
