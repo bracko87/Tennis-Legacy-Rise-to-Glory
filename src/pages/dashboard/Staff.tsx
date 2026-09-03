@@ -121,7 +121,6 @@ export default function StaffPage() {
   }
 
   const roleOccupied = selected ? contractsByRole.has(selected.role) : false
-  const rankingBlocked = Boolean(selected?.required_rank_position && dashboard && dashboard.rank_position > selected.required_rank_position)
   const financeBlocked = Boolean(selected && dashboard?.finance.is_live && dashboard.finance.balance !== null && dashboard.finance.balance < selected.signing_fee)
   const weeklyOffer = selected ? contractWeeklySalary(selected.base_weekly_salary, duration) : 0
   const contractTotal = selected ? selected.signing_fee + weeklyOffer * duration : 0
@@ -150,7 +149,7 @@ export default function StaffPage() {
               <div><span>EMPLOYED</span><strong>{dashboard.employed_count} / {dashboard.max_staff}</strong><small>One active person per role</small></div>
               <div><span>WEEKLY STAFF COST</span><strong>${dashboard.weekly_cost.toLocaleString()}</strong><small>Contracted weekly salaries</small></div>
               <div><span>EXPIRING SOON</span><strong>{dashboard.contracts_expiring_4_weeks}</strong><small>Contracts with ≤4 weeks left</small></div>
-              <div><span>WORLD RANK</span><strong>#{dashboard.rank_position}</strong><small>Used for elite staff eligibility</small></div>
+              <div><span>HIRING ACCESS</span><strong>Open</strong><small>Any available staff can be hired if affordable</small></div>
             </section>
 
             {!dashboard.finance.is_live && (
@@ -220,16 +219,15 @@ export default function StaffPage() {
                         </div>
                         <div className="tlg-staff-specialty"><span>SPECIALTY</span><strong>{selected.specialty}</strong></div>
                         <AttributeGrid staff={selected} />
-                        <div className="tlg-staff-eligibility"><div><span>RANKING REQUIREMENT</span><strong>{selected.required_rank_position ? `Top ${selected.required_rank_position}` : 'Open to all players'}</strong></div><div><span>SIGNING FEE</span><strong>${selected.signing_fee.toLocaleString()}</strong></div></div>
+                        <div className="tlg-staff-eligibility"><div><span>HIRING ACCESS</span><strong>Open to all players</strong></div><div><span>SIGNING FEE</span><strong>${selected.signing_fee.toLocaleString()}</strong></div></div>
                         <section className="tlg-staff-contract-options">
                           <header><span>CONTRACT</span><h3>Choose contract length</h3></header>
                           <div>{([13, 26, 52] as const).map((weeks) => { const salary = contractWeeklySalary(selected.base_weekly_salary, weeks); return <button type="button" key={weeks} className={duration === weeks ? 'selected' : ''} onClick={() => setDuration(weeks)}><strong>{weeks} weeks</strong><span>${salary.toLocaleString()} / week</span><small>{weeks === 13 ? 'Base rate' : weeks === 26 ? '7% weekly discount' : '14% weekly discount'}</small></button> })}</div>
                         </section>
                         <div className="tlg-staff-offer-total"><div><span>Weekly salary</span><strong>${weeklyOffer.toLocaleString()}</strong></div><div><span>Signing fee</span><strong>${selected.signing_fee.toLocaleString()}</strong></div><div><span>Full contract commitment</span><strong>${contractTotal.toLocaleString()}</strong></div></div>
                         {roleOccupied && <div className="tlg-staff-blocked">You already employ a {selected.role_label.toLowerCase()}. End that contract before hiring a replacement.</div>}
-                        {rankingBlocked && <div className="tlg-staff-blocked">This candidate requires a Top {selected.required_rank_position} world ranking.</div>}
                         {financeBlocked && <div className="tlg-staff-blocked">Your career balance cannot cover this signing fee.</div>}
-                        <button type="button" className="tlg-staff-hire" disabled={saving || roleOccupied || rankingBlocked || financeBlocked} onClick={handleHire}>{saving ? 'Hiring…' : `Hire ${selected.first_name} · ${duration} weeks`}</button>
+                        <button type="button" className="tlg-staff-hire" disabled={saving || roleOccupied || financeBlocked} onClick={handleHire}>{saving ? 'Hiring…' : `Hire ${selected.first_name} · ${duration} weeks`}</button>
                       </>
                     ) : <div className="tlg-staff-loading">Select a candidate to see the full profile.</div>}
                   </aside>
