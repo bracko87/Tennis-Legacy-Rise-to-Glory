@@ -520,6 +520,18 @@
   line-height: 1.25;
 }
 
+/* Temporary visual mock: if the second player has no portrait, use the test copy of the left portrait. */
+.tlg-match-versus > .tlg-match-player-card-polished:nth-of-type(2) .tlg-match-player-portrait-stage:not(.has-image) {
+  background-image: url('/mock/dominik-gruber-test.svg');
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+}
+
+.tlg-match-versus > .tlg-match-player-card-polished:nth-of-type(2) .tlg-match-player-portrait-stage:not(.has-image) > span {
+  display: none;
+}
+
 @media(max-width:1100px) {
   .tlg-prematch-insights {
     grid-template-columns: 1fr;
