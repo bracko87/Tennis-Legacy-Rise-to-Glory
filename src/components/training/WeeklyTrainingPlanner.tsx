@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import type { TrainingIntensity, TrainingPlan, TrainingType } from '../../hooks/useTraining'
-import { useTrainingWeekPlanner, type TrainingWeekDay, type TrainingWeekPlanner } from '../../hooks/useTrainingWeekPlanner'
+import {
+  useTrainingWeekPlanner,
+  type TrainingDaySaveDraft,
+  type TrainingWeekDay,
+  type TrainingWeekPlanner,
+} from '../../hooks/useTrainingWeekPlanner'
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -19,6 +24,8 @@ const PHYSICAL_SKILLS = [
 
 const ATTRIBUTE_LABELS: Record<string, string> = Object.fromEntries([...TECHNICAL_SKILLS, ...PHYSICAL_SKILLS])
 
+type DayDraft = Pick<TrainingWeekDay, 'training_type' | 'focus_attribute' | 'intensity'>
+
 function activityLabel(value: TrainingWeekDay['activity_type']) {
   if (value === 'training_camp') return 'Training Camp'
   return value.charAt(0).toUpperCase() + value.slice(1)
@@ -33,11 +40,12 @@ function planLabel(day: TrainingWeekDay) {
   return `${ATTRIBUTE_LABELS[day.focus_attribute ?? ''] ?? 'Training'} · ${day.intensity}`
 }
 
-function weekSummary(week: TrainingWeekPlanner | null) {
+function weekSummary(week: TrainingWeekPlanner | null, drafts: Record<number, DayDraft>) {
   if (!week) return ''
-  const blocked = week.days.filter((day) => day.activity_type !== 'home').length
-  const planned = week.days.filter((day) => day.activity_type === 'home' && day.training_type !== 'day_off').length
-  const rest = week.days.filter((day) => day.activity_type === 'home' && day.training_type === 'day_off').length
+  const days = week.days.map((day) => ({ ...day, ...(drafts[day.absolute_day] ?? {}) }))
+  const blocked = days.filter((day) => day.activity_type !== 'home').length
+  const planned = days.filter((day) => day.activity_type === 'home' && day.training_type !== 'day_off').length
+  const rest = days.filter((day) => day.activity_type === 'home' && day.training_type === 'day_off').length
   return `${planned} training · ${rest} recovery${blocked ? ` · ${blocked} calendar` : ''}`
 }
 
@@ -54,11 +62,12 @@ export default function WeeklyTrainingPlanner({
   todayProcessed,
   onCompleteToday,
 }: WeeklyTrainingPlannerProps) {
-  const { currentWeek, nextWeek, loading, saving, error, saveDay, applyWeek } = useTrainingWeekPlanner()
+  const { currentWeek, nextWeek, loading, saving, error, saveDays } = useTrainingWeekPlanner()
   const [expanded, setExpanded] = useState<'current' | 'next'>('current')
   const [templateType, setTemplateType] = useState<TrainingType>(defaultPlan.training_type)
   const [templateFocus, setTemplateFocus] = useState<string | null>(defaultPlan.focus_attribute)
   const [templateIntensity, setTemplateIntensity] = useState<TrainingIntensity>(defaultPlan.intensity)
+  const [drafts, setDrafts] = useState<Record<number, DayDraft>>({})
   const [message, setMessage] = useState<string | null>(null)
 
   useEffect(() => {
@@ -67,11 +76,32 @@ export default function WeeklyTrainingPlanner({
     setTemplateIntensity(defaultPlan.intensity)
   }, [defaultPlan.focus_attribute, defaultPlan.intensity, defaultPlan.training_type])
 
+  useEffect(() => {
+    const liveDays = new Map(
+      [...(currentWeek?.days ?? []), ...(nextWeek?.days ?? [])].map((day) => [day.absolute_day, day]),
+    )
+    setDrafts((current) => {
+      const next: Record<number, DayDraft> = {}
+      Object.entries(current).forEach(([key, draft]) => {
+        const day = liveDays.get(Number(key))
+        if (!day?.editable || day.activity_type !== 'home' || day.processed) return
+        if (
+          day.training_type === draft.training_type
+          && day.focus_attribute === draft.focus_attribute
+          && day.intensity === draft.intensity
+        ) return
+        next[Number(key)] = draft
+      })
+      return next
+    })
+  }, [currentWeek, nextWeek])
+
   const visibleWeek = expanded === 'current' ? currentWeek : nextWeek
   const currentDay = useMemo(
     () => currentWeek?.days.find((day) => day.absolute_day === currentWeek.current_absolute_day) ?? null,
     [currentWeek],
   )
+  const unsavedCount = Object.keys(drafts).length
 
   function focusOptions(type: TrainingType) {
     return type === 'physical' ? PHYSICAL_SKILLS : TECHNICAL_SKILLS
@@ -83,45 +113,90 @@ export default function WeeklyTrainingPlanner({
     return options.some(([key]) => key === focus) ? focus : options[0][0]
   }
 
+  function dayWithDraft(day: TrainingWeekDay) {
+    return { ...day, ...(drafts[day.absolute_day] ?? {}) }
+  }
+
   function changeTemplateType(type: TrainingType) {
     setTemplateType(type)
     setTemplateFocus(normalizeFocus(type, templateFocus))
     setMessage(null)
   }
 
-  async function handleApplyWeek() {
+  function setDayDraft(day: TrainingWeekDay, next: DayDraft) {
+    setDrafts((current) => {
+      const updated = { ...current }
+      const matchesSaved = day.training_type === next.training_type
+        && day.focus_attribute === next.focus_attribute
+        && day.intensity === next.intensity
+      if (matchesSaved) delete updated[day.absolute_day]
+      else updated[day.absolute_day] = next
+      return updated
+    })
+  }
+
+  function handleApplyWeek() {
     if (!visibleWeek) return
-    setMessage(null)
-    const result = await applyWeek(
-      visibleWeek.week_start_absolute_day,
-      templateType,
-      normalizeFocus(templateType, templateFocus),
-      templateIntensity,
-    )
-    if (result) {
-      setMessage(`Plan applied to ${result.applied_days} available day${result.applied_days === 1 ? '' : 's'}.${result.skipped_days ? ` ${result.skipped_days} calendar/processed day${result.skipped_days === 1 ? '' : 's'} kept unchanged.` : ''}`)
-    }
+    const type = templateType
+    const focus = normalizeFocus(templateType, templateFocus)
+    let applied = 0
+    setDrafts((current) => {
+      const updated = { ...current }
+      visibleWeek.days.forEach((day) => {
+        if (!day.editable || day.activity_type !== 'home' || day.processed) return
+        const next: DayDraft = { training_type: type, focus_attribute: focus, intensity: templateIntensity }
+        const matchesSaved = day.training_type === next.training_type
+          && day.focus_attribute === next.focus_attribute
+          && day.intensity === next.intensity
+        if (matchesSaved) delete updated[day.absolute_day]
+        else updated[day.absolute_day] = next
+        applied += 1
+      })
+      return updated
+    })
+    setMessage(`Plan prepared for ${applied} available day${applied === 1 ? '' : 's'}. Click Save Training Plan to confirm the changes.`)
   }
 
-  async function changeDay(day: TrainingWeekDay, patch: Partial<Pick<TrainingWeekDay, 'training_type' | 'focus_attribute' | 'intensity'>>) {
+  function changeDay(day: TrainingWeekDay, patch: Partial<DayDraft>) {
     if (!day.editable || saving) return
-    const type = patch.training_type ?? day.training_type
-    const focus = normalizeFocus(type, patch.focus_attribute !== undefined ? patch.focus_attribute : day.focus_attribute)
-    const intensity = patch.intensity ?? day.intensity
+    const effective = dayWithDraft(day)
+    const type = patch.training_type ?? effective.training_type
+    const focus = normalizeFocus(type, patch.focus_attribute !== undefined ? patch.focus_attribute : effective.focus_attribute)
+    const intensity = patch.intensity ?? effective.intensity
     setMessage(null)
-    const saved = await saveDay(day.absolute_day, type, focus, intensity)
-    if (saved) setMessage(`${day.weekday_name} plan saved.`)
+    setDayDraft(day, { training_type: type, focus_attribute: focus, intensity })
   }
 
-  function renderDay(day: TrainingWeekDay) {
+  async function handleSavePlan() {
+    const changes: TrainingDaySaveDraft[] = Object.entries(drafts)
+      .map(([absoluteDay, draft]) => ({
+        absolute_day: Number(absoluteDay),
+        training_type: draft.training_type,
+        focus_attribute: draft.focus_attribute,
+        intensity: draft.intensity,
+      }))
+      .sort((a, b) => a.absolute_day - b.absolute_day)
+
+    if (changes.length === 0) return
+    setMessage(null)
+    const result = await saveDays(changes)
+    if (!result) return
+    setDrafts({})
+    setMessage(`${result.saved_days} training day${result.saved_days === 1 ? '' : 's'} saved successfully.`)
+  }
+
+  function renderDay(baseDay: TrainingWeekDay) {
+    const day = dayWithDraft(baseDay)
     const calendarOwned = day.activity_type !== 'home'
     const isToday = currentWeek?.current_absolute_day === day.absolute_day
+    const changed = Boolean(drafts[day.absolute_day])
     return (
-      <article className={`tlg-week-plan-day ${calendarOwned ? 'calendar-owned' : ''} ${day.processed ? 'processed' : ''} ${isToday ? 'today' : ''}`} key={day.absolute_day}>
+      <article className={`tlg-week-plan-day ${calendarOwned ? 'calendar-owned' : ''} ${day.processed ? 'processed' : ''} ${isToday ? 'today' : ''} ${changed ? 'unsaved' : ''}`} key={day.absolute_day}>
         <div className="tlg-week-plan-date">
           <span>{day.weekday_name.slice(0, 3).toUpperCase()}</span>
           <strong>{MONTH_NAMES[day.month - 1]} {day.day}</strong>
           {isToday && <small>Today</small>}
+          {changed && <small className="draft-label">Unsaved</small>}
         </div>
 
         {calendarOwned ? (
@@ -140,7 +215,7 @@ export default function WeeklyTrainingPlanner({
           <div className="tlg-week-plan-controls">
             <label>
               <span>Activity</span>
-              <select value={day.training_type} onChange={(event) => void changeDay(day, { training_type: event.target.value as TrainingType })} disabled={saving}>
+              <select value={day.training_type} onChange={(event) => changeDay(baseDay, { training_type: event.target.value as TrainingType })} disabled={saving}>
                 <option value="technical">Tennis Skills</option>
                 <option value="physical">Physical</option>
                 <option value="day_off">Day Off</option>
@@ -150,7 +225,7 @@ export default function WeeklyTrainingPlanner({
               <span>Focus</span>
               <select
                 value={day.focus_attribute ?? ''}
-                onChange={(event) => void changeDay(day, { focus_attribute: event.target.value || null })}
+                onChange={(event) => changeDay(baseDay, { focus_attribute: event.target.value || null })}
                 disabled={saving || day.training_type === 'day_off'}
               >
                 {day.training_type !== 'day_off' && focusOptions(day.training_type).map(([key, label]) => <option value={key} key={key}>{label}</option>)}
@@ -159,7 +234,7 @@ export default function WeeklyTrainingPlanner({
             </label>
             <label>
               <span>Load</span>
-              <select value={day.intensity} onChange={(event) => void changeDay(day, { intensity: event.target.value as TrainingIntensity })} disabled={saving || day.training_type === 'day_off'}>
+              <select value={day.intensity} onChange={(event) => changeDay(baseDay, { intensity: event.target.value as TrainingIntensity })} disabled={saving || day.training_type === 'day_off'}>
                 <option value="light">Light</option>
                 <option value="standard">Standard</option>
                 <option value="hard">Hard</option>
@@ -182,12 +257,12 @@ export default function WeeklyTrainingPlanner({
         <button type="button" className={expanded === 'current' ? 'active' : ''} onClick={() => setExpanded('current')}>
           <span>THIS WEEK</span>
           <strong>{currentWeek ? `Week ${currentWeek.season_week}` : '—'}</strong>
-          <small>{weekSummary(currentWeek)}</small>
+          <small>{weekSummary(currentWeek, drafts)}</small>
         </button>
         <button type="button" className={expanded === 'next' ? 'active' : ''} onClick={() => setExpanded('next')}>
           <span>NEXT WEEK</span>
           <strong>{nextWeek ? `Week ${nextWeek.season_week}` : '—'}</strong>
-          <small>{weekSummary(nextWeek)}</small>
+          <small>{weekSummary(nextWeek, drafts)}</small>
         </button>
       </div>
 
@@ -199,7 +274,7 @@ export default function WeeklyTrainingPlanner({
                 <span>QUICK WEEK PLAN</span>
                 <strong>Use one plan for every available day</strong>
               </div>
-              <small>Travel, tournaments, camps, injuries and already processed days are never overwritten.</small>
+              <small>Travel, tournaments, camps, injuries and already processed days are never overwritten. Changes are saved only when you click Save Training Plan.</small>
             </header>
             <div className="tlg-week-template-controls">
               <label>
@@ -225,8 +300,8 @@ export default function WeeklyTrainingPlanner({
                   <option value="hard">Hard</option>
                 </select>
               </label>
-              <button type="button" onClick={() => void handleApplyWeek()} disabled={saving}>
-                {saving ? 'Saving…' : 'Apply to available days'}
+              <button type="button" onClick={handleApplyWeek} disabled={saving}>
+                Apply to available days
               </button>
             </div>
           </section>
@@ -237,14 +312,19 @@ export default function WeeklyTrainingPlanner({
 
           <footer className="tlg-week-plan-footer">
             <div>
-              <strong>Calendar-aware training</strong>
-              <span>When Match Engine updates a tournament exit, the planner automatically follows the new Tournament → Travel → Home sequence and training becomes available again on the remaining Home days.</span>
+              <strong>{unsavedCount > 0 ? `${unsavedCount} unsaved training change${unsavedCount === 1 ? '' : 's'}` : 'Calendar-aware training'}</strong>
+              <span>{unsavedCount > 0 ? 'Review the changed days above, then save the plan. Tournament, travel, camp and injury ownership will still override Regular Training automatically.' : 'When Match Engine updates a tournament exit, the planner automatically follows the new Tournament → Travel → Home sequence and training becomes available again on the remaining Home days.'}</span>
             </div>
-            {expanded === 'current' && currentDay?.activity_type === 'home' && (
-              <button type="button" onClick={() => void onCompleteToday()} disabled={processing || todayProcessed || !currentDay || !currentDay.editable}>
-                {processing ? 'Processing…' : todayProcessed ? 'Today Completed' : 'Complete Today'}
+            <div className="tlg-week-plan-footer-actions">
+              <button type="button" className="save-plan" onClick={() => void handleSavePlan()} disabled={saving || unsavedCount === 0}>
+                {saving ? 'Saving…' : unsavedCount > 0 ? `Save Training Plan (${unsavedCount})` : 'Training Plan Saved'}
               </button>
-            )}
+              {expanded === 'current' && currentDay?.activity_type === 'home' && (
+                <button type="button" className="complete-today" onClick={() => void onCompleteToday()} disabled={processing || todayProcessed || !currentDay || !currentDay.editable}>
+                  {processing ? 'Processing…' : todayProcessed ? 'Today Completed' : 'Complete Today'}
+                </button>
+              )}
+            </div>
           </footer>
         </>
       )}
