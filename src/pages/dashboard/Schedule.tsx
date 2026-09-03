@@ -18,6 +18,7 @@ import GameLayout from '../../components/layout/GameLayout'
 import { useStaff } from '../../hooks/useStaff'
 import { supabase } from '../../lib/supabase'
 import '../../styles/schedule-operations.css'
+import '../../styles/schedule-operations-v2.css'
 
 interface TournamentSummaryItem {
   competition_id: string
@@ -38,17 +39,27 @@ interface PlayerTournamentSummary {
 }
 
 type PreparationTab = 'travel' | 'staff' | 'tactics' | 'summary'
-
 type TravelClass = 'Economy' | 'Premium Economy' | 'Business' | 'First Class'
 type HotelTier = 'Budget' | 'Standard' | 'Premium' | 'Luxury'
 
 const TRAVEL_CLASSES: TravelClass[] = ['Economy', 'Premium Economy', 'Business', 'First Class']
-const HOTEL_TIERS: Array<{ value: HotelTier; label: string; detail: string }> = [
-  { value: 'Budget', label: 'Budget Hotel ★★', detail: 'Lowest cost · basic recovery' },
-  { value: 'Standard', label: 'Standard Hotel ★★★', detail: 'Balanced cost and recovery' },
-  { value: 'Premium', label: 'Premium Hotel ★★★★', detail: 'Improved recovery between matches' },
-  { value: 'Luxury', label: 'Luxury Hotel ★★★★★', detail: 'Best comfort and recovery support' },
+const TRAVEL_CLASS_INFO: Record<TravelClass, { multiplier: number; effect: string }> = {
+  Economy: { multiplier: 1, effect: 'Standard arrival fatigue' },
+  'Premium Economy': { multiplier: 1.45, effect: 'About 15% less travel fatigue' },
+  Business: { multiplier: 2.4, effect: 'About 35% less travel fatigue' },
+  'First Class': { multiplier: 4, effect: 'About 50% less travel fatigue' },
+}
+
+const HOTEL_TIERS: Array<{ value: HotelTier; label: string; detail: string; nightly: number; effect: string }> = [
+  { value: 'Budget', label: 'Budget Hotel ★★', detail: 'Lowest cost', nightly: 90, effect: 'Standard recovery' },
+  { value: 'Standard', label: 'Standard Hotel ★★★', detail: 'Balanced option', nightly: 150, effect: '+5% recovery support' },
+  { value: 'Premium', label: 'Premium Hotel ★★★★', detail: 'Higher comfort', nightly: 240, effect: '+10% recovery support' },
+  { value: 'Luxury', label: 'Luxury Hotel ★★★★★', detail: 'Maximum comfort', nightly: 420, effect: '+15% recovery support' },
 ]
+
+const EUROPE = new Set(['AL','AD','AT','BY','BE','BA','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IS','IE','IT','LV','LI','LT','LU','MT','MD','MC','ME','NL','MK','NO','PL','PT','RO','SM','RS','SK','SI','ES','SE','CH','UA','GB'])
+const NORTH_AMERICA = new Set(['US','CA','MX'])
+const OCEANIA = new Set(['AU','NZ'])
 
 const TACTIC_OPTIONS = {
   approach: ['Defensive', 'Balanced', 'Aggressive'],
@@ -67,6 +78,17 @@ function tournamentWeekLabel(item: TournamentSummaryItem) {
 
 function titleCase(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
+function baseRoundTrip(countryCode: string) {
+  if (EUROPE.has(countryCode)) return 280
+  if (NORTH_AMERICA.has(countryCode)) return 950
+  if (OCEANIA.has(countryCode)) return 1250
+  return 780
+}
+
+function money(value: number) {
+  return `$${Math.round(value).toLocaleString()}`
 }
 
 export default function SchedulePage() {
@@ -100,14 +122,10 @@ export default function SchedulePage() {
     }
 
     let cancelled = false
-
     async function loadSchedule() {
       setLoading(true)
       setError(null)
-      const { data, error: rpcError } = await supabase.rpc('get_player_tournament_summary_v1', {
-        p_player_id: player.id,
-      })
-
+      const { data, error: rpcError } = await supabase.rpc('get_player_tournament_summary_v1', { p_player_id: player.id })
       if (cancelled) return
       if (rpcError) {
         setUpcoming([])
@@ -118,7 +136,6 @@ export default function SchedulePage() {
       }
       setLoading(false)
     }
-
     void loadSchedule()
     return () => { cancelled = true }
   }, [player?.id])
@@ -126,13 +143,24 @@ export default function SchedulePage() {
   const nextTournament = upcoming[0] ?? null
   const laterTournaments = upcoming.slice(1)
   const activeStaff = staffDashboard?.contracts ?? []
-
   const selectedStaffNames = useMemo(
-    () => activeStaff
-      .filter((contract) => selectedStaff.includes(contract.contract_id))
-      .map((contract) => `${contract.staff.first_name} ${contract.staff.last_name}`),
+    () => activeStaff.filter((contract) => selectedStaff.includes(contract.contract_id)).map((contract) => `${contract.staff.first_name} ${contract.staff.last_name}`),
     [activeStaff, selectedStaff],
   )
+
+  const hotel = HOTEL_TIERS.find((tier) => tier.value === hotelTier) ?? HOTEL_TIERS[1]
+  const estimate = useMemo(() => {
+    if (!nextTournament) return null
+    const base = baseRoundTrip(nextTournament.country_code)
+    const playerFlight = base * TRAVEL_CLASS_INFO[playerTravelClass].multiplier
+    const staffFlight = base * TRAVEL_CLASS_INFO[staffTravelClass].multiplier * selectedStaff.length
+    const partySize = 1 + selectedStaff.length
+    const minimumNights = 2
+    const maximumNights = 6
+    const minimum = playerFlight + staffFlight + hotel.nightly * partySize * minimumNights
+    const maximum = playerFlight + staffFlight + hotel.nightly * partySize * maximumNights
+    return { base, playerFlight, staffFlight, partySize, minimumNights, maximumNights, minimum, maximum }
+  }, [hotel.nightly, nextTournament, playerTravelClass, selectedStaff.length, staffTravelClass])
 
   function openPreparation() {
     setActiveTab('travel')
@@ -140,26 +168,17 @@ export default function SchedulePage() {
   }
 
   function toggleStaff(contractId: string) {
-    setSelectedStaff((current) => current.includes(contractId)
-      ? current.filter((id) => id !== contractId)
-      : [...current, contractId])
+    setSelectedStaff((current) => current.includes(contractId) ? current.filter((id) => id !== contractId) : [...current, contractId])
   }
 
   function applyPreset(preset: string) {
     setTacticPreset(preset)
-    if (preset === 'Attack') {
-      setTactics({ approach: 'Aggressive', rally: 'Shorten points', serve: 'Serve + 1', returnGame: 'Aggressive return', courtPosition: 'Inside baseline', target: 'Automatic', risk: 'Aggressive' })
-    } else if (preset === 'Counterpunch') {
-      setTactics({ approach: 'Defensive', rally: 'Extend rallies', serve: 'Safe first serve', returnGame: 'Balanced', courtPosition: 'Deep baseline', target: 'Automatic', risk: 'Safe' })
-    } else if (preset === 'Serve + 1') {
-      setTactics({ approach: 'Aggressive', rally: 'Shorten points', serve: 'Serve + 1', returnGame: 'Attack second serve', courtPosition: 'Inside baseline', target: 'Automatic', risk: 'Aggressive' })
-    } else if (preset === 'Defensive / Grind') {
-      setTactics({ approach: 'Defensive', rally: 'Extend rallies', serve: 'Safe first serve', returnGame: 'Safe return', courtPosition: 'Deep baseline', target: 'Stamina', risk: 'Safe' })
-    } else if (preset === 'Net Attack') {
-      setTactics({ approach: 'Aggressive', rally: 'Shorten points', serve: 'Power serving', returnGame: 'Aggressive return', courtPosition: 'Net attack', target: 'Automatic', risk: 'Aggressive' })
-    } else {
-      setTactics({ approach: 'Balanced', rally: 'Balanced rallies', serve: 'Balanced', returnGame: 'Balanced', courtPosition: 'Normal baseline', target: 'Automatic', risk: 'Balanced' })
-    }
+    if (preset === 'Attack') setTactics({ approach: 'Aggressive', rally: 'Shorten points', serve: 'Serve + 1', returnGame: 'Aggressive return', courtPosition: 'Inside baseline', target: 'Automatic', risk: 'Aggressive' })
+    else if (preset === 'Counterpunch') setTactics({ approach: 'Defensive', rally: 'Extend rallies', serve: 'Safe first serve', returnGame: 'Balanced', courtPosition: 'Deep baseline', target: 'Automatic', risk: 'Safe' })
+    else if (preset === 'Serve + 1') setTactics({ approach: 'Aggressive', rally: 'Shorten points', serve: 'Serve + 1', returnGame: 'Attack second serve', courtPosition: 'Inside baseline', target: 'Automatic', risk: 'Aggressive' })
+    else if (preset === 'Defensive / Grind') setTactics({ approach: 'Defensive', rally: 'Extend rallies', serve: 'Safe first serve', returnGame: 'Safe return', courtPosition: 'Deep baseline', target: 'Stamina', risk: 'Safe' })
+    else if (preset === 'Net Attack') setTactics({ approach: 'Aggressive', rally: 'Shorten points', serve: 'Power serving', returnGame: 'Aggressive return', courtPosition: 'Net attack', target: 'Automatic', risk: 'Aggressive' })
+    else setTactics({ approach: 'Balanced', rally: 'Balanced rallies', serve: 'Balanced', returnGame: 'Balanced', courtPosition: 'Normal baseline', target: 'Automatic', risk: 'Balanced' })
   }
 
   return (
@@ -169,16 +188,12 @@ export default function SchedulePage() {
           <div className="tlg-schedule-section-head">
             <div>
               <span>Next tournament</span>
-              <h2>Your next competition</h2>
-              <p>Travel, staff, accommodation and the tournament-wide tactical plan are managed here.</p>
+              <h2>Your next tournament</h2>
+              <p>Prepare travel, staff and accommodation in advance. If you do nothing, the automatic default plan below is used.</p>
             </div>
           </div>
 
-          {loading || playerLoading ? (
-            <div className="tlg-schedule-empty">Loading your tournament schedule…</div>
-          ) : error ? (
-            <div className="tlg-schedule-error">Unable to load schedule: {error}</div>
-          ) : !nextTournament ? (
+          {loading || playerLoading ? <div className="tlg-schedule-empty">Loading your tournament schedule…</div> : error ? <div className="tlg-schedule-error">Unable to load schedule: {error}</div> : !nextTournament ? (
             <div className="tlg-schedule-empty tlg-schedule-empty-large">
               <CalendarDays size={28} />
               <strong>No tournament is on your schedule yet</strong>
@@ -197,47 +212,35 @@ export default function SchedulePage() {
                   </div>
                 </div>
 
+                <div className="tlg-next-tournament-actions">
+                  <button type="button" className="primary" onClick={openPreparation}>Prepare Tournament</button>
+                  <Link to={`/game/tournaments/${nextTournament.competition_id}`}>Open Tournament <ChevronRight size={15} /></Link>
+                </div>
+
+                <div className="tlg-default-plan-strip">
+                  <div><span>Automatic default</span><strong>Economy · Standard Hotel ★★★ · Player only · Balanced tactic</strong></div>
+                  <p>Used automatically if you make no changes. Travel is the day before your first required draw and return is the day after elimination.</p>
+                </div>
+
                 <div className="tlg-next-tournament-meta">
                   <div><span>Schedule</span><strong>{tournamentWeekLabel(nextTournament)}</strong></div>
                   <div><span>Surface</span><strong>{titleCase(nextTournament.surface)}</strong></div>
                   <div><span>Entry</span><strong>Registered</strong></div>
-                  <div><span>Preparation</span><strong>Not booked</strong></div>
+                  <div><span>Preparation</span><strong>Defaults active</strong></div>
                 </div>
-              </div>
-
-              <div className="tlg-next-tournament-actions">
-                <button type="button" className="primary" onClick={openPreparation}>Prepare Tournament</button>
-                <Link to={`/game/tournaments/${nextTournament.competition_id}`}>Open Tournament <ChevronRight size={15} /></Link>
               </div>
             </div>
           )}
         </section>
 
         <section className="tlg-schedule-list-card">
-          <div className="tlg-schedule-section-head compact">
-            <div>
-              <span>Tournament schedule</span>
-              <h2>Other upcoming tournaments</h2>
-              <p>Only tournaments that belong to your player appear on this page.</p>
-            </div>
-          </div>
-
-          {!loading && upcoming.length === 0 ? (
-            <div className="tlg-schedule-empty">No additional tournament commitments.</div>
-          ) : laterTournaments.length === 0 ? (
-            <div className="tlg-schedule-empty">No tournaments scheduled after your next event.</div>
-          ) : (
+          <div className="tlg-schedule-section-head compact"><div><span>Tournament schedule</span><h2>Other upcoming tournaments</h2><p>Only tournaments that belong to your player appear on this page.</p></div></div>
+          {!loading && upcoming.length === 0 ? <div className="tlg-schedule-empty">No additional tournament commitments.</div> : laterTournaments.length === 0 ? <div className="tlg-schedule-empty">No tournaments scheduled after your next event.</div> : (
             <div className="tlg-schedule-tournament-list">
               {laterTournaments.map((item) => (
                 <Link key={item.competition_id} to={`/game/tournaments/${item.competition_id}`} className="tlg-schedule-tournament-row">
-                  <div className="tlg-schedule-row-name">
-                    <CountryFlag countryCode={item.country_code} countryName={item.country_code} width={24} height={16} />
-                    <div><strong>{item.tournament_name}</strong><span>{item.city}, {item.country_code}</span></div>
-                  </div>
-                  <span>{item.category_code}</span>
-                  <span>{titleCase(item.surface)}</span>
-                  <span>{tournamentWeekLabel(item)}</span>
-                  <ChevronRight size={16} />
+                  <div className="tlg-schedule-row-name"><CountryFlag countryCode={item.country_code} countryName={item.country_code} width={24} height={16} /><div><strong>{item.tournament_name}</strong><span>{item.city}, {item.country_code}</span></div></div>
+                  <span>{item.category_code}</span><span>{titleCase(item.surface)}</span><span>{tournamentWeekLabel(item)}</span><ChevronRight size={16} />
                 </Link>
               ))}
             </div>
@@ -246,88 +249,67 @@ export default function SchedulePage() {
       </div>
 
       {prepareOpen && nextTournament && (
-        <div className="tlg-tournament-prep-backdrop" role="presentation" onMouseDown={(event) => {
-          if (event.currentTarget === event.target) setPrepareOpen(false)
-        }}>
+        <div className="tlg-tournament-prep-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) setPrepareOpen(false) }}>
           <section className="tlg-tournament-prep-dialog" role="dialog" aria-modal="true" aria-label={`Prepare ${nextTournament.tournament_name}`}>
             <header className="tlg-tournament-prep-header">
-              <div>
-                <span>Tournament preparation</span>
-                <h2>{nextTournament.tournament_name}</h2>
-                <p>{nextTournament.city}, {nextTournament.country_code} · {titleCase(nextTournament.surface)} · {tournamentWeekLabel(nextTournament)}</p>
-              </div>
+              <div><span>Tournament preparation</span><h2>{nextTournament.tournament_name}</h2><p>{nextTournament.city}, {nextTournament.country_code} · {titleCase(nextTournament.surface)} · {tournamentWeekLabel(nextTournament)}</p></div>
               <button type="button" className="icon" onClick={() => setPrepareOpen(false)} aria-label="Close tournament preparation"><X size={19} /></button>
             </header>
 
             <nav className="tlg-tournament-prep-tabs" aria-label="Tournament preparation sections">
               <PrepTab active={activeTab === 'travel'} icon={<Plane size={15} />} label="Travel & Stay" onClick={() => setActiveTab('travel')} />
               <PrepTab active={activeTab === 'staff'} icon={<Users size={15} />} label="Travelling Staff" onClick={() => setActiveTab('staff')} />
-              <PrepTab active={activeTab === 'tactics'} icon={<SlidersHorizontal size={15} />} label="Tactics" onClick={() => setActiveTab('tactics')} />
-              <PrepTab active={activeTab === 'summary'} icon={<ShieldCheck size={15} />} label="Summary" onClick={() => setActiveTab('summary')} />
+              <PrepTab active={activeTab === 'tactics'} icon={<SlidersHorizontal size={15} />} label="Default Tactic" onClick={() => setActiveTab('tactics')} />
+              <PrepTab active={activeTab === 'summary'} icon={<ShieldCheck size={15} />} label="Cost Summary" onClick={() => setActiveTab('summary')} />
             </nav>
 
             <div className="tlg-tournament-prep-body">
               {activeTab === 'travel' && (
                 <div className="tlg-prep-stack">
-                  <div className="tlg-prep-rule">
-                    <Plane size={18} />
-                    <div><strong>Automatic travel timing</strong><p>Arrival is scheduled one day before qualification if you are qualifying, otherwise one day before the main draw. After elimination, the return trip home is scheduled for the following day.</p></div>
-                  </div>
+                  <div className="tlg-prep-rule"><Plane size={18} /><div><strong>Automatic travel timing</strong><p>Arrive one day before qualification if you are qualifying, otherwise one day before the main draw. Return home the day after elimination.</p></div></div>
 
-                  <ChoiceSection title="Player travel class" subtitle="Travel quality will later affect price and arrival fatigue.">
+                  <ChoiceSection title="Player travel class" subtitle="Changing class changes both cost and arrival fatigue.">
                     <ChoiceGrid values={TRAVEL_CLASSES} selected={playerTravelClass} onSelect={(value) => setPlayerTravelClass(value as TravelClass)} />
                   </ChoiceSection>
+                  <PlanImpact label="Player travel effect" value={TRAVEL_CLASS_INFO[playerTravelClass].effect} cost={estimate ? money(estimate.playerFlight) : '—'} />
 
-                  <ChoiceSection title="Staff travel class" subtitle="All selected travelling staff use this class in the first version.">
+                  <ChoiceSection title="Staff travel class" subtitle="Applied to every staff member you select on the Staff tab.">
                     <ChoiceGrid values={TRAVEL_CLASSES} selected={staffTravelClass} onSelect={(value) => setStaffTravelClass(value as TravelClass)} />
                   </ChoiceSection>
+                  <PlanImpact label="Staff travel effect" value={selectedStaff.length > 0 ? `${TRAVEL_CLASS_INFO[staffTravelClass].effect} · ${selectedStaff.length} traveller${selectedStaff.length === 1 ? '' : 's'}` : 'No travelling staff selected'} cost={estimate ? money(estimate.staffFlight) : '—'} />
 
-                  <ChoiceSection title="Hotel" subtitle="Accommodation remains booked automatically while the player is alive in the tournament.">
+                  <ChoiceSection title="Hotel" subtitle="The hotel stays booked automatically only while you remain in the tournament.">
                     <div className="tlg-prep-hotel-grid">
                       {HOTEL_TIERS.map((tier) => (
                         <button key={tier.value} type="button" className={hotelTier === tier.value ? 'selected' : ''} onClick={() => setHotelTier(tier.value)}>
-                          <Hotel size={17} /><strong>{tier.label}</strong><span>{tier.detail}</span>
+                          <Hotel size={17} /><strong>{tier.label}</strong><span>{tier.detail} · {tier.effect}</span><small>{money(tier.nightly)} / person / night</small>
                         </button>
                       ))}
                     </div>
                   </ChoiceSection>
+                  <PlanImpact label="Selected hotel effect" value={hotel.effect} cost={`${money(hotel.nightly)} per person/night`} />
                 </div>
               )}
 
               {activeTab === 'staff' && (
                 <div className="tlg-prep-stack">
-                  <div className="tlg-prep-copy"><h3>Choose who travels with the player</h3><p>Only staff currently under contract are shown. Travel and hotel costs will be added to the tournament budget once the booking engine is connected.</p></div>
-                  {staffLoading ? (
-                    <div className="tlg-schedule-empty">Loading contracted staff…</div>
-                  ) : activeStaff.length === 0 ? (
-                    <div className="tlg-schedule-empty">You do not currently employ any staff.</div>
-                  ) : (
+                  <div className="tlg-prep-copy"><h3>Choose who travels with the player</h3><p>The default is player-only travel. Every selected staff member adds a flight and hotel cost but can later provide their normal staff effects during the tournament.</p></div>
+                  {staffLoading ? <div className="tlg-schedule-empty">Loading contracted staff…</div> : activeStaff.length === 0 ? <div className="tlg-schedule-empty">You do not currently employ any staff.</div> : (
                     <div className="tlg-prep-staff-list">
                       {activeStaff.map((contract) => {
                         const checked = selectedStaff.includes(contract.contract_id)
-                        return (
-                          <button key={contract.contract_id} type="button" className={checked ? 'selected' : ''} onClick={() => toggleStaff(contract.contract_id)}>
-                            <span className="checkbox">{checked ? '✓' : ''}</span>
-                            <div><strong>{contract.staff.first_name} {contract.staff.last_name}</strong><span>{contract.role_label} · Rating {contract.staff.overall_rating}</span></div>
-                            <small>{checked ? 'Travelling' : 'Stays home'}</small>
-                          </button>
-                        )
+                        return <button key={contract.contract_id} type="button" className={checked ? 'selected' : ''} onClick={() => toggleStaff(contract.contract_id)}><span className="checkbox">{checked ? '✓' : ''}</span><div><strong>{contract.staff.first_name} {contract.staff.last_name}</strong><span>{contract.role_label} · Rating {contract.staff.overall_rating}</span></div><small>{checked ? 'Travelling' : 'Stays home'}</small></button>
                       })}
                     </div>
                   )}
+                  {estimate && <PlanImpact label="Current travelling party" value={`${estimate.partySize} total traveller${estimate.partySize === 1 ? '' : 's'}`} cost={`${money(estimate.staffFlight)} staff flights`} />}
                 </div>
               )}
 
               {activeTab === 'tactics' && (
                 <div className="tlg-prep-stack">
-                  <div className="tlg-prep-copy"><h3>Tournament default tactic</h3><p>This plan will be used for every match unless you create a specific tactic after the opponent becomes known.</p></div>
-
-                  <div className="tlg-tactic-presets">
-                    {['Balanced', 'Attack', 'Counterpunch', 'Serve + 1', 'Defensive / Grind', 'Net Attack'].map((preset) => (
-                      <button key={preset} type="button" className={tacticPreset === preset ? 'selected' : ''} onClick={() => applyPreset(preset)}>{preset}</button>
-                    ))}
-                  </div>
-
+                  <div className="tlg-prep-copy"><h3>Tournament default tactic</h3><p>This is the safe default for every match. Once an opponent is known, you can optionally create a match-specific override from that match inside the tournament page. If you do nothing, this default remains active.</p></div>
+                  <div className="tlg-tactic-presets">{['Balanced', 'Attack', 'Counterpunch', 'Serve + 1', 'Defensive / Grind', 'Net Attack'].map((preset) => <button key={preset} type="button" className={tacticPreset === preset ? 'selected' : ''} onClick={() => applyPreset(preset)}>{preset}</button>)}</div>
                   <div className="tlg-tactic-grid">
                     <SelectField label="Overall approach" value={tactics.approach} values={TACTIC_OPTIONS.approach} onChange={(value) => setTactics((current) => ({ ...current, approach: value }))} />
                     <SelectField label="Rally strategy" value={tactics.rally} values={TACTIC_OPTIONS.rally} onChange={(value) => setTactics((current) => ({ ...current, rally: value }))} />
@@ -337,39 +319,34 @@ export default function SchedulePage() {
                     <SelectField label="Opponent target" value={tactics.target} values={TACTIC_OPTIONS.target} onChange={(value) => setTactics((current) => ({ ...current, target: value }))} />
                     <SelectField label="Risk level" value={tactics.risk} values={TACTIC_OPTIONS.risk} onChange={(value) => setTactics((current) => ({ ...current, risk: value }))} />
                   </div>
-
-                  <div className="tlg-prep-rule soft"><SlidersHorizontal size={18} /><div><strong>Match-specific tactics come later</strong><p>Once the draw exists and an opponent is known, a match-specific plan will override this tournament default for that round only.</p></div></div>
+                  <div className="tlg-prep-rule soft"><SlidersHorizontal size={18} /><div><strong>Recommended structure</strong><p>Tournament preparation holds your default tactic. The tournament match window is where opponent-specific tactics belong, because that is when the opponent and scouting information are available.</p></div></div>
                 </div>
               )}
 
-              {activeTab === 'summary' && (
+              {activeTab === 'summary' && estimate && (
                 <div className="tlg-prep-stack">
                   <div className="tlg-prep-summary-grid">
-                    <SummaryItem label="Player flight" value={playerTravelClass} />
-                    <SummaryItem label="Staff flight" value={staffTravelClass} />
-                    <SummaryItem label="Hotel" value={HOTEL_TIERS.find((tier) => tier.value === hotelTier)?.label ?? hotelTier} />
+                    <SummaryItem label="Player flight" value={`${playerTravelClass} · ${money(estimate.playerFlight)}`} />
+                    <SummaryItem label="Staff flight" value={selectedStaff.length === 0 ? 'No staff travel' : `${staffTravelClass} · ${money(estimate.staffFlight)}`} />
+                    <SummaryItem label="Hotel" value={`${hotel.label} · ${hotel.effect}`} />
                     <SummaryItem label="Travelling staff" value={selectedStaff.length === 0 ? 'Player only' : `${selectedStaff.length} staff`} />
                     <SummaryItem label="Default tactic" value={tacticPreset} />
                     <SummaryItem label="Return travel" value="Day after elimination" />
                   </div>
 
-                  {selectedStaffNames.length > 0 && (
-                    <div className="tlg-prep-selected-staff"><span>Travelling party</span><strong>{selectedStaffNames.join(', ')}</strong></div>
-                  )}
+                  {selectedStaffNames.length > 0 && <div className="tlg-prep-selected-staff"><span>Travelling party</span><strong>{selectedStaffNames.join(', ')}</strong></div>}
 
-                  <div className="tlg-prep-cost-placeholder">
-                    <span>Estimated tournament cost</span>
-                    <strong>Live quote pending</strong>
-                    <p>The visual workflow is live, but no booking or money deduction is created in this first draft. The next backend phase will calculate travel and accommodation from destination, travel class and selected staff.</p>
+                  <div className="tlg-prep-cost-placeholder tlg-prep-cost-live">
+                    <span>Estimated tournament trip cost</span>
+                    <strong>{money(estimate.minimum)} – {money(estimate.maximum)}</strong>
+                    <div className="tlg-prep-cost-breakdown"><small>Flights: {money(estimate.playerFlight + estimate.staffFlight)}</small><small>Hotel: {money(hotel.nightly * estimate.partySize)} / night for the party</small><small>Planning range: {estimate.minimumNights}–{estimate.maximumNights} nights</small></div>
+                    <p>You do not choose the stay length. The lower figure represents an early elimination; the upper figure represents staying through the final. The actual hotel cost stops automatically after elimination.</p>
                   </div>
                 </div>
               )}
             </div>
 
-            <footer className="tlg-tournament-prep-footer">
-              <span>UI draft only · no booking is saved yet</span>
-              <button type="button" onClick={() => setPrepareOpen(false)}>Close Preview</button>
-            </footer>
+            <footer className="tlg-tournament-prep-footer"><span>Preparation preview · defaults apply automatically if you make no changes · no money is deducted yet</span><button type="button" onClick={() => setPrepareOpen(false)}>Close Preview</button></footer>
           </section>
         </div>
       )}
@@ -395,4 +372,8 @@ function SelectField({ label, value, values, onChange }: { label: string; value:
 
 function SummaryItem({ label, value }: { label: string; value: string }) {
   return <div className="tlg-prep-summary-item"><span>{label}</span><strong>{value}</strong></div>
+}
+
+function PlanImpact({ label, value, cost }: { label: string; value: string; cost: string }) {
+  return <div className="tlg-prep-impact"><div><span>{label}</span><strong>{value}</strong></div><b>{cost}</b></div>
 }
