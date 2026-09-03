@@ -1,0 +1,149 @@
+/* Staff presentation cleanup.
+ * Keep the game-wide Training Camp typography reference and remove the redundant
+ * overall staff score/tier badges. Role attributes remain visible and continue
+ * to drive the staff engines internally.
+ */
+
+.tlg-staff-page {
+  font-family: var(--tlg-font-ui) !important;
+  font-kerning: normal;
+}
+
+/* Overall staff rating/tier is intentionally not shown in the UI. */
+.tlg-staff-market-list .quality,
+.tlg-staff-detail-head .rating,
+.tlg-staff-role-card > header > b,
+.tlg-staff-role-meta span:first-child {
+  display: none !important;
+}
+
+.tlg-staff-market-list > button {
+  grid-template-columns: minmax(0, 1fr) 118px !important;
+}
+
+.tlg-staff-market-list .cost {
+  justify-self: end;
+  text-align: right;
+}
+
+/* Staff uses the same system/Segoe UI stack as Training. The previous Staff CSS
+ * made that typeface look rough by combining very small sizes with 800-weight
+ * uppercase labels. Use the project readability standard here as well. */
+.tlg-staff-page-head > div:first-child > span,
+.tlg-staff-market-list-panel > header span,
+.tlg-staff-candidate-detail > div span,
+.tlg-staff-role-card > header span,
+.tlg-staff-active-effect span,
+.tlg-staff-specialty span,
+.tlg-staff-eligibility span,
+.tlg-staff-contract-options header span,
+.tlg-staff-summary span,
+.tlg-staff-salary-offer header span,
+.tlg-staff-chance header span {
+  font-size: .68rem !important;
+  font-weight: 700 !important;
+  letter-spacing: .065em !important;
+}
+
+.tlg-staff-page-head h1 {
+  font-weight: 700 !important;
+}
+
+.tlg-staff-alert,
+.tlg-staff-finance-note,
+.tlg-staff-loading {
+  font-size: .76rem !important;
+}
+
+.tlg-staff-summary small,
+.tlg-staff-identity span,
+.tlg-staff-role-meta span,
+.tlg-staff-market-list-panel > header small,
+.tlg-staff-market-list-panel footer span,
+.tlg-staff-salary-offer .scale {
+  font-size: .72rem !important;
+  font-weight: 400 !important;
+}
+
+.tlg-staff-role-card > header p,
+.tlg-staff-empty-role p,
+.tlg-staff-contract-line,
+.tlg-staff-salary-offer p,
+.tlg-staff-chance p,
+.tlg-staff-blocked {
+  font-size: .74rem !important;
+  font-weight: 400 !important;
+}
+
+.tlg-staff-identity strong {
+  font-size: .87rem !important;
+  font-weight: 600 !important;
+}
+
+.tlg-staff-attributes > div > div:first-child {
+  font-size: .72rem !important;
+  font-weight: 500 !important;
+}
+
+.tlg-staff-attributes > div > div:first-child strong {
+  font-weight: 600 !important;
+}
+
+.tlg-staff-active-effect strong,
+.tlg-staff-market-list .cost strong,
+.tlg-staff-eligibility strong,
+.tlg-staff-contract-options button strong,
+.tlg-staff-offer-total > div,
+.tlg-staff-role-card button,
+.tlg-staff-market-list-panel footer button {
+  font-size: .76rem !important;
+}
+
+.tlg-staff-market-list .cost span,
+.tlg-staff-contract-options button span,
+.tlg-staff-contract-options button small {
+  font-size: .70rem !important;
+}
+
+.tlg-staff-specialty strong,
+.tlg-staff-empty-role strong {
+  font-size: .80rem !important;
+  font-weight: 600 !important;
+}
+
+.tlg-staff-market-filters label > span {
+  font-size: .71rem !important;
+  font-weight: 600 !important;
+}
+
+.tlg-staff-market-filters select,
+.tlg-staff-market-filters input[type=text],
+.tlg-staff-market-filters input:not([type]) {
+  font-size: .76rem !important;
+  font-weight: 400 !important;
+}
+
+.tlg-staff-detail-head > div:first-child > div {
+  font-size: .76rem !important;
+}
+
+.tlg-staff-contract-options h3,
+.tlg-staff-salary-offer h3,
+.tlg-staff-chance h3 {
+  font-weight: 600 !important;
+}
+
+.tlg-staff-hire {
+  font-size: .80rem !important;
+  font-weight: 700 !important;
+}
+
+@media (max-width: 760px) {
+  .tlg-staff-market-list > button {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+  }
+
+  .tlg-staff-market-list .cost {
+    grid-column: auto !important;
+  }
+}
