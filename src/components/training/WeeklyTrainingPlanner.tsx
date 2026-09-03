@@ -102,6 +102,7 @@ export default function WeeklyTrainingPlanner({
     [currentWeek],
   )
   const unsavedCount = Object.keys(drafts).length
+  const currentDayHasUnsavedChanges = Boolean(currentDay && drafts[currentDay.absolute_day])
 
   function focusOptions(type: TrainingType) {
     return type === 'physical' ? PHYSICAL_SKILLS : TECHNICAL_SKILLS
@@ -317,11 +318,17 @@ export default function WeeklyTrainingPlanner({
             </div>
             <div className="tlg-week-plan-footer-actions">
               <button type="button" className="save-plan" onClick={() => void handleSavePlan()} disabled={saving || unsavedCount === 0}>
-                {saving ? 'Saving…' : unsavedCount > 0 ? `Save Training Plan (${unsavedCount})` : 'Training Plan Saved'}
+                {saving ? 'Saving…' : unsavedCount > 0 ? `Save Training Plan (${unsavedCount})` : 'Save Training Plan'}
               </button>
               {expanded === 'current' && currentDay?.activity_type === 'home' && (
-                <button type="button" className="complete-today" onClick={() => void onCompleteToday()} disabled={processing || todayProcessed || !currentDay || !currentDay.editable}>
-                  {processing ? 'Processing…' : todayProcessed ? 'Today Completed' : 'Complete Today'}
+                <button
+                  type="button"
+                  className="complete-today"
+                  onClick={() => void onCompleteToday()}
+                  disabled={processing || todayProcessed || !currentDay || !currentDay.editable || currentDayHasUnsavedChanges}
+                  title={currentDayHasUnsavedChanges ? "Save today's training plan before completing it." : undefined}
+                >
+                  {processing ? 'Processing…' : todayProcessed ? 'Today Completed' : currentDayHasUnsavedChanges ? 'Save Plan First' : 'Complete Today'}
                 </button>
               )}
             </div>
