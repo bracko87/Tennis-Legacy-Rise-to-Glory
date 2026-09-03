@@ -1,0 +1,127 @@
+.tlg-next-tournament-card {
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.tlg-next-tournament-actions {
+  width: auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.tlg-next-tournament-actions > * {
+  flex: 0 0 auto;
+  min-width: 148px;
+  min-height: 38px;
+}
+
+.tlg-default-plan-strip {
+  display: grid;
+  grid-template-columns: minmax(260px,.9fr) minmax(0,1.4fr);
+  gap: 16px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid #d8e6ef;
+  border-radius: 10px;
+  background: #f8fbfd;
+}
+
+.tlg-default-plan-strip > div {
+  display: grid;
+  gap: 4px;
+}
+
+.tlg-default-plan-strip span,
+.tlg-prep-impact span,
+.tlg-prep-cost-breakdown small {
+  color: #7890a1;
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.tlg-default-plan-strip strong {
+  color: #29465c;
+  font-size: .72rem;
+}
+
+.tlg-default-plan-strip p {
+  margin: 0;
+  color: #6e8495;
+  font-size: .67rem;
+  line-height: 1.45;
+}
+
+.tlg-prep-impact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 13px;
+  border: 1px solid #e0e8ee;
+  border-radius: 9px;
+  background: #fbfdff;
+}
+
+.tlg-prep-impact > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.tlg-prep-impact strong {
+  color: #29465c;
+  font-size: .7rem;
+}
+
+.tlg-prep-impact b {
+  color: #0b6fc8;
+  font-size: .72rem;
+  white-space: nowrap;
+}
+
+.tlg-prep-hotel-grid button small {
+  color: #0b6fc8;
+  font-size: .6rem;
+  font-weight: 800;
+}
+
+.tlg-prep-cost-live {
+  border-style: solid;
+  border-color: #b9d4e6;
+  background: linear-gradient(135deg,#f7fbfe 0%,#eef7fd 100%);
+}
+
+.tlg-prep-cost-live > strong {
+  font-size: 1.45rem;
+  color: #0e2f49;
+}
+
+.tlg-prep-cost-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+
+.tlg-prep-cost-breakdown small {
+  color: #607a8e;
+}
+
+@media(max-width:760px) {
+  .tlg-next-tournament-actions {
+    flex-direction: column;
+  }
+  .tlg-next-tournament-actions > * {
+    width: 100%;
+  }
+  .tlg-default-plan-strip {
+    grid-template-columns: 1fr;
+  }
+  .tlg-prep-impact {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
