@@ -212,7 +212,7 @@ function PublishedDrawTree({ matches, currentPlayerId }: { matches: TournamentDr
     <section className="tlg-detail-panel tlg-live-draw-panel">
       <header className="tlg-detail-panel-head tlg-live-draw-head">
         <div>
-          <span>Published tournament draw</span>
+          <span>Tournament draw</span>
           <h2>Knockout bracket</h2>
           <p>{entrantIds.size} entered players · Season Week {first?.scheduled_season_week} · First-round match day {first?.scheduled_day}</p>
         </div>
