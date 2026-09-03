@@ -18,7 +18,7 @@ export interface TrainingWeekDay {
   activity_reference_id: string | null
   editable: boolean
   lock_reason: string | null
-  plan_source: 'weekly_plan' | 'automatic_recovery' | 'default_plan'
+  plan_source: 'weekly_plan' | 'automatic_recovery' | 'default_plan' | 'processed_session'
   training_type: TrainingType
   focus_attribute: string | null
   intensity: TrainingIntensity
