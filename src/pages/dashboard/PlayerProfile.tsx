@@ -1,6 +1,6 @@
 import { ArrowLeft, Mail, UserRound } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
@@ -113,6 +113,7 @@ function TournamentRows({ items, emptyText, showResult = false, ranked = false }
 
 export default function PlayerProfilePage() {
   const { playerId } = useParams()
+  const location = useLocation()
   const navigate = useNavigate()
   const [profile, setProfile] = useState<PlayerProfileRow | null>(null)
   const [tournaments, setTournaments] = useState<PlayerTournamentSummary>(EMPTY_TOURNAMENT_SUMMARY)
@@ -123,6 +124,9 @@ export default function PlayerProfilePage() {
   const [tournamentError, setTournamentError] = useState<string | null>(null)
   const [messageBusy, setMessageBusy] = useState(false)
   const avatarUrl = usePlayerAvatarUrl(profile?.image_path)
+  const returnState = location.state as { playerProfileReturn?: string; playerProfileReturnLabel?: string } | null
+  const backTarget = returnState?.playerProfileReturn ?? '/game/rankings'
+  const backLabel = returnState?.playerProfileReturnLabel ?? 'Back to Rankings'
 
   useEffect(() => {
     let active = true
@@ -159,7 +163,7 @@ export default function PlayerProfilePage() {
   return (
     <GameLayout title="Player profile" subtitle="Professional player identity">
       <div className="tlg-public-player-page">
-        <Link to="/game/rankings" className="tlg-public-player-back"><ArrowLeft size={15} /> Back to Rankings</Link>
+        <Link to={backTarget} className="tlg-public-player-back"><ArrowLeft size={15} /> {backLabel}</Link>
         {loading ? <div className="tlg-public-player-state">Loading player profile…</div> : error && !profile ? <div className="tlg-public-player-state">{error}</div> : profile ? (
           <>
             <section className="tlg-public-player-card">
