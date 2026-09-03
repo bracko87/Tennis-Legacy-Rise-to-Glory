@@ -18,6 +18,7 @@ import './styles/page-header-standard.css'
 import './styles/training-camps-v2.css'
 import './styles/player-scouting.css'
 import './styles/staff-negotiation.css'
+import './styles/staff-visual-standard.css'
 import './styles/font-standard.css'
 import App from './App'
 
