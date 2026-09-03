@@ -191,10 +191,195 @@
   line-height: 1.55;
 }
 
+.tlg-public-player-career-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 16px;
+}
+
+.tlg-public-player-career-card {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #dce6ed;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(20,52,77,.04);
+}
+
+.tlg-public-player-career-card.best-results {
+  grid-column: 1 / -1;
+}
+
+.tlg-public-player-career-card > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.tlg-public-player-career-card > header span {
+  color: #0b6fc8;
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.tlg-public-player-career-card > header h2 {
+  margin: 5px 0 0;
+  color: #173149;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.tlg-public-player-career-card > header p {
+  margin: 5px 0 0;
+  color: #718697;
+  font-size: .72rem;
+  line-height: 1.45;
+}
+
+.tlg-public-tournament-list {
+  display: grid;
+  gap: 9px;
+}
+
+.tlg-public-tournament-row {
+  display: grid;
+  grid-template-columns: auto auto minmax(0,1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid #dbe6ee;
+  border-radius: 9px;
+  background: #fbfdff;
+}
+
+.tlg-public-player-career-card:not(.best-results) .tlg-public-tournament-row {
+  grid-template-columns: auto minmax(0,1fr) auto auto;
+}
+
+.tlg-public-tournament-place {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  background: #edf6fc;
+  color: #0b6fc8;
+  font-size: .68rem;
+  font-weight: 800;
+}
+
+.tlg-public-tournament-date {
+  min-width: 50px;
+  color: #173149;
+  font-size: .7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tlg-public-tournament-name {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.tlg-public-tournament-name > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.tlg-public-tournament-name strong {
+  overflow: hidden;
+  color: #173149;
+  font-size: .76rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tlg-public-tournament-name small {
+  overflow: hidden;
+  color: #7890a1;
+  font-size: .66rem;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tlg-public-tournament-meta {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  min-width: 74px;
+}
+
+.tlg-public-tournament-meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #edf8f4;
+  color: #25745c;
+  font-size: .62rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tlg-public-tournament-meta small {
+  color: #7890a1;
+  font-size: .62rem;
+}
+
+.tlg-public-tournament-result {
+  min-width: 94px;
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+}
+
+.tlg-public-tournament-result strong {
+  color: #173149;
+  font-size: .7rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.tlg-public-tournament-result small {
+  color: #0b7b63;
+  font-size: .62rem;
+  font-weight: 700;
+}
+
+.tlg-public-tournament-empty {
+  padding: 22px 18px;
+  border: 1px dashed #cad9e4;
+  border-radius: 10px;
+  background: #fafcfe;
+  color: #7890a1;
+  font-size: .72rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
 .tlg-public-player-error {
   margin-top: 12px;
   color: #a84242;
   font-size: .66rem;
+}
+
+.tlg-public-player-tournament-error {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #efd0d0;
+  border-radius: 10px;
+  background: #fffafa;
 }
 
 .tlg-public-player-state {
@@ -204,6 +389,16 @@
   background: #fff;
   color: #708596;
   text-align: center;
+}
+
+@media(max-width:1100px) {
+  .tlg-public-player-career-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tlg-public-player-career-card.best-results {
+    grid-column: auto;
+  }
 }
 
 @media(max-width:900px) {
@@ -222,6 +417,21 @@
 
   .tlg-public-player-info-grid {
     grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+
+  .tlg-public-tournament-row,
+  .tlg-public-player-career-card:not(.best-results) .tlg-public-tournament-row {
+    grid-template-columns: auto minmax(0,1fr) auto;
+  }
+
+  .tlg-public-tournament-place {
+    display: none;
+  }
+
+  .tlg-public-tournament-result {
+    grid-column: 2 / -1;
+    justify-items: start;
+    min-width: 0;
   }
 }
 
@@ -255,5 +465,20 @@
   .tlg-public-player-stats,
   .tlg-public-player-info-grid {
     grid-template-columns: 1fr;
+  }
+
+  .tlg-public-player-career-card {
+    padding: 16px;
+  }
+
+  .tlg-public-tournament-row,
+  .tlg-public-player-career-card:not(.best-results) .tlg-public-tournament-row {
+    grid-template-columns: auto minmax(0,1fr);
+  }
+
+  .tlg-public-tournament-meta,
+  .tlg-public-tournament-result {
+    grid-column: 2;
+    justify-items: start;
   }
 }
