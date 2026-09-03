@@ -1,0 +1,14 @@
+.tlg-camp-route-place {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.tlg-camp-route-place > span {
+  display: inline-block;
+}
+
+.tlg-camp-route-place img {
+  flex: 0 0 auto;
+}
