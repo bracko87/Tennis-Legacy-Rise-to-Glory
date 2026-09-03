@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { supabase } from '../lib/supabase'
 
-const CATALOG_PREFIXES = ['ATP Avatars/', 'WTA Avatars/'] as const
+const CATALOG_PREFIXES = ['ATP Avatars/', 'WTA Avatars/', 'ATP AI Profils/'] as const
 
 function getAvatarBucket(imagePath: string) {
   return CATALOG_PREFIXES.some((prefix) => imagePath.startsWith(prefix))
