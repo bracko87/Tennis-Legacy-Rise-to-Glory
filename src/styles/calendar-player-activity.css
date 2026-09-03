@@ -1,0 +1,81 @@
+.tlg-calendar-day {
+  position: relative;
+  overflow: hidden;
+}
+
+.tlg-calendar-player-activity {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  display: grid;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 1px solid #d7e5ee;
+  border-radius: 7px;
+  background: #f6fafc;
+  line-height: 1.25;
+}
+
+.tlg-calendar-player-activity > span {
+  font-size: .59rem;
+  font-weight: 700;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+.tlg-calendar-player-activity > strong {
+  overflow: hidden;
+  color: #18364d;
+  font-size: .69rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tlg-calendar-player-activity.training_camp {
+  color: #a65017;
+  border-color: #f0d4bc;
+  background: #fff8f2;
+}
+
+.tlg-calendar-player-activity.travel {
+  color: #1a6797;
+  border-color: #cfe3f0;
+  background: #f3f9fd;
+}
+
+.tlg-calendar-player-activity.tournament {
+  color: #0872bb;
+  border-color: #c8e1f2;
+  background: #eef8fe;
+}
+
+.tlg-calendar-player-activity.injured {
+  color: #a13c48;
+  border-color: #efcdd2;
+  background: #fff5f6;
+}
+
+.tlg-calendar-player-activity-error {
+  margin: 0 0 12px;
+  padding: 9px 11px;
+  border: 1px solid #efcdd2;
+  border-radius: 8px;
+  color: #923a46;
+  background: #fff6f7;
+  font-size: .7rem;
+}
+
+@media (max-width: 760px) {
+  .tlg-calendar-player-activity {
+    left: 5px;
+    right: 5px;
+    bottom: 5px;
+    padding: 5px 6px;
+  }
+
+  .tlg-calendar-player-activity > strong {
+    font-size: .62rem;
+  }
+}
