@@ -249,7 +249,7 @@ export default function TrainingPage() {
                 <div>
                   <span>TRAINING HISTORY</span>
                   <h2>Recent development days</h2>
-                  <p>The last ten processed Regular Training or recovery days are kept here, including development and condition changes from each session.</p>
+                  <p>The last three processed Regular Training or recovery days are shown here, including development and condition changes from each session.</p>
                 </div>
               </header>
 
@@ -257,7 +257,7 @@ export default function TrainingPage() {
                 <div className="tlg-training-history-empty">No training days have been processed yet.</div>
               ) : (
                 <div className="tlg-training-history-list">
-                  {dashboard.recent_sessions.map((session) => {
+                  {dashboard.recent_sessions.slice(0, 3).map((session) => {
                     const focusGain = focusDevelopment(session)
                     const sharedGain = sharedDevelopment(session)
                     const fatigueDelta = Number(session.fatigue_after) - Number(session.fatigue_before)
