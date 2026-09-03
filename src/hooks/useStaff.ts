@@ -97,6 +97,46 @@ export interface StaffMarketFilters {
   limit?: number
 }
 
+export interface StaffNegotiationQuote {
+  available: boolean
+  reason?: string
+  staff_id?: string
+  quality_tier?: StaffQuality
+  overall_rating?: number
+  player_rank_position?: number
+  duration_weeks?: 13 | 26 | 52
+  round_number?: number
+  max_rounds?: number
+  base_contract_weekly_salary?: number
+  salary_multiplier?: number
+  offered_weekly_salary?: number
+  minimum_next_multiplier?: number
+  signing_fee?: number
+  acceptance_chance?: number
+  chance_label?: string
+  hard_refusal?: boolean
+  explanation?: string
+  cooldown_until_absolute_day?: number
+  cooldown_days_remaining?: number
+}
+
+export interface StaffNegotiationResult {
+  status: 'accepted' | 'rejected'
+  accepted: boolean
+  staff_id: string
+  round_number: number
+  acceptance_chance: number
+  weekly_salary?: number
+  offered_weekly_salary?: number
+  salary_multiplier: number
+  signing_fee?: number
+  duration_weeks?: 13 | 26 | 52
+  contract_id?: string
+  remaining_rounds?: number
+  minimum_next_multiplier?: number | null
+  cooldown_until_absolute_day?: number | null
+}
+
 export function contractWeeklySalary(base: number, duration: 13 | 26 | 52) {
   const multiplier = duration === 13 ? 1 : duration === 26 ? 0.93 : 0.86
   return Math.max(100, Math.round((base * multiplier) / 10) * 10)
@@ -144,21 +184,41 @@ export function useStaff() {
     setMarketLoading(false)
   }, [])
 
-  const hireStaff = useCallback(async (staffId: string, durationWeeks: 13 | 26 | 52) => {
-    setSaving(true)
-    setError(null)
-    const { data, error: rpcError } = await supabase.rpc('hire_staff_v1', {
+  const quoteNegotiation = useCallback(async (
+    staffId: string,
+    durationWeeks: 13 | 26 | 52,
+    salaryMultiplier: number,
+  ) => {
+    const { data, error: rpcError } = await supabase.rpc('quote_staff_negotiation_v1', {
       p_staff_id: staffId,
       p_duration_weeks: durationWeeks,
+      p_salary_multiplier: salaryMultiplier,
+    })
+    if (rpcError) return { quote: null, error: rpcError.message }
+    return { quote: data as StaffNegotiationQuote, error: null }
+  }, [])
+
+  const negotiateStaff = useCallback(async (
+    staffId: string,
+    durationWeeks: 13 | 26 | 52,
+    salaryMultiplier: number,
+  ) => {
+    setSaving(true)
+    setError(null)
+    const { data, error: rpcError } = await supabase.rpc('negotiate_staff_offer_v1', {
+      p_staff_id: staffId,
+      p_duration_weeks: durationWeeks,
+      p_salary_multiplier: salaryMultiplier,
     })
     if (rpcError) {
       setError(rpcError.message)
       setSaving(false)
       return null
     }
-    await refreshDashboard()
+    const result = data as StaffNegotiationResult
+    if (result.accepted) await refreshDashboard()
     setSaving(false)
-    return data as Record<string, unknown>
+    return result
   }, [refreshDashboard])
 
   const terminateContract = useCallback(async (contractId: string) => {
@@ -190,7 +250,8 @@ export function useStaff() {
     error,
     refreshDashboard,
     loadMarket,
-    hireStaff,
+    quoteNegotiation,
+    negotiateStaff,
     terminateContract,
   }
 }
