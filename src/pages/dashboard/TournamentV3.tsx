@@ -525,7 +525,7 @@ export default function TournamentPage() {
   }, [activeDayPlan?.kind, activeSlot?.phase, detail, tournamentStarted])
 
   const activeRounds = drawView === 'main' ? mainRounds : qualifierRounds
-  const liveRewardRows = rewards?.reward_rows ?? fallbackRewardRows(detail)
+  const liveRewardRows = rewards?.reward_rows ?? (detail ? fallbackRewardRows(detail) : [])
 
   async function applyForTournament() {
     if (!competitionId) return
