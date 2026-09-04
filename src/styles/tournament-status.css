@@ -1,0 +1,136 @@
+/* Shared tournament lifecycle / player-entry status presentation. */
+
+.tlg-tournament-row {
+  grid-template-columns:
+    minmax(225px, 1.45fr)
+    minmax(150px, .95fr)
+    minmax(118px, .72fr)
+    minmax(90px, .58fr)
+    minmax(160px, .9fr)
+    minmax(185px, 1.05fr) !important;
+}
+
+.tlg-tournament-status-cell {
+  min-width: 0;
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+}
+
+.tlg-tournament-status-cell > small {
+  color: #7c8e9d;
+  font-size: .55rem;
+  line-height: 1.25;
+}
+
+.tlg-status-chip {
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  min-height: 21px;
+  padding: 2px 7px;
+  border: 1px solid #dce6ed;
+  border-radius: 999px;
+  overflow: hidden;
+  color: #567084;
+  background: #f7fafc;
+  font-size: .53rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tlg-status-chip.tournament.applications_open,
+.tlg-status-chip.player.accepted_main_draw,
+.tlg-status-chip.player.accepted_qualification,
+.tlg-status-chip.player.champion {
+  color: #14704f;
+  border-color: #cbe9da;
+  background: #edf9f3;
+}
+
+.tlg-status-chip.tournament.in_progress,
+.tlg-status-chip.tournament.draw_published,
+.tlg-status-chip.player.competing {
+  color: #0b6fc8;
+  border-color: #cce5f7;
+  background: #eef8ff;
+}
+
+.tlg-status-chip.tournament.applications_not_open,
+.tlg-status-chip.tournament.applications_closed,
+.tlg-status-chip.player.not_applied,
+.tlg-status-chip.player.did_not_apply,
+.tlg-status-chip.player.withdrawn {
+  color: #6d7f8d;
+  border-color: #dde5ea;
+  background: #f7f9fb;
+}
+
+.tlg-status-chip.player.pending {
+  color: #8a6518;
+  border-color: #ecd99c;
+  background: #fff8e7;
+}
+
+.tlg-status-chip.player.rejected,
+.tlg-status-chip.player.eliminated,
+.tlg-status-chip.tournament.canceled {
+  color: #9b3446;
+  border-color: #efc8cf;
+  background: #fff5f6;
+}
+
+.tlg-status-chip.tournament.completed,
+.tlg-status-chip.player.completed {
+  color: #52697a;
+  border-color: #d7e1e8;
+  background: #f3f7fa;
+}
+
+/* The last hero tag is the server-backed lifecycle + personal-entry status. */
+.tlg-detail-tags > span:last-child {
+  min-height: 28px;
+  padding: 5px 11px;
+  color: #0b5f96;
+  border-color: #cde3f2;
+  background: #f0f8fd;
+  font-weight: 800;
+}
+
+@media (max-width: 1260px) {
+  .tlg-tournament-row {
+    grid-template-columns:
+      minmax(210px, 1.35fr)
+      minmax(140px, .9fr)
+      112px
+      88px
+      minmax(145px, .85fr)
+      minmax(165px, 1fr) !important;
+  }
+}
+
+@media (max-width: 920px) {
+  .tlg-tournament-row {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) !important;
+  }
+
+  .tlg-tournament-status-cell {
+    grid-column: span 2;
+    grid-template-columns: auto auto 1fr;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 620px) {
+  .tlg-tournament-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .tlg-tournament-status-cell {
+    grid-column: auto;
+    grid-template-columns: 1fr;
+  }
+}
