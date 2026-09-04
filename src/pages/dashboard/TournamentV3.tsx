@@ -31,7 +31,7 @@ import '../../styles/tournament-rewards-live.css'
 
 const SURFACE_IMAGES: Record<'hard' | 'clay' | 'grass', string> = {
   hard: 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/hard.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9oYXJkLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODgxODM3MTgsImV4cCI6NDkxMDI0NzcxOH0.A8nFMfrv24zncDCqjuE5PihskAwMLdak04-Qz64_2ksvFiHfzDpunlMMdcGqy9IDh-qPQCfoFe5HP0Hu9pcfow',
-  grass: 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/grass.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZyBDYW1wcy9ncmFzcy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg4MTgzNzM2LCJleHAiOjQ5MTAyNDc3MzZ9.wENm_84C6GKo4fyTBxTsJ04OiNa8SZwLrEIxACdxJQN5D8EQDd6WhiRVDUbM5pwqQPgrovW009ULGRV92alrOQ',
+  grass: 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/grass.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9ncmFzcy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg4MTgzNzM2LCJleHAiOjQ5MTAyNDc3MzZ9.wENm_84C6GKo4fyTBxTsJ04OiNa8SZwLrEIxACdxJQN5D8EQDd6WhiRVDUbM5pwqQPgrovW009ULGRV92alrOQ',
   clay: 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/clay.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9jbGF5LnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODgxODM3NTUsImV4cCI6NDkxMDI0Nzc1NX0.8AJ27KTGHBvo0Sf4xnNqHv8KXY9Sh2lVo7Fi1mbjtPY_Wi7_hqAVkFkC8GfiYbhN5mS3d4QI03HWyQ5wT9PVpA',
 }
 
@@ -671,16 +671,11 @@ export default function TournamentPage() {
               const slotStart = competitionWeekAbsoluteStart(detail.season_number, slot.season_week)
 
               return (
-                <article
-                  key={`${slot.season_week}-${slot.phase}`}
-                  className="tlg-detail-schedule-card"
-                >
+                <article key={`${slot.season_week}-${slot.phase}`} className="tlg-detail-schedule-card">
                   <div className="tlg-detail-schedule-card-head">
                     <div>
                       <span>{phaseLabel(slot.phase)}</span>
-                      <strong>
-                        {MONTHS[slot.calendar_month - 1]?.name ?? `Month ${slot.calendar_month}`} · Week {slot.month_week} · Season Week {slot.season_week}
-                      </strong>
+                      <strong>{MONTHS[slot.calendar_month - 1]?.name ?? `Month ${slot.calendar_month}`} · Week {slot.month_week} · Season Week {slot.season_week}</strong>
                     </div>
                     <p>{formatCompetitionWeekRange(slot.season_week)} · Monday–Sunday</p>
                   </div>
@@ -689,12 +684,7 @@ export default function TournamentPage() {
                     {dayPlan.map((item) => {
                       const itemAbsoluteDay = slotStart + item.day - 1
                       const current = itemAbsoluteDay === currentAbsoluteDay
-                      const className = [
-                        'tlg-detail-day-tile',
-                        `tlg-detail-day-tile-${item.kind}`,
-                        current ? 'tlg-detail-day-tile-current' : '',
-                      ].filter(Boolean).join(' ')
-
+                      const className = ['tlg-detail-day-tile', `tlg-detail-day-tile-${item.kind}`, current ? 'tlg-detail-day-tile-current' : ''].filter(Boolean).join(' ')
                       return (
                         <div key={item.day} className={className} role="row">
                           <span role="cell">Day {item.day}</span>
@@ -710,25 +700,18 @@ export default function TournamentPage() {
             })}
           </div>
 
-          <p className="tlg-detail-schedule-note">
-            Every competition week is Monday through Sunday. January 1–2 are season-opening preparation days before Season Week 1 begins on Monday, January 3. Qualification and main draw are held in the same tournament city, with a maximum of one normal singles match per player per in-game day.
-          </p>
+          <p className="tlg-detail-schedule-note">Every competition week is Monday through Sunday. January 1–2 are season-opening preparation days before Season Week 1 begins on Monday, January 3. Qualification and main draw are held in the same tournament city, with a maximum of one normal singles match per player per in-game day.</p>
         </section>
 
         {!tournamentStarted ? (
           <section className="tlg-detail-panel">
             <header className="tlg-detail-panel-head">
-              <div>
-                <span>Tournament entry</span>
-                <h2>Application window</h2>
-              </div>
+              <div><span>Tournament entry</span><h2>Application window</h2></div>
               <UserPlus size={18} />
             </header>
 
             {!applicationState ? (
-              <div className="tlg-detail-application-loading">
-                {applicationError ?? 'Loading current applications…'}
-              </div>
+              <div className="tlg-detail-application-loading">{applicationError ?? 'Loading current applications…'}</div>
             ) : (
               <div className="tlg-detail-application-body">
                 <div className="tlg-detail-application-status-row">
@@ -737,7 +720,6 @@ export default function TournamentPage() {
                     <h3>See your projected entry before applying</h3>
                     <p>The projection updates as managers apply or withdraw. Official ranking order uses the latest published Monday ranking.</p>
                   </div>
-
                   <div className={`tlg-detail-projection tlg-detail-projection-${applicationState.user_applied ? applicationState.user_projection : applicationState.if_apply_projection}`}>
                     <small>{applicationState.user_applied ? 'Your current projection' : 'If you apply now'}</small>
                     <strong>{projectionLabel(applicationState.user_applied ? applicationState.user_projection : applicationState.if_apply_projection)}</strong>
@@ -758,87 +740,39 @@ export default function TournamentPage() {
                 </div>
 
                 <div className="tlg-detail-application-actions">
-                  <div>
-                    {applicationState.user_applied && (
-                      <span className="tlg-detail-applied-note"><CheckCircle2 size={14} /> Application submitted</span>
-                    )}
-                  </div>
-
+                  <div>{applicationState.user_applied && <span className="tlg-detail-applied-note"><CheckCircle2 size={14} /> Application submitted</span>}</div>
                   {applicationState.user_applied ? (
-                    <button
-                      type="button"
-                      className="tlg-detail-secondary-button"
-                      disabled={applicationLoading || !applicationState.applications_open}
-                      onClick={() => void withdrawApplication()}
-                    >
-                      Withdraw application
-                    </button>
+                    <button type="button" className="tlg-detail-secondary-button" disabled={applicationLoading || !applicationState.applications_open} onClick={() => void withdrawApplication()}>Withdraw application</button>
                   ) : (
-                    <button
-                      type="button"
-                      className="tlg-detail-primary-button"
-                      disabled={applicationLoading || !applicationState.applications_open}
-                      onClick={() => void applyForTournament()}
-                    >
-                      Apply for tournament
-                    </button>
+                    <button type="button" className="tlg-detail-primary-button" disabled={applicationLoading || !applicationState.applications_open} onClick={() => void applyForTournament()}>Apply for tournament</button>
                   )}
                 </div>
 
-                {applicationError && (
-                  <div className="tlg-detail-inline-error"><XCircle size={14} /> {applicationError}</div>
-                )}
-
-                <p className="tlg-detail-application-note">
-                  Projection basis: {applicationState.projection_basis === 'ranking_snapshot' ? 'ranking snapshot' : 'temporary capacity/application order'}. Published rankings update on Mondays; points earned during the active week remain pending until the next ranking publication.
-                </p>
+                {applicationError && <div className="tlg-detail-inline-error"><XCircle size={14} /> {applicationError}</div>}
+                <p className="tlg-detail-application-note">Projection basis: {applicationState.projection_basis === 'ranking_snapshot' ? 'ranking snapshot' : 'temporary capacity/application order'}. Published rankings update on Mondays; points earned during the active week remain pending until the next ranking publication.</p>
               </div>
             )}
           </section>
         ) : (
           <section className="tlg-detail-panel tlg-detail-draw-panel">
             <header className="tlg-detail-panel-head tlg-detail-draw-head">
-              <div>
-                <span>Tournament draw</span>
-                <h2>Knockout bracket</h2>
-              </div>
-
+              <div><span>Tournament draw</span><h2>Knockout bracket</h2></div>
               <label className="tlg-detail-draw-select">
                 <span>View</span>
-                <select value={drawView} onChange={(event) => setDrawView(event.target.value as DrawView)}>
-                  <option value="main">Main Draw</option>
-                  <option value="qualification">Qualification</option>
-                </select>
+                <select value={drawView} onChange={(event) => setDrawView(event.target.value as DrawView)}><option value="main">Main Draw</option><option value="qualification">Qualification</option></select>
               </label>
             </header>
 
             <div className="tlg-detail-draw-summary">
-              {drawView === 'main' ? (
-                <>
-                  <strong>Main Draw · maximum {detail.main_draw_capacity} players</strong>
-                  <p>The page automatically switches here when main-draw play begins. If fewer players qualify/enter, valid byes remain in the bracket.</p>
-                </>
-              ) : (
-                <>
-                  <strong>Qualification · up to {detail.qualifying_capacity_max} players</strong>
-                  <p>The page automatically shows qualification while qualifying rounds are active. The normal target is {detail.default_qualifier_slots} qualifier places in the main draw.</p>
-                </>
-              )}
+              {drawView === 'main' ? <><strong>Main Draw · maximum {detail.main_draw_capacity} players</strong><p>The page automatically switches here when main-draw play begins. If fewer players qualify/enter, valid byes remain in the bracket.</p></> : <><strong>Qualification · up to {detail.qualifying_capacity_max} players</strong><p>The page automatically shows qualification while qualifying rounds are active. The normal target is {detail.default_qualifier_slots} qualifier places in the main draw.</p></>}
             </div>
-
-            <TournamentBracket
-              rounds={activeRounds}
-              emptyMessage="No qualification bracket is required for this tournament category."
-            />
+            <TournamentBracket rounds={activeRounds} emptyMessage="No qualification bracket is required for this tournament category." />
           </section>
         )}
 
         <section className="tlg-detail-panel">
           <header className="tlg-detail-panel-head">
-            <div>
-              <span>Tournament rewards</span>
-              <h2>Prize money & ranking points</h2>
-            </div>
+            <div><span>Tournament rewards</span><h2>Prize money & ranking points</h2></div>
             <Trophy size={18} />
           </header>
 
@@ -849,11 +783,7 @@ export default function TournamentPage() {
           </div>
 
           <div className="tlg-detail-rewards-table">
-            <div className="tlg-detail-rewards-row tlg-detail-rewards-head">
-              <span>Finishing stage</span>
-              <span>Ranking points</span>
-              <span>Prize money</span>
-            </div>
+            <div className="tlg-detail-rewards-row tlg-detail-rewards-head"><span>Finishing stage</span><span>Ranking points</span><span>Prize money</span></div>
             {liveRewardRows.map((row) => (
               <div key={row.stage_code} className={`tlg-detail-rewards-row ${row.points_are_bonus ? 'tlg-detail-rewards-bonus' : ''}`}>
                 <strong>{row.stage_label}{row.finisher_count ? <small>{row.finisher_count} player{row.finisher_count === 1 ? '' : 's'}</small> : null}</strong>
@@ -862,9 +792,7 @@ export default function TournamentPage() {
               </div>
             ))}
           </div>
-          <p className="tlg-detail-rewards-note">
-            Ranking points are not cumulative between main-draw rounds. The value beside a finishing stage is the total tournament result. Successful qualifying points are the only separately marked bonus and are added to a qualifier’s eventual main-draw result. Prize money is paid once for the player’s final finishing stage.
-          </p>
+          <p className="tlg-detail-rewards-note">Ranking points are not cumulative between main-draw rounds. The value beside a finishing stage is the total tournament result. Successful qualifying points are the only separately marked bonus and are added to a qualifier’s eventual main-draw result. Prize money is paid once for the player’s final finishing stage.</p>
         </section>
       </div>
     </GameLayout>
