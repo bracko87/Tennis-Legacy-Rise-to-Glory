@@ -1,21 +1,47 @@
-/* Standardize portrait scale inside tournament match cards.
-   Source avatars can have slightly different crops; every match card therefore
-   uses the same inset portrait canvas instead of letting the image fill 100% of
-   the media area. */
+/* Standardize portrait scale and framing inside tournament match cards.
+   Source avatars can have slightly different face positions, so the shared
+   frame uses one base size plus small per-avatar vertical calibration values. */
+
+/* The full player card is intentionally white. Winner state is communicated by
+   border/badges rather than by tinting the portrait/info background. */
+.tlg-match-player-card-polished {
+  --match-card-bg: #fff !important;
+  background: #fff !important;
+}
+
+.tlg-match-player-portrait-stage,
 .tlg-match-player-portrait-stage.has-image {
   place-items: center;
   background: #fff !important;
 }
 
-/* Halfway back from the previous 88% zoom-out toward the original 100% fill. */
+.tlg-match-player-summary {
+  background: transparent !important;
+}
+
+/* Shared portrait frame. --portrait-shift-y can be calibrated for an avatar
+   whose source image places the eyes higher/lower than the standard crop. */
 .tlg-match-player-portrait-stage.has-image img {
-  width: 94% !important;
-  height: 94% !important;
-  max-width: 94%;
-  max-height: 94%;
+  --portrait-size: 94%;
+  --portrait-shift-y: 0%;
+  width: var(--portrait-size) !important;
+  height: var(--portrait-size) !important;
+  max-width: var(--portrait-size);
+  max-height: var(--portrait-size);
   object-fit: contain !important;
   object-position: center center !important;
-  transform: none !important;
+  transform: translateY(var(--portrait-shift-y)) !important;
+}
+
+/* Current calibrated examples.
+   ATP063 already sits on the standard eye line. ATP255's source portrait is
+   lower in its canvas, so move it upward while preserving the same 94% scale. */
+.tlg-match-player-portrait-stage.has-image img[src*="ATP063.png"] {
+  --portrait-shift-y: 0%;
+}
+
+.tlg-match-player-portrait-stage.has-image img[src*="ATP255.png"] {
+  --portrait-shift-y: -10%;
 }
 
 /* Keep the image-side fade on a pure white portrait canvas. */
@@ -27,27 +53,21 @@
   background: linear-gradient(270deg,rgba(255,255,255,0) 45%,#fff 96%) !important;
 }
 
-/* Keep identical framing on both mirrored sides. */
+/* Keep identical base framing on both mirrored sides. */
 .tlg-match-versus > .tlg-match-player-card-polished:first-child .tlg-match-player-portrait-stage.has-image img,
 .tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-portrait-stage.has-image img {
-  width: 94% !important;
-  height: 94% !important;
+  width: var(--portrait-size) !important;
+  height: var(--portrait-size) !important;
 }
 
 @media(max-width:980px) {
   .tlg-match-player-portrait-stage.has-image img {
-    width: 94% !important;
-    height: 94% !important;
-    max-width: 94%;
-    max-height: 94%;
+    --portrait-size: 94%;
   }
 }
 
 @media(max-width:680px) {
   .tlg-match-player-portrait-stage.has-image img {
-    width: 94% !important;
-    height: 94% !important;
-    max-width: 94%;
-    max-height: 94%;
+    --portrait-size: 94%;
   }
 }
