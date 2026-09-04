@@ -120,6 +120,12 @@ export function absoluteGameDay(season: number, monthIndex: number, day: number)
   return (season - 1) * DAYS_PER_SEASON + daysBeforeMonth(monthIndex) + day - 1
 }
 
+export function formatAbsoluteGameDay(absoluteDay: number, season: number) {
+  const seasonStart = (season - 1) * DAYS_PER_SEASON
+  const dayOfSeasonValue = absoluteDay - seasonStart + 1
+  return formatMonthDay(monthDayFromDayOfSeason(dayOfSeasonValue))
+}
+
 export function competitionWeekAbsoluteStart(season: number, seasonWeek: number) {
   return (season - 1) * DAYS_PER_SEASON + competitionWeekStartDayOfSeason(seasonWeek) - 1
 }
