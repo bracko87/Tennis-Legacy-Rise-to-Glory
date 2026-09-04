@@ -1,0 +1,93 @@
+.tlg-statistics-page{position:relative;display:grid;gap:18px}
+.tlg-statistics-hero{display:block;min-height:0;margin:0 0 4px;padding:0 500px 0 0;border:0;background:transparent}
+.tlg-statistics-hero>div{max-width:920px}
+.tlg-statistics-hero span,.tlg-statistics-panel-head span,.tlg-statistics-record-card>span,.tlg-statistics-mini-records>div>span,.tlg-statistics-career-summary>div>span{color:var(--tlg-page-eyebrow-color,#1675b7);font-size:var(--tlg-page-eyebrow-size,.59rem);font-weight:850;letter-spacing:.13em;text-transform:uppercase}
+.tlg-statistics-hero h1{margin:7px 0 0;color:var(--tlg-page-title-color,#112338);font-size:var(--tlg-page-title-size,clamp(1.9rem,3vw,2.65rem));font-weight:760;letter-spacing:-.045em;line-height:1.02}
+.tlg-statistics-hero p{max-width:900px;margin:8px 0 0;color:var(--tlg-page-description-color,#697f92);font-size:var(--tlg-page-description-size,.84rem);line-height:1.65}
+
+.tlg-statistics-tabs{position:absolute;top:0;right:0;z-index:3;display:inline-flex;gap:4px;width:auto;margin:0;padding:4px;border:1px solid #d8e1eb;border-radius:10px;background:#fff;box-shadow:0 4px 12px rgba(28,49,73,.045)}
+.tlg-statistics-tabs button{min-height:34px;padding:0 14px;border:0;border-radius:7px;color:#5d7185;background:transparent;font-size:.72rem;font-weight:750;white-space:nowrap}
+.tlg-statistics-tabs button.active{color:#fff;background:#172c4e}
+
+.tlg-statistics-filters{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:-5px}
+.tlg-statistics-filters .switch-group{display:inline-flex;gap:3px;padding:3px;border:1px solid #dce5ec;border-radius:9px;background:#fff}
+.tlg-statistics-filters button{min-height:30px;padding:0 11px;border:0;border-radius:6px;color:#657b8d;background:transparent;font-size:.65rem;font-weight:760}
+.tlg-statistics-filters button.active{color:#0d6fae;background:#eaf5fc}
+
+.tlg-statistics-alert{padding:11px 14px;border:1px solid #c9e8d8;border-radius:10px;color:#236946;background:#f2fbf6;font-size:.74rem;font-weight:650}
+.tlg-statistics-alert.error{border-color:#efcece;color:#8d4141;background:#fff5f5}
+.tlg-statistics-state,.tlg-statistics-empty{display:grid;place-items:center;min-height:150px;padding:24px;color:#718596;text-align:center;font-size:.74rem}
+.tlg-statistics-state{min-height:360px;border:1px solid #dbe5ec;border-radius:15px;background:#fff}
+
+.tlg-statistics-view{display:grid;gap:16px}
+.tlg-statistics-record-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tlg-statistics-record-card{min-height:178px;padding:18px;border:1px solid #dce5ec;border-radius:14px;background:linear-gradient(145deg,#fff,#f8fbfd);box-shadow:0 9px 22px rgba(25,53,77,.045)}
+.tlg-statistics-record-card>strong{display:block;margin-top:17px;color:#132f48;font-size:1.55rem;letter-spacing:-.03em}
+.tlg-statistics-record-card .record-player{display:flex;align-items:center;gap:8px;margin-top:10px}
+.tlg-statistics-record-card .record-player a,.tlg-statistics-record-card .record-player b{color:#23455f;font-size:.74rem;font-weight:760;text-decoration:none}
+.tlg-statistics-record-card .record-player a:hover{text-decoration:underline}
+.tlg-statistics-record-card>small{display:block;margin-top:7px;color:#7f91a0;font-size:.62rem;line-height:1.4}
+.tlg-statistics-record-card.tournament-record .record-tournament{margin-top:10px;color:#23455f;font-size:.75rem;font-weight:760}
+
+.tlg-statistics-mini-records{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));overflow:hidden;border:1px solid #dce5ec;border-radius:13px;background:#fff}
+.tlg-statistics-mini-records>div{min-height:96px;padding:15px 17px;border-left:1px solid #e7edf2}
+.tlg-statistics-mini-records>div:first-child{border-left:0}
+.tlg-statistics-mini-records strong{display:block;margin-top:7px;color:#17344b;font-size:1.08rem}
+.tlg-statistics-mini-records small{display:block;margin-top:5px;color:#7e91a0;font-size:.61rem}
+.tlg-statistics-mini-records a{color:#527086;text-decoration:none}.tlg-statistics-mini-records a:hover{text-decoration:underline}
+
+.tlg-statistics-panel{overflow:hidden;border:1px solid #dbe5ec;border-radius:15px;background:#fff;box-shadow:0 10px 26px rgba(29,57,82,.045)}
+.tlg-statistics-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:20px 22px;border-bottom:1px solid #e5ebf0}
+.tlg-statistics-panel-head.compact{padding-bottom:16px}
+.tlg-statistics-panel-head h2{margin:5px 0 0;color:#17344b;font-size:1.08rem}
+.tlg-statistics-panel-head p{max-width:800px;margin:6px 0 0;color:#718596;font-size:.72rem;line-height:1.55}
+.tlg-statistics-panel-head>small{color:#7d90a0;font-size:.63rem;font-weight:700;white-space:nowrap}
+
+.tlg-statistics-table-scroll{overflow:auto}
+.tlg-statistics-table{width:100%;min-width:920px;border-collapse:collapse;font-size:.68rem}
+.tlg-statistics-table th{padding:11px 13px;border-bottom:1px solid #dce5ec;color:#7890a2;background:#f7fafc;font-size:.57rem;font-weight:850;letter-spacing:.065em;text-align:left;text-transform:uppercase;white-space:nowrap}
+.tlg-statistics-table td{padding:12px 13px;border-bottom:1px solid #e8edf1;color:#425d72;vertical-align:middle;white-space:nowrap}
+.tlg-statistics-table tbody tr:last-child td{border-bottom:0}
+.tlg-statistics-table tbody tr:hover td{background:#fafdff}
+.tlg-statistics-table .rank{color:#17344b;font-weight:850}
+.tlg-statistics-table .positive{color:#168355;font-weight:800}.tlg-statistics-table .negative{color:#b55454;font-weight:800}
+.tlg-statistics-table a{color:#1d5f8d;font-weight:720;text-decoration:none}.tlg-statistics-table a:hover{text-decoration:underline}
+.tlg-statistics-table .player-cell{display:flex;align-items:center;gap:8px;min-width:190px}
+.tlg-statistics-table .tournament-cell{display:flex;align-items:center;gap:9px;min-width:220px}
+.tlg-statistics-table .tournament-cell strong{display:block;color:#23445d;font-size:.69rem}
+.tlg-statistics-table .tournament-cell span{display:block;margin-top:3px;color:#8495a3;font-size:.57rem}
+.surface-pill{display:inline-block;padding:4px 7px;border-radius:999px;font-size:.57rem;font-weight:800}
+.surface-pill.hard{color:#25639a;background:#eaf3fb}.surface-pill.clay{color:#aa5c37;background:#fff0e8}.surface-pill.grass{color:#3b7d55;background:#eaf6ee}
+
+.tlg-statistics-career-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));overflow:hidden;border:1px solid #dce5ec;border-radius:14px;background:#fff;box-shadow:0 9px 22px rgba(25,53,77,.04)}
+.tlg-statistics-career-summary>div{min-height:105px;padding:16px 17px;border-left:1px solid #e7edf2}
+.tlg-statistics-career-summary>div:first-child{border-left:0}
+.tlg-statistics-career-summary strong{display:block;margin-top:8px;color:#17344b;font-size:1.25rem;letter-spacing:-.02em}
+.tlg-statistics-career-summary small{display:block;margin-top:5px;color:#7d90a0;font-size:.61rem}
+.tlg-statistics-career-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.surface-record-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:18px}
+.surface-record{padding:15px;border:1px solid #dfe7ed;border-radius:11px;background:#fafcfd}
+.surface-record>span{font-size:.61rem;font-weight:850;text-transform:uppercase;letter-spacing:.08em}.surface-record.hard>span{color:#2b6d9f}.surface-record.clay>span{color:#b3613a}.surface-record.grass>span{color:#42805a}
+.surface-record strong{display:block;margin-top:12px;color:#18364d;font-size:1.18rem}.surface-record small{display:block;margin-top:5px;color:#7c90a0;font-size:.61rem}
+.career-shot-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:18px}
+.career-shot-grid>div{min-height:80px;padding:13px 14px;border-left:1px solid #e7edf2;border-top:1px solid #e7edf2}
+.career-shot-grid>div:nth-child(odd){border-left:0}.career-shot-grid>div:nth-child(-n+2){border-top:0}
+.career-shot-grid span{color:#7d90a0;font-size:.6rem}.career-shot-grid strong{display:block;margin-top:7px;color:#17344b;font-size:1.12rem}
+
+@media(max-width:1180px){
+  .tlg-statistics-hero{padding-right:0}.tlg-statistics-tabs{position:static;justify-self:end;margin-top:-6px}
+  .tlg-statistics-record-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tlg-statistics-career-summary{grid-template-columns:repeat(3,minmax(0,1fr))}.tlg-statistics-career-summary>div:nth-child(4){border-left:0;border-top:1px solid #e7edf2}.tlg-statistics-career-summary>div:nth-child(5){border-top:1px solid #e7edf2}
+}
+@media(max-width:820px){
+  .tlg-statistics-tabs{justify-self:stretch;width:100%}.tlg-statistics-tabs button{flex:1;padding:0 8px}
+  .tlg-statistics-filters{justify-content:space-between;flex-wrap:wrap}
+  .tlg-statistics-mini-records{grid-template-columns:repeat(2,minmax(0,1fr))}.tlg-statistics-mini-records>div:nth-child(3){border-left:0;border-top:1px solid #e7edf2}.tlg-statistics-mini-records>div:nth-child(4){border-top:1px solid #e7edf2}
+  .tlg-statistics-career-grid{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .tlg-statistics-record-grid{grid-template-columns:1fr}
+  .tlg-statistics-mini-records,.tlg-statistics-career-summary,.surface-record-grid{grid-template-columns:1fr}
+  .tlg-statistics-mini-records>div,.tlg-statistics-career-summary>div{border-left:0!important;border-top:1px solid #e7edf2}.tlg-statistics-mini-records>div:first-child,.tlg-statistics-career-summary>div:first-child{border-top:0}
+  .tlg-statistics-panel-head{display:grid}.tlg-statistics-filters{display:grid;grid-template-columns:1fr}.tlg-statistics-filters .switch-group{display:flex}.tlg-statistics-filters button{flex:1}
+}
