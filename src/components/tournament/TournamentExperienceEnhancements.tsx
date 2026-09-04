@@ -167,22 +167,34 @@ export default function TournamentExperienceEnhancements() {
 
   useEffect(() => {
     void load()
+    if (!competitionId) return
     const timer = window.setInterval(() => void load(), 10000)
-    return () => window.clearInterval(timer)
-  }, [load])
+    const channel = supabase.channel(`tournament-entry-experience:${competitionId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_applications', filter: `competition_id=eq.${competitionId}` }, () => void load())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_entries', filter: `competition_id=eq.${competitionId}` }, () => void load())
+      .subscribe()
+    return () => {
+      window.clearInterval(timer)
+      void supabase.removeChannel(channel)
+    }
+  }, [competitionId, load])
 
   useEffect(() => {
     let frame = 0
     let cancelled = false
     const created: HTMLElement[] = []
+    let localHero: HTMLElement | null = null
+    let localField: HTMLElement | null = null
+    let localControl: HTMLElement | null = null
+    let localBody: HTMLElement | null = null
 
-    function hostAfter(anchor: Element | null, attr: string, className: string) {
+    function makeHostAfter(anchor: Element | null, attr: string, className: string) {
       if (!anchor || !anchor.parentElement) return null
       const selector = `[data-${attr}="true"]`
       const existing = anchor.parentElement.querySelector<HTMLElement>(selector)
       if (existing) return existing
       const host = document.createElement('div')
-      host.dataset[attr.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = 'true'
+      host.setAttribute(`data-${attr}`, 'true')
       host.className = className
       anchor.insertAdjacentElement('afterend', host)
       created.push(host)
@@ -192,41 +204,47 @@ export default function TournamentExperienceEnhancements() {
     function findTargets() {
       if (cancelled) return
       const tags = document.querySelector('.tlg-detail-hero-copy .tlg-detail-tags')
-      if (tags && !heroHost) setHeroHost(hostAfter(tags, 'tlg-hero-entry-host', 'tlg-hero-entry-host'))
+      if (!localHero && tags) {
+        localHero = makeHostAfter(tags, 'tlg-hero-entry-host', 'tlg-hero-entry-host')
+        setHeroHost(localHero)
+      }
 
       const personalHead = document.querySelector('.tlg-entry-personal-card .tlg-entry-personal-head')
-      if (personalHead && !fieldHost) setFieldHost(hostAfter(personalHead, 'tlg-applicant-field-host', 'tlg-applicant-field-host'))
+      if (!localField && personalHead) {
+        localField = makeHostAfter(personalHead, 'tlg-applicant-field-host', 'tlg-applicant-field-host')
+        setFieldHost(localField)
+      }
 
       const drawPanel = document.querySelector<HTMLElement>('.tlg-live-draw-panel')
       const drawHead = drawPanel?.querySelector<HTMLElement>('.tlg-live-draw-head') ?? null
       if (drawPanel && drawHead) {
-        if (!drawControlHost) {
-          let control = drawHead.querySelector<HTMLElement>('[data-tlg-draw-switch-host="true"]')
-          if (!control) {
-            control = document.createElement('div')
-            control.dataset.tlgDrawSwitchHost = 'true'
-            control.className = 'tlg-draw-switch-host'
+        if (!localControl) {
+          localControl = drawHead.querySelector<HTMLElement>('[data-tlg-draw-switch-host="true"]')
+          if (!localControl) {
+            localControl = document.createElement('div')
+            localControl.dataset.tlgDrawSwitchHost = 'true'
+            localControl.className = 'tlg-draw-switch-host'
             const status = drawHead.querySelector('.tlg-live-draw-status')
-            if (status) drawHead.insertBefore(control, status)
-            else drawHead.appendChild(control)
-            created.push(control)
+            if (status) drawHead.insertBefore(localControl, status)
+            else drawHead.appendChild(localControl)
+            created.push(localControl)
           }
-          setDrawControlHost(control)
+          setDrawControlHost(localControl)
         }
-        if (!drawBodyHost) {
-          let body = drawPanel.querySelector<HTMLElement>('[data-tlg-qualification-body-host="true"]')
-          if (!body) {
-            body = document.createElement('div')
-            body.dataset.tlgQualificationBodyHost = 'true'
-            body.className = 'tlg-qualification-body-host'
-            drawHead.insertAdjacentElement('afterend', body)
-            created.push(body)
+        if (!localBody) {
+          localBody = drawPanel.querySelector<HTMLElement>('[data-tlg-qualification-body-host="true"]')
+          if (!localBody) {
+            localBody = document.createElement('div')
+            localBody.dataset.tlgQualificationBodyHost = 'true'
+            localBody.className = 'tlg-qualification-body-host'
+            drawHead.insertAdjacentElement('afterend', localBody)
+            created.push(localBody)
           }
-          setDrawBodyHost(body)
+          setDrawBodyHost(localBody)
         }
       }
 
-      if (!tags || !personalHead || !drawPanel) frame = window.requestAnimationFrame(findTargets)
+      if (!localHero || !localField || !localControl || !localBody) frame = window.requestAnimationFrame(findTargets)
     }
 
     frame = window.requestAnimationFrame(findTargets)
@@ -240,7 +258,7 @@ export default function TournamentExperienceEnhancements() {
       setDrawControlHost(null)
       setDrawBodyHost(null)
     }
-  }, [competitionId, drawControlHost, drawBodyHost, fieldHost, heroHost])
+  }, [competitionId])
 
   const qualificationMatches = useMemo(() => drawMatches.filter((match) => match.draw_type === 'qualification'), [drawMatches])
   const qualificationRounds = useMemo(() => {
@@ -263,8 +281,11 @@ export default function TournamentExperienceEnhancements() {
     panel.classList.toggle('tlg-live-draw-show-qualification', drawView === 'qualification')
     const title = panel.querySelector<HTMLElement>('.tlg-live-draw-head h2')
     const copy = panel.querySelector<HTMLElement>('.tlg-live-draw-head p')
+    if (copy && !copy.dataset.mainDrawCopy) copy.dataset.mainDrawCopy = copy.textContent ?? ''
     if (title) title.textContent = drawView === 'qualification' ? 'Qualification bracket' : 'Knockout bracket'
-    if (copy && drawView === 'qualification') copy.textContent = qualificationMatches.length ? `${qualificationMatches.length} qualification matches · completed results remain available after qualification ends` : 'Qualification bracket history'
+    if (copy) copy.textContent = drawView === 'qualification'
+      ? (qualificationMatches.length ? `${qualificationMatches.length} qualification matches · completed results remain available after qualification ends` : 'Qualification bracket history')
+      : (copy.dataset.mainDrawCopy ?? '')
   }, [drawView, qualificationMatches.length])
 
   const groupedApplicants = useMemo(() => ({
@@ -283,9 +304,7 @@ export default function TournamentExperienceEnhancements() {
             <article><span>Draw published</span><strong>{formatMoment(lifecycle.timeline.draw_publish)}</strong></article>
           </div>
           <div className="tlg-hero-entry-status"><span>{phaseLabel(lifecycle.phase)}</span><strong>You: <b>{personalStatus(lifecycle)}</b></strong></div>
-        </div>,
-        heroHost,
-      )}
+        </div>, heroHost)}
 
       {fieldHost && field && createPortal(
         <div className="tlg-applicant-field">
@@ -299,10 +318,7 @@ export default function TournamentExperienceEnhancements() {
               if (!rows.length && group === 'outside') return null
               return (
                 <section key={group} className={`tlg-applicant-group ${group}`}>
-                  <header>
-                    <strong>{groupLabel(group)}</strong>
-                    <span>{group === 'main_draw' ? `${field.direct_main_draw_slots} direct places` : group === 'qualification' ? `up to ${field.qualification_capacity} places` : 'below the current cut'}</span>
-                  </header>
+                  <header><strong>{groupLabel(group)}</strong><span>{group === 'main_draw' ? `${field.direct_main_draw_slots} direct places` : group === 'qualification' ? `up to ${field.qualification_capacity} places` : 'below the current cut'}</span></header>
                   {rows.map((row) => (
                     <div key={row.application_id} className={`tlg-applicant-row${row.is_user ? ' is-user' : ''}`}>
                       <b>#{row.world_rank}</b>
@@ -316,45 +332,19 @@ export default function TournamentExperienceEnhancements() {
               )
             })}
           </div>
-        </div>,
-        fieldHost,
-      )}
+        </div>, fieldHost)}
 
       {drawControlHost && field && createPortal(
-        <label className="tlg-draw-view-switch">
-          <span>Draw</span>
-          <select value={drawView} onChange={(event) => setDrawView(event.target.value as 'main_draw' | 'qualification')}>
-            <option value="main_draw">Main Draw</option>
-            <option value="qualification">Qualification</option>
-          </select>
-        </label>,
-        drawControlHost,
-      )}
+        <label className="tlg-draw-view-switch"><span>Draw</span><select value={drawView} onChange={(event) => setDrawView(event.target.value as 'main_draw' | 'qualification')}><option value="main_draw">Main Draw</option><option value="qualification">Qualification</option></select></label>, drawControlHost)}
 
       {drawBodyHost && drawView === 'qualification' && createPortal(
         <div className="tlg-qualification-history">
-          {qualificationRounds.length ? (
-            <div className="tlg-qualification-columns">
-              {qualificationRounds.map((round) => (
-                <section key={round.round} className="tlg-qualification-round">
-                  <header><strong>{round.label}</strong><span>{round.matches.length} matches</span></header>
-                  <div>
-                    {round.matches.map((match) => (
-                      <article key={match.match_id} className={`tlg-qualification-match status-${match.match_status}`}>
-                        <QualificationPlayer match={match} side={1} />
-                        <QualificationPlayer match={match} side={2} />
-                      </article>
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
-          ) : (
-            <div className="tlg-qualification-empty">No stored qualification bracket exists for this legacy/test competition. Future published draws retain qualification results here permanently.</div>
-          )}
-        </div>,
-        drawBodyHost,
-      )}
+          {qualificationRounds.length ? <div className="tlg-qualification-columns">{qualificationRounds.map((round) => (
+            <section key={round.round} className="tlg-qualification-round"><header><strong>{round.label}</strong><span>{round.matches.length} matches</span></header><div>{round.matches.map((match) => (
+              <article key={match.match_id} className={`tlg-qualification-match status-${match.match_status}`}><QualificationPlayer match={match} side={1} /><QualificationPlayer match={match} side={2} /></article>
+            ))}</div></section>
+          ))}</div> : <div className="tlg-qualification-empty">No stored qualification bracket exists for this legacy/test competition. Future published draws retain qualification results here permanently.</div>}
+        </div>, drawBodyHost)}
     </>
   )
 }
