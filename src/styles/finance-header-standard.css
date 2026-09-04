@@ -1,0 +1,83 @@
+/* Finance uses the same lightweight dashboard heading and upper-right section
+ * switch as Training Center / other standardized dashboard modules. */
+.tlg-finance-v2-page{position:relative}
+
+.tlg-finance-v2-hero{
+  display:block !important;
+  min-height:0 !important;
+  margin:0 0 22px !important;
+  padding:0 430px 0 0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+}
+
+.tlg-finance-v2-hero .eyebrow{
+  color:var(--tlg-page-eyebrow-color,#1675b7) !important;
+  font-family:inherit !important;
+  font-size:var(--tlg-page-eyebrow-size,.59rem) !important;
+  font-weight:850 !important;
+  letter-spacing:.13em !important;
+  text-transform:uppercase !important;
+}
+
+.tlg-finance-v2-hero h1{
+  margin:7px 0 0 !important;
+  color:var(--tlg-page-title-color,#112338) !important;
+  font-family:inherit !important;
+  font-size:var(--tlg-page-title-size,clamp(1.9rem,3vw,2.65rem)) !important;
+  font-weight:760 !important;
+  letter-spacing:-.045em !important;
+  line-height:1.02 !important;
+}
+
+.tlg-finance-v2-hero p{
+  max-width:920px !important;
+  margin:8px 0 0 !important;
+  color:var(--tlg-page-description-color,#697f92) !important;
+  font-family:inherit !important;
+  font-size:var(--tlg-page-description-size,.84rem) !important;
+  font-weight:400 !important;
+  line-height:1.65 !important;
+}
+
+.tlg-finance-v2-refresh{display:none !important}
+
+.tlg-finance-v2-tabs{
+  position:absolute !important;
+  top:0 !important;
+  right:0 !important;
+  z-index:3;
+  width:auto !important;
+  margin:0 !important;
+  gap:4px !important;
+  padding:4px !important;
+  border:1px solid #d8e1eb !important;
+  border-radius:10px !important;
+  background:#fff !important;
+  box-shadow:0 4px 12px rgba(28,49,73,.045) !important;
+}
+
+.tlg-finance-v2-tabs button{
+  min-height:34px !important;
+  padding:0 14px !important;
+  border-radius:7px !important;
+  font-family:inherit !important;
+  font-size:.72rem !important;
+  font-weight:750 !important;
+}
+
+.tlg-finance-v2-tabs button.active{
+  color:#fff !important;
+  background:#172c4e !important;
+}
+
+@media(max-width:1080px){
+  .tlg-finance-v2-hero{padding-right:0 !important;margin-bottom:10px !important}
+  .tlg-finance-v2-tabs{position:static !important;align-self:flex-end !important;width:max-content !important;margin:0 0 8px auto !important}
+}
+
+@media(max-width:620px){
+  .tlg-finance-v2-tabs{width:100% !important;margin-left:0 !important}
+  .tlg-finance-v2-tabs button{flex:1 !important;padding:0 9px !important}
+}
