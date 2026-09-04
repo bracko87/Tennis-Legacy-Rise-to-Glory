@@ -27,10 +27,11 @@ import { supabase } from '../../lib/supabase'
 import '../../styles/tournament-detail.css'
 import '../../styles/tournament-detail-schedule.css'
 import '../../styles/tournament-detail-v2.css'
+import '../../styles/tournament-rewards-live.css'
 
 const SURFACE_IMAGES: Record<'hard' | 'clay' | 'grass', string> = {
   hard: 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/hard.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9oYXJkLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODgxODM3MTgsImV4cCI6NDkxMDI0NzcxOH0.A8nFMfrv24zncDCqjuE5PihskAwMLdak04-Qz64_2ksvFiHfzDpunlMMdcGqy9IDh-qPQCfoFe5HP0Hu9pcfow',
-  grass: 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/grass.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9ncmFzcy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg4MTgzNzM2LCJleHAiOjQ5MTAyNDc3MzZ9.wENm_84C6GKo4fyTBxTsJ04OiNa8SZwLrEIxACdxJQN5D8EQDd6WhiRVDUbM5pwqQPgrovW009ULGRV92alrOQ',
+  grass: 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/grass.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZyBDYW1wcy9ncmFzcy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg4MTgzNzM2LCJleHAiOjQ5MTAyNDc3MzZ9.wENm_84C6GKo4fyTBxTsJ04OiNa8SZwLrEIxACdxJQN5D8EQDd6WhiRVDUbM5pwqQPgrovW009ULGRV92alrOQ',
   clay: 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/clay.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9jbGF5LnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODgxODM3NTUsImV4cCI6NDkxMDI0Nzc1NX0.8AJ27KTGHBvo0Sf4xnNqHv8KXY9Sh2lVo7Fi1mbjtPY_Wi7_hqAVkFkC8GfiYbhN5mS3d4QI03HWyQ5wT9PVpA',
 }
 
@@ -77,6 +78,29 @@ interface TournamentDetailRow {
   schedule_slots: TournamentScheduleSlot[]
 }
 
+interface TournamentRewardRow {
+  stage_code: string
+  stage_label: string
+  draw_type: 'main_draw' | 'qualification' | 'bonus'
+  finisher_count: number | null
+  prize_money_usd: number
+  ranking_points: number
+  points_are_bonus: boolean
+}
+
+interface TournamentRewards {
+  competition_id: string
+  tournament_series_id: string
+  tournament_name: string
+  category_code: string
+  currency: 'USD'
+  announced_prize_pool_usd: number
+  distributed_prize_pool_usd: number
+  winner_points: number
+  reward_rows: TournamentRewardRow[]
+  points_note: string
+}
+
 interface TournamentApplicationState {
   applications_open: boolean
   tournament_started: boolean
@@ -110,6 +134,10 @@ type DrawView = 'main' | 'qualification'
 
 function titleCase(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
+function formatMoney(value: number | null | undefined) {
+  return `$${Math.round(Number(value) || 0).toLocaleString()}`
 }
 
 function parseIntegerParam(value: string | null, minimum: number, maximum: number) {
@@ -320,13 +348,36 @@ function projectionLabel(value: TournamentApplicationState['if_apply_projection'
   return 'Projection unavailable'
 }
 
-function rewardRows(detail: TournamentDetailRow) {
+function fallbackRewardRows(detail: TournamentDetailRow): TournamentRewardRow[] {
   const rounds = mainDrawRounds(detail.main_draw_capacity)
   return [
-    { round: 'Winner', points: `${detail.winner_points} pts` },
-    ...rounds.slice().reverse().slice(1).map((round) => ({ round: round.label, points: 'To be assigned' })),
-    { round: 'Qualification', points: 'To be assigned' },
+    { stage_code: 'winner', stage_label: 'Winner', draw_type: 'main_draw', finisher_count: 1, ranking_points: detail.winner_points, prize_money_usd: 0, points_are_bonus: false },
+    ...rounds.slice().reverse().slice(1).map((round) => ({ stage_code: round.label.toLowerCase().replaceAll(' ', '_'), stage_label: round.label, draw_type: 'main_draw' as const, finisher_count: null, ranking_points: 0, prize_money_usd: 0, points_are_bonus: false })),
   ]
+}
+
+function RewardInfoPopover({ rewards, mode }: { rewards: TournamentRewards | null; mode: 'money' | 'points' }) {
+  if (!rewards) return null
+  return (
+    <span className="tlg-reward-info">
+      <button type="button" aria-label={mode === 'money' ? 'Show prize money by round' : 'Show ranking points by round'}>i</button>
+      <span className="tlg-reward-popover" role="tooltip">
+        <strong>{mode === 'money' ? 'Prize money by finishing stage' : 'Ranking points by finishing stage'}</strong>
+        <small>{mode === 'money' ? `Announced singles pool: ${formatMoney(rewards.announced_prize_pool_usd)}` : 'Points are a total tournament result, not cumulative round-by-round points.'}</small>
+        <span className="tlg-reward-popover-list">
+          {rewards.reward_rows.map((row) => (
+            <span className="tlg-reward-popover-row" key={`${mode}-${row.stage_code}`}>
+              <span>{row.stage_label}</span>
+              <b>{mode === 'money'
+                ? (row.points_are_bonus ? '—' : formatMoney(row.prize_money_usd))
+                : `${row.points_are_bonus ? '+' : ''}${row.ranking_points} pts`}</b>
+            </span>
+          ))}
+        </span>
+        {mode === 'points' && <em>Successful qualifying points marked with + are added to the eventual main-draw finishing result.</em>}
+      </span>
+    </span>
+  )
 }
 
 export default function TournamentPage() {
@@ -335,6 +386,7 @@ export default function TournamentPage() {
   const [searchParams] = useSearchParams()
   const clock = useGameClock()
   const [detail, setDetail] = useState<TournamentDetailRow | null>(null)
+  const [rewards, setRewards] = useState<TournamentRewards | null>(null)
   const [applicationState, setApplicationState] = useState<TournamentApplicationState | null>(null)
   const [loading, setLoading] = useState(true)
   const [applicationLoading, setApplicationLoading] = useState(false)
@@ -381,28 +433,32 @@ export default function TournamentPage() {
       setLoading(true)
       setError(null)
 
-      const { data, error: detailError } = await supabase.rpc('get_tournament_detail_v1', {
-        p_competition_id: competitionId,
-      })
+      const [detailResponse, rewardResponse] = await Promise.all([
+        supabase.rpc('get_tournament_detail_v1', { p_competition_id: competitionId }),
+        supabase.rpc('get_tournament_rewards_v1', { p_competition_id: competitionId }),
+      ])
 
       if (cancelled) return
 
-      if (detailError) {
+      if (detailResponse.error) {
         setDetail(null)
-        setError(detailError.message)
+        setRewards(null)
+        setError(detailResponse.error.message)
         setLoading(false)
         return
       }
 
-      const row = (Array.isArray(data) ? data[0] : data) as TournamentDetailRow | null
+      const row = (Array.isArray(detailResponse.data) ? detailResponse.data[0] : detailResponse.data) as TournamentDetailRow | null
       if (!row) {
         setDetail(null)
+        setRewards(null)
         setError('This tournament is unavailable for your competitive world.')
         setLoading(false)
         return
       }
 
       setDetail({ ...row, schedule_slots: [...(row.schedule_slots ?? [])].sort((a, b) => a.season_week - b.season_week) })
+      setRewards(rewardResponse.error ? null : (rewardResponse.data as TournamentRewards))
       setLoading(false)
     }
 
@@ -469,6 +525,7 @@ export default function TournamentPage() {
   }, [activeDayPlan?.kind, activeSlot?.phase, detail, tournamentStarted])
 
   const activeRounds = drawView === 'main' ? mainRounds : qualifierRounds
+  const liveRewardRows = rewards?.reward_rows ?? fallbackRewardRows(detail)
 
   async function applyForTournament() {
     if (!competitionId) return
@@ -579,13 +636,13 @@ export default function TournamentPage() {
         <section className="tlg-detail-stats-grid">
           <article>
             <Trophy size={18} />
-            <span>Winner ranking points</span>
-            <strong>{detail.winner_points}</strong>
+            <span>Winner ranking points <RewardInfoPopover rewards={rewards} mode="points" /></span>
+            <strong>{rewards?.winner_points ?? detail.winner_points}</strong>
           </article>
           <article>
             <CircleDollarSign size={18} />
-            <span>Prize money</span>
-            <strong>To be assigned</strong>
+            <span>Prize money <RewardInfoPopover rewards={rewards} mode="money" /></span>
+            <strong>{rewards ? formatMoney(rewards.announced_prize_pool_usd) : 'Loading…'}</strong>
           </article>
           <article>
             <Users size={18} />
@@ -678,7 +735,7 @@ export default function TournamentPage() {
                   <div>
                     <span className="tlg-detail-application-open"><Clock3 size={14} /> Applications open</span>
                     <h3>See your projected entry before applying</h3>
-                    <p>The projection updates as managers apply or withdraw. Official ranking order will replace capacity order once the ranking engine is live.</p>
+                    <p>The projection updates as managers apply or withdraw. Official ranking order uses the latest published Monday ranking.</p>
                   </div>
 
                   <div className={`tlg-detail-projection tlg-detail-projection-${applicationState.user_applied ? applicationState.user_projection : applicationState.if_apply_projection}`}>
@@ -733,7 +790,7 @@ export default function TournamentPage() {
                 )}
 
                 <p className="tlg-detail-application-note">
-                  Projection basis: {applicationState.projection_basis === 'ranking_snapshot' ? 'ranking snapshot' : 'temporary capacity/application order'}. Final acceptance rules will use the official ATP/WTA ranking system when it is implemented.
+                  Projection basis: {applicationState.projection_basis === 'ranking_snapshot' ? 'ranking snapshot' : 'temporary capacity/application order'}. Published rankings update on Mondays; points earned during the active week remain pending until the next ranking publication.
                 </p>
               </div>
             )}
@@ -785,22 +842,28 @@ export default function TournamentPage() {
             <Trophy size={18} />
           </header>
 
+          <div className="tlg-live-reward-summary">
+            <div><span>Announced singles prize pool</span><strong>{rewards ? formatMoney(rewards.announced_prize_pool_usd) : 'Unavailable'}</strong></div>
+            <div><span>Maximum ranking points</span><strong>{rewards?.winner_points ?? detail.winner_points} pts</strong></div>
+            <p>ATP and WTA use the same points table and the same tournament purse in Tennis Legacy.</p>
+          </div>
+
           <div className="tlg-detail-rewards-table">
             <div className="tlg-detail-rewards-row tlg-detail-rewards-head">
-              <span>Stage reached</span>
+              <span>Finishing stage</span>
               <span>Ranking points</span>
               <span>Prize money</span>
             </div>
-            {rewardRows(detail).map((row) => (
-              <div key={row.round} className="tlg-detail-rewards-row">
-                <strong>{row.round}</strong>
-                <span>{row.points}</span>
-                <span>To be assigned</span>
+            {liveRewardRows.map((row) => (
+              <div key={row.stage_code} className={`tlg-detail-rewards-row ${row.points_are_bonus ? 'tlg-detail-rewards-bonus' : ''}`}>
+                <strong>{row.stage_label}{row.finisher_count ? <small>{row.finisher_count} player{row.finisher_count === 1 ? '' : 's'}</small> : null}</strong>
+                <span>{row.points_are_bonus ? '+' : ''}{row.ranking_points} pts</span>
+                <span>{row.points_are_bonus ? '—' : formatMoney(row.prize_money_usd)}</span>
               </div>
             ))}
           </div>
           <p className="tlg-detail-rewards-note">
-            Only the category winner points are locked so far. Round-by-round points and prize-money amounts will be added once the reward table for every tournament category is approved.
+            Ranking points are not cumulative between main-draw rounds. The value beside a finishing stage is the total tournament result. Successful qualifying points are the only separately marked bonus and are added to a qualifier’s eventual main-draw result. Prize money is paid once for the player’s final finishing stage.
           </p>
         </section>
       </div>
