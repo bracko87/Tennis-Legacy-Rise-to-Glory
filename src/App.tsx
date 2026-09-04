@@ -27,6 +27,9 @@ import {
   RequireNoPlayer,
   RequirePlayer,
 } from './auth/RouteGuards'
+import ScheduleUiPolish from './components/schedule/ScheduleUiPolish'
+import TournamentEntryLifecycle from './components/tournament/TournamentEntryLifecycle'
+import TournamentExperienceEnhancements from './components/tournament/TournamentExperienceEnhancements'
 import TournamentMatchSchedule from './components/tournament/TournamentMatchSchedule'
 import HomePage from './pages/Home'
 import LoginPage from './pages/auth/Login'
@@ -75,10 +78,10 @@ export default function App() {
           <Route path="/game/training" element={<RequirePlayer><TrainingPage /></RequirePlayer>} />
           <Route path="/game/staff" element={<RequirePlayer><StaffPage /></RequirePlayer>} />
           <Route path="/game/calendar" element={<RequirePlayer><CalendarPage /></RequirePlayer>} />
-          <Route path="/game/tournaments/:competitionId" element={<RequirePlayer><><TournamentPage /><TournamentMatchSchedule /></></RequirePlayer>} />
+          <Route path="/game/tournaments/:competitionId" element={<RequirePlayer><><TournamentPage /><TournamentMatchSchedule /><TournamentEntryLifecycle /><TournamentExperienceEnhancements /></></RequirePlayer>} />
           <Route path="/game/rankings" element={<RequirePlayer><RankingsPage /></RequirePlayer>} />
           <Route path="/game/players/:playerId" element={<RequirePlayer><PlayerProfilePage /></RequirePlayer>} />
-          <Route path="/game/schedule" element={<RequirePlayer><SchedulePage /></RequirePlayer>} />
+          <Route path="/game/schedule" element={<RequirePlayer><><SchedulePage /><ScheduleUiPolish /></></RequirePlayer>} />
           <Route path="/game/equipment" element={<RequirePlayer><EquipmentPage /></RequirePlayer>} />
           <Route path="/game/finance" element={<RequirePlayer><FinancePage /></RequirePlayer>} />
           <Route path="/game/private-life" element={<RequirePlayer><PrivateLifePage /></RequirePlayer>} />
