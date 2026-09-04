@@ -27,6 +27,7 @@ import {
   RequireNoPlayer,
   RequirePlayer,
 } from './auth/RouteGuards'
+import TournamentMatchSchedule from './components/tournament/TournamentMatchSchedule'
 import HomePage from './pages/Home'
 import LoginPage from './pages/auth/Login'
 import RegisterPage from './pages/auth/Register'
@@ -74,7 +75,7 @@ export default function App() {
           <Route path="/game/training" element={<RequirePlayer><TrainingPage /></RequirePlayer>} />
           <Route path="/game/staff" element={<RequirePlayer><StaffPage /></RequirePlayer>} />
           <Route path="/game/calendar" element={<RequirePlayer><CalendarPage /></RequirePlayer>} />
-          <Route path="/game/tournaments/:competitionId" element={<RequirePlayer><TournamentPage /></RequirePlayer>} />
+          <Route path="/game/tournaments/:competitionId" element={<RequirePlayer><><TournamentPage /><TournamentMatchSchedule /></></RequirePlayer>} />
           <Route path="/game/rankings" element={<RequirePlayer><RankingsPage /></RequirePlayer>} />
           <Route path="/game/players/:playerId" element={<RequirePlayer><PlayerProfilePage /></RequirePlayer>} />
           <Route path="/game/schedule" element={<RequirePlayer><SchedulePage /></RequirePlayer>} />
