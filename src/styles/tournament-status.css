@@ -17,10 +17,10 @@
   gap: 4px;
 }
 
+/* The exact open/close/start/finish date made the two statuses look like
+   three separate controls. Keep the status column intentionally simple. */
 .tlg-tournament-status-cell > small {
-  color: #7c8e9d;
-  font-size: .55rem;
-  line-height: 1.25;
+  display: none;
 }
 
 .tlg-status-chip {
@@ -89,6 +89,28 @@
   background: #f3f7fa;
 }
 
+/* Personal status is deliberately plain text beneath the tournament badge,
+   so it cannot be mistaken for another button/control. */
+.tlg-tournament-status-cell .tlg-status-chip.player {
+  min-height: 0;
+  margin-top: 1px;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  overflow: visible;
+  font-size: .58rem;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.tlg-tournament-status-cell .tlg-status-chip.player::before {
+  content: 'You: ';
+  color: #80909d;
+  font-weight: 650;
+}
+
 /* The last hero tag is the server-backed lifecycle + personal-entry status. */
 .tlg-detail-tags > span:last-child {
   min-height: 28px;
@@ -118,9 +140,9 @@
 
   .tlg-tournament-status-cell {
     grid-column: span 2;
-    grid-template-columns: auto auto 1fr;
+    grid-template-columns: auto 1fr;
     align-items: center;
-    gap: 6px;
+    gap: 6px 9px;
   }
 }
 
