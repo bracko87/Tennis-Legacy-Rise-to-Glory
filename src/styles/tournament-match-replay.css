@@ -11,7 +11,7 @@
 }
 
 .tlg-replay-modal {
-  width: min(920px, 96vw);
+  width: min(1080px, 96vw);
   max-height: 92vh;
   overflow: auto;
   position: relative;
@@ -62,7 +62,7 @@
 .tlg-replay-state.error { color: #ad4944; }
 
 .tlg-replay-head {
-  min-height: 96px;
+  min-height: 78px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -333,33 +333,206 @@
 
 .tlg-replay-finished {
   min-height: 280px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
   padding: 34px;
   text-align: center;
 }
 
-.tlg-replay-finished > span {
-  color: #0b6fc8;
-  font-size: .56rem;
+.tlg-replay-result-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(280px, 1.08fr) minmax(220px, 1fr);
+  gap: 22px;
+  align-items: stretch;
+}
+
+.tlg-replay-player-card {
+  position: relative;
+  min-height: 310px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 26px 20px 20px;
+  border: 1px solid #dce7ee;
+  border-radius: 15px;
+  background: linear-gradient(180deg, #fbfdff 0%, #f4f8fb 100%);
+  box-shadow: 0 8px 22px rgba(18, 52, 76, .045);
+}
+
+.tlg-replay-player-card.winner {
+  border-color: #b9dfd0;
+  background: linear-gradient(180deg, #f9fdfb 0%, #edf8f3 100%);
+  box-shadow: inset 0 0 0 1px rgba(41, 128, 91, .04), 0 8px 22px rgba(18, 52, 76, .045);
+}
+
+.tlg-replay-winner-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: #2c8a67;
+  color: #fff;
+  font-size: .55rem;
   font-weight: 850;
-  letter-spacing: .09em;
+  letter-spacing: .05em;
   text-transform: uppercase;
 }
 
-.tlg-replay-finished h3 {
-  margin: 0;
-  color: #173149;
-  font-size: 1.6rem;
+.tlg-replay-player-avatar {
+  width: 122px;
+  height: 122px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  background: #eaf2f8;
+  box-shadow: 0 0 0 1px #cbdde9, 0 10px 24px rgba(17, 50, 73, .12);
 }
 
-.tlg-replay-finished p {
-  margin: 0 0 8px;
-  color: #6f8393;
-  font-size: .7rem;
+.tlg-replay-player-card.winner .tlg-replay-player-avatar {
+  box-shadow: 0 0 0 1px #9fcdbb, 0 10px 24px rgba(28, 99, 72, .13);
+}
+
+.tlg-replay-player-avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.tlg-replay-player-avatar > span {
+  color: #557287;
+  font-size: 1.55rem;
+  font-weight: 850;
+}
+
+.tlg-replay-player-card h3 {
+  margin: 18px 0 0;
+  color: #173149;
+  font-size: 1.08rem;
+  line-height: 1.2;
+}
+
+.tlg-replay-player-country {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 8px;
+  color: #718697;
+  font-size: .64rem;
+  font-weight: 760;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.tlg-replay-player-meta {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #dfe8ee;
+}
+
+.tlg-replay-player-meta > div {
+  min-width: 92px;
+  display: grid;
+  gap: 4px;
+  padding: 0 14px;
+}
+
+.tlg-replay-player-meta > div + div {
+  border-left: 1px solid #dfe8ee;
+}
+
+.tlg-replay-player-meta span {
+  color: #8496a3;
+  font-size: .52rem;
+  font-weight: 820;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.tlg-replay-player-meta strong {
+  color: #24465e;
+  font-size: .8rem;
+}
+
+.tlg-replay-result-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 8px;
+}
+
+.tlg-replay-result-center > span {
+  color: #0b6fc8;
+  font-size: .61rem;
+  font-weight: 850;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.tlg-replay-result-center h3 {
+  margin: 20px 0 0;
+  color: #102f49;
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+  font-weight: 780;
+  letter-spacing: -.035em;
+  line-height: 1.12;
+  font-variant-numeric: tabular-nums;
+}
+
+.tlg-replay-result-center p {
+  width: 100%;
+  margin: 18px 0 0;
+  padding: 11px 12px;
+  border-radius: 10px;
+  background: #eff8f4;
+  color: #587467;
+  font-size: .69rem;
+}
+
+.tlg-replay-result-center p strong {
+  color: #257056;
+}
+
+.tlg-replay-result-center .tlg-replay-watch-button {
+  min-width: 172px;
+  min-height: 43px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 18px;
+  padding: 0 18px;
+  border-radius: 10px;
+  font-size: .72rem;
+  box-shadow: 0 8px 18px rgba(11, 111, 200, .16);
+}
+
+.tlg-replay-watch-button > span {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255,255,255,.18);
+  font-size: .56rem;
+}
+
+.tlg-replay-result-center > small {
+  margin-top: 10px;
+  color: #8798a4;
+  font-size: .57rem;
 }
 
 @media (max-width: 760px) {
@@ -370,4 +543,7 @@
   .tlg-replay-scoreboard .player + .labels + .player { text-align: left; border-top: 1px solid #e4edf3; }
   .tlg-replay-feed > div:not(.empty) { grid-template-columns: 48px minmax(0,1fr); }
   .tlg-replay-feed > div > small { grid-column: 2; text-align: left; }
+  .tlg-replay-result-layout { grid-template-columns: 1fr; padding: 20px; }
+  .tlg-replay-result-center { order: -1; padding: 8px 4px 2px; }
+  .tlg-replay-player-card { min-height: 250px; }
 }
