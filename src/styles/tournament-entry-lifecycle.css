@@ -20,8 +20,8 @@
 .tlg-entry-milestones article.current{background:#eef7fd;color:#0b6fc8;box-shadow:inset 0 -2px 0 #0b6fc8}
 .tlg-entry-milestones article.current>span{border-color:#87bde0;background:#fff;color:#0b6fc8}
 .tlg-entry-milestones article.current strong{color:#0b6fc8}
-.tlg-entry-content-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(250px,.7fr);gap:0}
-.tlg-entry-personal-card{padding:16px 18px;border-right:1px solid #e8eef2}
+.tlg-entry-content-grid{display:grid;grid-template-columns:1fr;gap:0}
+.tlg-entry-personal-card{padding:16px 18px;border-right:0;border-bottom:1px solid #e8eef2}
 .tlg-entry-personal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
 .tlg-entry-personal-head>div:first-child{display:grid;gap:3px}
 .tlg-entry-personal-head span,.tlg-entry-deadlines-card>span,.tlg-entry-week-apps>span{color:#8093a1;font-size:.53rem;font-weight:850;letter-spacing:.06em;text-transform:uppercase}
@@ -53,13 +53,15 @@
 .tlg-entry-late-box>div span{color:#8d7a50;font-size:.54rem;line-height:1.4}
 .tlg-entry-late-box label{color:#765f2d;font-size:.56rem;white-space:nowrap}
 .tlg-entry-passive-note{margin:14px 0 0;padding-top:12px;border-top:1px solid #edf2f5;color:#738998;font-size:.58rem;line-height:1.45}
-.tlg-entry-deadlines-card{padding:16px 18px;background:#fbfdff;display:grid;align-content:start;gap:10px}
-.tlg-entry-deadlines-card>div{display:grid;gap:3px;padding-bottom:10px;border-bottom:1px solid #e9eff3}
-.tlg-entry-deadlines-card>div:last-child{border-bottom:0;padding-bottom:0}
+.tlg-entry-deadlines-card{margin:14px 18px 16px;padding:13px 16px;border:1px solid #dce7ee;border-radius:10px;background:#fbfdff;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
+.tlg-entry-deadlines-card>span{grid-column:1/-1;margin-bottom:10px}
+.tlg-entry-deadlines-card>div{display:grid;gap:4px;padding:2px 18px 2px 0;border-bottom:0;border-right:1px solid #e9eff3}
+.tlg-entry-deadlines-card>div+div{padding-left:18px}
+.tlg-entry-deadlines-card>div:last-child{border-right:0;padding-right:0}
 .tlg-entry-deadlines-card strong{color:#35566c;font-size:.61rem}
 .tlg-entry-deadlines-card small{color:#7c909e;font-size:.53rem;line-height:1.45}
 .tlg-entry-error{padding:14px 18px;color:#a84940;font-size:.6rem}
 .tlg-entry-error.inline{margin-top:10px;padding:8px 10px;border:1px solid #efd0cc;border-radius:7px;background:#fff7f6}
 .tlg-entry-loading{padding:18px;color:#718697;font-size:.62rem}
-@media(max-width:1050px){.tlg-entry-milestones{grid-template-columns:repeat(6,145px)}.tlg-entry-content-grid{grid-template-columns:1fr}.tlg-entry-personal-card{border-right:0;border-bottom:1px solid #e8eef2}}
-@media(max-width:700px){.tlg-entry-lifecycle-head{flex-direction:column}.tlg-entry-personal-head{flex-direction:column}.tlg-entry-vacancy-mini{justify-content:flex-start}.tlg-entry-application-controls{grid-template-columns:1fr}.tlg-entry-actions{grid-column:1}.tlg-entry-late-box{grid-template-columns:1fr}.tlg-entry-week-apps>div{grid-template-columns:30px 1fr}.tlg-entry-week-apps small{grid-column:2;text-align:left}}
+@media(max-width:1050px){.tlg-entry-milestones{grid-template-columns:repeat(6,145px)}.tlg-entry-deadlines-card{grid-template-columns:1fr}.tlg-entry-deadlines-card>div,.tlg-entry-deadlines-card>div+div{padding:9px 0;border-right:0;border-bottom:1px solid #e9eff3}.tlg-entry-deadlines-card>div:last-child{border-bottom:0}}
+@media(max-width:700px){.tlg-entry-lifecycle-head{flex-direction:column}.tlg-entry-personal-head{flex-direction:column}.tlg-entry-vacancy-mini{justify-content:flex-start}.tlg-entry-application-controls{grid-template-columns:1fr}.tlg-entry-actions{grid-column:1}.tlg-entry-late-box{grid-template-columns:1fr}.tlg-entry-week-apps>div{grid-template-columns:30px 1fr}.tlg-entry-week-apps small{grid-column:2;text-align:left}.tlg-entry-deadlines-card{margin:12px 14px 14px}}
