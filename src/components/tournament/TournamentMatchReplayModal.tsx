@@ -4,6 +4,7 @@ import CountryFlag from '../common/CountryFlag'
 import usePlayerAvatarUrl from '../../hooks/usePlayerAvatarUrl'
 import { supabase } from '../../lib/supabase'
 import '../../styles/tournament-match-replay.css'
+import '../../styles/tournament-match-replay-score-v2.css'
 
 type ReplayStatus = 'unavailable' | 'prepared' | 'live' | 'completed' | 'void'
 
@@ -55,15 +56,50 @@ interface ReplayPlayerDetail {
 }
 
 interface ReplayMatchDetail {
+  match_id: string
+  competition_id: string
+  tournament_name: string
+  city: string
+  country_code: string
+  round_label: string
+  match_number: number
+  scheduled_season_week: number
+  scheduled_day: number
+  scheduled_start_minute: number | null
+  court_number: number | null
+  schedule_reason: string | null
+  status: string
+  winner_id: string | null
+  started_at: string | null
+  completed_at: string | null
   player1: ReplayPlayerDetail | null
   player2: ReplayPlayerDetail | null
 }
+
+const GAME_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const GAME_MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
 function clockLabel(totalSeconds: number) {
   const value = Math.max(0, Math.floor(totalSeconds))
   const minutes = Math.floor(value / 60)
   const seconds = value % 60
   return `${minutes}:${String(seconds).padStart(2, '0')}`
+}
+
+function minuteOfDayLabel(value?: number | null) {
+  if (value == null) return 'TBD'
+  const minute = Math.max(0, Math.min(1439, Math.floor(value)))
+  return `${String(Math.floor(minute / 60)).padStart(2, '0')}:${String(minute % 60).padStart(2, '0')}`
+}
+
+function gameDateLabel(seasonWeek?: number | null, scheduledDay?: number | null) {
+  if (!seasonWeek || !scheduledDay) return 'TBD'
+  let remaining = 2 + (seasonWeek - 1) * 7 + (scheduledDay - 1)
+  for (let index = 0; index < GAME_MONTH_LENGTHS.length; index += 1) {
+    if (remaining < GAME_MONTH_LENGTHS[index]) return `${GAME_MONTHS[index]} ${remaining + 1}`
+    remaining -= GAME_MONTH_LENGTHS[index]
+  }
+  return `Week ${seasonWeek} · Day ${scheduledDay}`
 }
 
 function scoreValue(value: string | number | undefined) {
@@ -88,6 +124,14 @@ function initials(name: string) {
   return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join('') || 'P'
 }
 
+function setScoreAt(events: ReplayEvent[], setNumber: number, side: 1 | 2) {
+  const setEvents = events.filter((event) => (event.set_number ?? 1) === setNumber)
+  if (setEvents.length === 0) return '—'
+  const completed = [...setEvents].reverse().find((event) => event.kind === 'set_end')
+  const source = completed ?? setEvents[setEvents.length - 1]
+  return String(side === 1 ? (source.p1_games ?? 0) : (source.p2_games ?? 0))
+}
+
 function ReplayPlayerCard({ player, fallbackName, winner }: { player: ReplayPlayerDetail | null; fallbackName: string; winner: boolean }) {
   const avatarUrl = usePlayerAvatarUrl(player?.image_path)
   const name = player ? `${player.first_name} ${player.last_name}` : fallbackName
@@ -108,6 +152,65 @@ function ReplayPlayerCard({ player, fallbackName, winner }: { player: ReplayPlay
         {player?.seed ? <div><span>Seed</span><strong>#{player.seed}</strong></div> : null}
       </div>
     </article>
+  )
+}
+
+function ReplayScorePlayerIdentity({ player, fallbackName }: { player: ReplayPlayerDetail | null; fallbackName: string }) {
+  const avatarUrl = usePlayerAvatarUrl(player?.image_path)
+  const name = player ? `${player.first_name} ${player.last_name}` : fallbackName
+
+  return (
+    <div className="tlg-replay-score-player">
+      <div className="tlg-replay-score-avatar">
+        {avatarUrl ? <img src={avatarUrl} alt={`${name} profile`} /> : <span>{initials(name)}</span>}
+      </div>
+      <div className="tlg-replay-score-identity">
+        <strong>{name}</strong>
+        <div>
+          <CountryFlag countryCode={player?.country_code ?? null} countryName={player?.country_code ?? undefined} width={22} height={15} />
+          <span>{player?.country_code ?? '—'}</span>
+          {player?.ranking_position ? <span>World #{player.ranking_position}</span> : null}
+        </div>
+      </div>
+      {player?.seed ? <span className="tlg-replay-score-seed">Seed #{player.seed}</span> : null}
+    </div>
+  )
+}
+
+function MatchMeta({ detail }: { detail: ReplayMatchDetail | null }) {
+  return (
+    <div className="tlg-replay-match-meta" aria-label="Match information">
+      <div className="tlg-replay-meta-item">
+        <span>Date</span>
+        <strong>{gameDateLabel(detail?.scheduled_season_week, detail?.scheduled_day)}</strong>
+        <small>{detail ? `Season Week ${detail.scheduled_season_week} · Day ${detail.scheduled_day}` : 'Schedule unavailable'}</small>
+      </div>
+      <div className="tlg-replay-meta-item">
+        <span>Location</span>
+        <strong>{detail?.city ?? 'TBD'}{detail?.country_code ? `, ${detail.country_code}` : ''}</strong>
+        <small>{detail?.tournament_name ?? 'Tournament venue'}</small>
+      </div>
+      <div className="tlg-replay-meta-item">
+        <span>Court</span>
+        <strong>{detail?.court_number ? `Court ${detail.court_number}` : 'TBD'}</strong>
+        <small>Tournament court assignment</small>
+      </div>
+      <div className="tlg-replay-meta-item">
+        <span>Round</span>
+        <strong>{detail?.round_label ?? 'TBD'}</strong>
+        <small>{detail?.match_number ? `Match #${detail.match_number}` : 'Match round'}</small>
+      </div>
+      <div className="tlg-replay-meta-item">
+        <span>Start time</span>
+        <strong>{minuteOfDayLabel(detail?.scheduled_start_minute)}</strong>
+        <small>Tournament local time</small>
+      </div>
+      <div className="tlg-replay-meta-item weather-pending">
+        <span>Weather</span>
+        <strong>Coming later</strong>
+        <small>Reserved for the weather engine</small>
+      </div>
+    </div>
   )
 }
 
@@ -182,6 +285,11 @@ export default function TournamentMatchReplayModal({ matchId, onClose }: { match
   const latest = isLive ? (data?.last_event ?? visibleEvents[visibleEvents.length - 1] ?? null) : lastAt(fullEvents, effectivePlayhead)
   const feed = visibleEvents.slice(-8).reverse()
   const winnerName = data?.winner_id === data?.player1_id ? data?.player1_name : data?.winner_id === data?.player2_id ? data?.player2_name : null
+  const maxSetNumber = Math.max(1, ...fullEvents.map((event) => event.set_number ?? 1))
+  const setColumnCount = Math.max(3, Math.min(5, maxSetNumber))
+  const setNumbers = Array.from({ length: setColumnCount }, (_, index) => index + 1)
+  const scoreGridTemplate = `minmax(300px, 1.7fr) 64px repeat(${setColumnCount}, 64px) 94px`
+  const activeSetNumber = latest?.set_number ?? 1
 
   function startHistoricalReplay() {
     setWatchingReplay(true)
@@ -217,23 +325,43 @@ export default function TournamentMatchReplayModal({ matchId, onClose }: { match
             </header>
 
             {isCompleted && !watchingReplay ? (
-              <div className="tlg-replay-finished tlg-replay-result-layout">
-                <ReplayPlayerCard player={matchDetail?.player1 ?? null} fallbackName={data.player1_name ?? 'Player 1'} winner={data.winner_id === data.player1_id} />
-                <div className="tlg-replay-result-center">
-                  <span>Official result</span>
-                  <h3>{data.final_score?.score ?? 'Match completed'}</h3>
-                  {winnerName && <p><strong>{winnerName}</strong> won the match.</p>}
-                  <button type="button" className="tlg-replay-watch-button" onClick={startHistoricalReplay}><span aria-hidden="true">▶</span> Watch Replay</button>
-                  <small>Historical replay controls unlocked</small>
+              <div className="tlg-replay-completed-wrap">
+                <div className="tlg-replay-finished tlg-replay-result-layout">
+                  <ReplayPlayerCard player={matchDetail?.player1 ?? null} fallbackName={data.player1_name ?? 'Player 1'} winner={data.winner_id === data.player1_id} />
+                  <div className="tlg-replay-result-center">
+                    <span>Official result</span>
+                    <h3>{data.final_score?.score ?? 'Match completed'}</h3>
+                    {winnerName && <p><strong>{winnerName}</strong> won the match.</p>}
+                    <button type="button" className="tlg-replay-watch-button" onClick={startHistoricalReplay}><span aria-hidden="true">▶</span> Watch Replay</button>
+                    <small>Historical replay controls unlocked</small>
+                  </div>
+                  <ReplayPlayerCard player={matchDetail?.player2 ?? null} fallbackName={data.player2_name ?? 'Player 2'} winner={data.winner_id === data.player2_id} />
                 </div>
-                <ReplayPlayerCard player={matchDetail?.player2 ?? null} fallbackName={data.player2_name ?? 'Player 2'} winner={data.winner_id === data.player2_id} />
+                <MatchMeta detail={matchDetail} />
               </div>
             ) : (
               <>
-                <div className="tlg-replay-scoreboard">
-                  <div className="player"><span>{data.player1_name ?? 'Player 1'}</span><strong>{latest?.p1_sets ?? 0}</strong><b>{latest?.p1_games ?? 0}</b><em>{scoreValue(latest?.p1_points)}</em></div>
-                  <div className="labels"><span>SETS</span><span>GAMES</span><span>POINTS</span></div>
-                  <div className="player"><span>{data.player2_name ?? 'Player 2'}</span><strong>{latest?.p2_sets ?? 0}</strong><b>{latest?.p2_games ?? 0}</b><em>{scoreValue(latest?.p2_points)}</em></div>
+                <div className="tlg-replay-score-table-wrap">
+                  <div className="tlg-replay-score-table">
+                    <div className="tlg-replay-score-header" style={{ gridTemplateColumns: scoreGridTemplate }}>
+                      <span className="player-heading">Player</span>
+                      <span title="Sets won">R</span>
+                      {setNumbers.map((setNumber) => <span key={`head-${setNumber}`}>S{setNumber}</span>)}
+                      <span className="current-heading">Current game</span>
+                    </div>
+                    <div className="tlg-replay-score-row" style={{ gridTemplateColumns: scoreGridTemplate }}>
+                      <ReplayScorePlayerIdentity player={matchDetail?.player1 ?? null} fallbackName={data.player1_name ?? 'Player 1'} />
+                      <strong className="result-cell">{latest?.p1_sets ?? 0}</strong>
+                      {setNumbers.map((setNumber) => <strong key={`p1-set-${setNumber}`} className={`set-cell${setNumber === activeSetNumber ? ' active' : ''}`}>{setScoreAt(visibleEvents, setNumber, 1)}</strong>)}
+                      <strong className="point-cell">{scoreValue(latest?.p1_points)}</strong>
+                    </div>
+                    <div className="tlg-replay-score-row" style={{ gridTemplateColumns: scoreGridTemplate }}>
+                      <ReplayScorePlayerIdentity player={matchDetail?.player2 ?? null} fallbackName={data.player2_name ?? 'Player 2'} />
+                      <strong className="result-cell">{latest?.p2_sets ?? 0}</strong>
+                      {setNumbers.map((setNumber) => <strong key={`p2-set-${setNumber}`} className={`set-cell${setNumber === activeSetNumber ? ' active' : ''}`}>{setScoreAt(visibleEvents, setNumber, 2)}</strong>)}
+                      <strong className="point-cell">{scoreValue(latest?.p2_points)}</strong>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="tlg-replay-progress-wrap">
@@ -260,7 +388,7 @@ export default function TournamentMatchReplayModal({ matchId, onClose }: { match
                     <div key={`${event.offset_seconds}-${index}`} className={event.kind ?? 'event'}>
                       <span>{clockLabel(event.offset_seconds)}</span>
                       <strong>{event.description ?? (event.kind === 'game_end' ? 'Game completed' : event.kind === 'set_end' ? 'Set completed' : event.kind === 'match_end' ? 'Match completed' : 'Point')}</strong>
-                      <small>{event.p1_games ?? 0}–{event.p2_games ?? 0} · {scoreValue(event.p1_points)}–{scoreValue(event.p2_points)}</small>
+                      <small>Set {event.set_number ?? 1} · Games {event.p1_games ?? 0}–{event.p2_games ?? 0} · Points {scoreValue(event.p1_points)}–{scoreValue(event.p2_points)}</small>
                     </div>
                   ))}
                 </div>
