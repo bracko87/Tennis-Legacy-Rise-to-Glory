@@ -7,108 +7,163 @@
     minmax(118px, .72fr)
     minmax(90px, .58fr)
     minmax(160px, .9fr)
-    minmax(185px, 1.05fr) !important;
+    minmax(285px, 1.45fr) !important;
 }
 
+/* The calendar keeps lifecycle and personal entry state visually separate.
+   The React row already renders both values independently; this turns the
+   final grid area into two readable status columns. */
 .tlg-tournament-status-cell {
   min-width: 0;
   display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(125px, 1fr);
+  align-items: center;
   justify-items: start;
-  gap: 4px;
+  gap: 10px;
 }
 
-/* The exact open/close/start/finish date made the two statuses look like
-   three separate controls. Keep the status column intentionally simple. */
+/* The exact open/close/start/finish date is available on the tournament
+   detail page. Keep the calendar focused on the two status values. */
 .tlg-tournament-status-cell > small {
   display: none;
 }
 
+/* Replace the old single STATUS heading with two headings while preserving
+   the existing Calendar markup. */
+.tlg-tournament-row-head > span:last-child {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(125px, 1fr);
+  gap: 10px;
+  font-size: 0;
+}
+
+.tlg-tournament-row-head > span:last-child::before,
+.tlg-tournament-row-head > span:last-child::after {
+  color: #7b8e9e;
+  font-size: .58rem;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.tlg-tournament-row-head > span:last-child::before {
+  content: 'Tournament status';
+}
+
+.tlg-tournament-row-head > span:last-child::after {
+  content: 'Your status';
+}
+
 .tlg-status-chip {
   max-width: 100%;
+  min-height: 23px;
   display: inline-flex;
   align-items: center;
-  min-height: 21px;
-  padding: 2px 7px;
+  justify-content: center;
+  padding: 3px 8px;
   border: 1px solid #dce6ed;
   border-radius: 999px;
   overflow: hidden;
   color: #567084;
   background: #f7fafc;
-  font-size: .53rem;
-  font-weight: 800;
+  font-size: .55rem;
+  font-weight: 760;
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.tlg-status-chip.tournament.applications_open,
-.tlg-status-chip.player.accepted_main_draw,
-.tlg-status-chip.player.accepted_qualification,
-.tlg-status-chip.player.champion {
+/* Tournament lifecycle colors remain independent from the player's entry
+   status colors. */
+.tlg-status-chip.tournament.applications_open {
   color: #14704f;
   border-color: #cbe9da;
   background: #edf9f3;
 }
 
 .tlg-status-chip.tournament.in_progress,
-.tlg-status-chip.tournament.draw_published,
-.tlg-status-chip.player.competing {
+.tlg-status-chip.tournament.draw_published {
   color: #0b6fc8;
   border-color: #cce5f7;
   background: #eef8ff;
 }
 
 .tlg-status-chip.tournament.applications_not_open,
-.tlg-status-chip.tournament.applications_closed,
-.tlg-status-chip.player.not_applied,
-.tlg-status-chip.player.did_not_apply,
-.tlg-status-chip.player.withdrawn {
+.tlg-status-chip.tournament.applications_closed {
   color: #6d7f8d;
   border-color: #dde5ea;
   background: #f7f9fb;
 }
 
-.tlg-status-chip.player.pending {
-  color: #8a6518;
-  border-color: #ecd99c;
-  background: #fff8e7;
-}
-
-.tlg-status-chip.player.rejected,
-.tlg-status-chip.player.eliminated,
-.tlg-status-chip.tournament.canceled {
+.tlg-status-chip.tournament.canceled,
+.tlg-status-chip.tournament.cancelled {
   color: #9b3446;
   border-color: #efc8cf;
   background: #fff5f6;
 }
 
-.tlg-status-chip.tournament.completed,
+.tlg-status-chip.tournament.completed {
+  color: #52697a;
+  border-color: #d7e1e8;
+  background: #f3f7fa;
+}
+
+/* YOUR STATUS --------------------------------------------------------- */
+
+/* Accepted / actively competing = green. */
+.tlg-status-chip.player.accepted_main_draw,
+.tlg-status-chip.player.accepted_qualification,
+.tlg-status-chip.player.accepted,
+.tlg-status-chip.player.competing,
+.tlg-status-chip.player.champion {
+  color: #14704f;
+  border-color: #bfe2d1;
+  background: #edf9f3;
+}
+
+/* Pending = yellow. */
+.tlg-status-chip.player.pending,
+.tlg-status-chip.player.application_pending {
+  color: #8a6518;
+  border-color: #ead48c;
+  background: #fff7df;
+}
+
+/* No application = neutral gray. */
+.tlg-status-chip.player.not_applied,
+.tlg-status-chip.player.did_not_apply {
+  color: #687b89;
+  border-color: #d9e2e8;
+  background: #f5f7f9;
+}
+
+/* Withdrawn / rejected / declined = red. */
+.tlg-status-chip.player.withdrawn,
+.tlg-status-chip.player.application_withdrawn,
+.tlg-status-chip.player.rejected,
+.tlg-status-chip.player.declined,
+.tlg-status-chip.player.canceled,
+.tlg-status-chip.player.cancelled,
+.tlg-status-chip.player.eliminated {
+  color: #9b3446;
+  border-color: #efc8cf;
+  background: #fff2f4;
+}
+
 .tlg-status-chip.player.completed {
   color: #52697a;
   border-color: #d7e1e8;
   background: #f3f7fa;
 }
 
-/* Personal status is deliberately plain text beneath the tournament badge,
-   so it cannot be mistaken for another button/control. */
+/* Personal status is now a proper independent pill; do not prefix it with
+   "You:" because its own column is explicitly labelled YOUR STATUS. */
 .tlg-tournament-status-cell .tlg-status-chip.player {
-  min-height: 0;
-  margin-top: 1px;
-  padding: 0;
-  border: 0 !important;
-  border-radius: 0;
-  background: transparent !important;
-  overflow: visible;
-  font-size: .58rem;
-  font-weight: 700;
-  line-height: 1.35;
-  white-space: normal;
+  margin: 0;
 }
 
 .tlg-tournament-status-cell .tlg-status-chip.player::before {
-  content: 'You: ';
-  color: #80909d;
-  font-weight: 650;
+  content: none;
 }
 
 /* The last hero tag is the server-backed lifecycle + personal-entry status. */
@@ -124,12 +179,18 @@
 @media (max-width: 1260px) {
   .tlg-tournament-row {
     grid-template-columns:
-      minmax(210px, 1.35fr)
-      minmax(140px, .9fr)
-      112px
-      88px
-      minmax(145px, .85fr)
-      minmax(165px, 1fr) !important;
+      minmax(205px, 1.3fr)
+      minmax(135px, .85fr)
+      108px
+      84px
+      minmax(135px, .8fr)
+      minmax(250px, 1.35fr) !important;
+  }
+
+  .tlg-tournament-status-cell,
+  .tlg-tournament-row-head > span:last-child {
+    grid-template-columns: minmax(108px, 1fr) minmax(112px, 1fr);
+    gap: 8px;
   }
 }
 
@@ -140,9 +201,9 @@
 
   .tlg-tournament-status-cell {
     grid-column: span 2;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: center;
-    gap: 6px 9px;
+    gap: 8px;
   }
 }
 
@@ -153,6 +214,11 @@
 
   .tlg-tournament-status-cell {
     grid-column: auto;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tlg-status-chip {
+    white-space: normal;
+    text-align: center;
   }
 }
