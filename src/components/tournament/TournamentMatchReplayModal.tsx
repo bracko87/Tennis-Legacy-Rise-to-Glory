@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
+import CountryFlag from '../common/CountryFlag'
+import usePlayerAvatarUrl from '../../hooks/usePlayerAvatarUrl'
 import { supabase } from '../../lib/supabase'
 import '../../styles/tournament-match-replay.css'
 
@@ -42,6 +44,21 @@ interface ReplayResponse {
   engine_version?: string | null
 }
 
+interface ReplayPlayerDetail {
+  id: string
+  first_name: string
+  last_name: string
+  country_code: string | null
+  image_path: string | null
+  ranking_position: number | null
+  seed: number | null
+}
+
+interface ReplayMatchDetail {
+  player1: ReplayPlayerDetail | null
+  player2: ReplayPlayerDetail | null
+}
+
 function clockLabel(totalSeconds: number) {
   const value = Math.max(0, Math.floor(totalSeconds))
   const minutes = Math.floor(value / 60)
@@ -67,14 +84,53 @@ function nextEventOffset(events: ReplayEvent[], playhead: number, kinds: string[
   return next?.offset_seconds ?? null
 }
 
+function initials(name: string) {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join('') || 'P'
+}
+
+function ReplayPlayerCard({ player, fallbackName, winner }: { player: ReplayPlayerDetail | null; fallbackName: string; winner: boolean }) {
+  const avatarUrl = usePlayerAvatarUrl(player?.image_path)
+  const name = player ? `${player.first_name} ${player.last_name}` : fallbackName
+
+  return (
+    <article className={`tlg-replay-player-card${winner ? ' winner' : ''}`}>
+      {winner && <span className="tlg-replay-winner-badge">Winner</span>}
+      <div className="tlg-replay-player-avatar">
+        {avatarUrl ? <img src={avatarUrl} alt={`${name} profile`} /> : <span>{initials(name)}</span>}
+      </div>
+      <h3>{name}</h3>
+      <div className="tlg-replay-player-country">
+        <CountryFlag countryCode={player?.country_code ?? null} countryName={player?.country_code ?? undefined} width={24} height={16} />
+        <span>{player?.country_code ?? '—'}</span>
+      </div>
+      <div className="tlg-replay-player-meta">
+        <div><span>World rank</span><strong>{player?.ranking_position ? `#${player.ranking_position}` : '—'}</strong></div>
+        {player?.seed ? <div><span>Seed</span><strong>#{player.seed}</strong></div> : null}
+      </div>
+    </article>
+  )
+}
+
 export default function TournamentMatchReplayModal({ matchId, onClose }: { matchId: string; onClose: () => void }) {
   const [data, setData] = useState<ReplayResponse | null>(null)
+  const [matchDetail, setMatchDetail] = useState<ReplayMatchDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [watchingReplay, setWatchingReplay] = useState(false)
   const [playhead, setPlayhead] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [speed, setSpeed] = useState<1 | 2 | 4>(1)
+
+  useEffect(() => {
+    let cancelled = false
+    const loadDetail = async () => {
+      const { data: detailData, error: detailError } = await supabase.rpc('get_tournament_match_detail_v1', { p_match_id: matchId })
+      if (cancelled || detailError || !detailData) return
+      setMatchDetail(detailData as ReplayMatchDetail)
+    }
+    void loadDetail()
+    return () => { cancelled = true }
+  }, [matchId])
 
   useEffect(() => {
     let cancelled = false
@@ -155,18 +211,22 @@ export default function TournamentMatchReplayModal({ matchId, onClose }: { match
             <header className="tlg-replay-head">
               <div>
                 <span>{isLive ? 'Live match' : 'Match replay'}</span>
-                <h2>{data.player1_name ?? 'Player 1'} vs {data.player2_name ?? 'Player 2'}</h2>
                 <p>{isLive ? 'First occurrence · synchronized with the official live timeline' : 'Completed match · historical replay controls unlocked'}</p>
               </div>
               <strong className={isLive ? 'live' : 'final'}>{isLive ? 'LIVE · 1× LOCKED' : 'FINAL'}</strong>
             </header>
 
             {isCompleted && !watchingReplay ? (
-              <div className="tlg-replay-finished">
-                <span>Official result</span>
-                <h3>{data.final_score?.score ?? 'Match completed'}</h3>
-                {winnerName && <p>{winnerName} won the match.</p>}
-                <button type="button" onClick={startHistoricalReplay}>Watch Replay</button>
+              <div className="tlg-replay-finished tlg-replay-result-layout">
+                <ReplayPlayerCard player={matchDetail?.player1 ?? null} fallbackName={data.player1_name ?? 'Player 1'} winner={data.winner_id === data.player1_id} />
+                <div className="tlg-replay-result-center">
+                  <span>Official result</span>
+                  <h3>{data.final_score?.score ?? 'Match completed'}</h3>
+                  {winnerName && <p><strong>{winnerName}</strong> won the match.</p>}
+                  <button type="button" className="tlg-replay-watch-button" onClick={startHistoricalReplay}><span aria-hidden="true">▶</span> Watch Replay</button>
+                  <small>Historical replay controls unlocked</small>
+                </div>
+                <ReplayPlayerCard player={matchDetail?.player2 ?? null} fallbackName={data.player2_name ?? 'Player 2'} winner={data.winner_id === data.player2_id} />
               </div>
             ) : (
               <>
