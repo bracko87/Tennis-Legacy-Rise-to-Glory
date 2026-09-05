@@ -1,17 +1,18 @@
 /* Tournament lifecycle polish: hero milestones, live applicant cut-lines and draw-history switch. */
 
-/* The original server-combined lifecycle tag is replaced by the clearer split summary below it. */
+/* The original server-combined lifecycle tag is replaced by compact lifecycle chips.
+   They intentionally use the same visual language as Category / Surface / Environment. */
 .tlg-detail-hero-copy .tlg-detail-tags > span:last-child{display:none}
-.tlg-hero-entry-host{margin-top:10px}
-.tlg-hero-entry-summary{display:flex;align-items:stretch;justify-content:space-between;gap:12px;max-width:100%}
-.tlg-hero-entry-dates{display:grid;grid-template-columns:repeat(3,minmax(145px,1fr));min-width:0;flex:1;border:1px solid #dce7ee;border-radius:9px;overflow:hidden;background:#fbfdff}
-.tlg-hero-entry-dates article{display:grid;gap:3px;padding:9px 11px;border-right:1px solid #e4ecf1}
-.tlg-hero-entry-dates article:last-child{border-right:0}
-.tlg-hero-entry-dates span,.tlg-hero-entry-status>span{color:#7a90a0;font-size:.52rem;font-weight:850;letter-spacing:.055em;text-transform:uppercase}
-.tlg-hero-entry-dates strong{color:#294b62;font-size:.63rem;white-space:nowrap}
-.tlg-hero-entry-status{min-width:205px;display:grid;align-content:center;gap:4px;padding:8px 11px;border-left:3px solid #0b6fc8;border-radius:8px;background:#f4f9fd}
-.tlg-hero-entry-status strong{color:#6f8595;font-size:.6rem;font-weight:650}
-.tlg-hero-entry-status strong b{margin-left:4px;color:#173f59;font-size:.66rem}
+.tlg-detail-hero-copy .tlg-detail-tags{display:inline-flex;vertical-align:top}
+.tlg-hero-entry-host{display:inline-flex;vertical-align:top;margin-top:16px;margin-left:7px;max-width:calc(100% - 7px)}
+.tlg-hero-entry-summary{display:inline-flex;align-items:center;flex-wrap:wrap;gap:7px;max-width:100%}
+.tlg-hero-entry-dates{display:contents}
+.tlg-hero-entry-dates article,.tlg-hero-entry-status{min-height:28px;display:inline-flex;align-items:center;gap:4px;padding:0 9px;border:1px solid #d3e9f7;border-radius:8px;background:#edf7fd;white-space:nowrap}
+.tlg-hero-entry-dates article{border-right:1px solid #d3e9f7}
+.tlg-hero-entry-dates article:last-child{border-right:1px solid #d3e9f7}
+.tlg-hero-entry-dates span,.tlg-hero-entry-dates strong,.tlg-hero-entry-status>span,.tlg-hero-entry-status strong,.tlg-hero-entry-status strong b{margin:0;color:#0a67a7;font-size:.61rem;font-weight:800;letter-spacing:0;line-height:1;text-transform:none;white-space:nowrap}
+.tlg-hero-entry-dates article span::after,.tlg-hero-entry-status>span::after{content:' ·';}
+.tlg-hero-entry-status strong b{margin-left:3px}
 
 /* Calendar personal status: visible separation after “You:” instead of jammed text. */
 .tlg-tournament-status-cell .tlg-status-chip.player::before{margin-right:5px;content:'You:'}
@@ -82,12 +83,14 @@
 .tlg-tournament-prep-footer{position:relative;z-index:2;background:#fff}
 
 @media(max-width:980px){
-  .tlg-hero-entry-summary{flex-direction:column}.tlg-hero-entry-status{min-width:0}
+  .tlg-detail-hero-copy .tlg-detail-tags,.tlg-hero-entry-host{display:flex;margin-left:0}
+  .tlg-hero-entry-host{margin-top:7px}
+  .tlg-hero-entry-summary{display:flex;flex-wrap:wrap}
   .tlg-applicant-field-head{align-items:flex-start;flex-direction:column}.tlg-applicant-field-head p{text-align:left}
   .tlg-match-schedule-day-tabs{justify-content:flex-start}
 }
 @media(max-width:700px){
-  .tlg-hero-entry-dates{grid-template-columns:1fr}.tlg-hero-entry-dates article{border-right:0;border-bottom:1px solid #e4ecf1}.tlg-hero-entry-dates article:last-child{border-bottom:0}
+  .tlg-hero-entry-dates{display:contents}
   .tlg-applicant-row{grid-template-columns:42px 22px minmax(130px,1fr) 82px}.tlg-applicant-row>small{grid-column:3/5;text-align:left;padding-bottom:3px}
   .tlg-tournament-prep-backdrop{padding-bottom:58px!important}.tlg-tournament-prep-dialog{max-height:calc(100vh - 142px)!important}
 }
