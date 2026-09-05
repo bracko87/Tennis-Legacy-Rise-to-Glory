@@ -127,13 +127,14 @@ export default function TournamentMatchSchedule() {
               <h2>Order of play</h2>
               <p>All times are tournament local. Several matches may run simultaneously on different courts.</p>
             </div>
-            <div className="tlg-match-schedule-day-tabs" aria-label="Tournament schedule day">
-              {days.map((day) => (
-                <button key={day.key} type="button" className={selectedDay === day.key ? 'active' : ''} onClick={() => setSelectedDay(day.key)}>
-                  <span>W{day.week}</span><strong>Day {day.day}</strong><small>{day.count} matches</small>
-                </button>
-              ))}
-            </div>
+            <label className="tlg-match-schedule-day-select">
+              <span>Day</span>
+              <select value={selectedDay} onChange={(event) => setSelectedDay(event.target.value)} aria-label="Tournament schedule day">
+                {days.map((day) => (
+                  <option key={day.key} value={day.key}>Day {day.day} — {day.count} {day.count === 1 ? 'match' : 'matches'}</option>
+                ))}
+              </select>
+            </label>
           </header>
 
           <div className="tlg-match-schedule-summary">
