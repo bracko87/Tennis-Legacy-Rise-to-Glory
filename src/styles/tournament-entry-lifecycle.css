@@ -63,5 +63,25 @@
 .tlg-entry-error{padding:14px 18px;color:#a84940;font-size:.6rem}
 .tlg-entry-error.inline{margin-top:10px;padding:8px 10px;border:1px solid #efd0cc;border-radius:7px;background:#fff7f6}
 .tlg-entry-loading{padding:18px;color:#718697;font-size:.62rem}
+
+/* Readability pass: raise only the smallest Tournament Entry text by one step. */
+.tlg-entry-lifecycle-panel .tlg-entry-phase{font-size:.64rem}
+.tlg-entry-lifecycle-panel .tlg-entry-milestones article>span{font-size:.61rem}
+.tlg-entry-lifecycle-panel .tlg-entry-milestones article strong{font-size:.64rem}
+.tlg-entry-lifecycle-panel .tlg-entry-milestones article small{font-size:.58rem}
+.tlg-entry-lifecycle-panel .tlg-entry-personal-head span,
+.tlg-entry-lifecycle-panel .tlg-entry-deadlines-card>span,
+.tlg-entry-lifecycle-panel .tlg-entry-week-apps>span{font-size:.58rem}
+.tlg-entry-lifecycle-panel .tlg-entry-vacancy-mini span{font-size:.58rem}
+.tlg-entry-lifecycle-panel .tlg-entry-week-apps small{font-size:.57rem}
+.tlg-entry-lifecycle-panel .tlg-entry-application-controls label>span:first-child{font-size:.59rem}
+.tlg-entry-lifecycle-panel .tlg-entry-qual-toggle small{font-size:.57rem}
+.tlg-entry-lifecycle-panel .tlg-entry-actions button,
+.tlg-entry-lifecycle-panel .tlg-entry-late-box button{font-size:.64rem}
+.tlg-entry-lifecycle-panel .tlg-entry-late-box>div span{font-size:.59rem}
+.tlg-entry-lifecycle-panel .tlg-entry-late-box label{font-size:.61rem}
+.tlg-entry-lifecycle-panel .tlg-entry-passive-note{font-size:.63rem}
+.tlg-entry-lifecycle-panel .tlg-entry-deadlines-card small{font-size:.58rem}
+
 @media(max-width:1050px){.tlg-entry-milestones{grid-template-columns:repeat(6,145px)}.tlg-entry-deadlines-card{grid-template-columns:1fr}.tlg-entry-deadlines-card>div,.tlg-entry-deadlines-card>div+div{padding:9px 0;border-right:0;border-bottom:1px solid #e9eff3}.tlg-entry-deadlines-card>div:last-child{border-bottom:0}}
 @media(max-width:700px){.tlg-entry-lifecycle-head{flex-direction:column}.tlg-entry-personal-head{flex-direction:column}.tlg-entry-vacancy-mini{justify-content:flex-start}.tlg-entry-application-controls{grid-template-columns:1fr}.tlg-entry-actions{grid-column:1}.tlg-entry-late-box{grid-template-columns:1fr}.tlg-entry-week-apps>div{grid-template-columns:30px 1fr}.tlg-entry-week-apps small{grid-column:2;text-align:left}.tlg-entry-deadlines-card{margin:12px 14px 14px}}
