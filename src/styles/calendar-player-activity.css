@@ -22,6 +22,8 @@
   border: 1px solid #d7e5ee;
   border-radius: 7px;
   background: #f6fafc;
+  font-family: var(--tlg-font-ui) !important;
+  font-style: normal;
   line-height: 1.25;
 }
 
@@ -32,9 +34,10 @@
 
 .tlg-calendar-player-activity > span {
   overflow: hidden;
+  font-family: var(--tlg-font-ui) !important;
   font-size: .59rem;
   font-weight: 700;
-  letter-spacing: .045em;
+  letter-spacing: .025em;
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
@@ -43,8 +46,10 @@
 .tlg-calendar-player-activity > strong {
   overflow: hidden;
   color: #18364d;
+  font-family: var(--tlg-font-ui) !important;
   font-size: .69rem;
   font-weight: 650;
+  letter-spacing: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -56,7 +61,8 @@
 }
 
 .tlg-calendar-player-activity.travel {
-  padding-right: 28px;
+  position: static;
+  padding-right: 8px;
   color: #87560c;
   border-color: #e5c584;
   background: #fff8e9;
@@ -67,21 +73,34 @@
   color: #67420b;
 }
 
+/* The plane belongs to the calendar day, not to the travel card. Keeping the
+   SVG inside the activity DOM lets the existing data/rendering stay simple;
+   the travel card is position:static so the day cell becomes its containing box. */
 .tlg-calendar-travel-icon {
   position: absolute;
-  top: 6px;
-  right: 7px;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
   color: #b77612;
   stroke-width: 2.2;
+  pointer-events: none;
+}
+
+.tlg-calendar-day-current .tlg-calendar-travel-icon {
+  right: 58px;
 }
 
 .tlg-calendar-player-activities.multiple .tlg-calendar-player-activity.travel {
-  padding-right: 27px;
+  padding-right: 7px;
 }
 
 .tlg-calendar-player-activities.multiple .tlg-calendar-travel-icon {
-  top: 5px;
-  right: 6px;
+  top: 10px;
+  right: 10px;
+}
+
+.tlg-calendar-day-current .tlg-calendar-player-activities.multiple .tlg-calendar-travel-icon {
+  right: 58px;
 }
 
 .tlg-calendar-player-activity.tournament,
@@ -120,6 +139,7 @@
   border-radius: 8px;
   color: #923a46;
   background: #fff6f7;
+  font-family: var(--tlg-font-ui) !important;
   font-size: .7rem;
 }
 
@@ -138,13 +158,18 @@
 
   .tlg-calendar-player-activity.travel,
   .tlg-calendar-player-activities.multiple .tlg-calendar-player-activity.travel {
-    padding-right: 25px;
+    padding-right: 6px;
   }
 
   .tlg-calendar-travel-icon,
   .tlg-calendar-player-activities.multiple .tlg-calendar-travel-icon {
-    top: 5px;
-    right: 6px;
+    top: 7px;
+    right: 7px;
+  }
+
+  .tlg-calendar-day-current .tlg-calendar-travel-icon,
+  .tlg-calendar-day-current .tlg-calendar-player-activities.multiple .tlg-calendar-travel-icon {
+    right: 52px;
   }
 
   .tlg-calendar-player-activity > span {
