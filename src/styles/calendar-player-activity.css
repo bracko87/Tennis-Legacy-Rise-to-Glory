@@ -3,13 +3,20 @@
   overflow: hidden;
 }
 
-.tlg-calendar-player-activity {
+.tlg-calendar-player-activities {
   position: absolute;
   left: 8px;
   right: 8px;
   bottom: 8px;
+  z-index: 1;
+  display: grid;
+  gap: 4px;
+}
+
+.tlg-calendar-player-activity {
   display: grid;
   gap: 2px;
+  min-width: 0;
   padding: 6px 8px;
   border: 1px solid #d7e5ee;
   border-radius: 7px;
@@ -17,11 +24,19 @@
   line-height: 1.25;
 }
 
+.tlg-calendar-player-activities.multiple .tlg-calendar-player-activity {
+  gap: 1px;
+  padding: 4px 7px;
+}
+
 .tlg-calendar-player-activity > span {
+  overflow: hidden;
   font-size: .59rem;
   font-weight: 700;
   letter-spacing: .045em;
+  text-overflow: ellipsis;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .tlg-calendar-player-activity > strong {
@@ -45,10 +60,27 @@
   background: #f3f9fd;
 }
 
-.tlg-calendar-player-activity.tournament {
-  color: #0872bb;
-  border-color: #c8e1f2;
-  background: #eef8fe;
+.tlg-calendar-player-activity.tournament,
+.tlg-calendar-player-activity.tournament.scheduled {
+  color: #0572bd;
+  border-color: #8cc9ee;
+  background: #e8f6ff;
+  box-shadow: inset 3px 0 0 #2d9de0;
+}
+
+.tlg-calendar-player-activity.tournament.scheduled > strong {
+  color: #12547e;
+}
+
+.tlg-calendar-player-activity.tournament.completed {
+  color: #d9efff;
+  border-color: #0c568d;
+  background: #0f659f;
+  box-shadow: inset 3px 0 0 #073e67;
+}
+
+.tlg-calendar-player-activity.tournament.completed > strong {
+  color: #fff;
 }
 
 .tlg-calendar-player-activity.injured {
@@ -68,11 +100,20 @@
 }
 
 @media (max-width: 760px) {
-  .tlg-calendar-player-activity {
+  .tlg-calendar-player-activities {
     left: 5px;
     right: 5px;
     bottom: 5px;
-    padding: 5px 6px;
+    gap: 3px;
+  }
+
+  .tlg-calendar-player-activity,
+  .tlg-calendar-player-activities.multiple .tlg-calendar-player-activity {
+    padding: 4px 6px;
+  }
+
+  .tlg-calendar-player-activity > span {
+    font-size: .54rem;
   }
 
   .tlg-calendar-player-activity > strong {
