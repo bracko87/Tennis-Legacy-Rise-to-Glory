@@ -35,14 +35,21 @@ interface CoinLedgerEntry {
   created_at: string
 }
 
-const coinPacks = [
+interface CoinPack {
+  coins: number
+  price: number
+  helper: string
+  badge?: string
+}
+
+const coinPacks: readonly CoinPack[] = [
   { coins: 70, price: 3.99, helper: 'Starter boost' },
   { coins: 130, price: 6.99, helper: 'Great for a new season' },
   { coins: 270, price: 13.99, helper: 'Most balanced pick' },
   { coins: 390, price: 19.99, helper: 'Most popular', badge: 'Most popular' },
   { coins: 570, price: 28.99, helper: 'Serious manager mode' },
   { coins: 900, price: 44.99, helper: 'Best for long-term play', badge: 'Best value' },
-] as const
+]
 
 const comparisonRows = [
   ['Create and manage your professional player', true, true],
@@ -90,6 +97,7 @@ export default function ProPackagesPage() {
 
   useEffect(() => {
     if (!user) return
+    const userId = user.id
     let active = true
 
     async function loadHistory() {
@@ -98,13 +106,13 @@ export default function ProPackagesPage() {
         supabase
           .from('billing_transactions')
           .select('id, kind, status, amount_eur_cents, coins_amount, description, created_at')
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(100),
         supabase
           .from('coin_ledger')
           .select('id, amount, balance_after, entry_type, description, created_at')
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(100),
       ])

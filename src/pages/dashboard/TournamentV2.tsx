@@ -695,7 +695,7 @@ export default function TournamentPageV2() {
                   </div>
                   <div className={`tlg-detail-projection tlg-detail-projection-${effectiveApplicationProjection ?? 'pending'}`}>
                     <small>{applicationState.user_applied ? 'Your current projection' : 'If you apply now'}</small>
-                    <strong>{projectionLabel(effectiveApplicationProjection)}</strong>
+                    <strong>{projectionLabel(effectiveApplicationProjection ?? null)}</strong>
                   </div>
                 </div>
 

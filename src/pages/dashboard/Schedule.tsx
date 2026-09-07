@@ -176,7 +176,7 @@ export default function SchedulePage() {
     async function loadSchedule() {
       setLoading(true)
       setError(null)
-      const { data, error: rpcError } = await supabase.rpc('get_player_tournament_summary_v1', { p_player_id: player.id })
+      const { data, error: rpcError } = await supabase.rpc('get_player_tournament_summary_v1', { p_player_id: player!.id })
       if (cancelled) return
       if (rpcError) {
         setUpcoming([])
