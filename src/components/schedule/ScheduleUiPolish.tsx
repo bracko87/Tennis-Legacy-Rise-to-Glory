@@ -21,6 +21,18 @@ export default function ScheduleUiPolish() {
         const label = CATEGORY_LABELS[raw]
         if (label) element.textContent = label
       })
+
+      document.querySelectorAll<HTMLElement>('.tlg-next-tournament-meta > div').forEach((item) => {
+        const label = item.querySelector('span')?.textContent?.trim()
+        const value = item.querySelector('strong')
+        if (label === 'Entry' && value) value.textContent = 'Accepted'
+      })
+
+      document.querySelectorAll<HTMLElement>('.tlg-schedule-section-head.compact p').forEach((paragraph) => {
+        if (paragraph.textContent?.includes('Only tournaments that belong to your player')) {
+          paragraph.textContent = 'Only accepted future tournament commitments appear on this page. Pending applications are excluded.'
+        }
+      })
     }
 
     polish()
