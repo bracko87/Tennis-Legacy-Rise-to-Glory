@@ -29,7 +29,10 @@ import {
   RequireNoPlayer,
   RequirePlayer,
 } from './auth/RouteGuards'
+import OverviewInjuryEnhancement from './components/dashboard/OverviewInjuryEnhancement'
+import PlayingStyleEducation from './components/player/PlayingStyleEducation'
 import ScheduleUiPolish from './components/schedule/ScheduleUiPolish'
+import { ScheduleTacticEducation, TournamentTacticEducation } from './components/tactics/TacticEducation'
 import TournamentEntryLifecycle from './components/tournament/TournamentEntryLifecycle'
 import TournamentExperienceEnhancements from './components/tournament/TournamentExperienceEnhancements'
 import TournamentLogoRecovery from './components/tournament/TournamentLogoRecovery'
@@ -54,6 +57,7 @@ import FinancePage from './pages/dashboard/Finance'
 import PrivateLifePage from './pages/dashboard/PrivateLife'
 import TennisClubPage from './pages/dashboard/TennisClub'
 import StatisticsPage from './pages/dashboard/Statistics'
+import InjuriesPage from './pages/dashboard/Injuries'
 import ProPackagesPage from './pages/manager/ProPackages'
 import GamePreferencesPage from './pages/manager/GamePreferences'
 import InboxPage from './pages/manager/Inbox'
@@ -100,8 +104,21 @@ function TournamentRoute() {
       <TournamentEntryLifecycle />
       <TournamentExperienceEnhancements />
       <TournamentLogoRecovery />
+      <TournamentTacticEducation />
     </>
   )
+}
+
+function OverviewRoute() {
+  return <><OverviewPage /><OverviewInjuryEnhancement /></>
+}
+
+function ScheduleRoute() {
+  return <><SchedulePage /><ScheduleUiPolish /><ScheduleTacticEducation /></>
+}
+
+function CreatePlayerRoute() {
+  return <><CreatePlayerPage /><PlayingStyleEducation /></>
 }
 
 export default function App() {
@@ -115,9 +132,9 @@ export default function App() {
           <Route path="/register" element={<AnonymousOnly><RegisterPage /></AnonymousOnly>} />
           <Route path="/forgot-password" element={<AnonymousOnly><ForgotPasswordPage /></AnonymousOnly>} />
           <Route path="/reset-password" element={<RequireAuth><ResetPasswordPage /></RequireAuth>} />
-          <Route path="/create-player" element={<RequireNoPlayer><CreatePlayerPage /></RequireNoPlayer>} />
+          <Route path="/create-player" element={<RequireNoPlayer><CreatePlayerRoute /></RequireNoPlayer>} />
 
-          <Route path="/game/overview" element={<RequirePlayer><OverviewPage /></RequirePlayer>} />
+          <Route path="/game/overview" element={<RequirePlayer><OverviewRoute /></RequirePlayer>} />
           <Route path="/game/skills" element={<RequirePlayer><SkillsPage /></RequirePlayer>} />
           <Route path="/game/training" element={<RequirePlayer><TrainingPage /></RequirePlayer>} />
           <Route path="/game/staff" element={<RequirePlayer><StaffPage /></RequirePlayer>} />
@@ -125,9 +142,10 @@ export default function App() {
           <Route path="/game/tournaments/:competitionId" element={<RequirePlayer><TournamentRoute /></RequirePlayer>} />
           <Route path="/game/rankings" element={<RequirePlayer><RankingsPage /></RequirePlayer>} />
           <Route path="/game/players/:playerId" element={<RequirePlayer><PlayerProfilePage /></RequirePlayer>} />
-          <Route path="/game/schedule" element={<RequirePlayer><><SchedulePage /><ScheduleUiPolish /></></RequirePlayer>} />
+          <Route path="/game/schedule" element={<RequirePlayer><ScheduleRoute /></RequirePlayer>} />
           <Route path="/game/equipment" element={<RequirePlayer><EquipmentPage /></RequirePlayer>} />
           <Route path="/game/finance" element={<RequirePlayer><FinancePage /></RequirePlayer>} />
+          <Route path="/game/injuries" element={<RequirePlayer><InjuriesPage /></RequirePlayer>} />
           <Route path="/game/private-life" element={<RequirePlayer><PrivateLifePage /></RequirePlayer>} />
           <Route path="/game/tennis-club" element={<RequirePlayer><TennisClubPage /></RequirePlayer>} />
           <Route path="/game/statistics" element={<RequirePlayer><StatisticsPage /></RequirePlayer>} />
