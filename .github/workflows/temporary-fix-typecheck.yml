@@ -1,4 +1,4 @@
-name: Temporary fix and verify TypeScript
+name: Temporary source cleanup and verify
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  fix-and-verify:
+  cleanup-and-verify:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -24,63 +24,40 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Apply focused TypeScript fixes
+      - name: Remove obsolete fixed-450 copy
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
 
-          def replace_once(path: str, old: str, new: str):
-              p = Path(path)
-              text = p.read_text()
+          path = Path('src/pages/player/CreatePlayer.tsx')
+          text = path.read_text()
+
+          replacements = {
+              '<div className="tlg-player-preview-meta-row"><span>Starting tennis points</span><strong>450 for every player</strong></div>':
+              '<div className="tlg-player-preview-meta-row"><span>Starting technical points</span><strong>440–455 · individually varied</strong></div>',
+              '<p className="tlg-surface-future-note">Every new player starts with the same 450 total tennis-skill points. Surface preference only changes where those points begin.</p>':
+              '<p className="tlg-surface-future-note">New human players begin with a varied 440–455 technical-point profile. Preferred surface changes the distribution while individual variation prevents identical starting players.</p>',
+              '<p>This is a second small redistribution of the same starting points. No style creates a stronger new player.</p>':
+              '<p>Playing style changes how your existing skills are used during matches. It is not a flat bonus: the style is strongest only when your skill profile supports it.</p>',
+          }
+
+          for old, new in replacements.items():
               if old not in text:
-                  raise SystemExit(f'Expected text not found in {path}: {old!r}')
-              p.write_text(text.replace(old, new, 1))
+                  raise SystemExit(f'Expected source text not found: {old}')
+              text = text.replace(old, new, 1)
 
-          replace_once(
-              'src/pages/dashboard/Schedule.tsx',
-              "{ p_player_id: player.id }",
-              "{ p_player_id: player!.id }",
-          )
-
-          replace_once(
-              'src/pages/dashboard/TournamentV2.tsx',
-              'projectionLabel(effectiveApplicationProjection)',
-              'projectionLabel(effectiveApplicationProjection ?? null)',
-          )
-
-          replace_once(
-              'src/pages/manager/ProPackages.tsx',
-              "const coinPacks = [",
-              "interface CoinPack {\n  coins: number\n  price: number\n  helper: string\n  badge?: string\n}\n\nconst coinPacks: readonly CoinPack[] = [",
-          )
-          replace_once(
-              'src/pages/manager/ProPackages.tsx',
-              "] as const\n\nconst comparisonRows = [",
-              "]\n\nconst comparisonRows = [",
-          )
-          replace_once(
-              'src/pages/manager/ProPackages.tsx',
-              "    if (!user) return\n    let active = true",
-              "    if (!user) return\n    const userId = user.id\n    let active = true",
-          )
-
-          p = Path('src/pages/manager/ProPackages.tsx')
-          text = p.read_text()
-          count = text.count(".eq('user_id', user.id)")
-          if count != 2:
-              raise SystemExit(f'Expected 2 user.id billing filters, found {count}')
-          p.write_text(text.replace(".eq('user_id', user.id)", ".eq('user_id', userId)"))
+          path.write_text(text)
           PY
       - name: TypeScript check
         run: npx --yes --package=typescript@5.8.3 tsc --noEmit
       - name: Production build
         run: npm run build
-      - name: Commit verified fixes
+      - name: Commit verified source cleanup
         shell: bash
         run: |
           git config user.name "bracko87"
           git config user.email "aleksandarlevnajic@gmail.com"
-          git add src/pages/dashboard/Schedule.tsx src/pages/dashboard/TournamentV2.tsx src/pages/manager/ProPackages.tsx
-          git commit -m "Resolve existing TypeScript diagnostics"
+          git add src/pages/player/CreatePlayer.tsx
+          git commit -m "Remove obsolete fixed starting-points copy"
           git push origin HEAD:main
