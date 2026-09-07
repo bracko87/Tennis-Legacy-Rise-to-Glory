@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, Plane } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 
@@ -251,6 +251,7 @@ function SeasonCalendarView() {
                         key={`${activity.activity_type}-${activity.reference_id ?? activity.note ?? activityIndex}-${activityIndex}`}
                         className={`tlg-calendar-player-activity ${activity.activity_type}${tournamentState}`}
                       >
+                        {activity.activity_type === 'travel' && <Plane size={13} className="tlg-calendar-travel-icon" aria-hidden="true" />}
                         <span>{activity.activity_type === 'tournament'
                           ? `Tournament · ${tournamentCompleted ? 'Played' : 'Scheduled'}`
                           : playerActivityLabel(activity.activity_type)}</span>
