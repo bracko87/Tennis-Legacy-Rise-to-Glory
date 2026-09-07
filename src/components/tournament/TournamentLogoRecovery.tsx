@@ -28,6 +28,32 @@ function signedStoragePath(value: string | null) {
   }
 }
 
+function normalizeLogoName(value: string) {
+  return value
+    .replace(/\.[^.]+$/, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[’']/g, '')
+    .replace(/chall(?:a|e|ne|ene|eng|enge|eneg|nger|neger|negr|neger)?r?/gi, 'challenger')
+    .replace(/\bchallenge\b/gi, 'challenger')
+    .replace(/[^a-z0-9]+/gi, ' ')
+    .trim()
+    .toLocaleLowerCase()
+}
+
+function logoCandidateScore(fileName: string, tournamentName: string) {
+  const file = normalizeLogoName(fileName)
+  const wanted = normalizeLogoName(tournamentName)
+  if (file === wanted) return 100
+  if (file.startsWith(wanted) || wanted.startsWith(file)) return 90
+
+  const wantedWords = wanted.split(' ').filter(Boolean)
+  const fileWords = new Set(file.split(' ').filter(Boolean))
+  if (!wantedWords.length) return 0
+  const matches = wantedWords.filter((word) => fileWords.has(word)).length
+  return Math.round((matches / wantedWords.length) * 80)
+}
+
 export default function TournamentLogoRecovery() {
   const { competitionId } = useParams()
   const [detail, setDetail] = useState<TournamentLogoDetail | null>(null)
@@ -73,24 +99,36 @@ export default function TournamentLogoRecovery() {
         }
       }
 
-      // Some older tournament rows lost logo_url during naming/data migrations.
-      // Recover the already-uploaded image by looking in that tournament month's folder.
+      // Recover an uploaded logo when a database URL is missing or when the
+      // storage filename contains an old spelling/diacritic typo.
       if (!monthName) return
       const folder = `Tournament Logos/${monthName}`
-      const { data: files, error: listError } = await supabase.storage.from('Admin').list(folder, {
+      const firstWord = detail!.tournament_name.trim().split(/\s+/)[0] ?? detail!.tournament_name
+
+      let { data: files, error: listError } = await supabase.storage.from('Admin').list(folder, {
         limit: 100,
         search: detail!.tournament_name,
       })
+
+      if (!listError && (!files || files.length === 0) && firstWord) {
+        const fallback = await supabase.storage.from('Admin').list(folder, {
+          limit: 100,
+          search: firstWord,
+        })
+        files = fallback.data
+        listError = fallback.error
+      }
+
       if (cancelled || listError || !files?.length) return
 
-      const wanted = detail!.tournament_name.toLocaleLowerCase()
-      const exact = files.find((file) => file.name.replace(/\.[^.]+$/, '').toLocaleLowerCase() === wanted)
-        ?? files.find((file) => file.name.toLocaleLowerCase().startsWith(wanted))
-      if (!exact) return
+      const best = [...files]
+        .map((file) => ({ file, score: logoCandidateScore(file.name, detail!.tournament_name) }))
+        .sort((a, b) => b.score - a.score)[0]
+      if (!best || best.score < 45) return
 
       const { data: signed, error: signError } = await supabase.storage
         .from('Admin')
-        .createSignedUrl(`${folder}/${exact.name}`, 60 * 60 * 24 * 7)
+        .createSignedUrl(`${folder}/${best.file.name}`, 60 * 60 * 24 * 7)
       if (!cancelled && !signError && signed?.signedUrl) setResolvedUrl(signed.signedUrl)
     }
 
