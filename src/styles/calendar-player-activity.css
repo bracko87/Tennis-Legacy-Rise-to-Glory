@@ -61,7 +61,6 @@
 }
 
 .tlg-calendar-player-activity.travel {
-  position: static;
   padding-right: 8px;
   color: #87560c;
   border-color: #e5c584;
@@ -73,34 +72,33 @@
   color: #67420b;
 }
 
-/* The plane belongs to the calendar day, not to the travel card. Keeping the
-   SVG inside the activity DOM lets the existing data/rendering stay simple;
-   the travel card is position:static so the day cell becomes its containing box. */
+/* Calendar.tsx already marks the whole day with tlg-calendar-day-travel.
+   Use that day-level state for the indicator so the icon belongs to the day
+   header rather than to the travel activity card. */
 .tlg-calendar-travel-icon {
+  display: none;
+}
+
+.tlg-calendar-day-travel::after {
+  content: '✈';
   position: absolute;
-  top: 10px;
+  top: 8px;
   right: 10px;
   z-index: 3;
   color: #b77612;
-  stroke-width: 2.2;
+  font-family: var(--tlg-font-ui) !important;
+  font-size: .86rem;
+  font-weight: 700;
+  line-height: 1;
   pointer-events: none;
 }
 
-.tlg-calendar-day-current .tlg-calendar-travel-icon {
+.tlg-calendar-day-current.tlg-calendar-day-travel::after {
   right: 58px;
 }
 
 .tlg-calendar-player-activities.multiple .tlg-calendar-player-activity.travel {
   padding-right: 7px;
-}
-
-.tlg-calendar-player-activities.multiple .tlg-calendar-travel-icon {
-  top: 10px;
-  right: 10px;
-}
-
-.tlg-calendar-day-current .tlg-calendar-player-activities.multiple .tlg-calendar-travel-icon {
-  right: 58px;
 }
 
 .tlg-calendar-player-activity.tournament,
@@ -161,14 +159,13 @@
     padding-right: 6px;
   }
 
-  .tlg-calendar-travel-icon,
-  .tlg-calendar-player-activities.multiple .tlg-calendar-travel-icon {
-    top: 7px;
+  .tlg-calendar-day-travel::after {
+    top: 6px;
     right: 7px;
+    font-size: .78rem;
   }
 
-  .tlg-calendar-day-current .tlg-calendar-travel-icon,
-  .tlg-calendar-day-current .tlg-calendar-player-activities.multiple .tlg-calendar-travel-icon {
+  .tlg-calendar-day-current.tlg-calendar-day-travel::after {
     right: 52px;
   }
 
