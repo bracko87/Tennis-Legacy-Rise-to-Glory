@@ -1,10 +1,9 @@
 /*
- * Tennis Legacy typography test
+ * Tennis Legacy typography rendering standard.
  *
- * Use a non-variable system font stack and standard rasterization settings.
- * This intentionally avoids synthesized/variable faces that can look soft in
- * some Windows + Chromium combinations. Easy to remove if we prefer the old
- * typography later.
+ * Keep the project's single UI font stack while retaining the standard
+ * rasterization settings that make text crisp on Windows/Chromium. This file
+ * must never introduce a second font family.
  */
 
 html,
@@ -18,7 +17,7 @@ textarea,
 .tlg-v2-shell input,
 .tlg-v2-shell select,
 .tlg-v2-shell textarea {
-  font-family: Arial, Helvetica, sans-serif !important;
+  font-family: var(--tlg-font-ui) !important;
   font-synthesis: none;
   text-rendering: auto;
   -webkit-font-smoothing: auto;
