@@ -9,6 +9,7 @@ import { useGameClock } from '../../hooks/useGameClock'
 import {
   MONTHS,
   WEEKDAYS,
+  absoluteGameDay,
   competitionWeeksForMonth,
   firstWeekdayIndex,
   formatAbsoluteGameDay,
@@ -175,11 +176,12 @@ function SeasonCalendarView() {
 
   useEffect(() => {
     if (!player?.id) return
+    const refresh = () => setActivityVersion((value) => value + 1)
     const channel = supabase
       .channel(`season-calendar-activity:${player.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'player_daily_activity', filter: `player_id=eq.${player.id}` }, () => {
-        setActivityVersion((value) => value + 1)
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'player_daily_activity', filter: `player_id=eq.${player.id}` }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_entries', filter: `player_id=eq.${player.id}` }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'player_travel_legs', filter: `player_id=eq.${player.id}` }, refresh)
       .subscribe()
     return () => { void supabase.removeChannel(channel) }
   }, [player?.id])
@@ -193,15 +195,24 @@ function SeasonCalendarView() {
     while (values.length % 7 !== 0) values.push(null)
     return values
   }, [leadingEmptyCells, month.days])
-  const activityByDay = useMemo(() => new Map(activities.map((activity) => [activity.day, activity])), [activities])
+  const activityByDay = useMemo(() => {
+    const grouped = new Map<number, PlayerCalendarActivityRow[]>()
+    for (const activity of activities) {
+      const rows = grouped.get(activity.day) ?? []
+      rows.push(activity)
+      grouped.set(activity.day, rows)
+    }
+    return grouped
+  }, [activities])
   const todayWeekday = weekdayForDate(clock.monthIndex, clock.day)
+  const todayAbsoluteDay = absoluteGameDay(clock.season, clock.monthIndex, clock.day)
 
   return (
     <div className="tlg-season-calendar">
       <div className="tlg-season-calendar-toolbar">
         <div className="tlg-season-calendar-copy">
           <h4>Season {clock.season} · {month.name}</h4>
-          <p>Today: Season {clock.season} · {todayWeekday} · {clock.month} {clock.day}. Training camps, travel, tournament participation and injuries use the same player calendar as Training.</p>
+          <p>Today: Season {clock.season} · {todayWeekday} · {clock.month} {clock.day}. Tournament days update automatically after results, and predicted travel is recalculated when your tournament stay changes.</p>
         </div>
         <div className="tlg-season-calendar-nav" aria-label="Calendar month navigation">
           <button type="button" disabled={monthIndex === 0} onClick={() => setMonthIndex((value) => Math.max(0, value - 1))}><ChevronLeft size={14} /> Previous</button>
@@ -217,19 +228,36 @@ function SeasonCalendarView() {
           if (day === null) return <div key={`empty-${index}`} className="tlg-calendar-day-empty" aria-hidden="true" />
           const current = monthIndex === clock.monthIndex && day === clock.day
           const openingDay = isSeasonOpeningDay(monthIndex, day)
-          const activity = activityByDay.get(day)
+          const dayActivities = (activityByDay.get(day) ?? []).filter((activity) => activity.activity_type !== 'home')
           const classes = ['tlg-calendar-day']
           if (current) classes.push('tlg-calendar-day-current')
-          if (activity && activity.activity_type !== 'home') classes.push(`tlg-calendar-day-${activity.activity_type}`)
+          for (const activity of dayActivities) classes.push(`tlg-calendar-day-${activity.activity_type}`)
           return (
-            <div key={`${month.name}-${day}`} className={classes.join(' ')}>
+            <div key={`${month.name}-${day}`} className={[...new Set(classes)].join(' ')}>
               <span className="tlg-calendar-day-number">{month.name} {day}</span>
               {current && <span className="tlg-calendar-today-badge">Today</span>}
               {openingDay && !current && <span className="tlg-calendar-today-badge">Season opening</span>}
-              {activity && activity.activity_type !== 'home' && (
-                <div className={`tlg-calendar-player-activity ${activity.activity_type}`}>
-                  <span>{playerActivityLabel(activity.activity_type)}</span>
-                  <strong>{activity.note || playerActivityLabel(activity.activity_type)}</strong>
+              {dayActivities.length > 0 && (
+                <div className={`tlg-calendar-player-activities${dayActivities.length > 1 ? ' multiple' : ''}`}>
+                  {dayActivities.map((activity, activityIndex) => {
+                    const activityAbsoluteDay = absoluteGameDay(activity.season, activity.month - 1, activity.day)
+                    const tournamentCompleted = activity.activity_type === 'tournament'
+                      && (activity.source === 'tournament_completed' || activityAbsoluteDay < todayAbsoluteDay)
+                    const tournamentState = activity.activity_type === 'tournament'
+                      ? (tournamentCompleted ? ' completed' : ' scheduled')
+                      : ''
+                    return (
+                      <div
+                        key={`${activity.activity_type}-${activity.reference_id ?? activity.note ?? activityIndex}-${activityIndex}`}
+                        className={`tlg-calendar-player-activity ${activity.activity_type}${tournamentState}`}
+                      >
+                        <span>{activity.activity_type === 'tournament'
+                          ? `Tournament · ${tournamentCompleted ? 'Played' : 'Scheduled'}`
+                          : playerActivityLabel(activity.activity_type)}</span>
+                        <strong>{activity.note || playerActivityLabel(activity.activity_type)}</strong>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>
