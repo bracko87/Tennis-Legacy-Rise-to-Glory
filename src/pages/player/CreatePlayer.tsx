@@ -505,7 +505,7 @@ export default function CreatePlayerPage(): JSX.Element {
                   <div className="tlg-player-preview-meta-row"><span>Home base</span><strong>{homeCity || 'Choose a city'}</strong></div>
                   <div className="tlg-player-preview-meta-row"><span>Manager account</span><strong>{user?.email ?? 'Authenticated'}</strong></div>
                   <div className="tlg-player-preview-meta-row"><span>Moderation</span><strong>Review on creation</strong></div>
-                  <div className="tlg-player-preview-meta-row"><span>Starting tennis points</span><strong>450 for every player</strong></div>
+                  <div className="tlg-player-preview-meta-row"><span>Starting technical points</span><strong>440–455 · individually varied</strong></div>
                 </div>
               </div>
             </aside>
@@ -525,14 +525,14 @@ export default function CreatePlayerPage(): JSX.Element {
                   </button>
                 ))}
               </div>
-              <p className="tlg-surface-future-note">Every new player starts with the same 450 total tennis-skill points. Surface preference only changes where those points begin.</p>
+              <p className="tlg-surface-future-note">New human players begin with a varied 440–455 technical-point profile. Preferred surface changes the distribution while individual variation prevents identical starting players.</p>
             </section>
 
             <section className={`tlg-style-preference-card ${submitted && !styleValid ? 'tlg-style-preference-error' : ''}`} aria-labelledby="playing-style-heading">
               <div className="tlg-style-preference-head">
                 <span>05 · PLAYER STYLE</span>
                 <h2 id="playing-style-heading">Choose your playing style</h2>
-                <p>This is a second small redistribution of the same starting points. No style creates a stronger new player.</p>
+                <p>Playing style changes how your existing skills are used during matches. It is not a flat bonus: the style is strongest only when your skill profile supports it.</p>
               </div>
               <div className="tlg-style-options">
                 {PLAYING_STYLES.map((style) => (
