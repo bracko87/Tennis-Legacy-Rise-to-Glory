@@ -24,7 +24,8 @@
   opacity: 1;
 }
 
-.tlg-tournament-logo-context .tlg-detail-logo-slot {
+.tlg-tournament-logo-context .tlg-detail-logo-slot,
+.tlg-detail-logo-slot.tlg-detail-logo-slot-recovered {
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -33,6 +34,8 @@
 }
 
 .tlg-tournament-logo-context .tlg-detail-logo-slot > span,
-.tlg-tournament-logo-context .tlg-detail-logo-slot > small {
+.tlg-tournament-logo-context .tlg-detail-logo-slot > small,
+.tlg-detail-logo-slot.tlg-detail-logo-slot-recovered > span,
+.tlg-detail-logo-slot.tlg-detail-logo-slot-recovered > small {
   display: none;
 }
