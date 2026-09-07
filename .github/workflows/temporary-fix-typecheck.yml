@@ -1,0 +1,86 @@
+name: Temporary fix and verify TypeScript
+
+on:
+  push:
+    paths:
+      - '.github/workflows/temporary-fix-typecheck.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Apply focused TypeScript fixes
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str):
+              p = Path(path)
+              text = p.read_text()
+              if old not in text:
+                  raise SystemExit(f'Expected text not found in {path}: {old!r}')
+              p.write_text(text.replace(old, new, 1))
+
+          replace_once(
+              'src/pages/dashboard/Schedule.tsx',
+              "{ p_player_id: player.id }",
+              "{ p_player_id: player!.id }",
+          )
+
+          replace_once(
+              'src/pages/dashboard/TournamentV2.tsx',
+              'projectionLabel(effectiveApplicationProjection)',
+              'projectionLabel(effectiveApplicationProjection ?? null)',
+          )
+
+          replace_once(
+              'src/pages/manager/ProPackages.tsx',
+              "const coinPacks = [",
+              "interface CoinPack {\n  coins: number\n  price: number\n  helper: string\n  badge?: string\n}\n\nconst coinPacks: readonly CoinPack[] = [",
+          )
+          replace_once(
+              'src/pages/manager/ProPackages.tsx',
+              "] as const\n\nconst comparisonRows = [",
+              "]\n\nconst comparisonRows = [",
+          )
+          replace_once(
+              'src/pages/manager/ProPackages.tsx',
+              "    if (!user) return\n    let active = true",
+              "    if (!user) return\n    const userId = user.id\n    let active = true",
+          )
+
+          p = Path('src/pages/manager/ProPackages.tsx')
+          text = p.read_text()
+          count = text.count(".eq('user_id', user.id)")
+          if count != 2:
+              raise SystemExit(f'Expected 2 user.id billing filters, found {count}')
+          p.write_text(text.replace(".eq('user_id', user.id)", ".eq('user_id', userId)"))
+          PY
+      - name: TypeScript check
+        run: npx --yes --package=typescript@5.8.3 tsc --noEmit
+      - name: Production build
+        run: npm run build
+      - name: Commit verified fixes
+        shell: bash
+        run: |
+          git config user.name "bracko87"
+          git config user.email "aleksandarlevnajic@gmail.com"
+          git add src/pages/dashboard/Schedule.tsx src/pages/dashboard/TournamentV2.tsx src/pages/manager/ProPackages.tsx
+          git commit -m "Resolve existing TypeScript diagnostics"
+          git push origin HEAD:main
