@@ -4,6 +4,7 @@ import { useParams } from 'react-router'
 
 import { supabase } from '../../lib/supabase'
 import TournamentMatchReplayModal from './TournamentMatchReplayModal'
+import TournamentReplayWeatherEnhancement from './TournamentReplayWeatherEnhancement'
 import '../../styles/tournament-match-schedule.css'
 
 type ScheduleReason = 'standard' | 'travel_accommodation' | 'travel_risk'
@@ -156,7 +157,14 @@ export default function TournamentMatchSchedule() {
     setWeatherByMatch({})
   }, [competitionId])
 
-  if (!target || matches.length === 0) return replayMatchId ? <TournamentMatchReplayModal matchId={replayMatchId} onClose={() => setReplayMatchId(null)} /> : null
+  if (!target || matches.length === 0) {
+    return replayMatchId ? (
+      <>
+        <TournamentMatchReplayModal matchId={replayMatchId} onClose={() => setReplayMatchId(null)} />
+        <TournamentReplayWeatherEnhancement matchId={replayMatchId} />
+      </>
+    ) : null
+  }
 
   const selected = days.find((day) => day.key === selectedDay)
 
@@ -212,7 +220,12 @@ export default function TournamentMatchSchedule() {
         </section>,
         target,
       )}
-      {replayMatchId && <TournamentMatchReplayModal matchId={replayMatchId} onClose={() => setReplayMatchId(null)} />}
+      {replayMatchId && (
+        <>
+          <TournamentMatchReplayModal matchId={replayMatchId} onClose={() => setReplayMatchId(null)} />
+          <TournamentReplayWeatherEnhancement matchId={replayMatchId} />
+        </>
+      )}
     </>
   )
 }
