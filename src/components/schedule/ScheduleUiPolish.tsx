@@ -19,13 +19,15 @@ export default function ScheduleUiPolish() {
       document.querySelectorAll<HTMLElement>('.tlg-schedule-tournament-row > span').forEach((element) => {
         const raw = element.textContent?.trim() ?? ''
         const label = CATEGORY_LABELS[raw]
-        if (label) element.textContent = label
+        if (label && raw !== label) element.textContent = label
       })
 
       document.querySelectorAll<HTMLElement>('.tlg-next-tournament-meta > div').forEach((item) => {
         const label = item.querySelector('span')?.textContent?.trim()
         const value = item.querySelector('strong')
-        if (label === 'Entry' && value) value.textContent = 'Accepted'
+        if (label === 'Entry' && value && value.textContent?.trim() !== 'Accepted') {
+          value.textContent = 'Accepted'
+        }
       })
 
       document.querySelectorAll<HTMLElement>('.tlg-schedule-section-head.compact p').forEach((paragraph) => {
@@ -36,7 +38,9 @@ export default function ScheduleUiPolish() {
     }
 
     polish()
-    const root = document.querySelector('.tlg-schedule-page') ?? document.body
+    const root = document.querySelector('.tlg-schedule-page')
+    if (!root) return
+
     const observer = new MutationObserver(polish)
     observer.observe(root, { childList: true, subtree: true })
     return () => observer.disconnect()
