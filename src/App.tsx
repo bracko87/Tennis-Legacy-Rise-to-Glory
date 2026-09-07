@@ -32,6 +32,7 @@ import {
 import ScheduleUiPolish from './components/schedule/ScheduleUiPolish'
 import TournamentEntryLifecycle from './components/tournament/TournamentEntryLifecycle'
 import TournamentExperienceEnhancements from './components/tournament/TournamentExperienceEnhancements'
+import TournamentLogoRecovery from './components/tournament/TournamentLogoRecovery'
 import TournamentMatchSchedule from './components/tournament/TournamentMatchSchedule'
 import HomePage from './pages/Home'
 import LoginPage from './pages/auth/Login'
@@ -98,6 +99,7 @@ function TournamentRoute() {
       <TournamentMatchSchedule />
       <TournamentEntryLifecycle />
       <TournamentExperienceEnhancements />
+      <TournamentLogoRecovery />
     </>
   )
 }
