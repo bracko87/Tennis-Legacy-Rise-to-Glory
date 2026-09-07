@@ -1,0 +1,27 @@
+name: Temporary TypeScript check
+
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'tsconfig.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/temporary-typecheck.yml'
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: TypeScript check
+        run: npx --yes --package=typescript@5.8.3 tsc --noEmit
