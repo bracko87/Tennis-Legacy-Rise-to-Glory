@@ -26,6 +26,18 @@ interface ScheduledDrawMatch {
   player2_last_name: string | null
 }
 
+interface MatchWeather {
+  environment: 'indoor' | 'outdoor'
+  condition: string
+  temperature_c: number
+  wind_kmh: number
+  precipitation: string
+  heat_index: number
+  wind_index: number
+  affects_match: boolean
+  can_delay_match: boolean
+}
+
 function timeLabel(value: number | null) {
   if (value == null) return 'TBD'
   const hour = Math.floor(value / 60)
@@ -47,12 +59,19 @@ function replayActionLabel(status: string) {
   return 'View'
 }
 
+function weatherLabel(weather?: MatchWeather) {
+  if (!weather) return ''
+  if (weather.environment === 'indoor') return 'Indoor · weather has no effect'
+  return `${weather.condition} · ${Math.round(weather.temperature_c)}°C · ${Math.round(weather.wind_kmh)} km/h wind`
+}
+
 export default function TournamentMatchSchedule() {
   const { competitionId } = useParams()
   const [target, setTarget] = useState<HTMLElement | null>(null)
   const [matches, setMatches] = useState<ScheduledDrawMatch[]>([])
   const [selectedDay, setSelectedDay] = useState<string>('')
   const [replayMatchId, setReplayMatchId] = useState<string | null>(null)
+  const [weatherByMatch, setWeatherByMatch] = useState<Record<string, MatchWeather>>({})
 
   useEffect(() => {
     let frame = 0
@@ -113,6 +132,30 @@ export default function TournamentMatchSchedule() {
     .filter((match) => dayKey(match) === selectedDay)
     .sort((a, b) => (a.scheduled_start_minute ?? 9999) - (b.scheduled_start_minute ?? 9999) || (a.court_number ?? 99) - (b.court_number ?? 99) || a.match_number - b.match_number), [matches, selectedDay])
 
+  useEffect(() => {
+    let cancelled = false
+    const missing = visible.filter((match) => !weatherByMatch[match.match_id])
+    if (missing.length === 0) return
+    const loadWeather = async () => {
+      const rows = await Promise.all(missing.map(async (match) => {
+        const { data, error } = await supabase.rpc('get_tournament_match_weather_v1', { p_match_id: match.match_id })
+        return error || !data ? null : [match.match_id, data as MatchWeather] as const
+      }))
+      if (cancelled) return
+      setWeatherByMatch((current) => {
+        const next = { ...current }
+        rows.forEach((row) => { if (row) next[row[0]] = row[1] })
+        return next
+      })
+    }
+    void loadWeather()
+    return () => { cancelled = true }
+  }, [visible, weatherByMatch])
+
+  useEffect(() => {
+    setWeatherByMatch({})
+  }, [competitionId])
+
   if (!target || matches.length === 0) return replayMatchId ? <TournamentMatchReplayModal matchId={replayMatchId} onClose={() => setReplayMatchId(null)} /> : null
 
   const selected = days.find((day) => day.key === selectedDay)
@@ -125,7 +168,7 @@ export default function TournamentMatchSchedule() {
             <div>
               <span>Match schedule</span>
               <h2>Order of play</h2>
-              <p>All times are tournament local. Several matches may run simultaneously on different courts.</p>
+              <p>All times are tournament local. Outdoor weather can modestly affect performance, but it never delays, cancels or reschedules a match.</p>
             </div>
             <label className="tlg-match-schedule-day-select">
               <span>Day</span>
@@ -144,11 +187,13 @@ export default function TournamentMatchSchedule() {
 
           <div className="tlg-match-schedule-table-wrap">
             <div className="tlg-match-schedule-table">
-              <div className="tlg-match-schedule-row head"><span>Time</span><span>Court</span><span>Draw</span><span>Round</span><span>Match</span><span>Players</span><span>Note</span><span>Replay</span></div>
+              <div className="tlg-match-schedule-row head"><span>Time</span><span>Court</span><span>Draw</span><span>Round</span><span>Match</span><span>Players</span><span>Note / weather</span><span>Replay</span></div>
               {visible.map((match) => {
                 const p1 = playerLabel(match.player1_first_name, match.player1_last_name)
                 const p2 = playerLabel(match.player2_first_name, match.player2_last_name)
-                const note = match.schedule_reason === 'travel_accommodation' ? 'Travel-adjusted start' : match.schedule_reason === 'travel_risk' ? 'Travel connection at risk' : 'Standard schedule'
+                const scheduleNote = match.schedule_reason === 'travel_accommodation' ? 'Travel-adjusted start' : match.schedule_reason === 'travel_risk' ? 'Travel connection at risk' : 'Standard schedule'
+                const weather = weatherLabel(weatherByMatch[match.match_id])
+                const note = weather ? `${scheduleNote} · ${weather}` : scheduleNote
                 return (
                   <div key={match.match_id} className={`tlg-match-schedule-row ${match.schedule_reason} status-${match.match_status}`}>
                     <strong>{timeLabel(match.scheduled_start_minute)}</strong>
