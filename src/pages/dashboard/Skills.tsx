@@ -67,16 +67,16 @@ interface AttributeItem {
 }
 
 const SURFACE_COPY: Record<PreferredSurface, string> = {
-  Hard: 'Balanced court identity with a neutral Lob and Smash base.',
-  Clay: 'Rally-oriented identity with extra emphasis on groundstrokes, return and Lob.',
-  Grass: 'Fast-court identity with extra emphasis on serve, volley, slice and Smash.',
+  Hard: 'Balanced fast-court identity with stronger serve, groundstrokes and return while specialty shots remain lower.',
+  Clay: 'Rally-oriented identity with stronger groundstrokes, return, touch and Lob, with less emphasis on serve and net finishing.',
+  Grass: 'Fast-court identity with strong serve, volley, slice and Smash, while defensive and specialty shots begin lower.',
 }
 
 const STYLE_COPY: Record<PlayingStyle, string> = {
-  'Aggressive Baseliner': 'Baseline pressure with extra emphasis on attacking groundstrokes and finishing overheads.',
-  'Defensive Baseliner': 'Return, backhand stability and Lob are emphasized while attacking overhead play is reduced.',
-  'All-court': 'Balanced style with no extra redistribution beyond the preferred surface.',
-  'Serve & Volley': 'Serve, volley, Smash and forward-court play receive the extra emphasis.',
+  'Aggressive Baseliner': 'Baseline pressure with extra emphasis on serve, forehand and attacking groundstrokes.',
+  'Defensive Baseliner': 'Return, backhand stability and Lob are emphasized while serve, volley and overhead aggression are reduced.',
+  'All-court': 'Balanced style with the preferred surface providing most of the technical identity.',
+  'Serve & Volley': 'Serve, volley, slice, Smash and forward-court play receive the extra emphasis.',
 }
 
 const TAB_COPY: Record<SkillsTab, { label: string; kicker: string; title: string; description: string }> = {
@@ -253,6 +253,9 @@ export default function SkillsPage() {
   const physicalScore = skills ? scoreCategory(skills, 'physical') : 0
   const readiness = skills ? scoreCategory(skills, 'condition') : 0
   const baseline = history[0] ?? null
+  const baselineTechnicalTotal = baseline
+    ? baseline.serve + baseline.forehand + baseline.backhand + baseline.return_skill + baseline.volley + baseline.slice + baseline.drop_shot + baseline.lob + baseline.smash
+    : tennisTotal
   const technicalChange = baseline && skills ? technical - scoreCategory(baseline, 'tennis') : 0
   const physicalChange = baseline && skills ? physicalScore - scoreCategory(baseline, 'physical') : 0
   const updates = Math.max(0, history.length - 1)
@@ -370,9 +373,9 @@ export default function SkillsPage() {
                     description={`${STYLE_COPY[skills.playing_style]} Chosen at career creation and it does not change automatically.`}
                   />
                   <BuildCard
-                    label="Starting balance"
-                    value="450 points"
-                    description="Nine starting tennis skills average 50. Surface and style change distribution, never the total starting strength."
+                    label="Starting profile"
+                    value={`${baselineTechnicalTotal} points`}
+                    description="Human starting totals vary slightly from player to player (440–455). Surface, playing style and a one-time individual variation shape the nine starting skills."
                   />
                 </div>
               )}
