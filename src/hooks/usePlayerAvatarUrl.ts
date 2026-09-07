@@ -31,11 +31,13 @@ export default function usePlayerAvatarUrl(imagePath?: string | null) {
       }
     }
 
+    const resolvedImagePath = imagePath
+
     async function resolveAvatar() {
-      const bucket = getAvatarBucket(imagePath)
+      const bucket = getAvatarBucket(resolvedImagePath)
       const { data, error } = await supabase.storage
         .from(bucket)
-        .createSignedUrl(imagePath, 3600)
+        .createSignedUrl(resolvedImagePath, 3600)
 
       if (!active) return
 
