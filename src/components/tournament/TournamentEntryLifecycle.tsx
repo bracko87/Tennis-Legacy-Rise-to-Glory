@@ -322,6 +322,16 @@ export default function TournamentEntryLifecycle() {
                 </div>
               )}
 
+              {(data.user.can_apply_normal || data.user.can_apply_late) && (
+                <div className="tlg-entry-cost-warning" role="note" aria-label="Travel and accommodation cost notice">
+                  <span className="tlg-entry-cost-warning-icon" aria-hidden="true">!</span>
+                  <div>
+                    <strong>Travel & accommodation costs</strong>
+                    <small>Applying means you accept the travel and accommodation costs from your home city to the tournament host city if your entry is confirmed. Long-distance tournaments can be expensive. Your full trip cost will be shown in Schedule → Prepare Tournament.</small>
+                  </div>
+                </div>
+              )}
+
               {!data.user.can_apply_normal && !data.user.can_apply_late && data.user.entry_status == null && !currentApplicationIsPending && (
                 <p className="tlg-entry-passive-note">No entry action is available for this tournament at this stage. Follow the selection timeline above or choose another tournament whose entry wave is still open.</p>
               )}
