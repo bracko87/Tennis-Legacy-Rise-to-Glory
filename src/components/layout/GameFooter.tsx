@@ -3,10 +3,12 @@ import { Link } from 'react-router'
 
 import { useCommerce } from '../../hooks/useCommerce'
 import { useGameClock } from '../../hooks/useGameClock'
+import { weekdayForDate } from '../../lib/competitionCalendar'
 
 export default function GameFooter() {
   const clock = useGameClock()
   const commerce = useCommerce()
+  const weekday = weekdayForDate(clock.monthIndex, clock.day)
 
   return (
     <footer className="tlg-v2-footer tlg-v4-footer tlg-v6-footer tlg-commerce-footer">
@@ -20,7 +22,7 @@ export default function GameFooter() {
           <>
             <strong>Season {clock.season}</strong>
             <span>·</span>
-            <span>{clock.month} {clock.day}</span>
+            <span>{weekday}, {clock.month} {clock.day}</span>
             <span>·</span>
             <span>{clock.formattedTime}</span>
           </>
