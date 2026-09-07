@@ -6,6 +6,7 @@
  * password-recovery redirects can use normal application URLs.
  */
 
+import { useLayoutEffect } from 'react'
 import './styles/globals.css'
 import './styles/premium.css'
 import './styles/onboarding-enhancements.css'
@@ -18,6 +19,7 @@ import {
   Navigate,
   Route,
   Routes,
+  useParams,
 } from 'react-router'
 
 import { AuthProvider } from './auth/AuthContext'
@@ -60,6 +62,46 @@ import NotificationsPage from './pages/manager/Notifications'
 import { ForumPage, HelpPage } from './pages/manager/CommunitySupport'
 import { PlayerAccountPage } from './pages/manager/ManagerPages'
 
+function resetTournamentScrollPosition() {
+  window.scrollTo(0, 0)
+
+  if (document.scrollingElement) {
+    document.scrollingElement.scrollTop = 0
+    document.scrollingElement.scrollLeft = 0
+  }
+
+  const tournamentPage = document.querySelector<HTMLElement>('.tlg-detail-page')
+  let parent = tournamentPage?.parentElement ?? null
+
+  while (parent) {
+    const overflowY = window.getComputedStyle(parent).overflowY
+    if (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay') {
+      parent.scrollTop = 0
+      parent.scrollLeft = 0
+    }
+    parent = parent.parentElement
+  }
+}
+
+function TournamentRoute() {
+  const { competitionId } = useParams()
+
+  useLayoutEffect(() => {
+    resetTournamentScrollPosition()
+    const frame = window.requestAnimationFrame(resetTournamentScrollPosition)
+    return () => window.cancelAnimationFrame(frame)
+  }, [competitionId])
+
+  return (
+    <>
+      <TournamentPage />
+      <TournamentMatchSchedule />
+      <TournamentEntryLifecycle />
+      <TournamentExperienceEnhancements />
+    </>
+  )
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -78,7 +120,7 @@ export default function App() {
           <Route path="/game/training" element={<RequirePlayer><TrainingPage /></RequirePlayer>} />
           <Route path="/game/staff" element={<RequirePlayer><StaffPage /></RequirePlayer>} />
           <Route path="/game/calendar" element={<RequirePlayer><CalendarPage /></RequirePlayer>} />
-          <Route path="/game/tournaments/:competitionId" element={<RequirePlayer><><TournamentPage /><TournamentMatchSchedule /><TournamentEntryLifecycle /><TournamentExperienceEnhancements /></></RequirePlayer>} />
+          <Route path="/game/tournaments/:competitionId" element={<RequirePlayer><TournamentRoute /></RequirePlayer>} />
           <Route path="/game/rankings" element={<RequirePlayer><RankingsPage /></RequirePlayer>} />
           <Route path="/game/players/:playerId" element={<RequirePlayer><PlayerProfilePage /></RequirePlayer>} />
           <Route path="/game/schedule" element={<RequirePlayer><><SchedulePage /><ScheduleUiPolish /></></RequirePlayer>} />
