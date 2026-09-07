@@ -17,10 +17,21 @@ interface GameMoment {
   minute: number
 }
 
+interface EntryWave {
+  fixed_wave: number
+  position: number
+  wave_count: number
+  label: string
+}
+
+interface PendingApplication {
+  competition_id: string
+  tournament_name: string
+}
+
 interface WeekApplication {
   competition_id: string
   tournament_name: string
-  priority: number | null
   accept_qualification: boolean
   status: string
   decision_reason: string | null
@@ -32,6 +43,7 @@ interface TournamentEntryLifecycleData {
   phase: string
   field_locked: boolean
   draw_published: boolean
+  entry_wave: EntryWave
   timeline: {
     applications_open: GameMoment
     normal_applications_close: GameMoment
@@ -51,22 +63,22 @@ interface TournamentEntryLifecycleData {
   }
   user: {
     application_status: string | null
-    priority: number | null
     accept_qualification: boolean | null
     application_source: string | null
     entry_draw_type: 'main_draw' | 'qualification' | null
     entry_status: string | null
     week_applications: WeekApplication[]
+    pending_application: PendingApplication | null
+    pending_application_locked: boolean
     can_apply_normal: boolean
     can_apply_late: boolean
     preparation_deadline: GameMoment | null
   }
   rules: {
-    max_priorities: number
+    entry_model: string
+    max_active_applications: number
     qualification_opt_in: boolean
-    late_entry: boolean
-    normal_application_days_before_start: number
-    normal_close_days_before_start: number
+    final_vacancy_entry: boolean
     match_tactic_lock_minutes: number
     preparation_lock_hours_before_departure: number
   }
@@ -83,8 +95,8 @@ function phaseLabel(phase: string) {
   switch (phase) {
     case 'applications_not_open': return 'Applications not open'
     case 'applications_open': return 'Applications open'
-    case 'applications_closed': return 'Applications closed · allocation'
-    case 'late_entry_open': return 'Field announced · Late Entry open'
+    case 'selection_complete': return 'Selection complete'
+    case 'final_vacancies_open': return 'Final vacancies open'
     case 'field_locked': return 'Final field locked'
     case 'draw_published': return 'Draw published'
     case 'in_progress': return 'Tournament in progress'
@@ -103,7 +115,7 @@ function personalStatus(data: TournamentEntryLifecycleData) {
     case 'accepted_qualification': return 'Accepted · Qualification'
     case 'applied': return 'Application pending'
     case 'rejected': return 'Application rejected'
-    case 'superseded': return 'Higher-priority tournament accepted'
+    case 'superseded': return 'Application replaced'
     case 'withdrawn': return 'Application withdrawn'
     default: return 'Not applied'
   }
@@ -113,8 +125,8 @@ function milestoneIndex(phase: string) {
   switch (phase) {
     case 'applications_not_open': return -1
     case 'applications_open': return 0
-    case 'applications_closed': return 1
-    case 'late_entry_open': return 2
+    case 'selection_complete': return 1
+    case 'final_vacancies_open': return 2
     case 'field_locked': return 3
     case 'draw_published': return 4
     case 'in_progress': return 5
@@ -130,7 +142,6 @@ export default function TournamentEntryLifecycle() {
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [priority, setPriority] = useState(1)
   const [acceptQualification, setAcceptQualification] = useState(true)
 
   useEffect(() => {
@@ -180,7 +191,6 @@ export default function TournamentEntryLifecycle() {
     setData(next)
     setError(null)
     setLoading(false)
-    if (next?.user?.priority) setPriority(next.user.priority)
     if (typeof next?.user?.accept_qualification === 'boolean') setAcceptQualification(next.user.accept_qualification)
   }, [competitionId])
 
@@ -194,9 +204,8 @@ export default function TournamentEntryLifecycle() {
     if (!competitionId) return
     setBusy(true)
     setError(null)
-    const { error: mutationError } = await supabase.rpc('apply_to_tournament_v2', {
+    const { error: mutationError } = await supabase.rpc('apply_to_tournament_v3', {
       p_competition_id: competitionId,
-      p_priority: priority,
       p_accept_qualification: acceptQualification,
     })
     if (mutationError) setError(mutationError.message)
@@ -229,8 +238,8 @@ export default function TournamentEntryLifecycle() {
 
   const milestones = useMemo(() => data ? [
     { label: 'Applications open', moment: data.timeline.applications_open },
-    { label: 'Normal applications close', moment: data.timeline.normal_applications_close },
-    { label: 'Field announced / Late Entry', moment: data.timeline.field_announcement },
+    { label: `${data.entry_wave.label} selection`, moment: data.timeline.normal_applications_close },
+    { label: 'Final vacancy window', moment: data.timeline.late_entry_open },
     { label: 'Final field locked', moment: data.timeline.late_entry_close },
     { label: 'Draw published', moment: data.timeline.draw_publish },
     { label: 'Tournament begins', moment: data.timeline.tournament_start },
@@ -240,7 +249,9 @@ export default function TournamentEntryLifecycle() {
 
   const currentMilestone = data ? milestoneIndex(data.phase) : -1
   const currentApplicationIsPending = data?.user.application_status === 'applied'
-  const weekApplications = data?.user.week_applications ?? []
+  const pendingApplication = data?.user.pending_application ?? null
+  const hasOtherPending = Boolean(pendingApplication && pendingApplication.competition_id !== data?.competition_id)
+  const pendingIsCurrent = Boolean(pendingApplication && pendingApplication.competition_id === data?.competition_id)
 
   return createPortal(
     <section className="tlg-detail-panel tlg-entry-lifecycle-panel">
@@ -248,7 +259,7 @@ export default function TournamentEntryLifecycle() {
         <div>
           <span>Tournament entry</span>
           <h2>Application & entry timeline</h2>
-          <p>Up to three priority applications are allowed for the same target tournament week. Acceptance uses the latest published Monday ranking.</p>
+          <p>One active application is allowed per target week. Higher tournament levels resolve first; if you miss the field, lower entry waves remain available. Acceptance uses the latest published Monday ranking.</p>
         </div>
         {data && <strong className={`tlg-entry-phase phase-${data.phase}`}>{phaseLabel(data.phase)}</strong>}
       </header>
@@ -271,35 +282,33 @@ export default function TournamentEntryLifecycle() {
                 <div className="tlg-entry-vacancy-mini"><span>Main vacancies {data.vacancies.main_draw}</span><span>Qualifying vacancies {data.vacancies.qualification}</span></div>
               </div>
 
-              {weekApplications.length > 0 && (
-                <div className="tlg-entry-week-apps">
-                  <span>Target Week {data.timeline.target_season_week} priorities</span>
-                  {weekApplications.map((app) => (
-                    <div key={app.competition_id} className={app.competition_id === data.competition_id ? 'current' : ''}>
-                      <b>{app.priority ? `#${app.priority}` : 'Late'}</b>
-                      <strong>{app.tournament_name}</strong>
-                      <small>{app.status.replaceAll('_', ' ')}{app.accept_qualification ? ' · Qualifying accepted' : ' · Main Draw only'}</small>
-                    </div>
-                  ))}
+              {pendingApplication && (
+                <div className={`tlg-entry-current-application ${pendingIsCurrent ? 'current' : ''}`}>
+                  <span>Current Week {data.timeline.target_season_week} application</span>
+                  <strong>{pendingApplication.tournament_name}</strong>
+                  <small>{pendingIsCurrent
+                    ? 'This tournament is your active application.'
+                    : data.user.pending_application_locked
+                      ? 'That tournament is currently in selection. Wait for its decision before choosing another event.'
+                      : 'Applying here will replace that still-open application.'}</small>
                 </div>
               )}
 
               {data.user.can_apply_normal && (
                 <div className="tlg-entry-application-controls">
-                  <label>
-                    <span>Priority</span>
-                    <select value={priority} onChange={(event) => setPriority(Number(event.target.value))} disabled={busy}>
-                      <option value={1}>#1 — First choice</option>
-                      <option value={2}>#2 — Second choice</option>
-                      <option value={3}>#3 — Third choice</option>
-                    </select>
-                  </label>
+                  <div className="tlg-entry-deadline-callout">
+                    <span>{data.entry_wave.label}</span>
+                    <strong>Selection closes {formatMoment(data.timeline.normal_applications_close)}</strong>
+                    <small>Entry wave {data.entry_wave.position} of {data.entry_wave.wave_count} for this tournament group. Missing higher levels are skipped automatically.</small>
+                  </div>
                   <label className="tlg-entry-qual-toggle">
                     <input type="checkbox" checked={acceptQualification} onChange={(event) => setAcceptQualification(event.target.checked)} disabled={busy} />
                     <span><strong>Accept Qualification</strong><small>If Main Draw is unavailable, keep this tournament as an option through qualifying.</small></span>
                   </label>
                   <div className="tlg-entry-actions">
-                    <button type="button" className="primary" disabled={busy} onClick={() => void applyNormal()}>{currentApplicationIsPending ? 'Update application' : 'Apply to tournament'}</button>
+                    <button type="button" className="primary" disabled={busy} onClick={() => void applyNormal()}>
+                      {currentApplicationIsPending ? 'Update application' : hasOtherPending ? 'Switch application' : 'Apply to tournament'}
+                    </button>
                     {currentApplicationIsPending && <button type="button" disabled={busy} onClick={() => void withdraw()}>Withdraw</button>}
                   </div>
                 </div>
@@ -307,14 +316,14 @@ export default function TournamentEntryLifecycle() {
 
               {data.user.can_apply_late && (
                 <div className="tlg-entry-late-box">
-                  <div><strong>Late Entry is open</strong><span>You currently have no commitment for this tournament week. Only remaining vacancies can be used.</span></div>
+                  <div><strong>Final Vacancy is open</strong><span>You have no commitment for this tournament week. Only genuine remaining Main Draw or Qualification vacancies can be taken.</span></div>
                   <label><input type="checkbox" checked={acceptQualification} onChange={(event) => setAcceptQualification(event.target.checked)} disabled={busy} /> Accept Qualification</label>
-                  <button type="button" disabled={busy} onClick={() => void applyLate()}>Take available Late Entry</button>
+                  <button type="button" disabled={busy} onClick={() => void applyLate()}>Take available vacancy</button>
                 </div>
               )}
 
-              {!data.user.can_apply_normal && !data.user.can_apply_late && data.user.entry_status == null && data.user.application_status == null && (
-                <p className="tlg-entry-passive-note">No entry action is available at this stage. The next relevant milestone is shown above.</p>
+              {!data.user.can_apply_normal && !data.user.can_apply_late && data.user.entry_status == null && !currentApplicationIsPending && (
+                <p className="tlg-entry-passive-note">No entry action is available for this tournament at this stage. Follow the selection timeline above or choose another tournament whose entry wave is still open.</p>
               )}
 
               {error && <div className="tlg-entry-error inline">{error}</div>}
