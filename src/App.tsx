@@ -30,6 +30,7 @@ import {
   RequirePlayer,
 } from './auth/RouteGuards'
 import OverviewInjuryEnhancement from './components/dashboard/OverviewInjuryEnhancement'
+import FinanceSponsorEnhancement from './components/finance/FinanceSponsorEnhancement'
 import PlayingStyleEducation from './components/player/PlayingStyleEducation'
 import ScheduleUiPolish from './components/schedule/ScheduleUiPolish'
 import { ScheduleTacticEducation, TournamentTacticEducation } from './components/tactics/TacticEducation'
@@ -117,6 +118,10 @@ function ScheduleRoute() {
   return <><SchedulePage /><ScheduleUiPolish /><ScheduleTacticEducation /></>
 }
 
+function FinanceRoute() {
+  return <><FinancePage /><FinanceSponsorEnhancement /></>
+}
+
 function CreatePlayerRoute() {
   return <><CreatePlayerPage /><PlayingStyleEducation /></>
 }
@@ -144,7 +149,7 @@ export default function App() {
           <Route path="/game/players/:playerId" element={<RequirePlayer><PlayerProfilePage /></RequirePlayer>} />
           <Route path="/game/schedule" element={<RequirePlayer><ScheduleRoute /></RequirePlayer>} />
           <Route path="/game/equipment" element={<RequirePlayer><EquipmentPage /></RequirePlayer>} />
-          <Route path="/game/finance" element={<RequirePlayer><FinancePage /></RequirePlayer>} />
+          <Route path="/game/finance" element={<RequirePlayer><FinanceRoute /></RequirePlayer>} />
           <Route path="/game/injuries" element={<RequirePlayer><InjuriesPage /></RequirePlayer>} />
           <Route path="/game/private-life" element={<RequirePlayer><PrivateLifePage /></RequirePlayer>} />
           <Route path="/game/tennis-club" element={<RequirePlayer><TennisClubPage /></RequirePlayer>} />
