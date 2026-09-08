@@ -1,0 +1,92 @@
+/* Temporary public-access gate while Tennis Legacy remains in beta. */
+
+a[href="/register"] {
+  display: none !important;
+}
+
+.tlg-auth-card .tlg-auth-divider:has(+ a[href="/register"]) {
+  display: none !important;
+}
+
+.tlg-public-beta-notice {
+  order: -10;
+  flex: 1 0 100%;
+  width: 100%;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 4px;
+  padding: 14px 15px;
+  border: 1px solid rgba(93, 183, 255, .26);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(8, 38, 68, .94), rgba(5, 24, 45, .94));
+  box-shadow: inset 0 1px rgba(255,255,255,.04), 0 14px 34px rgba(0,0,0,.18);
+}
+
+.tlg-public-beta-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: #8dd2ff;
+  background: rgba(22, 131, 229, .13);
+  border: 1px solid rgba(104, 193, 255, .2);
+}
+
+.tlg-public-beta-copy span {
+  display: block;
+  margin-bottom: 4px;
+  color: #6dc4ff;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .14em;
+}
+
+.tlg-public-beta-copy strong {
+  display: block;
+  color: #f2f8ff;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.tlg-public-beta-copy p {
+  margin: 4px 0 0;
+  color: #91a9bf;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.tlg-public-beta-discord {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  background: #5865f2;
+  border: 1px solid rgba(255,255,255,.15);
+  box-shadow: 0 10px 24px rgba(42, 51, 170, .26);
+}
+
+.tlg-public-beta-discord:hover {
+  background: #6571f4;
+}
+
+@media (max-width: 760px) {
+  .tlg-public-beta-notice {
+    grid-template-columns: auto 1fr;
+  }
+
+  .tlg-public-beta-discord {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
