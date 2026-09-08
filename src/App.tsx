@@ -13,6 +13,7 @@ import './styles/onboarding-enhancements.css'
 import './styles/commerce.css'
 import './styles/dashboard-modules.css'
 import './styles/typography-sharp.css'
+import './styles/public-beta.css'
 
 import {
   BrowserRouter,
@@ -31,6 +32,7 @@ import {
 } from './auth/RouteGuards'
 import OverviewInjuryEnhancement from './components/dashboard/OverviewInjuryEnhancement'
 import FinanceSponsorEnhancement from './components/finance/FinanceSponsorEnhancement'
+import PublicBetaGate from './components/marketing/PublicBetaGate'
 import PlayingStyleEducation from './components/player/PlayingStyleEducation'
 import ScheduleUiPolish from './components/schedule/ScheduleUiPolish'
 import { ScheduleTacticEducation, TournamentTacticEducation } from './components/tactics/TacticEducation'
@@ -40,7 +42,6 @@ import TournamentLogoRecovery from './components/tournament/TournamentLogoRecove
 import TournamentMatchSchedule from './components/tournament/TournamentMatchSchedule'
 import HomePage from './pages/Home'
 import LoginPage from './pages/auth/Login'
-import RegisterPage from './pages/auth/Register'
 import ForgotPasswordPage from './pages/auth/ForgotPassword'
 import ResetPasswordPage from './pages/auth/ResetPassword'
 import CreatePlayerPage from './pages/player/CreatePlayer'
@@ -110,6 +111,10 @@ function TournamentRoute() {
   )
 }
 
+function HomeRoute() {
+  return <><HomePage /><PublicBetaGate /></>
+}
+
 function OverviewRoute() {
   return <><OverviewPage /><OverviewInjuryEnhancement /></>
 }
@@ -131,10 +136,10 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<HomeRoute />} />
 
           <Route path="/login" element={<AnonymousOnly><LoginPage /></AnonymousOnly>} />
-          <Route path="/register" element={<AnonymousOnly><RegisterPage /></AnonymousOnly>} />
+          <Route path="/register" element={<Navigate to="/" replace />} />
           <Route path="/forgot-password" element={<AnonymousOnly><ForgotPasswordPage /></AnonymousOnly>} />
           <Route path="/reset-password" element={<RequireAuth><ResetPasswordPage /></RequireAuth>} />
           <Route path="/create-player" element={<RequireNoPlayer><CreatePlayerRoute /></RequireNoPlayer>} />
