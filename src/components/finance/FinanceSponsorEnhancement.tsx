@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import '../../styles/finance-sponsors.css'
 
 type SponsorSourcePool = 'market' | 'worldwide'
+type SponsorObjectiveStatus = 'active' | 'achieved' | 'failed'
 
 interface SponsorOffer {
   id: string
@@ -26,6 +27,18 @@ interface SponsorOffer {
   status: string
 }
 
+interface SponsorObjective {
+  id: string
+  objective_code: 'appearances' | 'match_wins' | 'performance_result'
+  title: string
+  description: string
+  target_value: number
+  current_value: number
+  reward_amount: number
+  status: SponsorObjectiveStatus
+  achieved_absolute_day?: number | null
+}
+
 interface SponsorContract {
   id: string
   sponsor_company_id: string
@@ -44,6 +57,9 @@ interface SponsorContract {
   total_contract_value: number
   income_received: number
   next_payment_absolute_day?: number | null
+  bonus_pool_total?: number
+  bonus_earned?: number
+  objectives?: SponsorObjective[]
   status: string
 }
 
@@ -114,10 +130,43 @@ function SourceBadge({ source, marketName }: { source: SponsorSourcePool; market
   )
 }
 
+function ObjectiveCard({ objective }: { objective: SponsorObjective }) {
+  const current = Math.max(0, Number(objective.current_value) || 0)
+  const target = Math.max(1, Number(objective.target_value) || 1)
+  const progress = Math.min(100, (current / target) * 100)
+  const displayCurrent = Math.min(current, target)
+
+  return (
+    <article className={`tlg-finance-sponsor-objective ${objective.status}`}>
+      <div className="tlg-finance-sponsor-objective-head">
+        <div>
+          <span className="tlg-finance-sponsor-kicker">PERFORMANCE OBJECTIVE</span>
+          <h3>{objective.title}</h3>
+        </div>
+        <span className={`tlg-finance-sponsor-objective-status ${objective.status}`}>{objective.status}</span>
+      </div>
+      <p>{objective.description}</p>
+      <div className="tlg-finance-sponsor-objective-metrics">
+        <div><span>Progress</span><strong>{displayCurrent} / {target}</strong></div>
+        <div><span>Bonus</span><strong>{money(objective.reward_amount)}</strong></div>
+      </div>
+      <div className="tlg-finance-sponsor-objective-progress"><i style={{ width: `${progress}%` }} /></div>
+      {objective.status === 'achieved' && objective.achieved_absolute_day != null && (
+        <small>Completed {absoluteGameDate(objective.achieved_absolute_day)} · Bonus posted to Career Balance</small>
+      )}
+      {objective.status === 'failed' && <small>Agreement ended before this objective was completed.</small>}
+    </article>
+  )
+}
+
 function ActiveSponsor({ contract, dashboard }: { contract: SponsorContract; dashboard: SponsorDashboard }) {
   const paid = Math.max(0, Number(contract.income_received) || 0)
   const total = Math.max(1, Number(contract.total_contract_value) || 1)
   const progress = Math.min(100, (paid / total) * 100)
+  const objectives = contract.objectives ?? []
+  const bonusPool = Math.max(0, Number(contract.bonus_pool_total) || 0)
+  const bonusEarned = Math.max(0, Number(contract.bonus_earned) || 0)
+  const achievedObjectives = objectives.filter((objective) => objective.status === 'achieved').length
 
   return (
     <section className="tlg-finance-sponsor-active">
@@ -134,7 +183,7 @@ function ActiveSponsor({ contract, dashboard }: { contract: SponsorContract; das
           </div>
         </div>
         <div className="tlg-finance-sponsor-contract-value">
-          <span>SEASON AGREEMENT</span>
+          <span>GUARANTEED AGREEMENT</span>
           <strong>{money(contract.total_contract_value)}</strong>
           <small>Guaranteed through {absoluteGameDate(contract.end_absolute_day)}</small>
         </div>
@@ -142,16 +191,35 @@ function ActiveSponsor({ contract, dashboard }: { contract: SponsorContract; das
 
       <div className="tlg-finance-sponsor-active-stats">
         <div><span>Weekly payment</span><strong>{money(contract.weekly_payment_amount)}</strong></div>
-        <div><span>Paid to date</span><strong>{money(paid)}</strong></div>
+        <div><span>Guaranteed paid</span><strong>{money(paid)}</strong></div>
+        <div><span>Bonus earned</span><strong>{money(bonusEarned)}</strong></div>
         <div><span>Next payment</span><strong>{contract.next_payment_absolute_day == null ? 'Season complete' : absoluteGameDate(contract.next_payment_absolute_day)}</strong></div>
-        <div><span>Signed</span><strong>{absoluteGameDate(contract.signed_absolute_day)}</strong></div>
       </div>
 
       <div className="tlg-finance-sponsor-progress-copy">
-        <span>Agreement paid</span><strong>{Math.round(progress)}%</strong>
+        <span>Guaranteed agreement paid</span><strong>{Math.round(progress)}%</strong>
       </div>
       <div className="tlg-finance-sponsor-progress"><i style={{ width: `${progress}%` }} /></div>
-      <p className="tlg-finance-sponsor-note">Guaranteed sponsor payments are posted automatically to Career Balance every seven game days and are included in taxable sponsorship income.</p>
+
+      <section className="tlg-finance-sponsor-bonus-summary">
+        <div>
+          <span className="tlg-finance-sponsor-kicker">PERFORMANCE BONUS POOL</span>
+          <h3>{money(bonusPool)} available</h3>
+          <p>Performance bonuses sit on top of the guaranteed sponsor agreement. Each objective pays independently as soon as the engine confirms it.</p>
+        </div>
+        <div className="tlg-finance-sponsor-bonus-numbers">
+          <div><span>Earned</span><strong>{money(bonusEarned)}</strong></div>
+          <div><span>Objectives complete</span><strong>{achievedObjectives} / {objectives.length}</strong></div>
+        </div>
+      </section>
+
+      {objectives.length > 0 && (
+        <section className="tlg-finance-sponsor-objectives-grid">
+          {objectives.map((objective) => <ObjectiveCard key={objective.id} objective={objective} />)}
+        </section>
+      )}
+
+      <p className="tlg-finance-sponsor-note">Guaranteed sponsor payments are posted every seven game days. Objective bonuses are posted automatically when achieved. Both are taxable career income and appear in the Finance transaction ledger.</p>
     </section>
   )
 }
@@ -182,7 +250,7 @@ function SponsorOfferCard({
       </div>
 
       <div className="tlg-finance-sponsor-offer-value">
-        <span>CONTRACT VALUE TO SEASON END</span>
+        <span>GUARANTEED VALUE TO SEASON END</span>
         <strong>{money(offer.total_contract_value)}</strong>
         <small>{money(offer.weekly_payment_amount)} / week · {offer.scheduled_payment_count} payments</small>
       </div>
@@ -192,6 +260,8 @@ function SponsorOfferCard({
         <div><span>First payment</span><strong>{absoluteGameDate(offer.first_payment_absolute_day)}</strong></div>
         <div><span>Offer expires</span><strong>{absoluteGameDate(offer.expires_absolute_day)}</strong></div>
       </div>
+
+      <p className="tlg-finance-sponsor-offer-bonus-note">Signing also creates three tennis performance objectives with additional cash bonuses on top of this guaranteed value.</p>
 
       <div className="tlg-finance-sponsor-offer-actions">
         <button type="button" className="secondary" disabled={actionId !== null} onClick={() => onDecline(offer.id)}>
@@ -265,7 +335,7 @@ function SponsorContent({
             <div className="tlg-finance-sponsor-season-scale">
               <span>RANK BAND FULL-SEASON RANGE</span>
               <strong>{money(dashboard.offer_rule.full_season_value_min)} – {money(dashboard.offer_rule.full_season_value_max)}</strong>
-              <small>Your actual contract is prorated automatically to the remaining season.</small>
+              <small>Your guaranteed agreement is prorated automatically to the remaining season. Performance bonuses are additional.</small>
             </div>
           </section>
 
@@ -296,7 +366,7 @@ export default function FinanceSponsorEnhancement() {
   const loadSponsors = useCallback(async () => {
     setLoading(true)
     setError(null)
-    const { data, error: sponsorError } = await supabase.rpc('get_player_sponsor_dashboard_v1')
+    const { data, error: sponsorError } = await supabase.rpc('get_player_sponsor_dashboard_v2')
     if (sponsorError || !data) setError(sponsorError?.message ?? 'Unable to load sponsor offers.')
     else setDashboard(data as SponsorDashboard)
     setLoading(false)
