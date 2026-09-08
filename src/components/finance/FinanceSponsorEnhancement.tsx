@@ -51,6 +51,9 @@ interface SponsorContract {
   signed_absolute_day: number
   start_absolute_day: number
   end_absolute_day: number
+  first_payment_absolute_day?: number | null
+  last_payment_absolute_day?: number | null
+  payment_frequency_days?: number | null
   full_season_value: number
   weekly_payment_amount: number
   scheduled_payment_count: number
@@ -134,6 +137,14 @@ function ObjectiveCard({ objective }: { objective: SponsorObjective }) {
 function ActiveSponsor({ contract }: { contract: SponsorContract }) {
   const paid = Math.max(0, Number(contract.income_received) || 0)
   const total = Math.max(1, Number(contract.total_contract_value) || 1)
+  const weeklyPayment = Math.max(0, Number(contract.weekly_payment_amount) || 0)
+  const scheduledPayments = Math.max(0, Number(contract.scheduled_payment_count) || 0)
+  const paymentsMade = weeklyPayment > 0 ? Math.min(scheduledPayments, Math.floor(paid / weeklyPayment)) : 0
+  const firstPayment = contract.first_payment_absolute_day
+  const lastPayment = contract.last_payment_absolute_day ?? (
+    firstPayment == null ? null : firstPayment + Math.max(0, scheduledPayments - 1) * 7
+  )
+  const paymentFrequency = Math.max(1, Number(contract.payment_frequency_days) || 7)
   const progress = Math.min(100, (paid / total) * 100)
   const objectives = contract.objectives ?? []
   const bonusPool = Math.max(0, Number(contract.bonus_pool_total) || 0)
@@ -152,18 +163,33 @@ function ActiveSponsor({ contract }: { contract: SponsorContract }) {
           </div>
         </div>
         <div className="tlg-finance-sponsor-contract-value">
-          <span>GUARANTEED AGREEMENT</span>
+          <span>TOTAL GUARANTEED PAYMENTS</span>
           <strong>{money(contract.total_contract_value)}</strong>
-          <small>Through {absoluteGameDate(contract.end_absolute_day)}</small>
+          <small>Paid weekly · not upfront · agreement through {absoluteGameDate(contract.end_absolute_day)}</small>
         </div>
       </div>
 
       <div className="tlg-finance-sponsor-active-stats">
-        <div><span>Weekly payment</span><strong>{money(contract.weekly_payment_amount)}</strong></div>
+        <div><span>Weekly payment</span><strong>{money(weeklyPayment)}</strong></div>
         <div><span>Guaranteed paid</span><strong>{money(paid)}</strong></div>
         <div><span>Bonus earned</span><strong>{money(bonusEarned)}</strong></div>
         <div><span>Next payment</span><strong>{contract.next_payment_absolute_day == null ? 'Season complete' : absoluteGameDate(contract.next_payment_absolute_day)}</strong></div>
       </div>
+
+      <section className="tlg-finance-sponsor-payment-schedule">
+        <div className="tlg-finance-sponsor-payment-schedule-copy">
+          <span className="tlg-finance-sponsor-kicker">GUARANTEED PAYMENT SCHEDULE</span>
+          <h3>{scheduledPayments} weekly payments × {money(weeklyPayment)} = {money(contract.total_contract_value)}</h3>
+          <p>The guaranteed agreement is the total sponsor income promised for the season. It is paid in installments, not as one upfront payment.</p>
+        </div>
+        <div className="tlg-finance-sponsor-payment-schedule-grid">
+          <div><span>Agreement signed</span><strong>{absoluteGameDate(contract.signed_absolute_day)}</strong></div>
+          <div><span>First payment</span><strong>{firstPayment == null ? '—' : absoluteGameDate(firstPayment)}</strong></div>
+          <div><span>Payment frequency</span><strong>Every {paymentFrequency} game days</strong></div>
+          <div><span>Final guaranteed payment</span><strong>{lastPayment == null ? '—' : absoluteGameDate(lastPayment)}</strong></div>
+        </div>
+        <p className="tlg-finance-sponsor-payment-schedule-note">Each installment is automatically added to Career Balance and the Transactions ledger on its due date. {paymentsMade} of {scheduledPayments} guaranteed payments received.</p>
+      </section>
 
       <div className="tlg-finance-sponsor-progress-copy">
         <span>Guaranteed agreement paid</span><strong>{Math.round(progress)}%</strong>
