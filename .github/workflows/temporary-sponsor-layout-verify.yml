@@ -1,0 +1,28 @@
+name: Temporary sponsor layout verify
+
+on:
+  push:
+    paths:
+      - '.github/workflows/temporary-sponsor-layout-verify.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: TypeScript check
+        run: npx --yes --package=typescript@5.8.3 tsc --noEmit
+      - name: Production build
+        run: npm run build
