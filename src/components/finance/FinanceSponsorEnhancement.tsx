@@ -70,22 +70,6 @@ interface SponsorDashboard {
   season_end_absolute_day: number
   player_rank: number
   player_country_code: string
-  market: {
-    code: string
-    name: string
-    macro_region: string
-  }
-  offer_rule: {
-    code: string
-    offer_count_min: number
-    offer_count_max: number
-    local_share_percent: number
-    worldwide_share_percent: number
-    full_season_value_min: number
-    full_season_value_max: number
-  }
-  offer_week_start_absolute_day: number
-  next_offer_refresh_absolute_day: number
   active_contract: SponsorContract | null
   offers: SponsorOffer[]
 }
@@ -109,25 +93,13 @@ function absoluteGameDate(absoluteDay: number) {
   return `${MONTHS[Math.max(0, Math.min(month, 12) - 1)]} ${remaining + 1} · Season ${season}`
 }
 
-function sponsorLogoUrl(url: string | null | undefined) {
-  return (url ?? '').trim()
-}
-
 function SponsorLogo({ name, url }: { name: string; url?: string | null }) {
   const [failed, setFailed] = useState(false)
-  const src = sponsorLogoUrl(url)
+  const src = (url ?? '').trim()
   if (!src || failed) {
     return <div className="tlg-finance-sponsor-logo fallback" aria-label={`${name} logo`}>{name.slice(0, 2).toUpperCase()}</div>
   }
   return <div className="tlg-finance-sponsor-logo"><img src={src} alt={`${name} logo`} onError={() => setFailed(true)} /></div>
-}
-
-function SourceBadge({ source, marketName }: { source: SponsorSourcePool; marketName: string }) {
-  return (
-    <span className={`tlg-finance-sponsor-badge ${source === 'worldwide' ? 'worldwide' : 'market'}`}>
-      {source === 'worldwide' ? 'Worldwide' : marketName}
-    </span>
-  )
 }
 
 function ObjectiveCard({ objective }: { objective: SponsorObjective }) {
@@ -159,7 +131,7 @@ function ObjectiveCard({ objective }: { objective: SponsorObjective }) {
   )
 }
 
-function ActiveSponsor({ contract, dashboard }: { contract: SponsorContract; dashboard: SponsorDashboard }) {
+function ActiveSponsor({ contract }: { contract: SponsorContract }) {
   const paid = Math.max(0, Number(contract.income_received) || 0)
   const total = Math.max(1, Number(contract.total_contract_value) || 1)
   const progress = Math.min(100, (paid / total) * 100)
@@ -176,16 +148,13 @@ function ActiveSponsor({ contract, dashboard }: { contract: SponsorContract; das
           <div>
             <span className="tlg-finance-sponsor-kicker">ACTIVE MAIN SPONSOR</span>
             <h2>{contract.sponsor_name}</h2>
-            <div className="tlg-finance-sponsor-brand-meta">
-              <span>{contract.sponsor_country_code}</span>
-              <SourceBadge source={contract.source_pool} marketName={dashboard.market.name} />
-            </div>
+            <span className="tlg-finance-sponsor-country">{contract.sponsor_country_code}</span>
           </div>
         </div>
         <div className="tlg-finance-sponsor-contract-value">
           <span>GUARANTEED AGREEMENT</span>
           <strong>{money(contract.total_contract_value)}</strong>
-          <small>Guaranteed through {absoluteGameDate(contract.end_absolute_day)}</small>
+          <small>Through {absoluteGameDate(contract.end_absolute_day)}</small>
         </div>
       </div>
 
@@ -205,7 +174,7 @@ function ActiveSponsor({ contract, dashboard }: { contract: SponsorContract; das
         <div>
           <span className="tlg-finance-sponsor-kicker">PERFORMANCE BONUS POOL</span>
           <h3>{money(bonusPool)} available</h3>
-          <p>Performance bonuses sit on top of the guaranteed sponsor agreement. Each objective pays independently as soon as the engine confirms it.</p>
+          <p>Performance bonuses sit on top of the guaranteed agreement and are paid automatically when an objective is achieved.</p>
         </div>
         <div className="tlg-finance-sponsor-bonus-numbers">
           <div><span>Earned</span><strong>{money(bonusEarned)}</strong></div>
@@ -219,20 +188,18 @@ function ActiveSponsor({ contract, dashboard }: { contract: SponsorContract; das
         </section>
       )}
 
-      <p className="tlg-finance-sponsor-note">Guaranteed sponsor payments are posted every seven game days. Objective bonuses are posted automatically when achieved. Both are taxable career income and appear in the Finance transaction ledger.</p>
+      <p className="tlg-finance-sponsor-note">Guaranteed payments and achieved objective bonuses are posted automatically to the Finance transaction ledger.</p>
     </section>
   )
 }
 
 function SponsorOfferCard({
   offer,
-  dashboard,
   actionId,
   onSign,
   onDecline,
 }: {
   offer: SponsorOffer
-  dashboard: SponsorDashboard
   actionId: string | null
   onSign: (id: string) => void
   onDecline: (id: string) => void
@@ -240,36 +207,40 @@ function SponsorOfferCard({
   const busy = actionId === offer.id
   return (
     <article className="tlg-finance-sponsor-offer">
-      <div className="tlg-finance-sponsor-offer-brand">
+      <div className="tlg-finance-sponsor-offer-visual">
         <SponsorLogo name={offer.sponsor_name} url={offer.logo_url} />
-        <div>
-          <SourceBadge source={offer.source_pool} marketName={dashboard.market.name} />
-          <h3>{offer.sponsor_name}</h3>
-          <span className="tlg-finance-sponsor-country">{offer.sponsor_country_code}</span>
+      </div>
+
+      <div className="tlg-finance-sponsor-offer-content">
+        <div className="tlg-finance-sponsor-offer-heading">
+          <div>
+            <span className="tlg-finance-sponsor-kicker">MAIN SPONSOR OFFER</span>
+            <h3>{offer.sponsor_name}</h3>
+            <span className="tlg-finance-sponsor-country">{offer.sponsor_country_code}</span>
+          </div>
         </div>
-      </div>
 
-      <div className="tlg-finance-sponsor-offer-value">
-        <span>GUARANTEED VALUE TO SEASON END</span>
-        <strong>{money(offer.total_contract_value)}</strong>
-        <small>{money(offer.weekly_payment_amount)} / week · {offer.scheduled_payment_count} payments</small>
-      </div>
+        <div className="tlg-finance-sponsor-offer-value">
+          <span>CONTRACT VALUE TO SEASON END</span>
+          <strong>{money(offer.total_contract_value)}</strong>
+          <small>{money(offer.weekly_payment_amount)} per week · {offer.scheduled_payment_count} payments</small>
+        </div>
 
-      <div className="tlg-finance-sponsor-offer-details">
-        <div><span>Full-season equivalent</span><strong>{money(offer.full_season_value)}</strong></div>
-        <div><span>First payment</span><strong>{absoluteGameDate(offer.first_payment_absolute_day)}</strong></div>
-        <div><span>Offer expires</span><strong>{absoluteGameDate(offer.expires_absolute_day)}</strong></div>
-      </div>
+        <div className="tlg-finance-sponsor-offer-details">
+          <div><span>First payment</span><strong>{absoluteGameDate(offer.first_payment_absolute_day)}</strong></div>
+          <div><span>Offer expires</span><strong>{absoluteGameDate(offer.expires_absolute_day)}</strong></div>
+        </div>
 
-      <p className="tlg-finance-sponsor-offer-bonus-note">Signing also creates three tennis performance objectives with additional cash bonuses on top of this guaranteed value.</p>
+        <p className="tlg-finance-sponsor-offer-bonus-note">Three performance objectives add extra cash bonuses on top of the guaranteed contract.</p>
 
-      <div className="tlg-finance-sponsor-offer-actions">
-        <button type="button" className="secondary" disabled={actionId !== null} onClick={() => onDecline(offer.id)}>
-          {busy ? 'Working…' : 'Decline'}
-        </button>
-        <button type="button" className="primary" disabled={actionId !== null} onClick={() => onSign(offer.id)}>
-          {busy ? 'Signing…' : 'Sign agreement'}
-        </button>
+        <div className="tlg-finance-sponsor-offer-actions">
+          <button type="button" className="secondary" disabled={actionId !== null} onClick={() => onDecline(offer.id)}>
+            {busy ? 'Working…' : 'Decline'}
+          </button>
+          <button type="button" className="primary" disabled={actionId !== null} onClick={() => onSign(offer.id)}>
+            {busy ? 'Signing…' : 'Sign agreement'}
+          </button>
+        </div>
       </div>
     </article>
   )
@@ -292,15 +263,13 @@ function SponsorContent({
   onSign: (id: string) => void
   onDecline: (id: string) => void
 }) {
-  if (loading && !dashboard) return <div className="tlg-finance-sponsor-state">Loading sponsor market…</div>
+  if (loading && !dashboard) return <div className="tlg-finance-sponsor-state">Loading sponsor offers…</div>
   if (error && !dashboard) {
     return <div className="tlg-finance-sponsor-state error"><span>{error}</span><button type="button" onClick={onRetry}>Retry</button></div>
   }
   if (!dashboard) return null
 
   const offers = dashboard.offers ?? []
-  const marketCount = offers.filter((offer) => offer.source_pool === 'market').length
-  const worldwideCount = offers.filter((offer) => offer.source_pool === 'worldwide').length
 
   return (
     <div className="tlg-finance-sponsor-page">
@@ -310,46 +279,31 @@ function SponsorContent({
         <div>
           <span className="tlg-finance-sponsor-kicker">COMMERCIAL PARTNERSHIPS</span>
           <h2>Sponsor agreements</h2>
-          <p>Choose one main sponsor for the current season. Your ranking controls how many offers arrive, how much they are worth, and how strongly the weekly market leans toward your home marketing region.</p>
+          <p>Choose one main sponsor for the current season. Contract value follows your ranking and is recalculated at the exact moment you sign.</p>
         </div>
         <button type="button" className="tlg-finance-sponsor-refresh" onClick={onRetry} disabled={loading}>{loading ? 'Refreshing…' : 'Refresh offers'}</button>
       </section>
 
-      <section className="tlg-finance-sponsor-context">
-        <div><span>WORLD RANKING</span><strong>#{dashboard.player_rank}</strong><small>Current ranking used for this offer batch</small></div>
-        <div><span>HOME MARKETING MARKET</span><strong>{dashboard.market.name}</strong><small>{dashboard.player_country_code} · {dashboard.market.macro_region}</small></div>
-        <div><span>WEEKLY OFFER RANGE</span><strong>{dashboard.offer_rule.offer_count_min}–{dashboard.offer_rule.offer_count_max}</strong><small>{dashboard.offer_rule.local_share_percent}% market · {dashboard.offer_rule.worldwide_share_percent}% worldwide</small></div>
-        <div><span>NEXT OFFER REFRESH</span><strong>{absoluteGameDate(dashboard.next_offer_refresh_absolute_day)}</strong><small>New weekly group if no agreement is signed</small></div>
-      </section>
-
       {dashboard.active_contract ? (
-        <ActiveSponsor contract={dashboard.active_contract} dashboard={dashboard} />
+        <ActiveSponsor contract={dashboard.active_contract} />
       ) : (
         <>
-          <section className="tlg-finance-sponsor-market-summary">
-            <div>
-              <span className="tlg-finance-sponsor-kicker">THIS WEEK'S SPONSOR MARKET</span>
-              <h2>{offers.length} offers available</h2>
-              <p>{marketCount} from {dashboard.market.name} · {worldwideCount} worldwide. Offer value is based on your current ranking and the number of weekly payments remaining before season end.</p>
-            </div>
-            <div className="tlg-finance-sponsor-season-scale">
-              <span>RANK BAND FULL-SEASON RANGE</span>
-              <strong>{money(dashboard.offer_rule.full_season_value_min)} – {money(dashboard.offer_rule.full_season_value_max)}</strong>
-              <small>Your guaranteed agreement is prorated automatically to the remaining season. Performance bonuses are additional.</small>
-            </div>
+          <section className="tlg-finance-sponsor-market-summary compact">
+            <span className="tlg-finance-sponsor-kicker">AVAILABLE SPONSORS</span>
+            <h2>{offers.length} sponsor offers</h2>
           </section>
 
           {offers.length === 0 ? (
-            <div className="tlg-finance-sponsor-state">No open sponsor offers in the current weekly group. New offers arrive at the next weekly refresh.</div>
+            <div className="tlg-finance-sponsor-state">No sponsor offers are currently available.</div>
           ) : (
             <section className="tlg-finance-sponsor-offers-grid">
               {offers.map((offer) => (
-                <SponsorOfferCard key={offer.id} offer={offer} dashboard={dashboard} actionId={actionId} onSign={onSign} onDecline={onDecline} />
+                <SponsorOfferCard key={offer.id} offer={offer} actionId={actionId} onSign={onSign} onDecline={onDecline} />
               ))}
             </section>
           )}
 
-          <p className="tlg-finance-sponsor-note standalone">Signing one agreement closes every other open main-sponsor offer for the current season. Declined offers are not replaced until the next weekly sponsor group.</p>
+          <p className="tlg-finance-sponsor-note standalone">Signing one agreement closes the other main-sponsor offers for the current season.</p>
         </>
       )}
     </div>
