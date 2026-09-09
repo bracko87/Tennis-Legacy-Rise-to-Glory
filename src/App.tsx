@@ -40,6 +40,7 @@ import TournamentEntryLifecycle from './components/tournament/TournamentEntryLif
 import TournamentExperienceEnhancements from './components/tournament/TournamentExperienceEnhancements'
 import TournamentLogoRecovery from './components/tournament/TournamentLogoRecovery'
 import TournamentMatchSchedule from './components/tournament/TournamentMatchSchedule'
+import TournamentPreMatchRealData from './components/tournament/TournamentPreMatchRealData'
 import HomePage from './pages/Home'
 import LoginPage from './pages/auth/Login'
 import ForgotPasswordPage from './pages/auth/ForgotPassword'
@@ -107,6 +108,7 @@ function TournamentRoute() {
       <TournamentExperienceEnhancements />
       <TournamentLogoRecovery />
       <TournamentTacticEducation />
+      <TournamentPreMatchRealData />
     </>
   )
 }
