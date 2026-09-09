@@ -112,13 +112,6 @@ interface MatchDetail {
   player2_stats: MatchStats
 }
 
-interface GameCalendarDate {
-  season: number
-  month: number
-  day: number
-  season_week: number
-}
-
 interface MatchTacticResponse {
   match_status: MatchDetail['status']
   editable: boolean
@@ -126,14 +119,6 @@ interface MatchTacticResponse {
   tournament_default: TournamentTactic
   override: TournamentTactic | null
   effective: TournamentTactic
-  scheduled_game_second: number | null
-  scheduled_start_minute: number | null
-  scheduled_game_date: GameCalendarDate | null
-  tactic_lock_game_second: number | null
-  tactic_lock_game_date: GameCalendarDate | null
-  tactic_lock_minute_of_day: number | null
-  current_game_second: number
-  lock_minutes_before_start: number
 }
 
 interface TacticEffect {
@@ -195,16 +180,6 @@ function formatDrawScore(match: TournamentDrawMatch, perspectivePlayerId: string
   const opponent = playerIsOne ? match.player2_set_scores : match.player1_set_scores
   if (!own.length || own.length !== opponent.length) return 'Result recorded'
   return own.map((games, index) => `${games}–${opponent[index]}`).join(', ')
-}
-
-const GAME_MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const
-
-function formatGameDeadline(date: GameCalendarDate | null, minuteOfDay: number | null) {
-  if (!date || minuteOfDay === null || minuteOfDay === undefined) return 'Schedule pending'
-  const hours = Math.floor(minuteOfDay / 60)
-  const minutes = minuteOfDay % 60
-  const month = GAME_MONTH_NAMES[date.month - 1] ?? `Month ${date.month}`
-  return `${month} ${date.day}, Season ${date.season} · ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
 }
 
 export default function TournamentPage() {
@@ -583,23 +558,18 @@ function MatchTacticPanel({ detail, currentPlayerId }: { detail: MatchDetail; cu
   const sourceLabel = data?.source === 'match_override' ? 'Match override' : data?.source === 'tournament_default' ? 'Tournament default' : 'Automatic Balanced default'
   const effective = data?.effective ?? draft
   const editable = Boolean(data?.editable)
-  const lockDeadline = formatGameDeadline(data?.tactic_lock_game_date ?? null, data?.tactic_lock_minute_of_day ?? null)
-  const tacticStatusLabel = data?.source === 'match_override' ? 'Match tactic override saved' : 'Tactic unchanged for this match'
 
   return (
     <section className="tlg-match-tactic-section">
       <div className="tlg-match-tactic-head">
         <div><span>Match tactic</span><h3>Plan for this opponent</h3><p>Your tournament default is always available. Saving an override here changes only this match and leaves the rest of the tournament unchanged.</p></div>
-        <div className="tlg-match-tactic-head-tools"><button type="button" className={`tlg-tactic-guidance-toggle${showHelp ? ' active' : ''}`} aria-expanded={showHelp} onClick={() => setShowHelp((current) => !current)}>{showHelp ? 'Hide guidance' : 'Show guidance'}</button><div className="tlg-match-tactic-source"><span>Currently active</span><strong>{sourceLabel}</strong></div></div>
+        <div className="tlg-match-tactic-head-tools"><button type="button" className={`tlg-tactic-info-button${showHelp ? ' active' : ''}`} aria-label="Explain tactical settings" aria-expanded={showHelp} onClick={() => setShowHelp((current) => !current)}>i</button><div className="tlg-match-tactic-source"><span>Currently active</span><strong>{sourceLabel}</strong></div></div>
       </div>
 
-      {data && <div className={`tlg-match-tactic-deadline-row${editable ? ' editable' : ' locked'}`}>
-        <div className="tlg-match-tactic-deadline-copy"><span>{editable ? 'Tactic can be changed until' : 'Tactic locked at'}</span><strong>{lockDeadline}</strong><small>{data.lock_minutes_before_start} minutes before the scheduled match start</small></div>
-        <div className="tlg-match-tactic-change-status"><span>Match-specific status</span><strong>{tacticStatusLabel}</strong></div>
-      </div>}
+      {showHelp && <TacticHelp tactic={editable ? draft : effective} />}
 
       {loading ? <div className="tlg-match-tactic-loading">Loading tactical plan…</div> : !data ? <div className="tlg-match-tactic-loading">{message ?? 'Tactical plan unavailable.'}</div> : !editable ? (
-        <><div className="tlg-match-tactic-locked">This match is no longer editable. The effective tactic used for the match is shown below.</div><TacticSummary tactic={effective} />{showHelp && <div className="tlg-tactic-guidance"><TacticHelp tactic={effective} /><TacticEffects tactic={effective} locked /></div>}</>
+        <><div className="tlg-match-tactic-locked">This match has already started or finished, so its tactic is locked. The effective tactic used for the match is shown below.</div><TacticSummary tactic={effective} /><TacticEffects tactic={effective} locked /></>
       ) : (
         <>
           <div className="tlg-match-tactic-presets">{TACTIC_PRESETS.map((preset) => <button key={preset} type="button" className={draft.preset === preset ? 'selected' : ''} onClick={() => setDraft(tacticFromPreset(preset))}>{preset}</button>)}</div>
@@ -612,7 +582,7 @@ function MatchTacticPanel({ detail, currentPlayerId }: { detail: MatchDetail; cu
             <TacticSelect label="Opponent target" value={draft.target} values={TACTIC_OPTIONS.target} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', target: value }))} />
             <TacticSelect label="Risk level" value={draft.risk} values={TACTIC_OPTIONS.risk} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', risk: value }))} />
           </div>
-          {showHelp && <div className="tlg-tactic-guidance"><TacticHelp tactic={draft} /><TacticEffects tactic={draft} /></div>}
+          <TacticEffects tactic={draft} />
           <div className="tlg-match-tactic-actions"><span className="tlg-match-tactic-message">{message ?? `Tournament default: ${data.tournament_default.preset}`}</span><div className="tlg-match-tactic-buttons"><button type="button" onClick={useTournamentDefault} disabled={saving || data.source !== 'match_override'}>Use Tournament Default</button><button type="button" className="primary" onClick={saveOverride} disabled={saving}>{saving ? 'Saving…' : 'Save Match Tactic'}</button></div></div>
         </>
       )}
