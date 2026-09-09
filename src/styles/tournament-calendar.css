@@ -1,5 +1,52 @@
 /* Tournament calendar --------------------------------------------------- */
 
+.tlg-tournament-week-nav {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) auto minmax(130px, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #dce7ef;
+  border-radius: 10px;
+  background: #f9fbfd;
+}
+
+.tlg-tournament-week-nav button {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  border: 1px solid #d4e1ea;
+  border-radius: 8px;
+  color: #23445d;
+  background: #fff;
+  font-family: var(--tlg-font-ui) !important;
+  font-size: .68rem;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.tlg-tournament-week-nav button:first-child {
+  justify-self: start;
+}
+
+.tlg-tournament-week-nav button:last-child {
+  justify-self: end;
+}
+
+.tlg-tournament-week-nav button:disabled {
+  opacity: .42;
+  cursor: default;
+}
+
+.tlg-tournament-week-nav strong {
+  color: #153047;
+  font-size: .72rem;
+  font-weight: 800;
+}
+
 .tlg-tournament-month-summary {
   display: flex;
   align-items: flex-start;
@@ -60,10 +107,16 @@
 
 .tlg-tournament-week {
   overflow: hidden;
+  scroll-margin-top: 18px;
   border: 1px solid #dce6ed;
   border-radius: 12px;
   background: #fff;
   box-shadow: 0 8px 22px rgba(20, 52, 77, .045);
+}
+
+.tlg-tournament-week-active {
+  border-color: #73b7e5;
+  box-shadow: 0 0 0 2px rgba(45,157,224,.08), 0 8px 22px rgba(20,52,77,.055);
 }
 
 .tlg-tournament-week-head {
@@ -75,6 +128,10 @@
   padding: 11px 16px;
   border-bottom: 1px solid #e7edf2;
   background: linear-gradient(180deg, #fbfdff 0%, #f7fafc 100%);
+}
+
+.tlg-tournament-week-active .tlg-tournament-week-head {
+  background: linear-gradient(180deg, #f3faff 0%, #edf7fd 100%);
 }
 
 .tlg-tournament-week-head span,
@@ -275,6 +332,22 @@
 }
 
 @media (max-width: 620px) {
+  .tlg-tournament-week-nav {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tlg-tournament-week-nav strong {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    text-align: center;
+  }
+
+  .tlg-tournament-week-nav button:first-child,
+  .tlg-tournament-week-nav button:last-child {
+    width: 100%;
+    justify-self: stretch;
+  }
+
   .tlg-tournament-week-head {
     align-items: flex-start;
   }
