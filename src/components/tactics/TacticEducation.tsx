@@ -21,13 +21,22 @@ const TACTIC_ROWS = [
 ] as const
 
 function TacticGuide({ matchSpecific = false }: { matchSpecific?: boolean }) {
+  const [isOpen, setIsOpen] = useState(false)
+
   return (
-    <details className="tlg-tactic-education" open>
-      <summary><span><Info size={16} /><strong>How these tactics change the match</strong></span><b>Benefits & trade-offs</b></summary>
+    <details
+      className="tlg-tactic-education"
+      open={isOpen}
+      onToggle={(event) => setIsOpen(event.currentTarget.open)}
+    >
+      <summary>
+        <span><Info size={16} /><strong>{matchSpecific ? 'How tactic settings change this match plan' : 'How tactic settings change the match plan'}</strong></span>
+        <b>{isOpen ? 'Collapse' : 'Expand'}</b>
+      </summary>
       <div className="tlg-tactic-education-body">
         <p>{matchSpecific
-          ? 'This one-match plan overrides your Tournament Default for this opponent. It locks 60 minutes before the scheduled start. Every aggressive choice has a cost; there is no universal “best” tactic.'
-          : 'Your Tournament Default is used for every match at this event unless you save a match-specific override. Presets are shortcuts; the individual choices below are what the match engine actually uses.'}</p>
+          ? 'All match-tactic guidance is collected here. A saved one-match plan overrides your Tournament Default only for this opponent and locks 60 minutes before the scheduled start. Every aggressive choice has a trade-off; there is no universal “best” tactic.'
+          : 'All tactic guidance is collected here. Your Tournament Default is used for every match at this event unless you save a match-specific override. Presets are shortcuts; the individual choices below are what the match engine actually uses.'}</p>
         <div className="tlg-tactic-education-grid">
           {TACTIC_ROWS.map(([group, option, benefit, tradeoff]) => (
             <article key={`${group}-${option}`}>
@@ -67,7 +76,7 @@ function usePortalTarget(mode: 'schedule' | 'match') {
         if (!host) {
           host = document.createElement('div')
           host.setAttribute(`data-${attr}`, 'true')
-          host.className = 'tlg-tactic-education-host'
+          host.className = `tlg-tactic-education-host ${mode === 'match' ? 'tlg-match-tactic-education-host' : 'tlg-schedule-tactic-education-host'}`
           location.insertAdjacentElement('beforebegin', host)
         }
         setTarget(host)
