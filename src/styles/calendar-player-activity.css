@@ -1,6 +1,39 @@
 .tlg-calendar-day {
   position: relative;
   overflow: hidden;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+/* One calendar day owns one visible activity. The whole day carries the state
+   colour instead of stacking several small cards inside the same cell. */
+.tlg-calendar-day-training_camp {
+  background: #fff5eb;
+  border-color: #efcfb4;
+}
+
+.tlg-calendar-day-travel {
+  background: #fff7e6;
+  border-color: #e3be70;
+}
+
+.tlg-calendar-day-injured {
+  background: #fff2f4;
+  border-color: #ecc6cc;
+}
+
+.tlg-calendar-day-tournament-confirmed {
+  background: #dff2ff;
+  border-color: #69b9e8;
+}
+
+.tlg-calendar-day-tournament-predicted {
+  background: #f1f8fd;
+  border-color: #bcdced;
+}
+
+.tlg-calendar-day-tournament-completed {
+  background: #0f659f;
+  border-color: #0a507f;
 }
 
 .tlg-calendar-player-activities {
@@ -9,8 +42,6 @@
   right: 8px;
   bottom: 8px;
   z-index: 1;
-  display: grid;
-  gap: 4px;
 }
 
 .tlg-calendar-player-activity {
@@ -19,25 +50,21 @@
   gap: 2px;
   min-width: 0;
   padding: 6px 8px;
-  border: 1px solid #d7e5ee;
-  border-radius: 7px;
-  background: #f6fafc;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   font-family: var(--tlg-font-ui) !important;
   font-style: normal;
   line-height: 1.25;
-}
-
-.tlg-calendar-player-activities.multiple .tlg-calendar-player-activity {
-  gap: 1px;
-  padding: 4px 7px;
 }
 
 .tlg-calendar-player-activity > span {
   overflow: hidden;
   font-family: var(--tlg-font-ui) !important;
   font-size: .59rem;
-  font-weight: 700;
-  letter-spacing: .025em;
+  font-weight: 800;
+  letter-spacing: .035em;
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
@@ -48,7 +75,7 @@
   color: #18364d;
   font-family: var(--tlg-font-ui) !important;
   font-size: .69rem;
-  font-weight: 650;
+  font-weight: 700;
   letter-spacing: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -56,25 +83,16 @@
 
 .tlg-calendar-player-activity.training_camp {
   color: #a65017;
-  border-color: #f0d4bc;
-  background: #fff8f2;
 }
 
 .tlg-calendar-player-activity.travel {
-  padding-right: 8px;
   color: #87560c;
-  border-color: #e5c584;
-  background: #fff8e9;
-  box-shadow: inset 3px 0 0 #d99a2b;
 }
 
 .tlg-calendar-player-activity.travel > strong {
   color: #67420b;
 }
 
-/* Calendar.tsx already marks the whole day with tlg-calendar-day-travel.
-   Use that day-level state for the indicator so the icon belongs to the day
-   header rather than to the travel activity card. */
 .tlg-calendar-travel-icon {
   display: none;
 }
@@ -97,37 +115,42 @@
   right: 58px;
 }
 
-.tlg-calendar-player-activities.multiple .tlg-calendar-player-activity.travel {
-  padding-right: 7px;
-}
-
 .tlg-calendar-player-activity.tournament,
-.tlg-calendar-player-activity.tournament.scheduled {
-  color: #0572bd;
-  border-color: #8cc9ee;
-  background: #e8f6ff;
-  box-shadow: inset 3px 0 0 #2d9de0;
+.tlg-calendar-player-activity.tournament.confirmed {
+  color: #0567a8;
 }
 
-.tlg-calendar-player-activity.tournament.scheduled > strong {
-  color: #12547e;
+.tlg-calendar-player-activity.tournament.confirmed > strong {
+  color: #0d4f78;
+}
+
+.tlg-calendar-player-activity.tournament.predicted {
+  color: #5e8298;
+}
+
+.tlg-calendar-player-activity.tournament.predicted > strong {
+  color: #365e76;
 }
 
 .tlg-calendar-player-activity.tournament.completed {
   color: #d9efff;
-  border-color: #0c568d;
-  background: #0f659f;
-  box-shadow: inset 3px 0 0 #073e67;
 }
 
 .tlg-calendar-player-activity.tournament.completed > strong {
   color: #fff;
 }
 
+.tlg-calendar-day-tournament-completed .tlg-calendar-day-number,
+.tlg-calendar-day-tournament-completed .tlg-calendar-player-activity > span {
+  color: #d9efff;
+}
+
+.tlg-calendar-day-tournament-completed .tlg-calendar-today-badge {
+  border-color: rgba(255,255,255,.5);
+}
+
 .tlg-calendar-player-activity.injured {
   color: #a13c48;
-  border-color: #efcdd2;
-  background: #fff5f6;
 }
 
 .tlg-calendar-player-activity-error {
@@ -141,22 +164,21 @@
   font-size: .7rem;
 }
 
+.tlg-season-calendar-bottom-nav {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
 @media (max-width: 760px) {
   .tlg-calendar-player-activities {
     left: 5px;
     right: 5px;
     bottom: 5px;
-    gap: 3px;
   }
 
-  .tlg-calendar-player-activity,
-  .tlg-calendar-player-activities.multiple .tlg-calendar-player-activity {
+  .tlg-calendar-player-activity {
     padding: 4px 6px;
-  }
-
-  .tlg-calendar-player-activity.travel,
-  .tlg-calendar-player-activities.multiple .tlg-calendar-player-activity.travel {
-    padding-right: 6px;
   }
 
   .tlg-calendar-day-travel::after {
@@ -175,5 +197,13 @@
 
   .tlg-calendar-player-activity > strong {
     font-size: .62rem;
+  }
+
+  .tlg-season-calendar-bottom-nav {
+    justify-content: stretch;
+  }
+
+  .tlg-season-calendar-bottom-nav .tlg-season-calendar-nav {
+    width: 100%;
   }
 }
