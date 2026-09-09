@@ -114,7 +114,7 @@ export default function RankingsPage() {
 
   useEffect(() => {
     if (loading || !returnPlayerId) return
-    const signature = `${page}:${returnPlayerId}:${returnScrollKey ?? ''}`
+    const signature = `${returnPlayerId}:${returnScrollKey ?? ''}`
     if (restoredReturnRef.current === signature) return
 
     const frame = window.requestAnimationFrame(() => {
@@ -144,7 +144,7 @@ export default function RankingsPage() {
     })
 
     return () => window.cancelAnimationFrame(frame)
-  }, [loading, page, returnPlayerId, returnScrollKey, rows])
+  }, [loading, returnPlayerId, returnScrollKey, rows])
 
   return (
     <GameLayout title="Rankings" subtitle={`${world} singles world ranking`}>
