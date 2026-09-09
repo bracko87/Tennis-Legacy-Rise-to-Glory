@@ -13,6 +13,6 @@ jobs:
           cache: npm
       - run: npm ci
       - name: TypeScript check
-        run: npx --yes typescript@latest tsc --noEmit --skipLibCheck
+        run: npx --yes -p typescript@latest tsc --noEmit --skipLibCheck
       - name: Production build
         run: npm run build
