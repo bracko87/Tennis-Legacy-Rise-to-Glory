@@ -2,6 +2,11 @@
   display: none !important;
 }
 
+/* Never substitute test artwork when a real player image is missing. */
+.tlg-match-versus > .tlg-match-player-card-polished:nth-of-type(2) .tlg-match-player-portrait-stage:not(.has-image) {
+  background-image: none !important;
+}
+
 .tlg-real-prematch-insights {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
