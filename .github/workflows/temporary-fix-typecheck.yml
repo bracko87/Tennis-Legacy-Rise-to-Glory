@@ -1,4 +1,4 @@
-name: Temporary source cleanup and verify
+name: Temporary calendar verification
 
 on:
   push:
@@ -6,17 +6,15 @@ on:
       - '.github/workflows/temporary-fix-typecheck.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  cleanup-and-verify:
+  verify:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Use Node 22
         uses: actions/setup-node@v4
         with:
@@ -24,40 +22,7 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Remove obsolete fixed-450 copy
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path('src/pages/player/CreatePlayer.tsx')
-          text = path.read_text()
-
-          replacements = {
-              '<div className="tlg-player-preview-meta-row"><span>Starting tennis points</span><strong>450 for every player</strong></div>':
-              '<div className="tlg-player-preview-meta-row"><span>Starting technical points</span><strong>440–455 · individually varied</strong></div>',
-              '<p className="tlg-surface-future-note">Every new player starts with the same 450 total tennis-skill points. Surface preference only changes where those points begin.</p>':
-              '<p className="tlg-surface-future-note">New human players begin with a varied 440–455 technical-point profile. Preferred surface changes the distribution while individual variation prevents identical starting players.</p>',
-              '<p>This is a second small redistribution of the same starting points. No style creates a stronger new player.</p>':
-              '<p>Playing style changes how your existing skills are used during matches. It is not a flat bonus: the style is strongest only when your skill profile supports it.</p>',
-          }
-
-          for old, new in replacements.items():
-              if old not in text:
-                  raise SystemExit(f'Expected source text not found: {old}')
-              text = text.replace(old, new, 1)
-
-          path.write_text(text)
-          PY
       - name: TypeScript check
         run: npx --yes --package=typescript@5.8.3 tsc --noEmit
       - name: Production build
         run: npm run build
-      - name: Commit verified source cleanup
-        shell: bash
-        run: |
-          git config user.name "bracko87"
-          git config user.email "aleksandarlevnajic@gmail.com"
-          git add src/pages/player/CreatePlayer.tsx
-          git commit -m "Remove obsolete fixed starting-points copy"
-          git push origin HEAD:main
