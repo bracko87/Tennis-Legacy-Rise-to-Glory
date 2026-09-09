@@ -30,12 +30,12 @@ function TacticGuide({ matchSpecific = false }: { matchSpecific?: boolean }) {
       onToggle={(event) => setIsOpen(event.currentTarget.open)}
     >
       <summary>
-        <span><Info size={16} /><strong>{matchSpecific ? 'How tactic settings change this match plan' : 'How tactic settings change the match plan'}</strong></span>
+        <span><Info size={16} /><strong>{matchSpecific ? 'Match tactic guide' : 'How tactic settings change the match plan'}</strong></span>
         <b>{isOpen ? 'Collapse' : 'Expand'}</b>
       </summary>
       <div className="tlg-tactic-education-body">
         <p>{matchSpecific
-          ? 'All match-tactic guidance is collected here. A saved one-match plan overrides your Tournament Default only for this opponent and locks 60 minutes before the scheduled start. Every aggressive choice has a trade-off; there is no universal “best” tactic.'
+          ? 'All match-tactic help is collected here. A saved one-match plan overrides your Tournament Default only for this opponent and locks 60 minutes before the scheduled start. Every aggressive choice has a trade-off; there is no universal “best” tactic.'
           : 'All tactic guidance is collected here. Your Tournament Default is used for every match at this event unless you save a match-specific override. Presets are shortcuts; the individual choices below are what the match engine actually uses.'}</p>
         <div className="tlg-tactic-education-grid">
           {TACTIC_ROWS.map(([group, option, benefit, tradeoff]) => (
@@ -97,6 +97,28 @@ function usePortalTarget(mode: 'schedule' | 'match') {
   return target
 }
 
+function useCurrentMatchKey() {
+  const [key, setKey] = useState('no-match')
+
+  useEffect(() => {
+    let disposed = false
+    const update = () => {
+      if (disposed) return
+      const heading = document.querySelector<HTMLElement>('.tlg-match-modal-head h2')?.textContent?.trim()
+      setKey(heading || 'no-match')
+    }
+    update()
+    const observer = new MutationObserver(update)
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true })
+    return () => {
+      disposed = true
+      observer.disconnect()
+    }
+  }, [])
+
+  return key
+}
+
 export function ScheduleTacticEducation() {
   const target = usePortalTarget('schedule')
   return target ? createPortal(<TacticGuide />, target) : null
@@ -104,5 +126,6 @@ export function ScheduleTacticEducation() {
 
 export function TournamentTacticEducation() {
   const target = usePortalTarget('match')
-  return target ? createPortal(<TacticGuide matchSpecific />, target) : null
+  const matchKey = useCurrentMatchKey()
+  return target ? createPortal(<TacticGuide key={matchKey} matchSpecific />, target) : null
 }
