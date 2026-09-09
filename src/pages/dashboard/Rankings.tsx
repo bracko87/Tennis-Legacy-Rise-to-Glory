@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link, useLocation, useSearchParams } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
@@ -18,15 +18,57 @@ interface RankingRow {
   ranking_points: number
 }
 
+interface RankingReturnState {
+  rankingReturnPlayerId?: string
+  rankingReturnScrollKey?: string
+}
+
+interface RankingPaginationProps {
+  page: number
+  rowCount: number
+  loading: boolean
+  placement?: 'top' | 'bottom'
+  onPrevious: () => void
+  onNext: () => void
+}
+
 const PAGE_SIZE = 50
+
+function pageFromSearch(value: string | null) {
+  if (!value) return 0
+  const parsed = Number.parseInt(value, 10)
+  return Number.isInteger(parsed) && parsed > 0 ? parsed - 1 : 0
+}
+
+function rankingScrollKey(world: string, page: number, playerId: string) {
+  return `tlg-ranking-return:${world}:${page + 1}:${playerId}`
+}
+
+function RankingPagination({ page, rowCount, loading, placement = 'bottom', onPrevious, onNext }: RankingPaginationProps) {
+  return (
+    <div className={`tlg-ranking-pagination${placement === 'top' ? ' tlg-ranking-pagination-top' : ''}`}>
+      <button type="button" disabled={page === 0 || loading} onClick={onPrevious}><ChevronLeft size={15} /> Previous 50</button>
+      <span>Positions {page * PAGE_SIZE + 1}–{page * PAGE_SIZE + Math.max(rowCount, 1)}</span>
+      <button type="button" disabled={rowCount < PAGE_SIZE || loading} onClick={onNext}>Next 50 <ChevronRight size={15} /></button>
+    </div>
+  )
+}
 
 export default function RankingsPage() {
   const { player } = useAuth()
   const world = player?.world ?? 'ATP'
-  const [page, setPage] = useState(0)
+  const location = useLocation()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const page = pageFromSearch(searchParams.get('page'))
   const [rows, setRows] = useState<RankingRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const previousWorldRef = useRef(world)
+  const restoredReturnRef = useRef<string | null>(null)
+  const returnState = location.state as RankingReturnState | null
+  const returnPlayerId = returnState?.rankingReturnPlayerId ?? null
+  const returnScrollKey = returnState?.rankingReturnScrollKey ?? null
+  const returnPath = `${location.pathname}${location.search}${location.hash}`
 
   const loadRankings = useCallback(async () => {
     setLoading(true)
@@ -46,13 +88,63 @@ export default function RankingsPage() {
     setLoading(false)
   }, [page, world])
 
+  const goToPage = useCallback((nextPage: number) => {
+    const safePage = Math.max(0, nextPage)
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current)
+      if (safePage === 0) next.delete('page')
+      else next.set('page', String(safePage + 1))
+      return next
+    })
+  }, [setSearchParams])
+
   useEffect(() => {
-    setPage(0)
-  }, [world])
+    if (previousWorldRef.current === world) return
+    previousWorldRef.current = world
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current)
+      next.delete('page')
+      return next
+    }, { replace: true })
+  }, [setSearchParams, world])
 
   useEffect(() => {
     void loadRankings()
   }, [loadRankings])
+
+  useEffect(() => {
+    if (loading || !returnPlayerId) return
+    const signature = `${page}:${returnPlayerId}:${returnScrollKey ?? ''}`
+    if (restoredReturnRef.current === signature) return
+
+    const frame = window.requestAnimationFrame(() => {
+      let restored = false
+      if (returnScrollKey) {
+        try {
+          const stored = window.sessionStorage.getItem(returnScrollKey)
+          const scrollY = stored === null ? Number.NaN : Number(stored)
+          if (Number.isFinite(scrollY)) {
+            window.scrollTo(0, scrollY)
+            restored = true
+          }
+          window.sessionStorage.removeItem(returnScrollKey)
+        } catch {
+          // Session storage can be unavailable in restricted browser modes.
+        }
+      }
+
+      if (!restored) {
+        const row = document.getElementById(`ranking-player-${returnPlayerId}`)
+        if (row) {
+          const target = Math.max(0, row.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.35)
+          window.scrollTo(0, target)
+        }
+      }
+      restoredReturnRef.current = signature
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [loading, page, returnPlayerId, returnScrollKey, rows])
 
   return (
     <GameLayout title="Rankings" subtitle={`${world} singles world ranking`}>
@@ -67,11 +159,19 @@ export default function RankingsPage() {
       </header>
 
       <section className="tlg-v2-panel">
-        <header className="tlg-v2-panel-header">
+        <header className="tlg-v2-panel-header tlg-ranking-panel-header">
           <div>
             <span>{world} singles</span>
             <h3>World Ranking</h3>
           </div>
+          <RankingPagination
+            page={page}
+            rowCount={rows.length}
+            loading={loading}
+            placement="top"
+            onPrevious={() => goToPage(page - 1)}
+            onNext={() => goToPage(page + 1)}
+          />
         </header>
 
         <div className="tlg-ranking-table-head">
@@ -92,26 +192,47 @@ export default function RankingsPage() {
           </div>
         ) : (
           <div className="tlg-live-ranking-rows">
-            {rows.map((row) => (
-              <Link
-                key={row.player_id}
-                to={`/game/players/${row.player_id}`}
-                className={`tlg-live-ranking-row ${row.player_id === player?.id ? 'tlg-live-ranking-row-own' : ''}`}
-              >
-                <strong className="tlg-live-rank-number">{row.rank_position}</strong>
-                <span className="tlg-live-player-name">{row.first_name} {row.last_name}</span>
-                <span className="tlg-live-country"><CountryFlag countryCode={row.country_code} countryName={row.country_code} width={22} height={15} /> {row.country_code}</span>
-                <strong className="tlg-live-points">{row.ranking_points.toLocaleString()}</strong>
-              </Link>
-            ))}
+            {rows.map((row) => {
+              const scrollKey = rankingScrollKey(world, page, row.player_id)
+              return (
+                <Link
+                  key={row.player_id}
+                  id={`ranking-player-${row.player_id}`}
+                  to={`/game/players/${row.player_id}`}
+                  state={{
+                    playerProfileReturn: returnPath,
+                    playerProfileReturnLabel: 'Back to Rankings',
+                    playerProfileReturnState: {
+                      rankingReturnPlayerId: row.player_id,
+                      rankingReturnScrollKey: scrollKey,
+                    },
+                  }}
+                  onClick={() => {
+                    try {
+                      window.sessionStorage.setItem(scrollKey, String(window.scrollY))
+                    } catch {
+                      // Row anchoring will still restore the user's place.
+                    }
+                  }}
+                  className={`tlg-live-ranking-row ${row.player_id === player?.id ? 'tlg-live-ranking-row-own' : ''}`}
+                >
+                  <strong className="tlg-live-rank-number">{row.rank_position}</strong>
+                  <span className="tlg-live-player-name">{row.first_name} {row.last_name}</span>
+                  <span className="tlg-live-country"><CountryFlag countryCode={row.country_code} countryName={row.country_code} width={22} height={15} /> {row.country_code}</span>
+                  <strong className="tlg-live-points">{row.ranking_points.toLocaleString()}</strong>
+                </Link>
+              )
+            })}
           </div>
         )}
 
-        <div className="tlg-ranking-pagination">
-          <button type="button" disabled={page === 0 || loading} onClick={() => setPage((value) => Math.max(0, value - 1))}><ChevronLeft size={15} /> Previous 50</button>
-          <span>Positions {page * PAGE_SIZE + 1}–{page * PAGE_SIZE + Math.max(rows.length, 1)}</span>
-          <button type="button" disabled={rows.length < PAGE_SIZE || loading} onClick={() => setPage((value) => value + 1)}>Next 50 <ChevronRight size={15} /></button>
-        </div>
+        <RankingPagination
+          page={page}
+          rowCount={rows.length}
+          loading={loading}
+          onPrevious={() => goToPage(page - 1)}
+          onNext={() => goToPage(page + 1)}
+        />
       </section>
     </GameLayout>
   )
