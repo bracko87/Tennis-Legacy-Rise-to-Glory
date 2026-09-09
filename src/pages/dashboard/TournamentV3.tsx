@@ -15,6 +15,7 @@ import { Link, useLocation, useParams, useSearchParams } from 'react-router'
 
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
+import TournamentDefendingPoints from '../../components/tournament/TournamentDefendingPoints'
 import { useGameClock } from '../../hooks/useGameClock'
 import {
   MONTHS,
@@ -655,6 +656,8 @@ export default function TournamentPage() {
             <strong>Up to {detail.qualifying_capacity_max}</strong>
           </article>
         </section>
+
+        <TournamentDefendingPoints competitionId={competitionId} rewardRows={liveRewardRows} />
 
         <section className="tlg-detail-panel">
           <header className="tlg-detail-panel-head">
