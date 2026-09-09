@@ -21,9 +21,11 @@
   border-color: #ecc6cc;
 }
 
+/* Confirmed sits deliberately between the pale predicted state and the dark
+   completed/played state. */
 .tlg-calendar-day-tournament-confirmed {
-  background: #dff2ff;
-  border-color: #69b9e8;
+  background: #b9def5;
+  border-color: #3f9bd1;
 }
 
 .tlg-calendar-day-tournament-predicted {
@@ -117,11 +119,11 @@
 
 .tlg-calendar-player-activity.tournament,
 .tlg-calendar-player-activity.tournament.confirmed {
-  color: #0567a8;
+  color: #075b91;
 }
 
 .tlg-calendar-player-activity.tournament.confirmed > strong {
-  color: #0d4f78;
+  color: #083f67;
 }
 
 .tlg-calendar-player-activity.tournament.predicted {
