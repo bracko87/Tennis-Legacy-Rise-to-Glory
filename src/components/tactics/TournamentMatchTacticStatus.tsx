@@ -143,16 +143,22 @@ export default function TournamentMatchTacticStatus() {
   if (!target || !selected || !player?.id || !status) return null
 
   const stateLabel = status.source === 'match_override' ? 'Match tactic saved' : 'Tactic unchanged'
-  const copy = status.editable
-    ? deadline
-      ? `You can change and save a tactic for this match until ${deadline}. The match locks 60 minutes before the scheduled start.`
-      : 'You can still change and save a tactic for this match.'
-    : 'This match tactic is locked and can no longer be changed.'
+  const deadlineLabel = status.editable
+    ? deadline ?? 'Still editable'
+    : 'Locked'
 
   return createPortal(
-    <div className={`tlg-match-tactic-status-row${status.editable ? '' : ' locked'}`}>
-      <div><span>Match tactic status</span><strong>{status.editable ? stateLabel : 'Tactic locked'}</strong></div>
-      <p>{copy}</p>
+    <div className={`tlg-match-tactic-status-strip${status.editable ? '' : ' locked'}`}>
+      <div>
+        <span>Match tactic status</span>
+        <strong>{status.editable ? stateLabel : 'Tactic locked'}</strong>
+        <small>{status.source === 'match_override' ? 'A match-specific override is active for this opponent.' : 'No match-specific override has been saved. Your tournament/default tactic will be used.'}</small>
+      </div>
+      <div>
+        <span>{status.editable ? 'Tactic can be changed until' : 'Tactic deadline'}</span>
+        <strong>{deadlineLabel}</strong>
+        <small>{status.editable ? 'The tactic locks 60 minutes before the scheduled match start.' : 'This match tactic can no longer be changed.'}</small>
+      </div>
     </div>,
     target,
   )
