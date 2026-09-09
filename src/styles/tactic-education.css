@@ -4,4 +4,9 @@
    button/help panel is deliberately hidden to avoid duplicate instructions. */
 .tlg-match-tactic-section .tlg-tactic-info-button{display:none!important}.tlg-match-tactic-section .tlg-tactic-help{display:none!important}.tlg-match-tactic-education-host{margin-bottom:12px}
 
+/* While a match tactic is editable, the separate projected-effects explainer
+   is hidden so all help stays inside the single collapsed Match tactic guide.
+   Completed/locked matches keep their effective tactical outcome summary. */
+.tlg-match-tactic-section:has(.tlg-match-tactic-presets) .tlg-tactic-effects{display:none!important}
+
 @media(max-width:760px){.tlg-tactic-education-grid{grid-template-columns:1fr}.tlg-tactic-education>summary{align-items:flex-start}.tlg-tactic-education>summary>b{display:block}}
