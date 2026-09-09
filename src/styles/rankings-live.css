@@ -53,6 +53,41 @@
 .tlg-live-country { display: inline-flex; align-items: center; justify-content: flex-start; gap: 7px; color: #678094; font-size: .65rem; }
 .tlg-live-points { text-align: right; color: #173149; font-size: .72rem; font-weight: 700; }
 
+.tlg-ranking-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.tlg-ranking-pagination-top {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.tlg-ranking-pagination-top > span {
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .tlg-ranking-panel-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tlg-ranking-pagination-top {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
 @media (max-width: 680px) {
   .tlg-ranking-table-head,
   .tlg-live-ranking-row {
@@ -67,5 +102,11 @@
   .tlg-ranking-table-head > span:nth-child(4),
   .tlg-live-ranking-row > :nth-child(4) {
     grid-column: 3;
+  }
+}
+
+@media (max-width: 520px) {
+  .tlg-ranking-pagination-top > span {
+    display: none;
   }
 }
