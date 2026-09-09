@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
-import { formatCompetitionWeekDay } from '../../lib/competitionCalendar'
 import { supabase } from '../../lib/supabase'
 import '../../styles/tournament-match-tactic-status.css'
 
@@ -17,12 +16,11 @@ interface DrawMatch {
   player2_id: string | null
 }
 
-interface MatchDetail {
-  match_id: string
-  scheduled_season_week: number
-  scheduled_day: number
-  scheduled_start_minute: number | null
-  status: MatchStatus
+interface GameCalendarDate {
+  season: number
+  month: number
+  day: number
+  season_week: number
 }
 
 interface MatchTacticData {
@@ -30,7 +28,12 @@ interface MatchTacticData {
   editable: boolean
   source: 'automatic_default' | 'tournament_default' | 'match_override'
   tactic_lock_game_second: number | null
+  tactic_lock_game_date: GameCalendarDate | null
+  tactic_lock_minute_of_day: number | null
+  lock_minutes_before_start: number
 }
+
+const GAME_MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const
 
 function parseModalMatch(modal: HTMLElement, matches: DrawMatch[]) {
   const text = modal.querySelector<HTMLElement>('.tlg-match-modal-head h2')?.textContent?.trim() ?? ''
@@ -45,35 +48,15 @@ function parseModalMatch(modal: HTMLElement, matches: DrawMatch[]) {
   return matches.find((match) => match.round_label === roundLabel && match.match_number === matchNumber) ?? null
 }
 
-function formatMinute(minuteOfDay: number) {
-  const safe = ((minuteOfDay % 1440) + 1440) % 1440
-  const hours = Math.floor(safe / 60)
-  const minutes = safe % 60
-  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
-}
+function formatLockDeadline(tactic: MatchTacticData | null) {
+  const date = tactic?.tactic_lock_game_date
+  const minuteOfDay = tactic?.tactic_lock_minute_of_day
+  if (!date || minuteOfDay === null || minuteOfDay === undefined) return null
 
-function formatLockDeadline(detail: MatchDetail | null) {
-  if (!detail) return null
-
-  let week = detail.scheduled_season_week
-  let day = detail.scheduled_day
-  let lockMinute = (detail.scheduled_start_minute ?? 600) - 60
-
-  while (lockMinute < 0) {
-    lockMinute += 1440
-    day -= 1
-  }
-  while (day < 1) {
-    week -= 1
-    day += 7
-  }
-  while (day > 7) {
-    week += 1
-    day -= 7
-  }
-
-  if (week < 1) return `Previous day · ${formatMinute(lockMinute)}`
-  return `${formatCompetitionWeekDay(week, day)} · ${formatMinute(lockMinute)}`
+  const hours = Math.floor(minuteOfDay / 60)
+  const minutes = minuteOfDay % 60
+  const month = GAME_MONTH_NAMES[date.month - 1] ?? `Month ${date.month}`
+  return `${month} ${date.day}, Season ${date.season} · ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
 }
 
 export default function TournamentMatchTacticStatus() {
@@ -82,7 +65,6 @@ export default function TournamentMatchTacticStatus() {
   const [matches, setMatches] = useState<DrawMatch[]>([])
   const [selectedMatch, setSelectedMatch] = useState<DrawMatch | null>(null)
   const [host, setHost] = useState<HTMLElement | null>(null)
-  const [detail, setDetail] = useState<MatchDetail | null>(null)
   const [tactic, setTactic] = useState<MatchTacticData | null>(null)
 
   useEffect(() => {
@@ -148,23 +130,19 @@ export default function TournamentMatchTacticStatus() {
 
   const loadStatus = useCallback(async () => {
     if (!selectedMatch?.match_id || !player?.id) {
-      setDetail(null)
       setTactic(null)
       return
     }
     if (selectedMatch.player1_id !== player.id && selectedMatch.player2_id !== player.id) {
-      setDetail(null)
       setTactic(null)
       return
     }
 
-    const [detailResponse, tacticResponse] = await Promise.all([
-      supabase.rpc('get_tournament_match_detail_v1', { p_match_id: selectedMatch.match_id }),
-      supabase.rpc('get_tournament_match_tactic_v1', { p_player_id: player.id, p_match_id: selectedMatch.match_id }),
-    ])
-
-    setDetail(detailResponse.error || !detailResponse.data ? null : (detailResponse.data as MatchDetail))
-    setTactic(tacticResponse.error || !tacticResponse.data ? null : (tacticResponse.data as MatchTacticData))
+    const { data, error } = await supabase.rpc('get_tournament_match_tactic_v1', {
+      p_player_id: player.id,
+      p_match_id: selectedMatch.match_id,
+    })
+    setTactic(error || !data ? null : (data as MatchTacticData))
   }, [player?.id, selectedMatch?.match_id, selectedMatch?.player1_id, selectedMatch?.player2_id])
 
   useEffect(() => {
@@ -180,18 +158,19 @@ export default function TournamentMatchTacticStatus() {
     return () => { void supabase.removeChannel(channel) }
   }, [loadStatus, player?.id, selectedMatch?.match_id])
 
-  const lockDeadline = useMemo(() => formatLockDeadline(detail), [detail])
+  const lockDeadline = useMemo(() => formatLockDeadline(tactic), [tactic?.tactic_lock_game_date, tactic?.tactic_lock_minute_of_day])
 
   if (!host || !selectedMatch || !player?.id || !tactic) return null
   if (selectedMatch.player1_id !== player.id && selectedMatch.player2_id !== player.id) return null
 
   const hasOverride = tactic.source === 'match_override'
-  const statusTitle = hasOverride ? 'Match tactic saved' : 'Tactic unchanged'
+  const statusTitle = hasOverride ? 'Match tactic override saved' : 'Tactic unchanged'
   const sourceText = tactic.source === 'tournament_default'
     ? 'Using your Tournament Default until you save a match-specific tactic.'
     : tactic.source === 'automatic_default'
       ? 'Using the Automatic Balanced default until you save a match-specific tactic.'
       : 'A match-specific override is saved for this opponent.'
+  const lockMinutes = tactic.lock_minutes_before_start ?? 60
 
   return createPortal(
     <section className={`tlg-match-tactic-status-strip${tactic.editable ? ' editable' : ' locked'}`}>
@@ -201,9 +180,9 @@ export default function TournamentMatchTacticStatus() {
         <small>{sourceText}</small>
       </div>
       <div>
-        <span>{tactic.editable ? 'Editable until' : 'Match tactic'}</span>
-        <strong>{tactic.editable ? (lockDeadline ?? '60 minutes before match') : 'Locked'}</strong>
-        <small>{tactic.editable ? 'Changes lock 60 minutes before the scheduled start.' : 'The match has started, finished, or reached its tactic lock time.'}</small>
+        <span>{tactic.editable ? 'Tactic can be changed until' : 'Tactic deadline'}</span>
+        <strong>{tactic.editable ? (lockDeadline ?? 'Schedule pending') : 'Locked'}</strong>
+        <small>{tactic.editable ? `Changes lock ${lockMinutes} minutes before the scheduled start.` : 'The match has started, finished, or reached its tactic lock time.'}</small>
       </div>
     </section>,
     host,
