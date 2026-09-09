@@ -1,4 +1,4 @@
-import { Minus, ShieldCheck, TrendingDown, TrendingUp } from 'lucide-react'
+import { Minus, TrendingDown, TrendingUp } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router'
 
@@ -136,7 +136,6 @@ export default function TournamentDefendingPoints({ competitionId, rewardRows }:
           <button type="button" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>
             {expanded ? 'Collapse' : 'Expand'}
           </button>
-          <ShieldCheck size={20} />
         </div>
       </header>
 
