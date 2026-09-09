@@ -72,7 +72,7 @@ import { ForumPage, HelpPage } from './pages/manager/CommunitySupport'
 import { PlayerAccountPage } from './pages/manager/ManagerPages'
 
 function resetTournamentScrollPosition() {
-  window.scrollTo(0, 0)
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
 
   if (document.scrollingElement) {
     document.scrollingElement.scrollTop = 0
@@ -80,8 +80,9 @@ function resetTournamentScrollPosition() {
   }
 
   const tournamentPage = document.querySelector<HTMLElement>('.tlg-detail-page')
-  let parent = tournamentPage?.parentElement ?? null
+  if (!tournamentPage) return false
 
+  let parent = tournamentPage.parentElement
   while (parent) {
     const overflowY = window.getComputedStyle(parent).overflowY
     if (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay') {
@@ -90,15 +91,42 @@ function resetTournamentScrollPosition() {
     }
     parent = parent.parentElement
   }
+
+  tournamentPage.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'auto' })
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  return true
 }
 
 function TournamentRoute() {
   const { competitionId } = useParams()
 
   useLayoutEffect(() => {
-    resetTournamentScrollPosition()
-    const frame = window.requestAnimationFrame(resetTournamentScrollPosition)
-    return () => window.cancelAnimationFrame(frame)
+    let cancelled = false
+    let frame = 0
+    let attempts = 0
+
+    const resetWhenMounted = () => {
+      if (cancelled) return
+      attempts += 1
+      const pageIsMounted = resetTournamentScrollPosition()
+
+      if (!pageIsMounted && attempts < 60) {
+        frame = window.requestAnimationFrame(resetWhenMounted)
+        return
+      }
+
+      if (pageIsMounted) {
+        frame = window.requestAnimationFrame(() => {
+          if (!cancelled) resetTournamentScrollPosition()
+        })
+      }
+    }
+
+    resetWhenMounted()
+    return () => {
+      cancelled = true
+      window.cancelAnimationFrame(frame)
+    }
   }, [competitionId])
 
   return (
