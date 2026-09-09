@@ -61,6 +61,12 @@ interface ScoutingReport {
   playing_style?: string
 }
 
+interface PlayerProfileReturnState {
+  playerProfileReturn?: string
+  playerProfileReturnLabel?: string
+  playerProfileReturnState?: unknown
+}
+
 const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 const EMPTY_TOURNAMENT_SUMMARY: PlayerTournamentSummary = { next_tournaments: [], recent_tournaments: [], best_results: [] }
@@ -124,9 +130,10 @@ export default function PlayerProfilePage() {
   const [tournamentError, setTournamentError] = useState<string | null>(null)
   const [messageBusy, setMessageBusy] = useState(false)
   const avatarUrl = usePlayerAvatarUrl(profile?.image_path)
-  const returnState = location.state as { playerProfileReturn?: string; playerProfileReturnLabel?: string } | null
+  const returnState = location.state as PlayerProfileReturnState | null
   const backTarget = returnState?.playerProfileReturn ?? '/game/rankings'
   const backLabel = returnState?.playerProfileReturnLabel ?? 'Back to Rankings'
+  const backState = returnState?.playerProfileReturnState
 
   useEffect(() => {
     let active = true
@@ -163,7 +170,7 @@ export default function PlayerProfilePage() {
   return (
     <GameLayout title="Player profile" subtitle="Professional player identity">
       <div className="tlg-public-player-page">
-        <Link to={backTarget} className="tlg-public-player-back"><ArrowLeft size={15} /> {backLabel}</Link>
+        <Link to={backTarget} state={backState} className="tlg-public-player-back"><ArrowLeft size={15} /> {backLabel}</Link>
         {loading ? <div className="tlg-public-player-state">Loading player profile…</div> : error && !profile ? <div className="tlg-public-player-state">{error}</div> : profile ? (
           <>
             <section className="tlg-public-player-card">
