@@ -323,3 +323,14 @@
     min-width: 620px;
   }
 }
+
+
+/* Defending Points is intentionally compact by default. */
+.tlg-defence-panel.collapsed>.tlg-defence-head{border-bottom:0}
+.tlg-defence-panel.collapsed>:not(.tlg-defence-head){display:none}
+.tlg-defence-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex:0 0 auto}
+.tlg-defence-head-actions>span{color:#6f8396;font-size:.62rem;font-weight:800;white-space:nowrap}
+.tlg-defence-head-actions>button{padding:6px 10px;border:1px solid #cbdce7;border-radius:7px;background:#fff;color:#315a75;font-size:.58rem;font-weight:800;cursor:pointer}
+.tlg-defence-head-actions>button:hover{border-color:#9bc6e3;color:#0b6fc8;background:#f4faff}
+.tlg-defence-head-actions>svg{color:#0b6fc8}
+@media(max-width:680px){.tlg-defence-head-actions>span{display:none}}

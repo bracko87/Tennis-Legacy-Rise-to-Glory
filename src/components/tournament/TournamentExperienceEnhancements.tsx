@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useLocation, useParams } from 'react-router'
 
 import CountryFlag from '../common/CountryFlag'
 import { supabase } from '../../lib/supabase'
@@ -40,6 +40,7 @@ interface ApplicantRow {
   country_code: string | null
   player_type: 'human' | 'ai'
   world_rank: number
+  current_world_rank: number
   priority: number | null
   accept_qualification: boolean
   application_source: string
@@ -144,6 +145,7 @@ function QualificationPlayer({ match, side }: { match: DrawMatch; side: 1 | 2 })
 
 export default function TournamentExperienceEnhancements() {
   const { competitionId } = useParams()
+  const location = useLocation()
   const [lifecycle, setLifecycle] = useState<LifecycleData | null>(null)
   const [field, setField] = useState<ApplicationFieldData | null>(null)
   const [drawMatches, setDrawMatches] = useState<DrawMatch[]>([])
@@ -152,6 +154,11 @@ export default function TournamentExperienceEnhancements() {
   const [fieldHost, setFieldHost] = useState<HTMLElement | null>(null)
   const [drawControlHost, setDrawControlHost] = useState<HTMLElement | null>(null)
   const [drawBodyHost, setDrawBodyHost] = useState<HTMLElement | null>(null)
+  const [fieldExpandedOverride, setFieldExpandedOverride] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    setFieldExpandedOverride(null)
+  }, [competitionId])
 
   const load = useCallback(async () => {
     if (!competitionId) return
@@ -294,6 +301,9 @@ export default function TournamentExperienceEnhancements() {
     outside: field?.applicants.filter((row) => row.projected_group === 'outside') ?? [],
   }), [field])
 
+  const fieldExpanded = fieldExpandedOverride ?? !['draw_published', 'in_progress', 'completed'].includes(lifecycle?.phase ?? '')
+  const returnPath = `${location.pathname}${location.search}${location.hash}`
+
   return (
     <>
       {heroHost && lifecycle && createPortal(
@@ -307,12 +317,17 @@ export default function TournamentExperienceEnhancements() {
         </div>, heroHost)}
 
       {fieldHost && field && createPortal(
-        <div className="tlg-applicant-field">
+        <div className={`tlg-applicant-field${fieldExpanded ? '' : ' collapsed'}`}>
           <div className="tlg-applicant-field-head">
-            <div><span>Live application field</span><strong>{field.applicant_count} applicants</strong></div>
-            <p>Main Draw {field.main_draw_total_capacity}: {field.direct_main_draw_slots} direct places + {field.qualifier_slots} qualifier places · Qualification capacity {field.qualification_capacity}.</p>
+            <div><span>Live application field</span><strong>{field.applicant_count} current applicant{field.applicant_count === 1 ? '' : 's'}</strong></div>
+            <div className="tlg-applicant-field-head-actions">
+              {fieldExpanded && <p>Main Draw {field.main_draw_total_capacity}: {field.direct_main_draw_slots} direct places + {field.qualifier_slots} qualifier places · Qualification capacity {field.qualification_capacity}.</p>}
+              <button type="button" className="tlg-applicant-field-toggle" aria-expanded={fieldExpanded} onClick={() => setFieldExpandedOverride(!fieldExpanded)}>
+                {fieldExpanded ? 'Hide field' : 'Show field'}
+              </button>
+            </div>
           </div>
-          <div className="tlg-applicant-scroll">
+          {fieldExpanded && <div className="tlg-applicant-scroll">
             {(['main_draw', 'qualification', 'outside'] as const).map((group) => {
               const rows = groupedApplicants[group]
               if (!rows.length && group === 'outside') return null
@@ -321,9 +336,15 @@ export default function TournamentExperienceEnhancements() {
                   <header><strong>{groupLabel(group)}</strong><span>{group === 'main_draw' ? `${field.direct_main_draw_slots} direct places` : group === 'qualification' ? `up to ${field.qualification_capacity} places` : 'below the current cut'}</span></header>
                   {rows.map((row) => (
                     <div key={row.application_id} className={`tlg-applicant-row${row.is_user ? ' is-user' : ''}`}>
-                      <b>#{row.world_rank}</b>
+                      <b title={row.current_world_rank !== row.world_rank ? `Current ranking: #${row.current_world_rank}` : undefined}>#{row.world_rank}</b>
                       <CountryFlag countryCode={row.country_code ?? ''} countryName={row.country_code ?? ''} width={19} height={13} />
-                      <strong>{row.first_name} {row.last_name}{row.is_user ? ' · You' : ''}</strong>
+                      <Link
+                        className="tlg-applicant-player-link"
+                        to={`/game/players/${row.player_id}`}
+                        state={{ playerProfileReturn: returnPath, playerProfileReturnLabel: 'Back to Tournament' }}
+                      >
+                        {row.first_name} {row.last_name}{row.is_user ? ' · You' : ''}
+                      </Link>
                       <span>{row.priority ? `Priority #${row.priority}` : row.application_source.includes('late') ? 'Late Entry' : '—'}</span>
                       <small>{row.application_status.replaceAll('_', ' ')}</small>
                     </div>
@@ -331,7 +352,7 @@ export default function TournamentExperienceEnhancements() {
                 </section>
               )
             })}
-          </div>
+          </div>}
         </div>, fieldHost)}
 
       {drawControlHost && field && createPortal(

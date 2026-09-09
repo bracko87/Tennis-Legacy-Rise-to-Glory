@@ -73,6 +73,11 @@ export default function TournamentDefendingPoints({ competitionId, rewardRows }:
   const [data, setData] = useState<DefendingPointsResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState(false)
+
+  useEffect(() => {
+    setExpanded(false)
+  }, [competitionId])
 
   useEffect(() => {
     if (!competitionId) {
@@ -119,14 +124,20 @@ export default function TournamentDefendingPoints({ competitionId, rewardRows }:
   const returnPath = `${location.pathname}${location.search}${location.hash}`
 
   return (
-    <section className="tlg-detail-panel tlg-defence-panel">
+    <section className={`tlg-detail-panel tlg-defence-panel${expanded ? '' : ' collapsed'}`}>
       <header className="tlg-detail-panel-head tlg-defence-head">
         <div>
           <span>Ranking protection</span>
           <h2>Defending Points</h2>
-          <p>Last season's points from this same tournament series stay in the ranking until this edition's ranking cycle replaces them.</p>
+          {expanded && <p>Last season's points from this same tournament series stay in the ranking until this edition's ranking cycle replaces them.</p>}
         </div>
-        <ShieldCheck size={20} />
+        <div className="tlg-defence-head-actions">
+          {data && <span>{data.own.points_defending.toLocaleString()} pts defending</span>}
+          <button type="button" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>
+            {expanded ? 'Collapse' : 'Expand'}
+          </button>
+          <ShieldCheck size={20} />
+        </div>
       </header>
 
       {loading ? (

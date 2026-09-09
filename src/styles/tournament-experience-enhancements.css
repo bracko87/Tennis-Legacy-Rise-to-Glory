@@ -94,3 +94,15 @@
   .tlg-applicant-row{grid-template-columns:42px 22px minmax(130px,1fr) 82px}.tlg-applicant-row>small{grid-column:3/5;text-align:left;padding-bottom:3px}
   .tlg-tournament-prep-backdrop{padding-bottom:58px!important}.tlg-tournament-prep-dialog{max-height:calc(100vh - 142px)!important}
 }
+
+
+/* Collapsible application field and clean profile links. */
+.tlg-applicant-field.collapsed .tlg-applicant-field-head{border-bottom:0}
+.tlg-applicant-field-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;min-width:0}
+.tlg-applicant-field-head-actions p{min-width:0}
+.tlg-applicant-field-toggle{flex:0 0 auto;padding:6px 10px;border:1px solid #cbdce7;border-radius:7px;background:#fff;color:#315a75;font-size:.56rem;font-weight:800;cursor:pointer}
+.tlg-applicant-field-toggle:hover{border-color:#9bc6e3;color:#0b6fc8;background:#f4faff}
+.tlg-applicant-player-link{min-width:0;overflow:hidden;color:#294b62;font-size:.6rem;font-weight:760;text-decoration:none;text-overflow:ellipsis;white-space:nowrap}
+.tlg-applicant-player-link:hover{color:#0b6fc8;text-decoration:none}
+.tlg-applicant-row.is-user>.tlg-applicant-player-link{color:#0b609a;font-weight:850}
+@media(max-width:980px){.tlg-applicant-field-head-actions{width:100%;justify-content:space-between}.tlg-applicant-field-head-actions p{text-align:left}}
