@@ -18,6 +18,7 @@ import { useState } from 'react'
 
 import { useAuth } from '../../auth/AuthContext'
 import GameLayout from '../../components/layout/GameLayout'
+import AvatarReplacementCancelControl from '../../components/player/AvatarReplacementCancelControl'
 import AvatarReplacementRequestPanel from '../../components/player/AvatarReplacementRequestPanel'
 import usePlayerAvatarUrl from '../../hooks/usePlayerAvatarUrl'
 import { supabase } from '../../lib/supabase'
@@ -222,6 +223,7 @@ export function PlayerAccountPage() {
         </section>
 
         <AvatarReplacementRequestPanel />
+        <AvatarReplacementCancelControl />
 
         <section className="tlg-account-section">
           <header className="tlg-account-section-head tlg-account-section-head-icon">
