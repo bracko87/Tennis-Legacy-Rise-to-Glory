@@ -11,12 +11,12 @@ function getAvatarBucket(imagePath: string) {
 }
 
 /**
- * Resolve a player's stored image path to an authenticated signed URL.
+ * Resolve a player's stored image path to a browser-safe URL.
  *
- * Curated ATP/WTA portraits live in the private Admin bucket, while future
- * custom player uploads may live in player-avatars. Keeping this logic here
- * prevents dashboard pages from accidentally constructing public URLs for a
- * private bucket.
+ * Curated ATP/WTA portraits live in the private Admin bucket and therefore
+ * require authenticated signed URLs. User-approved avatars live in the public
+ * player-avatars bucket, so they must use the bucket's public URL instead of
+ * requesting a signed URL that can fail when no object SELECT policy exists.
  */
 export default function usePlayerAvatarUrl(imagePath?: string | null) {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
@@ -35,6 +35,16 @@ export default function usePlayerAvatarUrl(imagePath?: string | null) {
 
     async function resolveAvatar() {
       const bucket = getAvatarBucket(resolvedImagePath)
+
+      if (bucket === 'player-avatars') {
+        const { data } = supabase.storage
+          .from(bucket)
+          .getPublicUrl(resolvedImagePath)
+
+        if (active) setAvatarUrl(data.publicUrl)
+        return
+      }
+
       const { data, error } = await supabase.storage
         .from(bucket)
         .createSignedUrl(resolvedImagePath, 3600)
