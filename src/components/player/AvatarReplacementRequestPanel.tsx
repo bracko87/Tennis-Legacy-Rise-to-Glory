@@ -1,4 +1,4 @@
-import { Camera, CheckCircle2, Clock3, ImagePlus, Palette, RefreshCcw, ShieldCheck, Upload } from 'lucide-react'
+import { BookOpen, CheckCircle2, Clock3, Copy, ImagePlus, Palette, RefreshCcw, ShieldCheck, Upload } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useAuth } from '../../auth/AuthContext'
@@ -10,6 +10,7 @@ const SUPPORT_EMAIL = 'contact@tennislegacygame.com'
 const PRIVATE_BUCKET = 'avatar-replacement-submissions'
 const MAX_FILE_BYTES = 8 * 1024 * 1024
 const ACTIVE_STATUSES = new Set(['submitted', 'under_review', 'preparing', 'ready_for_review', 'revision_requested'])
+const CHATGPT_AVATAR_PROMPT = `Please create a realistic tennis player profile avatar based only on my attached photo and my own appearance. Use the attached Tennis Legacy example image only for framing and alignment. The background must be pure white. Use a passport-style, front-facing composition with the head centered and the eyes, ears, mouth and overall face position at approximately the same level as the example. Keep my real facial identity recognizable and do not make me resemble a celebrity, public figure or any other real person. Show the head and upper shoulders only. Dress me in a clean [sport jersey/polo shirt] in [preferred colors], with no logos, sponsors, text or brand marks. Use realistic lighting and a natural neutral expression, with no hat, sunglasses, props or background objects. Keep the result suitable for a square in-game profile image.`
 
 interface AvatarRequestRow {
   id: string
@@ -98,6 +99,10 @@ export default function AvatarReplacementRequestPanel() {
   const [colors, setColors] = useState(['', '', ''])
   const [appearanceInstructions, setAppearanceInstructions] = useState('')
   const [revisionMessage, setRevisionMessage] = useState('')
+  const [rulesOpen, setRulesOpen] = useState(false)
+  const [promptCopied, setPromptCopied] = useState(false)
+  const [identityConfirmed, setIdentityConfirmed] = useState(false)
+  const [privacyConsent, setPrivacyConsent] = useState(false)
 
   const reviewAvatarUrl = usePlayerAvatarUrl(request?.status === 'ready_for_review' ? request.review_image_path : null)
   const isActive = Boolean(request && ACTIVE_STATUSES.has(request.status))
@@ -137,6 +142,31 @@ export default function AvatarReplacementRequestPanel() {
 
     return () => window.clearInterval(timer)
   }, [loadRequest, user?.id])
+
+
+  useEffect(() => {
+    if (!request || !['completed', 'rejected'].includes(request.status) || request.reference_deleted_at) return
+
+    let cancelled = false
+
+    async function cleanupPrivateSubmission() {
+      const { data: cleanupPath, error: cleanupPathError } = await supabase.rpc('get_avatar_reference_cleanup_path_v1', {
+        p_request_id: request.id,
+      })
+      if (cleanupPathError || !cleanupPath || cancelled) return
+
+      const { error: removeError } = await supabase.storage.from(PRIVATE_BUCKET).remove([String(cleanupPath)])
+      if (removeError || cancelled) return
+
+      const { error: confirmError } = await supabase.rpc('confirm_avatar_reference_deleted_v1', {
+        p_request_id: request.id,
+      })
+      if (!confirmError && !cancelled) await loadRequest()
+    }
+
+    void cleanupPrivateSubmission()
+    return () => { cancelled = true }
+  }, [loadRequest, request?.id, request?.reference_deleted_at, request?.status])
 
   const cleanedColors = useMemo(() => colors.map((value) => value.trim()).filter(Boolean).slice(0, 3), [colors])
 
@@ -201,6 +231,14 @@ export default function AvatarReplacementRequestPanel() {
       setError('Please add a short request description.')
       return
     }
+    if (!identityConfirmed) {
+      setError('Please confirm that the submitted image is you or is based only on your own appearance.')
+      return
+    }
+    if (!privacyConsent) {
+      setError('Please accept the limited image-processing and privacy notice before submitting.')
+      return
+    }
 
     setBusy(true)
     let storagePath: string | null = null
@@ -216,7 +254,7 @@ export default function AvatarReplacementRequestPanel() {
 
       if (uploadError) throw uploadError
 
-      const { error: submitError } = await supabase.rpc('submit_avatar_replacement_request_v1', {
+      const { error: submitError } = await supabase.rpc('submit_avatar_replacement_request_v2', {
         p_request_id: requestId,
         p_submission_type: submissionType,
         p_storage_path: storagePath,
@@ -228,6 +266,8 @@ export default function AvatarReplacementRequestPanel() {
         p_jersey_type: jerseyType,
         p_jersey_colors: cleanedColors,
         p_appearance_instructions: appearanceInstructions.trim(),
+        p_identity_attestation: identityConfirmed,
+        p_privacy_consent: privacyConsent,
         p_page_url: window.location.href,
       })
 
@@ -242,6 +282,8 @@ export default function AvatarReplacementRequestPanel() {
       setDetails('')
       setAppearanceInstructions('')
       setColors(['', '', ''])
+      setIdentityConfirmed(false)
+      setPrivacyConsent(false)
       setSuccess(`Request ${requestId} was submitted privately to Tennis Legacy support.`)
       await loadRequest()
     } catch (caught) {
@@ -297,8 +339,55 @@ export default function AvatarReplacementRequestPanel() {
           <h3>Private avatar replacement request</h3>
           <p>Use one private photo as a reference, or upload an avatar you created yourself for approval. Nothing changes automatically and the original photo is never posted to Discord or exposed through a public URL.</p>
         </div>
-        <Camera size={20} />
+        <button
+          type="button"
+          className="tlg-avatar-rules-button"
+          onClick={() => setRulesOpen((value) => !value)}
+          aria-expanded={rulesOpen}
+          aria-controls="tlg-avatar-rules-panel"
+        >
+          <BookOpen size={16} />
+          {rulesOpen ? 'Hide rules' : 'Avatar rules'}
+        </button>
       </header>
+
+      {rulesOpen && (
+        <div id="tlg-avatar-rules-panel" className="tlg-avatar-rules-panel">
+          <div className="tlg-avatar-rules-intro">
+            <BookOpen size={20} />
+            <div>
+              <strong>Official Tennis Legacy avatar rules</strong>
+              <p>These rules apply both to reference photos and to finished avatars created by the player.</p>
+            </div>
+          </div>
+          <div className="tlg-avatar-rules-grid">
+            <article><span>1</span><div><strong>Your own identity only</strong><p>The image must be you or an avatar based only on your own appearance. Do not submit another person, celebrity, public figure, friend or family member.</p></div></article>
+            <article><span>2</span><div><strong>White background</strong><p>The final avatar must use a clean pure-white background with no scenery, objects or decorative background.</p></div></article>
+            <article><span>3</span><div><strong>Passport-style framing</strong><p>Front-facing head and upper shoulders, centered and clearly visible. Eyes, ears, mouth and face position should follow the Tennis Legacy example alignment.</p></div></article>
+            <article><span>4</span><div><strong>Clean game presentation</strong><p>Use a sport jersey or polo shirt in the requested colors. No logos, sponsors, brand marks, text, hats, sunglasses or distracting props.</p></div></article>
+          </div>
+          <div className="tlg-avatar-policy-warning">Deliberately submitting or imitating another real person, including a celebrity or public figure, is prohibited. The request may be rejected and deliberate or repeated impersonation/abuse may result in account suspension or removal from the game.</div>
+          <div className="tlg-avatar-chatgpt-box">
+            <div>
+              <strong>Want to create the avatar yourself with ChatGPT?</strong>
+              <p>Attach your own photo and the Tennis Legacy example image, then use this prompt. You can submit only the finished avatar for approval if you prefer not to send us your real photo.</p>
+            </div>
+            <textarea readOnly rows={6} value={CHATGPT_AVATAR_PROMPT} aria-label="Suggested ChatGPT avatar prompt" />
+            <button
+              type="button"
+              className="tlg-account-secondary-button"
+              onClick={() => {
+                void navigator.clipboard.writeText(CHATGPT_AVATAR_PROMPT).then(() => {
+                  setPromptCopied(true)
+                  window.setTimeout(() => setPromptCopied(false), 1800)
+                })
+              }}
+            >
+              <Copy size={14} /> {promptCopied ? 'Prompt copied' : 'Copy ChatGPT prompt'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="tlg-avatar-request-loading">Loading avatar request status…</div>
@@ -352,9 +441,7 @@ export default function AvatarReplacementRequestPanel() {
               <p>
                 {request.reference_deleted_at
                   ? `The private original/reference image was deleted on ${formatDate(request.reference_deleted_at)}.`
-                  : request.reference_delete_after
-                    ? `The private original/reference image is scheduled for deletion after ${formatDate(request.reference_delete_after)} and may be deleted earlier by an administrator.`
-                    : 'The closed request no longer changes your avatar. The admin team can delete the private original/reference image when it is no longer needed.'}
+                  : 'The private original/reference image is queued for immediate deletion now that the request is closed. If automatic cleanup needs a retry, the file remains private until it is removed.'}
               </p>
             </div>
           )}
@@ -381,6 +468,7 @@ export default function AvatarReplacementRequestPanel() {
                   <span>{submissionType === 'candidate_avatar' ? 'Finished avatar image for approval' : 'One reference photo of yourself'}</span>
                   <input key={fileInputKey} type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setError(null) }} required />
                   <small>Private upload · JPG, PNG or WEBP only · maximum 8 MB · SVG is intentionally not accepted.</small>
+                  <small className="tlg-avatar-photo-privacy-note">The private submission is used only to process this avatar request, is not shown to other players or posted to public/community channels, and is not reused for unrelated purposes. The private source copy is queued for deletion as soon as the request is completed or rejected.</small>
                 </label>
 
                 <label className="tlg-account-field">
@@ -418,9 +506,20 @@ export default function AvatarReplacementRequestPanel() {
                 </label>
               </div>
 
+              <div className="tlg-avatar-attestations">
+                <label>
+                  <input type="checkbox" checked={identityConfirmed} onChange={(event) => setIdentityConfirmed(event.target.checked)} required />
+                  <span><strong>Identity confirmation.</strong> I confirm that I am the person shown, or that the submitted avatar is based only on my own appearance. It is not another real person, celebrity or public figure, and I own or have the right to submit the image.</span>
+                </label>
+                <label>
+                  <input type="checkbox" checked={privacyConsent} onChange={(event) => setPrivacyConsent(event.target.checked)} required />
+                  <span><strong>Limited processing consent.</strong> I allow Tennis Legacy to access and process this private file only to review, create or approve my requested avatar. I understand that the private source copy is queued for deletion when the request is completed or rejected, while minimal request/moderation records may be retained where necessary for security, legal or abuse-prevention purposes.</span>
+                </label>
+              </div>
+
               <div className="tlg-avatar-privacy-box">
                 <ShieldCheck size={18} />
-                <div><strong>Private submission</strong><p>The source image is stored in a private Supabase bucket. The admin email contains only a request ID and private storage reference, never a public image URL. Closed-request source images are targeted for deletion after 30 days and can be removed earlier by an administrator.</p></div>
+                <div><strong>Private submission</strong><p>The source file is stored in a private Supabase bucket and is never exposed through a public source-image URL. It is not shown to other players, posted to Discord/community channels, or reused for unrelated purposes. When the request closes, the private source copy is queued for immediate deletion; if automatic cleanup needs a retry, it remains private until an administrator removes it.</p></div>
               </div>
 
               {file && <div className="tlg-avatar-selected-file"><strong>Selected:</strong> {file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB</div>}

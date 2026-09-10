@@ -39,7 +39,7 @@ select public.admin_update_avatar_replacement_status_v1(
 );
 ```
 
-If the request cannot be processed, use status `rejected`. The user is notified and the private source image receives a 30-day deletion target.
+If the request cannot be processed, use status `rejected`. The user is notified and the private source image receives an immediate deletion target. Delete the private source object as part of closing the request.
 
 ## Accessing the private reference image
 
@@ -72,14 +72,14 @@ This does **not** change the active player avatar. It only exposes the prepared 
 
 The player can:
 
-- **Approve & apply** — the backend verifies the prepared object, updates `players.image_path`, marks the request completed, and schedules the private reference image for deletion after 30 days.
+- **Approve & apply** — the backend verifies the prepared object, updates `players.image_path`, marks the request completed, and queues the private reference image for immediate deletion.
 - **Request revision** — up to two revision requests are allowed. The current avatar remains active throughout revisions.
 
 The previous avatar is not replaced until the user explicitly approves the prepared replacement.
 
 ## Reference-photo retention
 
-Completed or rejected requests set `reference_delete_after` to 30 days after closure. Admins may delete the private source image earlier when it is no longer needed.
+Completed or rejected requests set `reference_delete_after` immediately. The client attempts to remove the user-owned private source copy as soon as it sees the closed status; admins should delete it immediately as part of closing a request if it still exists.
 
 After physically deleting the object from `avatar-replacement-submissions`, record that cleanup:
 
@@ -99,3 +99,12 @@ User submissions are limited to:
 - maximum 8 MB
 
 SVG is deliberately not accepted because it can contain active/scriptable content. The client validates image signatures before upload and the private bucket also restricts MIME types and extensions.
+
+
+## Identity and avatar rules
+
+The submitted image must show the account holder or be a generated avatar based only on the account holder's own appearance. Another real person, celebrity or public figure is not permitted. Deliberate or repeated impersonation/abuse may lead to account suspension or removal.
+
+Final avatars should use a pure white background, front-facing passport-style head/upper-shoulder framing, and the standard Tennis Legacy face alignment. Sport jerseys or polo shirts may use the player's requested colors, but final images should not contain logos, sponsors, brand marks, text, hats, sunglasses or distracting props.
+
+New submissions must record both an identity attestation and a limited-processing consent. The consent is limited to processing the private file for the avatar request; do not reuse the source image for unrelated purposes or publish it to community channels. Minimal request/moderation metadata may be retained for security, legal or abuse-prevention needs after the image itself is removed.
