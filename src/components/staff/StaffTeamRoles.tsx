@@ -217,7 +217,7 @@ export default function StaffTeamRoles({
         <div className="tlg-staff-career-effects-grid">
           <div><span>Technical training</span><strong>{combined.technical_training_display}</strong></div>
           <div><span>Physical training</span><strong>{combined.physical_training_display}</strong></div>
-          <div><span>Active recovery</span><strong>{combined.active_recovery_display}</strong><small>Fitness + medical, max +20%</small></div>
+          <div><span>Day Off recovery</span><strong>{combined.active_recovery_display}</strong><small>Medical-staff bonus applied to player-selected Day Off</small></div>
           <div><span>Injury risk</span><strong>{combined.injury_risk_display}</strong><small>Relative reduction</small></div>
           <div><span>Match staff support</span><strong>{combined.match_support_display}</strong><small>Global cap +2.00%</small></div>
           <div><span>Sponsor offer value</span><strong>{combined.sponsor_value_display}</strong></div>
