@@ -1,0 +1,69 @@
+name: Temporary avatar request polling verifier
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/tlg_avatar_request_polling_temp.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-build-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Replace unavailable realtime listener with safe polling
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('src/components/player/AvatarReplacementRequestPanel.tsx')
+          text = p.read_text()
+          old = '''  useEffect(() => {
+    void loadRequest()
+    if (!user?.id) return
+
+    const channel = supabase
+      .channel(`avatar-request-${user.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'avatar_replacement_requests', filter: `user_id=eq.${user.id}` }, () => void loadRequest())
+      .subscribe()
+
+    return () => { void supabase.removeChannel(channel) }
+  }, [loadRequest, user?.id])
+'''
+          new = '''  useEffect(() => {
+    void loadRequest()
+    if (!user?.id) return
+
+    const timer = window.setInterval(() => {
+      void loadRequest()
+    }, 30000)
+
+    return () => window.clearInterval(timer)
+  }, [loadRequest, user?.id])
+'''
+          if text.count(old) != 1:
+              raise SystemExit(f'Expected one realtime block, found {text.count(old)}')
+          p.write_text(text.replace(old, new, 1))
+          PY
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Commit verified implementation and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name "bracko87"
+          git config user.email "aleksandarlevnajic@gmail.com"
+          git add src/components/player/AvatarReplacementRequestPanel.tsx
+          git rm .github/workflows/tlg_avatar_request_polling_temp.yml
+          git commit -m "Harden avatar request status refresh"
+          git push origin main
