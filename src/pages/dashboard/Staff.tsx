@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
+import StaffTeamRoles from '../../components/staff/StaffTeamRoles'
 import {
   contractWeeklySalary,
   type StaffCandidate,
@@ -19,7 +20,7 @@ const ROLES: Array<{ role: StaffRole; label: string; description: string }> = [
   { role: 'physiotherapist', label: 'Physiotherapist', description: 'Fatigue recovery, injury prevention and rehabilitation.' },
   { role: 'sports_psychologist', label: 'Sports Psychologist', description: 'Morale, confidence, focus and pressure management.' },
   { role: 'performance_analyst', label: 'Performance Analyst', description: 'Opponent estimates, tactical analysis and match preparation.' },
-  { role: 'agent_manager', label: 'Agent / Manager', description: 'Negotiation, sponsorship network and career management.' },
+  { role: 'agent_manager', label: 'Career Manager', description: 'Sponsorship, commercial representation and career management.' },
 ]
 
 const QUALITY_OPTIONS: Array<{ value: StaffQuality | ''; label: string }> = [
@@ -40,21 +41,6 @@ const ATTRIBUTE_LABELS: Record<string, string> = {
   negotiation: 'Negotiation', sponsorship_network: 'Sponsorship Network', commercial_reputation: 'Commercial Reputation', career_management: 'Career Management',
 }
 
-function pct(multiplier: number) {
-  return `${Math.max(0, (multiplier - 1) * 100).toFixed(1)}%`
-}
-
-function roleEffect(role: StaffRole, effects: NonNullable<ReturnType<typeof useStaff>['dashboard']>['effects']) {
-  switch (role) {
-    case 'head_coach': return `Technical training +${pct(effects.technical_training_multiplier)} · camps +${pct(effects.technical_camp_multiplier)}`
-    case 'fitness_coach': return `Physical training +${pct(effects.physical_training_multiplier)} · fatigue −${(effects.training_fatigue_reduction * 100).toFixed(1)}%`
-    case 'physiotherapist': return `Recovery +${pct(effects.recovery_multiplier)} · injury risk −${(effects.injury_prevention_reduction * 100).toFixed(1)}%`
-    case 'sports_psychologist': return `Morale +${pct(effects.morale_recovery_multiplier)} · Focus +${pct(effects.focus_recovery_multiplier)}`
-    case 'performance_analyst': return `Opponent estimates ±${effects.scouting_margin} · match preparation +${pct(effects.analyst_match_preparation_multiplier)}`
-    case 'agent_manager': return `Sponsorship +${pct(effects.sponsorship_multiplier)} · negotiation +${pct(effects.negotiation_multiplier)}`
-  }
-}
-
 function StaffIdentity({ staff }: { staff: StaffCandidate }) {
   return (
     <div className="tlg-staff-identity">
@@ -68,7 +54,7 @@ function AttributeGrid({ staff }: { staff: StaffCandidate }) {
   return (
     <div className="tlg-staff-attributes">
       {Object.entries(staff.attributes).map(([key, value]) => (
-        <div key={key}>
+        <div key={key} title={ATTRIBUTE_LABELS[key] ?? key}>
           <div><span>{ATTRIBUTE_LABELS[key] ?? key}</span><strong>{value}</strong></div>
           <div className="bar"><i style={{ width: `${value}%` }} /></div>
         </div>
@@ -80,7 +66,7 @@ function AttributeGrid({ staff }: { staff: StaffCandidate }) {
 export default function StaffPage() {
   const {
     dashboard, market, loading, marketLoading, saving, error,
-    loadMarket, quoteNegotiation, negotiateStaff, terminateContract,
+    loadStaffProfile, loadMarket, quoteNegotiation, negotiateStaff, terminateContract,
   } = useStaff()
   const [view, setView] = useState<'team' | 'market'>('team')
   const [role, setRole] = useState<StaffRole | ''>('')
@@ -114,7 +100,6 @@ export default function StaffPage() {
   }, [selectedId])
 
   const selected = market.items.find((item) => item.id === selectedId) ?? market.items[0] ?? null
-  const contractsByRole = useMemo(() => new Map((dashboard?.contracts ?? []).map((contract) => [contract.role, contract])), [dashboard?.contracts])
   const pageCount = Math.max(1, Math.ceil(market.total / 25))
 
   useEffect(() => {
@@ -181,7 +166,7 @@ export default function StaffPage() {
     if (result) setMessage(`${contract.staff.first_name} ${contract.staff.last_name}'s contract has been terminated.`)
   }
 
-  const roleOccupied = selected ? contractsByRole.has(selected.role) : false
+  const roleOccupied = selected ? dashboard?.contracts.some((contract) => contract.role === selected.role) ?? false : false
   const financeBlocked = Boolean(selected && dashboard?.finance.is_live && dashboard.finance.balance !== null && dashboard.finance.balance < selected.signing_fee)
   const baseContractSalary = selected ? contractWeeklySalary(selected.base_weekly_salary, duration) : 0
   const weeklyOffer = negotiationQuote?.offered_weekly_salary ?? Math.round((baseContractSalary * salaryMultiplier) / 10) * 10
@@ -198,7 +183,7 @@ export default function StaffPage() {
           <div>
             <span>CAREER SUPPORT TEAM</span>
             <h1>Staff</h1>
-            <p>Hire specialists from the shared worldwide market. Staff improve development, recovery, analysis and career management without bypassing the game's normal progression limits.</p>
+            <p>Build a six-role support team with transparent, capped career effects. Staff strengthen development, recovery, analysis and commercial management without replacing player attributes or career decisions.</p>
           </div>
           <div className="tlg-staff-tabs">
             <button type="button" className={view === 'team' ? 'active' : ''} onClick={() => setView('team')}>My Staff</button>
@@ -215,7 +200,7 @@ export default function StaffPage() {
               <div><span>EMPLOYED</span><strong>{dashboard.employed_count} / {dashboard.max_staff}</strong><small>One active person per role</small></div>
               <div><span>WEEKLY STAFF COST</span><strong>${dashboard.weekly_cost.toLocaleString()}</strong><small>Contracted weekly salaries</small></div>
               <div><span>EXPIRING SOON</span><strong>{dashboard.contracts_expiring_4_weeks}</strong><small>Contracts with ≤4 weeks left</small></div>
-              <div><span>NEGOTIATION</span><strong>Reputation + offer</strong><small>Staff decide whether to accept your proposal</small></div>
+              <div><span>STAFF EFFECT MODEL</span><strong>Capped & transparent</strong><small>Current and maximum effects shown per role</small></div>
             </section>
 
             {!dashboard.finance.is_live && (
@@ -223,32 +208,13 @@ export default function StaffPage() {
             )}
 
             {view === 'team' ? (
-              <section className="tlg-staff-team-grid">
-                {ROLES.map((item) => {
-                  const contract = contractsByRole.get(item.role)
-                  return (
-                    <article className={`tlg-staff-role-card ${contract ? 'filled' : 'empty'}`} key={item.role}>
-                      <header><div><span>{item.label.toUpperCase()}</span><p>{item.description}</p></div>{contract && <b>{contract.staff.overall_rating}</b>}</header>
-                      {contract ? (
-                        <>
-                          <StaffIdentity staff={contract.staff} />
-                          <div className="tlg-staff-role-meta"><span>{contract.staff.quality_label}</span><span>{contract.staff.specialty}</span></div>
-                          <AttributeGrid staff={contract.staff} />
-                          <div className="tlg-staff-active-effect"><span>CURRENT EFFECT</span><strong>{roleEffect(item.role, dashboard.effects)}</strong></div>
-                          <div className="tlg-staff-contract-line"><span>${contract.weekly_salary.toLocaleString()} / week</span><strong>{contract.weeks_remaining} weeks remaining</strong></div>
-                          <button type="button" className="secondary danger" disabled={saving} onClick={() => handleTerminate(contract)}>End Contract</button>
-                        </>
-                      ) : (
-                        <div className="tlg-staff-empty-role">
-                          <strong>No {item.label.toLowerCase()} hired</strong>
-                          <p>This position currently gives no staff bonus.</p>
-                          <button type="button" onClick={() => { setRole(item.role); setView('market') }}>Hire {item.label}</button>
-                        </div>
-                      )}
-                    </article>
-                  )
-                })}
-              </section>
+              <StaffTeamRoles
+                dashboard={dashboard}
+                saving={saving}
+                loadProfile={loadStaffProfile}
+                onHire={(nextRole) => { setRole(nextRole); setView('market') }}
+                onTerminate={handleTerminate}
+              />
             ) : (
               <>
                 <section className="tlg-staff-market-filters">
