@@ -131,12 +131,11 @@ export default function AvatarReplacementRequestPanel() {
     void loadRequest()
     if (!user?.id) return
 
-    const channel = supabase
-      .channel(`avatar-request-${user.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'avatar_replacement_requests', filter: `user_id=eq.${user.id}` }, () => void loadRequest())
-      .subscribe()
+    const timer = window.setInterval(() => {
+      void loadRequest()
+    }, 30000)
 
-    return () => { void supabase.removeChannel(channel) }
+    return () => window.clearInterval(timer)
   }, [loadRequest, user?.id])
 
   const cleanedColors = useMemo(() => colors.map((value) => value.trim()).filter(Boolean).slice(0, 3), [colors])
