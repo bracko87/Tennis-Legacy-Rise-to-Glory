@@ -1,6 +1,5 @@
 import {
   Bell,
-  Camera,
   CircleHelp,
   Gift,
   Inbox,
@@ -19,6 +18,7 @@ import { useState } from 'react'
 
 import { useAuth } from '../../auth/AuthContext'
 import GameLayout from '../../components/layout/GameLayout'
+import AvatarReplacementRequestPanel from '../../components/player/AvatarReplacementRequestPanel'
 import usePlayerAvatarUrl from '../../hooks/usePlayerAvatarUrl'
 import { supabase } from '../../lib/supabase'
 import '../../styles/player-account.css'
@@ -94,38 +94,12 @@ export function PlayerAccountPage() {
   const { player, user } = useAuth()
   const avatarUrl = usePlayerAvatarUrl(player?.image_path)
   const playerName = player ? `${player.first_name} ${player.last_name}`.trim() : 'Player not available'
-  const [avatarReason, setAvatarReason] = useState('')
-  const [avatarMessage, setAvatarMessage] = useState('')
   const [passwordStatus, setPasswordStatus] = useState<string | null>(null)
   const [passwordBusy, setPasswordBusy] = useState(false)
   const [dangerAction, setDangerAction] = useState<'restart' | 'delete' | null>(null)
   const [dangerConfirmation, setDangerConfirmation] = useState('')
   const [dangerBusy, setDangerBusy] = useState(false)
   const [dangerStatus, setDangerStatus] = useState<string | null>(null)
-
-  function requestAvatarReplacement(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!player || !user?.email) return
-
-    const subject = encodeURIComponent(`Avatar replacement request — ${playerName}`)
-    const body = encodeURIComponent(
-      [
-        'Tennis Legacy avatar replacement request',
-        '',
-        `Player: ${playerName}`,
-        `Player ID: ${player.id}`,
-        `World: ${player.world}`,
-        `Country: ${player.country_code}`,
-        `Account email: ${user.email}`,
-        `Reason: ${avatarReason || 'Not specified'}`,
-        '',
-        'Request details:',
-        avatarMessage || 'No additional details provided.',
-      ].join('\n'),
-    )
-
-    window.location.href = `mailto:contact@tennislegacygame.com?subject=${subject}&body=${body}`
-  }
 
   async function sendPasswordChangeEmail() {
     if (!user?.email || passwordBusy) return
@@ -247,47 +221,7 @@ export function PlayerAccountPage() {
           </div>
         </section>
 
-        <section className="tlg-account-section">
-          <header className="tlg-account-section-head tlg-account-section-head-icon">
-            <div>
-              <span>Player image</span>
-              <h3>Avatar replacement request</h3>
-              <p>Your avatar cannot be changed directly. Submit a request and the Tennis Legacy team can review it.</p>
-            </div>
-            <Camera size={20} />
-          </header>
-
-          <form className="tlg-account-avatar-form" onSubmit={requestAvatarReplacement}>
-            <label className="tlg-account-field">
-              <span>Reason for replacement</span>
-              <select value={avatarReason} onChange={(event) => setAvatarReason(event.target.value)} required>
-                <option value="">Choose a reason</option>
-                <option value="I selected the wrong avatar">I selected the wrong avatar</option>
-                <option value="Avatar does not fit my player">Avatar does not fit my player</option>
-                <option value="Avatar display problem">Avatar display problem</option>
-                <option value="Other">Other</option>
-              </select>
-            </label>
-
-            <label className="tlg-account-field">
-              <span>Request details</span>
-              <textarea
-                rows={4}
-                value={avatarMessage}
-                onChange={(event) => setAvatarMessage(event.target.value)}
-                placeholder="Tell us why you want the avatar replaced and, if relevant, what kind of replacement you prefer."
-                required
-              />
-            </label>
-
-            <div className="tlg-account-form-actions">
-              <button type="submit" className="tlg-account-primary-button" disabled={!player || !user?.email}>
-                Request avatar replacement
-              </button>
-              <small>The request opens your email client with the player details already prepared. The avatar is not changed automatically.</small>
-            </div>
-          </form>
-        </section>
+        <AvatarReplacementRequestPanel />
 
         <section className="tlg-account-section">
           <header className="tlg-account-section-head tlg-account-section-head-icon">
