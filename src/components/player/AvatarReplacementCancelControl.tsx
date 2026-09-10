@@ -4,6 +4,7 @@ import { AlertTriangle, X, XCircle } from 'lucide-react'
 
 import { useAuth } from '../../auth/AuthContext'
 import { supabase } from '../../lib/supabase'
+import '../../styles/avatar-replacement-cancel.css'
 
 const PRIVATE_BUCKET = 'avatar-replacement-submissions'
 const ACTIVE_STATUSES = new Set(['submitted', 'under_review', 'preparing', 'ready_for_review', 'revision_requested'])
