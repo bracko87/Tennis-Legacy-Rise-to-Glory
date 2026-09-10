@@ -1,0 +1,41 @@
+insert into public.notification_catalog (
+  code, category, label, reason, trigger_event, trigger_condition, trigger_mechanism,
+  source_name, title_template, message_template, default_route, severity,
+  default_in_app, default_email, default_push, is_user_configurable, is_active
+) values (
+  'avatar.request.cancelled',
+  'account',
+  'Avatar request cancelled',
+  'Confirms that the player cancelled an active avatar replacement request.',
+  'Player cancels avatar request',
+  'A signed-in player cancels one of their active avatar replacement requests.',
+  'database',
+  'Avatar replacement',
+  'Avatar request cancelled',
+  'Your avatar replacement request was cancelled. Your current avatar remains unchanged and you can submit a new request.',
+  '/game/player-account',
+  'info',
+  true,
+  false,
+  false,
+  false,
+  true
+)
+on conflict (code) do update set
+  category = excluded.category,
+  label = excluded.label,
+  reason = excluded.reason,
+  trigger_event = excluded.trigger_event,
+  trigger_condition = excluded.trigger_condition,
+  trigger_mechanism = excluded.trigger_mechanism,
+  source_name = excluded.source_name,
+  title_template = excluded.title_template,
+  message_template = excluded.message_template,
+  default_route = excluded.default_route,
+  severity = excluded.severity,
+  default_in_app = excluded.default_in_app,
+  default_email = excluded.default_email,
+  default_push = excluded.default_push,
+  is_user_configurable = excluded.is_user_configurable,
+  is_active = excluded.is_active,
+  updated_at = now();
