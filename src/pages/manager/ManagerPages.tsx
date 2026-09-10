@@ -222,8 +222,10 @@ export function PlayerAccountPage() {
           </div>
         </section>
 
-        <AvatarReplacementRequestPanel />
-        <AvatarReplacementCancelControl />
+        <div className="tlg-avatar-request-combined">
+          <AvatarReplacementRequestPanel />
+          <AvatarReplacementCancelControl />
+        </div>
 
         <section className="tlg-account-section">
           <header className="tlg-account-section-head tlg-account-section-head-icon">
