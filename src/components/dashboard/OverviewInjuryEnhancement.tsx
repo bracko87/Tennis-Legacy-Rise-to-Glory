@@ -1,19 +1,26 @@
 import { createPortal } from 'react-dom'
-import { Activity, ChevronRight, HeartPulse, ShieldCheck } from 'lucide-react'
+import { Activity, ChevronRight, HeartPulse, ShieldCheck, Thermometer } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 
 import { supabase } from '../../lib/supabase'
 import '../../styles/overview-injury-enhancement.css'
 
-type InjuryDashboard = {
+type HealthDashboard = {
   absolute_day: number
-  healthy: boolean
-  risk: { risk_percent: number; risk_level: string; reasons: string[] }
-  current_injuries: Array<{
+  summary: {
+    state: string
+    label: string
+    can_train: boolean
+    can_compete: boolean
+    injury_risk: { risk_percent: number; risk_level: string; reasons: string[] }
+    illness_risk: { risk_percent: number; risk_level: string; reasons: string[] }
+  }
+  current_conditions: Array<{
     id: string
+    kind: 'injury' | 'illness'
     name: string
-    body_area: string
+    body_area: string | null
     severity: string
     progress_percent: number
     training_return_absolute_day: number
@@ -35,7 +42,7 @@ function daysUntil(target: number, current: number) {
 
 export default function OverviewInjuryEnhancement() {
   const [target, setTarget] = useState<HTMLElement | null>(null)
-  const [data, setData] = useState<InjuryDashboard | null>(null)
+  const [data, setData] = useState<HealthDashboard | null>(null)
 
   useEffect(() => {
     let frame = 0
@@ -70,7 +77,7 @@ export default function OverviewInjuryEnhancement() {
     let cancelled = false
     const load = async () => {
       const { data: response, error } = await supabase.rpc('get_player_injury_dashboard_v1')
-      if (!cancelled && !error && response) setData(response as InjuryDashboard)
+      if (!cancelled && !error && response) setData(response as HealthDashboard)
     }
     void load()
     const timer = window.setInterval(() => void load(), 20000)
@@ -80,23 +87,33 @@ export default function OverviewInjuryEnhancement() {
     }
   }, [])
 
-  const active = useMemo(() => data?.current_injuries[0] ?? null, [data])
+  const active = useMemo(() => data?.current_conditions[0] ?? null, [data])
   if (!target || !data) return null
 
+  const healthy = data.current_conditions.length === 0 && ['healthy', 'fully_recovered'].includes(data.summary.state)
+  const riskOnly = data.current_conditions.length === 0 && data.summary.state === 'at_risk'
+  const cardClass = healthy ? 'healthy' : 'injured'
+  const stateText = data.summary.label
+
   return createPortal(
-    <section className={`tlg-overview-injury-card ${data.healthy ? 'healthy' : 'injured'}`}>
-      <div className="tlg-overview-injury-icon">{data.healthy ? <ShieldCheck size={22} /> : <HeartPulse size={22} />}</div>
+    <section className={`tlg-overview-injury-card ${cardClass}`}>
+      <div className="tlg-overview-injury-icon">{healthy ? <ShieldCheck size={22} /> : <HeartPulse size={22} />}</div>
       <div className="tlg-overview-injury-main">
         <span>Injury & health</span>
-        <strong>{data.healthy ? 'No active injury' : active?.name ?? 'Injury active'}</strong>
-        <small>{data.healthy ? 'Training and tournament availability are clear.' : `${titleCase(active?.severity ?? '')} · ${active?.body_area ?? ''} · ${active?.progress_percent ?? 0}% recovered`}</small>
+        <strong>{active?.name ?? stateText}</strong>
+        <small>{active ? `${titleCase(active.kind)} · ${titleCase(active.severity)}${active.body_area ? ` · ${active.body_area}` : ''} · ${active.progress_percent}% recovered` : riskOnly ? 'No active condition, but current workload/condition has raised health risk.' : 'Training and tournament availability are clear.'}</small>
       </div>
-      <div className={`tlg-overview-injury-risk risk-${data.risk.risk_level}`}>
+      <div className={`tlg-overview-injury-risk risk-${data.summary.injury_risk.risk_level}`}>
         <Activity size={15} />
-        <span>Risk</span>
-        <strong>{titleCase(data.risk.risk_level)} · {Number(data.risk.risk_percent).toFixed(2)}%</strong>
+        <span>Injury risk</span>
+        <strong>{titleCase(data.summary.injury_risk.risk_level)} · {Number(data.summary.injury_risk.risk_percent).toFixed(2)}%</strong>
       </div>
-      {!data.healthy && active ? (
+      <div className={`tlg-overview-injury-risk risk-${data.summary.illness_risk.risk_level}`}>
+        <Thermometer size={15} />
+        <span>Illness risk</span>
+        <strong>{titleCase(data.summary.illness_risk.risk_level)} · {Number(data.summary.illness_risk.risk_percent).toFixed(2)}%</strong>
+      </div>
+      {active ? (
         <div className="tlg-overview-injury-availability">
           <div><span>Training</span><strong>{active.can_train ? 'Available' : `In ${daysUntil(active.training_return_absolute_day, data.absolute_day)}`}</strong></div>
           <div><span>Tournaments</span><strong>{active.can_compete ? 'Available' : `In ${daysUntil(active.tournament_return_absolute_day, data.absolute_day)}`}</strong></div>
