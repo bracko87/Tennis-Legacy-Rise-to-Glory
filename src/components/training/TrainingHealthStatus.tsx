@@ -13,8 +13,10 @@ type HealthDashboard = {
     can_train: boolean
     can_compete: boolean
     performance_penalty: number
+    fatigue: number
     primary_condition: null | { kind: string; name: string; severity: string; progress_percent: number }
     injury_risk: { risk_level: string; risk_percent: number }
+    illness_risk: { risk_level: string; risk_percent: number }
   }
 }
 
@@ -56,7 +58,15 @@ export default function TrainingHealthStatus() {
   if (!host || !data) return null
   const { summary } = data
   const danger = !summary.can_train
-  const caution = !danger && (summary.state === 'not_fully_fit' || summary.state === 'recovering' || ['elevated', 'high', 'very_high'].includes(summary.injury_risk.risk_level))
+  const elevatedRisk = ['elevated', 'high', 'very_high']
+  const caution = !danger && (
+    summary.state === 'at_risk'
+    || summary.state === 'not_fully_fit'
+    || summary.state === 'recovering'
+    || summary.fatigue >= 65
+    || elevatedRisk.includes(summary.injury_risk.risk_level)
+    || elevatedRisk.includes(summary.illness_risk.risk_level)
+  )
   const condition = summary.primary_condition
 
   return createPortal(
@@ -65,7 +75,9 @@ export default function TrainingHealthStatus() {
       <div>
         <span>Health clearance</span>
         <strong>{danger ? 'Training medically blocked' : caution ? `${summary.label} — train carefully` : `${summary.label} — training cleared`}</strong>
-        <small>{condition ? `${condition.name} · ${condition.progress_percent}% recovered` : `Current injury risk ${Number(summary.injury_risk.risk_percent).toFixed(2)}% (${summary.injury_risk.risk_level.replaceAll('_', ' ')})`}</small>
+        <small>{condition
+          ? `${condition.kind === 'illness' ? 'Illness' : 'Injury'} · ${condition.name} · ${condition.progress_percent}% recovered`
+          : `Fatigue ${summary.fatigue}/100 · injury risk ${Number(summary.injury_risk.risk_percent).toFixed(2)}% · illness risk ${Number(summary.illness_risk.risk_percent).toFixed(2)}%`}</small>
       </div>
       <Link to="/game/injuries">Open Health</Link>
     </section>,
