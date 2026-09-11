@@ -1,0 +1,62 @@
+/* Health condition metric scale: green = good, red = bad. */
+
+.tlg-health-condition-strip article {
+  position: relative;
+  overflow: hidden;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.tlg-health-condition-strip article::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: #a8b7c3;
+}
+
+.tlg-health-condition-strip article strong {
+  font-weight: 780;
+}
+
+.tlg-health-condition-strip .metric-good {
+  border-color: #c9e6d4;
+  background: #f5fbf7;
+}
+.tlg-health-condition-strip .metric-good::before { background: #2e9d62; }
+.tlg-health-condition-strip .metric-good strong { color: #237a4c; }
+
+.tlg-health-condition-strip .metric-positive {
+  border-color: #d9e7bd;
+  background: #fafcf4;
+}
+.tlg-health-condition-strip .metric-positive::before { background: #7ea641; }
+.tlg-health-condition-strip .metric-positive strong { color: #607f31; }
+
+.tlg-health-condition-strip .metric-caution {
+  border-color: #eddca7;
+  background: #fffaf0;
+}
+.tlg-health-condition-strip .metric-caution::before { background: #d49b23; }
+.tlg-health-condition-strip .metric-caution strong { color: #9a6d16; }
+
+.tlg-health-condition-strip .metric-warning {
+  border-color: #efceb0;
+  background: #fff7f0;
+}
+.tlg-health-condition-strip .metric-warning::before { background: #df7f2a; }
+.tlg-health-condition-strip .metric-warning strong { color: #ad5f1e; }
+
+.tlg-health-condition-strip .metric-danger {
+  border-color: #efc4c1;
+  background: #fff5f4;
+  box-shadow: 0 4px 14px rgba(175, 63, 54, .05);
+}
+.tlg-health-condition-strip .metric-danger::before { background: #d84f45; }
+.tlg-health-condition-strip .metric-danger strong { color: #b63f37; }
+
+.tlg-health-condition-strip .metric-neutral {
+  border-color: #dfe7ed;
+  background: #fff;
+}
+.tlg-health-condition-strip .metric-neutral::before { background: #5b91b5; }
+.tlg-health-condition-strip .metric-neutral strong { color: #2f536b; }
