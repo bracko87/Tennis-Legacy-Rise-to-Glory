@@ -1,17 +1,9 @@
 import {
-  Building2,
-  Car,
-  Clock,
   Crown,
-  Gem,
-  Heart,
-  House,
   LockKeyhole,
   RefreshCw,
-  Ship,
   TrendingDown,
   TrendingUp,
-  Watch,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -23,7 +15,7 @@ import { supabase } from '../../lib/supabase'
 import '../../styles/private-life.css'
 
 type AssetCategory = 'watch' | 'car' | 'apartment' | 'house_villa' | 'yacht'
-type MainTab = 'overview' | 'marketplace' | 'assets'
+type MainTab = 'overview' | 'assets' | 'investments' | 'marketplace'
 type CategoryFilter = 'all' | AssetCategory
 
 type CatalogAsset = {
@@ -94,12 +86,12 @@ type PendingAction =
   | { type: 'sell'; asset: OwnedAsset }
   | null
 
-const CATEGORY_META: Record<AssetCategory, { label: string; icon: typeof Watch }> = {
-  watch: { label: 'Watches', icon: Watch },
-  car: { label: 'Vehicles', icon: Car },
-  apartment: { label: 'Apartments', icon: Building2 },
-  house_villa: { label: 'Houses & Villas', icon: House },
-  yacht: { label: 'Yachts', icon: Ship },
+const CATEGORY_META: Record<AssetCategory, { label: string }> = {
+  watch: { label: 'Watches' },
+  car: { label: 'Vehicles' },
+  apartment: { label: 'Apartments' },
+  house_villa: { label: 'Houses & Villas' },
+  yacht: { label: 'Yachts' },
 }
 
 function money(value: number, currency = 'USD') {
@@ -233,7 +225,7 @@ export default function PrivateLifePage() {
           <div className="tlg-premium-lock-icon"><LockKeyhole size={28} /></div>
           <span>Premium feature</span>
           <h2>Private Life</h2>
-          <p>Build an off-court lifestyle with the money earned in your tennis career. Purchases use the same Finance balance — never Premium coins.</p>
+          <p>Build an off-court lifestyle with the money earned in your tennis career. Purchases and investments use the same Finance balance — never Premium coins.</p>
           <button type="button" onClick={() => navigate('/game/pro-packages')}><Crown size={16} /> View Premium</button>
         </section>
       </GameLayout>
@@ -288,49 +280,49 @@ export default function PrivateLifePage() {
   return (
     <GameLayout title="Private Life" subtitle="Lifestyle, assets and personal wealth">
       <div className="private-life-page">
-        <section className="private-life-hero" style={{ gridTemplateColumns: '1fr' }}>
+        <section className="private-life-hero private-life-hero-compact">
           <div className="private-life-hero-copy">
-            <div className="private-life-eyebrow">Off-court career</div>
-            <h2>Turn career earnings into a life beyond tennis.</h2>
-            <p>Build a personal collection of watches, vehicles, property and yachts. Every purchase and sale uses the same career Finance balance and becomes part of your long-term wealth story.</p>
+            <div className="private-life-eyebrow">Your life outside tennis</div>
+            <h2>Build wealth, collect luxury assets and manage investments.</h2>
+            <p>Private Life is your off-court game inside the career: physical possessions, personal wealth and — next — stocks and cryptocurrencies, all connected to the same Finance balance.</p>
           </div>
         </section>
 
         <section className="private-life-metrics" aria-label="Private wealth summary">
           <div className="private-life-metric"><span>Cash balance</span><strong>{money(dashboard.cash_balance, currency)}</strong></div>
-          <div className="private-life-metric"><span>Asset value</span><strong>{money(dashboard.asset_value, currency)}</strong></div>
-          <div className="private-life-metric"><span>Net worth</span><strong>{money(dashboard.net_worth, currency)}</strong></div>
+          <div className="private-life-metric"><span>Physical assets</span><strong>{money(dashboard.asset_value, currency)}</strong></div>
+          <div className="private-life-metric"><span>Current net worth</span><strong>{money(dashboard.net_worth, currency)}</strong></div>
           <div className="private-life-metric"><span>Prestige</span><strong>{dashboard.prestige}</strong></div>
           <div className="private-life-metric"><span>Annual ownership cost</span><strong>{money(dashboard.annual_running_cost, currency)}</strong></div>
         </section>
 
         <nav className="private-life-tabs" aria-label="Private Life sections">
           <button className={tab === 'overview' ? 'active' : ''} type="button" onClick={() => setTab('overview')}>Overview</button>
+          <button className={tab === 'assets' ? 'active' : ''} type="button" onClick={() => setTab('assets')}>Collection ({dashboard.owned_assets.length})</button>
+          <button className={tab === 'investments' ? 'active' : ''} type="button" onClick={() => setTab('investments')}>Investments</button>
           <button className={tab === 'marketplace' ? 'active' : ''} type="button" onClick={() => setTab('marketplace')}>Marketplace</button>
-          <button className={tab === 'assets' ? 'active' : ''} type="button" onClick={() => setTab('assets')}>My Assets ({dashboard.owned_assets.length})</button>
         </nav>
 
-        {notice ? <div className="private-life-notice"><Gem size={16} /><span>{notice}</span></div> : null}
+        {notice ? <div className="private-life-notice"><span>{notice}</span></div> : null}
         {error ? <div className="private-life-error"><strong>Action could not be completed</strong><p>{error}</p></div> : null}
 
         {tab === 'overview' ? (
           <section className="private-life-section">
             <div className="private-life-section-head">
-              <div><div className="private-life-section-eyebrow">Portfolio</div><h3>Your off-court wealth</h3><p>Private Life assets remain part of your personal wealth instead of disappearing as simple shop purchases.</p></div>
+              <div><div className="private-life-section-eyebrow">Private Life dashboard</div><h3>Your off-court world</h3><p>One place for your possessions, investments and future personal-life systems, while Finance remains the source of truth for money.</p></div>
               <button type="button" className="private-life-refresh" disabled={loading} onClick={() => void loadDashboard()}><RefreshCw size={14} /> {loading ? 'Refreshing…' : 'Refresh'}</button>
             </div>
 
             <div className="private-life-overview-grid">
               <div className="private-life-panel">
-                <h4>Asset portfolio</h4>
+                <h4>Physical collection</h4>
                 <div className="private-life-category-list">
                   {(Object.keys(CATEGORY_META) as AssetCategory[]).map((category) => {
                     const meta = CATEGORY_META[category]
-                    const Icon = meta.icon
                     const total = categoryTotals.get(category)
                     return (
                       <div key={category} className="private-life-category-row">
-                        <div className="private-life-category-name"><Icon size={17} /><span>{meta.label}</span></div>
+                        <div className="private-life-category-name"><span>{meta.label}</span></div>
                         <span>{total?.owned_count ?? 0} owned</span>
                         <strong>{money(total?.market_value ?? 0, currency)}</strong>
                         <span>+{total?.prestige ?? 0} prestige</span>
@@ -341,21 +333,100 @@ export default function PrivateLifePage() {
               </div>
 
               <div className="private-life-future-stack">
-                <article className="private-life-future-card">
-                  <div className="private-life-future-card-head"><Heart size={18} /><h4>Relationships & family</h4></div>
-                  <p>Reserved for a later life-stage system. Marriage and children are deliberately not simulated until age and career-life rules are defined.</p>
-                  <small>Architecture ready for relationship status, partner and private-life events.</small>
+                <article className="private-life-future-card private-life-investment-preview">
+                  <div className="private-life-future-card-head"><h4>Investments</h4><span className="private-life-status-pill">Next phase</span></div>
+                  <p>Stocks and cryptocurrencies will be part of Private Life, not a separate main-menu system. Trading will use career cash and simulated holdings with real-market prices as reference data.</p>
+                  <button type="button" className="private-life-inline-action" onClick={() => setTab('investments')}>View investment area</button>
                 </article>
                 <article className="private-life-future-card">
-                  <div className="private-life-future-card-head"><TrendingUp size={18} /><h4>Value & ownership</h4></div>
-                  <p>Cars and yachts usually lose value, while selected property, watches and collectibles can appreciate over time.</p>
-                  <small>Current market value already follows game-time ownership duration.</small>
+                  <div className="private-life-future-card-head"><h4>Value & ownership</h4></div>
+                  <p>Cars and yachts usually lose value, while selected property, watches and future collectibles can appreciate over time.</p>
+                  <small>Current physical-asset values already follow game-time ownership duration.</small>
                 </article>
                 <article className="private-life-future-card">
-                  <div className="private-life-future-card-head"><Clock size={18} /><h4>Running costs</h4></div>
-                  <p>Ownership costs are charged monthly against the same career Finance balance, based on the annual cost shown for each asset.</p>
-                  <small>Every charge is idempotent and appears in Finance history.</small>
+                  <div className="private-life-future-card-head"><h4>Relationships & family</h4></div>
+                  <p>Reserved for a later life-stage system. Marriage and children remain outside the simulation until age and career-life rules are defined.</p>
                 </article>
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {tab === 'assets' ? (
+          <section className="private-life-section">
+            <div className="private-life-section-head">
+              <div><div className="private-life-section-eyebrow">Collection</div><h3>My physical assets</h3><p>Track what you paid, what each possession is worth now and the actual resale proceeds before deciding to sell.</p></div>
+            </div>
+            <CategoryFilters value={filter} onChange={setFilter} />
+            {visibleOwned.length === 0 ? (
+              <div className="private-life-empty"><strong>No assets in this category yet</strong><p>Visit the Marketplace to start building your private collection.</p></div>
+            ) : (
+              <div className="private-life-owned-grid">
+                {visibleOwned.map((asset) => (
+                  <article className="private-life-owned-card" key={asset.id}>
+                    <div className="private-life-card-image">
+                      <AssetImage src={asset.image_url} name={asset.name} />
+                      <div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(asset.rarity)}</span><span className="private-life-badge level">+{asset.prestige} prestige</span></div>
+                    </div>
+                    <div className="private-life-card-body">
+                      <div className="private-life-card-title-row"><h4>{asset.name}</h4><div className="private-life-price">{money(asset.current_market_value, currency)}</div></div>
+                      <p className="private-life-description">{asset.description}</p>
+                      <div className="private-life-owned-value-grid">
+                        <div className="private-life-owned-value-row"><span>Purchase price</span><strong>{money(asset.purchase_price, currency)}</strong></div>
+                        <div className="private-life-owned-value-row"><span>Current market value</span><strong>{money(asset.current_market_value, currency)}</strong></div>
+                        <div className="private-life-owned-value-row"><span>Current selling price</span><strong>{money(asset.estimated_sale_price, currency)}</strong></div>
+                        <div className="private-life-owned-value-row"><span>Gain / loss if sold</span><strong className={asset.potential_gain_loss >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{asset.potential_gain_loss >= 0 ? '+' : '-'}{money(Math.abs(asset.potential_gain_loss), currency)}</strong></div>
+                        <div className="private-life-owned-value-row"><span>Ownership</span><strong>{asset.ownership_days} game days</strong></div>
+                        <div className="private-life-owned-value-row"><span>Expected annual cost</span><strong>{money(asset.annual_running_cost, currency)}</strong></div>
+                      </div>
+                      <button type="button" className="private-life-action secondary" onClick={() => setPendingAction({ type: 'sell', asset })}>Sell asset</button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+        ) : null}
+
+        {tab === 'investments' ? (
+          <section className="private-life-section">
+            <div className="private-life-section-head">
+              <div><div className="private-life-section-eyebrow">Investments</div><h3>Stocks & cryptocurrencies</h3><p>This area stays inside Private Life. The next implementation phase will add game-only holdings whose prices can follow real external markets, while every buy and sell uses your existing career Finance balance.</p></div>
+            </div>
+
+            <div className="private-life-investment-grid">
+              <article className="private-life-investment-card">
+                <div className="private-life-investment-card-top"><span>Stock market</span><span className="private-life-status-pill">Next phase</span></div>
+                <h4>Shares</h4>
+                <p>Build a simulated portfolio of recognisable listed companies. Quotes can follow real stock-market prices, but no real shares or brokerage accounts are involved.</p>
+                <div className="private-life-investment-features">
+                  <span>Buy & sell with career cash</span>
+                  <span>Portfolio value and profit / loss</span>
+                  <span>Transaction history in Finance</span>
+                </div>
+                <button type="button" className="private-life-action" disabled>Trading not enabled yet</button>
+              </article>
+
+              <article className="private-life-investment-card">
+                <div className="private-life-investment-card-top"><span>Crypto market</span><span className="private-life-status-pill">Next phase</span></div>
+                <h4>Cryptocurrencies</h4>
+                <p>Trade simulated crypto holdings using external market prices as the reference. Holdings remain completely inside the game and never connect to a real wallet.</p>
+                <div className="private-life-investment-features">
+                  <span>Fractional holdings supported</span>
+                  <span>24/7 price reference</span>
+                  <span>Portfolio value and profit / loss</span>
+                </div>
+                <button type="button" className="private-life-action" disabled>Trading not enabled yet</button>
+              </article>
+            </div>
+
+            <div className="private-life-panel private-life-investment-rules">
+              <h4>How investments will fit into the career</h4>
+              <div className="private-life-investment-rule-grid">
+                <div><span>Money source</span><strong>Existing career Finance balance</strong></div>
+                <div><span>Pricing</span><strong>External market prices used only as game reference</strong></div>
+                <div><span>Ownership</span><strong>Simulated game holdings only</strong></div>
+                <div><span>Accounting</span><strong>Buys, sells and realised gains recorded in Finance</strong></div>
               </div>
             </div>
           </section>
@@ -364,7 +435,7 @@ export default function PrivateLifePage() {
         {tab === 'marketplace' ? (
           <section className="private-life-section">
             <div className="private-life-section-head">
-              <div><div className="private-life-section-eyebrow">Private market</div><h3>Marketplace</h3><p>Browse luxury purchases across every stage of a career. Items remain visible at all times, while your Finance balance determines what you can purchase.</p></div>
+              <div><div className="private-life-section-eyebrow">Luxury marketplace</div><h3>Buy physical assets</h3><p>Browse possessions across every stage of a career. Everything remains visible, while your Finance balance determines what you can purchase.</p></div>
             </div>
             <CategoryFilters value={filter} onChange={setFilter} />
             <div className="private-life-market-grid">
@@ -402,43 +473,7 @@ export default function PrivateLifePage() {
           </section>
         ) : null}
 
-        {tab === 'assets' ? (
-          <section className="private-life-section">
-            <div className="private-life-section-head">
-              <div><div className="private-life-section-eyebrow">Collection</div><h3>My Assets</h3><p>Track what you paid, what each asset is worth now and the real resale proceeds before deciding to sell.</p></div>
-            </div>
-            <CategoryFilters value={filter} onChange={setFilter} />
-            {visibleOwned.length === 0 ? (
-              <div className="private-life-empty"><Gem size={22} /><strong>No assets in this category yet</strong><p>Visit the Marketplace to start building your personal wealth portfolio.</p></div>
-            ) : (
-              <div className="private-life-owned-grid">
-                {visibleOwned.map((asset) => (
-                  <article className="private-life-owned-card" key={asset.id}>
-                    <div className="private-life-card-image">
-                      <AssetImage src={asset.image_url} name={asset.name} />
-                      <div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(asset.rarity)}</span><span className="private-life-badge level">+{asset.prestige} prestige</span></div>
-                    </div>
-                    <div className="private-life-card-body">
-                      <div className="private-life-card-title-row"><h4>{asset.name}</h4><div className="private-life-price">{money(asset.current_market_value, currency)}</div></div>
-                      <p className="private-life-description">{asset.description}</p>
-                      <div className="private-life-owned-value-grid">
-                        <div className="private-life-owned-value-row"><span>Purchase price</span><strong>{money(asset.purchase_price, currency)}</strong></div>
-                        <div className="private-life-owned-value-row"><span>Current market value</span><strong>{money(asset.current_market_value, currency)}</strong></div>
-                        <div className="private-life-owned-value-row"><span>Current selling price</span><strong>{money(asset.estimated_sale_price, currency)}</strong></div>
-                        <div className="private-life-owned-value-row"><span>Gain / loss if sold</span><strong className={asset.potential_gain_loss >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{asset.potential_gain_loss >= 0 ? '+' : '-'}{money(Math.abs(asset.potential_gain_loss), currency)}</strong></div>
-                        <div className="private-life-owned-value-row"><span>Ownership</span><strong>{asset.ownership_days} game days</strong></div>
-                        <div className="private-life-owned-value-row"><span>Expected annual cost</span><strong>{money(asset.annual_running_cost, currency)}</strong></div>
-                      </div>
-                      <button type="button" className="private-life-action secondary" onClick={() => setPendingAction({ type: 'sell', asset })}>Sell asset</button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </section>
-        ) : null}
-
-        <div className="private-life-notice"><LockKeyhole size={16} /><span>Private Life uses your existing career Finance account. There is no separate lifestyle currency, and Private Life assets do not provide direct tennis-skill bonuses.</span></div>
+        <div className="private-life-notice"><span>Private Life uses your existing career Finance account. There is no separate lifestyle currency, and physical assets or investments do not provide direct tennis-skill bonuses.</span></div>
       </div>
 
       <GameConfirmDialog
@@ -466,8 +501,7 @@ function CategoryFilters({ value, onChange }: { value: CategoryFilter; onChange:
       <button type="button" className={value === 'all' ? 'active' : ''} onClick={() => onChange('all')}>All</button>
       {(Object.keys(CATEGORY_META) as AssetCategory[]).map((category) => {
         const meta = CATEGORY_META[category]
-        const Icon = meta.icon
-        return <button key={category} type="button" className={value === category ? 'active' : ''} onClick={() => onChange(category)}><Icon size={13} /> {meta.label}</button>
+        return <button key={category} type="button" className={value === category ? 'active' : ''} onClick={() => onChange(category)}>{meta.label}</button>
       })}
     </div>
   )
