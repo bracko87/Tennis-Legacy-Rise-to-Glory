@@ -39,6 +39,7 @@ import { ScheduleTacticEducation, TournamentTacticEducation } from './components
 import TournamentEntryLifecycle from './components/tournament/TournamentEntryLifecycle'
 import TournamentExperienceEnhancements from './components/tournament/TournamentExperienceEnhancements'
 import TournamentLogoRecovery from './components/tournament/TournamentLogoRecovery'
+import TournamentMatchHealthControl from './components/tournament/TournamentMatchHealthControl'
 import TournamentMatchSchedule from './components/tournament/TournamentMatchSchedule'
 import TournamentMatchTacticStatus from './components/tournament/TournamentMatchTacticStatus'
 import TournamentPreMatchRealData from './components/tournament/TournamentPreMatchRealData'
@@ -138,6 +139,7 @@ function TournamentRoute() {
       <TournamentLogoRecovery />
       <TournamentTacticEducation />
       <TournamentPreMatchRealData />
+      <TournamentMatchHealthControl />
       <TournamentMatchTacticStatus />
     </>
   )
