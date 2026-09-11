@@ -123,16 +123,20 @@
 .tlg-match-health-choice-buttons {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 
 .tlg-match-health-choice-buttons button {
-  min-height: 34px;
-  padding: 8px 12px;
-  border-radius: 9px;
-  font-weight: 850;
+  min-width: 0;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -195,10 +199,6 @@
   .tlg-match-health-choice-buttons {
     grid-column: 1 / -1;
     width: 100%;
-    justify-content: stretch;
-  }
-
-  .tlg-match-health-choice-buttons button {
-    flex: 1 1 160px;
+    justify-content: flex-end;
   }
 }
