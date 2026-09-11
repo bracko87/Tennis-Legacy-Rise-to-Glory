@@ -1,0 +1,22 @@
+name: Temporary Private Life Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/pages/dashboard/PrivateLife.tsx'
+      - 'src/styles/private-life.css'
+      - '.github/workflows/temp-private-life-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
