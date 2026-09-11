@@ -14,6 +14,7 @@ import GameLayout from '../../components/layout/GameLayout'
 import { supabase } from '../../lib/supabase'
 import '../../styles/injuries.css'
 import '../../styles/health-system.css'
+import '../../styles/health-condition-colors.css'
 
 type Severity = 'minor' | 'moderate' | 'major' | 'severe'
 type HealthState = 'healthy' | 'at_risk' | 'ill' | 'injured' | 'recovering' | 'not_fully_fit' | 'fully_recovered'
@@ -189,6 +190,16 @@ function phaseLabel(value: HealthCondition['phase']) {
   return 'Not fully fit'
 }
 
+function conditionTone(value: number, lowerIsBetter = false) {
+  const raw = Math.max(0, Math.min(100, Number(value ?? 0)))
+  const score = lowerIsBetter ? 100 - raw : raw
+  if (score >= 80) return 'metric-good'
+  if (score >= 65) return 'metric-positive'
+  if (score >= 50) return 'metric-caution'
+  if (score >= 35) return 'metric-warning'
+  return 'metric-danger'
+}
+
 function nextStep(summary: HealthSummary, condition: HealthCondition | null) {
   if (summary.state === 'healthy') return 'Normal training and competition are available. Keep fatigue controlled to preserve the low-risk state.'
   if (summary.state === 'fully_recovered') return 'You are fully cleared again. Normal training and tournament participation are restored.'
@@ -277,11 +288,11 @@ export default function InjuriesPage() {
             </section>
 
             <section className="tlg-health-condition-strip">
-              <article><span>Fatigue</span><strong>{data.condition.fatigue}/100</strong></article>
-              <article><span>Sharpness</span><strong>{data.condition.sharpness}/100</strong></article>
-              <article><span>Fitness</span><strong>{data.condition.fitness}/100</strong></article>
-              <article><span>Recovery</span><strong>{data.condition.recovery}/100</strong></article>
-              <article><span>Medical staff effect</span><strong>{medicalStaffText}</strong></article>
+              <article className={conditionTone(data.condition.fatigue, true)}><span>Fatigue</span><strong>{data.condition.fatigue}/100</strong></article>
+              <article className={conditionTone(data.condition.sharpness)}><span>Sharpness</span><strong>{data.condition.sharpness}/100</strong></article>
+              <article className={conditionTone(data.condition.fitness)}><span>Fitness</span><strong>{data.condition.fitness}/100</strong></article>
+              <article className={conditionTone(data.condition.recovery)}><span>Recovery</span><strong>{data.condition.recovery}/100</strong></article>
+              <article className="metric-neutral"><span>Medical staff effect</span><strong>{medicalStaffText}</strong></article>
             </section>
 
             <section className="tlg-health-risk-grid">
