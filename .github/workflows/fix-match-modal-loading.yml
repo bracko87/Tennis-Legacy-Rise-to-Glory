@@ -2,14 +2,14 @@ name: Fix Match Modal Loading
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
   patch-and-build:
-    if: github.event.head_commit.message == 'Add temporary match modal loading fix'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,24 +20,23 @@ jobs:
           node-version: '22'
           cache: npm
       - name: Patch tournament match loading
+        shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
           p = Path('src/pages/dashboard/Tournament.tsx')
           text = p.read_text()
-          old_import = "import { useCallback, useEffect, useMemo, useState } from 'react'"
-          new_import = "import { useCallback, useEffect, useMemo, useRef, useState } from 'react'"
-          if old_import not in text:
-              raise SystemExit('React import pattern not found')
-          text = text.replace(old_import, new_import, 1)
-
-          old_state = "  const [matchError, setMatchError] = useState<string | null>(null)\n"
-          new_state = old_state + "  const matchRequestSequence = useRef(0)\n"
-          if old_state not in text:
-              raise SystemExit('Match error state pattern not found')
-          text = text.replace(old_state, new_state, 1)
-
-          old_loader = '''  const loadMatchDetail = useCallback(async (matchId: string) => {
+          replacements = [
+              (
+                  "import { useCallback, useEffect, useMemo, useState } from 'react'",
+                  "import { useCallback, useEffect, useMemo, useRef, useState } from 'react'",
+              ),
+              (
+                  "  const [matchError, setMatchError] = useState<string | null>(null)\n",
+                  "  const [matchError, setMatchError] = useState<string | null>(null)\n  const matchRequestSequence = useRef(0)\n",
+              ),
+              (
+          '''  const loadMatchDetail = useCallback(async (matchId: string) => {
     setMatchLoading(true)
     setMatchError(null)
     const { data, error } = await supabase.rpc('get_tournament_match_detail_v1', { p_match_id: matchId })
@@ -49,8 +48,8 @@ jobs:
     }
     setMatchLoading(false)
   }, [])
-'''
-          new_loader = '''  const loadMatchDetail = useCallback(async (matchId: string, background = false) => {
+''',
+          '''  const loadMatchDetail = useCallback(async (matchId: string, background = false) => {
     const requestSequence = ++matchRequestSequence.current
     let timeoutId: number | undefined
 
@@ -89,12 +88,10 @@ jobs:
       if (requestSequence === matchRequestSequence.current) setMatchLoading(false)
     }
   }, [])
-'''
-          if old_loader not in text:
-              raise SystemExit('Match loader pattern not found')
-          text = text.replace(old_loader, new_loader, 1)
-
-          old_effect = '''  useEffect(() => {
+''',
+              ),
+              (
+          '''  useEffect(() => {
     if (!selectedMatchId) {
       setMatchDetail(null)
       setMatchError(null)
@@ -105,8 +102,8 @@ jobs:
       void loadMatchDetail(selectedMatchId)
       void loadTournamentExtras()
     }
-'''
-          new_effect = '''  useEffect(() => {
+''',
+          '''  useEffect(() => {
     if (!selectedMatchId) {
       matchRequestSequence.current += 1
       setMatchDetail(null)
@@ -119,15 +116,19 @@ jobs:
       void loadMatchDetail(selectedMatchId, true)
       void loadTournamentExtras()
     }
-'''
-          if old_effect not in text:
-              raise SystemExit('Match effect pattern not found')
-          text = text.replace(old_effect, new_effect, 1)
+''',
+              ),
+          ]
+          for old, new in replacements:
+              if old not in text:
+                  raise SystemExit('Expected Tournament.tsx pattern not found')
+              text = text.replace(old, new, 1)
           p.write_text(text)
           PY
       - run: npm ci
       - run: npm run build
       - name: Commit fix
+        shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
