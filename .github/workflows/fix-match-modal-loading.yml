@@ -1,0 +1,137 @@
+name: Fix Match Modal Loading
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-build:
+    if: github.event.head_commit.message == 'Add temporary match modal loading fix'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Patch tournament match loading
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('src/pages/dashboard/Tournament.tsx')
+          text = p.read_text()
+          old_import = "import { useCallback, useEffect, useMemo, useState } from 'react'"
+          new_import = "import { useCallback, useEffect, useMemo, useRef, useState } from 'react'"
+          if old_import not in text:
+              raise SystemExit('React import pattern not found')
+          text = text.replace(old_import, new_import, 1)
+
+          old_state = "  const [matchError, setMatchError] = useState<string | null>(null)\n"
+          new_state = old_state + "  const matchRequestSequence = useRef(0)\n"
+          if old_state not in text:
+              raise SystemExit('Match error state pattern not found')
+          text = text.replace(old_state, new_state, 1)
+
+          old_loader = '''  const loadMatchDetail = useCallback(async (matchId: string) => {
+    setMatchLoading(true)
+    setMatchError(null)
+    const { data, error } = await supabase.rpc('get_tournament_match_detail_v1', { p_match_id: matchId })
+    if (error || !data) {
+      setMatchDetail(null)
+      setMatchError(error?.message ?? 'Match details are unavailable.')
+    } else {
+      setMatchDetail(data as MatchDetail)
+    }
+    setMatchLoading(false)
+  }, [])
+'''
+          new_loader = '''  const loadMatchDetail = useCallback(async (matchId: string, background = false) => {
+    const requestSequence = ++matchRequestSequence.current
+    let timeoutId: number | undefined
+
+    if (!background) {
+      setMatchLoading(true)
+      setMatchError(null)
+    }
+
+    try {
+      const timeout = new Promise<never>((_, reject) => {
+        timeoutId = window.setTimeout(() => reject(new Error('Match details request timed out. Close and reopen the match to retry.')), 12000)
+      })
+      const { data, error } = await Promise.race([
+        supabase.rpc('get_tournament_match_detail_v1', { p_match_id: matchId }),
+        timeout,
+      ])
+      if (requestSequence !== matchRequestSequence.current) return
+
+      if (error || !data) {
+        if (!background) {
+          setMatchDetail(null)
+          setMatchError(error?.message ?? 'Match details are unavailable.')
+        }
+      } else {
+        setMatchDetail(data as MatchDetail)
+        setMatchError(null)
+      }
+    } catch (caught) {
+      if (requestSequence !== matchRequestSequence.current) return
+      if (!background) {
+        setMatchDetail(null)
+        setMatchError(caught instanceof Error ? caught.message : 'Unable to load match details.')
+      }
+    } finally {
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId)
+      if (requestSequence === matchRequestSequence.current) setMatchLoading(false)
+    }
+  }, [])
+'''
+          if old_loader not in text:
+              raise SystemExit('Match loader pattern not found')
+          text = text.replace(old_loader, new_loader, 1)
+
+          old_effect = '''  useEffect(() => {
+    if (!selectedMatchId) {
+      setMatchDetail(null)
+      setMatchError(null)
+      return
+    }
+    void loadMatchDetail(selectedMatchId)
+    const reload = () => {
+      void loadMatchDetail(selectedMatchId)
+      void loadTournamentExtras()
+    }
+'''
+          new_effect = '''  useEffect(() => {
+    if (!selectedMatchId) {
+      matchRequestSequence.current += 1
+      setMatchDetail(null)
+      setMatchError(null)
+      setMatchLoading(false)
+      return
+    }
+    void loadMatchDetail(selectedMatchId)
+    const reload = () => {
+      void loadMatchDetail(selectedMatchId, true)
+      void loadTournamentExtras()
+    }
+'''
+          if old_effect not in text:
+              raise SystemExit('Match effect pattern not found')
+          text = text.replace(old_effect, new_effect, 1)
+          p.write_text(text)
+          PY
+      - run: npm ci
+      - run: npm run build
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/pages/dashboard/Tournament.tsx
+          git diff --cached --quiet && exit 0
+          git commit -m "Harden tournament match modal loading"
+          git push origin HEAD:main
