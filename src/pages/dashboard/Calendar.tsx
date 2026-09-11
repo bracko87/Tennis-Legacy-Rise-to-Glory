@@ -127,7 +127,7 @@ function playerActivityLabel(activity: PlayerCalendarActivityRow['activity_type'
   if (activity === 'training_camp') return 'Training Camp'
   if (activity === 'tournament') return 'Tournament'
   if (activity === 'travel') return 'Travel'
-  if (activity === 'injured') return 'Injury / Recovery'
+  if (activity === 'injured') return 'Health / Recovery'
   return 'Home'
 }
 
