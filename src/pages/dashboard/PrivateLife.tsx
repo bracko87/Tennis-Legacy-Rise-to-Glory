@@ -14,10 +14,14 @@ import PrivateLifeInvestments from '../../components/private-life/PrivateLifeInv
 import { useCommerce } from '../../hooks/useCommerce'
 import { supabase } from '../../lib/supabase'
 import '../../styles/private-life.css'
+import '../../styles/private-life-marketplace.css'
 
-type AssetCategory = 'watch' | 'car' | 'apartment' | 'house_villa' | 'yacht'
+type AssetCategory = 'watch' | 'jewelry' | 'car' | 'apartment' | 'house_villa' | 'yacht' | 'private_jet' | 'art' | 'collectible'
 type MainTab = 'overview' | 'assets' | 'investments' | 'marketplace'
 type CategoryFilter = 'all' | AssetCategory
+type MarketplacePrice = 'all' | 'under_10k' | '10k_50k' | '50k_250k' | '250k_1m' | '1m_5m' | '5m_plus'
+type MarketplaceRarity = 'all' | 'common' | 'uncommon' | 'rare' | 'very_rare' | 'legendary'
+type MarketplaceSort = 'default' | 'price_asc' | 'price_desc' | 'prestige_desc' | 'appreciation_desc'
 
 type CatalogAsset = {
   code: string
@@ -90,10 +94,14 @@ type PendingAction =
 
 const CATEGORY_META: Record<AssetCategory, { label: string }> = {
   watch: { label: 'Watches' },
+  jewelry: { label: 'Jewelry' },
   car: { label: 'Vehicles' },
   apartment: { label: 'Apartments' },
   house_villa: { label: 'Houses & Villas' },
   yacht: { label: 'Yachts' },
+  private_jet: { label: 'Private Jets' },
+  art: { label: 'Art' },
+  collectible: { label: 'Collectibles' },
 }
 
 function money(value: number, currency = 'USD') {
@@ -116,6 +124,16 @@ function trendText(rateBps: number) {
   if (rateBps === 0) return 'Stable'
   const percent = Math.abs(rateBps) / 100
   return `${rateBps > 0 ? '+' : '-'}${percent.toFixed(percent % 1 === 0 ? 0 : 1)}% / year`
+}
+
+function matchesPriceBand(price: number, band: MarketplacePrice) {
+  if (band === 'under_10k') return price < 10000
+  if (band === '10k_50k') return price >= 10000 && price < 50000
+  if (band === '50k_250k') return price >= 50000 && price < 250000
+  if (band === '250k_1m') return price >= 250000 && price < 1000000
+  if (band === '1m_5m') return price >= 1000000 && price < 5000000
+  if (band === '5m_plus') return price >= 5000000
+  return true
 }
 
 function AssetImage({ src, name }: { src: string; name: string }) {
@@ -142,6 +160,11 @@ export default function PrivateLifePage() {
   const [tab, setTab] = useState<MainTab>('overview')
   const [filter, setFilter] = useState<CategoryFilter>('all')
   const [pendingAction, setPendingAction] = useState<PendingAction>(null)
+  const [marketSearch, setMarketSearch] = useState('')
+  const [marketPrice, setMarketPrice] = useState<MarketplacePrice>('all')
+  const [marketRarity, setMarketRarity] = useState<MarketplaceRarity>('all')
+  const [marketSort, setMarketSort] = useState<MarketplaceSort>('default')
+  const [marketAffordableOnly, setMarketAffordableOnly] = useState(false)
 
   const loadDashboard = useCallback(async () => {
     if (!isPremium) return
@@ -164,10 +187,25 @@ export default function PrivateLifePage() {
   }, [commerceLoading, isPremium, loadDashboard])
 
   const visibleCatalog = useMemo(() => {
+    const search = marketSearch.trim().toLowerCase()
     const source = dashboard?.catalog ?? []
-    if (filter === 'all') return source
-    return source.filter((asset) => asset.category === filter)
-  }, [dashboard?.catalog, filter])
+    const filtered = source.filter((asset) => {
+      if (filter !== 'all' && asset.category !== filter) return false
+      if (search && !`${asset.name} ${asset.description} ${categoryLabel(asset.category)}`.toLowerCase().includes(search)) return false
+      if (!matchesPriceBand(Number(asset.purchase_price), marketPrice)) return false
+      if (marketRarity !== 'all' && asset.rarity !== marketRarity) return false
+      if (marketAffordableOnly && (!asset.affordable || asset.owned)) return false
+      return true
+    })
+
+    return [...filtered].sort((a, b) => {
+      if (marketSort === 'price_asc') return a.purchase_price - b.purchase_price
+      if (marketSort === 'price_desc') return b.purchase_price - a.purchase_price
+      if (marketSort === 'prestige_desc') return b.prestige - a.prestige || a.purchase_price - b.purchase_price
+      if (marketSort === 'appreciation_desc') return b.annual_value_rate_bps - a.annual_value_rate_bps || a.purchase_price - b.purchase_price
+      return 0
+    })
+  }, [dashboard?.catalog, filter, marketAffordableOnly, marketPrice, marketRarity, marketSearch, marketSort])
 
   const visibleOwned = useMemo(() => {
     const source = dashboard?.owned_assets ?? []
@@ -343,7 +381,7 @@ export default function PrivateLifePage() {
                 </article>
                 <article className="private-life-future-card">
                   <div className="private-life-future-card-head"><h4>Value & ownership</h4></div>
-                  <p>Cars and yachts usually lose value, while selected property, watches and future collectibles can appreciate over time.</p>
+                  <p>Vehicles, yachts and private jets usually lose value, while selected property, watches, jewelry, art and collectibles can appreciate over time.</p>
                   <small>Current physical-asset values already follow game-time ownership duration.</small>
                 </article>
                 <article className="private-life-future-card">
@@ -396,41 +434,80 @@ export default function PrivateLifePage() {
         {tab === 'marketplace' ? (
           <section className="private-life-section">
             <div className="private-life-section-head">
-              <div><div className="private-life-section-eyebrow">Luxury marketplace</div><h3>Buy physical assets</h3><p>Browse possessions across every stage of a career. Everything remains visible, while your Finance balance determines what you can purchase.</p></div>
+              <div>
+                <div className="private-life-section-eyebrow">Luxury marketplace</div>
+                <h3>Buy physical assets</h3>
+                <p>Browse new possessions across every stage of a career. I am keeping this marketplace new-only for now; a future pre-owned market should have mileage, condition and provenance so it is a real gameplay choice rather than simply a cheaper duplicate.</p>
+              </div>
+              <span className="private-life-market-new-pill">New marketplace</span>
             </div>
             <CategoryFilters value={filter} onChange={setFilter} />
-            <div className="private-life-market-grid">
-              {visibleCatalog.map((asset) => {
-                const isPositive = asset.annual_value_rate_bps > 0
-                const canBuy = asset.affordable && !asset.owned
-                return (
-                  <article className="private-life-card" key={asset.code}>
-                    <div className="private-life-card-image">
-                      <AssetImage src={asset.image_url} name={asset.name} />
-                      <div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(asset.rarity)}</span></div>
-                    </div>
-                    <div className="private-life-card-body">
-                      <div className="private-life-card-title-row"><h4>{asset.name}</h4><div className="private-life-price">{money(asset.purchase_price, currency)}</div></div>
-                      <p className="private-life-description">{asset.description}</p>
-                      <div className="private-life-card-stats">
-                        <div className="private-life-card-stat"><span>Prestige</span><strong>+{asset.prestige}</strong></div>
-                        <div className="private-life-card-stat"><span>Annual cost</span><strong>{money(asset.annual_running_cost, currency)}</strong></div>
-                        <div className="private-life-card-stat"><span>Value trend</span><strong className={asset.annual_value_rate_bps < 0 ? 'private-life-trend-negative' : isPositive ? 'private-life-trend-positive' : ''}>{asset.annual_value_rate_bps < 0 ? <TrendingDown size={12} /> : isPositive ? <TrendingUp size={12} /> : null} {trendText(asset.annual_value_rate_bps)}</strong></div>
-                        <div className="private-life-card-stat"><span>Category</span><strong>{categoryLabel(asset.category)}</strong></div>
-                      </div>
-                      <button
-                        type="button"
-                        className="private-life-action"
-                        disabled={!canBuy}
-                        onClick={() => setPendingAction({ type: 'buy', asset })}
-                      >
-                        {asset.owned ? 'Already owned' : !asset.affordable ? 'Insufficient funds' : 'Purchase asset'}
-                      </button>
-                    </div>
-                  </article>
-                )
-              })}
+            <div className="private-life-marketplace-tools">
+              <input value={marketSearch} onChange={(event) => setMarketSearch(event.target.value)} placeholder="Search assets" aria-label="Search marketplace assets" />
+              <select value={marketPrice} onChange={(event) => setMarketPrice(event.target.value as MarketplacePrice)} aria-label="Marketplace price filter">
+                <option value="all">All prices</option>
+                <option value="under_10k">Under $10K</option>
+                <option value="10k_50k">$10K – $50K</option>
+                <option value="50k_250k">$50K – $250K</option>
+                <option value="250k_1m">$250K – $1M</option>
+                <option value="1m_5m">$1M – $5M</option>
+                <option value="5m_plus">$5M+</option>
+              </select>
+              <select value={marketRarity} onChange={(event) => setMarketRarity(event.target.value as MarketplaceRarity)} aria-label="Marketplace rarity filter">
+                <option value="all">All rarities</option>
+                <option value="common">Common</option>
+                <option value="uncommon">Uncommon</option>
+                <option value="rare">Rare</option>
+                <option value="very_rare">Very rare</option>
+                <option value="legendary">Legendary</option>
+              </select>
+              <select value={marketSort} onChange={(event) => setMarketSort(event.target.value as MarketplaceSort)} aria-label="Marketplace sort order">
+                <option value="default">Default order</option>
+                <option value="price_asc">Price: low to high</option>
+                <option value="price_desc">Price: high to low</option>
+                <option value="prestige_desc">Prestige: high to low</option>
+                <option value="appreciation_desc">Best value trend</option>
+              </select>
+              <label className="private-life-marketplace-affordable"><input type="checkbox" checked={marketAffordableOnly} onChange={(event) => setMarketAffordableOnly(event.target.checked)} /><span>Affordable only</span></label>
+              <button type="button" className="private-life-marketplace-reset" onClick={() => { setMarketSearch(''); setMarketPrice('all'); setMarketRarity('all'); setMarketSort('default'); setMarketAffordableOnly(false); setFilter('all') }}>Reset</button>
             </div>
+            <div className="private-life-marketplace-results"><span>{visibleCatalog.length} listings</span><span>{dashboard.catalog.length} total assets</span></div>
+            {visibleCatalog.length === 0 ? (
+              <div className="private-life-empty"><strong>No marketplace matches</strong><p>Change the category, price or rarity filters to see more assets.</p></div>
+            ) : (
+              <div className="private-life-market-grid">
+                {visibleCatalog.map((asset) => {
+                  const isPositive = asset.annual_value_rate_bps > 0
+                  const canBuy = asset.affordable && !asset.owned
+                  return (
+                    <article className="private-life-card" key={asset.code}>
+                      <div className="private-life-card-image">
+                        <AssetImage src={asset.image_url} name={asset.name} />
+                        <div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(asset.rarity)}</span><span className="private-life-badge new">New</span></div>
+                      </div>
+                      <div className="private-life-card-body">
+                        <div className="private-life-card-title-row"><h4>{asset.name}</h4><div className="private-life-price">{money(asset.purchase_price, currency)}</div></div>
+                        <p className="private-life-description">{asset.description}</p>
+                        <div className="private-life-card-stats">
+                          <div className="private-life-card-stat"><span>Prestige</span><strong>+{asset.prestige}</strong></div>
+                          <div className="private-life-card-stat"><span>Annual cost</span><strong>{money(asset.annual_running_cost, currency)}</strong></div>
+                          <div className="private-life-card-stat"><span>Value trend</span><strong className={asset.annual_value_rate_bps < 0 ? 'private-life-trend-negative' : isPositive ? 'private-life-trend-positive' : ''}>{asset.annual_value_rate_bps < 0 ? <TrendingDown size={12} /> : isPositive ? <TrendingUp size={12} /> : null} {trendText(asset.annual_value_rate_bps)}</strong></div>
+                          <div className="private-life-card-stat"><span>Category</span><strong>{categoryLabel(asset.category)}</strong></div>
+                        </div>
+                        <button
+                          type="button"
+                          className="private-life-action"
+                          disabled={!canBuy}
+                          onClick={() => setPendingAction({ type: 'buy', asset })}
+                        >
+                          {asset.owned ? 'Already owned' : !asset.affordable ? 'Insufficient funds' : 'Purchase asset'}
+                        </button>
+                      </div>
+                    </article>
+                  )
+                })}
+              </div>
+            )}
           </section>
         ) : null}
 
