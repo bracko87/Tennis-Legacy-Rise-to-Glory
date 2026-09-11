@@ -43,6 +43,7 @@ import TournamentMatchHealthControl from './components/tournament/TournamentMatc
 import TournamentMatchSchedule from './components/tournament/TournamentMatchSchedule'
 import TournamentMatchTacticStatus from './components/tournament/TournamentMatchTacticStatus'
 import TournamentPreMatchRealData from './components/tournament/TournamentPreMatchRealData'
+import TrainingHealthStatus from './components/training/TrainingHealthStatus'
 import HomePage from './pages/Home'
 import LoginPage from './pages/auth/Login'
 import ForgotPasswordPage from './pages/auth/ForgotPassword'
@@ -153,6 +154,10 @@ function OverviewRoute() {
   return <><OverviewPage /><OverviewInjuryEnhancement /></>
 }
 
+function TrainingRoute() {
+  return <><TrainingPage /><TrainingHealthStatus /></>
+}
+
 function ScheduleRoute() {
   return <><SchedulePage /><ScheduleUiPolish /><ScheduleTacticEducation /></>
 }
@@ -180,7 +185,7 @@ export default function App() {
 
           <Route path="/game/overview" element={<RequirePlayer><OverviewRoute /></RequirePlayer>} />
           <Route path="/game/skills" element={<RequirePlayer><SkillsPage /></RequirePlayer>} />
-          <Route path="/game/training" element={<RequirePlayer><TrainingPage /></RequirePlayer>} />
+          <Route path="/game/training" element={<RequirePlayer><TrainingRoute /></RequirePlayer>} />
           <Route path="/game/staff" element={<RequirePlayer><StaffPage /></RequirePlayer>} />
           <Route path="/game/calendar" element={<RequirePlayer><CalendarPage /></RequirePlayer>} />
           <Route path="/game/tournaments/:competitionId" element={<RequirePlayer><TournamentRoute /></RequirePlayer>} />
