@@ -72,6 +72,7 @@ export default function TournamentMatchHealthControl() {
   const [health, setHealth] = useState<MatchHealthStatus | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [playAnywaySelected, setPlayAnywaySelected] = useState(false)
 
   useEffect(() => {
     if (!competitionId) { setMatches([]); return }
@@ -124,6 +125,10 @@ export default function TournamentMatchHealthControl() {
     }
   }, [matches])
 
+  useEffect(() => {
+    setPlayAnywaySelected(false)
+  }, [selectedMatch?.match_id])
+
   const loadHealth = useCallback(async () => {
     if (!selectedMatch?.match_id || !player?.id || (selectedMatch.player1_id !== player.id && selectedMatch.player2_id !== player.id)) {
       setHealth(null); return
@@ -144,7 +149,9 @@ export default function TournamentMatchHealthControl() {
   async function surrenderMatch() {
     if (!selectedMatch?.match_id || !health?.can_surrender || busy) return
     const condition = health.health.primary_condition?.name ?? health.health.label
-    const confirmed = window.confirm(`Surrender this match for health reasons?\n\nCurrent concern: ${condition}.\n\nThis immediately gives the match to your opponent and cannot be undone.`)
+    const confirmed = window.confirm(
+      `Confirm health surrender?\n\nCurrent concern: ${condition}.\n\nIf you confirm, you forfeit this match and your opponent advances. Choose Cancel to keep the match scheduled and continue playing.`,
+    )
     if (!confirmed) return
     setBusy(true); setError(null)
     const { error: surrenderError } = await supabase.rpc('surrender_tournament_match_v1', { p_match_id: selectedMatch.match_id })
@@ -176,8 +183,18 @@ export default function TournamentMatchHealthControl() {
       </div> : null}
       {health?.health_concern ? <div className="tlg-match-health-action">
         <AlertTriangle size={18} />
-        <p>Playing while not fully fit can cause a recovery setback. If the risk is not acceptable, you can surrender before the match simulation is prepared.</p>
-        <button type="button" disabled={!health.can_surrender || busy} onClick={surrenderMatch}>{busy ? 'Surrendering…' : 'Surrender match for health'}</button>
+        <div className="tlg-match-health-choice-copy">
+          <p>There is a health risk, but the decision is yours. You can play the match anyway or surrender before the match simulation is prepared.</p>
+          {playAnywaySelected ? <small>You chose to continue playing. The health risk still applies, and surrender remains available until the simulation is prepared.</small> : null}
+        </div>
+        <div className="tlg-match-health-choice-buttons">
+          <button type="button" className="continue" onClick={() => setPlayAnywaySelected(true)} disabled={busy || playAnywaySelected}>
+            {playAnywaySelected ? 'Playing anyway' : 'Play anyway'}
+          </button>
+          <button type="button" className="surrender" disabled={!health.can_surrender || busy} onClick={surrenderMatch}>
+            {busy ? 'Surrendering…' : 'Surrender match'}
+          </button>
+        </div>
       </div> : null}
       {health && !health.can_surrender && health.health_concern ? <small className="tlg-match-health-disabled-reason">{health.surrender_reason}</small> : null}
       {error ? <div className="tlg-match-health-error">{error}</div> : null}
