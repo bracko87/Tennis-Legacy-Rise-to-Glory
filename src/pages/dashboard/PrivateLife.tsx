@@ -381,8 +381,8 @@ export default function PrivateLifePage() {
                 </article>
                 <article className="private-life-future-card">
                   <div className="private-life-future-card-head"><Clock size={18} /><h4>Running costs</h4></div>
-                  <p>You can already see expected ownership costs before buying. Automatic recurring charges are the next implementation phase.</p>
-                  <small>No hidden charge is being applied yet in Phase 1.</small>
+                  <p>Ownership costs are charged monthly against the same career Finance balance, based on the annual cost shown for each asset.</p>
+                  <small>Every charge is idempotent and appears in Finance history.</small>
                 </article>
               </div>
             </div>
