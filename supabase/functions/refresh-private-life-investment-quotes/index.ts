@@ -69,6 +69,24 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
+    const authorization = req.headers.get('Authorization') ?? ''
+    const token = authorization.replace(/^Bearer\s+/i, '').trim()
+    if (!token) return Response.json({ error: 'Authentication required' }, { status: 401, headers: corsHeaders })
+
+    const { data: userData, error: userError } = await admin.auth.getUser(token)
+    const userId = userData?.user?.id
+    if (userError || !userId) return Response.json({ error: 'Authentication required' }, { status: 401, headers: corsHeaders })
+
+    const { data: membership, error: membershipError } = await admin
+      .from('premium_memberships')
+      .select('plan_code,status,current_period_end')
+      .eq('user_id', userId)
+      .maybeSingle()
+    if (membershipError) throw membershipError
+    const periodActive = !membership?.current_period_end || new Date(membership.current_period_end).getTime() > Date.now()
+    if (membership?.plan_code !== 'premium' || membership?.status !== 'active' || !periodActive) {
+      return Response.json({ error: 'Premium membership required' }, { status: 403, headers: corsHeaders })
+    }
 
     const { data: instrumentsData, error: instrumentsError } = await admin
       .from('private_life_investment_instruments')
