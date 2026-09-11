@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
+import GameConfirmDialog from '../common/GameConfirmDialog'
 import { supabase } from '../../lib/supabase'
 import '../../styles/tournament-match-health-control.css'
 
@@ -73,6 +74,7 @@ export default function TournamentMatchHealthControl() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [playAnywaySelected, setPlayAnywaySelected] = useState(false)
+  const [confirmSurrenderOpen, setConfirmSurrenderOpen] = useState(false)
 
   useEffect(() => {
     if (!competitionId) { setMatches([]); return }
@@ -127,6 +129,7 @@ export default function TournamentMatchHealthControl() {
 
   useEffect(() => {
     setPlayAnywaySelected(false)
+    setConfirmSurrenderOpen(false)
   }, [selectedMatch?.match_id])
 
   const loadHealth = useCallback(async () => {
@@ -148,15 +151,15 @@ export default function TournamentMatchHealthControl() {
 
   async function surrenderMatch() {
     if (!selectedMatch?.match_id || !health?.can_surrender || busy) return
-    const condition = health.health.primary_condition?.name ?? health.health.label
-    const confirmed = window.confirm(
-      `Confirm health surrender?\n\nCurrent concern: ${condition}.\n\nIf you confirm, you forfeit this match and your opponent advances. Choose Cancel to keep the match scheduled and continue playing.`,
-    )
-    if (!confirmed) return
-    setBusy(true); setError(null)
+    setBusy(true)
+    setError(null)
     const { error: surrenderError } = await supabase.rpc('surrender_tournament_match_v1', { p_match_id: selectedMatch.match_id })
     setBusy(false)
-    if (surrenderError) { setError(surrenderError.message); return }
+    if (surrenderError) {
+      setConfirmSurrenderOpen(false)
+      setError(surrenderError.message)
+      return
+    }
     window.location.reload()
   }
 
@@ -165,40 +168,60 @@ export default function TournamentMatchHealthControl() {
   if (!health && !error) return null
 
   const condition = health?.health.primary_condition
-  return createPortal(
-    <section className={`tlg-match-health-control ${health?.health_concern ? 'concern' : 'clear'}`}>
-      <div className="tlg-match-health-heading">
-        <div className="icon">{health?.health_concern ? <HeartPulse size={20} /> : <ShieldCheck size={20} />}</div>
-        <div>
-          <span>Match health check</span>
-          <strong>{health?.health_concern ? 'Health concern detected' : 'No elevated health concern'}</strong>
-          <small>{condition ? `${condition.name} · ${titleCase(condition.severity)} · ${condition.progress_percent}% recovered` : health?.health.label ?? 'Health status unavailable'}</small>
-        </div>
-      </div>
-      {health ? <div className="tlg-match-health-metrics">
-        <div><span>Fatigue</span><strong>{health.fatigue}/100</strong></div>
-        <div><span>Match injury risk</span><strong>{titleCase(health.match_injury_risk.risk_level)} · {Number(health.match_injury_risk.risk_percent).toFixed(2)}%</strong></div>
-        <div><span>Illness risk</span><strong>{titleCase(health.illness_risk.risk_level)} · {Number(health.illness_risk.risk_percent).toFixed(2)}%</strong></div>
-        <div><span>Performance penalty</span><strong>{Math.round(Number(health.health.performance_penalty ?? 0) * 100)}%</strong></div>
-      </div> : null}
-      {health?.health_concern ? <div className="tlg-match-health-action">
-        <AlertTriangle size={18} />
-        <div className="tlg-match-health-choice-copy">
-          <p>There is a health risk, but the decision is yours. You can play the match anyway or surrender before the match simulation is prepared.</p>
-          {playAnywaySelected ? <small>You chose to continue playing. The health risk still applies, and surrender remains available until the simulation is prepared.</small> : null}
-        </div>
-        <div className="tlg-match-health-choice-buttons">
-          <button type="button" className="continue" onClick={() => setPlayAnywaySelected(true)} disabled={busy || playAnywaySelected}>
-            {playAnywaySelected ? 'Playing anyway' : 'Play anyway'}
-          </button>
-          <button type="button" className="surrender" disabled={!health.can_surrender || busy} onClick={surrenderMatch}>
-            {busy ? 'Surrendering…' : 'Surrender match'}
-          </button>
-        </div>
-      </div> : null}
-      {health && !health.can_surrender && health.health_concern ? <small className="tlg-match-health-disabled-reason">{health.surrender_reason}</small> : null}
-      {error ? <div className="tlg-match-health-error">{error}</div> : null}
-    </section>,
-    host,
+  const concernLabel = condition?.name ?? health?.health.label ?? 'Health concern'
+
+  return (
+    <>
+      {createPortal(
+        <section className={`tlg-match-health-control ${health?.health_concern ? 'concern' : 'clear'}`}>
+          <div className="tlg-match-health-heading">
+            <div className="icon">{health?.health_concern ? <HeartPulse size={20} /> : <ShieldCheck size={20} />}</div>
+            <div>
+              <span>Match health check</span>
+              <strong>{health?.health_concern ? 'Health concern detected' : 'No elevated health concern'}</strong>
+              <small>{condition ? `${condition.name} · ${titleCase(condition.severity)} · ${condition.progress_percent}% recovered` : health?.health.label ?? 'Health status unavailable'}</small>
+            </div>
+          </div>
+          {health ? <div className="tlg-match-health-metrics">
+            <div><span>Fatigue</span><strong>{health.fatigue}/100</strong></div>
+            <div><span>Match injury risk</span><strong>{titleCase(health.match_injury_risk.risk_level)} · {Number(health.match_injury_risk.risk_percent).toFixed(2)}%</strong></div>
+            <div><span>Illness risk</span><strong>{titleCase(health.illness_risk.risk_level)} · {Number(health.illness_risk.risk_percent).toFixed(2)}%</strong></div>
+            <div><span>Performance penalty</span><strong>{Math.round(Number(health.health.performance_penalty ?? 0) * 100)}%</strong></div>
+          </div> : null}
+          {health?.health_concern ? <div className="tlg-match-health-action">
+            <AlertTriangle size={18} />
+            <div className="tlg-match-health-choice-copy">
+              <p>There is a health risk, but the decision is yours. You can play the match anyway or surrender before the match simulation is prepared.</p>
+              {playAnywaySelected ? <small>You chose to continue playing. The health risk still applies, and surrender remains available until the simulation is prepared.</small> : null}
+            </div>
+            <div className="tlg-match-health-choice-buttons">
+              <button type="button" className="continue" onClick={() => setPlayAnywaySelected(true)} disabled={busy || playAnywaySelected}>
+                {playAnywaySelected ? 'Playing anyway' : 'Play anyway'}
+              </button>
+              <button type="button" className="surrender" disabled={!health.can_surrender || busy} onClick={() => setConfirmSurrenderOpen(true)}>
+                Surrender match
+              </button>
+            </div>
+          </div> : null}
+          {health && !health.can_surrender && health.health_concern ? <small className="tlg-match-health-disabled-reason">{health.surrender_reason}</small> : null}
+          {error ? <div className="tlg-match-health-error">{error}</div> : null}
+        </section>,
+        host,
+      )}
+
+      <GameConfirmDialog
+        open={confirmSurrenderOpen}
+        eyebrow="Match health decision"
+        title="Surrender this match?"
+        message="If you confirm, you forfeit this match and your opponent advances."
+        detail={`Current concern: ${concernLabel}. Choose Cancel to keep the match scheduled and continue playing. This action cannot be undone.`}
+        cancelLabel="Cancel"
+        confirmLabel="Confirm surrender"
+        busy={busy}
+        tone="danger"
+        onCancel={() => { if (!busy) setConfirmSurrenderOpen(false) }}
+        onConfirm={surrenderMatch}
+      />
+    </>
   )
 }
