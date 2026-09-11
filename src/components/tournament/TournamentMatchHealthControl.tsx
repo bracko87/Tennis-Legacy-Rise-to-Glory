@@ -97,7 +97,12 @@ export default function TournamentMatchHealthControl() {
       }
       const match = parseModalMatch(modal, matches)
       if (!match) return
-      if (!currentHost || !currentHost.isConnected || currentHost.nextElementSibling !== tacticSection) {
+
+      // Multiple tournament enhancements insert portal hosts near the tactic
+      // section. Do not require this host to remain the immediate sibling of
+      // the tactic section: doing so makes sibling observers continuously
+      // remove/reinsert each other and can lock the browser main thread.
+      if (!currentHost || !currentHost.isConnected || !modal.contains(currentHost)) {
         currentHost?.remove()
         currentHost = document.createElement('div')
         currentHost.dataset.tlgMatchHealthControlHost = 'true'
