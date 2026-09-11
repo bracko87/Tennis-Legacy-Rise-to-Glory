@@ -3,18 +3,14 @@ import {
   Car,
   Clock,
   Crown,
-  DollarSign,
   Gem,
   Heart,
   House,
   LockKeyhole,
   RefreshCw,
   Ship,
-  Store,
   TrendingDown,
   TrendingUp,
-  Trophy,
-  Wallet,
   Watch,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -43,7 +39,6 @@ type CatalogAsset = {
   annual_value_rate_bps: number
   resale_discount_bps: number
   image_url: string
-  unlocked: boolean
   affordable: boolean
   owned: boolean
 }
@@ -85,8 +80,6 @@ type PrivateLifeDashboard = {
   season: number
   month: number
   day: number
-  lifestyle_level: number
-  career_earnings: number
   prestige: number
   asset_value: number
   net_worth: number
@@ -109,8 +102,6 @@ const CATEGORY_META: Record<AssetCategory, { label: string; icon: typeof Watch }
   yacht: { label: 'Yachts', icon: Ship },
 }
 
-const LEVEL_THRESHOLDS = [0, 100_000, 500_000, 2_000_000, 10_000_000]
-
 function money(value: number, currency = 'USD') {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -131,18 +122,6 @@ function trendText(rateBps: number) {
   if (rateBps === 0) return 'Stable'
   const percent = Math.abs(rateBps) / 100
   return `${rateBps > 0 ? '+' : '-'}${percent.toFixed(percent % 1 === 0 ? 0 : 1)}% / year`
-}
-
-function nextLevelProgress(level: number, earnings: number) {
-  if (level >= 5) return { percent: 100, label: 'Maximum lifestyle level reached' }
-  const currentFloor = LEVEL_THRESHOLDS[Math.max(0, level - 1)] ?? 0
-  const nextTarget = LEVEL_THRESHOLDS[level] ?? LEVEL_THRESHOLDS[4]
-  const progress = Math.max(0, earnings - currentFloor)
-  const span = Math.max(1, nextTarget - currentFloor)
-  return {
-    percent: Math.min(100, Math.round((progress / span) * 100)),
-    label: `${money(nextTarget - earnings)} career income to Lifestyle Level ${level + 1}`,
-  }
 }
 
 function AssetImage({ src, name }: { src: string; name: string }) {
@@ -284,7 +263,6 @@ export default function PrivateLifePage() {
   if (!dashboard) return null
 
   const currency = dashboard.currency || 'USD'
-  const progress = nextLevelProgress(dashboard.lifestyle_level, dashboard.career_earnings)
   const categoryTotals = new Map(dashboard.category_totals.map((row) => [row.category, row]))
 
   const confirmation = pendingAction
@@ -310,32 +288,26 @@ export default function PrivateLifePage() {
   return (
     <GameLayout title="Private Life" subtitle="Lifestyle, assets and personal wealth">
       <div className="private-life-page">
-        <section className="private-life-hero">
+        <section className="private-life-hero" style={{ gridTemplateColumns: '1fr' }}>
           <div className="private-life-hero-copy">
             <div className="private-life-eyebrow">Off-court career</div>
             <h2>Turn career earnings into a life beyond tennis.</h2>
             <p>Build a personal collection of watches, vehicles, property and yachts. Every purchase and sale uses the same career Finance balance and becomes part of your long-term wealth story.</p>
           </div>
-          <div className="private-life-level-card">
-            <div className="private-life-level-top"><span>Lifestyle level</span><strong>{dashboard.lifestyle_level}</strong></div>
-            <div className="private-life-level-track"><div style={{ width: `${progress.percent}%` }} /></div>
-            <small>{progress.label}</small>
-            <small>Higher levels unlock more exclusive assets. Lifestyle level is based on career income, not spending.</small>
-          </div>
         </section>
 
         <section className="private-life-metrics" aria-label="Private wealth summary">
-          <div className="private-life-metric"><div className="private-life-metric-icon"><Wallet size={17} /></div><span>Cash balance</span><strong>{money(dashboard.cash_balance, currency)}</strong></div>
-          <div className="private-life-metric"><div className="private-life-metric-icon"><Gem size={17} /></div><span>Asset value</span><strong>{money(dashboard.asset_value, currency)}</strong></div>
-          <div className="private-life-metric"><div className="private-life-metric-icon"><DollarSign size={17} /></div><span>Net worth</span><strong>{money(dashboard.net_worth, currency)}</strong></div>
-          <div className="private-life-metric"><div className="private-life-metric-icon"><Trophy size={17} /></div><span>Prestige</span><strong>{dashboard.prestige}</strong></div>
-          <div className="private-life-metric"><div className="private-life-metric-icon"><Clock size={17} /></div><span>Annual ownership cost</span><strong>{money(dashboard.annual_running_cost, currency)}</strong></div>
+          <div className="private-life-metric"><span>Cash balance</span><strong>{money(dashboard.cash_balance, currency)}</strong></div>
+          <div className="private-life-metric"><span>Asset value</span><strong>{money(dashboard.asset_value, currency)}</strong></div>
+          <div className="private-life-metric"><span>Net worth</span><strong>{money(dashboard.net_worth, currency)}</strong></div>
+          <div className="private-life-metric"><span>Prestige</span><strong>{dashboard.prestige}</strong></div>
+          <div className="private-life-metric"><span>Annual ownership cost</span><strong>{money(dashboard.annual_running_cost, currency)}</strong></div>
         </section>
 
         <nav className="private-life-tabs" aria-label="Private Life sections">
-          <button className={tab === 'overview' ? 'active' : ''} type="button" onClick={() => setTab('overview')}><Trophy size={15} /> Lifestyle Overview</button>
-          <button className={tab === 'marketplace' ? 'active' : ''} type="button" onClick={() => setTab('marketplace')}><Store size={15} /> Marketplace</button>
-          <button className={tab === 'assets' ? 'active' : ''} type="button" onClick={() => setTab('assets')}><Gem size={15} /> My Assets ({dashboard.owned_assets.length})</button>
+          <button className={tab === 'overview' ? 'active' : ''} type="button" onClick={() => setTab('overview')}>Overview</button>
+          <button className={tab === 'marketplace' ? 'active' : ''} type="button" onClick={() => setTab('marketplace')}>Marketplace</button>
+          <button className={tab === 'assets' ? 'active' : ''} type="button" onClick={() => setTab('assets')}>My Assets ({dashboard.owned_assets.length})</button>
         </nav>
 
         {notice ? <div className="private-life-notice"><Gem size={16} /><span>{notice}</span></div> : null}
@@ -392,18 +364,18 @@ export default function PrivateLifePage() {
         {tab === 'marketplace' ? (
           <section className="private-life-section">
             <div className="private-life-section-head">
-              <div><div className="private-life-section-eyebrow">Lifestyle market</div><h3>Marketplace</h3><p>Browse purchases for every stage of a career. Locked items require a higher Lifestyle Level; unaffordable items remain visible as long-term goals.</p></div>
+              <div><div className="private-life-section-eyebrow">Private market</div><h3>Marketplace</h3><p>Browse luxury purchases across every stage of a career. Items remain visible at all times, while your Finance balance determines what you can purchase.</p></div>
             </div>
             <CategoryFilters value={filter} onChange={setFilter} />
             <div className="private-life-market-grid">
               {visibleCatalog.map((asset) => {
                 const isPositive = asset.annual_value_rate_bps > 0
-                const canBuy = asset.unlocked && asset.affordable && !asset.owned
+                const canBuy = asset.affordable && !asset.owned
                 return (
                   <article className="private-life-card" key={asset.code}>
                     <div className="private-life-card-image">
                       <AssetImage src={asset.image_url} name={asset.name} />
-                      <div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(asset.rarity)}</span><span className="private-life-badge level">Level {asset.tier}</span></div>
+                      <div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(asset.rarity)}</span></div>
                     </div>
                     <div className="private-life-card-body">
                       <div className="private-life-card-title-row"><h4>{asset.name}</h4><div className="private-life-price">{money(asset.purchase_price, currency)}</div></div>
@@ -420,7 +392,7 @@ export default function PrivateLifePage() {
                         disabled={!canBuy}
                         onClick={() => setPendingAction({ type: 'buy', asset })}
                       >
-                        {asset.owned ? 'Already owned' : !asset.unlocked ? `Unlock at Level ${asset.tier}` : !asset.affordable ? 'Insufficient funds' : 'Purchase asset'}
+                        {asset.owned ? 'Already owned' : !asset.affordable ? 'Insufficient funds' : 'Purchase asset'}
                       </button>
                     </div>
                   </article>
