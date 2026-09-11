@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router'
 
 import GameConfirmDialog from '../../components/common/GameConfirmDialog'
 import GameLayout from '../../components/layout/GameLayout'
+import PrivateLifeInvestments from '../../components/private-life/PrivateLifeInvestments'
 import { useCommerce } from '../../hooks/useCommerce'
 import { supabase } from '../../lib/supabase'
 import '../../styles/private-life.css'
@@ -74,6 +75,7 @@ type PrivateLifeDashboard = {
   day: number
   prestige: number
   asset_value: number
+  investment_value: number
   net_worth: number
   annual_running_cost: number
   category_totals: CategoryTotal[]
@@ -284,13 +286,14 @@ export default function PrivateLifePage() {
           <div className="private-life-hero-copy">
             <div className="private-life-eyebrow">Your life outside tennis</div>
             <h2>Build wealth, collect luxury assets and manage investments.</h2>
-            <p>Private Life is your off-court game inside the career: physical possessions, personal wealth and — next — stocks and cryptocurrencies, all connected to the same Finance balance.</p>
+            <p>Private Life is your off-court game inside the career: physical possessions, personal wealth, stocks and cryptocurrencies, all connected to the same Finance balance.</p>
           </div>
         </section>
 
         <section className="private-life-metrics" aria-label="Private wealth summary">
           <div className="private-life-metric"><span>Cash balance</span><strong>{money(dashboard.cash_balance, currency)}</strong></div>
           <div className="private-life-metric"><span>Physical assets</span><strong>{money(dashboard.asset_value, currency)}</strong></div>
+          <div className="private-life-metric"><span>Investments</span><strong>{money(dashboard.investment_value, currency)}</strong></div>
           <div className="private-life-metric"><span>Current net worth</span><strong>{money(dashboard.net_worth, currency)}</strong></div>
           <div className="private-life-metric"><span>Prestige</span><strong>{dashboard.prestige}</strong></div>
           <div className="private-life-metric"><span>Annual ownership cost</span><strong>{money(dashboard.annual_running_cost, currency)}</strong></div>
@@ -334,9 +337,9 @@ export default function PrivateLifePage() {
 
               <div className="private-life-future-stack">
                 <article className="private-life-future-card private-life-investment-preview">
-                  <div className="private-life-future-card-head"><h4>Investments</h4><span className="private-life-status-pill">Next phase</span></div>
-                  <p>Stocks and cryptocurrencies will be part of Private Life, not a separate main-menu system. Trading will use career cash and simulated holdings with real-market prices as reference data.</p>
-                  <button type="button" className="private-life-inline-action" onClick={() => setTab('investments')}>View investment area</button>
+                  <div className="private-life-future-card-head"><h4>Investments</h4><span className="private-life-status-pill active">Active</span></div>
+                  <p>Trade simulated stocks and cryptocurrencies with your career cash. External market quotes provide the game reference price, while positions and gains remain entirely inside Tennis Legacy.</p>
+                  <button type="button" className="private-life-inline-action" onClick={() => setTab('investments')}>Open investments</button>
                 </article>
                 <article className="private-life-future-card">
                   <div className="private-life-future-card-head"><h4>Value & ownership</h4></div>
@@ -388,49 +391,7 @@ export default function PrivateLifePage() {
           </section>
         ) : null}
 
-        {tab === 'investments' ? (
-          <section className="private-life-section">
-            <div className="private-life-section-head">
-              <div><div className="private-life-section-eyebrow">Investments</div><h3>Stocks & cryptocurrencies</h3><p>This area stays inside Private Life. The next implementation phase will add game-only holdings whose prices can follow real external markets, while every buy and sell uses your existing career Finance balance.</p></div>
-            </div>
-
-            <div className="private-life-investment-grid">
-              <article className="private-life-investment-card">
-                <div className="private-life-investment-card-top"><span>Stock market</span><span className="private-life-status-pill">Next phase</span></div>
-                <h4>Shares</h4>
-                <p>Build a simulated portfolio of recognisable listed companies. Quotes can follow real stock-market prices, but no real shares or brokerage accounts are involved.</p>
-                <div className="private-life-investment-features">
-                  <span>Buy & sell with career cash</span>
-                  <span>Portfolio value and profit / loss</span>
-                  <span>Transaction history in Finance</span>
-                </div>
-                <button type="button" className="private-life-action" disabled>Trading not enabled yet</button>
-              </article>
-
-              <article className="private-life-investment-card">
-                <div className="private-life-investment-card-top"><span>Crypto market</span><span className="private-life-status-pill">Next phase</span></div>
-                <h4>Cryptocurrencies</h4>
-                <p>Trade simulated crypto holdings using external market prices as the reference. Holdings remain completely inside the game and never connect to a real wallet.</p>
-                <div className="private-life-investment-features">
-                  <span>Fractional holdings supported</span>
-                  <span>24/7 price reference</span>
-                  <span>Portfolio value and profit / loss</span>
-                </div>
-                <button type="button" className="private-life-action" disabled>Trading not enabled yet</button>
-              </article>
-            </div>
-
-            <div className="private-life-panel private-life-investment-rules">
-              <h4>How investments will fit into the career</h4>
-              <div className="private-life-investment-rule-grid">
-                <div><span>Money source</span><strong>Existing career Finance balance</strong></div>
-                <div><span>Pricing</span><strong>External market prices used only as game reference</strong></div>
-                <div><span>Ownership</span><strong>Simulated game holdings only</strong></div>
-                <div><span>Accounting</span><strong>Buys, sells and realised gains recorded in Finance</strong></div>
-              </div>
-            </div>
-          </section>
-        ) : null}
+        {tab === 'investments' ? <PrivateLifeInvestments currency={currency} onPortfolioChanged={loadDashboard} /> : null}
 
         {tab === 'marketplace' ? (
           <section className="private-life-section">
