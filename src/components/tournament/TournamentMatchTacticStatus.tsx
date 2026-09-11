@@ -103,7 +103,11 @@ export default function TournamentMatchTacticStatus() {
       const match = parseModalMatch(modal, matches)
       if (!match) return
 
-      if (!currentHost || !currentHost.isConnected || currentHost.nextElementSibling !== tacticSection) {
+      // Several modal enhancements share the area before the tactic section.
+      // Only recreate this portal host when it has actually been detached.
+      // Requiring it to remain the immediate previous sibling causes sibling
+      // observers to continuously move each other and freezes Chromium.
+      if (!currentHost || !currentHost.isConnected || !modal.contains(currentHost)) {
         currentHost?.remove()
         currentHost = document.createElement('div')
         currentHost.dataset.tlgMatchTacticStatusHost = 'true'
