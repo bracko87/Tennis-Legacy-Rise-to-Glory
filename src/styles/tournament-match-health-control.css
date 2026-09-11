@@ -92,39 +92,76 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
-  padding: 11px 12px;
+  gap: 12px;
+  padding: 12px;
   border: 1px solid #f0cf8a;
   border-radius: 10px;
   background: #fff6df;
   color: #694a13;
 }
 
-.tlg-match-health-action p {
+.tlg-match-health-choice-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.tlg-match-health-choice-copy p {
   margin: 0;
   color: #6f561f;
   font-size: 12px;
   line-height: 1.45;
 }
 
-.tlg-match-health-action button {
-  padding: 9px 12px;
-  border: 1px solid #dc6b6b;
-  border-radius: 9px;
-  background: #fff1f1;
-  color: #a52f2f;
-  font-weight: 850;
-  cursor: pointer;
+.tlg-match-health-choice-copy small {
+  color: #7d6738;
+  font-size: 10px;
+  line-height: 1.4;
 }
 
-.tlg-match-health-action button:hover:not(:disabled) {
+.tlg-match-health-choice-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.tlg-match-health-choice-buttons button {
+  min-height: 34px;
+  padding: 8px 12px;
+  border-radius: 9px;
+  font-weight: 850;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tlg-match-health-choice-buttons .continue {
+  border: 1px solid #8fb7d5;
+  background: #f3f9fd;
+  color: #17659d;
+}
+
+.tlg-match-health-choice-buttons .continue:hover:not(:disabled) {
+  background: #e8f4fb;
+  border-color: #6fa6cf;
+}
+
+.tlg-match-health-choice-buttons .surrender {
+  border: 1px solid #dc6b6b;
+  background: #fff1f1;
+  color: #a52f2f;
+}
+
+.tlg-match-health-choice-buttons .surrender:hover:not(:disabled) {
   background: #ffe5e5;
   border-color: #c94f4f;
 }
 
-.tlg-match-health-action button:disabled {
+.tlg-match-health-choice-buttons button:disabled {
   cursor: not-allowed;
-  opacity: .45;
+  opacity: .5;
 }
 
 .tlg-match-health-disabled-reason {
@@ -155,8 +192,13 @@
     grid-template-columns: auto 1fr;
   }
 
-  .tlg-match-health-action button {
+  .tlg-match-health-choice-buttons {
     grid-column: 1 / -1;
     width: 100%;
+    justify-content: stretch;
+  }
+
+  .tlg-match-health-choice-buttons button {
+    flex: 1 1 160px;
   }
 }
