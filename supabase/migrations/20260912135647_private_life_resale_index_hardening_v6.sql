@@ -1,0 +1,1 @@
+create index if not exists private_life_asset_sale_listings_finance_tx_idx on public.private_life_asset_sale_listings(finance_transaction_id) where finance_transaction_id is not null;
