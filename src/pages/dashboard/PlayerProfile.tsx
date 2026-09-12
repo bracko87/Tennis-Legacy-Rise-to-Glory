@@ -8,6 +8,7 @@ import usePlayerAvatarUrl from '../../hooks/usePlayerAvatarUrl'
 import { supabase } from '../../lib/supabase'
 import '../../styles/player-public-profile.css'
 import '../../styles/player-public-profile-avatar.css'
+import '../../styles/player-private-life-profile.css'
 
 interface PlayerProfileRow {
   player_id: string
@@ -61,6 +62,25 @@ interface ScoutingReport {
   playing_style?: string
 }
 
+interface PrivateLifePossession {
+  id: string
+  category: string
+  name: string
+  prestige: number
+  acquisition_type?: string
+  city?: string | null
+  country_code?: string | null
+  country_name?: string | null
+}
+
+interface PrivateLifeSummary {
+  player_id: string
+  prestige_points: number
+  asset_count: number
+  asset_value: number
+  possessions: PrivateLifePossession[]
+}
+
 interface PlayerProfileReturnState {
   playerProfileReturn?: string
   playerProfileReturnLabel?: string
@@ -70,9 +90,13 @@ interface PlayerProfileReturnState {
 const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 const EMPTY_TOURNAMENT_SUMMARY: PlayerTournamentSummary = { next_tournaments: [], recent_tournaments: [], best_results: [] }
+const EMPTY_PRIVATE_LIFE: PrivateLifeSummary = { player_id: '', prestige_points: 0, asset_count: 0, asset_value: 0, possessions: [] }
 const SCOUT_LABELS: Record<string, string> = {
   serve: 'Serve', forehand: 'Forehand', backhand: 'Backhand', return_skill: 'Return', volley: 'Volley', slice: 'Slice', drop_shot: 'Drop Shot', lob: 'Lob', smash: 'Smash',
   fitness: 'Fitness', stamina: 'Stamina', recovery: 'Recovery', movement: 'Movement',
+}
+const PRIVATE_LIFE_CATEGORY_LABELS: Record<string, string> = {
+  watch: 'Watch', jewelry: 'Jewelry', car: 'Vehicle', apartment: 'Apartment', house_villa: 'House & Villa', yacht: 'Yacht', private_jet: 'Private Jet', art: 'Art', collectible: 'Collectible',
 }
 
 function fromAbsoluteDay(value: number) {
@@ -97,6 +121,10 @@ function tournamentWeekLabel(item: TournamentSummaryItem) {
   return `Season ${item.season} · Weeks ${item.start_week}–${item.end_week}`
 }
 
+function money(value: number) {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Number(value || 0))
+}
+
 function TournamentRows({ items, emptyText, showResult = false, ranked = false }: { items: TournamentSummaryItem[]; emptyText: string; showResult?: boolean; ranked?: boolean }) {
   if (items.length === 0) return <div className="tlg-public-tournament-empty">{emptyText}</div>
   return (
@@ -117,6 +145,36 @@ function TournamentRows({ items, emptyText, showResult = false, ranked = false }
   )
 }
 
+function PrivateLifeProfileCard({ summary, loading }: { summary: PrivateLifeSummary; loading: boolean }) {
+  return (
+    <section className="tlg-player-private-life-card">
+      <header>
+        <div><span>PRIVATE LIFE</span><h2>Prestige & possessions</h2><p>Prestige is the combined point value of the physical assets this player currently owns. Sold possessions no longer contribute.</p></div>
+      </header>
+      {loading ? <div className="tlg-player-private-life-loading">Loading Private Life profile…</div> : (
+        <>
+          <div className="tlg-player-private-life-summary">
+            <div className="prestige"><span>Prestige points</span><strong>{Number(summary.prestige_points || 0).toLocaleString()}</strong></div>
+            <div><span>Current possessions</span><strong>{Number(summary.asset_count || 0).toLocaleString()}</strong></div>
+            <div><span>Physical asset value</span><strong>{money(Number(summary.asset_value || 0))}</strong></div>
+          </div>
+          {summary.possessions.length ? (
+            <div className="tlg-player-private-life-list">
+              {summary.possessions.map((item) => (
+                <article className="tlg-player-private-life-item" key={item.id}>
+                  <span>{PRIVATE_LIFE_CATEGORY_LABELS[item.category] ?? item.category.replaceAll('_', ' ')}</span>
+                  <strong>{item.name}</strong>
+                  <small><span>{item.city ? `${item.city}${item.country_code ? `, ${item.country_code}` : ''}` : item.acquisition_type === 'starter_home' ? 'Starting residence' : 'Owned asset'}</span><b>+{item.prestige} prestige pts</b></small>
+                </article>
+              ))}
+            </div>
+          ) : <div className="tlg-player-private-life-empty">No current Private Life possessions.</div>}
+        </>
+      )}
+    </section>
+  )
+}
+
 export default function PlayerProfilePage() {
   const { playerId } = useParams()
   const location = useLocation()
@@ -124,8 +182,10 @@ export default function PlayerProfilePage() {
   const [profile, setProfile] = useState<PlayerProfileRow | null>(null)
   const [tournaments, setTournaments] = useState<PlayerTournamentSummary>(EMPTY_TOURNAMENT_SUMMARY)
   const [scouting, setScouting] = useState<ScoutingReport | null>(null)
+  const [privateLife, setPrivateLife] = useState<PrivateLifeSummary>(EMPTY_PRIVATE_LIFE)
   const [loading, setLoading] = useState(true)
   const [tournamentsLoading, setTournamentsLoading] = useState(true)
+  const [privateLifeLoading, setPrivateLifeLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tournamentError, setTournamentError] = useState<string | null>(null)
   const [messageBusy, setMessageBusy] = useState(false)
@@ -139,18 +199,20 @@ export default function PlayerProfilePage() {
     let active = true
     async function loadProfile() {
       if (!playerId) return
-      setLoading(true); setTournamentsLoading(true); setError(null); setTournamentError(null); setScouting(null)
-      const [profileResponse, tournamentResponse, scoutingResponse] = await Promise.all([
+      setLoading(true); setTournamentsLoading(true); setPrivateLifeLoading(true); setError(null); setTournamentError(null); setScouting(null); setPrivateLife(EMPTY_PRIVATE_LIFE)
+      const [profileResponse, tournamentResponse, scoutingResponse, privateLifeResponse] = await Promise.all([
         supabase.rpc('get_player_profile_v2', { p_player_id: playerId }),
         supabase.rpc('get_player_tournament_summary_v1', { p_player_id: playerId }),
         supabase.rpc('get_player_scouting_report_v1', { p_target_player_id: playerId }),
+        supabase.rpc('get_player_private_life_summary_v1', { p_player_id: playerId }),
       ])
       if (!active) return
       const row = (Array.isArray(profileResponse.data) ? profileResponse.data[0] : profileResponse.data) as PlayerProfileRow | undefined
       if (profileResponse.error || !row) { setProfile(null); setError(profileResponse.error?.message ?? 'Player profile not found.') } else setProfile(row)
       if (tournamentResponse.error) { setTournaments(EMPTY_TOURNAMENT_SUMMARY); setTournamentError(tournamentResponse.error.message) } else setTournaments((tournamentResponse.data as PlayerTournamentSummary | null) ?? EMPTY_TOURNAMENT_SUMMARY)
       if (!scoutingResponse.error) setScouting(scoutingResponse.data as ScoutingReport)
-      setLoading(false); setTournamentsLoading(false)
+      if (!privateLifeResponse.error && privateLifeResponse.data) setPrivateLife(privateLifeResponse.data as unknown as PrivateLifeSummary)
+      setLoading(false); setTournamentsLoading(false); setPrivateLifeLoading(false)
     }
     void loadProfile()
     return () => { active = false }
@@ -174,9 +236,7 @@ export default function PlayerProfilePage() {
         {loading ? <div className="tlg-public-player-state">Loading player profile…</div> : error && !profile ? <div className="tlg-public-player-state">{error}</div> : profile ? (
           <>
             <section className="tlg-public-player-card">
-              <aside className="tlg-public-player-visual">
-                <div className={`tlg-public-player-avatar${avatarUrl ? ' has-avatar' : ''}`}>{avatarUrl ? <img src={avatarUrl} alt={`${name} avatar`} /> : <UserRound size={72} />}</div>
-              </aside>
+              <aside className="tlg-public-player-visual"><div className={`tlg-public-player-avatar${avatarUrl ? ' has-avatar' : ''}`}>{avatarUrl ? <img src={avatarUrl} alt={`${name} avatar`} /> : <UserRound size={72} />}</div></aside>
               <div className="tlg-public-player-main">
                 <div className="tlg-public-player-heading-row">
                   <div><span className="tlg-public-player-kicker">{profile.world} singles player</span><h1>{name}</h1><div className="tlg-public-player-country"><CountryFlag countryCode={profile.country_code} countryName={profile.country_code} width={26} height={17} /><span>{profile.home_city ? `${profile.home_city}, ${profile.country_code}` : profile.country_code}</span></div></div>
@@ -192,16 +252,13 @@ export default function PlayerProfilePage() {
               </div>
             </section>
 
+            <PrivateLifeProfileCard summary={privateLife} loading={privateLifeLoading} />
+
             {!profile.is_own_player && (
               <section className="tlg-public-scouting-card">
                 <header><div><span>PERFORMANCE ANALYSIS</span><h2>Opponent scouting report</h2><p>Exact opponent attributes are never public. A Performance Analyst converts private data into approximate scouting ranges.</p></div>{scouting?.available && <div className="accuracy"><strong>±{scouting.estimate_margin}</strong><span>estimate range</span><small>Analyst {scouting.analyst_rating}/100</small></div>}</header>
-                {!scouting?.available ? (
-                  <div className="tlg-public-scouting-locked"><div><strong>Detailed scouting unavailable</strong><p>{scouting?.reason ?? 'Hire a Performance Analyst to unlock opponent estimates.'}</p></div><Link to="/game/staff">Open Staff Market</Link></div>
-                ) : (
-                  <>
-                    <div className="tlg-public-scouting-summary"><div><span>IDENTIFIED STRENGTH</span><strong>{SCOUT_LABELS[scouting.identified_strength ?? ''] ?? scouting.identified_strength}</strong></div><div><span>IDENTIFIED WEAKNESS</span><strong>{SCOUT_LABELS[scouting.identified_weakness ?? ''] ?? scouting.identified_weakness}</strong></div><div><span>KNOWN IDENTITY</span><strong>{scouting.preferred_surface} · {scouting.playing_style}</strong></div></div>
-                    <div className="tlg-public-scouting-grid">{Object.entries(scouting.attributes ?? {}).map(([key, range]) => <div key={key}><span>{SCOUT_LABELS[key] ?? key}</span><strong>{range.min}–{range.max}</strong><small>estimated</small></div>)}</div>
-                  </>
+                {!scouting?.available ? <div className="tlg-public-scouting-locked"><div><strong>Detailed scouting unavailable</strong><p>{scouting?.reason ?? 'Hire a Performance Analyst to unlock opponent estimates.'}</p></div><Link to="/game/staff">Open Staff Market</Link></div> : (
+                  <><div className="tlg-public-scouting-summary"><div><span>IDENTIFIED STRENGTH</span><strong>{SCOUT_LABELS[scouting.identified_strength ?? ''] ?? scouting.identified_strength}</strong></div><div><span>IDENTIFIED WEAKNESS</span><strong>{SCOUT_LABELS[scouting.identified_weakness ?? ''] ?? scouting.identified_weakness}</strong></div><div><span>KNOWN IDENTITY</span><strong>{scouting.preferred_surface} · {scouting.playing_style}</strong></div></div><div className="tlg-public-scouting-grid">{Object.entries(scouting.attributes ?? {}).map(([key, range]) => <div key={key}><span>{SCOUT_LABELS[key] ?? key}</span><strong>{range.min}–{range.max}</strong><small>estimated</small></div>)}</div></>
                 )}
               </section>
             )}
