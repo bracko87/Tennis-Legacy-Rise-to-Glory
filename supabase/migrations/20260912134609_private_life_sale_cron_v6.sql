@@ -1,0 +1,2 @@
+do $$ declare v_jobid bigint; begin select jobid into v_jobid from cron.job where jobname='tennis-private-life-sales-v1' limit 1; if v_jobid is not null then perform cron.unschedule(v_jobid); end if; end $$;
+select cron.schedule('tennis-private-life-sales-v1','*/5 * * * *',$$select public.process_private_life_asset_sales_to_current_v1();$$);
