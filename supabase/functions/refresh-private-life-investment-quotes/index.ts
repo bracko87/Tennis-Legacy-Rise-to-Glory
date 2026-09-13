@@ -82,13 +82,7 @@ async function fetchYahooQuote(instrument: Instrument): Promise<QuoteRow> {
     const ts = finite(timestamps[index])
     const close = finite(closes[index])
     if (ts === null || close === null || close <= 0) continue
-    points.push({
-      ts,
-      close,
-      high: finite(highs[index]),
-      low: finite(lows[index]),
-      volume: finite(volumes[index]),
-    })
+    points.push({ ts, close, high: finite(highs[index]), low: finite(lows[index]), volume: finite(volumes[index]) })
   }
 
   const latestPoint = points[points.length - 1]
@@ -154,7 +148,9 @@ async function fetchCryptoQuotes(instruments: Instrument[], previous: Map<string
       }
       const change24 = finite(row?.price_change_percentage_24h_in_currency ?? row?.price_change_percentage_24h)
       const derivedPrevious = change24 !== null && change24 > -99.99 ? price / (1 + change24 / 100) : previous.get(instrument.code) ?? null
-      const sparkline = Array.isArray(row?.sparkline_in_7d?.price) ? row.sparkline_in_7d.price.filter((value: unknown) => finite(value) !== null).slice(-48).map((value: unknown) => Number(Number(value).toFixed(6))) : []
+      const sparkline = Array.isArray(row?.sparkline_in_7d?.price)
+        ? row.sparkline_in_7d.price.filter((value: unknown) => finite(value) !== null).slice(-48).map((value: unknown) => Number(Number(value).toFixed(6)))
+        : []
       updates.push({
         instrument_code: instrument.code,
         price,
@@ -182,7 +178,6 @@ async function fetchCryptoQuotes(instruments: Instrument[], previous: Map<string
   } catch (error) {
     errors.push(`Crypto refresh: ${error instanceof Error ? error.message : String(error)}`)
   }
-
   return { updates, errors }
 }
 
@@ -194,23 +189,40 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
+    const body = await req.json().catch(() => ({} as Record<string, unknown>)) as Record<string, unknown>
+    const mode = body.mode === 'stocks' || body.mode === 'crypto' ? body.mode : 'all'
+    const cronToken = typeof body.cron_token === 'string' ? body.cron_token : ''
     const authorization = req.headers.get('Authorization') ?? ''
-    const token = authorization.replace(/^Bearer\s+/i, '').trim()
-    if (!token) return Response.json({ error: 'Authentication required' }, { status: 401, headers: corsHeaders })
+    const bearer = authorization.replace(/^Bearer\s+/i, '').trim()
+    let scheduled = false
+    let userId: string | null = null
 
-    const { data: userData, error: userError } = await admin.auth.getUser(token)
-    const userId = userData?.user?.id
-    if (userError || !userId) return Response.json({ error: 'Authentication required' }, { status: 401, headers: corsHeaders })
+    if (bearer) {
+      const { data: userData } = await admin.auth.getUser(bearer)
+      userId = userData?.user?.id ?? null
+    }
 
-    const { data: membership, error: membershipError } = await admin
-      .from('premium_memberships')
-      .select('plan_code,status,current_period_end')
-      .eq('user_id', userId)
-      .maybeSingle()
-    if (membershipError) throw membershipError
-    const periodActive = !membership?.current_period_end || new Date(membership.current_period_end).getTime() > Date.now()
-    if (membership?.plan_code !== 'premium' || membership?.status !== 'active' || !periodActive) {
-      return Response.json({ error: 'Premium membership required' }, { status: 403, headers: corsHeaders })
+    if (userId) {
+      const { data: membership, error: membershipError } = await admin
+        .from('premium_memberships')
+        .select('plan_code,status,current_period_end')
+        .eq('user_id', userId)
+        .maybeSingle()
+      if (membershipError) throw membershipError
+      const periodActive = !membership?.current_period_end || new Date(membership.current_period_end).getTime() > Date.now()
+      if (membership?.plan_code !== 'premium' || membership?.status !== 'active' || !periodActive) {
+        return Response.json({ error: 'Premium membership required' }, { status: 403, headers: corsHeaders })
+      }
+    } else {
+      if (!cronToken) return Response.json({ error: 'Authentication required' }, { status: 401, headers: corsHeaders })
+      const { data: control, error: controlError } = await admin
+        .from('private_life_quote_refresh_control')
+        .select('cron_token')
+        .eq('id', 1)
+        .single()
+      if (controlError) throw controlError
+      if (control?.cron_token !== cronToken) return Response.json({ error: 'Invalid scheduler token' }, { status: 403, headers: corsHeaders })
+      scheduled = true
     }
 
     const { data: instrumentsData, error: instrumentsError } = await admin
@@ -220,20 +232,20 @@ Deno.serve(async (req: Request) => {
       .order('sort_order')
     if (instrumentsError) throw instrumentsError
 
-    const instruments = (instrumentsData ?? []) as Instrument[]
-    const { data: existingQuotes, error: quoteReadError } = await admin
-      .from('private_life_investment_quotes')
-      .select('instrument_code,price')
+    const allInstruments = (instrumentsData ?? []) as Instrument[]
+    const instruments = allInstruments.filter((item) => mode === 'all' || (mode === 'stocks' ? item.asset_type === 'stock' : item.asset_type === 'crypto'))
+    const { data: existingQuotes, error: quoteReadError } = await admin.from('private_life_investment_quotes').select('instrument_code,price')
     if (quoteReadError) throw quoteReadError
     const previous = new Map((existingQuotes ?? []).map((row) => [row.instrument_code, Number(row.price)]))
 
     const updates: QuoteRow[] = []
     const errors: string[] = []
-
     const crypto = instruments.filter((item) => item.asset_type === 'crypto')
-    const cryptoResult = await fetchCryptoQuotes(crypto, previous)
-    updates.push(...cryptoResult.updates)
-    errors.push(...cryptoResult.errors)
+    if (crypto.length) {
+      const cryptoResult = await fetchCryptoQuotes(crypto, previous)
+      updates.push(...cryptoResult.updates)
+      errors.push(...cryptoResult.errors)
+    }
 
     const stocks = instruments.filter((item) => item.asset_type === 'stock')
     const batchSize = 8
@@ -250,10 +262,28 @@ Deno.serve(async (req: Request) => {
     if (updates.length) {
       const { error: upsertError } = await admin.from('private_life_investment_quotes').upsert(updates, { onConflict: 'instrument_code' })
       if (upsertError) throw upsertError
+      const historyRows = updates.map((row) => ({
+        instrument_code: row.instrument_code,
+        price: row.price,
+        quote_as_of: row.quote_as_of,
+        captured_at: row.fetched_at,
+        source: row.source,
+        metadata: { scheduled, mode },
+      }))
+      const { error: historyError } = await admin.from('private_life_investment_quote_history').insert(historyRows)
+      if (historyError) throw historyError
     }
+
+    const controlUpdate: Record<string, unknown> = { updated_at: new Date().toISOString() }
+    if (mode === 'stocks' || mode === 'all') controlUpdate.last_stock_refresh_at = new Date().toISOString()
+    if (mode === 'crypto' || mode === 'all') controlUpdate.last_crypto_refresh_at = new Date().toISOString()
+    const { error: controlUpdateError } = await admin.from('private_life_quote_refresh_control').update(controlUpdate).eq('id', 1)
+    if (controlUpdateError) throw controlUpdateError
 
     return Response.json({
       ok: updates.length > 0,
+      scheduled,
+      mode,
       updated: updates.length,
       expected: instruments.length,
       stock_updated: updates.filter((row) => row.source === 'yahoo').length,
