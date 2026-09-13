@@ -135,6 +135,7 @@ const BRACKET_MATCH_HEIGHT = 68
 const BRACKET_COLUMN_GAP = 72
 const BRACKET_FIRST_ROUND_GAP = 12
 const BRACKET_STEP = BRACKET_MATCH_HEIGHT + BRACKET_FIRST_ROUND_GAP
+const OPEN_TOURNAMENT_MATCH_EVENT = 'tlg-open-tournament-match'
 
 function mainDrawRounds(capacity: number): BracketRound[] {
   const rounds: BracketRound[] = []
@@ -260,6 +261,15 @@ export default function TournamentPage() {
   }, [])
 
   useEffect(() => {
+    const openMatch = (event: Event) => {
+      const matchId = (event as CustomEvent<{ matchId?: string }>).detail?.matchId
+      if (matchId) setSelectedMatchId(matchId)
+    }
+    window.addEventListener(OPEN_TOURNAMENT_MATCH_EVENT, openMatch)
+    return () => window.removeEventListener(OPEN_TOURNAMENT_MATCH_EVENT, openMatch)
+  }, [])
+
+  useEffect(() => {
     if (!selectedMatchId) {
       setMatchDetail(null)
       setMatchError(null)
@@ -298,7 +308,7 @@ export default function TournamentPage() {
       )}
 
       {selectedMatchId && (
-        <MatchDetailModal detail={matchDetail} drawMatches={mainDrawMatches} loading={matchLoading} error={matchError} currentPlayerId={player?.id ?? null} returnPath={returnPath} tournamentName={tournamentName} onClose={() => setSelectedMatchId(null)} />
+        <MatchDetailModal detail={matchDetail} drawMatches={drawMatches} loading={matchLoading} error={matchError} currentPlayerId={player?.id ?? null} returnPath={returnPath} tournamentName={tournamentName} onClose={() => setSelectedMatchId(null)} />
       )}
     </div>
   )
