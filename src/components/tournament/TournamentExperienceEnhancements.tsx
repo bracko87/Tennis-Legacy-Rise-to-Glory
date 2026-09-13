@@ -86,7 +86,18 @@ interface DrawMatch {
   winner_id: string | null
 }
 
+interface QualificationRound {
+  round: number
+  label: string
+  matches: DrawMatch[]
+}
+
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const QUALIFICATION_MATCH_WIDTH = 240
+const QUALIFICATION_MATCH_HEIGHT = 68
+const QUALIFICATION_COLUMN_GAP = 72
+const QUALIFICATION_FIRST_ROUND_GAP = 12
+const QUALIFICATION_STEP = QUALIFICATION_MATCH_HEIGHT + QUALIFICATION_FIRST_ROUND_GAP
 
 function formatMoment(moment?: GameMoment | null) {
   if (!moment) return 'TBD'
@@ -127,18 +138,132 @@ function setScore(match: DrawMatch, side: 1 | 2) {
   return Array.isArray(scores) && scores.length ? scores.join(' ') : '—'
 }
 
-function QualificationPlayer({ match, side }: { match: DrawMatch; side: 1 | 2 }) {
+function qualificationMatchCenter(roundIndex: number, matchIndex: number) {
+  const firstRoundMatchSpan = 2 ** roundIndex
+  const representedFirstMatchCenter = matchIndex * firstRoundMatchSpan + (firstRoundMatchSpan - 1) / 2
+  return QUALIFICATION_MATCH_HEIGHT / 2 + representedFirstMatchCenter * QUALIFICATION_STEP
+}
+
+function QualificationPlayer({
+  match,
+  side,
+  returnPath,
+  tournamentName,
+}: {
+  match: DrawMatch
+  side: 1 | 2
+  returnPath: string
+  tournamentName: string
+}) {
   const playerId = side === 1 ? match.player1_id : match.player2_id
   const countryCode = side === 1 ? match.player1_country_code : match.player2_country_code
   const seed = side === 1 ? match.player1_seed : match.player2_seed
   const winner = Boolean(playerId && playerId === match.winner_id)
   const name = drawPlayerName(match, side)
+
+  if (!playerId) {
+    const placeholder = match.match_status === 'bye' ? 'BYE' : name
+    return (
+      <div className={`tlg-live-tree-player${match.match_status === 'bye' ? ' tlg-live-tree-bye' : ''}`}>
+        <span className="flag-slot" />
+        <strong className="player-name">{placeholder}</strong>
+        <span className="seed-slot" />
+        <span className="score-slot">—</span>
+      </div>
+    )
+  }
+
   return (
-    <div className={`tlg-qualification-player${winner ? ' winner' : ''}`}>
-      <span className="flag">{countryCode ? <CountryFlag countryCode={countryCode} countryName={countryCode} width={19} height={13} /> : null}</span>
-      {playerId ? <Link to={`/game/players/${playerId}`}>{name}</Link> : <strong>{name}</strong>}
-      <span className="seed">{seed ? `(${seed})` : ''}</span>
-      <b>{setScore(match, side)}</b>
+    <div className={`tlg-live-tree-player${winner ? ' tlg-live-tree-winner' : ''}`}>
+      <span className="flag-slot">{countryCode ? <CountryFlag countryCode={countryCode} countryName={countryCode} width={19} height={13} /> : null}</span>
+      <Link
+        className="player-name"
+        to={`/game/players/${playerId}`}
+        state={{ playerProfileReturn: returnPath, playerProfileReturnLabel: `Back to ${tournamentName}` }}
+      >
+        {name}
+      </Link>
+      <span className="seed-slot">{seed ? <strong>{seed}</strong> : null}</span>
+      <span className="score-slot">{setScore(match, side)}</span>
+    </div>
+  )
+}
+
+function QualificationBracketTree({
+  rounds,
+  returnPath,
+  tournamentName,
+}: {
+  rounds: QualificationRound[]
+  returnPath: string
+  tournamentName: string
+}) {
+  if (!rounds.length) {
+    return <div className="tlg-qualification-empty">No stored qualification bracket exists for this legacy/test competition. Future published draws retain qualification results here permanently.</div>
+  }
+
+  const width = rounds.length * QUALIFICATION_MATCH_WIDTH + Math.max(0, rounds.length - 1) * QUALIFICATION_COLUMN_GAP
+  const firstRoundMatchCount = Math.max(1, rounds[0]?.matches.length ?? 1)
+  const height = Math.max(QUALIFICATION_MATCH_HEIGHT, (firstRoundMatchCount - 1) * QUALIFICATION_STEP + QUALIFICATION_MATCH_HEIGHT)
+
+  return (
+    <div className="tlg-qualification-history">
+      <div className="tlg-detail-bracket-scroll tlg-live-bracket-scroll">
+        <div className="tlg-detail-bracket-headings" style={{ width }}>
+          {rounds.map((round, roundIndex) => (
+            <header
+              key={`${round.round}:${round.label}`}
+              style={{ left: roundIndex * (QUALIFICATION_MATCH_WIDTH + QUALIFICATION_COLUMN_GAP), width: QUALIFICATION_MATCH_WIDTH }}
+            >
+              <strong>{round.label}</strong>
+              <span>{round.matches.length} {round.matches.length === 1 ? 'match' : 'matches'}</span>
+            </header>
+          ))}
+        </div>
+
+        <div className="tlg-detail-bracket-tree" style={{ width, height }}>
+          <svg className="tlg-detail-bracket-connectors" width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
+            {rounds.slice(0, -1).map((_, roundIndex) => {
+              const boundaryX = (roundIndex + 1) * (QUALIFICATION_MATCH_WIDTH + QUALIFICATION_COLUMN_GAP) - QUALIFICATION_COLUMN_GAP / 2
+              return <line key={`qualification-round-separator-${roundIndex}`} x1={boundaryX} x2={boundaryX} y1={0} y2={height} stroke="#0b6fc8" strokeWidth="1.4" opacity="0.72" vectorEffect="non-scaling-stroke" />
+            })}
+            {rounds.slice(0, -1).flatMap((_, roundIndex) => {
+              const parentRound = rounds[roundIndex + 1]
+              const startX = roundIndex * (QUALIFICATION_MATCH_WIDTH + QUALIFICATION_COLUMN_GAP) + QUALIFICATION_MATCH_WIDTH
+              const middleX = startX + QUALIFICATION_COLUMN_GAP / 2
+              const endX = (roundIndex + 1) * (QUALIFICATION_MATCH_WIDTH + QUALIFICATION_COLUMN_GAP)
+              return parentRound.matches.map((_, parentIndex) => {
+                const firstY = qualificationMatchCenter(roundIndex, parentIndex * 2)
+                const secondY = qualificationMatchCenter(roundIndex, parentIndex * 2 + 1)
+                const parentY = qualificationMatchCenter(roundIndex + 1, parentIndex)
+                return <path key={`qualification-connector-${roundIndex}-${parentIndex}`} d={`M ${startX} ${firstY} H ${middleX} M ${startX} ${secondY} H ${middleX} M ${middleX} ${firstY} V ${secondY} M ${middleX} ${parentY} H ${endX}`} />
+              })
+            })}
+          </svg>
+
+          {rounds.map((round, roundIndex) => (
+            <section
+              key={`${round.round}:${round.label}`}
+              className="tlg-detail-bracket-round"
+              style={{ left: roundIndex * (QUALIFICATION_MATCH_WIDTH + QUALIFICATION_COLUMN_GAP), width: QUALIFICATION_MATCH_WIDTH }}
+            >
+              {round.matches.map((match, matchIndex) => {
+                const top = qualificationMatchCenter(roundIndex, matchIndex) - QUALIFICATION_MATCH_HEIGHT / 2
+                return (
+                  <div
+                    key={match.match_id}
+                    className={`tlg-detail-bracket-match tlg-live-tree-match tlg-qualification-tree-match status-${match.match_status}`}
+                    style={{ top, width: QUALIFICATION_MATCH_WIDTH, height: QUALIFICATION_MATCH_HEIGHT }}
+                  >
+                    <QualificationPlayer match={match} side={1} returnPath={returnPath} tournamentName={tournamentName} />
+                    <QualificationPlayer match={match} side={2} returnPath={returnPath} tournamentName={tournamentName} />
+                  </div>
+                )
+              })}
+            </section>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
@@ -268,7 +393,7 @@ export default function TournamentExperienceEnhancements() {
   }, [competitionId])
 
   const qualificationMatches = useMemo(() => drawMatches.filter((match) => match.draw_type === 'qualification'), [drawMatches])
-  const qualificationRounds = useMemo(() => {
+  const qualificationRounds = useMemo<QualificationRound[]>(() => {
     const map = new Map<number, DrawMatch[]>()
     for (const match of qualificationMatches) {
       const rows = map.get(match.round_number) ?? []
@@ -303,6 +428,7 @@ export default function TournamentExperienceEnhancements() {
 
   const fieldExpanded = fieldExpandedOverride ?? !['draw_published', 'in_progress', 'completed'].includes(lifecycle?.phase ?? '')
   const returnPath = `${location.pathname}${location.search}${location.hash}`
+  const tournamentName = field?.tournament_name ?? 'Tournament'
 
   return (
     <>
@@ -359,13 +485,8 @@ export default function TournamentExperienceEnhancements() {
         <label className="tlg-draw-view-switch"><span>Draw</span><select value={drawView} onChange={(event) => setDrawView(event.target.value as 'main_draw' | 'qualification')}><option value="main_draw">Main Draw</option><option value="qualification">Qualification</option></select></label>, drawControlHost)}
 
       {drawBodyHost && drawView === 'qualification' && createPortal(
-        <div className="tlg-qualification-history">
-          {qualificationRounds.length ? <div className="tlg-qualification-columns">{qualificationRounds.map((round) => (
-            <section key={round.round} className="tlg-qualification-round"><header><strong>{round.label}</strong><span>{round.matches.length} matches</span></header><div>{round.matches.map((match) => (
-              <article key={match.match_id} className={`tlg-qualification-match status-${match.match_status}`}><QualificationPlayer match={match} side={1} /><QualificationPlayer match={match} side={2} /></article>
-            ))}</div></section>
-          ))}</div> : <div className="tlg-qualification-empty">No stored qualification bracket exists for this legacy/test competition. Future published draws retain qualification results here permanently.</div>}
-        </div>, drawBodyHost)}
+        <QualificationBracketTree rounds={qualificationRounds} returnPath={returnPath} tournamentName={tournamentName} />,
+        drawBodyHost)}
     </>
   )
 }
