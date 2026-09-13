@@ -189,6 +189,22 @@ function metadataNumber(asset: CatalogAsset, key: string, fallback: number) {
   return Number.isFinite(numeric) ? numeric : fallback
 }
 
+function monthlyOwnershipCost(category: AssetCategory, value: number) {
+  const price = Math.max(0, Number(value || 0))
+  if (category === 'car') return Math.max(150, Math.round(price * 0.006))
+  if (category === 'apartment') return Math.max(1000, Math.round(price * 0.01))
+  if (category === 'house_villa') return Math.max(1500, Math.round(price * 0.01))
+  if (category === 'yacht') return Math.max(2500, Math.round(price * 0.008))
+  if (category === 'private_jet') return Math.max(15000, Math.round(price * 0.0075))
+  return 0
+}
+
+function ownershipCostLabel(category: AssetCategory) {
+  if (category === 'apartment' || category === 'house_villa') return 'Monthly living cost'
+  if (category === 'car' || category === 'yacht' || category === 'private_jet') return 'Monthly maintenance'
+  return 'Maintenance'
+}
+
 function AssetImage({ src, name }: { src: string; name: string }) {
   return <img src={src} alt={name} loading="lazy" onError={(event) => { event.currentTarget.style.opacity = '0' }} />
 }
@@ -231,7 +247,7 @@ export default function PrivateLifePage() {
   }, [commerceLoading, isPremium, loadDashboard])
 
   useEffect(() => {
-    if (!dashboard || propertyLocationCode) return
+    if (!dashboard || propertyCountry || propertyLocationCode) return
     const starter = dashboard.owned_assets.find((asset) => asset.acquisition_type === 'starter_home' && asset.location_code)
     const homeLocation = starter?.location_code ? dashboard.property_locations.find((location) => location.code === starter.location_code) : undefined
     const firstLocation = homeLocation ?? dashboard.property_locations[0]
@@ -239,7 +255,7 @@ export default function PrivateLifePage() {
       setPropertyCountry(firstLocation.country_code)
       setPropertyLocationCode(firstLocation.code)
     }
-  }, [dashboard, propertyLocationCode])
+  }, [dashboard, propertyCountry, propertyLocationCode])
 
   const countries = useMemo(() => {
     const rows = dashboard?.property_locations ?? []
@@ -268,10 +284,11 @@ export default function PrivateLifePage() {
     return source.flatMap((asset) => {
       const isProperty = Boolean(asset.location_priced || asset.metadata?.location_priced)
       if (!isProperty) {
+        const annualCost = monthlyOwnershipCost(asset.category, Number(asset.purchase_price)) * 12
         return [{
           ...asset,
           effective_price: Number(asset.purchase_price),
-          effective_annual_cost: Number(asset.annual_running_cost),
+          effective_annual_cost: annualCost,
           effective_value_rate_bps: Number(asset.annual_value_rate_bps),
           effective_affordable: Boolean(asset.affordable),
           effective_owned: Boolean(asset.owned),
@@ -280,10 +297,9 @@ export default function PrivateLifePage() {
       if (!selectedPropertyLocation) return []
       const basePrice = asset.category === 'apartment' ? selectedPropertyLocation.apartment_base_price : selectedPropertyLocation.house_base_price
       const multiplier = metadataNumber(asset, 'price_multiplier_bps', 10000)
-      const runningCostBps = metadataNumber(asset, 'running_cost_bps', 100)
       const valueAdjustment = metadataNumber(asset, 'value_rate_adjustment_bps', 0)
       const price = Math.round(basePrice * multiplier / 10000)
-      const annualCost = Math.round(price * runningCostBps / 10000)
+      const annualCost = monthlyOwnershipCost(asset.category, price) * 12
       const valueRate = selectedPropertyLocation.annual_value_rate_bps + valueAdjustment
       const alreadyOwned = (dashboard?.owned_assets ?? []).some((owned) => owned.catalog_code === asset.code && owned.location_code === selectedPropertyLocation.code)
       return [{
@@ -323,6 +339,11 @@ export default function PrivateLifePage() {
     if (filter === 'all') return source
     return source.filter((asset) => asset.category === filter)
   }, [dashboard?.owned_assets, filter])
+
+  const availableResidenceCount = useMemo(
+    () => (dashboard?.owned_assets ?? []).filter((asset) => (asset.category === 'apartment' || asset.category === 'house_villa') && !asset.pending_sale).length,
+    [dashboard?.owned_assets],
+  )
 
   async function cancelSale(listingId: string) {
     setActionBusy(true)
@@ -415,7 +436,7 @@ export default function PrivateLifePage() {
           eyebrow: 'Private Life purchase',
           title: `Buy ${pendingAction.listing.name}${pendingAction.listing.location ? ` in ${pendingAction.listing.location.city}` : ''}?`,
           message: `${money(pendingAction.listing.effective_price, currency)} will be taken from your normal career Finance balance.`,
-          detail: `Prestige +${pendingAction.listing.prestige} points · Expected annual ownership cost ${money(pendingAction.listing.effective_annual_cost, currency)} · ${trendText(pendingAction.listing.effective_value_rate_bps)}`,
+          detail: `Prestige +${pendingAction.listing.prestige} points · ${ownershipCostLabel(pendingAction.listing.category)} ${money(pendingAction.listing.effective_annual_cost / 12, currency)} · ${trendText(pendingAction.listing.effective_value_rate_bps)}`,
           confirmLabel: `Buy for ${money(pendingAction.listing.effective_price, currency)}`,
           tone: 'warning' as const,
         }
@@ -447,7 +468,7 @@ export default function PrivateLifePage() {
           <div className="private-life-metric"><span>Investments</span><strong>{money(dashboard.investment_value, currency)}</strong></div>
           <div className="private-life-metric"><span>Current net worth</span><strong>{money(dashboard.net_worth, currency)}</strong></div>
           <div className="private-life-metric"><span>Prestige points</span><strong>{dashboard.prestige}</strong></div>
-          <div className="private-life-metric"><span>Annual ownership cost</span><strong>{money(dashboard.annual_running_cost, currency)}</strong></div>
+          <div className="private-life-metric"><span>Monthly ownership cost</span><strong>{money(dashboard.annual_running_cost / 12, currency)}</strong></div>
         </section>
 
         <nav className="private-life-tabs" aria-label="Private Life sections">
@@ -478,8 +499,8 @@ export default function PrivateLifePage() {
               </div>
               <div className="private-life-future-stack">
                 <article className="private-life-future-card private-life-investment-preview"><div className="private-life-future-card-head"><h4>Investments</h4><span className="private-life-status-pill active">Active</span></div><p>Trade simulated stocks and cryptocurrencies with your career cash. External market quotes provide the game reference price.</p><button type="button" className="private-life-inline-action" onClick={() => setTab('investments')}>Open investments</button></article>
-                <article className="private-life-future-card"><div className="private-life-future-card-head"><h4>Property worldwide</h4></div><p>Apartments, houses and villas are now priced by destination. The marketplace contains 50 worldwide locations and different property sizes in each city.</p><small>Your original home city also receives a small starting flat at the beginning of the career.</small></article>
-                <article className="private-life-future-card"><div className="private-life-future-card-head"><h4>Resale market</h4></div><p>Owned assets can be sold back to the game. Selling immediately pays less; waiting 7 or 21 game days improves the offer.</p><small>Prestige points disappear when you no longer own the asset.</small></article>
+                <article className="private-life-future-card"><div className="private-life-future-card-head"><h4>Residence rule</h4></div><p>You must always keep at least one apartment, house or villa. A residence cannot be sold until another residence is available.</p><small>Property living costs are charged monthly through the career Finance ledger.</small></article>
+                <article className="private-life-future-card"><div className="private-life-future-card-head"><h4>Ownership costs</h4></div><p>Vehicles, homes, yachts and private jets carry recurring monthly costs. Watches, jewelry, art and collectibles do not.</p><small>Higher-value assets have higher maintenance or living costs.</small></article>
               </div>
             </div>
           </section>
@@ -487,39 +508,45 @@ export default function PrivateLifePage() {
 
         {tab === 'assets' ? (
           <section className="private-life-section">
-            <div className="private-life-section-head"><div><div className="private-life-section-eyebrow">Collection</div><h3>My physical assets</h3><p>Track current value, prestige points and choose how quickly you want to sell each possession.</p></div></div>
+            <div className="private-life-section-head"><div><div className="private-life-section-eyebrow">Collection</div><h3>My physical assets</h3><p>Track current value, prestige points, monthly ownership costs and choose how quickly you want to sell each possession.</p></div></div>
             <CategoryFilters value={filter} onChange={setFilter} />
             {visibleOwned.length === 0 ? <div className="private-life-empty"><strong>No assets in this category yet</strong><p>Visit the Marketplace to start building your private collection.</p></div> : (
               <div className="private-life-owned-grid">
-                {visibleOwned.map((asset) => (
-                  <article className="private-life-owned-card" key={asset.id}>
-                    <div className="private-life-card-image"><AssetImage src={asset.image_url} name={asset.name} /><div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(asset.rarity)}</span><span className="private-life-badge level">+{asset.prestige} prestige pts</span></div></div>
-                    <div className="private-life-card-body">
-                      <div className="private-life-card-title-row"><h4>{asset.name}</h4><div className="private-life-price">{money(asset.current_market_value, currency)}</div></div>
-                      {asset.acquisition_type === 'starter_home' ? <div className="private-life-starter-home-label">Starting home residence</div> : null}
-                      <p className="private-life-description">{asset.description}</p>
-                      <div className="private-life-owned-value-grid">
-                        <div className="private-life-owned-value-row"><span>Original value</span><strong>{money(asset.purchase_price, currency)}</strong></div>
-                        <div className="private-life-owned-value-row"><span>Current market value</span><strong>{money(asset.current_market_value, currency)}</strong></div>
-                        <div className="private-life-owned-value-row"><span>Prestige points</span><strong>+{asset.prestige}</strong></div>
-                        <div className="private-life-owned-value-row"><span>Ownership</span><strong>{asset.ownership_days} game days</strong></div>
-                        <div className="private-life-owned-value-row"><span>Expected annual cost</span><strong>{money(asset.annual_running_cost, currency)}</strong></div>
-                        <div className="private-life-owned-value-row"><span>Value trend</span><strong>{trendText(asset.annual_value_rate_bps)}</strong></div>
-                      </div>
-                      {asset.pending_sale ? (
-                        <div className="private-life-sale-pending"><div><span>Listed for sale</span><strong>{SALE_META[asset.pending_sale.sale_mode].label} · {money(asset.pending_sale.quoted_sale_price, currency)}</strong><small>Settlement game day {asset.pending_sale.settle_absolute_day}</small></div><button type="button" disabled={actionBusy} onClick={() => void cancelSale(asset.pending_sale!.id)}>Cancel sale</button></div>
-                      ) : (
-                        <div className="private-life-sale-options">
-                          {(Object.keys(SALE_META) as SaleMode[]).map((mode) => {
-                            const quote = asset.sale_quotes?.[mode]
-                            if (!quote) return null
-                            return <button key={mode} type="button" onClick={() => setPendingAction({ type: 'sell', asset, saleMode: mode, quote })}><span>{SALE_META[mode].label}</span><strong>{money(quote.price, currency)}</strong><small>{SALE_META[mode].detail}</small></button>
-                          })}
+                {visibleOwned.map((asset) => {
+                  const isResidence = asset.category === 'apartment' || asset.category === 'house_villa'
+                  const canSellResidence = !isResidence || availableResidenceCount >= 2
+                  return (
+                    <article className="private-life-owned-card" key={asset.id}>
+                      <div className="private-life-card-image"><AssetImage src={asset.image_url} name={asset.name} /><div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(asset.rarity)}</span><span className="private-life-badge level">+{asset.prestige} prestige pts</span></div></div>
+                      <div className="private-life-card-body">
+                        <div className="private-life-card-title-row"><h4>{asset.name}</h4><div className="private-life-price">{money(asset.current_market_value, currency)}</div></div>
+                        {asset.acquisition_type === 'starter_home' ? <div className="private-life-starter-home-label">Starting home residence</div> : null}
+                        <p className="private-life-description">{asset.description}</p>
+                        <div className="private-life-owned-value-grid">
+                          <div className="private-life-owned-value-row"><span>Original value</span><strong>{money(asset.purchase_price, currency)}</strong></div>
+                          <div className="private-life-owned-value-row"><span>Current market value</span><strong>{money(asset.current_market_value, currency)}</strong></div>
+                          <div className="private-life-owned-value-row"><span>Prestige points</span><strong>+{asset.prestige}</strong></div>
+                          <div className="private-life-owned-value-row"><span>Ownership</span><strong>{asset.ownership_days} game days</strong></div>
+                          <div className="private-life-owned-value-row"><span>{ownershipCostLabel(asset.category)}</span><strong>{asset.annual_running_cost > 0 ? money(asset.annual_running_cost / 12, currency) : 'None'}</strong></div>
+                          <div className="private-life-owned-value-row"><span>Value trend</span><strong>{trendText(asset.annual_value_rate_bps)}</strong></div>
                         </div>
-                      )}
-                    </div>
-                  </article>
-                ))}
+                        {asset.pending_sale ? (
+                          <div className="private-life-sale-pending"><div><span>Listed for sale</span><strong>{SALE_META[asset.pending_sale.sale_mode].label} · {money(asset.pending_sale.quoted_sale_price, currency)}</strong><small>Settlement game day {asset.pending_sale.settle_absolute_day}</small></div><button type="button" disabled={actionBusy} onClick={() => void cancelSale(asset.pending_sale!.id)}>Cancel sale</button></div>
+                        ) : canSellResidence ? (
+                          <div className="private-life-sale-options">
+                            {(Object.keys(SALE_META) as SaleMode[]).map((mode) => {
+                              const quote = asset.sale_quotes?.[mode]
+                              if (!quote) return null
+                              return <button key={mode} type="button" onClick={() => setPendingAction({ type: 'sell', asset, saleMode: mode, quote })}><span>{SALE_META[mode].label}</span><strong>{money(quote.price, currency)}</strong><small>{SALE_META[mode].detail}</small></button>
+                            })}
+                          </div>
+                        ) : (
+                          <div className="private-life-residence-lock"><strong>Primary residence</strong><span>Buy another apartment, house or villa before selling this residence.</span></div>
+                        )}
+                      </div>
+                    </article>
+                  )
+                })}
               </div>
             )}
           </section>
@@ -530,16 +557,20 @@ export default function PrivateLifePage() {
         {tab === 'marketplace' ? (
           <section className="private-life-section">
             <div className="private-life-section-head">
-              <div><div className="private-life-section-eyebrow">Luxury marketplace</div><h3>Buy physical assets</h3><p>Every item has a game price, value trend and prestige-point value. Watches use fictional brands only. Property prices depend on the selected country and city.</p></div>
+              <div><div className="private-life-section-eyebrow">Luxury marketplace</div><h3>Buy physical assets</h3><p>Every item has a game price, value trend and prestige-point value. Property prices depend on the selected country and city.</p></div>
               <span className="private-life-market-new-pill">New items</span>
             </div>
             <CategoryFilters value={filter} onChange={setFilter} />
 
-            {(filter === 'all' || filter === 'apartment' || filter === 'house_villa') ? (
+            {(filter === 'apartment' || filter === 'house_villa') ? (
               <div className="private-life-property-selector">
-                <div><span>Property country</span><select value={propertyCountry} onChange={(event) => { setPropertyCountry(event.target.value); setPropertyLocationCode('') }}>{countries.map((country) => <option key={country.code} value={country.code}>{country.name}</option>)}</select></div>
+                <div><span>Property country</span><select value={propertyCountry} onChange={(event) => {
+                  const countryCode = event.target.value
+                  const firstLocation = dashboard.property_locations.find((location) => location.country_code === countryCode)
+                  setPropertyCountry(countryCode)
+                  setPropertyLocationCode(firstLocation?.code ?? '')
+                }}>{countries.map((country) => <option key={country.code} value={country.code}>{country.name}</option>)}</select></div>
                 <div><span>City</span><select value={propertyLocationCode} onChange={(event) => setPropertyLocationCode(event.target.value)}>{countryLocations.map((location) => <option key={location.code} value={location.code}>{location.city}</option>)}</select></div>
-                {selectedPropertyLocation ? <div className="private-life-property-selector-note"><strong>{selectedPropertyLocation.city}</strong><span>Apartment reference {money(selectedPropertyLocation.apartment_base_price, currency)} · House reference {money(selectedPropertyLocation.house_base_price, currency)}</span></div> : null}
               </div>
             ) : null}
 
@@ -566,7 +597,7 @@ export default function PrivateLifePage() {
                         <p className="private-life-description">{listing.description}</p>
                         <div className="private-life-card-stats">
                           <div className="private-life-card-stat"><span>Prestige points</span><strong>+{listing.prestige}</strong></div>
-                          <div className="private-life-card-stat"><span>Annual cost</span><strong>{money(listing.effective_annual_cost, currency)}</strong></div>
+                          <div className="private-life-card-stat"><span>{ownershipCostLabel(listing.category)}</span><strong>{listing.effective_annual_cost > 0 ? money(listing.effective_annual_cost / 12, currency) : 'None'}</strong></div>
                           <div className="private-life-card-stat"><span>Value trend</span><strong className={listing.effective_value_rate_bps < 0 ? 'private-life-trend-negative' : isPositive ? 'private-life-trend-positive' : ''}>{listing.effective_value_rate_bps < 0 ? <TrendingDown size={12} /> : isPositive ? <TrendingUp size={12} /> : null} {trendText(listing.effective_value_rate_bps)}</strong></div>
                           <div className="private-life-card-stat"><span>Category</span><strong>{categoryLabel(listing.category)}</strong></div>
                         </div>
