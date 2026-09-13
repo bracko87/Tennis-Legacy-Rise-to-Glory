@@ -291,7 +291,13 @@ export default function PrivateLifeInvestments({
   const loadDashboard = useCallback(async () => {
     const { data, error: rpcError } = await supabase.rpc('get_private_life_investments_dashboard_v1')
     if (rpcError || !data) throw new Error(rpcError?.message ?? 'Unable to load investments.')
-    const next = data as unknown as InvestmentDashboard
+    const raw = data as unknown as InvestmentDashboard
+    const next: InvestmentDashboard = {
+      ...raw,
+      positions: Array.isArray(raw.positions) ? raw.positions : [],
+      instruments: Array.isArray(raw.instruments) ? raw.instruments : [],
+      trades: Array.isArray(raw.trades) ? raw.trades : [],
+    }
     setDashboard(next)
     return next
   }, [])
@@ -393,8 +399,9 @@ export default function PrivateLifeInvestments({
   const parsedSellQuantity = Number(sellQuantity)
   const estimatedBuyQuantity = selectedInstrument?.price && parsedBuyAmount > 0 ? parsedBuyAmount / Number(selectedInstrument.price) : 0
   const estimatedSaleValue = selectedInstrument?.price && parsedSellQuantity > 0 ? Math.round(parsedSellQuantity * Number(selectedInstrument.price)) : 0
-  const portfolioValuePrecise = dashboard.positions.reduce((sum, position) => sum + Number(position.market_value_precise ?? position.market_value ?? 0), 0)
-  const unrealizedPrecise = dashboard.positions.reduce((sum, position) => sum + Number(position.unrealized_pnl_precise ?? position.unrealized_pnl ?? 0), 0)
+  const safePositions = dashboard?.positions ?? []
+  const portfolioValuePrecise = safePositions.reduce((sum, position) => sum + Number(position.market_value_precise ?? position.market_value ?? 0), 0)
+  const unrealizedPrecise = safePositions.reduce((sum, position) => sum + Number(position.unrealized_pnl_precise ?? position.unrealized_pnl ?? 0), 0)
 
   function beginBuy() {
     if (!selectedInstrument) return
