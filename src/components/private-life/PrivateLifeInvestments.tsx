@@ -8,6 +8,8 @@ type InvestmentTab = 'stocks' | 'crypto' | 'portfolio' | 'history'
 type TradeSide = 'buy' | 'sell'
 type MarketSort = 'default' | 'move_desc' | 'price_asc' | 'price_desc' | 'symbol'
 
+const STOCK_PAGE_SIZE = 10
+
 type QuoteMetadata = {
   change_1d_pct?: number | null
   change_1w_pct?: number | null
@@ -24,6 +26,7 @@ type QuoteMetadata = {
   market_cap_rank?: number | null
   market_state?: string | null
   history?: unknown[]
+  intraday_history?: unknown[]
   [key: string]: unknown
 }
 
@@ -57,13 +60,18 @@ type InvestmentPosition = {
   quantity: number
   cost_basis: number
   price: number | null
+  previous_price?: number | null
   quote_as_of: string | null
   fetched_at: string | null
   quote_source: string | null
   quote_metadata?: QuoteMetadata | null
   market_value: number
+  market_value_precise?: number
   unrealized_pnl: number
+  unrealized_pnl_precise?: number
   average_buy_price: number
+  return_pct?: number
+  daily_move_pct?: number | null
 }
 
 type InvestmentTrade = {
@@ -133,9 +141,9 @@ function quantity(value: number, assetType: 'stock' | 'crypto') {
   return Number(value || 0).toLocaleString('en-US', { maximumFractionDigits: digits })
 }
 
-function signedMoney(value: number, currency = 'USD') {
+function signedMoney(value: number, currency = 'USD', decimals = 0) {
   const prefix = value > 0 ? '+' : value < 0 ? '−' : ''
-  return `${prefix}${money(Math.abs(Number(value || 0)), currency)}`
+  return `${prefix}${money(Math.abs(Number(value || 0)), currency, decimals)}`
 }
 
 function finiteNumber(value: unknown): number | null {
@@ -183,16 +191,19 @@ function requestKey(prefix: string) {
   return `${prefix}-${uuid ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`}`
 }
 
-function Sparkline({ history }: { history?: unknown[] }) {
-  const values = (history ?? [])
+function historyValues(history?: unknown[]) {
+  return (history ?? [])
     .map((point) => {
       if (typeof point === 'number') return finiteNumber(point)
       if (point && typeof point === 'object' && 'p' in point) return finiteNumber((point as { p?: unknown }).p)
       return null
     })
     .filter((value): value is number => value !== null && value > 0)
+}
 
-  if (values.length < 2) return <div className="private-life-market-chart-empty">Trend data will appear after a successful market refresh.</div>
+function Sparkline({ history }: { history?: unknown[] }) {
+  const values = historyValues(history)
+  if (values.length < 2) return <div className="private-life-market-chart-empty">Trend data will appear as market-price snapshots accumulate.</div>
 
   const width = 300
   const height = 82
@@ -216,6 +227,9 @@ function Sparkline({ history }: { history?: unknown[] }) {
 
 function MarketTrendPanel({ instrument, currency }: { instrument: InvestmentInstrument; currency: string }) {
   const stats = instrument.quote_metadata ?? {}
+  const intraday = Array.isArray(stats.intraday_history) ? stats.intraday_history : []
+  const chartHistory = historyValues(intraday).length >= 2 ? intraday : stats.history
+  const chartLabel = historyValues(intraday).length >= 2 ? '15-minute game snapshots' : instrument.asset_type === 'stock' ? 'Recent market sessions' : 'Recent market trend'
   const oneDay = finiteNumber(stats.change_1d_pct) ?? pctChange(instrument.price, instrument.previous_price)
   const oneWeek = finiteNumber(stats.change_1w_pct)
   const oneMonth = finiteNumber(stats.change_1m_pct)
@@ -231,7 +245,8 @@ function MarketTrendPanel({ instrument, currency }: { instrument: InvestmentInst
         <div><span>Market statistics</span><strong>{instrument.symbol} reference trend</strong></div>
         {sector ? <small>{sector}</small> : null}
       </div>
-      <Sparkline history={stats.history} />
+      <div className="private-life-market-chart-label">{chartLabel}</div>
+      <Sparkline history={chartHistory} />
       <div className="private-life-market-stat-grid">
         <div><span>{instrument.asset_type === 'crypto' ? '24H' : '1D'}</span><strong className={oneDay !== null && oneDay >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{percentText(oneDay)}</strong></div>
         <div><span>1W</span><strong className={oneWeek !== null && oneWeek >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{percentText(oneWeek)}</strong></div>
@@ -242,9 +257,9 @@ function MarketTrendPanel({ instrument, currency }: { instrument: InvestmentInst
         <div><span>{instrument.asset_type === 'stock' ? '52W low' : '24H low'}</span><strong>{marketPrice(rangeLow, currency)}</strong></div>
         <div><span>{instrument.asset_type === 'stock' ? '52W high' : '24H high'}</span><strong>{marketPrice(rangeHigh, currency)}</strong></div>
         <div><span>{instrument.asset_type === 'stock' ? 'Volume' : '24H volume'}</span><strong>{compactNumber(activity)}</strong></div>
-        <div><span>Quote source</span><strong>{quoteSource(instrument.quote_source)}</strong></div>
+        <div><span>Last market quote</span><strong>{quoteTime(instrument.quote_as_of)}</strong></div>
       </div>
-      <p>Reference market statistics only. They influence the in-game portfolio price but do not represent a real brokerage account or wallet.</p>
+      <p>Stocks are cached every 15 minutes during the weekday U.S. market window; crypto is cached every 15 minutes around the clock. Stock prices do not move while the underlying market is closed.</p>
     </section>
   )
 }
@@ -265,6 +280,7 @@ export default function PrivateLifeInvestments({
   const [marketSearch, setMarketSearch] = useState('')
   const [marketSector, setMarketSector] = useState('all')
   const [marketSort, setMarketSort] = useState<MarketSort>('default')
+  const [marketPage, setMarketPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [tradeBusy, setTradeBusy] = useState(false)
@@ -345,17 +361,31 @@ export default function PrivateLifeInvestments({
   }, [activeTab, cryptoInstruments, marketSearch, marketSector, marketSort, stockInstruments])
 
   useEffect(() => {
+    setMarketPage(1)
+  }, [activeTab, marketSearch, marketSector, marketSort])
+
+  const marketPageCount = activeTab === 'stocks' ? Math.max(1, Math.ceil(visibleMarket.length / STOCK_PAGE_SIZE)) : 1
+  const pagedMarket = useMemo(
+    () => activeTab === 'stocks' ? visibleMarket.slice((marketPage - 1) * STOCK_PAGE_SIZE, marketPage * STOCK_PAGE_SIZE) : visibleMarket,
+    [activeTab, marketPage, visibleMarket],
+  )
+
+  useEffect(() => {
+    if (marketPage > marketPageCount) setMarketPage(marketPageCount)
+  }, [marketPage, marketPageCount])
+
+  useEffect(() => {
     if (activeTab !== 'stocks' && activeTab !== 'crypto') return
-    if (!visibleMarket.length) {
+    if (!pagedMarket.length) {
       setSelectedCode(null)
       return
     }
-    if (!selectedCode || !visibleMarket.some((item) => item.code === selectedCode)) {
-      setSelectedCode(visibleMarket[0].code)
+    if (!selectedCode || !pagedMarket.some((item) => item.code === selectedCode)) {
+      setSelectedCode(pagedMarket[0].code)
       setTradeSide('buy')
       setSellQuantity('')
     }
-  }, [activeTab, selectedCode, visibleMarket])
+  }, [activeTab, pagedMarket, selectedCode])
 
   const selectedInstrument = dashboard?.instruments.find((item) => item.code === selectedCode) ?? null
   const selectedPosition = dashboard?.positions.find((item) => item.instrument_code === selectedCode) ?? null
@@ -363,6 +393,8 @@ export default function PrivateLifeInvestments({
   const parsedSellQuantity = Number(sellQuantity)
   const estimatedBuyQuantity = selectedInstrument?.price && parsedBuyAmount > 0 ? parsedBuyAmount / Number(selectedInstrument.price) : 0
   const estimatedSaleValue = selectedInstrument?.price && parsedSellQuantity > 0 ? Math.round(parsedSellQuantity * Number(selectedInstrument.price)) : 0
+  const portfolioValuePrecise = dashboard.positions.reduce((sum, position) => sum + Number(position.market_value_precise ?? position.market_value ?? 0), 0)
+  const unrealizedPrecise = dashboard.positions.reduce((sum, position) => sum + Number(position.unrealized_pnl_precise ?? position.unrealized_pnl ?? 0), 0)
 
   function beginBuy() {
     if (!selectedInstrument) return
@@ -437,18 +469,10 @@ export default function PrivateLifeInvestments({
     }
   }
 
-  if (loading && !dashboard) {
-    return <div className="private-life-loading">Loading investment markets and portfolio…</div>
-  }
+  if (loading && !dashboard) return <div className="private-life-loading">Loading investment markets and portfolio…</div>
 
   if (!dashboard) {
-    return (
-      <div className="private-life-error">
-        <strong>Investments could not be loaded</strong>
-        <p>{error ?? 'Please try again.'}</p>
-        <button type="button" className="private-life-refresh" onClick={() => void loadDashboard()}>Try again</button>
-      </div>
-    )
+    return <div className="private-life-error"><strong>Investments could not be loaded</strong><p>{error ?? 'Please try again.'}</p><button type="button" className="private-life-refresh" onClick={() => void loadDashboard()}>Try again</button></div>
   }
 
   const pendingConfirmation = pendingTrade
@@ -478,11 +502,13 @@ export default function PrivateLifeInvestments({
         <button type="button" className="private-life-refresh" disabled={refreshing} onClick={() => void refreshQuotes(true)}>{refreshing ? 'Refreshing prices…' : 'Refresh market prices'}</button>
       </div>
 
+      <div className="private-life-market-update-note"><strong>Automatic market cache:</strong> stocks refresh every 15 minutes during the weekday U.S. market window; crypto refreshes every 15 minutes 24/7. Stocks remain unchanged on weekends and market holidays because there is no underlying trading session.</div>
+
       <div className="private-life-investment-summary" aria-label="Investment portfolio summary">
         <div><span>Career cash</span><strong>{money(dashboard.cash_balance, currency)}</strong></div>
-        <div><span>Portfolio value</span><strong>{money(dashboard.portfolio_value, currency)}</strong></div>
+        <div><span>Portfolio value</span><strong>{money(portfolioValuePrecise, currency, 2)}</strong></div>
         <div><span>Cost basis</span><strong>{money(dashboard.cost_basis, currency)}</strong></div>
-        <div><span>Unrealized P/L</span><strong className={dashboard.unrealized_pnl >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{signedMoney(dashboard.unrealized_pnl, currency)}</strong></div>
+        <div><span>Unrealized P/L</span><strong className={unrealizedPrecise >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{signedMoney(unrealizedPrecise, currency, 2)}</strong></div>
         <div><span>Realized P/L</span><strong className={dashboard.realized_pnl >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{signedMoney(dashboard.realized_pnl, currency)}</strong></div>
       </div>
 
@@ -500,35 +526,19 @@ export default function PrivateLifeInvestments({
         <div className="private-life-investment-market-layout">
           <div className="private-life-investment-table-panel">
             <div className="private-life-investment-table-head">
-              <div>
-                <strong>{activeTab === 'stocks' ? 'Stock market' : 'Crypto market'}</strong>
-                <span>{activeTab === 'stocks' ? 'Yahoo Finance reference quotes; exchange delay may apply.' : '24/7 CoinGecko reference prices.'}</span>
-              </div>
+              <div><strong>{activeTab === 'stocks' ? 'Stock market' : 'Crypto market'}</strong><span>{activeTab === 'stocks' ? 'Yahoo Finance reference quotes; exchange delay may apply.' : '24/7 CoinGecko reference prices.'}</span></div>
               <span>{visibleMarket.filter((item) => item.price !== null).length}/{visibleMarket.length} priced</span>
             </div>
             <div className="private-life-investment-market-tools">
               <input value={marketSearch} onChange={(event) => setMarketSearch(event.target.value)} placeholder={`Search ${activeTab === 'stocks' ? 'companies or tickers' : 'crypto'}`} aria-label="Search investment market" />
-              {activeTab === 'stocks' ? (
-                <select value={marketSector} onChange={(event) => setMarketSector(event.target.value)} aria-label="Stock sector filter">
-                  <option value="all">All sectors</option>
-                  {stockSectors.map((sector) => <option key={sector} value={sector}>{sector}</option>)}
-                </select>
-              ) : null}
-              <select value={marketSort} onChange={(event) => setMarketSort(event.target.value as MarketSort)} aria-label="Investment sort order">
-                <option value="default">Default order</option>
-                <option value="move_desc">Best daily move</option>
-                <option value="price_asc">Price: low to high</option>
-                <option value="price_desc">Price: high to low</option>
-                <option value="symbol">Ticker A–Z</option>
-              </select>
+              {activeTab === 'stocks' ? <select value={marketSector} onChange={(event) => setMarketSector(event.target.value)} aria-label="Stock sector filter"><option value="all">All sectors</option>{stockSectors.map((sector) => <option key={sector} value={sector}>{sector}</option>)}</select> : null}
+              <select value={marketSort} onChange={(event) => setMarketSort(event.target.value as MarketSort)} aria-label="Investment sort order"><option value="default">Default order</option><option value="move_desc">Best daily move</option><option value="price_asc">Price: low to high</option><option value="price_desc">Price: high to low</option><option value="symbol">Ticker A–Z</option></select>
             </div>
             <div className="private-life-investment-table-wrap">
               <table className="private-life-investment-table">
-                <thead>
-                  <tr><th>Asset</th><th>Price</th><th>Move</th><th>Owned</th><th>Value</th><th>Status</th></tr>
-                </thead>
+                <thead><tr><th>Asset</th><th>Price</th><th>Move</th><th>Owned</th><th>Value</th><th>Status</th></tr></thead>
                 <tbody>
-                  {visibleMarket.map((instrument) => {
+                  {pagedMarket.map((instrument) => {
                     const move = instrumentMove(instrument)
                     return (
                       <tr key={instrument.code} className={selectedCode === instrument.code ? 'selected' : ''} onClick={() => setSelectedCode(instrument.code)}>
@@ -545,44 +555,34 @@ export default function PrivateLifeInvestments({
                 </tbody>
               </table>
             </div>
+            {activeTab === 'stocks' && visibleMarket.length > STOCK_PAGE_SIZE ? (
+              <div className="private-life-market-pagination">
+                <button type="button" disabled={marketPage <= 1} onClick={() => setMarketPage((page) => Math.max(1, page - 1))}>Previous</button>
+                <span>Page <strong>{marketPage}</strong> of {marketPageCount} · {STOCK_PAGE_SIZE} stocks per page</span>
+                <button type="button" disabled={marketPage >= marketPageCount} onClick={() => setMarketPage((page) => Math.min(marketPageCount, page + 1))}>Next</button>
+              </div>
+            ) : null}
           </div>
 
           <div className="private-life-investment-side">
             <aside className="private-life-trade-ticket">
               {selectedInstrument ? (
                 <>
-                  <div className="private-life-trade-ticket-heading">
-                    <div><span>{selectedInstrument.asset_type === 'stock' ? 'Stock' : 'Cryptocurrency'}</span><h4>{selectedInstrument.symbol} · {selectedInstrument.name}</h4></div>
-                    <strong>{marketPrice(selectedInstrument.price, currency)}</strong>
-                  </div>
-                  <div className="private-life-trade-quote-meta">
-                    <span>{quoteSource(selectedInstrument.quote_source)}</span>
-                    <span>{quoteTime(selectedInstrument.quote_as_of)}</span>
-                  </div>
-
-                  <div className="private-life-trade-side-tabs">
-                    <button type="button" className={tradeSide === 'buy' ? 'active' : ''} onClick={() => setTradeSide('buy')}>Buy</button>
-                    <button type="button" className={tradeSide === 'sell' ? 'active' : ''} disabled={Number(selectedInstrument.owned_quantity || 0) <= 0} onClick={() => setTradeSide('sell')}>Sell</button>
-                  </div>
-
+                  <div className="private-life-trade-ticket-heading"><div><span>{selectedInstrument.asset_type === 'stock' ? 'Stock' : 'Cryptocurrency'}</span><h4>{selectedInstrument.symbol} · {selectedInstrument.name}</h4></div><strong>{marketPrice(selectedInstrument.price, currency)}</strong></div>
+                  <div className="private-life-trade-quote-meta"><span>{quoteSource(selectedInstrument.quote_source)}</span><span>{quoteTime(selectedInstrument.quote_as_of)}</span></div>
+                  <div className="private-life-trade-side-tabs"><button type="button" className={tradeSide === 'buy' ? 'active' : ''} onClick={() => setTradeSide('buy')}>Buy</button><button type="button" className={tradeSide === 'sell' ? 'active' : ''} disabled={Number(selectedInstrument.owned_quantity || 0) <= 0} onClick={() => setTradeSide('sell')}>Sell</button></div>
                   {tradeSide === 'buy' ? (
                     <div className="private-life-trade-form">
-                      <label>Amount from Finance</label>
-                      <div className="private-life-trade-input"><span>$</span><input type="number" min="10" step="10" value={buyAmount} onChange={(event) => setBuyAmount(event.target.value)} /></div>
+                      <label>Amount from Finance</label><div className="private-life-trade-input"><span>$</span><input type="number" min="10" step="10" value={buyAmount} onChange={(event) => setBuyAmount(event.target.value)} /></div>
                       <div className="private-life-trade-helper"><span>Cash available</span><strong>{money(dashboard.cash_balance, currency)}</strong></div>
                       <div className="private-life-trade-helper"><span>Estimated quantity</span><strong>{quantity(estimatedBuyQuantity, selectedInstrument.asset_type)} {selectedInstrument.symbol}</strong></div>
                       <button type="button" className="private-life-action" disabled={!selectedInstrument.tradeable || parsedBuyAmount < 10 || parsedBuyAmount > dashboard.cash_balance} onClick={beginBuy}>Buy {selectedInstrument.symbol}</button>
                     </div>
                   ) : (
                     <div className="private-life-trade-form">
-                      <label>Quantity to sell</label>
-                      <div className="private-life-trade-input"><input type="number" min="0" step="any" value={sellQuantity} onChange={(event) => setSellQuantity(event.target.value)} /></div>
+                      <label>Quantity to sell</label><div className="private-life-trade-input"><input type="number" min="0" step="any" value={sellQuantity} onChange={(event) => setSellQuantity(event.target.value)} /></div>
                       <div className="private-life-trade-helper"><span>You own</span><strong>{quantity(Number(selectedInstrument.owned_quantity || 0), selectedInstrument.asset_type)} {selectedInstrument.symbol}</strong></div>
-                      <div className="private-life-trade-quick-actions">
-                        <button type="button" onClick={() => setSellQuantity(String(Number(selectedInstrument.owned_quantity || 0) * 0.25))}>25%</button>
-                        <button type="button" onClick={() => setSellQuantity(String(Number(selectedInstrument.owned_quantity || 0) * 0.5))}>50%</button>
-                        <button type="button" onClick={() => setSellQuantity(String(Number(selectedInstrument.owned_quantity || 0)))}>All</button>
-                      </div>
+                      <div className="private-life-trade-quick-actions"><button type="button" onClick={() => setSellQuantity(String(Number(selectedInstrument.owned_quantity || 0) * 0.25))}>25%</button><button type="button" onClick={() => setSellQuantity(String(Number(selectedInstrument.owned_quantity || 0) * 0.5))}>50%</button><button type="button" onClick={() => setSellQuantity(String(Number(selectedInstrument.owned_quantity || 0)))}>All</button></div>
                       <div className="private-life-trade-helper"><span>Estimated proceeds</span><strong>{money(estimatedSaleValue, currency)}</strong></div>
                       <button type="button" className="private-life-action secondary" disabled={!selectedInstrument.tradeable || !selectedPosition || parsedSellQuantity <= 0 || parsedSellQuantity > Number(selectedPosition.quantity)} onClick={beginSell}>Sell {selectedInstrument.symbol}</button>
                     </div>
@@ -597,23 +597,28 @@ export default function PrivateLifeInvestments({
 
       {activeTab === 'portfolio' ? (
         <div className="private-life-investment-table-panel">
-          <div className="private-life-investment-table-head"><div><strong>Your simulated portfolio</strong><span>Current market value versus your total cost basis.</span></div></div>
-          {dashboard.positions.length === 0 ? (
-            <div className="private-life-empty"><strong>No investments yet</strong><p>Use the Stocks or Crypto tab to make your first game-only investment.</p></div>
-          ) : (
+          <div className="private-life-investment-table-head"><div><strong>Your simulated portfolio</strong><span>Current price, daily market move and your gain/loss since purchase. Click a holding to open its market statistics.</span></div></div>
+          {dashboard.positions.length === 0 ? <div className="private-life-empty"><strong>No investments yet</strong><p>Use the Stocks or Crypto tab to make your first game-only investment.</p></div> : (
             <div className="private-life-investment-table-wrap">
-              <table className="private-life-investment-table portfolio">
-                <thead><tr><th>Asset</th><th>Quantity</th><th>Avg. buy</th><th>Cost basis</th><th>Market value</th><th>Unrealized P/L</th></tr></thead>
-                <tbody>{dashboard.positions.map((position) => (
-                  <tr key={position.instrument_code}>
-                    <td><strong>{position.symbol}</strong><span>{position.name}</span></td>
-                    <td>{quantity(Number(position.quantity), position.asset_type)}</td>
-                    <td>{marketPrice(Number(position.average_buy_price), currency)}</td>
-                    <td>{money(position.cost_basis, currency)}</td>
-                    <td>{money(position.market_value, currency)}</td>
-                    <td><strong className={position.unrealized_pnl >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{signedMoney(position.unrealized_pnl, currency)}</strong></td>
-                  </tr>
-                ))}</tbody>
+              <table className="private-life-investment-table portfolio private-life-portfolio-movement-table">
+                <thead><tr><th>Asset</th><th>Quantity</th><th>Avg. buy</th><th>Current price</th><th>Daily move</th><th>Market value</th><th>Since buy</th></tr></thead>
+                <tbody>{dashboard.positions.map((position) => {
+                  const preciseValue = Number(position.market_value_precise ?? position.market_value ?? 0)
+                  const precisePnl = Number(position.unrealized_pnl_precise ?? position.unrealized_pnl ?? 0)
+                  const dailyMove = finiteNumber(position.daily_move_pct) ?? pctChange(position.price, position.previous_price ?? null)
+                  const returnPct = finiteNumber(position.return_pct) ?? (position.cost_basis > 0 ? (precisePnl / position.cost_basis) * 100 : 0)
+                  return (
+                    <tr key={position.instrument_code} className="private-life-portfolio-row" onClick={() => { setSelectedCode(position.instrument_code); setMarketPage(1); setActiveTab(position.asset_type === 'stock' ? 'stocks' : 'crypto') }}>
+                      <td><strong>{position.symbol}</strong><span>{position.name}</span></td>
+                      <td>{quantity(Number(position.quantity), position.asset_type)}</td>
+                      <td>{marketPrice(Number(position.average_buy_price), currency)}</td>
+                      <td><strong>{marketPrice(position.price, currency)}</strong><span>{quoteTime(position.quote_as_of)}</span></td>
+                      <td><strong className={dailyMove !== null && dailyMove >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{percentText(dailyMove)}</strong></td>
+                      <td>{money(preciseValue, currency, 2)}</td>
+                      <td><strong className={precisePnl >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{signedMoney(precisePnl, currency, 2)}</strong><span className={returnPct >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{percentText(returnPct)}</span></td>
+                    </tr>
+                  )
+                })}</tbody>
               </table>
             </div>
           )}
@@ -623,43 +628,15 @@ export default function PrivateLifeInvestments({
       {activeTab === 'history' ? (
         <div className="private-life-investment-table-panel">
           <div className="private-life-investment-table-head"><div><strong>Investment history</strong><span>Every trade also posts the matching cash movement to career Finance.</span></div></div>
-          {dashboard.trades.length === 0 ? (
-            <div className="private-life-empty"><strong>No investment trades yet</strong><p>Your completed buys and sells will appear here.</p></div>
-          ) : (
-            <div className="private-life-investment-table-wrap">
-              <table className="private-life-investment-table history">
-                <thead><tr><th>Trade</th><th>Asset</th><th>Quantity</th><th>Unit price</th><th>Cash value</th><th>Realized P/L</th></tr></thead>
-                <tbody>{dashboard.trades.map((trade) => (
-                  <tr key={trade.id}>
-                    <td><span className={`private-life-trade-side ${trade.side}`}>{trade.side}</span><small>Game day {trade.game_absolute_day}</small></td>
-                    <td><strong>{trade.symbol}</strong><span>{trade.name}</span></td>
-                    <td>{quantity(Number(trade.quantity), trade.asset_type)}</td>
-                    <td>{marketPrice(Number(trade.unit_price), currency)}</td>
-                    <td>{money(trade.gross_amount, currency)}</td>
-                    <td>{trade.side === 'sell' ? <strong className={trade.realized_pnl >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{signedMoney(trade.realized_pnl, currency)}</strong> : <span>—</span>}</td>
-                  </tr>
-                ))}</tbody>
-              </table>
-            </div>
+          {dashboard.trades.length === 0 ? <div className="private-life-empty"><strong>No investment trades yet</strong><p>Your completed buys and sells will appear here.</p></div> : (
+            <div className="private-life-investment-table-wrap"><table className="private-life-investment-table history"><thead><tr><th>Trade</th><th>Asset</th><th>Quantity</th><th>Unit price</th><th>Cash value</th><th>Realized P/L</th></tr></thead><tbody>{dashboard.trades.map((trade) => <tr key={trade.id}><td><span className={`private-life-trade-side ${trade.side}`}>{trade.side}</span><small>Game day {trade.game_absolute_day}</small></td><td><strong>{trade.symbol}</strong><span>{trade.name}</span></td><td>{quantity(Number(trade.quantity), trade.asset_type)}</td><td>{marketPrice(Number(trade.unit_price), currency)}</td><td>{money(trade.gross_amount, currency)}</td><td>{trade.side === 'sell' ? <strong className={trade.realized_pnl >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{signedMoney(trade.realized_pnl, currency)}</strong> : <span>—</span>}</td></tr>)}</tbody></table></div>
           )}
         </div>
       ) : null}
 
-      <div className="private-life-investment-disclaimer">Market data is used only as a reference for this game simulation. Stock quotes can be delayed; crypto quotes are external reference prices. Tennis Legacy never buys real securities or cryptocurrency on your behalf.</div>
+      <div className="private-life-investment-disclaimer">Market data is used only as a reference for this game simulation. Stock quotes can be delayed and only change when the real underlying market trades; crypto quotes are external reference prices. Tennis Legacy never buys real securities or cryptocurrency on your behalf.</div>
 
-      <GameConfirmDialog
-        open={Boolean(pendingConfirmation)}
-        eyebrow="Simulated investment trade"
-        title={pendingConfirmation?.title ?? ''}
-        message={pendingConfirmation?.message ?? ''}
-        detail={pendingConfirmation?.detail}
-        confirmLabel={pendingConfirmation?.confirmLabel}
-        cancelLabel="Cancel"
-        busy={tradeBusy}
-        tone="warning"
-        onConfirm={confirmTrade}
-        onCancel={() => { if (!tradeBusy) setPendingTrade(null) }}
-      />
+      <GameConfirmDialog open={Boolean(pendingConfirmation)} eyebrow="Simulated investment trade" title={pendingConfirmation?.title ?? ''} message={pendingConfirmation?.message ?? ''} detail={pendingConfirmation?.detail} confirmLabel={pendingConfirmation?.confirmLabel} cancelLabel="Cancel" busy={tradeBusy} tone="warning" onConfirm={confirmTrade} onCancel={() => { if (!tradeBusy) setPendingTrade(null) }} />
     </section>
   )
 }
