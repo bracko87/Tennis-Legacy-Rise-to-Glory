@@ -98,6 +98,7 @@ const QUALIFICATION_MATCH_HEIGHT = 68
 const QUALIFICATION_COLUMN_GAP = 72
 const QUALIFICATION_FIRST_ROUND_GAP = 12
 const QUALIFICATION_STEP = QUALIFICATION_MATCH_HEIGHT + QUALIFICATION_FIRST_ROUND_GAP
+const OPEN_TOURNAMENT_MATCH_EVENT = 'tlg-open-tournament-match'
 
 function formatMoment(moment?: GameMoment | null) {
   if (!moment) return 'TBD'
@@ -144,6 +145,10 @@ function qualificationMatchCenter(roundIndex: number, matchIndex: number) {
   return QUALIFICATION_MATCH_HEIGHT / 2 + representedFirstMatchCenter * QUALIFICATION_STEP
 }
 
+function openTournamentMatch(matchId: string) {
+  window.dispatchEvent(new CustomEvent(OPEN_TOURNAMENT_MATCH_EVENT, { detail: { matchId } }))
+}
+
 function QualificationPlayer({
   match,
   side,
@@ -180,6 +185,7 @@ function QualificationPlayer({
         className="player-name"
         to={`/game/players/${playerId}`}
         state={{ playerProfileReturn: returnPath, playerProfileReturnLabel: `Back to ${tournamentName}` }}
+        onClick={(event) => event.stopPropagation()}
       >
         {name}
       </Link>
@@ -252,8 +258,18 @@ function QualificationBracketTree({
                 return (
                   <div
                     key={match.match_id}
-                    className={`tlg-detail-bracket-match tlg-live-tree-match tlg-qualification-tree-match status-${match.match_status}`}
+                    className={`tlg-detail-bracket-match tlg-live-tree-match tlg-qualification-tree-match clickable status-${match.match_status}`}
                     style={{ top, width: QUALIFICATION_MATCH_WIDTH, height: QUALIFICATION_MATCH_HEIGHT }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Open ${match.round_label} match ${match.match_number}`}
+                    onClick={() => openTournamentMatch(match.match_id)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        openTournamentMatch(match.match_id)
+                      }
+                    }}
                   >
                     <QualificationPlayer match={match} side={1} returnPath={returnPath} tournamentName={tournamentName} />
                     <QualificationPlayer match={match} side={2} returnPath={returnPath} tournamentName={tournamentName} />
