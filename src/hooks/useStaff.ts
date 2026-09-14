@@ -210,7 +210,9 @@ export interface StaffMarketFilters {
 
 export interface StaffNegotiationQuote {
   available: boolean
+  pending_confirmation?: boolean
   reason?: string
+  negotiation_id?: string
   staff_id?: string
   quality_tier?: StaffQuality
   overall_rating?: number
@@ -223,6 +225,8 @@ export interface StaffNegotiationQuote {
   offered_weekly_salary?: number
   minimum_next_multiplier?: number
   signing_fee?: number
+  salary_total?: number
+  total_commitment?: number
   acceptance_chance?: number
   chance_label?: string
   hard_refusal?: boolean
@@ -232,8 +236,11 @@ export interface StaffNegotiationQuote {
 }
 
 export interface StaffNegotiationResult {
-  status: 'accepted' | 'rejected'
+  status: 'accepted_pending_confirmation' | 'rejected'
   accepted: boolean
+  pending_confirmation?: boolean
+  negotiation_id?: string
+  offer_id?: string
   staff_id: string
   round_number: number
   acceptance_chance: number
@@ -242,10 +249,34 @@ export interface StaffNegotiationResult {
   salary_multiplier: number
   signing_fee?: number
   duration_weeks?: 13 | 26 | 52
-  contract_id?: string
+  salary_total?: number
+  total_commitment?: number
   remaining_rounds?: number
   minimum_next_multiplier?: number | null
   cooldown_until_absolute_day?: number | null
+}
+
+export interface StaffHireConfirmationResult {
+  status: 'confirmed' | 'already_confirmed'
+  contract_id: string
+  staff_id?: string
+  weekly_salary?: number
+  signing_fee?: number
+  duration_weeks?: 13 | 26 | 52
+  salary_total?: number
+  total_commitment?: number
+}
+
+export interface StaffTerminationQuote {
+  contract_id: string
+  staff_id: string
+  staff_name: string
+  weekly_salary: number
+  remaining_weeks: number
+  remaining_salary: number
+  termination_rate: number
+  termination_fee: number
+  balance: number | null
 }
 
 export function contractWeeklySalary(base: number, duration: 13 | 26 | 52) {
@@ -334,11 +365,33 @@ export function useStaff() {
       setSaving(false)
       return null
     }
-    const result = data as StaffNegotiationResult
-    if (result.accepted) await refreshDashboard()
     setSaving(false)
-    return result
+    return data as StaffNegotiationResult
+  }, [])
+
+  const confirmStaffOffer = useCallback(async (negotiationId: string) => {
+    setSaving(true)
+    setError(null)
+    const { data, error: rpcError } = await supabase.rpc('confirm_staff_offer_v1', {
+      p_negotiation_id: negotiationId,
+    })
+    if (rpcError) {
+      setError(rpcError.message)
+      setSaving(false)
+      return null
+    }
+    await refreshDashboard()
+    setSaving(false)
+    return data as StaffHireConfirmationResult
   }, [refreshDashboard])
+
+  const quoteStaffTermination = useCallback(async (contractId: string) => {
+    const { data, error: rpcError } = await supabase.rpc('quote_staff_termination_v1', {
+      p_contract_id: contractId,
+    })
+    if (rpcError) return { quote: null, error: rpcError.message }
+    return { quote: data as StaffTerminationQuote, error: null }
+  }, [])
 
   const terminateContract = useCallback(async (contractId: string) => {
     setSaving(true)
@@ -372,6 +425,8 @@ export function useStaff() {
     loadMarket,
     quoteNegotiation,
     negotiateStaff,
+    confirmStaffOffer,
+    quoteStaffTermination,
     terminateContract,
   }
 }
