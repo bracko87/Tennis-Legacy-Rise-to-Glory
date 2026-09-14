@@ -2,10 +2,14 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
-.tlg-staff-profile-name-line {
+.tlg-staff-profile-name-line,
+.tlg-staff-card-name-line {
   display: flex;
   align-items: center;
   gap: 7px;
+}
+
+.tlg-staff-profile-name-line {
   margin-top: 4px;
 }
 
@@ -13,10 +17,16 @@
   margin: 0;
 }
 
-.tlg-staff-profile-name-line b {
-  color: #60788b;
-  font-size: .58rem;
-  font-weight: 750;
+.tlg-staff-identity-inline-flag {
+  align-items: flex-start;
+}
+
+.tlg-staff-identity-inline-flag > div {
+  min-width: 0;
+}
+
+.tlg-staff-card-name-line strong {
+  min-width: 0;
 }
 
 .tlg-staff-profile-section > header,
