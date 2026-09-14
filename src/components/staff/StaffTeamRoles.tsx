@@ -8,7 +8,6 @@ import {
   CircleHelp,
   GraduationCap,
   Info,
-  UserRound,
   X,
 } from 'lucide-react'
 
@@ -125,7 +124,7 @@ function StaffProfileDialog({
             </section>
 
             <section className="tlg-staff-profile-section">
-              <header><BriefcaseBusiness size={17} /><div><span>ACTIVE CAREER EFFECTS</span><h3>What this staff member changes</h3></div></header>
+              <header><BriefcaseBusiness size={17} /><div><span>PLAYER BONUSES</span><h3>Bonuses this staff member provides to your player</h3></div></header>
               <EffectRows effects={profile.current_effects} />
               <div className="tlg-staff-profile-rule-note"><Info size={15} /><span>{profile.role.stacking_rule}</span></div>
             </section>
@@ -250,10 +249,6 @@ export default function StaffTeamRoles({
                     <div><strong>{contract.staff.first_name} {contract.staff.last_name}</strong><span>{contract.staff.country_code} · {contract.staff.specialty}</span></div>
                   </div>
                   <div className="tlg-staff-role-meta"><span>{contract.staff.quality_label}</span><span>{contract.staff.specialty}</span></div>
-
-                  <EffectRows effects={role.current_effects} />
-
-                  <div className="tlg-staff-role-cap"><span>FACILITY LIMIT</span><strong>No cap currently</strong><small>Potential bonus = currently applied bonus.</small></div>
                   <div className={`tlg-staff-contract-line ${contract.weeks_remaining <= 4 ? 'warning' : ''}`}><span>${contract.weekly_salary.toLocaleString()} / week</span><strong>{contract.weeks_remaining} weeks remaining</strong></div>
                   <div className="tlg-staff-role-actions">
                     <button type="button" className="secondary" onClick={() => void openProfile(contract.staff.id)}>View full profile</button>
@@ -264,11 +259,6 @@ export default function StaffTeamRoles({
                 <div className="tlg-staff-empty-role tlg-staff-empty-role-v2">
                   <strong>No {role.label.toLowerCase()} assigned</strong>
                   <p>{role.vacancy_behavior}</p>
-                  <div className="tlg-staff-vacant-effects">
-                    <span>MISSING MAXIMUM BENEFITS</span>
-                    {role.effects.map((effect) => <div key={effect.key}><strong>{effect.label}</strong><b>{effect.maximum}</b></div>)}
-                  </div>
-                  <div className="tlg-staff-role-cap"><span>FACILITY LIMIT</span><strong>No cap currently</strong><small>{role.facility_limit_note}</small></div>
                   <button type="button" onClick={() => onHire(role.role)}>Hire {role.label}</button>
                 </div>
               )}
