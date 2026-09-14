@@ -9,8 +9,8 @@
  * guide line automatically.
  *
  * Target framing:
- * - about 20% less zoom than the previous version
- * - head dominant, with a little neck / shoulder visible
+ * - 15% less zoom than the previous normalized version
+ * - head dominant, with a little more neck / shoulder visible
  * - both sides use identical crop and scale
  * - top of subject is normalized so eyes / nose / mouth stay on approximately
  *   the same horizontal lines for present and future portraits
@@ -18,7 +18,7 @@
 
 .tlg-match-player-card-polished {
   --match-card-bg: #fff !important;
-  --match-portrait-zoom: 0.9;
+  --match-portrait-zoom: 0.765;
   background: #fff !important;
 }
 
