@@ -1,3 +1,11 @@
+.tlg-marketing-page.tlg-beta-page-blurred {
+  filter: blur(22px) brightness(.38);
+  transform: scale(1.025);
+  transform-origin: center top;
+  pointer-events: none;
+  user-select: none;
+}
+
 .tlg-beta-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -5,9 +13,7 @@
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(3, 12, 23, .62);
-  -webkit-backdrop-filter: blur(24px) saturate(.72);
-  backdrop-filter: blur(24px) saturate(.72);
+  background: rgba(3, 12, 23, .78);
 }
 
 .tlg-beta-modal {
