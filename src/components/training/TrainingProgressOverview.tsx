@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import type { TrainingDashboard } from '../../hooks/useTraining'
+import '../../styles/training-staff-impact.css'
 
 const TECHNICAL_SKILLS = [
   ['serve', 'Serve'], ['forehand', 'Forehand'], ['backhand', 'Backhand'], ['return_skill', 'Return'],
@@ -15,9 +16,30 @@ function clamp(value: number) {
   return Math.max(0, Math.min(100, value))
 }
 
+function multiplierPercent(value: number) {
+  return Math.max(0, (Number(value || 1) - 1) * 100)
+}
+
+function signedPositive(value: number) {
+  return `+${value.toFixed(1)}%`
+}
+
+function signedReduction(value: number) {
+  return `-${(Math.max(0, Number(value || 0)) * 100).toFixed(1)}%`
+}
+
 export default function TrainingProgressOverview({ dashboard }: { dashboard: TrainingDashboard }) {
   const [mode, setMode] = useState<'technical' | 'physical'>('technical')
   const skills = mode === 'technical' ? TECHNICAL_SKILLS : PHYSICAL_SKILLS
+  const staff = dashboard.staff_effects
+  const staffRows = [
+    { label: 'Technical training', value: multiplierPercent(staff.technical_training_multiplier), display: signedPositive(multiplierPercent(staff.technical_training_multiplier)), note: 'Every planned technical session' },
+    { label: 'Physical training', value: multiplierPercent(staff.physical_training_multiplier), display: signedPositive(multiplierPercent(staff.physical_training_multiplier)), note: 'Every planned physical session' },
+    { label: 'Training fatigue gain', value: Math.max(0, Number(staff.training_fatigue_reduction || 0) * 100), display: signedReduction(staff.training_fatigue_reduction), note: 'Every planned training session' },
+    { label: 'Tennis-skill camps', value: multiplierPercent(staff.technical_camp_multiplier), display: signedPositive(multiplierPercent(staff.technical_camp_multiplier)), note: 'When the Head Coach travels with the camp' },
+    { label: 'Physical camps', value: multiplierPercent(staff.physical_camp_multiplier), display: signedPositive(multiplierPercent(staff.physical_camp_multiplier)), note: 'When the Fitness Coach travels with the camp' },
+    { label: 'Day Off recovery', value: multiplierPercent(staff.recovery_multiplier), display: signedPositive(multiplierPercent(staff.recovery_multiplier)), note: 'Player-selected Day Off' },
+  ].filter((row) => row.value > 0.001)
 
   return (
     <section className="tlg-training-progress-overview">
@@ -48,6 +70,26 @@ export default function TrainingProgressOverview({ dashboard }: { dashboard: Tra
             </div>
           )
         })}
+      </div>
+
+      <div className="tlg-training-staff-impact">
+        <header>
+          <div><span>ACTIVE STAFF IMPACT</span><strong>Applied automatically by the training engine</strong></div>
+          <b>ENGINE LIVE</b>
+        </header>
+        {staffRows.length > 0 ? (
+          <div className="tlg-training-staff-impact-list">
+            {staffRows.map((row) => (
+              <div key={row.label}>
+                <span><strong>{row.label}</strong><small>{row.note}</small></span>
+                <b>{row.display}</b>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="tlg-training-staff-impact-empty">No active staff member currently provides a training modifier.</p>
+        )}
+        <p className="tlg-training-staff-impact-note">Regular-training bonuses are applied automatically. Camp bonuses apply only when the relevant staff member is selected to travel with that camp. New processed sessions also store the exact staff-effect snapshot used by the engine.</p>
       </div>
 
       <footer>
