@@ -1,0 +1,96 @@
+.tlg-training-staff-impact {
+  display: grid;
+  gap: 10px;
+  margin: 14px;
+  padding: 12px;
+  border: 1px solid #cfe7d9;
+  border-radius: 10px;
+  background: #f7fcf9;
+}
+
+.tlg-training-staff-impact > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tlg-training-staff-impact > header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.tlg-training-staff-impact > header span {
+  color: #16815b;
+  font-size: .55rem;
+  font-weight: 850;
+  letter-spacing: .08em;
+}
+
+.tlg-training-staff-impact > header strong {
+  color: #264a3c;
+  font-size: .65rem;
+}
+
+.tlg-training-staff-impact > header > b {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border: 1px solid #b9dfca;
+  border-radius: 999px;
+  background: #eaf8f0;
+  color: #16815b;
+  font-size: .5rem;
+  letter-spacing: .06em;
+}
+
+.tlg-training-staff-impact-list {
+  display: grid;
+  gap: 6px;
+}
+
+.tlg-training-staff-impact-list > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 9px;
+  border: 1px solid #ddebe3;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.tlg-training-staff-impact-list > div > span {
+  display: grid;
+  gap: 2px;
+}
+
+.tlg-training-staff-impact-list strong {
+  color: #315448;
+  font-size: .61rem;
+}
+
+.tlg-training-staff-impact-list small {
+  color: #758b82;
+  font-size: .52rem;
+  line-height: 1.35;
+}
+
+.tlg-training-staff-impact-list b {
+  color: #16815b;
+  font-size: .72rem;
+  white-space: nowrap;
+}
+
+.tlg-training-staff-impact-note,
+.tlg-training-staff-impact-empty {
+  margin: 0;
+  color: #5f786e;
+  font-size: .56rem;
+  line-height: 1.5;
+}
+
+.tlg-training-staff-impact-empty {
+  padding: 9px;
+  border-radius: 8px;
+  background: #fff;
+}
