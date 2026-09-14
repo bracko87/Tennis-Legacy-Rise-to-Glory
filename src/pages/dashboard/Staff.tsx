@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import CountryFlag from '../../components/common/CountryFlag'
+import GameConfirmDialog from '../../components/common/GameConfirmDialog'
 import GameLayout from '../../components/layout/GameLayout'
 import StaffTeamRoles from '../../components/staff/StaffTeamRoles'
 import {
@@ -10,9 +11,11 @@ import {
   type StaffNegotiationQuote,
   type StaffQuality,
   type StaffRole,
+  type StaffTerminationQuote,
   useStaff,
 } from '../../hooks/useStaff'
 import '../../styles/staff.css'
+import '../../styles/staff-interactions.css'
 
 const ROLES: Array<{ role: StaffRole; label: string; description: string }> = [
   { role: 'head_coach', label: 'Head Coach', description: 'Technical development, tactics and match preparation.' },
@@ -41,6 +44,17 @@ const ATTRIBUTE_LABELS: Record<string, string> = {
   negotiation: 'Negotiation', sponsorship_network: 'Sponsorship Network', commercial_reputation: 'Commercial Reputation', career_management: 'Career Management',
 }
 
+interface PendingStaffContract {
+  negotiation_id: string
+  staff_id: string
+  staff_name: string
+  duration_weeks: 13 | 26 | 52
+  weekly_salary: number
+  signing_fee: number
+  salary_total: number
+  total_commitment: number
+}
+
 function StaffIdentity({ staff }: { staff: StaffCandidate }) {
   return (
     <div className="tlg-staff-identity">
@@ -63,16 +77,33 @@ function AttributeGrid({ staff }: { staff: StaffCandidate }) {
   )
 }
 
+function pendingContractFromQuote(selected: StaffCandidate, quote: StaffNegotiationQuote): PendingStaffContract | null {
+  if (!quote.pending_confirmation || !quote.negotiation_id || !quote.duration_weeks || !quote.offered_weekly_salary) return null
+  const signingFee = quote.signing_fee ?? selected.signing_fee
+  const salaryTotal = quote.salary_total ?? quote.offered_weekly_salary * quote.duration_weeks
+  return {
+    negotiation_id: quote.negotiation_id,
+    staff_id: selected.id,
+    staff_name: `${selected.first_name} ${selected.last_name}`,
+    duration_weeks: quote.duration_weeks,
+    weekly_salary: quote.offered_weekly_salary,
+    signing_fee: signingFee,
+    salary_total: salaryTotal,
+    total_commitment: quote.total_commitment ?? signingFee + salaryTotal,
+  }
+}
+
 export default function StaffPage() {
   const {
     dashboard, market, loading, marketLoading, saving, error,
-    loadStaffProfile, loadMarket, quoteNegotiation, negotiateStaff, terminateContract,
+    loadStaffProfile, loadMarket, quoteNegotiation, negotiateStaff, confirmStaffOffer,
+    quoteStaffTermination, terminateContract,
   } = useStaff()
   const [view, setView] = useState<'team' | 'market'>('team')
   const [role, setRole] = useState<StaffRole | ''>('')
   const [quality, setQuality] = useState<StaffQuality | ''>('')
   const [country, setCountry] = useState('')
-  const [maxSalary, setMaxSalary] = useState(15000)
+  const [maxSalary, setMaxSalary] = useState(4000)
   const [page, setPage] = useState(0)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [duration, setDuration] = useState<13 | 26 | 52>(26)
@@ -81,6 +112,12 @@ export default function StaffPage() {
   const [quoteLoading, setQuoteLoading] = useState(false)
   const [quoteError, setQuoteError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+  const [offerNotice, setOfferNotice] = useState<{ tone: 'error' | 'success'; text: string } | null>(null)
+  const [pendingContract, setPendingContract] = useState<PendingStaffContract | null>(null)
+  const [hireConfirmOpen, setHireConfirmOpen] = useState(false)
+  const [terminationTarget, setTerminationTarget] = useState<StaffContract | null>(null)
+  const [terminationQuote, setTerminationQuote] = useState<StaffTerminationQuote | null>(null)
+  const [terminationLoading, setTerminationLoading] = useState(false)
 
   useEffect(() => {
     if (view !== 'market') return
@@ -97,6 +134,9 @@ export default function StaffPage() {
     setSalaryMultiplier(1)
     setNegotiationQuote(null)
     setQuoteError(null)
+    setOfferNotice(null)
+    setPendingContract(null)
+    setHireConfirmOpen(false)
   }, [selectedId])
 
   const selected = market.items.find((item) => item.id === selectedId) ?? market.items[0] ?? null
@@ -118,7 +158,11 @@ export default function StaffPage() {
           setQuoteError(nextError)
           return
         }
-        if (quote?.available && quote.minimum_next_multiplier && salaryMultiplier < quote.minimum_next_multiplier) {
+        if (quote?.pending_confirmation) {
+          const pending = pendingContractFromQuote(selected, quote)
+          if (pending) setPendingContract(pending)
+          if (quote.duration_weeks && quote.duration_weeks !== duration) setDuration(quote.duration_weeks)
+        } else if (quote?.available && quote.minimum_next_multiplier && salaryMultiplier < quote.minimum_next_multiplier) {
           setSalaryMultiplier(quote.minimum_next_multiplier)
           return
         }
@@ -134,46 +178,115 @@ export default function StaffPage() {
     const { quote, error: nextError } = await quoteNegotiation(selected.id, duration, multiplier)
     setNegotiationQuote(quote)
     setQuoteError(nextError)
+    if (quote?.pending_confirmation) {
+      const pending = pendingContractFromQuote(selected, quote)
+      if (pending) setPendingContract(pending)
+    }
     setQuoteLoading(false)
   }
 
   async function handleOffer() {
-    if (!selected || !negotiationQuote?.available) return
-    setMessage(null)
-    const result = await negotiateStaff(selected.id, duration, salaryMultiplier)
-    if (!result) return
-    if (result.accepted) {
-      setMessage(`${selected.first_name} ${selected.last_name} accepted your offer and joined your team.`)
-      await loadMarket({ role, qualityTier: quality, countryCode: country, maxWeeklySalary: maxSalary, offset: page * 25, limit: 25 })
-      setView('team')
+    if (!selected) return
+    if (pendingContract || negotiationQuote?.pending_confirmation) {
+      const pending = pendingContract ?? (negotiationQuote ? pendingContractFromQuote(selected, negotiationQuote) : null)
+      if (pending) {
+        setPendingContract(pending)
+        setHireConfirmOpen(true)
+      }
       return
     }
+    if (!negotiationQuote?.available) return
+
+    setMessage(null)
+    setOfferNotice(null)
+    const result = await negotiateStaff(selected.id, duration, salaryMultiplier)
+    if (!result) return
+
+    if (result.accepted && result.negotiation_id && result.duration_weeks && result.offered_weekly_salary) {
+      const signingFee = result.signing_fee ?? selected.signing_fee
+      const salaryTotal = result.salary_total ?? result.offered_weekly_salary * result.duration_weeks
+      setPendingContract({
+        negotiation_id: result.negotiation_id,
+        staff_id: selected.id,
+        staff_name: `${selected.first_name} ${selected.last_name}`,
+        duration_weeks: result.duration_weeks,
+        weekly_salary: result.offered_weekly_salary,
+        signing_fee: signingFee,
+        salary_total: salaryTotal,
+        total_commitment: result.total_commitment ?? signingFee + salaryTotal,
+      })
+      setOfferNotice({ tone: 'success', text: `${selected.first_name} accepted the offer. Review the contract before the hire becomes official.` })
+      setHireConfirmOpen(true)
+      await refreshNegotiationQuote(salaryMultiplier)
+      return
+    }
+
     if (result.remaining_rounds && result.remaining_rounds > 0) {
       const nextMultiplier = result.minimum_next_multiplier ?? Math.min(2, salaryMultiplier + .1)
       setSalaryMultiplier(nextMultiplier)
-      setMessage(`${selected.first_name} ${selected.last_name} rejected the offer. ${result.remaining_rounds} negotiation round${result.remaining_rounds === 1 ? '' : 's'} remain. Improve the salary offer to continue.`)
+      setOfferNotice({
+        tone: 'error',
+        text: `${selected.first_name} ${selected.last_name} rejected the offer. ${result.remaining_rounds} negotiation round${result.remaining_rounds === 1 ? '' : 's'} remain. Improve the salary offer and try again.`,
+      })
       await refreshNegotiationQuote(nextMultiplier)
     } else {
-      setMessage(`${selected.first_name} ${selected.last_name} ended negotiations after three rejected offers. You can approach this staff member again after the 14-day cooldown.`)
+      setOfferNotice({
+        tone: 'error',
+        text: `${selected.first_name} ${selected.last_name} rejected the final offer. Negotiations are closed for 14 in-game days.`,
+      })
       await refreshNegotiationQuote(salaryMultiplier)
     }
   }
 
-  async function handleTerminate(contract: StaffContract) {
-    if (!window.confirm(`Terminate ${contract.staff.first_name} ${contract.staff.last_name}'s contract? An early-termination fee of up to four weekly salaries is recorded.`)) return
-    setMessage(null)
-    const result = await terminateContract(contract.contract_id)
-    if (result) setMessage(`${contract.staff.first_name} ${contract.staff.last_name}'s contract has been terminated.`)
+  async function handleConfirmHire() {
+    if (!pendingContract) return
+    const result = await confirmStaffOffer(pendingContract.negotiation_id)
+    if (!result) return
+    setHireConfirmOpen(false)
+    setOfferNotice(null)
+    setMessage(`${pendingContract.staff_name} has joined your team.`)
+    setPendingContract(null)
+    await loadMarket({ role, qualityTier: quality, countryCode: country, maxWeeklySalary: maxSalary, offset: page * 25, limit: 25 })
+    setView('team')
   }
 
+  async function handleTerminateRequest(contract: StaffContract) {
+    setMessage(null)
+    setTerminationTarget(contract)
+    setTerminationQuote(null)
+    setTerminationLoading(true)
+    const { quote, error: quoteError } = await quoteStaffTermination(contract.contract_id)
+    setTerminationLoading(false)
+    if (quoteError || !quote) {
+      setTerminationTarget(null)
+      setMessage(quoteError ?? 'Could not calculate the termination cost.')
+      return
+    }
+    setTerminationQuote(quote)
+  }
+
+  async function handleConfirmTermination() {
+    if (!terminationTarget || !terminationQuote) return
+    const staffName = `${terminationTarget.staff.first_name} ${terminationTarget.staff.last_name}`
+    const result = await terminateContract(terminationTarget.contract_id)
+    if (!result) return
+    setTerminationTarget(null)
+    setTerminationQuote(null)
+    setMessage(`${staffName}'s contract has been terminated.`)
+  }
+
+  const pendingConfirmation = Boolean(pendingContract || negotiationQuote?.pending_confirmation)
   const roleOccupied = selected ? dashboard?.contracts.some((contract) => contract.role === selected.role) ?? false : false
-  const financeBlocked = Boolean(selected && dashboard?.finance.is_live && dashboard.finance.balance !== null && dashboard.finance.balance < selected.signing_fee)
+  const effectiveSigningFee = pendingContract?.signing_fee ?? negotiationQuote?.signing_fee ?? selected?.signing_fee ?? 0
+  const financeBlocked = Boolean(selected && dashboard?.finance.is_live && dashboard.finance.balance !== null && dashboard.finance.balance < effectiveSigningFee)
   const baseContractSalary = selected ? contractWeeklySalary(selected.base_weekly_salary, duration) : 0
-  const weeklyOffer = negotiationQuote?.offered_weekly_salary ?? Math.round((baseContractSalary * salaryMultiplier) / 10) * 10
-  const contractTotal = selected ? selected.signing_fee + weeklyOffer * duration : 0
+  const weeklyOffer = pendingContract?.weekly_salary ?? negotiationQuote?.offered_weekly_salary ?? Math.round((baseContractSalary * salaryMultiplier) / 10) * 10
+  const effectiveDuration = pendingContract?.duration_weeks ?? negotiationQuote?.duration_weeks ?? duration
+  const salaryTotal = pendingContract?.salary_total ?? negotiationQuote?.salary_total ?? weeklyOffer * effectiveDuration
+  const contractTotal = pendingContract?.total_commitment ?? negotiationQuote?.total_commitment ?? effectiveSigningFee + salaryTotal
   const acceptanceChance = negotiationQuote?.acceptance_chance ?? 0
   const hardRefusal = Boolean(negotiationQuote?.hard_refusal)
-  const negotiationUnavailable = negotiationQuote ? !negotiationQuote.available : false
+  const negotiationUnavailable = negotiationQuote ? !negotiationQuote.available && !pendingConfirmation : false
   const sliderMin = Math.max(100, Math.round((negotiationQuote?.minimum_next_multiplier ?? 1) * 100))
 
   return (
@@ -210,10 +323,10 @@ export default function StaffPage() {
             {view === 'team' ? (
               <StaffTeamRoles
                 dashboard={dashboard}
-                saving={saving}
+                saving={saving || terminationLoading}
                 loadProfile={loadStaffProfile}
                 onHire={(nextRole) => { setRole(nextRole); setView('market') }}
-                onTerminate={handleTerminate}
+                onTerminate={(contract) => { void handleTerminateRequest(contract) }}
               />
             ) : (
               <>
@@ -221,7 +334,7 @@ export default function StaffPage() {
                   <label><span>Role</span><select value={role} onChange={(event) => setRole(event.target.value as StaffRole | '')}><option value="">All staff roles</option>{ROLES.map((item) => <option key={item.role} value={item.role}>{item.label}</option>)}</select></label>
                   <label><span>Quality</span><select value={quality} onChange={(event) => setQuality(event.target.value as StaffQuality | '')}>{QUALITY_OPTIONS.map((item) => <option key={item.value || 'all'} value={item.value}>{item.label}</option>)}</select></label>
                   <label><span>Country code</span><input value={country} maxLength={2} placeholder="All" onChange={(event) => setCountry(event.target.value.toUpperCase())} /></label>
-                  <label className="salary"><span>Max base salary: <strong>${maxSalary.toLocaleString()}</strong></span><input type="range" min="300" max="15000" step="100" value={maxSalary} onChange={(event) => setMaxSalary(Number(event.target.value))} /></label>
+                  <label className="salary"><span>Max base salary: <strong>${maxSalary.toLocaleString()}</strong></span><input type="range" min="100" max="4000" step="50" value={maxSalary} onChange={(event) => setMaxSalary(Number(event.target.value))} /></label>
                 </section>
 
                 <div className="tlg-staff-market-layout">
@@ -251,37 +364,39 @@ export default function StaffPage() {
                         </div>
                         <div className="tlg-staff-specialty"><span>SPECIALTY</span><strong>{selected.specialty}</strong></div>
                         <AttributeGrid staff={selected} />
-                        <div className="tlg-staff-eligibility"><div><span>YOUR WORLD RANK</span><strong>#{dashboard.rank_position}</strong></div><div><span>SIGNING FEE</span><strong>${selected.signing_fee.toLocaleString()}</strong></div></div>
+                        <div className="tlg-staff-eligibility"><div><span>YOUR WORLD RANK</span><strong>#{dashboard.rank_position}</strong></div><div><span>SIGNING FEE</span><strong>${effectiveSigningFee.toLocaleString()}</strong></div></div>
 
                         <section className="tlg-staff-contract-options">
                           <header><span>CONTRACT</span><h3>Choose contract length</h3></header>
-                          <div>{([13, 26, 52] as const).map((weeks) => { const salary = contractWeeklySalary(selected.base_weekly_salary, weeks); return <button type="button" key={weeks} className={duration === weeks ? 'selected' : ''} onClick={() => setDuration(weeks)}><strong>{weeks} weeks</strong><span>${salary.toLocaleString()} / week</span><small>{weeks === 13 ? 'Base rate' : weeks === 26 ? '7% weekly discount' : '14% weekly discount'}</small></button> })}</div>
+                          <div>{([13, 26, 52] as const).map((weeks) => { const salary = contractWeeklySalary(selected.base_weekly_salary, weeks); return <button type="button" key={weeks} disabled={pendingConfirmation} className={effectiveDuration === weeks ? 'selected' : ''} onClick={() => setDuration(weeks)}><strong>{weeks} weeks</strong><span>${salary.toLocaleString()} / week</span><small>{weeks === 13 ? 'Base rate' : weeks === 26 ? '7% weekly discount' : '14% weekly discount'}</small></button> })}</div>
                         </section>
 
                         <section className="tlg-staff-salary-offer">
-                          <header><div><span>SALARY OFFER</span><h3>Improve the proposal</h3></div><strong>{Math.round(salaryMultiplier * 100)}%</strong></header>
-                          <input type="range" min={sliderMin} max="200" step="5" value={Math.round(salaryMultiplier * 100)} onChange={(event) => setSalaryMultiplier(Number(event.target.value) / 100)} />
+                          <header><div><span>SALARY OFFER</span><h3>{pendingConfirmation ? 'Accepted terms' : 'Improve the proposal'}</h3></div><strong>{Math.round((pendingContract ? (pendingContract.weekly_salary / Math.max(1, contractWeeklySalary(selected.base_weekly_salary, pendingContract.duration_weeks))) : salaryMultiplier) * 100)}%</strong></header>
+                          <input type="range" min={sliderMin} max="200" step="5" disabled={pendingConfirmation} value={Math.round(salaryMultiplier * 100)} onChange={(event) => setSalaryMultiplier(Number(event.target.value) / 100)} />
                           <div className="scale"><span>{sliderMin}% minimum</span><span>200% maximum</span></div>
-                          <p>Higher salary increases willingness, but sporting reputation still matters. Money cannot persuade a World Class staff member to join a player outside the Top 500.</p>
+                          <p>{pendingConfirmation ? 'The staff member has accepted these terms. Review the final contract before confirming the hire.' : 'Higher salary increases willingness, but sporting reputation still matters. Money cannot persuade a World Class staff member to join a player outside the Top 500.'}</p>
                         </section>
 
                         <section className={`tlg-staff-chance ${hardRefusal ? 'refusal' : ''}`}>
                           <header>
-                            <div><span>ACCEPTANCE CHANCE</span><h3>{quoteLoading ? 'Calculating…' : negotiationQuote?.chance_label ?? 'Unavailable'}</h3></div>
-                            <strong>{quoteLoading ? '—' : `${acceptanceChance}%`}</strong>
+                            <div><span>ACCEPTANCE CHANCE</span><h3>{pendingConfirmation ? 'Accepted' : quoteLoading ? 'Calculating…' : negotiationQuote?.chance_label ?? 'Unavailable'}</h3></div>
+                            <strong>{pendingConfirmation ? '✓' : quoteLoading ? '—' : `${acceptanceChance}%`}</strong>
                           </header>
-                          <div className="chance-track"><i style={{ width: `${acceptanceChance}%` }} /></div>
+                          <div className="chance-track"><i style={{ width: `${pendingConfirmation ? 100 : acceptanceChance}%` }} /></div>
                           {negotiationQuote?.available && <p>{negotiationQuote.explanation} · Round {negotiationQuote.round_number ?? 1} of {negotiationQuote.max_rounds ?? 3}.</p>}
-                          {!negotiationQuote?.available && negotiationQuote?.reason && <p>{negotiationQuote.reason}{negotiationQuote.cooldown_days_remaining ? ` Try again in ${negotiationQuote.cooldown_days_remaining} in-game days.` : ''}</p>}
+                          {pendingConfirmation && <p>Your offer was accepted. The staff member is not hired until you confirm the final contract.</p>}
+                          {!negotiationQuote?.available && !pendingConfirmation && negotiationQuote?.reason && <p>{negotiationQuote.reason}{negotiationQuote.cooldown_days_remaining ? ` Try again in ${negotiationQuote.cooldown_days_remaining} in-game days.` : ''}</p>}
                           {quoteError && <p>{quoteError}</p>}
                         </section>
 
-                        <div className="tlg-staff-offer-total"><div><span>Negotiated weekly salary</span><strong>${weeklyOffer.toLocaleString()}</strong></div><div><span>Signing fee</span><strong>${selected.signing_fee.toLocaleString()}</strong></div><div><span>Full contract commitment</span><strong>${contractTotal.toLocaleString()}</strong></div></div>
+                        <div className="tlg-staff-offer-total"><div><span>Negotiated weekly salary</span><strong>${weeklyOffer.toLocaleString()}</strong></div><div><span>Full salary over {effectiveDuration} weeks</span><strong>${salaryTotal.toLocaleString()}</strong></div><div><span>Signing fee</span><strong>${effectiveSigningFee.toLocaleString()}</strong></div><div><span>Full contract commitment</span><strong>${contractTotal.toLocaleString()}</strong></div></div>
                         {roleOccupied && <div className="tlg-staff-blocked">You already employ a {selected.role_label.toLowerCase()}. End that contract before negotiating with a replacement.</div>}
                         {financeBlocked && <div className="tlg-staff-blocked">Your career balance cannot cover this signing fee.</div>}
                         {hardRefusal && <div className="tlg-staff-blocked">This staff member will not enter negotiations at your current sporting reputation, regardless of salary.</div>}
-                        <button type="button" className="tlg-staff-hire" disabled={saving || quoteLoading || roleOccupied || financeBlocked || hardRefusal || negotiationUnavailable || !negotiationQuote} onClick={handleOffer}>
-                          {saving ? 'Submitting offer…' : hardRefusal ? 'Staff will not negotiate' : `Make offer to ${selected.first_name} · ${duration} weeks`}
+                        {offerNotice && <div className={`tlg-staff-offer-notice ${offerNotice.tone}`}>{offerNotice.text}</div>}
+                        <button type="button" className="tlg-staff-hire" disabled={saving || quoteLoading || roleOccupied || financeBlocked || hardRefusal || negotiationUnavailable || !negotiationQuote} onClick={() => void handleOffer()}>
+                          {saving ? 'Processing…' : pendingConfirmation ? `Review accepted offer · ${effectiveDuration} weeks` : hardRefusal ? 'Staff will not negotiate' : `Make offer to ${selected.first_name} · ${duration} weeks`}
                         </button>
                       </>
                     ) : <div className="tlg-staff-loading">Select a candidate to see the full profile.</div>}
@@ -292,6 +407,50 @@ export default function StaffPage() {
           </>
         )}
       </div>
+
+      <GameConfirmDialog
+        open={hireConfirmOpen && Boolean(pendingContract)}
+        tone="success"
+        eyebrow="Offer accepted"
+        title={pendingContract ? `Confirm ${pendingContract.staff_name}'s contract` : 'Confirm staff contract'}
+        message="The staff member accepted your offer. Review the complete financial commitment before making the hire official."
+        detail={pendingContract ? (
+          <div className="tlg-game-confirm-summary">
+            <div><span>Signing fee</span><strong>${pendingContract.signing_fee.toLocaleString()}</strong></div>
+            <div><span>Weekly salary</span><strong>${pendingContract.weekly_salary.toLocaleString()}</strong></div>
+            <div><span>Contract length</span><strong>{pendingContract.duration_weeks} weeks</strong></div>
+            <div><span>Salary over full contract</span><strong>${pendingContract.salary_total.toLocaleString()}</strong></div>
+            <div className="total"><span>Total contract commitment</span><strong>${pendingContract.total_commitment.toLocaleString()}</strong></div>
+          </div>
+        ) : undefined}
+        confirmLabel="Confirm contract"
+        cancelLabel="Not now"
+        busy={saving}
+        onCancel={() => setHireConfirmOpen(false)}
+        onConfirm={handleConfirmHire}
+      />
+
+      <GameConfirmDialog
+        open={Boolean(terminationTarget && terminationQuote)}
+        tone="danger"
+        eyebrow="End staff contract"
+        title={terminationQuote ? `Terminate ${terminationQuote.staff_name}?` : 'Terminate contract?'}
+        message="Ending a staff contract early requires a settlement equal to 65% of the unpaid salary still remaining on the contract."
+        detail={terminationQuote ? (
+          <div className="tlg-game-confirm-summary">
+            <div><span>Weekly salary</span><strong>${terminationQuote.weekly_salary.toLocaleString()}</strong></div>
+            <div><span>Unpaid weeks remaining</span><strong>{terminationQuote.remaining_weeks}</strong></div>
+            <div><span>Remaining salary value</span><strong>${terminationQuote.remaining_salary.toLocaleString()}</strong></div>
+            <div><span>Termination settlement rate</span><strong>{terminationQuote.termination_rate}%</strong></div>
+            <div className="danger total"><span>Termination fee charged now</span><strong>${terminationQuote.termination_fee.toLocaleString()}</strong></div>
+          </div>
+        ) : undefined}
+        confirmLabel="Terminate contract"
+        cancelLabel="Keep staff member"
+        busy={saving}
+        onCancel={() => { setTerminationTarget(null); setTerminationQuote(null) }}
+        onConfirm={handleConfirmTermination}
+      />
     </GameLayout>
   )
 }
