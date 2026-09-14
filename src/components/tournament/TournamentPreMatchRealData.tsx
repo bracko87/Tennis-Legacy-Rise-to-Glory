@@ -63,16 +63,6 @@ interface RoundKey {
   round_label: string
 }
 
-interface PortraitMeasurement {
-  topRatio: number
-  naturalWidth: number
-  naturalHeight: number
-}
-
-const MATCH_PORTRAIT_ZOOM = 0.9
-const MATCH_PORTRAIT_TARGET_TOP_RATIO = 0.07
-const portraitMeasurementCache = new Map<string, Promise<PortraitMeasurement | null>>()
-
 function fullName(first: string | null, last: string | null) {
   return `${first ?? ''} ${last ?? ''}`.trim() || 'Player'
 }
@@ -165,124 +155,6 @@ function parseModalMatch(modal: HTMLElement, matches: DrawMatch[]) {
   return matches.find((match) => match.round_label === roundLabel && match.match_number === matchNumber) ?? null
 }
 
-function measurePortraitSubjectTop(src: string) {
-  const cached = portraitMeasurementCache.get(src)
-  if (cached) return cached
-
-  const measurement = new Promise<PortraitMeasurement | null>((resolve) => {
-    const image = new Image()
-    image.crossOrigin = 'anonymous'
-    image.decoding = 'async'
-
-    image.onload = () => {
-      const naturalWidth = image.naturalWidth
-      const naturalHeight = image.naturalHeight
-      if (!naturalWidth || !naturalHeight) {
-        resolve(null)
-        return
-      }
-
-      const sampleScale = Math.min(1, 360 / Math.max(naturalWidth, naturalHeight))
-      const width = Math.max(1, Math.round(naturalWidth * sampleScale))
-      const height = Math.max(1, Math.round(naturalHeight * sampleScale))
-      const canvas = document.createElement('canvas')
-      canvas.width = width
-      canvas.height = height
-      const context = canvas.getContext('2d', { willReadFrequently: true })
-      if (!context) {
-        resolve(null)
-        return
-      }
-
-      try {
-        context.drawImage(image, 0, 0, width, height)
-        const pixels = context.getImageData(0, 0, width, height).data
-        const horizontalStep = 2
-        const requiredPixels = Math.max(4, Math.round((width / horizontalStep) * 0.018))
-        let top = 0
-        let found = false
-
-        for (let y = 0; y < height && !found; y += 1) {
-          let subjectPixels = 0
-          for (let x = 0; x < width; x += horizontalStep) {
-            const index = (y * width + x) * 4
-            const alpha = pixels[index + 3]
-            if (alpha < 32) continue
-            const distanceFromWhite = (255 - pixels[index]) + (255 - pixels[index + 1]) + (255 - pixels[index + 2])
-            if (distanceFromWhite > 72) subjectPixels += 1
-            if (subjectPixels >= requiredPixels) {
-              top = y
-              found = true
-              break
-            }
-          }
-        }
-
-        resolve({
-          topRatio: found ? top / height : 0.08,
-          naturalWidth,
-          naturalHeight,
-        })
-      } catch {
-        resolve(null)
-      }
-    }
-
-    image.onerror = () => resolve(null)
-    image.src = src
-  })
-
-  portraitMeasurementCache.set(src, measurement)
-  return measurement
-}
-
-function applyPortraitAlignment(image: HTMLImageElement, measurement: PortraitMeasurement) {
-  const stage = image.closest<HTMLElement>('.tlg-match-player-portrait-stage.has-image')
-  if (!stage) return
-  const stageRect = stage.getBoundingClientRect()
-  if (!stageRect.width || !stageRect.height) return
-
-  const coverScale = Math.max(
-    stageRect.width / measurement.naturalWidth,
-    stageRect.height / measurement.naturalHeight,
-  )
-  const renderedHeight = measurement.naturalHeight * coverScale
-  const subjectTop = measurement.topRatio * renderedHeight * MATCH_PORTRAIT_ZOOM
-  const targetTop = stageRect.height * MATCH_PORTRAIT_TARGET_TOP_RATIO
-  const unclampedOffset = targetTop - subjectTop
-  const maxOffset = stageRect.height * 0.28
-  const offset = Math.max(-maxOffset, Math.min(maxOffset, unclampedOffset))
-
-  image.style.setProperty('--match-portrait-y-offset', `${offset.toFixed(2)}px`)
-}
-
-async function normalizeTournamentPortraits(modal: HTMLElement) {
-  const images = Array.from(modal.querySelectorAll<HTMLImageElement>('.tlg-match-player-portrait-stage.has-image img'))
-  await Promise.all(images.map(async (image) => {
-    const src = image.currentSrc || image.src
-    if (!src) return
-
-    let measurement: PortraitMeasurement | null = null
-    const cachedTop = Number.parseFloat(image.dataset.tlgPortraitTopRatio ?? '')
-    const cachedWidth = Number.parseFloat(image.dataset.tlgPortraitNaturalWidth ?? '')
-    const cachedHeight = Number.parseFloat(image.dataset.tlgPortraitNaturalHeight ?? '')
-    if (image.dataset.tlgPortraitSource === src && Number.isFinite(cachedTop) && Number.isFinite(cachedWidth) && Number.isFinite(cachedHeight)) {
-      measurement = { topRatio: cachedTop, naturalWidth: cachedWidth, naturalHeight: cachedHeight }
-    } else {
-      measurement = await measurePortraitSubjectTop(src)
-      if (measurement) {
-        image.dataset.tlgPortraitSource = src
-        image.dataset.tlgPortraitTopRatio = String(measurement.topRatio)
-        image.dataset.tlgPortraitNaturalWidth = String(measurement.naturalWidth)
-        image.dataset.tlgPortraitNaturalHeight = String(measurement.naturalHeight)
-      }
-    }
-
-    if (measurement) applyPortraitAlignment(image, measurement)
-    else image.style.removeProperty('--match-portrait-y-offset')
-  }))
-}
-
 export default function TournamentPreMatchRealData() {
   const { competitionId } = useParams()
   const [matches, setMatches] = useState<DrawMatch[]>([])
@@ -325,8 +197,6 @@ export default function TournamentPreMatchRealData() {
         return
       }
 
-      void normalizeTournamentPortraits(modal)
-
       const nextSelected = parseModalMatch(modal, matches)
       if (!nextSelected) return
 
@@ -344,17 +214,14 @@ export default function TournamentPreMatchRealData() {
       setSelected((value) => value?.match_id === nextSelected.match_id ? value : nextSelected)
     }
 
-    const handleResize = () => locate()
     frame = window.requestAnimationFrame(locate)
     const observer = new MutationObserver(locate)
     observer.observe(document.body, { childList: true, subtree: true })
-    window.addEventListener('resize', handleResize)
 
     return () => {
       disposed = true
       window.cancelAnimationFrame(frame)
       observer.disconnect()
-      window.removeEventListener('resize', handleResize)
       currentOriginal?.classList.remove('tlg-prematch-insights-replaced')
       currentHost?.remove()
       setHost(null)
