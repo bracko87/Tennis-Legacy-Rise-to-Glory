@@ -27,6 +27,7 @@ import './styles/tournament-match-modal-expanded.css'
 import './styles/tournament-match-side-mirror.css'
 import './styles/tournament-match-avatar-normalization.css'
 import './styles/tournament-status.css'
+import './styles/login-input-visibility.css'
 /* Keep typography last so page-specific styles cannot reintroduce another font. */
 import './styles/font-standard.css'
 import App from './App'
