@@ -1,4 +1,4 @@
-import { ExternalLink, FlaskConical, MessageCircle, X } from 'lucide-react'
+import { ExternalLink, MessageCircle, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router'
 
@@ -90,10 +90,6 @@ export default function BetaDisclaimer() {
         >
           <X size={19} />
         </button>
-
-        <div className="tlg-beta-modal-icon" aria-hidden="true">
-          <FlaskConical size={25} />
-        </div>
 
         <span className="tlg-beta-modal-eyebrow">Early beta testing</span>
         <h2 id="tlg-beta-modal-title">Tennis Legacy is still under active development</h2>
