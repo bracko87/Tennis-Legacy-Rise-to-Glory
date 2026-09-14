@@ -1,4 +1,4 @@
-import { ArrowLeft, Mail, UserRound } from 'lucide-react'
+import { ArrowLeft, ChevronDown, ChevronUp, Mail, UserRound } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 
@@ -146,6 +146,15 @@ function TournamentRows({ items, emptyText, showResult = false, ranked = false }
 }
 
 function PrivateLifeProfileCard({ summary, loading }: { summary: PrivateLifeSummary; loading: boolean }) {
+  const [expanded, setExpanded] = useState(false)
+
+  useEffect(() => {
+    setExpanded(false)
+  }, [summary.player_id])
+
+  const visiblePossessions = expanded ? summary.possessions : summary.possessions.slice(0, 3)
+  const canExpand = summary.possessions.length > 3
+
   return (
     <section className="tlg-player-private-life-card">
       <header>
@@ -159,15 +168,23 @@ function PrivateLifeProfileCard({ summary, loading }: { summary: PrivateLifeSumm
             <div><span>Physical asset value</span><strong>{money(Number(summary.asset_value || 0))}</strong></div>
           </div>
           {summary.possessions.length ? (
-            <div className="tlg-player-private-life-list">
-              {summary.possessions.map((item) => (
-                <article className="tlg-player-private-life-item" key={item.id}>
-                  <span>{PRIVATE_LIFE_CATEGORY_LABELS[item.category] ?? item.category.replaceAll('_', ' ')}</span>
-                  <strong>{item.name}</strong>
-                  <small><span>{item.city ? `${item.city}${item.country_code ? `, ${item.country_code}` : ''}` : item.acquisition_type === 'starter_home' ? 'Starting residence' : 'Owned asset'}</span><b>+{item.prestige} prestige pts</b></small>
-                </article>
-              ))}
-            </div>
+            <>
+              <div className="tlg-player-private-life-list">
+                {visiblePossessions.map((item) => (
+                  <article className="tlg-player-private-life-item" key={item.id}>
+                    <span>{PRIVATE_LIFE_CATEGORY_LABELS[item.category] ?? item.category.replaceAll('_', ' ')}</span>
+                    <strong>{item.name}</strong>
+                    <small>{item.city ? `${item.city}${item.country_code ? `, ${item.country_code}` : ''}` : item.acquisition_type === 'starter_home' ? 'Starting residence' : 'Owned asset'}</small>
+                  </article>
+                ))}
+              </div>
+              {canExpand && (
+                <button type="button" className="tlg-player-private-life-toggle" onClick={() => setExpanded((current) => !current)}>
+                  {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  {expanded ? 'Show fewer possessions' : `Show all ${summary.possessions.length} possessions`}
+                </button>
+              )}
+            </>
           ) : <div className="tlg-player-private-life-empty">No current Private Life possessions.</div>}
         </>
       )}
