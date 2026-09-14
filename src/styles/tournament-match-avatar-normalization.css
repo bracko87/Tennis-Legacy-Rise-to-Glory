@@ -1,18 +1,21 @@
 /*
  * Tournament match portrait normalization
  *
- * Every player portrait uses exactly the same viewport and crop rule. The
- * source portraits are produced against the same white-background template,
- * so the match UI must preserve that shared geometry rather than inventing
- * avatar-specific shifts.
+ * Every player portrait uses the exact same visible portrait window. The match
+ * view should never allow one side to look like a tighter headshot while the
+ * other side shows substantially more torso.
  *
- * Target framing: maximum practical head-and-shoulders crop, with the head
- * dominant, only a small amount of neck / upper shoulder visible, and the same
- * facial guide lines on both sides of the match card.
+ * Target framing:
+ * - head is dominant
+ * - only a small amount of neck / upper shoulder remains visible
+ * - left and right use the same scale and crop
+ * - eyes / nose / mouth / chin remain on approximately the same guide lines
+ *   when the source portrait follows the common game portrait template
  */
 
 .tlg-match-player-card-polished {
   --match-card-bg: #fff !important;
+  --match-portrait-zoom: 1.12;
   background: #fff !important;
 }
 
@@ -28,14 +31,13 @@
 }
 
 /*
- * One immutable portrait geometry for every avatar:
- * - 118% shared portrait scale for a tight head-and-shoulders crop
- * - same top/headroom reference
- * - horizontal centering only
- * - no image-specific vertical adjustments
+ * Use one shared viewport for both players.
  *
- * Scaling from the same top anchor preserves the common eye / nose / mouth /
- * chin geometry across both players while cropping away most of the torso.
+ * `cover` is intentional here. The previous `contain` approach preserved too
+ * much of the source canvas, so portraits with a little more whitespace around
+ * the player appeared visibly smaller than their opponent. Covering one common
+ * viewport, followed by one shared zoom factor, makes the apparent head-and-
+ * shoulders framing much more consistent from side to side.
  */
 .tlg-match-player-portrait-stage.has-image img {
   position: absolute !important;
@@ -44,17 +46,17 @@
   right: auto !important;
   bottom: auto !important;
   display: block !important;
-  width: 118% !important;
-  height: 118% !important;
+  width: 100% !important;
+  height: 100% !important;
   max-width: none !important;
   max-height: none !important;
-  object-fit: contain !important;
+  object-fit: cover !important;
   object-position: 50% 0% !important;
-  transform: translateX(-50%) !important;
+  transform: translateX(-50%) scale(var(--match-portrait-zoom)) !important;
   transform-origin: 50% 0% !important;
 }
 
-/* Explicitly keep the exact same portrait stage geometry on both mirrored sides. */
+/* Lock both mirrored cards to precisely the same portrait-stage geometry. */
 .tlg-match-versus > .tlg-match-player-card-polished:first-child .tlg-match-player-portrait-stage,
 .tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-portrait-stage {
   top: 0 !important;
@@ -66,39 +68,40 @@
 .tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-portrait-stage.has-image img {
   top: 0 !important;
   left: 50% !important;
-  width: 118% !important;
-  height: 118% !important;
-  object-fit: contain !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
   object-position: 50% 0% !important;
-  transform: translateX(-50%) !important;
+  transform: translateX(-50%) scale(var(--match-portrait-zoom)) !important;
+  transform-origin: 50% 0% !important;
 }
 
 /* Keep the image-side fade on the same pure-white portrait canvas. */
 .tlg-match-versus > .tlg-match-player-card-polished:first-child .tlg-match-player-portrait-stage.has-image::after {
-  background: linear-gradient(90deg,rgba(255,255,255,0) 45%,#fff 96%) !important;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 45%, #fff 96%) !important;
 }
 
 .tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-portrait-stage.has-image::after {
-  background: linear-gradient(270deg,rgba(255,255,255,0) 45%,#fff 96%) !important;
+  background: linear-gradient(270deg, rgba(255,255,255,0) 45%, #fff 96%) !important;
 }
 
-/* The shared crop stays identical at every responsive breakpoint. */
+/* The crop rule intentionally stays identical at every responsive breakpoint. */
 @media(max-width:980px) {
   .tlg-match-player-portrait-stage.has-image img {
-    width: 118% !important;
-    height: 118% !important;
-    object-fit: contain !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
     object-position: 50% 0% !important;
-    transform: translateX(-50%) !important;
+    transform: translateX(-50%) scale(var(--match-portrait-zoom)) !important;
   }
 }
 
 @media(max-width:680px) {
   .tlg-match-player-portrait-stage.has-image img {
-    width: 118% !important;
-    height: 118% !important;
-    object-fit: contain !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
     object-position: 50% 0% !important;
-    transform: translateX(-50%) !important;
+    transform: translateX(-50%) scale(var(--match-portrait-zoom)) !important;
   }
 }
