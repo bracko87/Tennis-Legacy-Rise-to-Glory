@@ -1,15 +1,6 @@
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import {
-  BookOpen,
-  BriefcaseBusiness,
-  Building2,
-  CalendarDays,
-  CircleHelp,
-  GraduationCap,
-  Info,
-  X,
-} from 'lucide-react'
+import { X } from 'lucide-react'
 
 import CountryFlag from '../common/CountryFlag'
 import type {
@@ -19,6 +10,7 @@ import type {
   StaffRole,
 } from '../../hooks/useStaff'
 import '../../styles/staff-role-system.css'
+import '../../styles/staff-role-overrides.css'
 
 const MONTHS = [
   '', 'January', 'February', 'March', 'April', 'May', 'June',
@@ -28,10 +20,6 @@ const MONTHS = [
 function formatGameDate(date?: { season: number; month: number; day: number } | null) {
   if (!date) return '—'
   return `${MONTHS[date.month] ?? `Month ${date.month}`} ${date.day} · Season ${date.season}`
-}
-
-function initials(first: string, last: string) {
-  return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase()
 }
 
 function AttributeRows({
@@ -101,17 +89,13 @@ function StaffProfileDialog({
 
         {loading ? <div className="tlg-staff-profile-loading">Loading full staff profile…</div> : error ? <div className="tlg-staff-profile-error">{error}</div> : profile && (
           <div className="tlg-staff-profile-content">
-            <section className="tlg-staff-profile-hero">
-              <div className="tlg-staff-profile-avatar" aria-label="Staff avatar">
-                {profile.staff.image_path ? <img src={profile.staff.image_path} alt="" /> : <span>{initials(profile.staff.first_name, profile.staff.last_name)}</span>}
-              </div>
+            <section className="tlg-staff-profile-hero tlg-staff-profile-hero-clean">
               <div className="tlg-staff-profile-identity-copy">
                 <span>{profile.staff.role_label.toUpperCase()}</span>
                 <h3>{profile.staff.first_name} {profile.staff.last_name}</h3>
                 <div className="tlg-staff-profile-country"><CountryFlag countryCode={profile.staff.country_code} countryName={profile.staff.country_code} width={25} height={16} /> {profile.staff.country_code}</div>
                 <p>{profile.role.main_responsibility}</p>
               </div>
-              <div className="tlg-staff-profile-rating"><strong>{profile.staff.overall_rating}</strong><span>{profile.staff.quality_label}</span></div>
             </section>
 
             <section className="tlg-staff-profile-facts">
@@ -124,19 +108,19 @@ function StaffProfileDialog({
             </section>
 
             <section className="tlg-staff-profile-section">
-              <header><BriefcaseBusiness size={17} /><div><span>PLAYER BONUSES</span><h3>Bonuses this staff member provides to your player</h3></div></header>
+              <header><div><span>PLAYER BONUSES</span><h3>Bonuses this staff member provides to your player</h3></div></header>
               <EffectRows effects={profile.current_effects} />
-              <div className="tlg-staff-profile-rule-note"><Info size={15} /><span>{profile.role.stacking_rule}</span></div>
+              <div className="tlg-staff-profile-rule-note"><span>{profile.role.stacking_rule}</span></div>
             </section>
 
             <section className="tlg-staff-profile-section">
-              <header><CircleHelp size={17} /><div><span>ATTRIBUTES</span><h3>How the rating affects gameplay</h3></div></header>
+              <header><div><span>ATTRIBUTES</span><h3>How the rating affects gameplay</h3></div></header>
               <AttributeRows values={profile.staff.attributes} definitions={profile.role.attributes} />
             </section>
 
             <section className="tlg-staff-profile-two-column">
               <article>
-                <header><CalendarDays size={16} /><div><span>CONTRACT</span><h3>Current employment</h3></div></header>
+                <header><div><span>CONTRACT</span><h3>Current employment</h3></div></header>
                 <dl>
                   <div><dt>Start</dt><dd>{formatGameDate(profile.contract.start_game_day)}</dd></div>
                   <div><dt>Expiry</dt><dd>{formatGameDate(profile.contract.end_game_day)}</dd></div>
@@ -145,7 +129,7 @@ function StaffProfileDialog({
                 </dl>
               </article>
               <article>
-                <header><Building2 size={16} /><div><span>FACILITY LIMIT</span><h3>Applied vs potential</h3></div></header>
+                <header><div><span>FACILITY LIMIT</span><h3>Applied vs potential</h3></div></header>
                 <p>{profile.facility.message}</p>
                 <strong>{profile.facility.limited ? 'Facility cap active' : 'No facility cap · full calculated bonus applied'}</strong>
               </article>
@@ -153,12 +137,12 @@ function StaffProfileDialog({
 
             <section className="tlg-staff-profile-two-column">
               <article>
-                <header><GraduationCap size={16} /><div><span>EDUCATION</span><h3>Qualifications & experience</h3></div></header>
+                <header><div><span>EDUCATION</span><h3>Qualifications & experience</h3></div></header>
                 <p>{profile.staff.education}</p>
                 <div className="tlg-staff-profile-courses">{profile.staff.courses.map((course) => <span key={course}>{course}</span>)}</div>
               </article>
               <article>
-                <header><BookOpen size={16} /><div><span>STAFF ADVISORY</span><h3>Advisory availability</h3></div></header>
+                <header><div><span>STAFF ADVISORY</span><h3>Advisory availability</h3></div></header>
                 <p>{profile.advisory.message}</p>
               </article>
             </section>
