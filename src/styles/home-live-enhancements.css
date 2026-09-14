@@ -1,0 +1,17 @@
+.tlg-career-control-panel-live-image {
+  overflow: hidden;
+  padding: 0 !important;
+  background: #062b52 !important;
+}
+
+.tlg-career-control-panel-live-image > :not(.tlg-career-control-live-image) {
+  display: none !important;
+}
+
+.tlg-career-control-live-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: inherit;
+}
