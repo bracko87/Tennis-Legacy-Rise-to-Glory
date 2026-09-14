@@ -18,6 +18,8 @@ interface RankingRow {
   ranking_points: number
   previous_week_position: number | null
   rank_change: number | null
+  previous_week_points: number | null
+  points_change: number | null
 }
 
 interface RankingReturnState {
@@ -98,6 +100,22 @@ function WeeklyRankChange({ row }: { row: RankingRow }) {
   )
 }
 
+function WeeklyPointsChange({ row }: { row: RankingRow }) {
+  if (row.previous_week_points === null || row.points_change === null) {
+    return <span className="tlg-live-points-change tlg-live-points-change-same">—</span>
+  }
+
+  if (row.points_change > 0) {
+    return <strong className="tlg-live-points-change tlg-live-points-change-up" title={`Last week: ${row.previous_week_points.toLocaleString()} points`}>+{row.points_change.toLocaleString()}</strong>
+  }
+
+  if (row.points_change < 0) {
+    return <strong className="tlg-live-points-change tlg-live-points-change-down" title={`Last week: ${row.previous_week_points.toLocaleString()} points`}>{row.points_change.toLocaleString()}</strong>
+  }
+
+  return <span className="tlg-live-points-change tlg-live-points-change-same" title={`Last week: ${row.previous_week_points.toLocaleString()} points`}>0</span>
+}
+
 export default function RankingsPage() {
   const { player } = useAuth()
   const world = player?.world ?? 'ATP'
@@ -117,7 +135,7 @@ export default function RankingsPage() {
   const loadRankings = useCallback(async () => {
     setLoading(true)
     setError(null)
-    const { data, error: loadError } = await supabase.rpc('get_world_rankings_v2', {
+    const { data, error: loadError } = await supabase.rpc('get_world_rankings_v3', {
       p_world: world,
       p_offset: page * PAGE_SIZE,
       p_limit: PAGE_SIZE,
@@ -220,10 +238,11 @@ export default function RankingsPage() {
 
         <div className="tlg-ranking-table-head">
           <span>Rank</span>
+          <span>Rank change</span>
           <span>Player</span>
           <span>Country</span>
-          <span>Weekly change</span>
           <span>Points</span>
+          <span>Points change</span>
         </div>
 
         {loading ? (
@@ -262,10 +281,11 @@ export default function RankingsPage() {
                   className={`tlg-live-ranking-row ${row.player_id === player?.id ? 'tlg-live-ranking-row-own' : ''}`}
                 >
                   <strong className="tlg-live-rank-number">{row.rank_position}</strong>
+                  <WeeklyRankChange row={row} />
                   <span className="tlg-live-player-name">{row.first_name} {row.last_name}</span>
                   <span className="tlg-live-country"><CountryFlag countryCode={row.country_code} countryName={row.country_code} width={22} height={15} /> {row.country_code}</span>
-                  <WeeklyRankChange row={row} />
                   <strong className="tlg-live-points">{row.ranking_points.toLocaleString()}</strong>
+                  <WeeklyPointsChange row={row} />
                 </Link>
               )
             })}
