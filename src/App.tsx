@@ -31,6 +31,7 @@ import {
 } from './auth/RouteGuards'
 import OverviewInjuryEnhancement from './components/dashboard/OverviewInjuryEnhancement'
 import FinanceSponsorEnhancement from './components/finance/FinanceSponsorEnhancement'
+import HomeLiveEnhancements from './components/marketing/HomeLiveEnhancements'
 import PlayingStyleEducation from './components/player/PlayingStyleEducation'
 import ScheduleUiPolish from './components/schedule/ScheduleUiPolish'
 import { ScheduleTacticEducation, TournamentTacticEducation } from './components/tactics/TacticEducation'
@@ -145,7 +146,7 @@ function TournamentRoute() {
 }
 
 function HomeRoute() {
-  return <HomePage />
+  return <><HomePage /><HomeLiveEnhancements /></>
 }
 
 function OverviewRoute() {
