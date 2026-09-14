@@ -92,8 +92,11 @@ function StaffProfileDialog({
             <section className="tlg-staff-profile-hero tlg-staff-profile-hero-clean">
               <div className="tlg-staff-profile-identity-copy">
                 <span>{profile.staff.role_label.toUpperCase()}</span>
-                <h3>{profile.staff.first_name} {profile.staff.last_name}</h3>
-                <div className="tlg-staff-profile-country"><CountryFlag countryCode={profile.staff.country_code} countryName={profile.staff.country_code} width={25} height={16} /> {profile.staff.country_code}</div>
+                <div className="tlg-staff-profile-name-line">
+                  <h3>{profile.staff.first_name} {profile.staff.last_name}</h3>
+                  <CountryFlag countryCode={profile.staff.country_code} countryName={profile.staff.country_code} width={25} height={16} />
+                  <b>{profile.staff.country_code}</b>
+                </div>
                 <p>{profile.role.main_responsibility}</p>
               </div>
             </section>
@@ -111,6 +114,7 @@ function StaffProfileDialog({
               <header><div><span>PLAYER BONUSES</span><h3>Bonuses this staff member provides to your player</h3></div></header>
               <EffectRows effects={profile.current_effects} />
               <div className="tlg-staff-profile-rule-note"><span>{profile.role.stacking_rule}</span></div>
+              <div className="tlg-staff-profile-engine-note">These are live gameplay effects, not display-only values. Training-related bonuses are also shown in Training Center → Active Staff Impact, and new processed sessions store the exact staff-effect snapshot used by the engine.</div>
             </section>
 
             <section className="tlg-staff-profile-section">
