@@ -79,6 +79,23 @@
   background: linear-gradient(270deg, rgba(255,255,255,0) 45%, #fff 96%) !important;
 }
 
+/*
+ * Keep the established production portrait framing untouched. Only mirror the
+ * first player's information block so it occupies the top-right corner of the
+ * left card, matching the second player's top-left placement at the same level.
+ */
+.tlg-match-versus > .tlg-match-player-card-polished:first-child .tlg-match-player-summary {
+  align-items: flex-end !important;
+  text-align: right !important;
+  padding-left: 28px !important;
+  padding-right: 18px !important;
+}
+
+.tlg-match-versus > .tlg-match-player-card-polished:first-child .tlg-match-player-summary .identity,
+.tlg-match-versus > .tlg-match-player-card-polished:first-child .tlg-match-player-summary .meta {
+  justify-content: flex-end !important;
+}
+
 /* The crop rule intentionally stays identical at every responsive breakpoint. */
 @media(max-width:980px) {
   .tlg-match-player-portrait-stage.has-image img {
