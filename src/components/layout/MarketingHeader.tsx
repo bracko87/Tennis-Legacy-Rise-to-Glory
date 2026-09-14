@@ -10,6 +10,7 @@ import { Link, useNavigate } from 'react-router'
 import { LogOut, Menu, X } from 'lucide-react'
 
 import { useAuth } from '../../auth/AuthContext'
+import BetaDisclaimer from '../marketing/BetaDisclaimer'
 
 interface MarketingNavigationItem {
   readonly label: string
@@ -165,6 +166,8 @@ export default function MarketingHeader() {
           </nav>
         </div>
       )}
+
+      <BetaDisclaimer />
     </header>
   )
 }
