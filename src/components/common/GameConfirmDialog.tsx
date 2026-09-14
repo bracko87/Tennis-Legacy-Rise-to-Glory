@@ -1,6 +1,6 @@
-import { AlertTriangle, X } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, X } from 'lucide-react'
 import { createPortal } from 'react-dom'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 
 import '../../styles/game-confirm-dialog.css'
 
@@ -8,12 +8,12 @@ export interface GameConfirmDialogProps {
   open: boolean
   eyebrow?: string
   title: string
-  message: string
-  detail?: string
+  message: ReactNode
+  detail?: ReactNode
   confirmLabel?: string
   cancelLabel?: string
   busy?: boolean
-  tone?: 'danger' | 'warning'
+  tone?: 'danger' | 'warning' | 'success' | 'neutral'
   onConfirm: () => void | Promise<void>
   onCancel: () => void
 }
@@ -53,6 +53,8 @@ export default function GameConfirmDialog({
 
   if (!open || typeof document === 'undefined') return null
 
+  const Icon = tone === 'success' || tone === 'neutral' ? CheckCircle2 : AlertTriangle
+
   return createPortal(
     <div
       className="tlg-game-confirm-backdrop"
@@ -78,7 +80,7 @@ export default function GameConfirmDialog({
 
         <div className="tlg-game-confirm-head">
           <div className="tlg-game-confirm-icon" aria-hidden="true">
-            <AlertTriangle size={20} />
+            <Icon size={20} />
           </div>
           <div>
             <span>{eyebrow}</span>
@@ -87,7 +89,7 @@ export default function GameConfirmDialog({
         </div>
 
         <div className="tlg-game-confirm-body">
-          <p>{message}</p>
+          <div className="tlg-game-confirm-message">{message}</div>
           {detail ? <div className="tlg-game-confirm-detail">{detail}</div> : null}
         </div>
 
@@ -103,7 +105,7 @@ export default function GameConfirmDialog({
           </button>
           <button
             type="button"
-            className="danger"
+            className={tone === 'danger' ? 'danger' : 'primary'}
             disabled={busy}
             onClick={() => void onConfirm()}
           >
