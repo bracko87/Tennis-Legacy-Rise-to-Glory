@@ -13,7 +13,6 @@ import './styles/onboarding-enhancements.css'
 import './styles/commerce.css'
 import './styles/dashboard-modules.css'
 import './styles/typography-sharp.css'
-import './styles/public-beta.css'
 
 import {
   BrowserRouter,
@@ -32,7 +31,6 @@ import {
 } from './auth/RouteGuards'
 import OverviewInjuryEnhancement from './components/dashboard/OverviewInjuryEnhancement'
 import FinanceSponsorEnhancement from './components/finance/FinanceSponsorEnhancement'
-import PublicBetaGate from './components/marketing/PublicBetaGate'
 import PlayingStyleEducation from './components/player/PlayingStyleEducation'
 import ScheduleUiPolish from './components/schedule/ScheduleUiPolish'
 import { ScheduleTacticEducation, TournamentTacticEducation } from './components/tactics/TacticEducation'
@@ -147,7 +145,7 @@ function TournamentRoute() {
 }
 
 function HomeRoute() {
-  return <><HomePage /><PublicBetaGate /></>
+  return <HomePage />
 }
 
 function OverviewRoute() {
