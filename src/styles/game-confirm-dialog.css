@@ -7,10 +7,11 @@
   justify-content: center;
   padding: 22px;
   background: rgba(7, 22, 34, .48);
+  backdrop-filter: blur(3px);
 }
 
 .tlg-game-confirm-dialog {
-  width: min(440px, calc(100vw - 32px));
+  width: min(470px, calc(100vw - 32px));
   position: relative;
   overflow: hidden;
   border: 1px solid #d9e5ec;
@@ -23,6 +24,11 @@
 
 .tlg-game-confirm-dialog.danger {
   border-left-color: #c94f4f;
+}
+
+.tlg-game-confirm-dialog.success,
+.tlg-game-confirm-dialog.neutral {
+  border-left-color: #16815b;
 }
 
 .tlg-game-confirm-close {
@@ -72,6 +78,12 @@
   color: #bf4141;
 }
 
+.tlg-game-confirm-dialog.success .tlg-game-confirm-icon,
+.tlg-game-confirm-dialog.neutral .tlg-game-confirm-icon {
+  background: #eaf8f1;
+  color: #16815b;
+}
+
 .tlg-game-confirm-head span {
   display: block;
   margin-bottom: 3px;
@@ -95,6 +107,7 @@
   padding: 16px 18px 14px;
 }
 
+.tlg-game-confirm-message,
 .tlg-game-confirm-body p {
   margin: 0;
   color: #4e697d;
@@ -111,6 +124,28 @@
   font-size: .66rem;
   line-height: 1.45;
 }
+
+.tlg-game-confirm-summary {
+  display: grid;
+  gap: 0;
+}
+
+.tlg-game-confirm-summary > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e4ebf0;
+}
+
+.tlg-game-confirm-summary > div:first-child { padding-top: 0; }
+.tlg-game-confirm-summary > div:last-child { padding-bottom: 0; border-bottom: 0; }
+.tlg-game-confirm-summary span { color: #6c8293; }
+.tlg-game-confirm-summary strong { color: #193b54; text-align: right; }
+.tlg-game-confirm-summary .positive strong { color: #16815b; }
+.tlg-game-confirm-summary .danger strong { color: #b13b3b; }
+.tlg-game-confirm-summary .total { margin-top: 2px; font-weight: 800; }
 
 .tlg-game-confirm-actions {
   display: flex;
@@ -153,6 +188,17 @@
 .tlg-game-confirm-actions .danger:hover:not(:disabled) {
   border-color: #c94f4f;
   background: #ffe6e6;
+}
+
+.tlg-game-confirm-actions .primary {
+  border: 1px solid #0d79bd;
+  background: #0d79bd;
+  color: #fff;
+}
+
+.tlg-game-confirm-actions .primary:hover:not(:disabled) {
+  border-color: #0869a5;
+  background: #0869a5;
 }
 
 .tlg-game-confirm-actions button:disabled,
