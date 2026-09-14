@@ -1,0 +1,26 @@
+.tlg-staff-offer-notice {
+  padding: 10px 12px;
+  border: 1px solid;
+  border-radius: 8px;
+  font-size: .68rem;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.tlg-staff-offer-notice.error {
+  border-color: #efb9b9;
+  background: #fff1f1;
+  color: #a52f2f;
+}
+
+.tlg-staff-offer-notice.success {
+  border-color: #b8dfce;
+  background: #edf9f3;
+  color: #176f50;
+}
+
+.tlg-staff-contract-options button:disabled,
+.tlg-staff-salary-offer input:disabled {
+  cursor: not-allowed;
+  opacity: .62;
+}
