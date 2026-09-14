@@ -95,7 +95,6 @@ function StaffProfileDialog({
                 <div className="tlg-staff-profile-name-line">
                   <h3>{profile.staff.first_name} {profile.staff.last_name}</h3>
                   <CountryFlag countryCode={profile.staff.country_code} countryName={profile.staff.country_code} width={25} height={16} />
-                  <b>{profile.staff.country_code}</b>
                 </div>
                 <p>{profile.role.main_responsibility}</p>
               </div>
@@ -232,9 +231,14 @@ export default function StaffTeamRoles({
 
               {contract ? (
                 <>
-                  <div className="tlg-staff-identity">
-                    <CountryFlag countryCode={contract.staff.country_code} countryName={contract.staff.country_code} width={24} height={16} />
-                    <div><strong>{contract.staff.first_name} {contract.staff.last_name}</strong><span>{contract.staff.country_code} · {contract.staff.specialty}</span></div>
+                  <div className="tlg-staff-identity tlg-staff-identity-inline-flag">
+                    <div>
+                      <div className="tlg-staff-card-name-line">
+                        <strong>{contract.staff.first_name} {contract.staff.last_name}</strong>
+                        <CountryFlag countryCode={contract.staff.country_code} countryName={contract.staff.country_code} width={24} height={16} />
+                      </div>
+                      <span>{contract.staff.specialty}</span>
+                    </div>
                   </div>
                   <div className="tlg-staff-role-meta"><span>{contract.staff.quality_label}</span><span>{contract.staff.specialty}</span></div>
                   <div className={`tlg-staff-contract-line ${contract.weeks_remaining <= 4 ? 'warning' : ''}`}><span>${contract.weekly_salary.toLocaleString()} / week</span><strong>{contract.weeks_remaining} weeks remaining</strong></div>
