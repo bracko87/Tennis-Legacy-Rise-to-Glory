@@ -1,21 +1,24 @@
 /*
  * Tournament match portrait normalization
  *
- * Every player portrait uses the exact same visible portrait window. The match
- * view should never allow one side to look like a tighter headshot while the
- * other side shows substantially more torso.
+ * Both players use one shared portrait viewport. The source portraits are
+ * generated against a white-background template, but some images still contain
+ * slightly different amounts of white space above the head. The companion
+ * TournamentPreMatchRealData enhancement measures that top whitespace and sets
+ * --match-portrait-y-offset so both subjects are aligned to the same visual
+ * guide line automatically.
  *
  * Target framing:
- * - head is dominant
- * - only a small amount of neck / upper shoulder remains visible
- * - left and right use the same scale and crop
- * - eyes / nose / mouth / chin remain on approximately the same guide lines
- *   when the source portrait follows the common game portrait template
+ * - about 20% less zoom than the previous version
+ * - head dominant, with a little neck / shoulder visible
+ * - both sides use identical crop and scale
+ * - top of subject is normalized so eyes / nose / mouth stay on approximately
+ *   the same horizontal lines for present and future portraits
  */
 
 .tlg-match-player-card-polished {
   --match-card-bg: #fff !important;
-  --match-portrait-zoom: 1.12;
+  --match-portrait-zoom: 0.9;
   background: #fff !important;
 }
 
@@ -30,15 +33,6 @@
   background: transparent !important;
 }
 
-/*
- * Use one shared viewport for both players.
- *
- * `cover` is intentional here. The previous `contain` approach preserved too
- * much of the source canvas, so portraits with a little more whitespace around
- * the player appeared visibly smaller than their opponent. Covering one common
- * viewport, followed by one shared zoom factor, makes the apparent head-and-
- * shoulders framing much more consistent from side to side.
- */
 .tlg-match-player-portrait-stage.has-image img {
   position: absolute !important;
   top: 0 !important;
@@ -52,7 +46,7 @@
   max-height: none !important;
   object-fit: cover !important;
   object-position: 50% 0% !important;
-  transform: translateX(-50%) scale(var(--match-portrait-zoom)) !important;
+  transform: translateX(-50%) translateY(var(--match-portrait-y-offset, 0px)) scale(var(--match-portrait-zoom)) !important;
   transform-origin: 50% 0% !important;
 }
 
@@ -72,7 +66,7 @@
   height: 100% !important;
   object-fit: cover !important;
   object-position: 50% 0% !important;
-  transform: translateX(-50%) scale(var(--match-portrait-zoom)) !important;
+  transform: translateX(-50%) translateY(var(--match-portrait-y-offset, 0px)) scale(var(--match-portrait-zoom)) !important;
   transform-origin: 50% 0% !important;
 }
 
@@ -92,7 +86,7 @@
     height: 100% !important;
     object-fit: cover !important;
     object-position: 50% 0% !important;
-    transform: translateX(-50%) scale(var(--match-portrait-zoom)) !important;
+    transform: translateX(-50%) translateY(var(--match-portrait-y-offset, 0px)) scale(var(--match-portrait-zoom)) !important;
   }
 }
 
@@ -102,6 +96,6 @@
     height: 100% !important;
     object-fit: cover !important;
     object-position: 50% 0% !important;
-    transform: translateX(-50%) scale(var(--match-portrait-zoom)) !important;
+    transform: translateX(-50%) translateY(var(--match-portrait-y-offset, 0px)) scale(var(--match-portrait-zoom)) !important;
   }
 }
