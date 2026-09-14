@@ -54,6 +54,19 @@ export interface TrainingProgress {
   movement: number
 }
 
+export interface TrainingStaffEffects {
+  technical_training_multiplier: number
+  technical_camp_multiplier: number
+  physical_training_multiplier: number
+  physical_camp_multiplier: number
+  training_fatigue_reduction: number
+  active_recovery_multiplier: number
+  recovery_multiplier: number
+  morale_recovery_bonus_points: number
+  confidence_recovery_bonus_points: number
+  focus_recovery_bonus_points: number
+}
+
 export interface TrainingSession {
   id: string
   season?: number
@@ -75,6 +88,7 @@ export interface TrainingSession {
   focus_after?: number
   processed_by?: 'manual' | 'daily_engine'
   session_role?: TrainingSessionRole
+  staff_effects_snapshot?: TrainingStaffEffects
   created_at: string
 }
 
@@ -93,6 +107,7 @@ export interface TrainingDashboard {
   plan: TrainingPlan
   skills: TrainingSkills
   progress: TrainingProgress
+  staff_effects: TrainingStaffEffects
   today_session: TrainingSession | null
   recent_sessions: TrainingSession[]
   rules: {
@@ -102,6 +117,7 @@ export interface TrainingDashboard {
     regular_training_states: string[]
     blocked_states: string[]
     automatic_scheduler_enabled: boolean
+    staff_effects_visible?: boolean
     weekly_rhythm?: {
       development_days: number
       active_recovery_days: number
