@@ -1,9 +1,17 @@
-/* Standardize portrait scale and framing inside tournament match cards.
-   Source avatars can have slightly different face positions, so the shared
-   frame uses one base size plus small per-avatar vertical calibration values. */
+/*
+ * Tournament match portrait normalization
+ *
+ * Every player portrait uses exactly the same viewport and crop rule. The old
+ * implementation used `object-fit: contain` plus per-file vertical offsets;
+ * that made newer avatars appear at different scales/heights and broke the
+ * intended common eye/chin/headroom lines.
+ *
+ * Portrait source art is produced against the same white-background template,
+ * so the UI must preserve that template rather than inventing avatar-specific
+ * adjustments. Both sides therefore use a full-height, top-anchored cover crop
+ * with no per-player transform.
+ */
 
-/* The full player card is intentionally white. Winner state is communicated by
-   border/badges rather than by tinting the portrait/info background. */
 .tlg-match-player-card-polished {
   --match-card-bg: #fff !important;
   background: #fff !important;
@@ -11,7 +19,8 @@
 
 .tlg-match-player-portrait-stage,
 .tlg-match-player-portrait-stage.has-image {
-  place-items: center;
+  overflow: hidden !important;
+  place-items: unset !important;
   background: #fff !important;
 }
 
@@ -19,32 +28,48 @@
   background: transparent !important;
 }
 
-/* Shared portrait frame. --portrait-shift-y can be calibrated for an avatar
-   whose source image places the eyes higher/lower than the standard crop. */
+/*
+ * One immutable portrait geometry for every avatar:
+ * - same stage dimensions on both sides
+ * - same top/headroom reference
+ * - same scale policy
+ * - no historical image-specific shifts
+ *
+ * Because the source portraits follow the common game portrait template, this
+ * keeps hair/headroom, eye line and chin line in the same visual frame.
+ */
 .tlg-match-player-portrait-stage.has-image img {
-  --portrait-size: 94%;
-  --portrait-shift-y: 0%;
-  width: var(--portrait-size) !important;
-  height: var(--portrait-size) !important;
-  max-width: var(--portrait-size);
-  max-height: var(--portrait-size);
-  object-fit: contain !important;
-  object-position: center center !important;
-  transform: translateY(var(--portrait-shift-y)) !important;
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: cover !important;
+  object-position: 50% 0% !important;
+  transform: none !important;
+  transform-origin: 50% 0% !important;
 }
 
-/* Current calibrated examples.
-   ATP063 already sits on the standard eye line. ATP255's source portrait is
-   lower in its canvas, so move it upward while preserving the same 94% scale. */
-.tlg-match-player-portrait-stage.has-image img[src*="ATP063.png"] {
-  --portrait-shift-y: 0%;
+/* Explicitly keep the exact same crop geometry on the mirrored opponent side. */
+.tlg-match-versus > .tlg-match-player-card-polished:first-child .tlg-match-player-portrait-stage,
+.tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-portrait-stage {
+  top: 0 !important;
+  bottom: 0 !important;
+  height: 100% !important;
 }
 
-.tlg-match-player-portrait-stage.has-image img[src*="ATP255.png"] {
-  --portrait-shift-y: -10%;
+.tlg-match-versus > .tlg-match-player-card-polished:first-child .tlg-match-player-portrait-stage.has-image img,
+.tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-portrait-stage.has-image img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: 50% 0% !important;
+  transform: none !important;
 }
 
-/* Keep the image-side fade on a pure white portrait canvas. */
+/* Keep the image-side fade on the same pure-white portrait canvas. */
 .tlg-match-versus > .tlg-match-player-card-polished:first-child .tlg-match-player-portrait-stage.has-image::after {
   background: linear-gradient(90deg,rgba(255,255,255,0) 45%,#fff 96%) !important;
 }
@@ -53,21 +78,21 @@
   background: linear-gradient(270deg,rgba(255,255,255,0) 45%,#fff 96%) !important;
 }
 
-/* Keep identical base framing on both mirrored sides. */
-.tlg-match-versus > .tlg-match-player-card-polished:first-child .tlg-match-player-portrait-stage.has-image img,
-.tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-portrait-stage.has-image img {
-  width: var(--portrait-size) !important;
-  height: var(--portrait-size) !important;
-}
-
+/* The crop rule intentionally stays identical at every responsive breakpoint. */
 @media(max-width:980px) {
   .tlg-match-player-portrait-stage.has-image img {
-    --portrait-size: 94%;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: 50% 0% !important;
   }
 }
 
 @media(max-width:680px) {
   .tlg-match-player-portrait-stage.has-image img {
-    --portrait-size: 94%;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: 50% 0% !important;
   }
 }
