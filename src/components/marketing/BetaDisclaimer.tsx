@@ -1,5 +1,6 @@
 import { ExternalLink, MessageCircle, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useLocation } from 'react-router'
 
 import '../../styles/beta-disclaimer.css'
@@ -55,10 +56,16 @@ export default function BetaDisclaimer() {
 
   useEffect(() => {
     if (!open) return
+
     const previousOverflow = document.body.style.overflow
+    const page = document.querySelector<HTMLElement>('.tlg-marketing-page')
+
     document.body.style.overflow = 'hidden'
+    page?.classList.add('tlg-beta-page-blurred')
+
     return () => {
       document.body.style.overflow = previousOverflow
+      page?.classList.remove('tlg-beta-page-blurred')
     }
   }, [open])
 
@@ -73,7 +80,7 @@ export default function BetaDisclaimer() {
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <div className="tlg-beta-modal-backdrop" role="presentation">
       <section
         className="tlg-beta-modal"
@@ -128,6 +135,7 @@ export default function BetaDisclaimer() {
           </button>
         </div>
       </section>
-    </div>
+    </div>,
+    document.body,
   )
 }
