@@ -3,7 +3,7 @@
 .tlg-ranking-table-head,
 .tlg-live-ranking-row {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1.4fr) minmax(170px, .8fr) 100px;
+  grid-template-columns: 72px minmax(0, 1.35fr) minmax(160px, .72fr) 120px 100px;
   align-items: center;
   column-gap: 12px;
   padding-left: 16px;
@@ -31,6 +31,12 @@
 
 .tlg-ranking-table-head > span:nth-child(4),
 .tlg-live-ranking-row > :nth-child(4) {
+  justify-self: center;
+  text-align: center;
+}
+
+.tlg-ranking-table-head > span:nth-child(5),
+.tlg-live-ranking-row > :nth-child(5) {
   justify-self: end;
   text-align: right;
 }
@@ -52,6 +58,31 @@
 .tlg-live-player-name { color: #173149; font-size: .72rem; font-weight: 700; }
 .tlg-live-country { display: inline-flex; align-items: center; justify-content: flex-start; gap: 7px; color: #678094; font-size: .65rem; }
 .tlg-live-points { text-align: right; color: #173149; font-size: .72rem; font-weight: 700; }
+
+.tlg-live-rank-change {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 54px;
+  font-size: .68rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.tlg-live-rank-change-up { color: #0c8a58; }
+.tlg-live-rank-change-down { color: #c84444; }
+.tlg-live-rank-change-same { color: #98a4b1; font-weight: 700; }
+.tlg-live-rank-change-new {
+  width: max-content;
+  min-width: 0;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: #edf6ff;
+  color: #2474ad;
+  font-size: .58rem;
+  letter-spacing: .04em;
+}
 
 .tlg-ranking-panel-header {
   display: flex;
@@ -91,7 +122,7 @@
 @media (max-width: 680px) {
   .tlg-ranking-table-head,
   .tlg-live-ranking-row {
-    grid-template-columns: 48px minmax(0, 1fr) 74px;
+    grid-template-columns: 48px minmax(0, 1fr) 78px 72px;
   }
 
   .tlg-live-ranking-row > :nth-child(3),
@@ -102,6 +133,11 @@
   .tlg-ranking-table-head > span:nth-child(4),
   .tlg-live-ranking-row > :nth-child(4) {
     grid-column: 3;
+  }
+
+  .tlg-ranking-table-head > span:nth-child(5),
+  .tlg-live-ranking-row > :nth-child(5) {
+    grid-column: 4;
   }
 }
 
