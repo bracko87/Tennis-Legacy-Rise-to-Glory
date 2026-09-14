@@ -6,9 +6,9 @@
  * so the match UI must preserve that shared geometry rather than inventing
  * avatar-specific shifts.
  *
- * Target framing: head dominant, a little neck and upper shoulder visible,
- * while keeping the same top/headroom reference and the same facial guide lines
- * on both sides of the match card.
+ * Target framing: maximum practical head-and-shoulders crop, with the head
+ * dominant, only a small amount of neck / upper shoulder visible, and the same
+ * facial guide lines on both sides of the match card.
  */
 
 .tlg-match-player-card-polished {
@@ -29,14 +29,13 @@
 
 /*
  * One immutable portrait geometry for every avatar:
- * - 98% shared portrait scale: tighter than the previous 90% version
+ * - 118% shared portrait scale for a tight head-and-shoulders crop
  * - same top/headroom reference
  * - horizontal centering only
  * - no image-specific vertical adjustments
  *
- * This keeps the eyes / nose / mouth / chin aligned when the source portraits
- * follow the common player-template geometry, while still leaving a small
- * amount of neck and shoulder visible at the bottom of the portrait area.
+ * Scaling from the same top anchor preserves the common eye / nose / mouth /
+ * chin geometry across both players while cropping away most of the torso.
  */
 .tlg-match-player-portrait-stage.has-image img {
   position: absolute !important;
@@ -45,8 +44,8 @@
   right: auto !important;
   bottom: auto !important;
   display: block !important;
-  width: 98% !important;
-  height: 98% !important;
+  width: 118% !important;
+  height: 118% !important;
   max-width: none !important;
   max-height: none !important;
   object-fit: contain !important;
@@ -67,8 +66,8 @@
 .tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-portrait-stage.has-image img {
   top: 0 !important;
   left: 50% !important;
-  width: 98% !important;
-  height: 98% !important;
+  width: 118% !important;
+  height: 118% !important;
   object-fit: contain !important;
   object-position: 50% 0% !important;
   transform: translateX(-50%) !important;
@@ -86,8 +85,8 @@
 /* The shared crop stays identical at every responsive breakpoint. */
 @media(max-width:980px) {
   .tlg-match-player-portrait-stage.has-image img {
-    width: 98% !important;
-    height: 98% !important;
+    width: 118% !important;
+    height: 118% !important;
     object-fit: contain !important;
     object-position: 50% 0% !important;
     transform: translateX(-50%) !important;
@@ -96,8 +95,8 @@
 
 @media(max-width:680px) {
   .tlg-match-player-portrait-stage.has-image img {
-    width: 98% !important;
-    height: 98% !important;
+    width: 118% !important;
+    height: 118% !important;
     object-fit: contain !important;
     object-position: 50% 0% !important;
     transform: translateX(-50%) !important;
