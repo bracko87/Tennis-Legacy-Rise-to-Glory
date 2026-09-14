@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router'
 
@@ -16,6 +16,8 @@ interface RankingRow {
   country_code: string
   image_path: string | null
   ranking_points: number
+  previous_week_position: number | null
+  rank_change: number | null
 }
 
 interface RankingReturnState {
@@ -54,6 +56,48 @@ function RankingPagination({ page, rowCount, loading, placement = 'bottom', onPr
   )
 }
 
+function WeeklyRankChange({ row }: { row: RankingRow }) {
+  if (row.previous_week_position === null || row.rank_change === null) {
+    return <span className="tlg-live-rank-change tlg-live-rank-change-new" title="No previous weekly ranking">NEW</span>
+  }
+
+  if (row.rank_change > 0) {
+    return (
+      <span
+        className="tlg-live-rank-change tlg-live-rank-change-up"
+        title={`Last week: #${row.previous_week_position}`}
+        aria-label={`Up ${row.rank_change} positions from number ${row.previous_week_position} last week`}
+      >
+        <ArrowUp size={14} strokeWidth={2.4} />
+        <strong>+{row.rank_change}</strong>
+      </span>
+    )
+  }
+
+  if (row.rank_change < 0) {
+    return (
+      <span
+        className="tlg-live-rank-change tlg-live-rank-change-down"
+        title={`Last week: #${row.previous_week_position}`}
+        aria-label={`Down ${Math.abs(row.rank_change)} positions from number ${row.previous_week_position} last week`}
+      >
+        <ArrowDown size={14} strokeWidth={2.4} />
+        <strong>{row.rank_change}</strong>
+      </span>
+    )
+  }
+
+  return (
+    <span
+      className="tlg-live-rank-change tlg-live-rank-change-same"
+      title={`Last week: #${row.previous_week_position}`}
+      aria-label={`No ranking change from number ${row.previous_week_position} last week`}
+    >
+      —
+    </span>
+  )
+}
+
 export default function RankingsPage() {
   const { player } = useAuth()
   const world = player?.world ?? 'ATP'
@@ -73,7 +117,7 @@ export default function RankingsPage() {
   const loadRankings = useCallback(async () => {
     setLoading(true)
     setError(null)
-    const { data, error: loadError } = await supabase.rpc('get_world_rankings_v1', {
+    const { data, error: loadError } = await supabase.rpc('get_world_rankings_v2', {
       p_world: world,
       p_offset: page * PAGE_SIZE,
       p_limit: PAGE_SIZE,
@@ -178,6 +222,7 @@ export default function RankingsPage() {
           <span>Rank</span>
           <span>Player</span>
           <span>Country</span>
+          <span>Weekly change</span>
           <span>Points</span>
         </div>
 
@@ -219,6 +264,7 @@ export default function RankingsPage() {
                   <strong className="tlg-live-rank-number">{row.rank_position}</strong>
                   <span className="tlg-live-player-name">{row.first_name} {row.last_name}</span>
                   <span className="tlg-live-country"><CountryFlag countryCode={row.country_code} countryName={row.country_code} width={22} height={15} /> {row.country_code}</span>
+                  <WeeklyRankChange row={row} />
                   <strong className="tlg-live-points">{row.ranking_points.toLocaleString()}</strong>
                 </Link>
               )
