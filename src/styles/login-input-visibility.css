@@ -1,0 +1,48 @@
+.tlg-auth-page .tlg-input-shell {
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px #d8e3ee;
+}
+
+.tlg-auth-page .tlg-input {
+  color: #102e49 !important;
+  background: #ffffff !important;
+  border-color: #d8e3ee !important;
+  caret-color: #0874d1;
+}
+
+.tlg-auth-page .tlg-input::placeholder {
+  color: #8c9cab !important;
+  opacity: 1;
+}
+
+.tlg-auth-page .tlg-input:focus {
+  color: #102e49 !important;
+  background: #ffffff !important;
+  border-color: #5aa7e8 !important;
+  box-shadow: 0 0 0 3px rgba(8, 116, 209, 0.16) !important;
+}
+
+.tlg-auth-page .tlg-input-leading-icon,
+.tlg-auth-page .tlg-input-action {
+  color: #58758f !important;
+}
+
+.tlg-auth-page .tlg-input-action:hover {
+  color: #0874d1 !important;
+}
+
+.tlg-auth-page .tlg-input:-webkit-autofill,
+.tlg-auth-page .tlg-input:-webkit-autofill:hover,
+.tlg-auth-page .tlg-input:-webkit-autofill:focus,
+.tlg-auth-page .tlg-input:-webkit-autofill:active {
+  -webkit-text-fill-color: #102e49 !important;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  transition: background-color 9999s ease-out 0s;
+}
+
+.tlg-auth-page .tlg-input-error,
+.tlg-auth-page .tlg-input-error:focus {
+  background: #ffffff !important;
+}
