@@ -5,8 +5,9 @@
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(3, 12, 23, .72);
-  backdrop-filter: blur(7px);
+  background: rgba(3, 12, 23, .62);
+  -webkit-backdrop-filter: blur(24px) saturate(.72);
+  backdrop-filter: blur(24px) saturate(.72);
 }
 
 .tlg-beta-modal {
@@ -38,17 +39,6 @@
 .tlg-beta-modal-close:hover {
   background: #f4f8fb;
   color: #173149;
-}
-
-.tlg-beta-modal-icon {
-  display: inline-grid;
-  place-items: center;
-  width: 50px;
-  height: 50px;
-  margin-bottom: 16px;
-  border-radius: 15px;
-  background: #eaf4ff;
-  color: #0874d1;
 }
 
 .tlg-beta-modal-eyebrow {
