@@ -2,6 +2,23 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+.tlg-staff-profile-name-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.tlg-staff-profile-name-line h3 {
+  margin: 0;
+}
+
+.tlg-staff-profile-name-line b {
+  color: #60788b;
+  font-size: .58rem;
+  font-weight: 750;
+}
+
 .tlg-staff-profile-section > header,
 .tlg-staff-profile-two-column article > header {
   gap: 0;
@@ -15,4 +32,15 @@
 
 .tlg-staff-profile-rule-note {
   gap: 0;
+}
+
+.tlg-staff-profile-engine-note {
+  margin-top: 8px;
+  padding: 9px 10px;
+  border: 1px solid #cfe7d9;
+  border-radius: 7px;
+  background: #f5fbf7;
+  color: #416b59;
+  font-size: .58rem;
+  line-height: 1.5;
 }
