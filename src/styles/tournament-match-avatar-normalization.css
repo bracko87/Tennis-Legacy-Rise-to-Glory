@@ -1,15 +1,16 @@
 /*
  * Tournament match portrait normalization
  *
- * Every player portrait uses exactly the same viewport and crop rule. The old
- * implementation used `object-fit: contain` plus per-file vertical offsets;
- * that made newer avatars appear at different scales/heights and broke the
- * intended common eye/chin/headroom lines.
+ * Every player portrait uses exactly the same viewport and crop rule. The
+ * source portraits are produced against the same white-background template,
+ * so the match UI must preserve that shared geometry rather than inventing
+ * avatar-specific shifts.
  *
- * Portrait source art is produced against the same white-background template,
- * so the UI must preserve that template rather than inventing avatar-specific
- * adjustments. Both sides therefore use a full-height, top-anchored cover crop
- * with no per-player transform.
+ * Portraits are intentionally shown slightly zoomed out so part of the neck /
+ * shoulders remains visible. The image is still anchored to the exact same top
+ * reference on both sides, which keeps the hair/headroom, eyes, nose, mouth and
+ * chin on the same horizontal guide lines when the source portraits follow the
+ * game portrait template.
  */
 
 .tlg-match-player-card-polished {
@@ -30,29 +31,32 @@
 
 /*
  * One immutable portrait geometry for every avatar:
- * - same stage dimensions on both sides
+ * - 90% shared portrait scale (slightly wider framing / more shoulders)
  * - same top/headroom reference
- * - same scale policy
- * - no historical image-specific shifts
+ * - horizontal centering only
+ * - no image-specific vertical adjustments
  *
- * Because the source portraits follow the common game portrait template, this
- * keeps hair/headroom, eye line and chin line in the same visual frame.
+ * `contain` is safe here because the generated player portraits share the same
+ * portrait canvas. Most importantly, the top edge never moves between players.
  */
 .tlg-match-player-portrait-stage.has-image img {
   position: absolute !important;
-  inset: 0 !important;
+  top: 0 !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
   display: block !important;
-  width: 100% !important;
-  height: 100% !important;
+  width: 90% !important;
+  height: 90% !important;
   max-width: none !important;
   max-height: none !important;
-  object-fit: cover !important;
+  object-fit: contain !important;
   object-position: 50% 0% !important;
-  transform: none !important;
+  transform: translateX(-50%) !important;
   transform-origin: 50% 0% !important;
 }
 
-/* Explicitly keep the exact same crop geometry on the mirrored opponent side. */
+/* Explicitly keep the exact same portrait stage geometry on both mirrored sides. */
 .tlg-match-versus > .tlg-match-player-card-polished:first-child .tlg-match-player-portrait-stage,
 .tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-portrait-stage {
   top: 0 !important;
@@ -62,11 +66,13 @@
 
 .tlg-match-versus > .tlg-match-player-card-polished:first-child .tlg-match-player-portrait-stage.has-image img,
 .tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-portrait-stage.has-image img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
+  top: 0 !important;
+  left: 50% !important;
+  width: 90% !important;
+  height: 90% !important;
+  object-fit: contain !important;
   object-position: 50% 0% !important;
-  transform: none !important;
+  transform: translateX(-50%) !important;
 }
 
 /* Keep the image-side fade on the same pure-white portrait canvas. */
@@ -78,21 +84,23 @@
   background: linear-gradient(270deg,rgba(255,255,255,0) 45%,#fff 96%) !important;
 }
 
-/* The crop rule intentionally stays identical at every responsive breakpoint. */
+/* The shared 90% scale and top anchor stay identical at every breakpoint. */
 @media(max-width:980px) {
   .tlg-match-player-portrait-stage.has-image img {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
+    width: 90% !important;
+    height: 90% !important;
+    object-fit: contain !important;
     object-position: 50% 0% !important;
+    transform: translateX(-50%) !important;
   }
 }
 
 @media(max-width:680px) {
   .tlg-match-player-portrait-stage.has-image img {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
+    width: 90% !important;
+    height: 90% !important;
+    object-fit: contain !important;
     object-position: 50% 0% !important;
+    transform: translateX(-50%) !important;
   }
 }
