@@ -1,0 +1,28 @@
+name: Temp Private Life market history sell
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-private-life-market-history-sell.yml'
+permissions:
+  contents: write
+jobs:
+  patch-build-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: python .github/scripts/private_life_market_history_sell_patch.py
+      - run: npm ci
+      - run: npm run build
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/pages/dashboard/PrivateLife.tsx src/components/private-life/PrivateLifeInvestments.tsx src/styles/private-life-history.css src/styles/private-life-investments.css
+          git commit -m "Add permanent paginated history daily market chart and portfolio sell" || exit 0
+          git push
