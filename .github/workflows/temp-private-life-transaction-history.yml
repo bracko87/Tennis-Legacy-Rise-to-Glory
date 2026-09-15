@@ -1,0 +1,28 @@
+name: Temp Private Life transaction history
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-private-life-transaction-history.yml'
+permissions:
+  contents: write
+jobs:
+  patch-build-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: python .github/scripts/private_life_transaction_history_patch.py
+      - run: npm ci
+      - run: npm run build
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/pages/dashboard/PrivateLife.tsx
+          git commit -m "Show Private Life asset transactions in popup" || exit 0
+          git push
