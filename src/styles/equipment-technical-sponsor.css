@@ -80,3 +80,66 @@
   .tlg-technical-sponsor-toolbar{grid-template-columns:1fr}
   .tlg-technical-sponsor-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* Current Match Setup must size from the panel itself, not only the viewport.
+   This prevents the three gear cards from overflowing when the sidebar leaves
+   less usable width than the media-query breakpoint suggests. */
+.tlg-equipment-slot-grid-three{
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));
+  align-items:stretch;
+}
+.tlg-equipment-slot-grid-three>.tlg-equipment-slot,
+.tlg-equipment-accessory-slot-grid>.tlg-equipment-slot{
+  min-width:0;
+  max-width:100%;
+  box-sizing:border-box;
+}
+.tlg-equipment-slot-v2{
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+  box-sizing:border-box;
+}
+.tlg-equipment-slot-v2 .slot-head,
+.tlg-equipment-slot-v2 h3,
+.tlg-equipment-slot-v2>strong,
+.tlg-equipment-slot-v2 p,
+.tlg-equipment-slot-v2 small{
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+.tlg-equipment-accessory-loadout{
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+  margin-top:0;
+  padding:14px 18px 18px;
+}
+.tlg-equipment-accessory-slot-grid{
+  grid-template-columns:repeat(auto-fill,minmax(min(100%,360px),1fr));
+  min-width:0;
+}
+.tlg-equipment-accessory-loadout-head{
+  min-width:0;
+}
+.tlg-equipment-accessory-loadout-head span{
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+.tlg-equipment-accessory-loadout-head b{
+  flex:0 0 auto;
+  white-space:nowrap;
+}
+
+@media(max-width:520px){
+  .tlg-equipment-slot-v2,
+  .tlg-equipment-slot.compact{
+    padding-left:13px;
+    padding-top:82px;
+  }
+  .tlg-equipment-slot-v2 .tlg-equipment-slot-image,
+  .tlg-equipment-slot.compact .tlg-equipment-slot-image{
+    top:13px;
+    left:13px;
+  }
+}
