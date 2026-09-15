@@ -33,6 +33,13 @@
   border-color: #bcdced;
 }
 
+/* Main-draw acceptance reserves the whole tournament week before the exact
+   first-match/travel schedule exists. Keep it deliberately very light. */
+.tlg-calendar-day-tournament-accepted {
+  background: #f4fbf6;
+  border-color: #c5e6d0;
+}
+
 .tlg-calendar-day-tournament-completed {
   background: #0f659f;
   border-color: #0a507f;
@@ -132,6 +139,14 @@
 
 .tlg-calendar-player-activity.tournament.predicted > strong {
   color: #365e76;
+}
+
+.tlg-calendar-player-activity.tournament.accepted {
+  color: #4d8962;
+}
+
+.tlg-calendar-player-activity.tournament.accepted > strong {
+  color: #315f42;
 }
 
 .tlg-calendar-player-activity.tournament.completed {

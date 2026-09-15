@@ -133,6 +133,7 @@ function playerActivityLabel(activity: PlayerCalendarActivityRow['activity_type'
 
 function playerActivityPriority(activity: PlayerCalendarActivityRow) {
   if (activity.activity_type === 'injured') return 1
+  if (activity.activity_type === 'tournament' && activity.source === 'tournament_accepted') return 8
   if (activity.activity_type === 'tournament' && activity.source !== 'tournament_predicted') return 2
   if (activity.activity_type === 'travel') return 3
   if (activity.activity_type === 'training_camp') return 4
@@ -239,7 +240,7 @@ function SeasonCalendarView() {
       <div className="tlg-season-calendar-toolbar">
         <div className="tlg-season-calendar-copy">
           <h4>Season {clock.season} · {month.name}</h4>
-          <p>Today: Season {clock.season} · {todayWeekday} · {clock.month} {clock.day}. Confirmed match days are secured; predicted tournament days remain planning days until progression makes them certain.</p>
+          <p>Today: Season {clock.season} · {todayWeekday} · {clock.month} {clock.day}. Accepted main-draw weeks are reserved with a light overlay until your first match schedule is known. Confirmed match days are secured; predicted tournament days remain planning days until progression makes them certain.</p>
         </div>
         {monthNavigation('Calendar month navigation')}
       </div>
@@ -255,9 +256,10 @@ function SeasonCalendarView() {
           const activityAbsoluteDay = activity ? absoluteGameDay(activity.season, activity.month - 1, activity.day) : null
           const tournamentCompleted = activity?.activity_type === 'tournament'
             && (activity.source === 'tournament_completed' || (activityAbsoluteDay !== null && activityAbsoluteDay < todayAbsoluteDay))
+          const tournamentAccepted = activity?.activity_type === 'tournament' && activity.source === 'tournament_accepted'
           const tournamentPredicted = activity?.activity_type === 'tournament' && activity.source === 'tournament_predicted'
-          const tournamentConfirmed = activity?.activity_type === 'tournament' && !tournamentCompleted && !tournamentPredicted
-          const tournamentState = tournamentCompleted ? 'completed' : tournamentPredicted ? 'predicted' : tournamentConfirmed ? 'confirmed' : ''
+          const tournamentConfirmed = activity?.activity_type === 'tournament' && !tournamentCompleted && !tournamentAccepted && !tournamentPredicted
+          const tournamentState = tournamentCompleted ? 'completed' : tournamentAccepted ? 'accepted' : tournamentPredicted ? 'predicted' : tournamentConfirmed ? 'confirmed' : ''
           const classes = ['tlg-calendar-day']
           if (current) classes.push('tlg-calendar-day-current')
           if (activity) classes.push(`tlg-calendar-day-${activity.activity_type}`)
@@ -273,7 +275,7 @@ function SeasonCalendarView() {
                   <div className={`tlg-calendar-player-activity ${activity.activity_type}${tournamentState ? ` ${tournamentState}` : ''}`}>
                     {activity.activity_type === 'travel' && <Plane size={13} className="tlg-calendar-travel-icon" aria-hidden="true" />}
                     <span>{activity.activity_type === 'tournament'
-                      ? `Tournament · ${tournamentCompleted ? 'Played' : tournamentPredicted ? 'Predicted' : 'Confirmed'}`
+                      ? `Tournament · ${tournamentCompleted ? 'Played' : tournamentAccepted ? 'Accepted' : tournamentPredicted ? 'Predicted' : 'Confirmed'}`
                       : playerActivityLabel(activity.activity_type)}</span>
                     <strong>{activity.note || playerActivityLabel(activity.activity_type)}</strong>
                   </div>
