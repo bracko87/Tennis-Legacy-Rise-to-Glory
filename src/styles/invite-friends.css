@@ -42,7 +42,8 @@
 .tlg-invite-note,
 .tlg-invite-empty p,
 .tlg-invite-how-it-works li,
-.tlg-invite-info-box p {
+.tlg-invite-info-box p,
+.tlg-invite-success-box p {
   color: #607a8f;
   line-height: 1.55;
 }
@@ -56,6 +57,12 @@
   color: #896200;
   font-size: 0.72rem;
   font-weight: 700;
+}
+
+.tlg-invite-status-live {
+  border-color: #9bd9bc;
+  background: #eefaf4;
+  color: #16764b;
 }
 
 .tlg-invite-panel {
@@ -93,14 +100,37 @@
   background: #f7fafc;
   color: #8ba0af;
   font-size: 0.78rem;
+  min-width: 0;
+}
+
+.tlg-invite-link-placeholder span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tlg-invite-link-live {
+  color: #274b67;
+  background: #fbfdff;
 }
 
 .tlg-invite-link-row button {
   min-height: 44px;
-  border: 1px solid #a9b9c7;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid #17375c;
   border-radius: 8px;
   padding: 0 18px;
   font-weight: 700;
+  background: #17375c;
+  color: #fff;
+  cursor: pointer;
+}
+
+.tlg-invite-link-row button:disabled {
+  border-color: #cfdbe5;
   background: #e5edf3;
   color: #7f909c;
   cursor: not-allowed;
@@ -108,9 +138,13 @@
 }
 
 .tlg-invite-secondary-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
+  background: #fff !important;
+  color: #17375c !important;
+}
+
+.tlg-invite-secondary-button:disabled {
+  background: #e5edf3 !important;
+  color: #7f909c !important;
 }
 
 .tlg-invite-note {
@@ -146,6 +180,39 @@
   font-size: 1.2rem;
 }
 
+.tlg-invite-reward-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.tlg-invite-reward-grid article {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #dbe5ee;
+  border-radius: 10px;
+  background: #f9fbfd;
+  color: #0f7b50;
+}
+
+.tlg-invite-reward-grid article div {
+  display: grid;
+  gap: 4px;
+}
+
+.tlg-invite-reward-grid strong {
+  color: #14334c;
+  font-size: 0.86rem;
+}
+
+.tlg-invite-reward-grid span {
+  color: #6d8293;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
 .tlg-invite-empty {
   min-height: 170px;
   display: flex;
@@ -170,6 +237,66 @@
 .tlg-invite-empty p {
   max-width: 560px;
   margin: 0;
+  font-size: 0.75rem;
+}
+
+.tlg-invite-activity-list {
+  display: grid;
+  gap: 8px;
+}
+
+.tlg-invite-activity-list article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 14px;
+  border: 1px solid #e1e9f0;
+  border-radius: 10px;
+  background: #fbfdff;
+}
+
+.tlg-invite-activity-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.tlg-invite-activity-main div,
+.tlg-invite-activity-rewards {
+  display: grid;
+  gap: 3px;
+}
+
+.tlg-invite-activity-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #eef5fb;
+  color: #1a6fae;
+}
+
+.tlg-invite-activity-main strong {
+  color: #183950;
+  font-size: 0.8rem;
+}
+
+.tlg-invite-activity-main span,
+.tlg-invite-activity-rewards span {
+  color: #71889a;
+  font-size: 0.69rem;
+}
+
+.tlg-invite-activity-rewards {
+  text-align: right;
+}
+
+.tlg-invite-activity-rewards strong {
+  color: #0b8352;
   font-size: 0.75rem;
 }
 
@@ -202,9 +329,41 @@
   font-size: 0.72rem;
 }
 
+.tlg-invite-success-box {
+  margin-top: 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid #a6dcc0;
+  border-radius: 9px;
+  background: #f0faf5;
+  color: #0b8352;
+}
+
+.tlg-invite-success-box div {
+  display: grid;
+  gap: 3px;
+}
+
+.tlg-invite-success-box strong {
+  color: #176a49;
+  font-size: 0.78rem;
+}
+
+.tlg-invite-success-box p {
+  margin: 0;
+  color: #5a7f70;
+  font-size: 0.72rem;
+}
+
 @media (max-width: 1000px) {
   .tlg-invite-overview-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tlg-invite-reward-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -223,6 +382,16 @@
 
   .tlg-invite-overview-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tlg-invite-activity-list article {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .tlg-invite-activity-rewards {
+    text-align: left;
+    padding-left: 44px;
   }
 }
 
