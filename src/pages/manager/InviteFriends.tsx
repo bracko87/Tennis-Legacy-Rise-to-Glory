@@ -1,5 +1,6 @@
-import { CheckCircle2, Coins, Copy, Link2, Share2, UsersRound } from 'lucide-react'
+import { CheckCircle2, Coins, Copy, Link2, Share2, ShieldCheck, Trophy, UsersRound } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router'
 
 import GameLayout from '../../components/layout/GameLayout'
 import { supabase } from '../../lib/supabase'
@@ -17,8 +18,31 @@ interface ReferralActivityItem {
   premium_purchase_rewarded: boolean | null
 }
 
+interface ContestPrize {
+  rank_from: number
+  rank_to: number
+  title: string
+  coins: number
+  premium_days: number
+  badge_code: string | null
+}
+
+interface ReferralContest {
+  id: string
+  name: string
+  description: string
+  starts_at: string
+  ends_at: string
+  validation_deadline: string
+  status: 'active' | 'validation' | 'finalized'
+  your_rank: number | null
+  your_valid_referrals: number | null
+  prizes: ContestPrize[]
+}
+
 interface ReferralDashboard {
   code: string
+  is_admin?: boolean
   stats: {
     total: number
     pending: number
@@ -35,6 +59,7 @@ interface ReferralDashboard {
     minimum_active_days: number
   }
   activity: ReferralActivityItem[]
+  contests?: ReferralContest[]
 }
 
 function formatDate(value: string) {
@@ -51,6 +76,20 @@ function statusLabel(item: ReferralActivityItem) {
   if (item.status === 'rewarded') return 'Rewarded referral'
   if (item.status === 'rejected') return 'Rejected'
   return 'Invalid'
+}
+
+function contestStatusLabel(status: ReferralContest['status']) {
+  if (status === 'active') return 'Live contest'
+  if (status === 'validation') return 'Validation period'
+  return 'Finalized'
+}
+
+function prizeLabel(prize: ContestPrize) {
+  const parts: string[] = []
+  if (prize.coins) parts.push(`${prize.coins} Coins`)
+  if (prize.premium_days) parts.push(`${prize.premium_days} Premium days`)
+  if (prize.badge_code) parts.push(prize.badge_code.replace(/_/g, ' '))
+  return parts.join(' + ')
 }
 
 export default function InviteFriendsPage() {
@@ -111,6 +150,7 @@ export default function InviteFriendsPage() {
 
   const stats = dashboard?.stats
   const rules = dashboard?.rules
+  const contests = dashboard?.contests ?? []
   const overviewItems = [
     ['Total referrals', stats?.total ?? 0],
     ['Pending', stats?.pending ?? 0],
@@ -130,7 +170,10 @@ export default function InviteFriendsPage() {
               Share your personal Tennis Legacy invite. Genuine new players can earn you one-time Coin rewards after they verify their account, create a career and complete the activation requirements.
             </p>
           </div>
-          <span className="tlg-invite-status tlg-invite-status-live">Referral tracking live</span>
+          <div className="tlg-invite-intro-actions">
+            <span className="tlg-invite-status tlg-invite-status-live">Referral tracking live</span>
+            {dashboard?.is_admin && <Link className="tlg-invite-admin-link" to="/game/referral-admin"><ShieldCheck size={15} /> Admin controls</Link>}
+          </div>
         </section>
 
         <section className="tlg-invite-panel">
@@ -174,6 +217,44 @@ export default function InviteFriendsPage() {
           </div>
         </section>
 
+        {contests.length > 0 && (
+          <section className="tlg-invite-panel">
+            <header>
+              <div>
+                <h3>Referral contests</h3>
+                <p>Limited-time competitions count only valid referrals. Suspicious or rejected referrals never count toward rankings.</p>
+              </div>
+            </header>
+            <div className="tlg-invite-contest-grid">
+              {contests.map((contest) => (
+                <article key={contest.id}>
+                  <div className="tlg-invite-contest-head">
+                    <span><Trophy size={15} /> {contestStatusLabel(contest.status)}</span>
+                    <strong>{contest.name}</strong>
+                    <p>{contest.description || 'Referral competition'}</p>
+                  </div>
+                  <div className="tlg-invite-contest-dates">
+                    <span>{formatDate(contest.starts_at)} – {formatDate(contest.ends_at)}</span>
+                    <small>Validation until {formatDate(contest.validation_deadline)}</small>
+                  </div>
+                  <div className="tlg-invite-contest-you">
+                    <div><span>Your rank</span><strong>{contest.your_rank ? `#${contest.your_rank}` : '—'}</strong></div>
+                    <div><span>Your valid referrals</span><strong>{contest.your_valid_referrals ?? 0}</strong></div>
+                  </div>
+                  <div className="tlg-invite-contest-prizes">
+                    {contest.prizes.map((prize, index) => (
+                      <div key={`${contest.id}-${index}`}>
+                        <span>#{prize.rank_from}{prize.rank_to !== prize.rank_from ? `–${prize.rank_to}` : ''}</span>
+                        <strong>{prizeLabel(prize)}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section className="tlg-invite-panel">
           <header>
             <div>
@@ -189,7 +270,7 @@ export default function InviteFriendsPage() {
           </div>
 
           <div className="tlg-invite-info-box">
-            <strong>Maximum standard reward pool: 10 valid referrals.</strong>
+            <strong>Maximum standard reward pool: {rules?.max_rewardable_referrals ?? 10} valid referrals.</strong>
             <p>Each of the three gifts can be paid only once per reward-eligible referred account. Purchase rewards are issued only from successful backend billing transactions.</p>
           </div>
         </section>
