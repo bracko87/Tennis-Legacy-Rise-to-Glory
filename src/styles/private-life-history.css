@@ -1,18 +1,138 @@
 .private-life-asset-history {
-  margin-top: 14px;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 1200;
+  width: min(980px, calc(100vw - 36px));
+  max-height: min(760px, calc(100vh - 48px));
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
   border: 1px solid #d7e1ec;
-  border-radius: 14px;
+  border-radius: 18px;
   background: #fff;
   overflow: hidden;
+  box-shadow: 0 0 0 100vmax rgba(10, 24, 40, 0.58), 0 24px 70px rgba(15, 36, 58, 0.28);
 }
-.private-life-asset-history-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; border-bottom: 1px solid #e4ebf2; }
-.private-life-asset-history-head strong { display: block; color: #102a43; font-size: 15px; }
-.private-life-asset-history-head span { display: block; margin-top: 4px; color: #6b7f95; font-size: 12px; }
-.private-life-asset-history-table-wrap { overflow-x: auto; }
-.private-life-asset-history-table { width: 100%; border-collapse: collapse; min-width: 720px; }
-.private-life-asset-history-table th { padding: 10px 14px; background: #f6f9fc; color: #71849a; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; text-align: left; }
-.private-life-asset-history-table td { padding: 12px 14px; border-top: 1px solid #e8eef4; vertical-align: top; color: #17324d; font-size: 12px; }
-.private-life-asset-history-table td strong { display: block; font-size: 12px; }
-.private-life-asset-history-table td span { display: block; margin-top: 3px; color: #7890a8; font-size: 11px; }
-.private-life-asset-history-state { padding: 18px; color: #6b7f95; font-size: 12px; }
+
+.private-life-asset-history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #e4ebf2;
+  background: #fbfcfe;
+}
+
+.private-life-asset-history-head strong {
+  display: block;
+  color: #102a43;
+  font-size: 17px;
+}
+
+.private-life-asset-history-head span {
+  display: block;
+  margin-top: 4px;
+  color: #6b7f95;
+  font-size: 12px;
+}
+
+.private-life-asset-history-close {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #cfdae6;
+  border-radius: 999px;
+  background: #fff;
+  color: #31465d;
+  cursor: pointer;
+  font: inherit;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.private-life-asset-history-table-wrap {
+  overflow: auto;
+}
+
+.private-life-asset-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 820px;
+}
+
+.private-life-asset-history-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 11px 14px;
+  background: #f6f9fc;
+  color: #71849a;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  text-align: left;
+}
+
+.private-life-asset-history-table td {
+  padding: 13px 14px;
+  border-top: 1px solid #e8eef4;
+  vertical-align: top;
+  color: #17324d;
+  font-size: 12px;
+}
+
+.private-life-asset-history-table td strong {
+  display: block;
+  font-size: 12px;
+}
+
+.private-life-asset-history-table td span {
+  display: block;
+  margin-top: 3px;
+  color: #7890a8;
+  font-size: 11px;
+}
+
+.private-life-asset-history-type {
+  display: inline-flex !important;
+  width: fit-content;
+  margin: 0 !important;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #eef3f8;
+  color: #445d75 !important;
+  font-size: 10px !important;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.private-life-asset-history-type.purchase { background: #fff4dc; color: #a45d05 !important; }
+.private-life-asset-history-type.sale { background: #e8f7ef; color: #17754d !important; }
+.private-life-asset-history-type.running_cost { background: #fff0ef; color: #a33d37 !important; }
+.private-life-asset-history-type.starter_home { background: #edf2ff; color: #4359a8 !important; }
+
+.private-life-asset-history-amount.positive { color: #17754d; }
+.private-life-asset-history-amount.negative { color: #a33d37; }
+.private-life-asset-history-amount.neutral { color: #31465d; }
+
+.private-life-asset-history-state {
+  padding: 22px;
+  color: #6b7f95;
+  font-size: 12px;
+}
+
 .private-life-asset-history-state.error { color: #b42318; }
+
+@media (max-width: 700px) {
+  .private-life-asset-history {
+    width: calc(100vw - 20px);
+    max-height: calc(100vh - 28px);
+  }
+
+  .private-life-asset-history-head {
+    padding: 15px 16px;
+  }
+}
