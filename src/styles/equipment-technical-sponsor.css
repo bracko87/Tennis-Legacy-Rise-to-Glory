@@ -1,0 +1,82 @@
+.tlg-equipment-summary-strip-v3{grid-template-columns:repeat(4,minmax(0,1fr))}
+.tlg-equipment-slot-grid-three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.tlg-equipment-wear-note-v3{grid-template-columns:repeat(4,minmax(0,1fr))}
+.tlg-equipment-wear-note-v3>p{grid-column:1/-1}
+
+.tlg-equipment-accessory-loadout{margin-top:15px;padding-top:14px;border-top:1px solid #e4ebef}
+.tlg-equipment-accessory-loadout-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;color:#667e90;font-size:.58rem;font-weight:850;letter-spacing:.08em}
+.tlg-equipment-accessory-loadout-head b{color:#24475e;font-size:.62rem;letter-spacing:0}
+.tlg-equipment-accessory-slot-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tlg-equipment-slot.compact{min-height:132px;padding:13px 13px 12px 88px}
+.tlg-equipment-slot.compact .tlg-equipment-slot-image{top:13px;left:13px}
+.tlg-equipment-slot.compact h3{margin-top:11px;font-size:.75rem}
+.tlg-equipment-slot.compact strong{font-size:.65rem}
+.tlg-equipment-slot.compact p{margin-top:4px;font-size:.55rem}
+.tlg-equipment-accessory-empty{margin:0;padding:16px;border:1px dashed #d8e2e8;border-radius:9px;color:#718697;background:#fbfdfe;font-size:.64rem;text-align:center}
+
+.tlg-equipment-effects-grid-expanded{grid-template-columns:repeat(6,minmax(0,1fr))}
+
+.tlg-equipment-brand-identity{display:flex;align-items:center;gap:7px;min-height:26px;margin:9px 17px 0}
+.tlg-equipment-brand-identity img{display:block;width:62px;height:34px;object-fit:contain;border:1px solid #e4ebef;border-radius:6px;background:#fff}
+.tlg-equipment-brand-identity span{color:#718697;font-size:.52rem;font-weight:800;text-transform:capitalize}
+.tlg-equipment-detail-content>.tlg-equipment-brand-identity{margin:0 0 8px}
+.tlg-equipment-detail-content>.tlg-equipment-brand-identity img{width:76px;height:42px}
+.tlg-equipment-owned-card-body>.tlg-equipment-brand-identity{margin:0}
+
+.tlg-equipment-effect-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.tlg-equipment-effect-chips span{padding:4px 7px;border-radius:999px;color:#26704e;background:#edf8f2;font-size:.52rem;font-weight:760}
+.tlg-equipment-effect-chips span.negative{color:#9a5252;background:#fff0f0}
+.tlg-equipment-effect-heading{margin:15px 0 0;color:#38556a;font-size:.63rem;text-transform:uppercase;letter-spacing:.05em}
+
+.tlg-technical-sponsor-panel{overflow:hidden}
+.tlg-technical-tier-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;padding:15px 18px;border-bottom:1px solid #e5ebef;background:#fbfdfe}
+.tlg-technical-tier-grid article{display:grid;gap:4px;padding:12px;border:1px solid #dfe7ed;border-radius:10px;background:#fff}
+.tlg-technical-tier-grid span{color:#6f8495;font-size:.53rem;font-weight:850;letter-spacing:.07em;text-transform:uppercase}
+.tlg-technical-tier-grid strong{color:#1c4058;font-size:.79rem}
+.tlg-technical-tier-grid p{margin:2px 0 0;color:#506e82;font-size:.58rem;line-height:1.4}
+.tlg-technical-tier-grid small{color:#8293a0;font-size:.52rem;line-height:1.45}
+
+.tlg-technical-sponsor-toolbar{display:grid;grid-template-columns:minmax(260px,1fr) 180px 160px;gap:9px;padding:13px 18px;border-bottom:1px solid #e6edf1;background:#f7fafc}
+.tlg-technical-sponsor-toolbar input,.tlg-technical-sponsor-toolbar select{min-height:38px;padding:0 11px;border:1px solid #d5e0e7;border-radius:8px;color:#29475e;background:#fff;font-size:.64rem;outline:none}
+.tlg-technical-sponsor-toolbar input:focus,.tlg-technical-sponsor-toolbar select:focus{border-color:#8cc4df;box-shadow:0 0 0 2px rgba(39,137,187,.08)}
+
+.tlg-technical-sponsor-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:17px 18px 20px}
+.tlg-technical-sponsor-card{display:grid;gap:10px;padding:14px;border:1px solid #dfe7ed;border-radius:12px;background:#fff;box-shadow:0 4px 15px rgba(25,55,76,.04)}
+.tlg-technical-sponsor-logo{display:grid;place-items:center;height:74px;overflow:hidden;border:1px solid #e6edf2;border-radius:9px;background:#fff}
+.tlg-technical-sponsor-logo img{display:block;width:100%;height:100%;object-fit:contain}
+.tlg-technical-sponsor-logo span{color:#4d687b;font-size:1rem;font-weight:900}
+.tlg-technical-sponsor-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.tlg-technical-sponsor-card-head span{color:#8293a0;font-size:.51rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+.tlg-technical-sponsor-card-head h3{margin:3px 0 0;color:#17344b;font-size:.9rem}
+.tlg-technical-sponsor-card-head .tier{padding:4px 7px;border-radius:999px;font-size:.49rem;white-space:nowrap}
+.tlg-technical-sponsor-card-head .tier.entry{color:#657c8c;background:#eef3f6}
+.tlg-technical-sponsor-card-head .tier.established{color:#386f53;background:#edf8f2}
+.tlg-technical-sponsor-card-head .tier.premium{color:#866919;background:#fff6df}
+.tlg-technical-sponsor-card-head .tier.elite{color:#6b50a2;background:#f2edfb}
+.tlg-technical-sponsor-card>p{margin:0;color:#667d8f;font-size:.61rem;line-height:1.45}
+.tlg-technical-sponsor-categories{display:flex;flex-wrap:wrap;gap:5px}
+.tlg-technical-sponsor-categories span{padding:4px 7px;border-radius:999px;color:#486c83;background:#edf4f8;font-size:.51rem;font-weight:750}
+.tlg-technical-sponsor-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.tlg-technical-sponsor-metrics div{display:grid;gap:2px;padding:7px;border-radius:7px;background:#f6f9fb}
+.tlg-technical-sponsor-metrics span{color:#8293a0;font-size:.47rem;text-transform:uppercase}
+.tlg-technical-sponsor-metrics strong{color:#29475e;font-size:.58rem}
+.tlg-technical-sponsor-terms{display:grid;grid-template-columns:1fr 1fr;margin:0;border:1px solid #e6edf1;border-radius:8px;overflow:hidden}
+.tlg-technical-sponsor-terms div{padding:7px 8px;border-top:1px solid #edf1f4}
+.tlg-technical-sponsor-terms div:nth-child(-n+2){border-top:0}
+.tlg-technical-sponsor-terms div:nth-child(even){border-left:1px solid #edf1f4}
+.tlg-technical-sponsor-terms dt{color:#81929f;font-size:.48rem;font-weight:760}
+.tlg-technical-sponsor-terms dd{margin:2px 0 0;color:#3b5a70;font-size:.54rem;line-height:1.35}
+
+@media(max-width:1100px){
+  .tlg-equipment-summary-strip-v3,.tlg-equipment-wear-note-v3{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tlg-equipment-slot-grid-three,.tlg-equipment-accessory-slot-grid,.tlg-technical-sponsor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tlg-equipment-effects-grid-expanded{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .tlg-technical-tier-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+@media(max-width:760px){
+  .tlg-equipment-summary-strip-v3,.tlg-equipment-wear-note-v3,.tlg-equipment-slot-grid-three,.tlg-equipment-accessory-slot-grid,.tlg-technical-sponsor-grid,.tlg-technical-tier-grid{grid-template-columns:1fr}
+  .tlg-equipment-effects-grid-expanded{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tlg-technical-sponsor-toolbar{grid-template-columns:1fr}
+  .tlg-technical-sponsor-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
