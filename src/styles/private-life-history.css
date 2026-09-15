@@ -96,23 +96,19 @@
 }
 
 .private-life-asset-history-type {
-  display: inline-flex !important;
-  width: fit-content;
+  display: inline !important;
   margin: 0 !important;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: #eef3f8;
-  color: #445d75 !important;
-  font-size: 10px !important;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .04em;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  color: #31465d !important;
+  font-size: 11px !important;
+  font-weight: 750;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
-.private-life-asset-history-type.purchase { background: #fff4dc; color: #a45d05 !important; }
-.private-life-asset-history-type.sale { background: #e8f7ef; color: #17754d !important; }
-.private-life-asset-history-type.running_cost { background: #fff0ef; color: #a33d37 !important; }
-.private-life-asset-history-type.starter_home { background: #edf2ff; color: #4359a8 !important; }
 
 .private-life-asset-history-amount.positive { color: #17754d; }
 .private-life-asset-history-amount.negative { color: #a33d37; }
@@ -136,3 +132,28 @@
     padding: 15px 16px;
   }
 }
+
+.private-life-asset-history-pagination {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-top: 1px solid #e4ebf2;
+  background: #fbfcfe;
+}
+.private-life-asset-history-pagination button {
+  min-height: 30px;
+  padding: 6px 11px;
+  border: 1px solid #d4dee9;
+  border-radius: 8px;
+  background: #fff;
+  color: #435269;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 750;
+}
+.private-life-asset-history-pagination button:disabled { opacity: .4; cursor: default; }
+.private-life-asset-history-pagination span { text-align: center; color: #7d899b; font-size: 10px; }
+.private-life-asset-history-pagination span strong { color: #324258; }

@@ -9,6 +9,7 @@ type TradeSide = 'buy' | 'sell'
 type MarketSort = 'default' | 'move_desc' | 'price_asc' | 'price_desc' | 'symbol'
 
 const STOCK_PAGE_SIZE = 10
+const INVESTMENT_HISTORY_PAGE_SIZE = 10
 
 type QuoteMetadata = {
   change_1d_pct?: number | null
@@ -78,6 +79,16 @@ type InvestmentPosition = {
   average_buy_price: number
   return_pct?: number
   daily_move_pct?: number | null
+}
+
+type DailyHistoryPoint = {
+  game_day_index: number
+  game_total_seconds: number
+  open: number
+  close: number
+  low: number
+  high: number
+  snapshots: number
 }
 
 type InvestmentTrade = {
@@ -210,6 +221,19 @@ function gameTimeFromSeconds(value: unknown) {
   return `Season ${season} · ${monthName} ${day} · ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
 }
 
+function gameDayFromAbsolute(value: number) {
+  const raw = Math.max(0, Math.floor(Number(value || 0)))
+  const season = Math.floor(raw / 366) + 1
+  let dayIndex = raw % 366
+  let monthName = 'January'
+  let day = 1
+  for (const [name, days] of GAME_MONTHS) {
+    if (dayIndex < days) { monthName = name; day = dayIndex + 1; break }
+    dayIndex -= days
+  }
+  return `Season ${season} · ${monthName} ${day}`
+}
+
 function gameTimeLabel(metadata?: QuoteMetadata | null, mode: 'change' | 'checked' = 'change') {
   return gameTimeFromSeconds(mode === 'checked' ? metadata?.game_checked_total_seconds : metadata?.game_last_change_total_seconds)
 }
@@ -276,7 +300,45 @@ function Sparkline({ history, currency }: { history?: unknown[]; currency: strin
   )
 }
 
-function MarketTrendPanel({ instrument, currency }: { instrument: InvestmentInstrument; currency: string }) {
+function DailyMarketChart({ history, currency }: { history: DailyHistoryPoint[]; currency: string }) {
+  if (history.length < 2) return <div className="private-life-market-chart-empty">Daily trend will appear after prices have been captured on at least two game days.</div>
+  const data = history.slice(-30)
+  const width = 320
+  const height = 126
+  const left = 34
+  const right = 8
+  const top = 8
+  const bottom = 28
+  const values = data.map((point) => Number(point.close))
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const spread = Math.max(max - min, Math.abs(max) * 0.002, 0.000001)
+  const coords = data.map((point, index) => ({
+    point,
+    x: left + (index / Math.max(1, data.length - 1)) * (width - left - right),
+    y: height - bottom - ((Number(point.close) - min) / spread) * (height - top - bottom),
+  }))
+  const positive = values[values.length - 1] >= values[0]
+  const labelEvery = Math.max(1, Math.ceil(data.length / 6))
+  return (
+    <svg className={`private-life-daily-market-chart ${positive ? 'positive' : 'negative'}`} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Daily game-date market trend">
+      {[0, 1, 2, 3, 4].map((line) => {
+        const y = top + (line / 4) * (height - top - bottom)
+        return <line key={`h-${line}`} x1={left} x2={width - right} y1={y} y2={y} className="grid-line" />
+      })}
+      {coords.map(({ x }, index) => index % labelEvery === 0 || index === coords.length - 1 ? <line key={`v-${index}`} x1={x} x2={x} y1={top} y2={height - bottom} className="grid-line vertical" /> : null)}
+      <polyline points={coords.map(({ x, y }) => `${x.toFixed(2)},${y.toFixed(2)}`).join(' ')} fill="none" vectorEffect="non-scaling-stroke" />
+      {coords.map(({ x, y, point }, index) => (
+        <g key={`${point.game_day_index}-${index}`}>
+          <circle cx={x} cy={y} r="7" fill="transparent"><title>{`${gameTimeFromSeconds(point.game_total_seconds)} · Close ${marketPrice(Number(point.close), currency)} · Open ${marketPrice(Number(point.open), currency)} · Low ${marketPrice(Number(point.low), currency)} · High ${marketPrice(Number(point.high), currency)}`}</title></circle>
+          {(index % labelEvery === 0 || index === coords.length - 1) ? <text x={x} y={height - 8} textAnchor="middle">D{point.game_day_index + 1}</text> : null}
+        </g>
+      ))}
+    </svg>
+  )
+}
+
+function MarketTrendPanel({ instrument, currency, dailyHistory, dailyLoading }: { instrument: InvestmentInstrument; currency: string; dailyHistory: DailyHistoryPoint[]; dailyLoading: boolean }) {
   const stats = instrument.quote_metadata ?? {}
   const intraday = Array.isArray(stats.intraday_history) ? stats.intraday_history : []
   const chartHistory = historyValues(intraday).length >= 2 ? intraday : stats.history
@@ -296,8 +358,8 @@ function MarketTrendPanel({ instrument, currency }: { instrument: InvestmentInst
         <div><span>Market statistics</span><strong>{instrument.symbol} reference trend</strong></div>
         {sector ? <small>{sector}</small> : null}
       </div>
-      <div className="private-life-market-chart-label">{chartLabel}</div>
-      <Sparkline history={chartHistory} currency={currency} />
+      <div className="private-life-market-chart-label">Daily game-date trend</div>
+      {dailyLoading ? <div className="private-life-market-chart-empty">Loading daily market history…</div> : dailyHistory.length >= 2 ? <DailyMarketChart history={dailyHistory} currency={currency} /> : <Sparkline history={chartHistory} currency={currency} />}
       <div className="private-life-market-stat-grid">
         <div><span>{instrument.asset_type === 'crypto' ? '24H' : '1D'}</span><strong className={oneDay !== null && oneDay >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{percentText(oneDay)}</strong></div>
         <div><span>1W</span><strong className={oneWeek !== null && oneWeek >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{percentText(oneWeek)}</strong></div>
@@ -340,6 +402,11 @@ export default function PrivateLifeInvestments({
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [pendingTrade, setPendingTrade] = useState<PendingTrade | null>(null)
+  const [dailyHistory, setDailyHistory] = useState<DailyHistoryPoint[]>([])
+  const [dailyHistoryLoading, setDailyHistoryLoading] = useState(false)
+  const [tradeHistory, setTradeHistory] = useState<InvestmentTrade[]>([])
+  const [tradeHistoryLoaded, setTradeHistoryLoaded] = useState(false)
+  const [historyPage, setHistoryPage] = useState(1)
 
   const loadDashboard = useCallback(async () => {
     const { data, error: rpcError } = await supabase.rpc('get_private_life_investments_dashboard_v1')
@@ -397,6 +464,39 @@ export default function PrivateLifeInvestments({
     void initialise()
     return () => { cancelled = true }
   }, [loadDashboard, refreshQuotes])
+
+  useEffect(() => {
+    let cancelled = false
+    async function loadDailyHistory() {
+      if (!selectedCode) { setDailyHistory([]); return }
+      setDailyHistoryLoading(true)
+      const { data, error: rpcError } = await supabase.rpc('get_private_life_investment_daily_history_v1', { p_instrument_code: selectedCode })
+      if (!cancelled) {
+        if (rpcError) setDailyHistory([])
+        else setDailyHistory(Array.isArray(data) ? data as unknown as DailyHistoryPoint[] : [])
+        setDailyHistoryLoading(false)
+      }
+    }
+    void loadDailyHistory()
+    return () => { cancelled = true }
+  }, [selectedCode])
+
+  useEffect(() => {
+    if (activeTab !== 'history' || tradeHistoryLoaded) return
+    let cancelled = false
+    async function loadTradeHistory() {
+      const { data, error: rpcError } = await supabase.rpc('get_private_life_investment_trade_history_v1')
+      if (cancelled) return
+      if (rpcError) setError(rpcError.message)
+      else {
+        setTradeHistory(Array.isArray(data) ? data as unknown as InvestmentTrade[] : [])
+        setTradeHistoryLoaded(true)
+        setHistoryPage(1)
+      }
+    }
+    void loadTradeHistory()
+    return () => { cancelled = true }
+  }, [activeTab, tradeHistoryLoaded])
 
   const stockInstruments = useMemo(() => dashboard?.instruments.filter((item) => item.asset_type === 'stock') ?? [], [dashboard])
   const cryptoInstruments = useMemo(() => dashboard?.instruments.filter((item) => item.asset_type === 'crypto') ?? [], [dashboard])
@@ -492,6 +592,16 @@ export default function PrivateLifeInvestments({
     setPendingTrade({ side: 'sell', instrument: selectedInstrument, quantity: parsedSellQuantity })
   }
 
+  function beginPortfolioSell(position: InvestmentPosition) {
+    const instrument = dashboard?.instruments.find((item) => item.code === position.instrument_code)
+    if (!instrument || !instrument.tradeable || !instrument.price) {
+      setError('A current market reference quote is required before selling this holding.')
+      return
+    }
+    setError(null)
+    setPendingTrade({ side: 'sell', instrument, quantity: Number(position.quantity) })
+  }
+
   async function confirmTrade() {
     if (!pendingTrade) return
     setTradeBusy(true)
@@ -519,6 +629,7 @@ export default function PrivateLifeInvestments({
         setSellQuantity('')
       }
       setPendingTrade(null)
+      setTradeHistoryLoaded(false)
       await loadDashboard()
       await onPortfolioChanged?.()
     } catch (tradeError) {
@@ -650,7 +761,7 @@ export default function PrivateLifeInvestments({
                 </>
               ) : <div className="private-life-empty"><strong>Select an investment</strong><p>Choose a market row to open the trade ticket.</p></div>}
             </aside>
-            {selectedInstrument ? <MarketTrendPanel instrument={selectedInstrument} currency={currency} /> : null}
+            {selectedInstrument ? <MarketTrendPanel instrument={selectedInstrument} currency={currency} dailyHistory={dailyHistory} dailyLoading={dailyHistoryLoading} /> : null}
           </div>
         </div>
       ) : null}
@@ -661,7 +772,7 @@ export default function PrivateLifeInvestments({
           {dashboard.positions.length === 0 ? <div className="private-life-empty"><strong>No investments yet</strong><p>Use the Stocks or Crypto tab to make your first game-only investment.</p></div> : (
             <div className="private-life-investment-table-wrap">
               <table className="private-life-investment-table portfolio private-life-portfolio-movement-table">
-                <thead><tr><th>Asset</th><th>Quantity</th><th>Avg. buy</th><th>Current price</th><th>Daily move</th><th>Market value</th><th>Since buy</th></tr></thead>
+                <thead><tr><th>Asset</th><th>Quantity</th><th>Avg. buy</th><th>Current price</th><th>Daily move</th><th>Market value</th><th>Since buy</th><th>Action</th></tr></thead>
                 <tbody>{dashboard.positions.map((position) => {
                   const preciseValue = Number(position.market_value_precise ?? position.market_value ?? 0)
                   const precisePnl = Number(position.unrealized_pnl_precise ?? position.unrealized_pnl ?? 0)
@@ -676,6 +787,7 @@ export default function PrivateLifeInvestments({
                       <td><strong className={dailyMove !== null && dailyMove >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{percentText(dailyMove)}</strong></td>
                       <td>{money(preciseValue, currency, 2)}</td>
                       <td><strong className={precisePnl >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{signedMoney(precisePnl, currency, 2)}</strong><span className={returnPct >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{percentText(returnPct)}</span></td>
+                      <td><button type="button" className="private-life-portfolio-sell" onClick={(event) => { event.stopPropagation(); beginPortfolioSell(position) }}>Sell</button></td>
                     </tr>
                   )
                 })}</tbody>
@@ -687,9 +799,12 @@ export default function PrivateLifeInvestments({
 
       {activeTab === 'history' ? (
         <div className="private-life-investment-table-panel">
-          <div className="private-life-investment-table-head"><div><strong>Investment history</strong><span>Every trade also posts the matching cash movement to career Finance.</span></div></div>
-          {dashboard.trades.length === 0 ? <div className="private-life-empty"><strong>No investment trades yet</strong><p>Your completed buys and sells will appear here.</p></div> : (
-            <div className="private-life-investment-table-wrap"><table className="private-life-investment-table history"><thead><tr><th>Trade</th><th>Asset</th><th>Quantity</th><th>Unit price</th><th>Cash value</th><th>Realized P/L</th></tr></thead><tbody>{dashboard.trades.map((trade) => <tr key={trade.id}><td><span className={`private-life-trade-side ${trade.side}`}>{trade.side}</span><small>Game day {trade.game_absolute_day}</small></td><td><strong>{trade.symbol}</strong><span>{trade.name}</span></td><td>{quantity(Number(trade.quantity), trade.asset_type)}</td><td>{marketPrice(Number(trade.unit_price), currency)}</td><td>{money(trade.gross_amount, currency)}</td><td>{trade.side === 'sell' ? <strong className={trade.realized_pnl >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{signedMoney(trade.realized_pnl, currency)}</strong> : <span>—</span>}</td></tr>)}</tbody></table></div>
+          <div className="private-life-investment-table-head"><div><strong>Investment history</strong><span>Permanent trade history. Older seasons remain available and can be archived by season later.</span></div></div>
+          {tradeHistory.length === 0 ? <div className="private-life-empty"><strong>No investment trades yet</strong><p>Your completed buys and sells will appear here.</p></div> : (
+            <>
+              <div className="private-life-investment-table-wrap"><table className="private-life-investment-table history"><thead><tr><th>Game date</th><th>Trade</th><th>Asset</th><th>Quantity</th><th>Unit price</th><th>Cash value</th><th>Realized P/L</th></tr></thead><tbody>{tradeHistory.slice((historyPage - 1) * INVESTMENT_HISTORY_PAGE_SIZE, historyPage * INVESTMENT_HISTORY_PAGE_SIZE).map((trade) => <tr key={trade.id}><td><strong>{gameDayFromAbsolute(trade.game_absolute_day)}</strong></td><td><span className={`private-life-trade-side ${trade.side}`}>{trade.side}</span></td><td><strong>{trade.symbol}</strong><span>{trade.name}</span></td><td>{quantity(Number(trade.quantity), trade.asset_type)}</td><td>{marketPrice(Number(trade.unit_price), currency)}</td><td>{money(trade.gross_amount, currency)}</td><td>{trade.side === 'sell' ? <strong className={trade.realized_pnl >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{signedMoney(trade.realized_pnl, currency)}</strong> : <span>—</span>}</td></tr>)}</tbody></table></div>
+              {tradeHistory.length > INVESTMENT_HISTORY_PAGE_SIZE ? <div className="private-life-market-pagination"><button type="button" disabled={historyPage <= 1} onClick={() => setHistoryPage((page) => Math.max(1, page - 1))}>Previous</button><span>Page <strong>{historyPage}</strong> of {Math.ceil(tradeHistory.length / INVESTMENT_HISTORY_PAGE_SIZE)} · 10 trades per page</span><button type="button" disabled={historyPage >= Math.ceil(tradeHistory.length / INVESTMENT_HISTORY_PAGE_SIZE)} onClick={() => setHistoryPage((page) => Math.min(Math.ceil(tradeHistory.length / INVESTMENT_HISTORY_PAGE_SIZE), page + 1))}>Next</button></div> : null}
+            </>
           )}
         </div>
       ) : null}

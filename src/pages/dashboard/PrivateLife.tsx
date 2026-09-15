@@ -179,6 +179,8 @@ const GAME_MONTHS = [
   ['September', 30], ['October', 31], ['November', 30], ['December', 31],
 ] as const
 
+const ASSET_HISTORY_PAGE_SIZE = 10
+
 const SALE_META: Record<SaleMode, { label: string; detail: string }> = {
   urgent: { label: 'Sell now', detail: 'Immediate sale · lowest payout' },
   standard: { label: 'Standard sale', detail: '7 game days · normal payout' },
@@ -306,6 +308,7 @@ export default function PrivateLifePage() {
   const [assetHistory, setAssetHistory] = useState<AssetHistoryRow[]>([])
   const [showAssetHistory, setShowAssetHistory] = useState(false)
   const [assetHistoryLoading, setAssetHistoryLoading] = useState(false)
+  const [assetHistoryPage, setAssetHistoryPage] = useState(1)
   const [assetHistoryError, setAssetHistoryError] = useState<string | null>(null)
 
   const loadDashboard = useCallback(async () => {
@@ -433,6 +436,7 @@ export default function PrivateLifePage() {
       return
     }
     setShowAssetHistory(true)
+    setAssetHistoryPage(1)
     if (assetHistory.length > 0) return
     setAssetHistoryLoading(true)
     setAssetHistoryError(null)
@@ -618,7 +622,7 @@ export default function PrivateLifePage() {
                   <div className="private-life-asset-history-table-wrap">
                     <table className="private-life-asset-history-table">
                       <thead><tr><th>Game date</th><th>Transaction</th><th>Asset</th><th>Amount</th><th>Details</th></tr></thead>
-                      <tbody>{assetHistory.map((row) => {
+                      <tbody>{assetHistory.slice((assetHistoryPage - 1) * ASSET_HISTORY_PAGE_SIZE, assetHistoryPage * ASSET_HISTORY_PAGE_SIZE).map((row) => {
                         const amount = Number(row.amount || 0)
                         const amountTone = row.transaction_type === 'starter_home' ? 'neutral' : amount > 0 ? 'positive' : amount < 0 ? 'negative' : 'neutral'
                         return (
@@ -634,6 +638,13 @@ export default function PrivateLifePage() {
                     </table>
                   </div>
                 )}
+                {assetHistory.length > ASSET_HISTORY_PAGE_SIZE ? (
+                  <div className="private-life-asset-history-pagination">
+                    <button type="button" disabled={assetHistoryPage <= 1} onClick={() => setAssetHistoryPage((page) => Math.max(1, page - 1))}>Previous</button>
+                    <span>Page <strong>{assetHistoryPage}</strong> of {Math.ceil(assetHistory.length / ASSET_HISTORY_PAGE_SIZE)} · 10 transactions per page</span>
+                    <button type="button" disabled={assetHistoryPage >= Math.ceil(assetHistory.length / ASSET_HISTORY_PAGE_SIZE)} onClick={() => setAssetHistoryPage((page) => Math.min(Math.ceil(assetHistory.length / ASSET_HISTORY_PAGE_SIZE), page + 1))}>Next</button>
+                  </div>
+                ) : null}
               </div>
             ) : null}
             {visibleOwned.length === 0 ? <div className="private-life-empty"><strong>No assets in this category yet</strong><p>Visit the Marketplace to start building your private collection.</p></div> : (
