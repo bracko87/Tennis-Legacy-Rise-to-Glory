@@ -24,6 +24,12 @@ type QuoteRow = {
   updated_at: string
 }
 
+type ExistingQuote = {
+  instrument_code: string
+  price: number | string | null
+  metadata: Record<string, unknown> | null
+}
+
 type YahooPoint = {
   ts: number
   close: number
@@ -31,6 +37,8 @@ type YahooPoint = {
   low: number | null
   volume: number | null
 }
+
+const GAME_REFRESH_SECONDS = 15 * 60
 
 const browserHeaders = {
   accept: 'application/json,text/plain,*/*',
@@ -50,6 +58,11 @@ function percentChange(current: number, base: number | null) {
 function pointBack(points: YahooPoint[], sessions: number) {
   if (points.length <= sessions) return points[0]?.close ?? null
   return points[points.length - 1 - sessions]?.close ?? null
+}
+
+function priceChanged(current: number, previous: number | null) {
+  if (previous === null || !Number.isFinite(previous)) return true
+  return Math.abs(current - previous) > Math.max(0.00000001, Math.abs(previous) * 0.00000001)
 }
 
 async function fetchYahooResponse(symbol: string) {
@@ -197,6 +210,13 @@ Deno.serve(async (req: Request) => {
     let scheduled = false
     let userId: string | null = null
 
+    const { data: control, error: controlReadError } = await admin
+      .from('private_life_quote_refresh_control')
+      .select('cron_token,last_stock_refresh_game_second,last_crypto_refresh_game_second')
+      .eq('id', 1)
+      .single()
+    if (controlReadError) throw controlReadError
+
     if (bearer) {
       const { data: userData } = await admin.auth.getUser(bearer)
       userId = userData?.user?.id ?? null
@@ -215,14 +235,28 @@ Deno.serve(async (req: Request) => {
       }
     } else {
       if (!cronToken) return Response.json({ error: 'Authentication required' }, { status: 401, headers: corsHeaders })
-      const { data: control, error: controlError } = await admin
-        .from('private_life_quote_refresh_control')
-        .select('cron_token')
-        .eq('id', 1)
-        .single()
-      if (controlError) throw controlError
       if (control?.cron_token !== cronToken) return Response.json({ error: 'Invalid scheduler token' }, { status: 403, headers: corsHeaders })
       scheduled = true
+    }
+
+    const { data: gameClockData, error: gameClockError } = await admin.rpc('get_game_clock_v1')
+    if (gameClockError) throw gameClockError
+    const gameClock = Array.isArray(gameClockData) ? gameClockData[0] : gameClockData
+    const gameTotalSeconds = Math.max(0, Math.floor(Number(gameClock?.game_total_seconds ?? 0)))
+
+    if (scheduled && (mode === 'stocks' || mode === 'crypto')) {
+      const lastGameSecond = Number(mode === 'stocks' ? control?.last_stock_refresh_game_second : control?.last_crypto_refresh_game_second)
+      if (Number.isFinite(lastGameSecond) && lastGameSecond > 0 && gameTotalSeconds - lastGameSecond < GAME_REFRESH_SECONDS) {
+        return Response.json({
+          ok: true,
+          skipped: true,
+          reason: 'game_cadence',
+          scheduled,
+          mode,
+          game_total_seconds: gameTotalSeconds,
+          next_game_second: lastGameSecond + GAME_REFRESH_SECONDS,
+        }, { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
     }
 
     const { data: instrumentsData, error: instrumentsError } = await admin
@@ -234,9 +268,13 @@ Deno.serve(async (req: Request) => {
 
     const allInstruments = (instrumentsData ?? []) as Instrument[]
     const instruments = allInstruments.filter((item) => mode === 'all' || (mode === 'stocks' ? item.asset_type === 'stock' : item.asset_type === 'crypto'))
-    const { data: existingQuotes, error: quoteReadError } = await admin.from('private_life_investment_quotes').select('instrument_code,price')
+    const { data: existingQuotes, error: quoteReadError } = await admin
+      .from('private_life_investment_quotes')
+      .select('instrument_code,price,metadata')
     if (quoteReadError) throw quoteReadError
-    const previous = new Map((existingQuotes ?? []).map((row) => [row.instrument_code, Number(row.price)]))
+
+    const existing = new Map<string, ExistingQuote>((existingQuotes ?? []).map((row) => [row.instrument_code, row as ExistingQuote]))
+    const previous = new Map<string, number>((existingQuotes ?? []).map((row) => [row.instrument_code, Number(row.price)]))
 
     const updates: QuoteRow[] = []
     const errors: string[] = []
@@ -259,6 +297,24 @@ Deno.serve(async (req: Request) => {
       if (offset + batchSize < stocks.length) await new Promise((resolve) => setTimeout(resolve, 120))
     }
 
+    const changeFlags = new Map<string, boolean>()
+    for (const row of updates) {
+      const prior = existing.get(row.instrument_code)
+      const priorPrice = prior?.price === null || prior?.price === undefined ? null : Number(prior.price)
+      const changed = priceChanged(row.price, priorPrice)
+      changeFlags.set(row.instrument_code, changed)
+      const oldMeta = prior?.metadata ?? {}
+      const oldChangeSecond = finite(oldMeta?.game_last_change_total_seconds)
+      row.metadata = {
+        ...row.metadata,
+        provider_quote_as_of: row.quote_as_of,
+        game_checked_total_seconds: gameTotalSeconds,
+        game_last_change_total_seconds: changed ? gameTotalSeconds : (oldChangeSecond ?? gameTotalSeconds),
+        price_changed_on_last_check: changed,
+        refresh_cadence_game_minutes: 15,
+      }
+    }
+
     if (updates.length) {
       const { error: upsertError } = await admin.from('private_life_investment_quotes').upsert(updates, { onConflict: 'instrument_code' })
       if (upsertError) throw upsertError
@@ -268,15 +324,28 @@ Deno.serve(async (req: Request) => {
         quote_as_of: row.quote_as_of,
         captured_at: row.fetched_at,
         source: row.source,
-        metadata: { scheduled, mode },
+        metadata: {
+          scheduled,
+          mode,
+          game_total_seconds: gameTotalSeconds,
+          price_changed: changeFlags.get(row.instrument_code) ?? false,
+          provider_quote_as_of: row.quote_as_of,
+        },
       }))
       const { error: historyError } = await admin.from('private_life_investment_quote_history').insert(historyRows)
       if (historyError) throw historyError
     }
 
-    const controlUpdate: Record<string, unknown> = { updated_at: new Date().toISOString() }
-    if (mode === 'stocks' || mode === 'all') controlUpdate.last_stock_refresh_at = new Date().toISOString()
-    if (mode === 'crypto' || mode === 'all') controlUpdate.last_crypto_refresh_at = new Date().toISOString()
+    const now = new Date().toISOString()
+    const controlUpdate: Record<string, unknown> = { updated_at: now }
+    if (mode === 'stocks' || mode === 'all') {
+      controlUpdate.last_stock_refresh_at = now
+      controlUpdate.last_stock_refresh_game_second = gameTotalSeconds
+    }
+    if (mode === 'crypto' || mode === 'all') {
+      controlUpdate.last_crypto_refresh_at = now
+      controlUpdate.last_crypto_refresh_game_second = gameTotalSeconds
+    }
     const { error: controlUpdateError } = await admin.from('private_life_quote_refresh_control').update(controlUpdate).eq('id', 1)
     if (controlUpdateError) throw controlUpdateError
 
@@ -288,8 +357,10 @@ Deno.serve(async (req: Request) => {
       expected: instruments.length,
       stock_updated: updates.filter((row) => row.source === 'yahoo').length,
       crypto_updated: updates.filter((row) => row.source === 'coingecko').length,
+      changed: [...changeFlags.values()].filter(Boolean).length,
       errors,
-      refreshed_at: new Date().toISOString(),
+      game_total_seconds: gameTotalSeconds,
+      refreshed_at: now,
     }, { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (error) {
     return Response.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
