@@ -1,0 +1,14 @@
+create index if not exists referral_admin_audit_admin_idx on public.referral_admin_audit(admin_user_id);
+create index if not exists referral_contest_awards_user_idx on public.referral_contest_awards(user_id);
+create index if not exists referral_contest_awards_badge_idx on public.referral_contest_awards(badge_code) where badge_code is not null;
+create index if not exists referral_contest_prizes_badge_idx on public.referral_contest_prizes(badge_code) where badge_code is not null;
+create index if not exists referral_contests_created_by_idx on public.referral_contests(created_by);
+create index if not exists referral_premium_grants_contest_idx on public.referral_premium_grants(contest_id);
+create index if not exists referral_reward_adjustments_referral_idx on public.referral_reward_adjustments(referral_id);
+create index if not exists referral_reward_adjustments_referrer_idx on public.referral_reward_adjustments(referrer_user_id);
+create index if not exists referral_reward_adjustments_admin_idx on public.referral_reward_adjustments(admin_user_id);
+create index if not exists referral_rewards_billing_tx_idx on public.referral_rewards(billing_transaction_id) where billing_transaction_id is not null;
+create index if not exists referral_rewards_referred_user_idx on public.referral_rewards(referred_user_id);
+create index if not exists referral_user_badges_badge_idx on public.referral_user_badges(badge_code);
+create index if not exists referral_user_badges_contest_idx on public.referral_user_badges(contest_id) where contest_id is not null;
+create index if not exists referrals_admin_reviewed_by_idx on public.referrals(admin_reviewed_by) where admin_reviewed_by is not null;
