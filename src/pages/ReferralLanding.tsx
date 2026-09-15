@@ -29,11 +29,12 @@ export default function ReferralLandingPage() {
 
       if (!error && data === true) {
         storeReferralCode(normalizedCode)
-        setMessage('Invite saved. Taking you to Tennis Legacy…')
-      } else {
-        setMessage('This invite link is not available. Taking you to Tennis Legacy…')
+        setMessage('Invite saved. Taking you to registration…')
+        window.setTimeout(() => navigate('/register', { replace: true }), 650)
+        return
       }
 
+      setMessage('This invite link is not available. Taking you to Tennis Legacy…')
       window.setTimeout(() => navigate('/', { replace: true }), 650)
     }
 
