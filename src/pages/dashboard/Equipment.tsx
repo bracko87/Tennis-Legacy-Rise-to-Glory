@@ -6,12 +6,14 @@ import { supabase } from '../../lib/supabase'
 import '../../styles/equipment.css'
 import '../../styles/equipment-marketplace-v2.css'
 
-type EquipmentTab = 'gear' | 'market' | 'sponsors'
+type EquipmentTab = 'gear' | 'inventory' | 'market' | 'sponsors'
 type EquipmentType = 'racket' | 'shoes' | 'apparel' | 'accessory'
 type EquipSlot = 'racket' | 'shoes'
 type CourtSurface = 'hard' | 'clay' | 'grass'
 type MarketFilter = 'all' | EquipmentType
 type MarketSort = 'featured' | 'price-low' | 'price-high' | 'tier-high' | 'durability-high'
+type InventoryFilter = 'all' | EquipmentType
+type InventorySort = 'recent' | 'condition-high' | 'condition-low' | 'tier-high' | 'value-high'
 
 interface CatalogItem {
   id: string
@@ -136,7 +138,7 @@ function pct(value: number) {
 
 function conditionLabel(value: number) {
   if (value >= 80) return 'Excellent'
-  if (value >= 60) return 'Good'
+  if (value >= 60) return 'Used'
   if (value >= 40) return 'Worn'
   return 'Replace soon'
 }
@@ -183,6 +185,13 @@ function getEquippedSlot(loadout: EquipmentLoadout, slot?: EquipSlot | null) {
   return null
 }
 
+function acquisitionLabel(item: InventoryItem) {
+  if (item.acquired_source === 'starter') return 'Starter equipment'
+  if (item.acquired_source === 'sponsor') return 'Sponsor supplied'
+  if (item.acquired_source === 'reward') return 'Reward equipment'
+  return `Purchased · Career day ${item.acquired_absolute_day}`
+}
+
 function makeRequestKey() {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID()
   return `equipment-${Date.now()}-${Math.random().toString(36).slice(2)}`
@@ -195,7 +204,10 @@ export default function EquipmentPage() {
   const [marketFilter, setMarketFilter] = useState<MarketFilter>('all')
   const [marketTag, setMarketTag] = useState('all')
   const [marketSort, setMarketSort] = useState<MarketSort>('featured')
-  const [selectedItem, setSelectedItem] = useState<CatalogItem | null>(null)
+  const [inventoryFilter, setInventoryFilter] = useState<InventoryFilter>('all')
+  const [inventorySort, setInventorySort] = useState<InventorySort>('recent')
+  const [selectedMarketItem, setSelectedMarketItem] = useState<CatalogItem | null>(null)
+  const [selectedInventoryItem, setSelectedInventoryItem] = useState<InventoryItem | null>(null)
   const [pendingPurchase, setPendingPurchase] = useState<PendingPurchase | null>(null)
   const [pendingSale, setPendingSale] = useState<InventoryItem | null>(null)
   const [loading, setLoading] = useState(true)
@@ -221,18 +233,20 @@ export default function EquipmentPage() {
   }, [marketFilter])
 
   useEffect(() => {
-    if (!selectedItem) return
+    if (!selectedMarketItem && !selectedInventoryItem) return
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !pendingPurchase) setSelectedItem(null)
+      if (event.key !== 'Escape' || pendingPurchase || pendingSale) return
+      setSelectedMarketItem(null)
+      setSelectedInventoryItem(null)
     }
     window.addEventListener('keydown', closeOnEscape)
     return () => {
       document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', closeOnEscape)
     }
-  }, [selectedItem, pendingPurchase])
+  }, [selectedMarketItem, selectedInventoryItem, pendingPurchase, pendingSale])
 
   function requestPurchase(item: CatalogItem) {
     if (item.availability_status !== 'available') return
@@ -253,9 +267,9 @@ export default function EquipmentPage() {
 
     if (purchaseError) setError(purchaseError.message)
     else {
-      setMessage(`${item.brand} ${item.model} purchased for ${money(item.price_usd)} and added to your inventory.`)
+      setMessage(`${item.brand} ${item.model} purchased for ${money(item.price_usd)} and added to Inventory.`)
       setPendingPurchase(null)
-      setSelectedItem(null)
+      setSelectedMarketItem(null)
       await loadEquipment()
     }
     setBusy(null)
@@ -276,6 +290,7 @@ export default function EquipmentPage() {
     else {
       setMessage(`${item.item.brand} ${item.item.model} sold for ${money(item.resale_value_usd)}.`)
       setPendingSale(null)
+      setSelectedInventoryItem(null)
       await loadEquipment()
     }
     setBusy(null)
@@ -288,22 +303,28 @@ export default function EquipmentPage() {
     const { error: equipError } = await supabase.rpc('equip_equipment_item_v1', { p_inventory_id: item.inventory_id })
     if (equipError) setError(equipError.message)
     else {
-      setMessage(`${item.item.brand} ${item.item.model} is now in your match setup.`)
+      setMessage(`${item.item.brand} ${item.item.model} is now equipped in Gear Room.`)
+      setSelectedInventoryItem(null)
       await loadEquipment()
     }
     setBusy(null)
   }
 
-  const inventoryTypes = useMemo(
-    () => TYPE_ORDER.filter((type) => (dashboard?.inventory ?? []).some((entry) => entry.item.item_type === type)),
-    [dashboard?.inventory],
-  )
+  const inventoryItems = useMemo(() => {
+    const items = (dashboard?.inventory ?? []).filter((entry) => inventoryFilter === 'all' || entry.item.item_type === inventoryFilter)
+    return [...items].sort((a, b) => {
+      if (inventorySort === 'condition-high') return b.condition - a.condition || b.acquired_absolute_day - a.acquired_absolute_day
+      if (inventorySort === 'condition-low') return a.condition - b.condition || b.acquired_absolute_day - a.acquired_absolute_day
+      if (inventorySort === 'tier-high') return b.item.tier - a.item.tier || b.condition - a.condition
+      if (inventorySort === 'value-high') return b.resale_value_usd - a.resale_value_usd || b.purchase_price_usd - a.purchase_price_usd
+      return b.acquired_absolute_day - a.acquired_absolute_day || b.item.sort_order - a.item.sort_order
+    })
+  }, [dashboard?.inventory, inventoryFilter, inventorySort])
 
-  const inventoryByType = useMemo(() => {
-    const grouped = new Map<EquipmentType, InventoryItem[]>()
-    for (const type of TYPE_ORDER) grouped.set(type, [])
-    for (const item of dashboard?.inventory ?? []) grouped.get(item.item.item_type)?.push(item)
-    return grouped
+  const inventoryCounts = useMemo(() => {
+    const counts: Record<EquipmentType, number> = { racket: 0, shoes: 0, apparel: 0, accessory: 0 }
+    for (const entry of dashboard?.inventory ?? []) counts[entry.item.item_type] += 1
+    return counts
   }, [dashboard?.inventory])
 
   const availableTags = useMemo(() => {
@@ -329,6 +350,12 @@ export default function EquipmentPage() {
     })
   }, [dashboard?.catalog, marketFilter, marketSort, marketTag])
 
+  function visitMarket(type: InventoryFilter = 'all') {
+    setMarketFilter(type)
+    setMarketTag('all')
+    setTab('market')
+  }
+
   if (loading && !dashboard) {
     return (
       <GameLayout title="Equipment" subtitle="Racquets, shoes, clothing and accessories">
@@ -346,13 +373,14 @@ export default function EquipmentPage() {
           <div className="tlg-equipment-hero-copy">
             <span>EQUIPMENT</span>
             <h1>Equipment Center</h1>
-            <p>Manage racquets, shoes, clothing and accessories from one central catalogue. Racquets and shoes currently carry match-performance effects; clothing and accessories stay in the same marketplace without being split into unnecessary subcategories.</p>
+            <p>Gear Room shows what you are currently using. Inventory stores everything you own. Market handles purchases, while the existing sponsor area remains separate for the technical-sponsor task.</p>
           </div>
         </section>
 
         <div className="tlg-equipment-tabs" role="tablist" aria-label="Equipment sections">
           <button type="button" className={tab === 'gear' ? 'active' : ''} onClick={() => setTab('gear')}>Gear Room</button>
-          <button type="button" className={tab === 'market' ? 'active' : ''} onClick={() => setTab('market')}>Marketplace</button>
+          <button type="button" className={tab === 'inventory' ? 'active' : ''} onClick={() => setTab('inventory')}>Inventory</button>
+          <button type="button" className={tab === 'market' ? 'active' : ''} onClick={() => setTab('market')}>Market</button>
           <button type="button" className={tab === 'sponsors' ? 'active' : ''} onClick={() => setTab('sponsors')}>Sponsors</button>
         </div>
 
@@ -361,9 +389,9 @@ export default function EquipmentPage() {
 
         {dashboard && (
           <section className="tlg-equipment-summary-strip tlg-equipment-summary-strip-four-types">
-            <div><span>CAREER CASH</span><strong>{money(dashboard.balance)}</strong><small>Marketplace uses Career Finance</small></div>
-            <div><span>RACQUET</span><strong>{dashboard.loadout.racket ? `${dashboard.loadout.racket.item.brand} ${dashboard.loadout.racket.item.model}` : 'Not equipped'}</strong><small>{dashboard.loadout.racket ? `${dashboard.loadout.racket.condition}% condition` : 'Choose from inventory'}</small></div>
-            <div><span>SHOES</span><strong>{dashboard.loadout.shoes ? dashboard.loadout.shoes.item.model : 'Not equipped'}</strong><small>{dashboard.loadout.shoes ? surfaceLabel(dashboard.loadout.shoes.item.surface) : 'Choose from inventory'}</small></div>
+            <div><span>CAREER CASH</span><strong>{money(dashboard.balance)}</strong><small>Market uses Career Finance</small></div>
+            <div><span>RACQUET</span><strong>{dashboard.loadout.racket ? `${dashboard.loadout.racket.item.brand} ${dashboard.loadout.racket.item.model}` : 'Not equipped'}</strong><small>{dashboard.loadout.racket ? `${dashboard.loadout.racket.condition}% condition` : 'Choose from Inventory'}</small></div>
+            <div><span>SHOES</span><strong>{dashboard.loadout.shoes ? dashboard.loadout.shoes.item.model : 'Not equipped'}</strong><small>{dashboard.loadout.shoes ? surfaceLabel(dashboard.loadout.shoes.item.surface) : 'Choose from Inventory'}</small></div>
           </section>
         )}
 
@@ -371,7 +399,8 @@ export default function EquipmentPage() {
           <div className="tlg-equipment-gear-view">
             <section className="tlg-equipment-panel">
               <header className="tlg-equipment-panel-head">
-                <div><span>CURRENT MATCH SETUP</span><h2>Your gear room</h2><p>Racquet and shoes are the current performance slots. Clothing and accessories remain full equipment categories without being split into shirts, shorts, skirts or other garment subtypes.</p></div>
+                <div><span>CURRENT MATCH SETUP</span><h2>Your gear room</h2><p>Gear Room is only for equipment currently in use. Change racquets or shoes from Inventory; the previous item stays owned unless you sell it.</p></div>
+                <button type="button" className="tlg-equipment-panel-link" onClick={() => setTab('inventory')}>Open Inventory</button>
               </header>
               <div className="tlg-equipment-slot-grid tlg-equipment-slot-grid-two">
                 <EquipmentSlot title="Racquet" slot={dashboard.loadout.racket} detail="Power · control · spin · comfort" />
@@ -397,62 +426,83 @@ export default function EquipmentPage() {
               )}
             </section>
 
-            <section className="tlg-equipment-panel">
-              <header className="tlg-equipment-panel-head">
-                <div><span>OWNED GEAR</span><h2>Inventory</h2><p>Condition belongs to each individual item. Eligible purchased gear can be resold; equipped performance items must be replaced first.</p></div>
-              </header>
-              <div className="tlg-equipment-inventory-groups">
-                {inventoryTypes.map((type) => (
-                  <div className="tlg-equipment-inventory-group" key={type}>
-                    <h3>{TYPE_LABELS[type]}</h3>
-                    {(inventoryByType.get(type) ?? []).map((item) => {
-                      const equippable = Boolean(item.item.equip_slot)
-                      return (
-                        <div className={`tlg-equipment-inventory-row${item.is_equipped ? ' equipped' : ''}`} key={item.inventory_id}>
-                          <div className="tlg-equipment-inventory-identity">
-                            <ProductImage item={item.item} />
-                            <div>
-                              <strong>{item.item.brand} {item.item.model}</strong>
-                              <span>{item.acquired_source === 'starter' ? 'Starter gear' : 'Owned'} · {item.item.item_type === 'shoes' ? surfaceLabel(item.item.surface) : `${TIER_LABELS[item.item.tier] ?? 'Tier'} · Tier ${item.item.tier}`}</span>
-                              {item.is_equipped && <small>Currently equipped</small>}
-                            </div>
-                          </div>
-                          <div className="condition"><span>{conditionLabel(item.condition)}</span><div><i style={{ width: `${item.condition}%` }} /></div><b>{item.condition}%</b></div>
-                          <div className="tlg-equipment-inventory-actions">
-                            {equippable && (
-                              <button type="button" disabled={item.is_equipped || busy === `equip:${item.inventory_id}`} onClick={() => void equipItem(item)}>
-                                {item.is_equipped ? 'Equipped' : busy === `equip:${item.inventory_id}` ? 'Equipping…' : 'Use'}
-                              </button>
-                            )}
-                            <button type="button" className="secondary" disabled={!item.can_sell || busy === `sell:${item.inventory_id}`} title={item.sell_block_reason ?? `Sell for ${money(item.resale_value_usd)}`} onClick={() => setPendingSale(item)}>
-                              {item.can_sell ? `Sell ${money(item.resale_value_usd)}` : item.is_equipped && item.resell_supported ? 'Replace to sell' : 'Not sellable'}
-                            </button>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                ))}
-              </div>
-            </section>
-
             <section className="tlg-equipment-wear-note tlg-equipment-wear-note-two">
               <div><span>RACQUET WEAR</span><strong>−{dashboard.wear_rules.racket_per_match}% / match</strong></div>
               <div><span>SHOE WEAR</span><strong>−{dashboard.wear_rules.shoes_surface_specific}% to −{dashboard.wear_rules.shoes_wrong_surface}% / match</strong></div>
-              <p>Resale uses the original recorded purchase price × {dashboard.resale_base_percent}% base resale × current condition × item resale modifier. That keeps resale values consistent and prevents buy/sell profit loops.</p>
+              <p>Condition is stored on each owned item and updates Inventory automatically after match wear.</p>
             </section>
           </div>
+        )}
+
+        {dashboard && tab === 'inventory' && (
+          <section className="tlg-equipment-panel tlg-equipment-inventory-panel-v3">
+            <header className="tlg-equipment-panel-head market-head tlg-equipment-market-head-v2">
+              <div><span>OWNED EQUIPMENT</span><h2>Inventory</h2><p>Everything you own lives here. Inspect condition, durability, benefits, resale value and equipped status, then equip or sell supported items.</p></div>
+              <div className="tlg-equipment-market-balance"><span>OWNED ITEMS</span><strong>{dashboard.inventory.length}</strong></div>
+            </header>
+
+            <div className="tlg-equipment-market-toolbar tlg-equipment-inventory-toolbar">
+              <div className="tlg-equipment-category-tabs" role="tablist" aria-label="Inventory categories">
+                <button type="button" className={inventoryFilter === 'all' ? 'active' : ''} onClick={() => setInventoryFilter('all')}>All <small>{dashboard.inventory.length}</small></button>
+                {TYPE_ORDER.map((type) => <button key={type} type="button" className={inventoryFilter === type ? 'active' : ''} onClick={() => setInventoryFilter(type)}>{TYPE_LABELS[type]} <small>{inventoryCounts[type]}</small></button>)}
+              </div>
+              <label className="tlg-equipment-sort">
+                <span>Sort</span>
+                <select value={inventorySort} onChange={(event) => setInventorySort(event.target.value as InventorySort)}>
+                  <option value="recent">Recently acquired</option>
+                  <option value="condition-high">Condition: high first</option>
+                  <option value="condition-low">Condition: low first</option>
+                  <option value="tier-high">Quality: high first</option>
+                  <option value="value-high">Resale value: high first</option>
+                </select>
+              </label>
+            </div>
+
+            {inventoryItems.length > 0 ? (
+              <div className="tlg-equipment-inventory-card-grid">
+                {inventoryItems.map((entry) => {
+                  const equippable = Boolean(entry.item.equip_slot)
+                  return (
+                    <article className={`tlg-equipment-owned-card${entry.is_equipped ? ' equipped' : ''}`} key={entry.inventory_id}>
+                      <ProductImage item={entry.item} large />
+                      <div className="tlg-equipment-owned-card-body">
+                        <div className="tlg-equipment-owned-card-top"><span>{TYPE_LABELS[entry.item.item_type]} · {TIER_LABELS[entry.item.tier] ?? 'Tier'} {entry.item.tier}</span><b>{entry.is_equipped ? 'Equipped' : 'Owned'}</b></div>
+                        <h3>{entry.item.brand} {entry.item.model}</h3>
+                        <p>{entry.item.description}</p>
+                        <div className="tlg-equipment-owned-condition"><div><span>Condition</span><strong>{entry.condition}% · {conditionLabel(entry.condition)}</strong></div><div className="tlg-equipment-condition-track"><i style={{ width: `${entry.condition}%` }} /></div></div>
+                        <div className="tlg-equipment-owned-facts"><span>Durability rating <b>{entry.item.durability}</b></span><span>Resale <b>{entry.resell_supported ? money(entry.resale_value_usd) : 'Not supported'}</b></span></div>
+                        <div className="tlg-equipment-owned-highlights">
+                          <span className="positive">{entry.item.advantages?.[0] ?? effectScopeLabel(entry.item.effect_scope)}</span>
+                          <span className="negative">{entry.item.disadvantages?.[0] ?? 'No defined trade-off'}</span>
+                        </div>
+                        <div className="tlg-equipment-owned-card-actions">
+                          <button type="button" className="secondary" onClick={() => setSelectedInventoryItem(entry)}>View details</button>
+                          {equippable && <button type="button" disabled={entry.is_equipped || busy === `equip:${entry.inventory_id}`} onClick={() => void equipItem(entry)}>{entry.is_equipped ? 'Equipped' : busy === `equip:${entry.inventory_id}` ? 'Equipping…' : 'Equip'}</button>}
+                        </div>
+                      </div>
+                    </article>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="tlg-equipment-inventory-empty">
+                <h3>{inventoryFilter === 'all' ? 'Your inventory is empty.' : `No ${TYPE_LABELS[inventoryFilter].toLowerCase()} in your inventory.`}</h3>
+                <p>Visit the Equipment Market to purchase equipment for this category.</p>
+                <button type="button" onClick={() => visitMarket(inventoryFilter)}>Visit Market</button>
+              </div>
+            )}
+          </section>
         )}
 
         {dashboard && tab === 'market' && (
           <section className="tlg-equipment-panel tlg-equipment-market-panel">
             <header className="tlg-equipment-panel-head market-head tlg-equipment-market-head-v2">
-              <div><span>EQUIPMENT MARKETPLACE</span><h2>Professional equipment</h2><p>The marketplace has four clear equipment types: Racquets, Shoes, Clothing and Accessories.</p></div>
+              <div><span>EQUIPMENT MARKET</span><h2>Professional equipment</h2><p>The market uses the finalized four equipment types: Racquets, Shoes, Clothing and Accessories.</p></div>
               <div className="tlg-equipment-market-balance"><span>AVAILABLE</span><strong>{money(dashboard.balance)}</strong></div>
             </header>
 
             <div className="tlg-equipment-market-toolbar">
-              <div className="tlg-equipment-category-tabs" role="tablist" aria-label="Marketplace categories">
+              <div className="tlg-equipment-category-tabs" role="tablist" aria-label="Market categories">
                 <button type="button" className={marketFilter === 'all' ? 'active' : ''} onClick={() => setMarketFilter('all')}>All</button>
                 {TYPE_ORDER.map((type) => <button key={type} type="button" className={marketFilter === type ? 'active' : ''} onClick={() => setMarketFilter(type)}>{TYPE_LABELS[type]}</button>)}
               </div>
@@ -487,7 +537,7 @@ export default function EquipmentPage() {
                     <p>{item.description}</p>
                     <div className="tlg-equipment-card-tags">{(item.tags ?? []).slice(0, 3).map((tag) => <span key={tag}>{tag.replaceAll('-', ' ')}</span>)}</div>
                     <div className="tlg-equipment-card-quick"><span>{item.surface ? surfaceLabel(item.surface) : effectScopeLabel(item.effect_scope)}</span><span>Durability {item.durability}</span></div>
-                    <div className="bottom"><div><strong>{money(item.price_usd)}</strong><span>{owned > 0 ? `${owned} owned` : 'Not owned'}</span></div><button type="button" onClick={() => setSelectedItem(item)}>View details</button></div>
+                    <div className="bottom"><div><strong>{money(item.price_usd)}</strong><span>{owned > 0 ? `${owned} owned` : 'Not owned'}</span></div><button type="button" onClick={() => setSelectedMarketItem(item)}>View details</button></div>
                   </article>
                 )
               })}
@@ -500,7 +550,7 @@ export default function EquipmentPage() {
           <div className="tlg-equipment-sponsor-view">
             <section className="tlg-equipment-panel">
               <header className="tlg-equipment-panel-head">
-                <div><span>TECHNICAL PARTNERS</span><h2>Equipment & clothing sponsors</h2><p>Sponsor-controlled equipment can use the same central catalogue and image data. Self-funded marketplace purchases continue to use the Career Finance account.</p></div>
+                <div><span>TECHNICAL PARTNERS</span><h2>Equipment & clothing sponsors</h2><p>Sponsor-controlled equipment can use the same central catalogue and image data. The sponsor rename and expanded technical-sponsor functionality remain for the separate sponsor ticket.</p></div>
               </header>
               <div className="tlg-equipment-sponsor-grid">
                 <SponsorSlot title="Racquet partner" sponsor={dashboard.loadout.racket_sponsor_name} current={dashboard.loadout.racket ? dashboard.loadout.racket.item.brand : 'No racquet'} detail="Future contracts can supply racquets and remove purchase costs." />
@@ -508,24 +558,28 @@ export default function EquipmentPage() {
                 <SponsorSlot title="Footwear partner" sponsor={dashboard.loadout.footwear_sponsor_name} current={dashboard.loadout.shoes ? dashboard.loadout.shoes.item.brand : 'No shoes'} detail="Future contracts can supply surface-specific shoes." />
               </div>
             </section>
-
-            <section className="tlg-equipment-sponsor-roadmap">
-              <span>ONE EQUIPMENT SOURCE</span>
-              <h2>Marketplace, inventory and sponsors share the same catalogue</h2>
-              <p>Racquets, Shoes, Clothing and Accessories all use the same central equipment definitions, images, pricing and ownership model.</p>
-            </section>
           </div>
         )}
       </div>
 
-      {dashboard && selectedItem && <ItemDetailDialog item={selectedItem} balance={dashboard.balance} equipped={getEquippedSlot(dashboard.loadout, selectedItem.equip_slot)} onClose={() => setSelectedItem(null)} onBuy={() => requestPurchase(selectedItem)} />}
+      {dashboard && selectedMarketItem && <ItemDetailDialog item={selectedMarketItem} balance={dashboard.balance} equipped={getEquippedSlot(dashboard.loadout, selectedMarketItem.equip_slot)} onClose={() => setSelectedMarketItem(null)} onBuy={() => requestPurchase(selectedMarketItem)} />}
+
+      {selectedInventoryItem && (
+        <InventoryDetailDialog
+          entry={selectedInventoryItem}
+          busy={busy}
+          onClose={() => setSelectedInventoryItem(null)}
+          onEquip={() => void equipItem(selectedInventoryItem)}
+          onSell={() => setPendingSale(selectedInventoryItem)}
+        />
+      )}
 
       {dashboard && pendingPurchase && (
-        <GameConfirmDialog open eyebrow="Equipment purchase" title={`Buy ${pendingPurchase.item.brand} ${pendingPurchase.item.model}?`} message={<>This purchase will deduct <strong>{money(pendingPurchase.item.price_usd)}</strong> from Career Finance and add a new 100% condition item to your inventory.</>} detail={dashboard.balance >= pendingPurchase.item.price_usd ? <>Balance after purchase: <strong>{money(dashboard.balance - pendingPurchase.item.price_usd)}</strong></> : <>You currently have <strong>{money(dashboard.balance)}</strong>. This purchase requires {money(pendingPurchase.item.price_usd)}.</>} confirmLabel={dashboard.balance >= pendingPurchase.item.price_usd ? `Buy for ${money(pendingPurchase.item.price_usd)}` : 'Insufficient funds'} tone="neutral" busy={busy === `buy:${pendingPurchase.item.id}`} onCancel={() => { if (!busy) setPendingPurchase(null) }} onConfirm={() => { if (dashboard.balance >= pendingPurchase.item.price_usd) return buyItem() }} />
+        <GameConfirmDialog open eyebrow="Equipment purchase" title={`Buy ${pendingPurchase.item.brand} ${pendingPurchase.item.model}?`} message={<>This purchase will deduct <strong>{money(pendingPurchase.item.price_usd)}</strong> from Career Finance and add a new 100% condition item to Inventory.</>} detail={dashboard.balance >= pendingPurchase.item.price_usd ? <>Balance after purchase: <strong>{money(dashboard.balance - pendingPurchase.item.price_usd)}</strong></> : <>You currently have <strong>{money(dashboard.balance)}</strong>. This purchase requires {money(pendingPurchase.item.price_usd)}.</>} confirmLabel={dashboard.balance >= pendingPurchase.item.price_usd ? `Buy for ${money(pendingPurchase.item.price_usd)}` : 'Insufficient funds'} tone="neutral" busy={busy === `buy:${pendingPurchase.item.id}`} onCancel={() => { if (!busy) setPendingPurchase(null) }} onConfirm={() => { if (dashboard.balance >= pendingPurchase.item.price_usd) return buyItem() }} />
       )}
 
       {pendingSale && (
-        <GameConfirmDialog open eyebrow="Equipment resale" title={`Sell ${pendingSale.item.brand} ${pendingSale.item.model}?`} message={<>Condition: <strong>{pendingSale.condition}% · {conditionLabel(pendingSale.condition)}</strong>. The item will be removed from inventory and its active bonuses will no longer be available.</>} detail={<>Original recorded purchase price: {money(pendingSale.purchase_price_usd)} · Estimated sale value: <strong>{money(pendingSale.resale_value_usd)}</strong>.</>} confirmLabel={`Sell for ${money(pendingSale.resale_value_usd)}`} tone="warning" busy={busy === `sell:${pendingSale.inventory_id}`} onCancel={() => { if (!busy) setPendingSale(null) }} onConfirm={sellItem} />
+        <GameConfirmDialog open eyebrow="Equipment resale" title={`Sell ${pendingSale.item.brand} ${pendingSale.item.model}?`} message={<>Condition: <strong>{pendingSale.condition}% · {conditionLabel(pendingSale.condition)}</strong>. Equipped status: <strong>{pendingSale.is_equipped ? 'Currently equipped' : 'Not equipped'}</strong>. The item will be removed from Inventory after sale.</>} detail={<>Original recorded purchase price: {money(pendingSale.purchase_price_usd)} · Current estimated sale value: <strong>{money(pendingSale.resale_value_usd)}</strong>.</>} confirmLabel={`Sell for ${money(pendingSale.resale_value_usd)}`} tone="warning" busy={busy === `sell:${pendingSale.inventory_id}`} onCancel={() => { if (!busy) setPendingSale(null) }} onConfirm={sellItem} />
       )}
     </GameLayout>
   )
@@ -567,6 +621,46 @@ function ItemDetailDialog({ item, balance, equipped, onClose, onBuy }: { item: C
           <dl className="tlg-equipment-detail-meta"><div><dt>Gameplay scope</dt><dd>{effectScopeLabel(item.effect_scope)}</dd></div><div><dt>Surface</dt><dd>{item.surface ? surfaceLabel(item.surface) : 'Not surface-specific'}</dd></div><div><dt>Expected lifespan</dt><dd>{item.lifespan_text || 'Defined by condition and use.'}</dd></div><div><dt>Maintenance</dt><dd>{item.maintenance_text || 'No special maintenance requirement.'}</dd></div></dl>
           {equipped && <div className="tlg-equipment-current-compare"><span>CURRENTLY EQUIPPED</span><strong>{equipped.item.brand} {equipped.item.model}</strong><small>{equipped.condition}% condition · {equipped.item.id === item.id ? 'Same equipment definition' : 'Compare the stat bars before buying'}</small></div>}
           <div className="tlg-equipment-detail-actions"><button type="button" className="secondary" onClick={onClose}>Close</button><button type="button" disabled={!canBuy} onClick={onBuy}>{item.availability_status !== 'available' ? availabilityLabel(item.availability_status) : balance < item.price_usd ? 'Insufficient funds' : `Buy for ${money(item.price_usd)}`}</button></div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function InventoryDetailDialog({ entry, busy, onClose, onEquip, onSell }: { entry: InventoryItem; busy: string | null; onClose: () => void; onEquip: () => void; onSell: () => void }) {
+  const equippable = Boolean(entry.item.equip_slot)
+  return (
+    <div className="tlg-equipment-detail-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
+      <section className="tlg-equipment-detail tlg-equipment-inventory-detail" role="dialog" aria-modal="true" aria-labelledby="inventory-detail-title">
+        <button type="button" className="tlg-equipment-detail-close" onClick={onClose} aria-label="Close inventory details">×</button>
+        <div className="tlg-equipment-detail-media"><ProductImage item={entry.item} large /></div>
+        <div className="tlg-equipment-detail-content">
+          <div className="tlg-equipment-detail-kicker"><span>{TYPE_LABELS[entry.item.item_type]}</span><b>{entry.is_equipped ? 'Currently equipped' : 'In Inventory'}</b></div>
+          <h2 id="inventory-detail-title">{entry.item.brand} {entry.item.model}</h2><p className="description">{entry.item.description}</p>
+          <div className="tlg-equipment-inventory-condition-hero"><div><span>CURRENT CONDITION</span><strong>{entry.condition}%</strong><small>{conditionLabel(entry.condition)}</small></div><div className="tlg-equipment-condition-track"><i style={{ width: `${entry.condition}%` }} /></div></div>
+          <div className="tlg-equipment-detail-tags">{(entry.item.tags ?? []).map((tag) => <span key={tag}>{tag.replaceAll('-', ' ')}</span>)}</div>
+          <div className="tlg-equipment-detail-stats">{mainStats(entry.item).map(([name, value]) => <div key={name}><span>{name}</span><strong>{value}</strong><div><i style={{ width: `${value}%` }} /></div></div>)}</div>
+          <div className="tlg-equipment-detail-columns">
+            <div className="positive"><h3>Main benefits</h3>{entry.item.advantages?.length ? <ul>{entry.item.advantages.map((value) => <li key={value}>{value}</li>)}</ul> : <p>No special advantages defined.</p>}</div>
+            <div className="negative"><h3>Main disadvantages</h3>{entry.item.disadvantages?.length ? <ul>{entry.item.disadvantages.map((value) => <li key={value}>{value}</li>)}</ul> : <p>No special trade-offs defined.</p>}</div>
+          </div>
+          <dl className="tlg-equipment-detail-meta">
+            <div><dt>Quality</dt><dd>{TIER_LABELS[entry.item.tier] ?? 'Tier'} · Tier {entry.item.tier}</dd></div>
+            <div><dt>Remaining durability</dt><dd>{entry.condition}% current condition · Base durability rating {entry.item.durability}</dd></div>
+            <div><dt>Gameplay scope</dt><dd>{entry.is_equipped ? `${effectScopeLabel(entry.item.effect_scope)} · active from this equipped item where supported` : `${effectScopeLabel(entry.item.effect_scope)} · inactive while unequipped`}</dd></div>
+            <div><dt>Surface</dt><dd>{entry.item.surface ? surfaceLabel(entry.item.surface) : 'Not surface-specific'}</dd></div>
+            <div><dt>Maintenance</dt><dd>{entry.item.maintenance_text || 'No maintenance action is currently supported for this item.'}</dd></div>
+            <div><dt>Expected lifespan</dt><dd>{entry.item.lifespan_text || 'Defined by condition and use.'}</dd></div>
+            <div><dt>Acquired</dt><dd>{acquisitionLabel(entry)}</dd></div>
+            <div><dt>Original purchase value</dt><dd>{entry.purchase_price_usd > 0 ? money(entry.purchase_price_usd) : 'No purchase cost recorded'}</dd></div>
+            <div><dt>Current resale value</dt><dd>{entry.resell_supported ? money(entry.resale_value_usd) : entry.sell_block_reason ?? 'Not resellable'}</dd></div>
+          </dl>
+          {entry.is_equipped && <div className="tlg-equipment-current-compare"><span>GEAR ROOM STATUS</span><strong>This item is currently equipped.</strong><small>Its current condition is already reflected by the authoritative equipment-effect calculation.</small></div>}
+          <div className="tlg-equipment-detail-actions tlg-equipment-inventory-detail-actions">
+            <button type="button" className="secondary" onClick={onClose}>Close</button>
+            {equippable && <button type="button" disabled={entry.is_equipped || busy === `equip:${entry.inventory_id}`} onClick={onEquip}>{entry.is_equipped ? 'Equipped' : busy === `equip:${entry.inventory_id}` ? 'Equipping…' : 'Equip'}</button>}
+            <button type="button" className="danger" disabled={!entry.can_sell || busy === `sell:${entry.inventory_id}`} title={entry.sell_block_reason ?? `Sell for ${money(entry.resale_value_usd)}`} onClick={onSell}>{entry.can_sell ? `Sell ${money(entry.resale_value_usd)}` : entry.is_equipped && entry.resell_supported ? 'Replace before selling' : 'Not sellable'}</button>
+          </div>
         </div>
       </section>
     </div>
