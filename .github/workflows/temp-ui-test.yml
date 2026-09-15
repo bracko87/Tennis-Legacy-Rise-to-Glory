@@ -1,0 +1,13 @@
+name: Temp UI test
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-ui-test.yml'
+permissions:
+  contents: write
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo ok
