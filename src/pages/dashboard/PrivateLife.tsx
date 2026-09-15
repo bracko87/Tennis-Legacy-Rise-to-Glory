@@ -15,6 +15,7 @@ import { useCommerce } from '../../hooks/useCommerce'
 import { supabase } from '../../lib/supabase'
 import '../../styles/private-life.css'
 import '../../styles/private-life-marketplace.css'
+import '../../styles/private-life-history.css'
 
 type AssetCategory = 'watch' | 'jewelry' | 'car' | 'apartment' | 'house_villa' | 'yacht' | 'private_jet' | 'art' | 'collectible'
 type MainTab = 'overview' | 'assets' | 'investments' | 'marketplace'
@@ -107,6 +108,23 @@ type CategoryTotal = {
   annual_running_cost: number
 }
 
+type AssetHistoryRow = {
+  id: string
+  catalog_code: string
+  category: AssetCategory
+  name: string
+  base_name: string
+  acquisition_type: 'purchase' | 'starter_home'
+  purchase_absolute_day: number
+  purchase_price: number
+  sold_absolute_day?: number | null
+  sold_price?: number | null
+  status: 'owned' | 'sold'
+  city?: string | null
+  country_code?: string | null
+  country_name?: string | null
+}
+
 type PrivateLifeDashboard = {
   player_id: string
   currency: string
@@ -153,6 +171,12 @@ const CATEGORY_META: Record<AssetCategory, { label: string }> = {
   collectible: { label: 'Collectibles' },
 }
 
+const GAME_MONTHS = [
+  ['January', 31], ['February', 29], ['March', 31], ['April', 30],
+  ['May', 31], ['June', 30], ['July', 31], ['August', 31],
+  ['September', 30], ['October', 31], ['November', 30], ['December', 31],
+] as const
+
 const SALE_META: Record<SaleMode, { label: string; detail: string }> = {
   urgent: { label: 'Sell now', detail: 'Immediate sale · lowest payout' },
   standard: { label: 'Standard sale', detail: '7 game days · normal payout' },
@@ -187,6 +211,25 @@ function marketMoveText(rateBps: number | null | undefined) {
   if (numeric === 0) return 'Stable this month'
   const percent = Math.abs(numeric) / 100
   return `${numeric > 0 ? '+' : '-'}${percent.toFixed(percent % 1 === 0 ? 0 : 1)}% this month`
+}
+
+function gameDayLabel(absoluteDay: number | null | undefined) {
+  const raw = Number(absoluteDay)
+  if (!Number.isFinite(raw) || raw < 0) return 'Game date unavailable'
+  const totalDays = Math.floor(raw)
+  const season = Math.floor(totalDays / 366) + 1
+  let dayIndex = totalDays % 366
+  let monthName = 'January'
+  let day = 1
+  for (const [name, days] of GAME_MONTHS) {
+    if (dayIndex < days) {
+      monthName = name
+      day = dayIndex + 1
+      break
+    }
+    dayIndex -= days
+  }
+  return `Season ${season} · ${monthName} ${day}`
 }
 
 function matchesPriceBand(price: number, band: MarketplacePrice) {
@@ -242,6 +285,10 @@ export default function PrivateLifePage() {
   const [marketAffordableOnly, setMarketAffordableOnly] = useState(false)
   const [propertyCountry, setPropertyCountry] = useState('')
   const [propertyLocationCode, setPropertyLocationCode] = useState('')
+  const [assetHistory, setAssetHistory] = useState<AssetHistoryRow[]>([])
+  const [showAssetHistory, setShowAssetHistory] = useState(false)
+  const [assetHistoryLoading, setAssetHistoryLoading] = useState(false)
+  const [assetHistoryError, setAssetHistoryError] = useState<string | null>(null)
 
   const loadDashboard = useCallback(async () => {
     if (!isPremium) return
@@ -361,6 +408,21 @@ export default function PrivateLifePage() {
     () => (dashboard?.owned_assets ?? []).filter((asset) => (asset.category === 'apartment' || asset.category === 'house_villa') && !asset.pending_sale).length,
     [dashboard?.owned_assets],
   )
+
+  async function toggleAssetHistory() {
+    if (showAssetHistory) {
+      setShowAssetHistory(false)
+      return
+    }
+    setShowAssetHistory(true)
+    if (assetHistory.length > 0) return
+    setAssetHistoryLoading(true)
+    setAssetHistoryError(null)
+    const { data, error: rpcError } = await supabase.rpc('get_private_life_asset_history_v1')
+    if (rpcError) setAssetHistoryError(rpcError.message)
+    else setAssetHistory(Array.isArray(data) ? data as unknown as AssetHistoryRow[] : [])
+    setAssetHistoryLoading(false)
+  }
 
   async function cancelSale(listingId: string) {
     setActionBusy(true)
@@ -525,8 +587,16 @@ export default function PrivateLifePage() {
 
         {tab === 'assets' ? (
           <section className="private-life-section">
-            <div className="private-life-section-head"><div><div className="private-life-section-eyebrow">Collection</div><h3>My physical assets</h3><p>Track current value, prestige points, monthly ownership costs and choose how quickly you want to sell each possession.</p></div></div>
+            <div className="private-life-section-head"><div><div className="private-life-section-eyebrow">Collection</div><h3>My physical assets</h3><p>Track current value, prestige points, monthly ownership costs and choose how quickly you want to sell each possession.</p></div><button type="button" className="private-life-refresh" onClick={() => void toggleAssetHistory()}>{showAssetHistory ? 'Hide history' : 'Asset history'}</button></div>
             <CategoryFilters value={filter} onChange={setFilter} />
+            {showAssetHistory ? (
+              <div className="private-life-asset-history">
+                <div className="private-life-asset-history-head"><div><strong>Asset history</strong><span>Every physical asset assigned, purchased or sold in your career.</span></div></div>
+                {assetHistoryLoading ? <div className="private-life-asset-history-state">Loading asset history…</div> : assetHistoryError ? <div className="private-life-asset-history-state error">{assetHistoryError}</div> : assetHistory.length === 0 ? <div className="private-life-asset-history-state">No asset history yet.</div> : (
+                  <div className="private-life-asset-history-table-wrap"><table className="private-life-asset-history-table"><thead><tr><th>Asset</th><th>Acquired</th><th>Price / value</th><th>Status</th></tr></thead><tbody>{assetHistory.map((row) => <tr key={row.id}><td><strong>{row.name}</strong><span>{categoryLabel(row.category)}</span></td><td><strong>{row.acquisition_type === 'starter_home' ? 'Starting home' : gameDayLabel(row.purchase_absolute_day)}</strong>{row.acquisition_type === 'starter_home' ? <span>{gameDayLabel(row.purchase_absolute_day)}</span> : null}</td><td><strong>{money(row.purchase_price, currency)}</strong><span>{row.acquisition_type === 'starter_home' ? 'Assigned starting value' : 'Purchase price'}</span></td><td>{row.status === 'sold' ? <><strong className="private-life-trend-negative">Sold</strong><span>{gameDayLabel(row.sold_absolute_day)} · {money(Number(row.sold_price ?? 0), currency)}</span></> : <><strong className="private-life-trend-positive">Owned</strong><span>Currently in collection</span></>}</td></tr>)}</tbody></table></div>
+                )}
+              </div>
+            ) : null}
             {visibleOwned.length === 0 ? <div className="private-life-empty"><strong>No assets in this category yet</strong><p>Visit the Marketplace to start building your private collection.</p></div> : (
               <div className="private-life-owned-grid">
                 {visibleOwned.map((asset) => {

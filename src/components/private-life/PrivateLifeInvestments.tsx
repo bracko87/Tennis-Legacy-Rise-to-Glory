@@ -32,6 +32,7 @@ type QuoteMetadata = {
   provider_quote_as_of?: string | null
   price_changed_on_last_check?: boolean | null
   refresh_cadence_game_minutes?: number | null
+  refresh_cadence_real_minutes?: number | null
   [key: string]: unknown
 }
 
@@ -185,8 +186,8 @@ const GAME_MONTHS = [
   ['September', 30], ['October', 31], ['November', 30], ['December', 31],
 ] as const
 
-function gameTimeLabel(metadata?: QuoteMetadata | null) {
-  const raw = finiteNumber(metadata?.game_last_change_total_seconds)
+function gameTimeFromSeconds(value: unknown) {
+  const raw = finiteNumber(value)
   if (raw === null || raw < 0) return 'Game time unavailable'
   const total = Math.floor(raw)
   const secondsPerDay = 86400
@@ -209,6 +210,10 @@ function gameTimeLabel(metadata?: QuoteMetadata | null) {
   return `Season ${season} · ${monthName} ${day} · ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
 }
 
+function gameTimeLabel(metadata?: QuoteMetadata | null, mode: 'change' | 'checked' = 'change') {
+  return gameTimeFromSeconds(mode === 'checked' ? metadata?.game_checked_total_seconds : metadata?.game_last_change_total_seconds)
+}
+
 function compactNumber(value: number | null) {
   if (value === null || !Number.isFinite(value)) return '—'
   return new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value)
@@ -219,36 +224,54 @@ function requestKey(prefix: string) {
   return `${prefix}-${uuid ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`}`
 }
 
-function historyValues(history?: unknown[]) {
-  return (history ?? [])
-    .map((point) => {
-      if (typeof point === 'number') return finiteNumber(point)
-      if (point && typeof point === 'object' && 'p' in point) return finiteNumber((point as { p?: unknown }).p)
-      return null
-    })
-    .filter((value): value is number => value !== null && value > 0)
+type ChartHistoryPoint = { price: number; gameSeconds: number | null }
+
+function historyPoints(history?: unknown[]): ChartHistoryPoint[] {
+  return (history ?? []).map((point) => {
+    if (typeof point === 'number') {
+      const price = finiteNumber(point)
+      return price !== null && price > 0 ? { price, gameSeconds: null } : null
+    }
+    if (point && typeof point === 'object' && 'p' in point) {
+      const raw = point as { p?: unknown; g?: unknown }
+      const price = finiteNumber(raw.p)
+      if (price === null || price <= 0) return null
+      return { price, gameSeconds: finiteNumber(raw.g) }
+    }
+    return null
+  }).filter((point): point is ChartHistoryPoint => point !== null)
 }
 
-function Sparkline({ history }: { history?: unknown[] }) {
-  const values = historyValues(history)
-  if (values.length < 2) return <div className="private-life-market-chart-empty">Trend data will appear as market-price snapshots accumulate.</div>
+function historyValues(history?: unknown[]) {
+  return historyPoints(history).map((point) => point.price)
+}
+
+function Sparkline({ history, currency }: { history?: unknown[]; currency: string }) {
+  const historyData = historyPoints(history)
+  if (historyData.length < 2) return <div className="private-life-market-chart-empty">Trend data will appear as market-price snapshots accumulate.</div>
 
   const width = 300
   const height = 82
   const padding = 5
+  const values = historyData.map((point) => point.price)
   const min = Math.min(...values)
   const max = Math.max(...values)
   const spread = Math.max(max - min, Math.abs(max) * 0.002, 0.000001)
-  const points = values.map((value, index) => {
-    const x = padding + (index / (values.length - 1)) * (width - padding * 2)
-    const y = height - padding - ((value - min) / spread) * (height - padding * 2)
-    return `${x.toFixed(2)},${y.toFixed(2)}`
-  }).join(' ')
+  const coordinates = historyData.map((point, index) => {
+    const x = padding + (index / (historyData.length - 1)) * (width - padding * 2)
+    const y = height - padding - ((point.price - min) / spread) * (height - padding * 2)
+    return { x, y, point }
+  })
   const positive = values[values.length - 1] >= values[0]
 
   return (
-    <svg className={`private-life-market-sparkline ${positive ? 'positive' : 'negative'}`} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Recent reference price trend">
-      <polyline points={points} fill="none" vectorEffect="non-scaling-stroke" />
+    <svg className={`private-life-market-sparkline ${positive ? 'positive' : 'negative'}`} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Recent reference price trend. Move the mouse across points to see game dates and prices.">
+      <polyline points={coordinates.map(({ x, y }) => `${x.toFixed(2)},${y.toFixed(2)}`).join(' ')} fill="none" vectorEffect="non-scaling-stroke" />
+      {coordinates.map(({ x, y, point }, index) => (
+        <circle key={`${index}-${x}`} cx={x} cy={y} r="7" fill="transparent">
+          <title>{`${gameTimeFromSeconds(point.gameSeconds)} · ${marketPrice(point.price, currency)}`}</title>
+        </circle>
+      ))}
     </svg>
   )
 }
@@ -274,7 +297,7 @@ function MarketTrendPanel({ instrument, currency }: { instrument: InvestmentInst
         {sector ? <small>{sector}</small> : null}
       </div>
       <div className="private-life-market-chart-label">{chartLabel}</div>
-      <Sparkline history={chartHistory} />
+      <Sparkline history={chartHistory} currency={currency} />
       <div className="private-life-market-stat-grid">
         <div><span>{instrument.asset_type === 'crypto' ? '24H' : '1D'}</span><strong className={oneDay !== null && oneDay >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{percentText(oneDay)}</strong></div>
         <div><span>1W</span><strong className={oneWeek !== null && oneWeek >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{percentText(oneWeek)}</strong></div>
@@ -285,9 +308,11 @@ function MarketTrendPanel({ instrument, currency }: { instrument: InvestmentInst
         <div><span>{instrument.asset_type === 'stock' ? '52W low' : '24H low'}</span><strong>{marketPrice(rangeLow, currency)}</strong></div>
         <div><span>{instrument.asset_type === 'stock' ? '52W high' : '24H high'}</span><strong>{marketPrice(rangeHigh, currency)}</strong></div>
         <div><span>{instrument.asset_type === 'stock' ? 'Volume' : '24H volume'}</span><strong>{compactNumber(activity)}</strong></div>
+        <div><span>Last checked (game time)</span><strong>{gameTimeLabel(instrument.quote_metadata, 'checked')}</strong></div>
         <div><span>Last price change (game time)</span><strong>{gameTimeLabel(instrument.quote_metadata)}</strong></div>
+        <div><span>Automatic check cadence</span><strong>Every 15 real minutes</strong></div>
       </div>
-      <p>Reference prices are checked every 15 in-game minutes. Stocks only change when the external market provides a new price; crypto can change continuously.</p>
+      <p>Reference prices are checked every 15 real-world minutes. All timestamps shown to players use Tennis Legacy game time. Stocks only change when the external market provides a new price; crypto can change continuously.</p>
     </section>
   )
 }
@@ -537,7 +562,7 @@ export default function PrivateLifeInvestments({
         <button type="button" className="private-life-refresh" disabled={refreshing} onClick={() => void refreshQuotes(true)}>{refreshing ? 'Refreshing prices…' : 'Refresh market prices'}</button>
       </div>
 
-      <div className="private-life-market-update-note"><strong>Automatic market cache:</strong> prices are checked every 15 in-game minutes. Stocks can only change while their external market provides a new quote; crypto can move continuously 24/7. The time shown beside a price is Tennis Legacy game time, not real-world time.</div>
+      <div className="private-life-market-update-note"><strong>Automatic market cache:</strong> prices are checked every 15 real-world minutes. Stocks can only change while their external market provides a new quote; crypto can move continuously 24/7. The displayed check/change timestamps are always Tennis Legacy game time.</div>
 
       <div className="private-life-investment-summary" aria-label="Investment portfolio summary">
         <div><span>Career cash</span><strong>{money(dashboard.cash_balance, currency)}</strong></div>
@@ -604,7 +629,7 @@ export default function PrivateLifeInvestments({
               {selectedInstrument ? (
                 <>
                   <div className="private-life-trade-ticket-heading"><div><span>{selectedInstrument.asset_type === 'stock' ? 'Stock' : 'Cryptocurrency'}</span><h4>{selectedInstrument.symbol} · {selectedInstrument.name}</h4></div><strong>{marketPrice(selectedInstrument.price, currency)}</strong></div>
-                  <div className="private-life-trade-quote-meta"><span>{quoteSource(selectedInstrument.quote_source)}</span><span>{gameTimeLabel(selectedInstrument.quote_metadata)}</span></div>
+                  <div className="private-life-trade-quote-meta"><span>{quoteSource(selectedInstrument.quote_source)}</span><span>{gameTimeLabel(selectedInstrument.quote_metadata, 'checked')}</span></div>
                   <div className="private-life-trade-side-tabs"><button type="button" className={tradeSide === 'buy' ? 'active' : ''} onClick={() => setTradeSide('buy')}>Buy</button><button type="button" className={tradeSide === 'sell' ? 'active' : ''} disabled={Number(selectedInstrument.owned_quantity || 0) <= 0} onClick={() => setTradeSide('sell')}>Sell</button></div>
                   {tradeSide === 'buy' ? (
                     <div className="private-life-trade-form">
@@ -647,7 +672,7 @@ export default function PrivateLifeInvestments({
                       <td><strong>{position.symbol}</strong><span>{position.name}</span></td>
                       <td>{quantity(Number(position.quantity), position.asset_type)}</td>
                       <td>{marketPrice(Number(position.average_buy_price), currency)}</td>
-                      <td><strong>{marketPrice(position.price, currency)}</strong><span>{gameTimeLabel(position.quote_metadata)}</span></td>
+                      <td><strong>{marketPrice(position.price, currency)}</strong><span>{gameTimeLabel(position.quote_metadata, 'checked')}</span></td>
                       <td><strong className={dailyMove !== null && dailyMove >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{percentText(dailyMove)}</strong></td>
                       <td>{money(preciseValue, currency, 2)}</td>
                       <td><strong className={precisePnl >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{signedMoney(precisePnl, currency, 2)}</strong><span className={returnPct >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{percentText(returnPct)}</span></td>

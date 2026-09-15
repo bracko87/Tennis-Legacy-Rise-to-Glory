@@ -1,0 +1,18 @@
+.private-life-asset-history {
+  margin-top: 14px;
+  border: 1px solid #d7e1ec;
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+}
+.private-life-asset-history-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; border-bottom: 1px solid #e4ebf2; }
+.private-life-asset-history-head strong { display: block; color: #102a43; font-size: 15px; }
+.private-life-asset-history-head span { display: block; margin-top: 4px; color: #6b7f95; font-size: 12px; }
+.private-life-asset-history-table-wrap { overflow-x: auto; }
+.private-life-asset-history-table { width: 100%; border-collapse: collapse; min-width: 720px; }
+.private-life-asset-history-table th { padding: 10px 14px; background: #f6f9fc; color: #71849a; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; text-align: left; }
+.private-life-asset-history-table td { padding: 12px 14px; border-top: 1px solid #e8eef4; vertical-align: top; color: #17324d; font-size: 12px; }
+.private-life-asset-history-table td strong { display: block; font-size: 12px; }
+.private-life-asset-history-table td span { display: block; margin-top: 3px; color: #7890a8; font-size: 11px; }
+.private-life-asset-history-state { padding: 18px; color: #6b7f95; font-size: 12px; }
+.private-life-asset-history-state.error { color: #b42318; }
