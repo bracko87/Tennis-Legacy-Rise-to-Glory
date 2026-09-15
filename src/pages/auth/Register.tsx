@@ -26,6 +26,7 @@ import {
 
 import AppButton from '../../components/common/AppButton'
 import FormField from '../../components/common/FormField'
+import { clearStoredReferralCode, getReferralBrowserHash, getStoredReferralCode } from '../../lib/referrals'
 import { supabase } from '../../lib/supabase'
 
 const MONTHS = [
@@ -81,6 +82,8 @@ export default function RegisterPage() {
     if (!formValid || loading) return
 
     const normalizedEmail = email.trim().toLowerCase()
+    const referralCode = getStoredReferralCode()
+    const referralBrowserHash = referralCode ? await getReferralBrowserHash() : null
 
     setLoading(true)
     const { data, error } = await supabase.auth.signUp({
@@ -93,6 +96,7 @@ export default function RegisterPage() {
           birthday_month: Number(month),
           birthday_day: Number(day),
           birthday_year: year ? Number(year) : null,
+          ...(referralCode ? { referral_code: referralCode, referral_browser_hash: referralBrowserHash } : {}),
         },
       },
     })
@@ -102,6 +106,8 @@ export default function RegisterPage() {
       setStatus({ type: 'error', message: mapSignupError(error.message) })
       return
     }
+
+    if (referralCode) clearStoredReferralCode()
 
     if (data.session) {
       navigate('/create-player', { replace: true })
