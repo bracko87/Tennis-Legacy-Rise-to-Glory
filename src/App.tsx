@@ -69,6 +69,7 @@ import GamePreferencesPage from './pages/manager/GamePreferences'
 import InboxPage from './pages/manager/Inbox'
 import ContactUsPage from './pages/manager/ContactUs'
 import InviteFriendsPage from './pages/manager/InviteFriends'
+import ReferralAdminPage from './pages/manager/ReferralAdmin'
 import NotificationsPage from './pages/manager/Notifications'
 import { ForumPage, HelpPage } from './pages/manager/CommunitySupport'
 import { PlayerAccountPage } from './pages/manager/ManagerPages'
@@ -209,6 +210,7 @@ export default function App() {
           <Route path="/game/pro-packages" element={<RequirePlayer><ProPackagesPage /></RequirePlayer>} />
           <Route path="/game/contact" element={<RequirePlayer><ContactUsPage /></RequirePlayer>} />
           <Route path="/game/invite-friends" element={<RequirePlayer><InviteFriendsPage /></RequirePlayer>} />
+          <Route path="/game/referral-admin" element={<RequirePlayer><ReferralAdminPage /></RequirePlayer>} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
