@@ -7,8 +7,8 @@ import '../../styles/equipment.css'
 import '../../styles/equipment-marketplace-v2.css'
 
 type EquipmentTab = 'gear' | 'market' | 'sponsors'
-type EquipmentType = 'racket' | 'string' | 'shoes' | 'apparel' | 'accessory' | 'training' | 'recovery'
-type EquipSlot = 'racket' | 'string' | 'shoes'
+type EquipmentType = 'racket' | 'shoes' | 'apparel' | 'accessory'
+type EquipSlot = 'racket' | 'shoes'
 type CourtSurface = 'hard' | 'clay' | 'grass'
 type MarketFilter = 'all' | EquipmentType
 type MarketSort = 'featured' | 'price-low' | 'price-high' | 'tier-high' | 'durability-high'
@@ -36,7 +36,7 @@ interface CatalogItem {
   disadvantages: string[]
   maintenance_text: string
   lifespan_text: string
-  effect_scope: 'match' | 'training' | 'recovery' | 'cosmetic' | 'none'
+  effect_scope: 'match' | 'cosmetic' | 'none'
   availability_status: 'available' | 'unavailable' | 'limited' | 'sponsor_only'
   equip_slot?: EquipSlot | null
   is_resellable: boolean
@@ -66,9 +66,7 @@ interface EquippedSlot {
 
 interface EquipmentLoadout {
   racket?: EquippedSlot | null
-  string?: EquippedSlot | null
   shoes?: EquippedSlot | null
-  string_tension_kg: number
   apparel_brand: string
   racket_sponsor_name?: string | null
   apparel_sponsor_name?: string | null
@@ -82,9 +80,7 @@ interface EquipmentEffects {
   spin_pct: number
   movement_pct: number
   comfort_pct: number
-  string_tension_kg: number
   racket_condition: number
-  string_condition: number
   shoes_condition: number
   shoe_surface: string
 }
@@ -100,7 +96,6 @@ interface EquipmentDashboard {
   effects: Record<CourtSurface, EquipmentEffects>
   wear_rules: {
     racket_per_match: number
-    strings_per_match: number
     shoes_surface_specific: number
     shoes_all_court: number
     shoes_wrong_surface: number
@@ -114,15 +109,12 @@ interface PendingPurchase {
 
 const TYPE_LABELS: Record<EquipmentType, string> = {
   racket: 'Racquets',
-  string: 'Strings',
   shoes: 'Shoes',
   apparel: 'Clothing',
   accessory: 'Accessories',
-  training: 'Training',
-  recovery: 'Recovery',
 }
 
-const TYPE_ORDER: EquipmentType[] = ['racket', 'string', 'shoes', 'apparel', 'accessory', 'training', 'recovery']
+const TYPE_ORDER: EquipmentType[] = ['racket', 'shoes', 'apparel', 'accessory']
 
 const TIER_LABELS: Record<number, string> = {
   1: 'Starter',
@@ -161,8 +153,6 @@ function availabilityLabel(status: CatalogItem['availability_status']) {
 
 function effectScopeLabel(scope: CatalogItem['effect_scope']) {
   if (scope === 'match') return 'Match performance'
-  if (scope === 'training') return 'Training'
-  if (scope === 'recovery') return 'Recovery'
   if (scope === 'cosmetic') return 'Identity / cosmetic'
   return 'No gameplay effect'
 }
@@ -176,7 +166,7 @@ function mainStats(item: CatalogItem) {
       ['Durability', item.durability],
     ] as const
   }
-  if (item.item_type === 'racket' || item.item_type === 'string') {
+  if (item.item_type === 'racket') {
     return [
       ['Power', item.power],
       ['Control', item.control],
@@ -189,7 +179,6 @@ function mainStats(item: CatalogItem) {
 
 function getEquippedSlot(loadout: EquipmentLoadout, slot?: EquipSlot | null) {
   if (slot === 'racket') return loadout.racket
-  if (slot === 'string') return loadout.string
   if (slot === 'shoes') return loadout.shoes
   return null
 }
@@ -209,7 +198,6 @@ export default function EquipmentPage() {
   const [selectedItem, setSelectedItem] = useState<CatalogItem | null>(null)
   const [pendingPurchase, setPendingPurchase] = useState<PendingPurchase | null>(null)
   const [pendingSale, setPendingSale] = useState<InventoryItem | null>(null)
-  const [tension, setTension] = useState('24.0')
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -219,13 +207,8 @@ export default function EquipmentPage() {
     setLoading(true)
     setError(null)
     const { data, error: equipmentError } = await supabase.rpc('get_equipment_dashboard_v1')
-    if (equipmentError || !data) {
-      setError(equipmentError?.message ?? 'Unable to load equipment.')
-    } else {
-      const next = data as EquipmentDashboard
-      setDashboard(next)
-      setTension(Number(next.loadout?.string_tension_kg ?? 24).toFixed(1))
-    }
+    if (equipmentError || !data) setError(equipmentError?.message ?? 'Unable to load equipment.')
+    else setDashboard(data as EquipmentDashboard)
     setLoading(false)
   }
 
@@ -268,9 +251,8 @@ export default function EquipmentPage() {
       p_request_key: requestKey,
     })
 
-    if (purchaseError) {
-      setError(purchaseError.message)
-    } else {
+    if (purchaseError) setError(purchaseError.message)
+    else {
       setMessage(`${item.brand} ${item.model} purchased for ${money(item.price_usd)} and added to your inventory.`)
       setPendingPurchase(null)
       setSelectedItem(null)
@@ -290,9 +272,8 @@ export default function EquipmentPage() {
       p_inventory_id: item.inventory_id,
     })
 
-    if (saleError) {
-      setError(saleError.message)
-    } else {
+    if (saleError) setError(saleError.message)
+    else {
       setMessage(`${item.item.brand} ${item.item.model} sold for ${money(item.resale_value_usd)}.`)
       setPendingSale(null)
       await loadEquipment()
@@ -305,38 +286,13 @@ export default function EquipmentPage() {
     setError(null)
     setMessage(null)
     const { error: equipError } = await supabase.rpc('equip_equipment_item_v1', { p_inventory_id: item.inventory_id })
-    if (equipError) {
-      setError(equipError.message)
-    } else {
+    if (equipError) setError(equipError.message)
+    else {
       setMessage(`${item.item.brand} ${item.item.model} is now in your match setup.`)
       await loadEquipment()
     }
     setBusy(null)
   }
-
-  async function saveTension() {
-    const parsed = Number(tension)
-    if (!Number.isFinite(parsed) || parsed < 20 || parsed > 28) {
-      setError('String tension must be between 20 and 28 kg.')
-      return
-    }
-    setBusy('tension')
-    setError(null)
-    setMessage(null)
-    const { error: tensionError } = await supabase.rpc('set_equipment_string_tension_v1', { p_tension_kg: parsed })
-    if (tensionError) {
-      setError(tensionError.message)
-    } else {
-      setMessage(`String tension saved at ${parsed.toFixed(1)} kg.`)
-      await loadEquipment()
-    }
-    setBusy(null)
-  }
-
-  const availableTypes = useMemo(
-    () => TYPE_ORDER.filter((type) => (dashboard?.catalog ?? []).some((item) => item.item_type === type)),
-    [dashboard?.catalog],
-  )
 
   const inventoryTypes = useMemo(
     () => TYPE_ORDER.filter((type) => (dashboard?.inventory ?? []).some((entry) => entry.item.item_type === type)),
@@ -375,7 +331,7 @@ export default function EquipmentPage() {
 
   if (loading && !dashboard) {
     return (
-      <GameLayout title="Equipment" subtitle="Match gear, wear and technical sponsors">
+      <GameLayout title="Equipment" subtitle="Racquets, shoes, clothing and accessories">
         <div className="tlg-equipment-state">Loading Equipment Center…</div>
       </GameLayout>
     )
@@ -384,13 +340,13 @@ export default function EquipmentPage() {
   const effects = dashboard?.effects?.[surface]
 
   return (
-    <GameLayout title="Equipment" subtitle="Match gear, wear and technical sponsors">
+    <GameLayout title="Equipment" subtitle="Racquets, shoes, clothing and accessories">
       <div className="tlg-equipment-page">
         <section className="tlg-equipment-hero">
           <div className="tlg-equipment-hero-copy">
-            <span>PERFORMANCE SETUP</span>
+            <span>EQUIPMENT</span>
             <h1>Equipment Center</h1>
-            <p>Browse the central equipment catalogue, compare match effects and durability, manage owned gear, and resell eligible items. Only equipped performance gear contributes match bonuses.</p>
+            <p>Manage racquets, shoes, clothing and accessories from one central catalogue. Racquets and shoes currently carry match-performance effects; clothing and accessories stay in the same marketplace without being split into unnecessary subcategories.</p>
           </div>
         </section>
 
@@ -404,11 +360,10 @@ export default function EquipmentPage() {
         {message && <div className="tlg-equipment-alert">{message}</div>}
 
         {dashboard && (
-          <section className="tlg-equipment-summary-strip">
+          <section className="tlg-equipment-summary-strip tlg-equipment-summary-strip-four-types">
             <div><span>CAREER CASH</span><strong>{money(dashboard.balance)}</strong><small>Marketplace uses Career Finance</small></div>
             <div><span>RACQUET</span><strong>{dashboard.loadout.racket ? `${dashboard.loadout.racket.item.brand} ${dashboard.loadout.racket.item.model}` : 'Not equipped'}</strong><small>{dashboard.loadout.racket ? `${dashboard.loadout.racket.condition}% condition` : 'Choose from inventory'}</small></div>
-            <div><span>STRING SETUP</span><strong>{dashboard.loadout.string ? dashboard.loadout.string.item.model : 'Not equipped'}</strong><small>{Number(dashboard.loadout.string_tension_kg).toFixed(1)} kg tension</small></div>
-            <div><span>FOOTWEAR</span><strong>{dashboard.loadout.shoes ? dashboard.loadout.shoes.item.model : 'Not equipped'}</strong><small>{dashboard.loadout.shoes ? surfaceLabel(dashboard.loadout.shoes.item.surface) : 'Choose from inventory'}</small></div>
+            <div><span>SHOES</span><strong>{dashboard.loadout.shoes ? dashboard.loadout.shoes.item.model : 'Not equipped'}</strong><small>{dashboard.loadout.shoes ? surfaceLabel(dashboard.loadout.shoes.item.surface) : 'Choose from inventory'}</small></div>
           </section>
         )}
 
@@ -416,49 +371,35 @@ export default function EquipmentPage() {
           <div className="tlg-equipment-gear-view">
             <section className="tlg-equipment-panel">
               <header className="tlg-equipment-panel-head">
-                <div><span>CURRENT MATCH SETUP</span><h2>Your gear room</h2><p>Racquet, strings and shoes are the current performance slots. Future clothing, accessories, training and recovery items can live in the same catalogue without receiving artificial match bonuses.</p></div>
+                <div><span>CURRENT MATCH SETUP</span><h2>Your gear room</h2><p>Racquet and shoes are the current performance slots. Clothing and accessories remain full equipment categories without being split into shirts, shorts, skirts or other garment subtypes.</p></div>
               </header>
-              <div className="tlg-equipment-slot-grid">
+              <div className="tlg-equipment-slot-grid tlg-equipment-slot-grid-two">
                 <EquipmentSlot title="Racquet" slot={dashboard.loadout.racket} detail="Power · control · spin · comfort" />
-                <EquipmentSlot title="Strings" slot={dashboard.loadout.string} detail={`${Number(dashboard.loadout.string_tension_kg).toFixed(1)} kg tension`} />
                 <EquipmentSlot title="Shoes" slot={dashboard.loadout.shoes} detail={dashboard.loadout.shoes ? surfaceLabel(dashboard.loadout.shoes.item.surface) : 'Surface-specific footwear'} />
               </div>
             </section>
 
-            <div className="tlg-equipment-two-column">
-              <section className="tlg-equipment-panel tlg-equipment-tension-panel">
-                <header className="tlg-equipment-panel-head compact">
-                  <div><span>STRING SETUP</span><h2>Tension</h2><p>Lower tension favors power and comfort; higher tension favors control. Effects stay intentionally small.</p></div>
-                </header>
-                <div className="tlg-equipment-tension-control">
-                  <input type="range" min="20" max="28" step="0.5" value={tension} onChange={(event) => setTension(event.target.value)} />
-                  <div><strong>{Number(tension).toFixed(1)} kg</strong><span>20 kg · power</span><span>28 kg · control</span></div>
-                  <button type="button" onClick={() => void saveTension()} disabled={busy === 'tension'}>{busy === 'tension' ? 'Saving…' : 'Save tension'}</button>
+            <section className="tlg-equipment-panel">
+              <header className="tlg-equipment-panel-head compact">
+                <div><span>MATCH PROFILE</span><h2>Equipment effect</h2><p>These modifiers are the authoritative contribution from the equipped racquet and shoes for the selected court surface.</p></div>
+                <div className="tlg-equipment-surface-switch">
+                  {(['hard', 'clay', 'grass'] as CourtSurface[]).map((value) => <button key={value} type="button" className={surface === value ? 'active' : ''} onClick={() => setSurface(value)}>{value.charAt(0).toUpperCase() + value.slice(1)}</button>)}
                 </div>
-              </section>
-
-              <section className="tlg-equipment-panel">
-                <header className="tlg-equipment-panel-head compact">
-                  <div><span>MATCH PROFILE</span><h2>Equipment effect</h2><p>These modifiers are the authoritative equipped-gear contribution for the selected court surface.</p></div>
-                  <div className="tlg-equipment-surface-switch">
-                    {(['hard', 'clay', 'grass'] as CourtSurface[]).map((value) => <button key={value} type="button" className={surface === value ? 'active' : ''} onClick={() => setSurface(value)}>{value.charAt(0).toUpperCase() + value.slice(1)}</button>)}
-                  </div>
-                </header>
-                {effects && (
-                  <div className="tlg-equipment-effects-grid">
-                    <Effect name="Power" value={effects.power_pct} />
-                    <Effect name="Control" value={effects.control_pct} />
-                    <Effect name="Spin" value={effects.spin_pct} />
-                    <Effect name="Movement" value={effects.movement_pct} />
-                    <Effect name="Comfort" value={effects.comfort_pct} />
-                  </div>
-                )}
-              </section>
-            </div>
+              </header>
+              {effects && (
+                <div className="tlg-equipment-effects-grid">
+                  <Effect name="Power" value={effects.power_pct} />
+                  <Effect name="Control" value={effects.control_pct} />
+                  <Effect name="Spin" value={effects.spin_pct} />
+                  <Effect name="Movement" value={effects.movement_pct} />
+                  <Effect name="Comfort" value={effects.comfort_pct} />
+                </div>
+              )}
+            </section>
 
             <section className="tlg-equipment-panel">
               <header className="tlg-equipment-panel-head">
-                <div><span>OWNED GEAR</span><h2>Inventory</h2><p>Condition belongs to each individual item. Eligible purchased gear can be resold; equipped items must be replaced first.</p></div>
+                <div><span>OWNED GEAR</span><h2>Inventory</h2><p>Condition belongs to each individual item. Eligible purchased gear can be resold; equipped performance items must be replaced first.</p></div>
               </header>
               <div className="tlg-equipment-inventory-groups">
                 {inventoryTypes.map((type) => (
@@ -495,9 +436,8 @@ export default function EquipmentPage() {
               </div>
             </section>
 
-            <section className="tlg-equipment-wear-note">
+            <section className="tlg-equipment-wear-note tlg-equipment-wear-note-two">
               <div><span>RACQUET WEAR</span><strong>−{dashboard.wear_rules.racket_per_match}% / match</strong></div>
-              <div><span>STRING WEAR</span><strong>−{dashboard.wear_rules.strings_per_match}% / match</strong></div>
               <div><span>SHOE WEAR</span><strong>−{dashboard.wear_rules.shoes_surface_specific}% to −{dashboard.wear_rules.shoes_wrong_surface}% / match</strong></div>
               <p>Resale uses the original recorded purchase price × {dashboard.resale_base_percent}% base resale × current condition × item resale modifier. That keeps resale values consistent and prevents buy/sell profit loops.</p>
             </section>
@@ -507,14 +447,14 @@ export default function EquipmentPage() {
         {dashboard && tab === 'market' && (
           <section className="tlg-equipment-panel tlg-equipment-market-panel">
             <header className="tlg-equipment-panel-head market-head tlg-equipment-market-head-v2">
-              <div><span>EQUIPMENT MARKETPLACE</span><h2>Professional gear</h2><p>Categories come directly from the active central catalogue. Only categories with actual catalogue items are shown.</p></div>
+              <div><span>EQUIPMENT MARKETPLACE</span><h2>Professional equipment</h2><p>The marketplace has four clear equipment types: Racquets, Shoes, Clothing and Accessories.</p></div>
               <div className="tlg-equipment-market-balance"><span>AVAILABLE</span><strong>{money(dashboard.balance)}</strong></div>
             </header>
 
             <div className="tlg-equipment-market-toolbar">
               <div className="tlg-equipment-category-tabs" role="tablist" aria-label="Marketplace categories">
                 <button type="button" className={marketFilter === 'all' ? 'active' : ''} onClick={() => setMarketFilter('all')}>All</button>
-                {availableTypes.map((type) => <button key={type} type="button" className={marketFilter === type ? 'active' : ''} onClick={() => setMarketFilter(type)}>{TYPE_LABELS[type]}</button>)}
+                {TYPE_ORDER.map((type) => <button key={type} type="button" className={marketFilter === type ? 'active' : ''} onClick={() => setMarketFilter(type)}>{TYPE_LABELS[type]}</button>)}
               </div>
               <label className="tlg-equipment-sort">
                 <span>Sort</span>
@@ -552,7 +492,7 @@ export default function EquipmentPage() {
                 )
               })}
             </div>
-            {marketItems.length === 0 && <div className="tlg-equipment-empty-market">No equipment matches this category and tag combination.</div>}
+            {marketItems.length === 0 && <div className="tlg-equipment-empty-market">No {marketFilter === 'all' ? 'equipment' : TYPE_LABELS[marketFilter].toLowerCase()} items have been added to the catalogue yet.</div>}
           </section>
         )}
 
@@ -560,19 +500,19 @@ export default function EquipmentPage() {
           <div className="tlg-equipment-sponsor-view">
             <section className="tlg-equipment-panel">
               <header className="tlg-equipment-panel-head">
-                <div><span>TECHNICAL PARTNERS</span><h2>Equipment & apparel sponsors</h2><p>Sponsor-controlled gear can use the same central catalogue and image data. Self-funded marketplace purchases continue to use the Career Finance account.</p></div>
+                <div><span>TECHNICAL PARTNERS</span><h2>Equipment & clothing sponsors</h2><p>Sponsor-controlled equipment can use the same central catalogue and image data. Self-funded marketplace purchases continue to use the Career Finance account.</p></div>
               </header>
               <div className="tlg-equipment-sponsor-grid">
                 <SponsorSlot title="Racquet partner" sponsor={dashboard.loadout.racket_sponsor_name} current={dashboard.loadout.racket ? dashboard.loadout.racket.item.brand : 'No racquet'} detail="Future contracts can supply racquets and remove purchase costs." />
-                <SponsorSlot title="Apparel partner" sponsor={dashboard.loadout.apparel_sponsor_name} current={dashboard.loadout.apparel_brand || 'Independent'} detail="Clothing can be catalogued for identity and commercial value without automatic artificial match bonuses." />
+                <SponsorSlot title="Clothing partner" sponsor={dashboard.loadout.apparel_sponsor_name} current={dashboard.loadout.apparel_brand || 'Independent'} detail="All match clothing stays together as one Clothing equipment type." />
                 <SponsorSlot title="Footwear partner" sponsor={dashboard.loadout.footwear_sponsor_name} current={dashboard.loadout.shoes ? dashboard.loadout.shoes.item.brand : 'No shoes'} detail="Future contracts can supply surface-specific shoes." />
               </div>
             </section>
 
             <section className="tlg-equipment-sponsor-roadmap">
               <span>ONE EQUIPMENT SOURCE</span>
-              <h2>Marketplace, inventory and sponsors now share the same catalogue</h2>
-              <p>New clothing, accessories, training or recovery definitions can be added later with tags and images without creating a second marketplace. Gameplay scope remains explicit per item.</p>
+              <h2>Marketplace, inventory and sponsors share the same catalogue</h2>
+              <p>Racquets, Shoes, Clothing and Accessories all use the same central equipment definitions, images, pricing and ownership model.</p>
             </section>
           </div>
         )}
