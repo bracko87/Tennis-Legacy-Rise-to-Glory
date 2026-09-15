@@ -39,6 +39,8 @@ type CatalogAsset = {
   image_url: string
   metadata?: Record<string, unknown>
   location_priced?: boolean
+  market_monthly_change_bps?: number | null
+  previous_market_price?: number | null
   affordable: boolean
   owned: boolean
 }
@@ -80,6 +82,9 @@ type OwnedAsset = {
   country_name?: string | null
   sale_quotes?: Record<SaleMode, SaleQuote>
   pending_sale?: PendingSale | null
+  asset_monthly_change_bps?: number | null
+  property_monthly_change_bps?: number | null
+  previous_market_price?: number | null
 }
 
 type PropertyLocation = {
@@ -90,6 +95,7 @@ type PropertyLocation = {
   apartment_base_price: number
   house_base_price: number
   annual_value_rate_bps: number
+  monthly_change_bps?: number | null
   sort_order: number
 }
 
@@ -126,6 +132,7 @@ type MarketplaceListing = CatalogAsset & {
   effective_value_rate_bps: number
   effective_affordable: boolean
   effective_owned: boolean
+  effective_market_change_bps?: number | null
   location?: PropertyLocation
 }
 
@@ -172,6 +179,14 @@ function trendText(rateBps: number) {
   if (rateBps === 0) return 'Stable'
   const percent = Math.abs(rateBps) / 100
   return `${rateBps > 0 ? '+' : '-'}${percent.toFixed(percent % 1 === 0 ? 0 : 1)}% / year`
+}
+
+function marketMoveText(rateBps: number | null | undefined) {
+  if (rateBps === null || rateBps === undefined || !Number.isFinite(Number(rateBps))) return 'No monthly move yet'
+  const numeric = Number(rateBps)
+  if (numeric === 0) return 'Stable this month'
+  const percent = Math.abs(numeric) / 100
+  return `${numeric > 0 ? '+' : '-'}${percent.toFixed(percent % 1 === 0 ? 0 : 1)}% this month`
 }
 
 function matchesPriceBand(price: number, band: MarketplacePrice) {
@@ -292,6 +307,7 @@ export default function PrivateLifePage() {
           effective_value_rate_bps: Number(asset.annual_value_rate_bps),
           effective_affordable: Boolean(asset.affordable),
           effective_owned: Boolean(asset.owned),
+          effective_market_change_bps: asset.market_monthly_change_bps ?? null,
         }]
       }
       if (!selectedPropertyLocation) return []
@@ -309,6 +325,7 @@ export default function PrivateLifePage() {
         effective_value_rate_bps: valueRate,
         effective_affordable: price <= Number(dashboard?.cash_balance ?? 0),
         effective_owned: alreadyOwned,
+        effective_market_change_bps: selectedPropertyLocation.monthly_change_bps ?? null,
         location: selectedPropertyLocation,
       }]
     })
@@ -329,7 +346,7 @@ export default function PrivateLifePage() {
       if (marketSort === 'price_asc') return a.effective_price - b.effective_price
       if (marketSort === 'price_desc') return b.effective_price - a.effective_price
       if (marketSort === 'prestige_desc') return b.prestige - a.prestige || a.effective_price - b.effective_price
-      if (marketSort === 'appreciation_desc') return b.effective_value_rate_bps - a.effective_value_rate_bps || a.effective_price - b.effective_price
+      if (marketSort === 'appreciation_desc') return Number(b.effective_market_change_bps ?? -9999) - Number(a.effective_market_change_bps ?? -9999) || b.effective_value_rate_bps - a.effective_value_rate_bps || a.effective_price - b.effective_price
       return 0
     })
   }, [filter, marketAffordableOnly, marketPrice, marketRarity, marketSearch, marketSort, marketplaceListings])
@@ -528,7 +545,7 @@ export default function PrivateLifePage() {
                           <div className="private-life-owned-value-row"><span>Prestige points</span><strong>+{asset.prestige}</strong></div>
                           <div className="private-life-owned-value-row"><span>Ownership</span><strong>{asset.ownership_days} game days</strong></div>
                           <div className="private-life-owned-value-row"><span>{ownershipCostLabel(asset.category)}</span><strong>{asset.annual_running_cost > 0 ? money(asset.annual_running_cost / 12, currency) : 'None'}</strong></div>
-                          <div className="private-life-owned-value-row"><span>Value trend</span><strong>{trendText(asset.annual_value_rate_bps)}</strong></div>
+                          <div className="private-life-owned-value-row"><span>Market move</span><strong className={Number(asset.property_monthly_change_bps ?? asset.asset_monthly_change_bps ?? 0) < 0 ? 'private-life-trend-negative' : Number(asset.property_monthly_change_bps ?? asset.asset_monthly_change_bps ?? 0) > 0 ? 'private-life-trend-positive' : ''}>{marketMoveText(asset.property_monthly_change_bps ?? asset.asset_monthly_change_bps)}</strong></div>
                         </div>
                         {asset.pending_sale ? (
                           <div className="private-life-sale-pending"><div><span>Listed for sale</span><strong>{SALE_META[asset.pending_sale.sale_mode].label} · {money(asset.pending_sale.quoted_sale_price, currency)}</strong><small>Settlement game day {asset.pending_sale.settle_absolute_day}</small></div><button type="button" disabled={actionBusy} onClick={() => void cancelSale(asset.pending_sale!.id)}>Cancel sale</button></div>
@@ -578,7 +595,7 @@ export default function PrivateLifePage() {
               <input value={marketSearch} onChange={(event) => setMarketSearch(event.target.value)} placeholder="Search assets" aria-label="Search marketplace assets" />
               <select value={marketPrice} onChange={(event) => setMarketPrice(event.target.value as MarketplacePrice)} aria-label="Marketplace price filter"><option value="all">All prices</option><option value="under_10k">Under $10K</option><option value="10k_50k">$10K – $50K</option><option value="50k_250k">$50K – $250K</option><option value="250k_1m">$250K – $1M</option><option value="1m_5m">$1M – $5M</option><option value="5m_plus">$5M+</option></select>
               <select value={marketRarity} onChange={(event) => setMarketRarity(event.target.value as MarketplaceRarity)} aria-label="Marketplace rarity filter"><option value="all">All rarities</option><option value="common">Common</option><option value="uncommon">Uncommon</option><option value="rare">Rare</option><option value="very_rare">Very rare</option><option value="legendary">Legendary</option></select>
-              <select value={marketSort} onChange={(event) => setMarketSort(event.target.value as MarketplaceSort)} aria-label="Marketplace sort order"><option value="default">Default order</option><option value="price_asc">Price: low to high</option><option value="price_desc">Price: high to low</option><option value="prestige_desc">Prestige: high to low</option><option value="appreciation_desc">Best value trend</option></select>
+              <select value={marketSort} onChange={(event) => setMarketSort(event.target.value as MarketplaceSort)} aria-label="Marketplace sort order"><option value="default">Default order</option><option value="price_asc">Price: low to high</option><option value="price_desc">Price: high to low</option><option value="prestige_desc">Prestige: high to low</option><option value="appreciation_desc">Best market move</option></select>
               <label className="private-life-marketplace-affordable"><input type="checkbox" checked={marketAffordableOnly} onChange={(event) => setMarketAffordableOnly(event.target.checked)} /><span>Affordable only</span></label>
               <button type="button" className="private-life-marketplace-reset" onClick={() => { setMarketSearch(''); setMarketPrice('all'); setMarketRarity('all'); setMarketSort('default'); setMarketAffordableOnly(false); setFilter('all') }}>Reset</button>
             </div>
@@ -586,7 +603,8 @@ export default function PrivateLifePage() {
             {visibleCatalog.length === 0 ? <div className="private-life-empty"><strong>No marketplace matches</strong><p>Change the category, destination, price or rarity filters to see more assets.</p></div> : (
               <div className="private-life-market-grid">
                 {visibleCatalog.map((listing) => {
-                  const isPositive = listing.effective_value_rate_bps > 0
+                  const marketMove = listing.effective_market_change_bps
+                  const isPositive = Number(marketMove ?? 0) > 0
                   const canBuy = listing.effective_affordable && !listing.effective_owned
                   return (
                     <article className="private-life-card" key={`${listing.code}:${listing.location?.code ?? 'global'}`}>
@@ -598,7 +616,7 @@ export default function PrivateLifePage() {
                         <div className="private-life-card-stats">
                           <div className="private-life-card-stat"><span>Prestige points</span><strong>+{listing.prestige}</strong></div>
                           <div className="private-life-card-stat"><span>{ownershipCostLabel(listing.category)}</span><strong>{listing.effective_annual_cost > 0 ? money(listing.effective_annual_cost / 12, currency) : 'None'}</strong></div>
-                          <div className="private-life-card-stat"><span>Value trend</span><strong className={listing.effective_value_rate_bps < 0 ? 'private-life-trend-negative' : isPositive ? 'private-life-trend-positive' : ''}>{listing.effective_value_rate_bps < 0 ? <TrendingDown size={12} /> : isPositive ? <TrendingUp size={12} /> : null} {trendText(listing.effective_value_rate_bps)}</strong></div>
+                          <div className="private-life-card-stat"><span>Market move</span><strong className={Number(marketMove ?? 0) < 0 ? 'private-life-trend-negative' : isPositive ? 'private-life-trend-positive' : ''}>{Number(marketMove ?? 0) < 0 ? <TrendingDown size={12} /> : isPositive ? <TrendingUp size={12} /> : null} {marketMoveText(marketMove)}</strong></div>
                           <div className="private-life-card-stat"><span>Category</span><strong>{categoryLabel(listing.category)}</strong></div>
                         </div>
                         <button type="button" className="private-life-action" disabled={!canBuy} onClick={() => setPendingAction({ type: 'buy', listing })}>{listing.effective_owned ? 'Already owned here' : !listing.effective_affordable ? 'Insufficient funds' : 'Purchase asset'}</button>

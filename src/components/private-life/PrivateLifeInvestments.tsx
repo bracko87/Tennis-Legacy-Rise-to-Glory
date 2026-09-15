@@ -27,6 +27,11 @@ type QuoteMetadata = {
   market_state?: string | null
   history?: unknown[]
   intraday_history?: unknown[]
+  game_checked_total_seconds?: number | null
+  game_last_change_total_seconds?: number | null
+  provider_quote_as_of?: string | null
+  price_changed_on_last_check?: boolean | null
+  refresh_cadence_game_minutes?: number | null
   [key: string]: unknown
 }
 
@@ -174,11 +179,34 @@ function quoteSource(source: string | null) {
   return source || 'Market reference'
 }
 
-function quoteTime(value: string | null) {
-  if (!value) return 'No quote yet'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return 'Quote time unavailable'
-  return date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+const GAME_MONTHS = [
+  ['January', 31], ['February', 29], ['March', 31], ['April', 30],
+  ['May', 31], ['June', 30], ['July', 31], ['August', 31],
+  ['September', 30], ['October', 31], ['November', 30], ['December', 31],
+] as const
+
+function gameTimeLabel(metadata?: QuoteMetadata | null) {
+  const raw = finiteNumber(metadata?.game_last_change_total_seconds)
+  if (raw === null || raw < 0) return 'Game time unavailable'
+  const total = Math.floor(raw)
+  const secondsPerDay = 86400
+  const secondsPerSeason = 366 * secondsPerDay
+  const season = Math.floor(total / secondsPerSeason) + 1
+  let dayIndex = Math.floor((total % secondsPerSeason) / secondsPerDay)
+  const secondOfDay = total % secondsPerDay
+  let monthName = 'January'
+  let day = 1
+  for (const [name, days] of GAME_MONTHS) {
+    if (dayIndex < days) {
+      monthName = name
+      day = dayIndex + 1
+      break
+    }
+    dayIndex -= days
+  }
+  const hour = Math.floor(secondOfDay / 3600)
+  const minute = Math.floor((secondOfDay % 3600) / 60)
+  return `Season ${season} · ${monthName} ${day} · ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
 }
 
 function compactNumber(value: number | null) {
@@ -257,9 +285,9 @@ function MarketTrendPanel({ instrument, currency }: { instrument: InvestmentInst
         <div><span>{instrument.asset_type === 'stock' ? '52W low' : '24H low'}</span><strong>{marketPrice(rangeLow, currency)}</strong></div>
         <div><span>{instrument.asset_type === 'stock' ? '52W high' : '24H high'}</span><strong>{marketPrice(rangeHigh, currency)}</strong></div>
         <div><span>{instrument.asset_type === 'stock' ? 'Volume' : '24H volume'}</span><strong>{compactNumber(activity)}</strong></div>
-        <div><span>Last market quote</span><strong>{quoteTime(instrument.quote_as_of)}</strong></div>
+        <div><span>Last price change (game time)</span><strong>{gameTimeLabel(instrument.quote_metadata)}</strong></div>
       </div>
-      <p>Stocks are cached every 15 minutes during the weekday U.S. market window; crypto is cached every 15 minutes around the clock. Stock prices do not move while the underlying market is closed.</p>
+      <p>Reference prices are checked every 15 in-game minutes. Stocks only change when the external market provides a new price; crypto can change continuously.</p>
     </section>
   )
 }
@@ -509,7 +537,7 @@ export default function PrivateLifeInvestments({
         <button type="button" className="private-life-refresh" disabled={refreshing} onClick={() => void refreshQuotes(true)}>{refreshing ? 'Refreshing prices…' : 'Refresh market prices'}</button>
       </div>
 
-      <div className="private-life-market-update-note"><strong>Automatic market cache:</strong> stocks refresh every 15 minutes during the weekday U.S. market window; crypto refreshes every 15 minutes 24/7. Stocks remain unchanged on weekends and market holidays because there is no underlying trading session.</div>
+      <div className="private-life-market-update-note"><strong>Automatic market cache:</strong> prices are checked every 15 in-game minutes. Stocks can only change while their external market provides a new quote; crypto can move continuously 24/7. The time shown beside a price is Tennis Legacy game time, not real-world time.</div>
 
       <div className="private-life-investment-summary" aria-label="Investment portfolio summary">
         <div><span>Career cash</span><strong>{money(dashboard.cash_balance, currency)}</strong></div>
@@ -576,7 +604,7 @@ export default function PrivateLifeInvestments({
               {selectedInstrument ? (
                 <>
                   <div className="private-life-trade-ticket-heading"><div><span>{selectedInstrument.asset_type === 'stock' ? 'Stock' : 'Cryptocurrency'}</span><h4>{selectedInstrument.symbol} · {selectedInstrument.name}</h4></div><strong>{marketPrice(selectedInstrument.price, currency)}</strong></div>
-                  <div className="private-life-trade-quote-meta"><span>{quoteSource(selectedInstrument.quote_source)}</span><span>{quoteTime(selectedInstrument.quote_as_of)}</span></div>
+                  <div className="private-life-trade-quote-meta"><span>{quoteSource(selectedInstrument.quote_source)}</span><span>{gameTimeLabel(selectedInstrument.quote_metadata)}</span></div>
                   <div className="private-life-trade-side-tabs"><button type="button" className={tradeSide === 'buy' ? 'active' : ''} onClick={() => setTradeSide('buy')}>Buy</button><button type="button" className={tradeSide === 'sell' ? 'active' : ''} disabled={Number(selectedInstrument.owned_quantity || 0) <= 0} onClick={() => setTradeSide('sell')}>Sell</button></div>
                   {tradeSide === 'buy' ? (
                     <div className="private-life-trade-form">
@@ -619,7 +647,7 @@ export default function PrivateLifeInvestments({
                       <td><strong>{position.symbol}</strong><span>{position.name}</span></td>
                       <td>{quantity(Number(position.quantity), position.asset_type)}</td>
                       <td>{marketPrice(Number(position.average_buy_price), currency)}</td>
-                      <td><strong>{marketPrice(position.price, currency)}</strong><span>{quoteTime(position.quote_as_of)}</span></td>
+                      <td><strong>{marketPrice(position.price, currency)}</strong><span>{gameTimeLabel(position.quote_metadata)}</span></td>
                       <td><strong className={dailyMove !== null && dailyMove >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{percentText(dailyMove)}</strong></td>
                       <td>{money(preciseValue, currency, 2)}</td>
                       <td><strong className={precisePnl >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{signedMoney(precisePnl, currency, 2)}</strong><span className={returnPct >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{percentText(returnPct)}</span></td>
