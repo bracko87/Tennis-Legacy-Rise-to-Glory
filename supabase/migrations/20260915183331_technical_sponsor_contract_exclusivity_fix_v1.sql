@@ -1,0 +1,7 @@
+drop index if exists public.player_technical_sponsor_contracts_one_current_category_idx;
+create unique index if not exists player_technical_sponsor_contracts_one_active_category_idx
+on public.player_technical_sponsor_contracts(player_id,category)
+where status='active';
+create unique index if not exists player_technical_sponsor_contracts_one_scheduled_category_idx
+on public.player_technical_sponsor_contracts(player_id,category)
+where status='scheduled';
