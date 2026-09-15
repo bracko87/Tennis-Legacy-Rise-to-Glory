@@ -44,6 +44,7 @@ import TournamentMatchTacticStatus from './components/tournament/TournamentMatch
 import TournamentPreMatchRealData from './components/tournament/TournamentPreMatchRealData'
 import TrainingHealthStatus from './components/training/TrainingHealthStatus'
 import HomePage from './pages/Home'
+import ReferralLandingPage from './pages/ReferralLanding'
 import LoginPage from './pages/auth/Login'
 import ForgotPasswordPage from './pages/auth/ForgotPassword'
 import ResetPasswordPage from './pages/auth/ResetPassword'
@@ -175,6 +176,7 @@ export default function App() {
       <AuthProvider>
         <Routes>
           <Route path="/" element={<HomeRoute />} />
+          <Route path="/r/:code" element={<ReferralLandingPage />} />
 
           <Route path="/login" element={<AnonymousOnly><LoginPage /></AnonymousOnly>} />
           <Route path="/register" element={<Navigate to="/" replace />} />
