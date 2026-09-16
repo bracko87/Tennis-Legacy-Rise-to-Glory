@@ -1,0 +1,27 @@
+name: Validate equipment sponsor polish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/styles/equipment-refinement-v2.css'
+      - 'src/styles/equipment-detail-media-fill.css'
+      - 'supabase/migrations/20260916124500_varied_racquet_model_names.sql'
+      - '.github/workflows/validate-equipment-sponsor-polish.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
