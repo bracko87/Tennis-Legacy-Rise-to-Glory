@@ -1,0 +1,11 @@
+update public.equipment_catalog_items
+set image_url = 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Equpment/Recquets/Bablot%20Vantage%20Balance%20100.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9FcXVwbWVudC9SZWNxdWV0cy9CYWJsb3QgVmFudGFnZSBCYWxhbmNlIDEwMC5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg5NTU5MTI2LCJleHAiOjQ5MTE2MjMxMjZ9.1nun8y44g-3mHBYOkKwR5CqfFXqHXW46Up6ovODd9szP1zPS97_7_6yTjc4fKqrRZSHo09hF-QtF_Gp6-_HYww'
+where brand = 'Bablot' and model = 'Vantage Balance 100';
+
+update public.equipment_catalog_items
+set image_url = 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Equpment/Recquets/Bablot%20Vantage%20Strike%2098.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9FcXVwbWVudC9SZWNxdWV0cy9CYWJsb3QgVmFudGFnZSBTdHJpa2UgOTgucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4OTU1OTE0NSwiZXhwIjo0OTExNjIzMTQ1fQ.Sz5xz6qv4l11JmNufASiTe-T8X9jfapbYhMh7D53nz5x8cgGhUV3W9IH2VOgptbwrqmNAOgFpZjujL7a9uU6hw'
+where brand = 'Bablot' and model = 'Vantage Strike 98';
+
+update public.equipment_catalog_items
+set image_url = 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Equpment/Recquets/Bablot%20Vantage%20Control%2097.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9FcXVwbWVudC9SZWNxdWV0cy9CYWJsb3QgVmFudGFnZSBDb250cm9sIDk3LnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODk1NTkxNjMsImV4cCI6NDkxMTYyMzE2M30.m6nQYEvHlLhjY1Zd-N72BVn1W3oMmnl_J-4uyH25IoX5DwY21iQ1Npv9ST4MOHEZF2pr87H-SArU-HjanH5iSg'
+where brand = 'Bablot' and model = 'Vantage Control 97';
