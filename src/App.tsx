@@ -30,12 +30,14 @@ import {
   RequirePlayer,
 } from './auth/RouteGuards'
 import OverviewInjuryEnhancement from './components/dashboard/OverviewInjuryEnhancement'
+import EquipmentMatchSetupsEnhancement from './components/equipment/EquipmentMatchSetupsEnhancement'
 import FinanceSponsorEnhancement from './components/finance/FinanceSponsorEnhancement'
 import HomeLiveEnhancements from './components/marketing/HomeLiveEnhancements'
 import PlayingStyleEducation from './components/player/PlayingStyleEducation'
 import ScheduleUiPolish from './components/schedule/ScheduleUiPolish'
 import { ScheduleTacticEducation, TournamentTacticEducation } from './components/tactics/TacticEducation'
 import TournamentEntryLifecycle from './components/tournament/TournamentEntryLifecycle'
+import TournamentEquipmentSetupSelector from './components/tournament/TournamentEquipmentSetupSelector'
 import TournamentExperienceEnhancements from './components/tournament/TournamentExperienceEnhancements'
 import TournamentLogoRecovery from './components/tournament/TournamentLogoRecovery'
 import TournamentMatchHealthControl from './components/tournament/TournamentMatchHealthControl'
@@ -144,6 +146,7 @@ function TournamentRoute() {
       <TournamentPreMatchRealData />
       <TournamentMatchHealthControl />
       <TournamentMatchTacticStatus />
+      <TournamentEquipmentSetupSelector />
     </>
   )
 }
@@ -166,6 +169,10 @@ function ScheduleRoute() {
 
 function FinanceRoute() {
   return <><FinancePage /><FinanceSponsorEnhancement /></>
+}
+
+function EquipmentRoute() {
+  return <><EquipmentPage /><EquipmentMatchSetupsEnhancement /></>
 }
 
 function CreatePlayerRoute() {
@@ -195,7 +202,7 @@ export default function App() {
           <Route path="/game/rankings" element={<RequirePlayer><RankingsPage /></RequirePlayer>} />
           <Route path="/game/players/:playerId" element={<RequirePlayer><PlayerProfilePage /></RequirePlayer>} />
           <Route path="/game/schedule" element={<RequirePlayer><ScheduleRoute /></RequirePlayer>} />
-          <Route path="/game/equipment" element={<RequirePlayer><EquipmentPage /></RequirePlayer>} />
+          <Route path="/game/equipment" element={<RequirePlayer><EquipmentRoute /></RequirePlayer>} />
           <Route path="/game/finance" element={<RequirePlayer><FinanceRoute /></RequirePlayer>} />
           <Route path="/game/injuries" element={<RequirePlayer><InjuriesPage /></RequirePlayer>} />
           <Route path="/game/private-life" element={<RequirePlayer><PrivateLifePage /></RequirePlayer>} />
