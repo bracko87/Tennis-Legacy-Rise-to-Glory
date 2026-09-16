@@ -1,0 +1,26 @@
+name: Validate equipment UI polish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/styles/equipment-refinement-v2.css'
+      - 'supabase/migrations/20260916133000_fix_equipment_dashboard_sponsor_discount_null.sql'
+      - '.github/workflows/validate-equipment-ui-polish.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
