@@ -1,5 +1,6 @@
-/* Equipment detail artwork should use the complete left media column.
-   Keep the entire product visible while removing the small centered-card effect. */
+/* Equipment detail artwork uses the full left media column.
+   Market product artwork is intentionally zoomed/cropped to fill the complete
+   visual stage, while Inventory keeps the full item visible. */
 .tlg-equipment-detail-media{
   align-self:stretch;
   min-width:0;
@@ -28,6 +29,62 @@
   object-position:center;
 }
 
+/* The Market detail view should feel like a full-height product poster rather
+   than a small image floating in a large empty column. */
+.tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-media .tlg-equipment-product-image.large img{
+  object-fit:cover;
+  object-position:center;
+}
+
+/* Move technical-brand identity into the same top row as the equipment type.
+   The availability badge is redundant in this dialog, so keep that row clean. */
+.tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-content{
+  position:relative;
+}
+.tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-content>.tlg-equipment-brand-identity{
+  position:absolute;
+  top:26px;
+  right:28px;
+  z-index:1;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  max-width:230px;
+  margin:0;
+}
+.tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-content>.tlg-equipment-brand-identity img{
+  width:64px;
+  height:34px;
+  border:1px solid #e4ebef;
+  border-radius:6px;
+  object-fit:contain;
+  background:#fff;
+}
+.tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-content>.tlg-equipment-brand-identity span{
+  color:#657d8f;
+  font-size:.55rem;
+  font-weight:800;
+  white-space:nowrap;
+}
+.tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-kicker{
+  min-height:36px;
+  padding-right:245px;
+}
+.tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-kicker>b{
+  display:none;
+}
+
+/* In the expanded product view show the actual price only. The crossed-out
+   normal price and sponsor percentage remain unnecessary visual noise here. */
+.tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-price>.tlg-equipment-list-price,
+.tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-price>strong+span{
+  display:none!important;
+}
+.tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-price{
+  align-items:center;
+  margin-top:15px;
+}
+
 @media(max-width:900px){
   .tlg-equipment-detail-media{
     padding:0;
@@ -36,5 +93,25 @@
   .tlg-equipment-detail-media .tlg-equipment-product-image.large{
     height:min(360px,42vh);
     min-height:260px;
+  }
+
+  .tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-content>.tlg-equipment-brand-identity{
+    top:20px;
+    right:52px;
+  }
+  .tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-kicker{
+    padding-right:230px;
+  }
+}
+
+@media(max-width:620px){
+  .tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-content>.tlg-equipment-brand-identity{
+    position:static;
+    max-width:none;
+    margin:0 0 9px;
+  }
+  .tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-kicker{
+    min-height:0;
+    padding-right:0;
   }
 }
