@@ -1,7 +1,7 @@
 /**
  * main.tsx
  *
- * React application entry point.
+ * React application entry point for Tennis Legacy: Rise to Glory.
  *
  * Sider projects may expose #app, #root, or both. The application mounts into
  * the first supported container and removes the unused one so it cannot create
@@ -28,6 +28,7 @@ import './styles/tournament-match-side-mirror.css'
 import './styles/tournament-match-avatar-normalization.css'
 import './styles/tournament-status.css'
 import './styles/login-input-visibility.css'
+import './styles/equipment-detail-media-fill.css'
 /* Keep typography last so page-specific styles cannot reintroduce another font. */
 import './styles/font-standard.css'
 import App from './App'
