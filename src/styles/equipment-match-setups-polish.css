@@ -1,46 +1,202 @@
-/* Gear Room setup previews and bonus summaries */
-.tlg-default-match-setup-extras{display:grid;gap:10px;padding:14px 18px 18px;border-top:1px solid #e4ebef;background:#fbfdff}
+/* TASK 1: Gear Room default/custom setup previews and combined bonus rows. */
 
-.tlg-match-setup-preview{min-width:0;padding:10px;border:1px solid #dfe8ee;border-radius:9px;background:#fff}
-.tlg-match-setup-preview-head,.tlg-match-setup-bonus-head{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
-.tlg-match-setup-preview-head span,.tlg-match-setup-bonus-head span{color:#1675b7;font-size:9px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
-.tlg-match-setup-preview-head b,.tlg-match-setup-bonus-head b{color:#587184;font-size:.58rem;font-weight:800;white-space:nowrap}
-.tlg-match-setup-preview-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px;margin-top:8px}
-.tlg-match-setup-preview-item{display:grid;grid-template-columns:58px minmax(0,1fr);gap:8px;align-items:center;min-width:0;padding:7px;border:1px solid #e5edf2;border-radius:8px;background:#f8fbfd}
-.tlg-match-setup-preview-media{display:grid;place-items:center;width:58px;height:52px;overflow:hidden;border:1px solid #e1e9ef;border-radius:7px;background:#fff}
-.tlg-match-setup-preview-media img{display:block;width:100%;height:100%;object-fit:contain}
-.tlg-match-setup-preview-media span{color:#6d8495;font-size:.64rem;font-weight:850}
-.tlg-match-setup-preview-item>div:last-child{min-width:0}
-.tlg-match-setup-preview-item small{display:block;color:#72899a;font-size:.48rem;font-weight:800;text-transform:uppercase}
-.tlg-match-setup-preview-item strong{display:block;overflow:hidden;margin-top:2px;color:#24445d;font-size:.58rem;line-height:1.25;text-overflow:ellipsis;white-space:nowrap}
-.tlg-match-setup-preview-item em{display:block;margin-top:3px;color:#8294a1;font-size:.49rem;font-style:normal}
-.tlg-match-setup-preview-empty{margin:8px 0 0;color:#7b8e9d;font-size:.58rem}
-
-.tlg-match-setup-bonus-row{min-width:0;padding:10px;border:1px solid #dce8e1;border-radius:9px;background:#f7fbf8}
-.tlg-match-setup-bonus-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
-.tlg-match-setup-bonus-chips span{padding:4px 7px;border-radius:999px;font-size:.52rem;font-weight:780}
-.tlg-match-setup-bonus-chips span.positive{color:#26704e;background:#e9f6ef}
-.tlg-match-setup-bonus-chips span.negative{color:#965050;background:#fff0f0}
-.tlg-match-setup-bonus-chips span.neutral{color:#6f8290;background:#edf2f5}
-
-.tlg-custom-match-setup-card>.tlg-match-setup-preview{margin-bottom:10px}
-.tlg-custom-match-setup-card>.tlg-match-setup-bonus-row{margin:12px -13px -13px;padding:11px 13px 12px;border-width:1px 0 0;border-radius:0 0 10px 10px}
-
-/* Match Equipment uses the same control dimensions as the surrounding tactic controls. */
-.tlg-match-equipment-selector-controls select{box-sizing:border-box;min-width:220px;min-height:40px;padding:0 10px;border:1px solid #d7e3ea;border-radius:8px;background:#fff;color:#29465c;font-size:.69rem;font-weight:700}
-.tlg-match-equipment-selector-controls button{box-sizing:border-box;min-height:38px;padding:0 14px;border:1px solid #0b6fc8;border-radius:8px;background:#0b6fc8;color:#fff;font-size:.67rem;font-weight:800;cursor:pointer}
-.tlg-match-equipment-selector-controls button:disabled,.tlg-match-equipment-selector-controls select:disabled{cursor:not-allowed;opacity:.55}
-
-@media(max-width:980px){
-  .tlg-match-setup-preview-items{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .tlg-match-equipment-selector-controls select{min-width:0;width:100%}
+/*
+   The existing Gear Room cards already contain the correct product image.
+   Turn the small thumbnail into a full-height equipment preview panel instead
+   of adding a second/duplicate preview section below the cards.
+*/
+.tlg-equipment-slot-v2{
+  display:grid;
+  grid-template-columns:124px minmax(0,1fr);
+  grid-template-rows:auto auto auto auto 1fr auto auto;
+  column-gap:14px;
+  min-width:0;
+  min-height:185px;
+  max-width:100%;
+  padding:13px;
+  overflow:hidden;
+  box-sizing:border-box;
 }
 
-@media(max-width:620px){
-  .tlg-default-match-setup-extras{padding:12px 13px 14px}
-  .tlg-match-setup-preview-items{grid-template-columns:1fr}
-  .tlg-match-setup-preview-head,.tlg-match-setup-bonus-head{align-items:flex-start;flex-direction:column;gap:3px}
-  .tlg-match-setup-preview-head b,.tlg-match-setup-bonus-head b{white-space:normal}
-  .tlg-match-equipment-selector-controls{flex-direction:column;align-items:stretch}
-  .tlg-match-equipment-selector-controls button,.tlg-match-equipment-selector-controls select{width:100%}
+.tlg-equipment-slot-v2>.tlg-equipment-slot-image{
+  position:static;
+  grid-column:1;
+  grid-row:1/-1;
+  width:124px;
+  height:100%;
+  min-height:159px;
+  margin:0;
+  overflow:hidden;
+  border:1px solid #dfe8ee;
+  border-radius:9px;
+  background:#f4f8fb;
+  box-sizing:border-box;
+}
+
+.tlg-equipment-slot-v2>.tlg-equipment-slot-image .tlg-equipment-product-image{
+  width:100%;
+  height:100%;
+  min-height:100%;
+  margin:0;
+  border:0;
+  border-radius:0;
+  background:#fff;
+}
+
+.tlg-equipment-slot-v2>.tlg-equipment-slot-image .tlg-equipment-product-image img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+}
+
+.tlg-equipment-slot-v2>:not(.tlg-equipment-slot-image){
+  grid-column:2;
+  min-width:0;
+}
+
+.tlg-equipment-slot-v2 .slot-head{grid-row:1}
+.tlg-equipment-slot-v2 h3{grid-row:2;margin-top:12px}
+.tlg-equipment-slot-v2>strong{grid-row:3}
+.tlg-equipment-slot-v2>p{grid-row:4}
+.tlg-equipment-slot-v2>.condition-bar{grid-row:6;align-self:end}
+.tlg-equipment-slot-v2>small{grid-row:7}
+
+/* Accessories get the same full-height preview treatment, only slightly narrower. */
+.tlg-equipment-slot.compact.tlg-equipment-slot-v2{
+  grid-template-columns:92px minmax(0,1fr);
+  min-height:150px;
+  padding:12px;
+}
+
+.tlg-equipment-slot.compact.tlg-equipment-slot-v2>.tlg-equipment-slot-image{
+  width:92px;
+  min-height:126px;
+}
+
+/* One combined bonus row immediately below the Default Match Setup. */
+.tlg-default-match-setup-extras{
+  padding:0 18px 18px;
+  border-top:0;
+  background:#fff;
+}
+
+.tlg-match-setup-bonus-row{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:14px;
+  align-items:center;
+  min-width:0;
+  padding:10px 12px;
+  border:1px solid #dce8e1;
+  border-radius:9px;
+  background:#f7fbf8;
+}
+
+.tlg-match-setup-bonus-head{
+  display:grid;
+  gap:3px;
+  min-width:170px;
+}
+
+.tlg-match-setup-bonus-head span{
+  color:#1675b7;
+  font-size:9px;
+  font-weight:850;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.tlg-match-setup-bonus-head b{
+  color:#587184;
+  font-size:.56rem;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+.tlg-match-setup-bonus-chips{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-start;
+  gap:5px;
+  min-width:0;
+}
+
+.tlg-match-setup-bonus-chips span{
+  padding:4px 7px;
+  border-radius:999px;
+  font-size:.52rem;
+  font-weight:780;
+  white-space:nowrap;
+}
+
+.tlg-match-setup-bonus-chips span.positive{
+  color:#26704e;
+  background:#e9f6ef;
+}
+
+.tlg-match-setup-bonus-chips span.negative{
+  color:#965050;
+  background:#fff0f0;
+}
+
+.tlg-match-setup-bonus-chips span.neutral{
+  color:#6f8290;
+  background:#edf2f5;
+}
+
+/* Each saved custom setup gets exactly one summary row at its bottom. */
+.tlg-custom-match-setup-card>.tlg-match-setup-bonus-row{
+  margin:12px -13px -13px;
+  padding:10px 13px 11px;
+  border-width:1px 0 0;
+  border-radius:0 0 10px 10px;
+}
+
+@media(max-width:1200px){
+  .tlg-equipment-slot-v2{
+    grid-template-columns:105px minmax(0,1fr);
+  }
+  .tlg-equipment-slot-v2>.tlg-equipment-slot-image{
+    width:105px;
+  }
+}
+
+@media(max-width:760px){
+  .tlg-equipment-slot-v2,
+  .tlg-equipment-slot.compact.tlg-equipment-slot-v2{
+    grid-template-columns:1fr;
+    grid-template-rows:auto;
+    gap:0;
+    padding:13px;
+  }
+
+  .tlg-equipment-slot-v2>.tlg-equipment-slot-image,
+  .tlg-equipment-slot.compact.tlg-equipment-slot-v2>.tlg-equipment-slot-image{
+    grid-column:1;
+    grid-row:auto;
+    width:100%;
+    height:150px;
+    min-height:150px;
+    margin:0 0 12px;
+  }
+
+  .tlg-equipment-slot-v2>:not(.tlg-equipment-slot-image){
+    grid-column:1;
+    grid-row:auto;
+  }
+
+  .tlg-match-setup-bonus-row{
+    grid-template-columns:1fr;
+    gap:7px;
+  }
+
+  .tlg-match-setup-bonus-head{
+    min-width:0;
+  }
+
+  .tlg-match-setup-bonus-head b{
+    white-space:normal;
+  }
 }
