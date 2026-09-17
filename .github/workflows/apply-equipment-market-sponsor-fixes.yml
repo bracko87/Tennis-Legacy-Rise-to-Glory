@@ -2,7 +2,8 @@ name: Apply equipment market sponsor fixes
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - '.github/workflows/apply-equipment-market-sponsor-fixes.yml'
 
@@ -13,115 +14,18 @@ jobs:
   patch-build-commit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-      - name: Patch equipment UI
-        shell: python
-        run: |
-          from pathlib import Path
-
-          eq = Path('src/pages/dashboard/Equipment.tsx')
-          text = eq.read_text()
-
-          replacements = [
-              (
-                  'Inspect condition-adjusted bonuses, brand identity, durability, sponsor replacement eligibility and resale value.',
-                  'Inspect condition-adjusted bonuses, brand identity, durability and resale value.'
-              ),
-              (
-                  '<div className="tlg-equipment-sponsor-price-badge">Technical sponsor · −{discount}%</div>',
-                  '<div className="tlg-equipment-sponsor-price-badge"><strong>SPONSOR DISCOUNT</strong><span>−{discount}%</span></div>'
-              ),
-              (
-                  '<div className="bottom"><div>{discount > 0 && <span className="tlg-equipment-list-price">Normal {money(item.price_usd)}</span>}<strong>{money(playerPrice(item))}</strong><span>{item.sponsor_free_claim_available ? `${item.sponsor_free_equipment_remaining} free sponsor claim${item.sponsor_free_equipment_remaining === 1 ? \'\' : \'s\'}` : owned > 0 ? `${owned} owned` : `${item.estimated_uses ?? \'—\'} est. uses`}</span></div><button type="button" onClick={() => setSelectedMarketItem(item)}>View details</button></div>',
-                  '<div className="bottom"><div className="tlg-equipment-market-price-stack">{discount > 0 && <span className="tlg-equipment-list-price">Normal {money(item.price_usd)}</span>}<strong className={discount > 0 ? \'tlg-equipment-sponsor-final-price\' : \'\'}>{money(playerPrice(item))}</strong>{discount > 0 && <span className="tlg-equipment-sponsor-saving">You save {money(Math.max(0, item.price_usd - playerPrice(item)))}</span>}<span>{owned > 0 ? `${owned} owned` : `${item.estimated_uses ?? \'—\'} est. uses`}</span></div><div className="tlg-equipment-market-card-buttons"><button type="button" className="secondary" onClick={() => setSelectedMarketItem(item)}>View details</button><button type="button" className="buy" disabled={item.availability_status !== \'available\' || dashboard.balance < playerPrice(item)} onClick={() => requestPurchase(item)}>{item.availability_status !== \'available\' ? availabilityLabel(item.availability_status) : dashboard.balance < playerPrice(item) ? \'Insufficient funds\' : `Buy ${money(playerPrice(item))}`}</button></div></div>'
-              ),
-          ]
-          for old, new in replacements:
-              if old not in text:
-                  raise SystemExit(f'Equipment.tsx replacement target not found: {old[:120]}')
-              text = text.replace(old, new, 1)
-          eq.write_text(text)
-
-          panel = Path('src/components/equipment/TechnicalSponsorsPanel.tsx')
-          text = panel.read_text()
-          replacements = [
-              (
-                  'One exclusive equipment sponsor per category. Offers are based only on your current world ranking and every signed agreement runs until the end of its season.',
-                  'One exclusive equipment sponsor per category. Contracts provide marketplace discounts only, are based on your current world ranking and run until the end of the season.'
-              ),
-              (
-                  '<dl className="tlg-technical-contract-facts"><div><dt>Contract</dt><dd>Until season end</dd></div><div><dt>Free equipment</dt><dd>{active.free_equipment_remaining}/{active.free_equipment_allowance_total}</dd></div><div><dt>Replacements</dt><dd>{active.free_replacements_remaining}/{active.free_replacements_total}</dd></div><div><dt>Signed at</dt><dd>World #{active.player_rank_at_sign}</dd></div></dl>',
-                  '<dl className="tlg-technical-contract-facts"><div><dt>Contract</dt><dd>Until season end</dd></div><div><dt>Marketplace</dt><dd>{pct(active.discount_pct)} off</dd></div><div><dt>Premium Tier 4–5</dt><dd>{Number(active.premium_discount_bonus_pct) > 0 ? `+${pct(active.premium_discount_bonus_pct)}` : \'Same discount\'}</dd></div><div><dt>Signed at</dt><dd>World #{active.player_rank_at_sign}</dd></div></dl>'
-              ),
-              (
-                  '<div className="tlg-technical-offer-benefits"><span>Until season end</span><span>{offer.free_equipment_allowance} free items</span><span>{offer.free_replacement_allowance} replacements</span>{Number(offer.signing_bonus_usd) > 0 && <span>{money(offer.signing_bonus_usd)} signing bonus</span>}{offer.premium_discount_bonus_pct > 0 && <span>+{pct(offer.premium_discount_bonus_pct)} premium</span>}</div>',
-                  '<div className="tlg-technical-offer-benefits"><span>Until season end</span><span>Discount-only equipment deal</span>{Number(offer.signing_bonus_usd) > 0 && <span>{money(offer.signing_bonus_usd)} signing bonus</span>}{offer.premium_discount_bonus_pct > 0 && <span>+{pct(offer.premium_discount_bonus_pct)} premium-item discount</span>}</div>'
-              ),
-              (
-                  '<details><summary>Review full offer</summary><dl className="tlg-technical-offer-review"><div><dt>Marketplace discount</dt><dd>{pct(offer.discount_pct)}</dd></div><div><dt>Signing payment</dt><dd>{Number(offer.signing_bonus_usd) > 0 ? money(offer.signing_bonus_usd) : \'No signing payment\'}</dd></div><div><dt>Free equipment allowance</dt><dd>{offer.free_equipment_allowance}</dd></div><div><dt>Free worn-item replacements</dt><dd>{offer.free_replacement_allowance}</dd></div><div><dt>Premium Tier 4–5 bonus</dt><dd>{offer.premium_discount_bonus_pct ? `+${pct(offer.premium_discount_bonus_pct)}` : \'None\'}</dd></div><div><dt>Eligibility</dt><dd>Current ranking only · {offer.requirements.rank_group_label} (#{offer.requirements.rank_best}–#{offer.requirements.rank_worst})</dd></div><div><dt>Your ranking at offer</dt><dd>World #{offer.player_rank}</dd></div><div><dt>Contract term</dt><dd>Signing/start date through season end</dd></div><div><dt>Offer expiry</dt><dd>In {offer.days_until_expiry} days</dd></div></dl></details>',
-                  '<details><summary>Review full offer</summary><dl className="tlg-technical-offer-review"><div><dt>Marketplace discount</dt><dd>{pct(offer.discount_pct)}</dd></div><div><dt>Signing payment</dt><dd>{Number(offer.signing_bonus_usd) > 0 ? money(offer.signing_bonus_usd) : \'No signing payment\'}</dd></div><div><dt>Equipment benefit</dt><dd>Discounted purchases only</dd></div><div><dt>Premium Tier 4–5 bonus</dt><dd>{offer.premium_discount_bonus_pct ? `+${pct(offer.premium_discount_bonus_pct)}` : \'Same base discount\'}</dd></div><div><dt>Eligibility</dt><dd>Current ranking only · {offer.requirements.rank_group_label} (#{offer.requirements.rank_best}–#{offer.requirements.rank_worst})</dd></div><div><dt>Your ranking at offer</dt><dd>World #{offer.player_rank}</dd></div><div><dt>Contract term</dt><dd>Signing/start date through season end</dd></div><div><dt>Offer expiry</dt><dd>In {offer.days_until_expiry} days</dd></div></dl></details>'
-              ),
-              (
-                  'detail={<>{Number(pendingSign.signing_bonus_usd) > 0 ? <>Signing payment: <strong>{money(pendingSign.signing_bonus_usd)}</strong>. </> : null}Free equipment: <strong>{pendingSign.free_equipment_allowance}</strong>. The agreement is based on your current world ranking of <strong>#{pendingSign.player_rank}</strong>.</>}',
-                  'detail={<>{Number(pendingSign.signing_bonus_usd) > 0 ? <>Signing payment: <strong>{money(pendingSign.signing_bonus_usd)}</strong>. </> : null}Sponsored equipment remains a normal Marketplace purchase at the contract discount. The agreement is based on your current world ranking of <strong>#{pendingSign.player_rank}</strong>.</>}'
-              ),
-          ]
-          for old, new in replacements:
-              if old not in text:
-                  raise SystemExit(f'TechnicalSponsorsPanel replacement target not found: {old[:120]}')
-              text = text.replace(old, new, 1)
-          panel.write_text(text)
-
-          sponsor_css = Path('src/styles/equipment-technical-sponsor.css')
-          css = sponsor_css.read_text()
-          css += r'''
-
-/* Discount-only technical sponsor marketplace presentation */
-.tlg-equipment-market-card-v2.sponsor-priced{border-color:#a9d8bd;box-shadow:inset 0 3px 0 #2f9a68,0 7px 20px rgba(32,118,77,.09)}
-.tlg-equipment-sponsor-price-badge{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 17px 0;padding:8px 10px;border:1px solid #efbbbb;border-radius:8px;color:#9d3434;background:#fff2f2;font-size:.56rem;font-weight:850;letter-spacing:.02em}
-.tlg-equipment-sponsor-price-badge strong{font-size:.55rem;letter-spacing:.07em}
-.tlg-equipment-sponsor-price-badge span{font-size:.68rem;font-weight:900;white-space:nowrap}
-.tlg-equipment-market-price-stack{display:grid;align-content:end;justify-items:start;gap:2px;min-width:0}
-.tlg-equipment-market-card-v2.sponsor-priced .tlg-equipment-list-price{color:#9c7777!important;font-size:.56rem!important}
-.tlg-equipment-sponsor-final-price{color:#16834f!important;font-size:1.08rem!important;line-height:1.05}
-.tlg-equipment-sponsor-saving{color:#23845a!important;font-size:.55rem!important;font-weight:850!important}
-.tlg-equipment-market-card-buttons{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
-.tlg-equipment-market-card-buttons button{min-width:0!important;min-height:36px;padding:0 12px;border:1px solid #177db8;border-radius:8px;color:#fff;background:#177db8;font-size:.61rem;font-weight:850;cursor:pointer}
-.tlg-equipment-market-card-buttons button.secondary{border-color:#cbd9e2;color:#4d687b;background:#fff}
-.tlg-equipment-market-card-buttons button.buy{border-color:#247b52;background:#27875a}
-.tlg-equipment-market-card-buttons button:disabled{opacity:.48;cursor:not-allowed}
-'''
-          sponsor_css.write_text(css)
-
-          refine = Path('src/styles/equipment-refinement-v2.css')
-          css = refine.read_text()
-          css += r'''
-
-/* Equipment detail modal: keep purchasing controls reachable at every desktop viewport height. */
-@media(min-width:901px){
-  .tlg-equipment-detail-backdrop{overflow-y:auto!important;padding:16px!important}
-  .tlg-equipment-detail{grid-template-columns:36% 64%!important;width:min(1040px,96vw)!important;height:min(860px,calc(100dvh - 32px))!important;max-height:calc(100dvh - 32px)!important;min-height:0!important}
-  .tlg-equipment-detail-content{min-height:0!important;overflow-y:auto!important;padding-bottom:86px!important}
-  .tlg-equipment-detail-actions{position:absolute!important;right:0!important;bottom:0!important;z-index:6!important;box-sizing:border-box!important;width:64%!important;margin:0!important;padding:13px 28px 15px!important;border-top:1px solid #dfe8ee!important;background:rgba(255,255,255,.97)!important;box-shadow:0 -8px 22px rgba(16,47,70,.08)!important;backdrop-filter:blur(6px)}
-  .tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-media{height:100%!important;min-height:0!important}
-  .tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-media .tlg-equipment-product-image.large{height:100%!important;min-height:0!important}
-}
-@media(max-width:900px){
-  .tlg-equipment-detail-backdrop{overflow-y:auto!important}
-  .tlg-equipment-detail{height:auto!important;max-height:96dvh!important}
-  .tlg-equipment-detail-content{min-height:0!important;overflow-y:auto!important}
-  .tlg-equipment-detail-actions{position:sticky!important;bottom:-1px!important;z-index:6!important;border-top:1px solid #dfe8ee!important;background:#fff!important;box-shadow:0 -6px 18px rgba(16,47,70,.07)!important}
-}
-'''
-          refine.write_text(css)
-
+      - name: Apply UI patch
+        run: python .github/scripts/apply_equipment_market_sponsor_fixes.py
       - name: Install dependencies
         run: npm ci
       - name: Build
