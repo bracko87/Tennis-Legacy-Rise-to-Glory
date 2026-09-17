@@ -154,12 +154,69 @@
   border-radius:0 0 10px 10px;
 }
 
+/* TASK 3: Match Equipment selector controls should match the tactic controls on the same page. */
+.tlg-match-equipment-selector-controls{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+}
+
+.tlg-match-equipment-selector-controls select{
+  box-sizing:border-box;
+  width:auto;
+  min-width:200px;
+  min-height:40px;
+  height:40px;
+  padding:0 10px;
+  border:1px solid #d7e3ea;
+  border-radius:8px;
+  background:#fff;
+  color:#29465c;
+  font-size:.69rem;
+  font-weight:700;
+  line-height:1;
+}
+
+.tlg-match-equipment-selector-controls button{
+  box-sizing:border-box;
+  width:auto;
+  min-width:0;
+  min-height:38px;
+  height:38px;
+  padding:0 14px;
+  border:1px solid #0b6fc8;
+  border-radius:8px;
+  background:#0b6fc8;
+  color:#fff;
+  font-size:.67rem;
+  font-weight:800;
+  line-height:1;
+  cursor:pointer;
+}
+
+.tlg-match-equipment-selector-controls button:disabled,
+.tlg-match-equipment-selector-controls select:disabled{
+  cursor:not-allowed;
+  opacity:.55;
+}
+
 @media(max-width:1200px){
   .tlg-equipment-slot-v2{
     grid-template-columns:105px minmax(0,1fr);
   }
   .tlg-equipment-slot-v2>.tlg-equipment-slot-image{
     width:105px;
+  }
+}
+
+@media(max-width:980px){
+  .tlg-match-equipment-selector-controls{
+    justify-content:flex-start;
+  }
+  .tlg-match-equipment-selector-controls select{
+    min-width:0;
+    width:100%;
   }
 }
 
@@ -198,5 +255,15 @@
 
   .tlg-match-setup-bonus-head b{
     white-space:normal;
+  }
+
+  .tlg-match-equipment-selector-controls{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .tlg-match-equipment-selector-controls select,
+  .tlg-match-equipment-selector-controls button{
+    width:100%;
   }
 }
