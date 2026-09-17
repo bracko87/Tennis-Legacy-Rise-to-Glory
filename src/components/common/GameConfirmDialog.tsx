@@ -2,6 +2,7 @@ import { AlertTriangle, CheckCircle2, X } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { useEffect, useRef, type ReactNode } from 'react'
 
+import { lockBodyScroll } from '../../lib/bodyScrollLock'
 import '../../styles/game-confirm-dialog.css'
 
 export interface GameConfirmDialogProps {
@@ -35,8 +36,7 @@ export default function GameConfirmDialog({
 
   useEffect(() => {
     if (!open) return
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const unlockBodyScroll = lockBodyScroll()
     const frame = window.requestAnimationFrame(() => cancelButtonRef.current?.focus())
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -47,7 +47,7 @@ export default function GameConfirmDialog({
     return () => {
       window.cancelAnimationFrame(frame)
       window.removeEventListener('keydown', onKeyDown)
-      document.body.style.overflow = previousOverflow
+      unlockBodyScroll()
     }
   }, [open, busy, onCancel])
 

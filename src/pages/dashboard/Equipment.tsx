@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import GameConfirmDialog from '../../components/common/GameConfirmDialog'
 import TechnicalSponsorsPanel from '../../components/equipment/TechnicalSponsorsPanel'
 import GameLayout from '../../components/layout/GameLayout'
+import { lockBodyScroll } from '../../lib/bodyScrollLock'
 import { supabase } from '../../lib/supabase'
 import '../../styles/equipment.css'
 import '../../styles/equipment-marketplace-v2.css'
@@ -315,15 +316,17 @@ export default function EquipmentPage() {
 
   useEffect(() => {
     if (!selectedMarketItem && !selectedInventoryItem) return
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const unlockBodyScroll = lockBodyScroll()
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || pendingPurchase || pendingSale || pendingDiscard) return
       setSelectedMarketItem(null)
       setSelectedInventoryItem(null)
     }
     window.addEventListener('keydown', closeOnEscape)
-    return () => { document.body.style.overflow = previousOverflow; window.removeEventListener('keydown', closeOnEscape) }
+    return () => {
+      window.removeEventListener('keydown', closeOnEscape)
+      unlockBodyScroll()
+    }
   }, [selectedMarketItem, selectedInventoryItem, pendingPurchase, pendingSale, pendingDiscard])
 
   function requestPurchase(item: CatalogItem) {

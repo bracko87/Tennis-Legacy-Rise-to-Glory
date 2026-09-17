@@ -105,7 +105,7 @@ export default function EquipmentMatchSetupsEnhancement() {
 
   if (!host || setups.length === 0) return null
 
-  const select = (label: string, value: string, options: Json[], onChange: (value:string)=>void) => <label className="tlg-match-setup-field"><span>{label}</span><select value={value ?? ''} onChange={(e)=>onChange(e.target.value)}><option value="">Choose…</option>{options.map((entry)=><option key={entry.inventory_id} value={entry.inventory_id}>{itemLabel(entry)}</option>)}</select></label>
+  const select = (label: string, value: string, options: Json[], onChange: (value:string)=>void) => <label key={label} className="tlg-match-setup-field"><span>{label}</span><select value={value ?? ''} onChange={(e)=>onChange(e.target.value)}><option value="">Choose…</option>{options.map((entry)=><option key={entry.inventory_id} value={entry.inventory_id}>{itemLabel(entry)}</option>)}</select></label>
 
   return createPortal(
     <section className="tlg-equipment-panel tlg-custom-match-setups-panel">
