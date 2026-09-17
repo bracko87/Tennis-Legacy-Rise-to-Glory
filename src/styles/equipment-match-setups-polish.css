@@ -201,6 +201,13 @@
   opacity:.55;
 }
 
+/* TASK 4: The combined bonus row now lives below every setup, so the old
+   surface-preview Match Profile panel is redundant in Gear Room. Keep the wear
+   information below it, but hide only the duplicate bonus/profile panel. */
+.tlg-equipment-gear-view > .tlg-equipment-panel:has(.tlg-equipment-effects-grid-expanded){
+  display:none;
+}
+
 @media(max-width:1200px){
   .tlg-equipment-slot-v2{
     grid-template-columns:105px minmax(0,1fr);
