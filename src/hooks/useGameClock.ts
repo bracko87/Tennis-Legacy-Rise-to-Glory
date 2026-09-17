@@ -40,6 +40,7 @@ export interface GameClockView {
   hour: number
   minute: number
   formattedTime: string
+  totalGameSeconds: number
   speedMultiplier: number
   loading: boolean
   error: string | null
@@ -106,6 +107,7 @@ export function useGameClock(): GameClockView {
         hour: 0,
         minute: 0,
         formattedTime: '00:00',
+        totalGameSeconds: 0,
         speedMultiplier: 2,
       }
     }
@@ -140,6 +142,7 @@ export function useGameClock(): GameClockView {
       hour,
       minute,
       formattedTime: `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
+      totalGameSeconds,
       speedMultiplier: anchor.speedMultiplier,
     }
   }, [anchor, nowMs])
