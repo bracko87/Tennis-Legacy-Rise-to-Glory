@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
+import { useGameClock } from '../../hooks/useGameClock'
 import { supabase } from '../../lib/supabase'
 import '../../styles/tournament-match-tactic-status.css'
 
@@ -59,9 +60,18 @@ function formatLockDeadline(tactic: MatchTacticData | null) {
   return `${month} ${date.day}, Season ${date.season} · ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
 }
 
+function formatCountdown(totalSeconds: number) {
+  const safeSeconds = Math.max(0, Math.floor(totalSeconds))
+  const hours = Math.floor(safeSeconds / 3600)
+  const minutes = Math.floor((safeSeconds % 3600) / 60)
+  const seconds = safeSeconds % 60
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+}
+
 export default function TournamentMatchTacticStatus() {
   const { competitionId } = useParams()
   const { player } = useAuth()
+  const gameClock = useGameClock()
   const [matches, setMatches] = useState<DrawMatch[]>([])
   const [selectedMatch, setSelectedMatch] = useState<DrawMatch | null>(null)
   const [host, setHost] = useState<HTMLElement | null>(null)
@@ -162,7 +172,31 @@ export default function TournamentMatchTacticStatus() {
     return () => { void supabase.removeChannel(channel) }
   }, [loadStatus, player?.id, selectedMatch?.match_id])
 
-  const lockDeadline = useMemo(() => formatLockDeadline(tactic), [tactic?.tactic_lock_game_date, tactic?.tactic_lock_minute_of_day])
+  const lockDeadline = useMemo(
+    () => formatLockDeadline(tactic),
+    [tactic?.tactic_lock_game_date, tactic?.tactic_lock_minute_of_day],
+  )
+
+  const remainingGameSeconds = useMemo(() => {
+    const lockSecond = tactic?.tactic_lock_game_second
+    if (lockSecond === null || lockSecond === undefined || gameClock.loading || gameClock.error) return null
+    return Math.max(0, Math.floor(lockSecond - gameClock.totalGameSeconds))
+  }, [tactic?.tactic_lock_game_second, gameClock.totalGameSeconds, gameClock.loading, gameClock.error])
+
+  const deadlineReached = Boolean(
+    tactic?.editable &&
+    tactic.tactic_lock_game_second !== null &&
+    tactic.tactic_lock_game_second !== undefined &&
+    !gameClock.loading &&
+    !gameClock.error &&
+    gameClock.totalGameSeconds >= tactic.tactic_lock_game_second,
+  )
+
+  useEffect(() => {
+    if (!deadlineReached) return
+    const timer = window.setTimeout(() => { void loadStatus() }, 250)
+    return () => window.clearTimeout(timer)
+  }, [deadlineReached, loadStatus])
 
   if (!host || !selectedMatch || !player?.id || !tactic) return null
   if (selectedMatch.player1_id !== player.id && selectedMatch.player2_id !== player.id) return null
@@ -175,6 +209,11 @@ export default function TournamentMatchTacticStatus() {
       ? 'Using the Automatic Balanced default until you save a match-specific tactic.'
       : 'A match-specific override is saved for this opponent.'
   const lockMinutes = tactic.lock_minutes_before_start ?? 60
+  const countdownText = !tactic.editable || remainingGameSeconds === 0
+    ? '00:00:00'
+    : remainingGameSeconds === null
+      ? 'Calculating…'
+      : formatCountdown(remainingGameSeconds)
 
   return createPortal(
     <section className={`tlg-match-tactic-status-strip${tactic.editable ? ' editable' : ' locked'}`}>
@@ -187,6 +226,11 @@ export default function TournamentMatchTacticStatus() {
         <span>{tactic.editable ? 'Tactic can be changed until' : 'Tactic deadline'}</span>
         <strong>{tactic.editable ? (lockDeadline ?? 'Schedule pending') : 'Locked'}</strong>
         <small>{tactic.editable ? `Changes lock ${lockMinutes} minutes before the scheduled start.` : 'The match has started, finished, or reached its tactic lock time.'}</small>
+      </div>
+      <div className="tlg-match-tactic-countdown">
+        <span>Time remaining</span>
+        <strong>{countdownText}</strong>
+        <small>{!tactic.editable || remainingGameSeconds === 0 ? 'Tactic changes are locked.' : 'Game time until tactic changes lock.'}</small>
       </div>
     </section>,
     host,
