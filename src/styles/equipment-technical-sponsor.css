@@ -160,3 +160,13 @@
 .tlg-equipment-market-card-buttons button.secondary{border-color:#cbd9e2;color:#4d687b;background:#fff}
 .tlg-equipment-market-card-buttons button.buy{border-color:#247b52;background:#27875a}
 .tlg-equipment-market-card-buttons button:disabled{opacity:.48;cursor:not-allowed}
+
+
+/* Marketplace sponsor card placement refinement v3 */
+.tlg-equipment-market-card-v2{display:flex!important;flex-direction:column!important}
+.tlg-equipment-market-card-v2>.tlg-equipment-sponsor-price-badge{order:0;margin:10px 17px 0!important}
+.tlg-equipment-market-card-v2>.bottom{width:auto;box-sizing:border-box;align-items:flex-end!important;margin-top:auto!important}
+.tlg-equipment-market-card-buttons{margin-left:auto;align-self:flex-end;flex-wrap:nowrap!important}
+.tlg-equipment-market-card-buttons button{min-width:76px!important;min-height:36px!important;padding:0 12px!important}
+.tlg-equipment-market-card-buttons button.buy{min-width:72px!important}
+.tlg-equipment-market-card-v2.sponsor-priced .tlg-equipment-card-quick{margin-bottom:0}
