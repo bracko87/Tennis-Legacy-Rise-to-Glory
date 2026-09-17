@@ -1,10 +1,5 @@
 /* TASK 1: Gear Room default/custom setup previews and combined bonus rows. */
 
-/*
-   The existing Gear Room cards already contain the correct product image.
-   Turn the small thumbnail into a full-height equipment preview panel instead
-   of adding a second/duplicate preview section below the cards.
-*/
 .tlg-equipment-slot-v2{
   display:grid;
   grid-template-columns:124px minmax(0,1fr);
@@ -63,7 +58,6 @@
 .tlg-equipment-slot-v2>.condition-bar{grid-row:6;align-self:end}
 .tlg-equipment-slot-v2>small{grid-row:7}
 
-/* Accessories get the same full-height preview treatment, only slightly narrower. */
 .tlg-equipment-slot.compact.tlg-equipment-slot-v2{
   grid-template-columns:92px minmax(0,1fr);
   min-height:150px;
@@ -75,7 +69,6 @@
   min-height:126px;
 }
 
-/* One combined bonus row immediately below the Default Match Setup. */
 .tlg-default-match-setup-extras{
   padding:0 18px 18px;
   border-top:0;
@@ -146,7 +139,6 @@
   background:#edf2f5;
 }
 
-/* Each saved custom setup gets exactly one summary row at its bottom. */
 .tlg-custom-match-setup-card>.tlg-match-setup-bonus-row{
   margin:12px -13px -13px;
   padding:10px 13px 11px;
@@ -154,7 +146,7 @@
   border-radius:0 0 10px 10px;
 }
 
-/* TASK 3: Match Equipment selector controls should match the tactic controls on the same page. */
+/* Match Equipment selector controls match the tactic controls on the same page. */
 .tlg-match-equipment-selector-controls{
   display:flex;
   align-items:center;
@@ -201,19 +193,109 @@
   opacity:.55;
 }
 
-/* TASK 4: The combined bonus row now lives below every setup, so the old
-   surface-preview Match Profile panel is redundant in Gear Room. Keep the wear
-   information below it, but hide only the duplicate bonus/profile panel. */
+/* Duplicate Match Profile is hidden because each setup now shows its own bonus row. */
 .tlg-equipment-gear-view > .tlg-equipment-panel:has(.tlg-equipment-effects-grid-expanded){
   display:none;
 }
 
+/* Force legacy thumbnail positioning rules off. This keeps every image inside the
+   left preview slot marked in the Gear Room cards instead of shifting it into
+   the text/content column. */
+.tlg-equipment-slot.tlg-equipment-slot-v2{
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:110px minmax(0,1fr)!important;
+  grid-template-rows:auto auto auto auto 1fr auto auto!important;
+  column-gap:14px!important;
+  padding:13px!important;
+  overflow:hidden!important;
+}
+
+.tlg-equipment-slot.tlg-equipment-slot-v2>.tlg-equipment-slot-image{
+  position:relative!important;
+  inset:auto!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:auto!important;
+  transform:none!important;
+  grid-column:1!important;
+  grid-row:1/-1!important;
+  align-self:stretch!important;
+  justify-self:stretch!important;
+  width:110px!important;
+  min-width:110px!important;
+  max-width:110px!important;
+  height:100%!important;
+  min-height:159px!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+}
+
+.tlg-equipment-slot.tlg-equipment-slot-v2>.tlg-equipment-slot-image .tlg-equipment-product-image{
+  position:relative!important;
+  inset:auto!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  height:100%!important;
+  min-height:100%!important;
+  margin:0!important;
+  padding:0!important;
+  transform:none!important;
+  overflow:hidden!important;
+}
+
+.tlg-equipment-slot.tlg-equipment-slot-v2>.tlg-equipment-slot-image .tlg-equipment-product-image img{
+  position:static!important;
+  inset:auto!important;
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  height:100%!important;
+  max-height:100%!important;
+  margin:0!important;
+  transform:none!important;
+  object-fit:cover!important;
+  object-position:center!important;
+}
+
+.tlg-equipment-slot.tlg-equipment-slot-v2>:not(.tlg-equipment-slot-image){
+  grid-column:2!important;
+  margin-left:0!important;
+  padding-left:0!important;
+  min-width:0!important;
+}
+
+.tlg-equipment-slot.compact.tlg-equipment-slot-v2{
+  grid-template-columns:82px minmax(0,1fr)!important;
+  padding:12px!important;
+}
+
+.tlg-equipment-slot.compact.tlg-equipment-slot-v2>.tlg-equipment-slot-image{
+  width:82px!important;
+  min-width:82px!important;
+  max-width:82px!important;
+  min-height:126px!important;
+}
+
 @media(max-width:1200px){
-  .tlg-equipment-slot-v2{
-    grid-template-columns:105px minmax(0,1fr);
+  .tlg-equipment-slot.tlg-equipment-slot-v2{
+    grid-template-columns:96px minmax(0,1fr)!important;
   }
-  .tlg-equipment-slot-v2>.tlg-equipment-slot-image{
-    width:105px;
+  .tlg-equipment-slot.tlg-equipment-slot-v2>.tlg-equipment-slot-image{
+    width:96px!important;
+    min-width:96px!important;
+    max-width:96px!important;
+  }
+  .tlg-equipment-slot.compact.tlg-equipment-slot-v2{
+    grid-template-columns:76px minmax(0,1fr)!important;
+  }
+  .tlg-equipment-slot.compact.tlg-equipment-slot-v2>.tlg-equipment-slot-image{
+    width:76px!important;
+    min-width:76px!important;
+    max-width:76px!important;
   }
 }
 
@@ -228,27 +310,28 @@
 }
 
 @media(max-width:760px){
-  .tlg-equipment-slot-v2,
+  .tlg-equipment-slot.tlg-equipment-slot-v2,
   .tlg-equipment-slot.compact.tlg-equipment-slot-v2{
-    grid-template-columns:1fr;
-    grid-template-rows:auto;
-    gap:0;
-    padding:13px;
+    grid-template-columns:1fr!important;
+    grid-template-rows:auto!important;
+    gap:0!important;
+    padding:13px!important;
   }
 
-  .tlg-equipment-slot-v2>.tlg-equipment-slot-image,
+  .tlg-equipment-slot.tlg-equipment-slot-v2>.tlg-equipment-slot-image,
   .tlg-equipment-slot.compact.tlg-equipment-slot-v2>.tlg-equipment-slot-image{
-    grid-column:1;
-    grid-row:auto;
-    width:100%;
-    height:150px;
-    min-height:150px;
-    margin:0 0 12px;
+    grid-column:1!important;
+    grid-row:auto!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    height:150px!important;
+    min-height:150px!important;
+    margin:0 0 12px!important;
   }
 
-  .tlg-equipment-slot-v2>:not(.tlg-equipment-slot-image){
-    grid-column:1;
-    grid-row:auto;
+  .tlg-equipment-slot.tlg-equipment-slot-v2>:not(.tlg-equipment-slot-image){
+    grid-column:1!important;
   }
 
   .tlg-match-setup-bonus-row{
