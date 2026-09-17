@@ -37,14 +37,6 @@ function itemLabel(entry: Json) {
   return `${entry.item?.brand ?? 'Item'} ${entry.item?.model ?? ''} · ${Number(entry.condition ?? 0).toFixed(0)}%`
 }
 
-function itemTypeLabel(entry: Json) {
-  if (entry.item?.item_type === 'racket') return 'Racquet'
-  if (entry.item?.item_type === 'shoes') return 'Shoes'
-  if (entry.item?.item_type === 'apparel') return 'Clothing'
-  if (entry.item?.item_type === 'accessory') return titleCase(entry.item?.accessory_kind ?? 'Accessory')
-  return 'Equipment'
-}
-
 function formatEffect(value: number) {
   if (Math.abs(value) < 0.005) return '±0.00%'
   return `${value > 0 ? '+' : ''}${value.toFixed(2)}%`
@@ -64,6 +56,7 @@ function entriesForSetup(setup: Json | null | undefined, inventory: Json[]) {
 
 function aggregateEffects(entries: Json[]): EffectEntry[] {
   const totals: Record<string, number> = {}
+
   entries.forEach((entry) => {
     const effects = entry.item?.effective_gameplay_effects ?? entry.item?.gameplay_effects ?? {}
     Object.entries(effects).forEach(([key, rawValue]) => {
@@ -72,44 +65,33 @@ function aggregateEffects(entries: Json[]): EffectEntry[] {
       totals[key] = (totals[key] ?? 0) + value
     })
   })
+
   return Object.entries(totals)
     .map(([key, value]) => [key, Number(value.toFixed(2))] as EffectEntry)
     .filter(([, value]) => Math.abs(value) >= 0.005)
     .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
 }
 
-function SetupPreview({ entries, label = 'Equipment preview' }: { entries: Json[]; label?: string }) {
-  return (
-    <div className="tlg-match-setup-preview">
-      <div className="tlg-match-setup-preview-head"><span>{label}</span><b>{entries.length} items</b></div>
-      {entries.length > 0 ? (
-        <div className="tlg-match-setup-preview-items">
-          {entries.map((entry) => (
-            <div className="tlg-match-setup-preview-item" key={entry.inventory_id}>
-              <div className="tlg-match-setup-preview-media">
-                {entry.item?.image_url ? <img src={entry.item.image_url} alt={`${entry.item?.brand ?? ''} ${entry.item?.model ?? ''}`.trim()} /> : <span>{(entry.item?.brand ?? '?').slice(0, 2).toUpperCase()}</span>}
-              </div>
-              <div><small>{itemTypeLabel(entry)}</small><strong>{entry.item?.brand ?? 'Equipment'} {entry.item?.model ?? ''}</strong><em>{Number(entry.condition ?? 0).toFixed(0)}% condition</em></div>
-            </div>
-          ))}
-        </div>
-      ) : <p className="tlg-match-setup-preview-empty">Choose equipment to build this setup.</p>}
-    </div>
-  )
-}
-
-function SetupBonusRow({ entries }: { entries: Json[] }) {
+function SetupBonusRow({ entries, title = 'Setup bonuses' }: { entries: Json[]; title?: string }) {
   const effects = aggregateEffects(entries)
   const bonusCount = effects.filter(([, value]) => value > 0).length
   const tradeoffCount = effects.filter(([, value]) => value < 0).length
+
   return (
     <div className="tlg-match-setup-bonus-row">
       <div className="tlg-match-setup-bonus-head">
-        <span>SETUP BONUSES</span>
-        <b>{bonusCount} {bonusCount === 1 ? 'bonus' : 'bonuses'}{tradeoffCount > 0 ? ` · ${tradeoffCount} ${tradeoffCount === 1 ? 'trade-off' : 'trade-offs'}` : ''}</b>
+        <span>{title.toUpperCase()}</span>
+        <b>
+          {bonusCount} {bonusCount === 1 ? 'bonus' : 'bonuses'}
+          {tradeoffCount > 0 ? ` · ${tradeoffCount} ${tradeoffCount === 1 ? 'trade-off' : 'trade-offs'}` : ''}
+        </b>
       </div>
       <div className="tlg-match-setup-bonus-chips">
-        {effects.length > 0 ? effects.map(([key, value]) => <span key={key} className={value < 0 ? 'negative' : 'positive'}>{EFFECT_LABELS[key] ?? titleCase(key.replace('_pct', ''))} {formatEffect(value)}</span>) : <span className="neutral">No direct gameplay modifiers</span>}
+        {effects.length > 0 ? effects.map(([key, value]) => (
+          <span key={key} className={value < 0 ? 'negative' : 'positive'}>
+            {EFFECT_LABELS[key] ?? titleCase(key.replace('_pct', ''))} {formatEffect(value)}
+          </span>
+        )) : <span className="neutral">No direct gameplay modifiers</span>}
       </div>
     </div>
   )
@@ -130,16 +112,20 @@ export default function EquipmentMatchSetupsEnhancement() {
       supabase.rpc('get_equipment_dashboard_v1'),
       supabase.rpc('get_player_equipment_match_setups_v1'),
     ])
+
     if (!equipment.error) {
       const nextDashboard = (equipment.data as Json) ?? null
       setDashboard(nextDashboard)
       setInventory(((nextDashboard as Json)?.inventory ?? []) as Json[])
     }
+
     if (!setupResponse.error) {
       const rows = (((setupResponse.data as Json)?.setups ?? []) as Json[]).sort((a, b) => a.slot_index - b.slot_index)
       setSetups(rows)
       const next: Record<number, Json> = {}
-      rows.forEach((row) => { next[row.slot_index] = { ...row, accessories: { ...(row.accessories ?? {}) } } })
+      rows.forEach((row) => {
+        next[row.slot_index] = { ...row, accessories: { ...(row.accessories ?? {}) } }
+      })
       setDrafts(next)
     }
   }
@@ -149,9 +135,11 @@ export default function EquipmentMatchSetupsEnhancement() {
   useEffect(() => {
     let currentCustomHost: HTMLElement | null = null
     let currentDefaultHost: HTMLElement | null = null
+
     const syncDom = () => {
       const gearView = document.querySelector<HTMLElement>('.tlg-equipment-gear-view')
       const defaultPanel = gearView?.querySelector<HTMLElement>(':scope > .tlg-equipment-panel') ?? null
+
       if (defaultPanel) {
         const label = defaultPanel.querySelector<HTMLElement>('.tlg-equipment-panel-head span')
         if (label?.textContent?.trim() === 'CURRENT MATCH SETUP') label.textContent = 'DEFAULT MATCH SETUP'
@@ -170,8 +158,16 @@ export default function EquipmentMatchSetupsEnhancement() {
           setCustomHost(currentCustomHost)
         }
       } else {
-        if (currentDefaultHost) { currentDefaultHost.remove(); currentDefaultHost = null; setDefaultHost(null) }
-        if (currentCustomHost) { currentCustomHost.remove(); currentCustomHost = null; setCustomHost(null) }
+        if (currentDefaultHost) {
+          currentDefaultHost.remove()
+          currentDefaultHost = null
+          setDefaultHost(null)
+        }
+        if (currentCustomHost) {
+          currentCustomHost.remove()
+          currentCustomHost = null
+          setCustomHost(null)
+        }
       }
 
       const market = document.querySelector<HTMLElement>('.tlg-equipment-market-panel')
@@ -179,9 +175,11 @@ export default function EquipmentMatchSetupsEnhancement() {
       const tagRow = market?.querySelector<HTMLElement>('.tlg-equipment-tag-filter')
       if (tagRow) tagRow.style.display = activeCategory?.textContent?.trim() === 'All' ? 'none' : ''
     }
+
     syncDom()
     const observer = new MutationObserver(syncDom)
     observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] })
+
     return () => {
       observer.disconnect()
       currentDefaultHost?.remove()
@@ -198,22 +196,16 @@ export default function EquipmentMatchSetupsEnhancement() {
     accessory: inventory.filter((x) => x.item?.item_type === 'accessory'),
   }), [inventory])
 
-  const defaultSetup = useMemo(() => {
+  const defaultEntries = useMemo(() => {
     const loadout = dashboard?.loadout
-    if (!loadout) return null
-    const accessories: Record<string, string> = {}
-    ;((loadout.accessories ?? []) as Json[]).forEach((entry) => {
-      if (entry.accessory_kind && entry.inventory_id) accessories[entry.accessory_kind] = entry.inventory_id
-    })
-    return {
-      racket_inventory_id: loadout.racket?.inventory_id ?? null,
-      shoes_inventory_id: loadout.shoes?.inventory_id ?? null,
-      apparel_inventory_id: loadout.apparel?.inventory_id ?? null,
-      accessories,
-    }
+    if (!loadout) return []
+    return [
+      loadout.racket,
+      loadout.shoes,
+      loadout.apparel,
+      ...((loadout.accessories ?? []) as Json[]),
+    ].filter(Boolean) as Json[]
   }, [dashboard])
-
-  const defaultEntries = useMemo(() => entriesForSetup(defaultSetup, inventory), [defaultSetup, inventory])
 
   function updateDraft(slot: number, patch: Json) {
     setDrafts((current) => ({ ...current, [slot]: { ...(current[slot] ?? {}), ...patch } }))
@@ -225,6 +217,7 @@ export default function EquipmentMatchSetupsEnhancement() {
       setMessage(`Match Setup ${slot}: choose a racquet, shoes and clothing first.`)
       return
     }
+
     setBusy(slot)
     setMessage(null)
     const { data, error } = await supabase.rpc('save_player_equipment_match_setup_v1', {
@@ -236,15 +229,20 @@ export default function EquipmentMatchSetupsEnhancement() {
       p_accessories: d.accessories ?? {},
     })
     setBusy(null)
-    if (error) setMessage(error.message)
-    else {
-      const rows = (((data as Json)?.setups ?? []) as Json[]).sort((a, b) => a.slot_index - b.slot_index)
-      setSetups(rows)
-      const next: Record<number, Json> = {}
-      rows.forEach((row) => { next[row.slot_index] = { ...row, accessories: { ...(row.accessories ?? {}) } } })
-      setDrafts(next)
-      setMessage(`${d.name || `Match Setup ${slot}`} saved.`)
+
+    if (error) {
+      setMessage(error.message)
+      return
     }
+
+    const rows = (((data as Json)?.setups ?? []) as Json[]).sort((a, b) => a.slot_index - b.slot_index)
+    setSetups(rows)
+    const next: Record<number, Json> = {}
+    rows.forEach((row) => {
+      next[row.slot_index] = { ...row, accessories: { ...(row.accessories ?? {}) } }
+    })
+    setDrafts(next)
+    setMessage(`${d.name || `Match Setup ${slot}`} saved.`)
   }
 
   const select = (label: string, value: string, options: Json[], onChange: (value: string) => void) => (
@@ -252,7 +250,9 @@ export default function EquipmentMatchSetupsEnhancement() {
       <span>{label}</span>
       <select value={value ?? ''} onChange={(event) => onChange(event.target.value)}>
         <option value="">Choose…</option>
-        {options.map((entry) => <option key={entry.inventory_id} value={entry.inventory_id}>{itemLabel(entry)}</option>)}
+        {options.map((entry) => (
+          <option key={entry.inventory_id} value={entry.inventory_id}>{itemLabel(entry)}</option>
+        ))}
       </select>
     </label>
   )
@@ -261,34 +261,62 @@ export default function EquipmentMatchSetupsEnhancement() {
     <>
       {defaultHost && createPortal(
         <div className="tlg-default-match-setup-extras">
-          <SetupPreview entries={defaultEntries} label="Default setup preview" />
-          <SetupBonusRow entries={defaultEntries} />
+          <SetupBonusRow entries={defaultEntries} title="Default Match Setup bonuses" />
         </div>,
         defaultHost,
       )}
 
       {customHost && setups.length > 0 && createPortal(
         <section className="tlg-equipment-panel tlg-custom-match-setups-panel">
-          <header className="tlg-equipment-panel-head"><div><span>CUSTOM MATCH SETUPS</span><h2>Four reusable equipment configurations</h2><p>Save alternative gear combinations and choose one on a match tactic screen. The same owned item may appear in several saved setups because only one setup is used in a match.</p></div></header>
+          <header className="tlg-equipment-panel-head">
+            <div>
+              <span>CUSTOM MATCH SETUPS</span>
+              <h2>Four reusable equipment configurations</h2>
+              <p>Save alternative gear combinations and choose one on a match tactic screen. The same owned item may appear in several saved setups because only one setup is used in a match.</p>
+            </div>
+          </header>
+
           {message && <div className="tlg-equipment-alert tlg-custom-setup-message">{message}</div>}
-          <div className="tlg-custom-match-setups-grid">{setups.map((setup) => {
-            const d = drafts[setup.slot_index] ?? setup
-            const previewEntries = entriesForSetup(d, inventory)
-            return (
-              <article className="tlg-custom-match-setup-card" key={setup.slot_index}>
-                <div className="tlg-custom-match-setup-head"><span>SETUP {setup.slot_index}</span><input value={d.name ?? ''} maxLength={40} onChange={(event) => updateDraft(setup.slot_index, { name: event.target.value })} /></div>
-                <SetupPreview entries={previewEntries} />
-                <div className="tlg-custom-match-setup-main">
-                  {select('Racquet', d.racket_inventory_id, byType.racket, (value) => updateDraft(setup.slot_index, { racket_inventory_id: value || null }))}
-                  {select('Shoes', d.shoes_inventory_id, byType.shoes, (value) => updateDraft(setup.slot_index, { shoes_inventory_id: value || null }))}
-                  {select('Clothing', d.apparel_inventory_id, byType.apparel, (value) => updateDraft(setup.slot_index, { apparel_inventory_id: value || null }))}
-                </div>
-                <details><summary>Accessories</summary><div className="tlg-custom-match-setup-accessories">{ACCESSORIES.map((kind) => select(titleCase(kind), d.accessories?.[kind] ?? '', byType.accessory.filter((x) => x.item?.accessory_kind === kind), (value) => updateDraft(setup.slot_index, { accessories: { ...(d.accessories ?? {}), [kind]: value } })))}</div></details>
-                <button type="button" onClick={() => void save(setup.slot_index)} disabled={busy === setup.slot_index}>{busy === setup.slot_index ? 'Saving…' : 'Save setup'}</button>
-                <SetupBonusRow entries={previewEntries} />
-              </article>
-            )
-          })}</div>
+
+          <div className="tlg-custom-match-setups-grid">
+            {setups.map((setup) => {
+              const d = drafts[setup.slot_index] ?? setup
+              const setupEntries = entriesForSetup(d, inventory)
+
+              return (
+                <article className="tlg-custom-match-setup-card" key={setup.slot_index}>
+                  <div className="tlg-custom-match-setup-head">
+                    <span>SETUP {setup.slot_index}</span>
+                    <input value={d.name ?? ''} maxLength={40} onChange={(event) => updateDraft(setup.slot_index, { name: event.target.value })} />
+                  </div>
+
+                  <div className="tlg-custom-match-setup-main">
+                    {select('Racquet', d.racket_inventory_id, byType.racket, (value) => updateDraft(setup.slot_index, { racket_inventory_id: value || null }))}
+                    {select('Shoes', d.shoes_inventory_id, byType.shoes, (value) => updateDraft(setup.slot_index, { shoes_inventory_id: value || null }))}
+                    {select('Clothing', d.apparel_inventory_id, byType.apparel, (value) => updateDraft(setup.slot_index, { apparel_inventory_id: value || null }))}
+                  </div>
+
+                  <details>
+                    <summary>Accessories</summary>
+                    <div className="tlg-custom-match-setup-accessories">
+                      {ACCESSORIES.map((kind) => select(
+                        titleCase(kind),
+                        d.accessories?.[kind] ?? '',
+                        byType.accessory.filter((x) => x.item?.accessory_kind === kind),
+                        (value) => updateDraft(setup.slot_index, { accessories: { ...(d.accessories ?? {}), [kind]: value } }),
+                      ))}
+                    </div>
+                  </details>
+
+                  <button type="button" onClick={() => void save(setup.slot_index)} disabled={busy === setup.slot_index}>
+                    {busy === setup.slot_index ? 'Saving…' : 'Save setup'}
+                  </button>
+
+                  <SetupBonusRow entries={setupEntries} />
+                </article>
+              )
+            })}
+          </div>
         </section>,
         customHost,
       )}
