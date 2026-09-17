@@ -72,3 +72,20 @@
   .tlg-match-equipment-selector-controls{flex-direction:column}
   .tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-media{min-height:300px!important;height:300px!important}
 }
+
+
+/* Equipment detail modal: keep purchasing controls reachable at every desktop viewport height. */
+@media(min-width:901px){
+  .tlg-equipment-detail-backdrop{overflow-y:auto!important;padding:16px!important}
+  .tlg-equipment-detail{grid-template-columns:36% 64%!important;width:min(1040px,96vw)!important;height:min(860px,calc(100dvh - 32px))!important;max-height:calc(100dvh - 32px)!important;min-height:0!important}
+  .tlg-equipment-detail-content{min-height:0!important;overflow-y:auto!important;padding-bottom:86px!important}
+  .tlg-equipment-detail-actions{position:absolute!important;right:0!important;bottom:0!important;z-index:6!important;box-sizing:border-box!important;width:64%!important;margin:0!important;padding:13px 28px 15px!important;border-top:1px solid #dfe8ee!important;background:rgba(255,255,255,.97)!important;box-shadow:0 -8px 22px rgba(16,47,70,.08)!important;backdrop-filter:blur(6px)}
+  .tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-media{height:100%!important;min-height:0!important}
+  .tlg-equipment-detail:not(.tlg-equipment-inventory-detail) .tlg-equipment-detail-media .tlg-equipment-product-image.large{height:100%!important;min-height:0!important}
+}
+@media(max-width:900px){
+  .tlg-equipment-detail-backdrop{overflow-y:auto!important}
+  .tlg-equipment-detail{height:auto!important;max-height:96dvh!important}
+  .tlg-equipment-detail-content{min-height:0!important;overflow-y:auto!important}
+  .tlg-equipment-detail-actions{position:sticky!important;bottom:-1px!important;z-index:6!important;border-top:1px solid #dfe8ee!important;background:#fff!important;box-shadow:0 -6px 18px rgba(16,47,70,.07)!important}
+}

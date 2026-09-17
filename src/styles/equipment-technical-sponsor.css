@@ -144,3 +144,19 @@
   .tlg-technical-contract-facts,.tlg-technical-offer-review{grid-template-columns:1fr}.tlg-technical-contract-facts div,.tlg-technical-offer-review div{border-left:0!important;border-top:1px solid #eef2f4!important}.tlg-technical-contract-facts div:first-child,.tlg-technical-offer-review div:first-child{border-top:0!important}
   .tlg-technical-offer-foot{align-items:flex-start;flex-direction:column}.tlg-technical-offer-foot>div{width:100%}.tlg-technical-offer-foot button{flex:1}
 }
+
+
+/* Discount-only technical sponsor marketplace presentation */
+.tlg-equipment-market-card-v2.sponsor-priced{border-color:#a9d8bd;box-shadow:inset 0 3px 0 #2f9a68,0 7px 20px rgba(32,118,77,.09)}
+.tlg-equipment-sponsor-price-badge{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 17px 0;padding:8px 10px;border:1px solid #efbbbb;border-radius:8px;color:#9d3434;background:#fff2f2;font-size:.56rem;font-weight:850;letter-spacing:.02em}
+.tlg-equipment-sponsor-price-badge strong{font-size:.55rem;letter-spacing:.07em}
+.tlg-equipment-sponsor-price-badge span{font-size:.68rem;font-weight:900;white-space:nowrap}
+.tlg-equipment-market-price-stack{display:grid;align-content:end;justify-items:start;gap:2px;min-width:0}
+.tlg-equipment-market-card-v2.sponsor-priced .tlg-equipment-list-price{color:#9c7777!important;font-size:.56rem!important}
+.tlg-equipment-sponsor-final-price{color:#16834f!important;font-size:1.08rem!important;line-height:1.05}
+.tlg-equipment-sponsor-saving{color:#23845a!important;font-size:.55rem!important;font-weight:850!important}
+.tlg-equipment-market-card-buttons{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.tlg-equipment-market-card-buttons button{min-width:0!important;min-height:36px;padding:0 12px;border:1px solid #177db8;border-radius:8px;color:#fff;background:#177db8;font-size:.61rem;font-weight:850;cursor:pointer}
+.tlg-equipment-market-card-buttons button.secondary{border-color:#cbd9e2;color:#4d687b;background:#fff}
+.tlg-equipment-market-card-buttons button.buy{border-color:#247b52;background:#27875a}
+.tlg-equipment-market-card-buttons button:disabled{opacity:.48;cursor:not-allowed}
