@@ -334,3 +334,190 @@
 .tlg-defence-head-actions>button:hover{border-color:#9bc6e3;color:#0b6fc8;background:#f4faff}
 .tlg-defence-head-actions>svg{color:#0b6fc8}
 @media(max-width:680px){.tlg-defence-head-actions>span{display:none}}
+
+
+/* Tournament history / past winners */
+.tlg-past-winners{
+  padding:4px 22px 18px;
+}
+.tlg-past-winners-button{
+  padding:6px 10px;
+  border:1px solid #cbdce7;
+  border-radius:7px;
+  background:#fff;
+  color:#315a75;
+  font-size:.58rem;
+  font-weight:800;
+  cursor:pointer;
+}
+.tlg-past-winners-button:hover{
+  border-color:#9bc6e3;
+  color:#0b6fc8;
+  background:#f4faff;
+}
+.tlg-past-winners-strip{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:8px;
+}
+.tlg-past-winner-card{
+  min-width:0;
+  padding:10px 11px;
+  border:1px solid #e1e9ef;
+  border-radius:8px;
+  background:#fff;
+}
+.tlg-past-winner-card>svg{
+  color:#c4931b;
+}
+.tlg-past-winner-card>span{
+  display:block;
+  margin-top:5px;
+  color:#7790a4;
+  font-size:.54rem;
+  font-weight:800;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+}
+.tlg-past-winner-card>div{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+  margin-top:7px;
+}
+.tlg-past-winner-card a{
+  overflow:hidden;
+  color:#173149;
+  font-size:.65rem;
+  font-weight:800;
+  text-decoration:none;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.tlg-past-winner-card a:hover{color:#0b6fc8}
+
+.tlg-past-winners-modal-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:2100;
+  display:grid;
+  place-items:center;
+  padding:22px;
+  background:rgba(7,22,35,.58);
+}
+.tlg-past-winners-modal{
+  width:min(620px,100%);
+  max-height:min(720px,calc(100vh - 44px));
+  overflow:hidden;
+  border:1px solid #d7e2ea;
+  border-radius:13px;
+  background:#fff;
+  box-shadow:0 28px 70px rgba(10,31,48,.28);
+}
+.tlg-past-winners-modal>header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  padding:18px 20px;
+  border-bottom:1px solid #e6edf2;
+}
+.tlg-past-winners-modal>header span{
+  color:#0b6fc8;
+  font-size:.56rem;
+  font-weight:850;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+}
+.tlg-past-winners-modal>header h3{
+  margin:4px 0 0;
+  color:#173149;
+  font-size:1rem;
+}
+.tlg-past-winners-modal>header p{
+  margin:6px 0 0;
+  color:#74899b;
+  font-size:.62rem;
+}
+.tlg-past-winners-modal>header button{
+  display:grid;
+  place-items:center;
+  width:34px;
+  height:34px;
+  padding:0;
+  border:1px solid #d8e3ea;
+  border-radius:50%;
+  background:#fff;
+  color:#526b7d;
+  cursor:pointer;
+}
+.tlg-past-winners-modal-list{
+  max-height:560px;
+  overflow-y:auto;
+  padding:10px 14px 14px;
+}
+.tlg-past-winners-modal-list article{
+  display:grid;
+  grid-template-columns:125px minmax(0,1fr);
+  gap:14px;
+  align-items:center;
+  min-height:58px;
+  padding:9px 10px;
+  border-bottom:1px solid #edf1f4;
+}
+.tlg-past-winners-modal-list article:last-child{border-bottom:0}
+.tlg-past-winners-modal-list .season{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  color:#6d8191;
+  font-size:.63rem;
+  font-weight:800;
+}
+.tlg-past-winners-modal-list .season svg{color:#c4931b}
+.tlg-past-winners-modal-list .winner{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:7px;
+  align-items:center;
+  min-width:0;
+}
+.tlg-past-winners-modal-list .winner a{
+  overflow:hidden;
+  color:#173149;
+  font-size:.7rem;
+  font-weight:800;
+  text-decoration:none;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.tlg-past-winners-modal-list .winner a:hover{color:#0b6fc8}
+.tlg-past-winners-modal-list .winner small{
+  color:#8193a3;
+  font-size:.55rem;
+}
+
+@media(max-width:980px){
+  .tlg-past-winners-strip{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+@media(max-width:680px){
+  .tlg-past-winners-strip{
+    grid-template-columns:1fr;
+  }
+  .tlg-past-winners-modal-backdrop{
+    padding:10px;
+  }
+  .tlg-past-winners-modal-list article{
+    grid-template-columns:1fr;
+    gap:6px;
+  }
+  .tlg-past-winners-modal-list .winner{
+    grid-template-columns:auto minmax(0,1fr);
+  }
+  .tlg-past-winners-modal-list .winner small{
+    grid-column:2;
+  }
+}
