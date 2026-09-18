@@ -26,6 +26,7 @@ import {
 
 import AppButton from '../../components/common/AppButton'
 import FormField from '../../components/common/FormField'
+import GameConfirmDialog from '../../components/common/GameConfirmDialog'
 import { clearStoredReferralCode, getReferralBrowserHash, getStoredReferralCode } from '../../lib/referrals'
 import { supabase } from '../../lib/supabase'
 
@@ -52,6 +53,7 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const [status, setStatus] = useState<FormStatus | null>(null)
 
   const currentYear = new Date().getFullYear()
@@ -64,26 +66,34 @@ export default function RegisterPage() {
   }
   const passwordValid = passwordChecks.length && passwordChecks.letter && passwordChecks.number
   const confirmPasswordValid = confirmPassword.length > 0 && password === confirmPassword
-  const yearValid = year.length === 0 || (/^\d{4}$/.test(year) && Number(year) >= 1900 && Number(year) <= currentYear)
+  const yearValid = /^\d{4}$/.test(year) && Number(year) >= 1900 && Number(year) <= currentYear
 
   const availableDays = useMemo(() => createAvailableDays(month, year), [month, year])
-  const birthdayValid = month.length > 0 && day.length > 0 && Number(day) <= availableDays.length && yearValid
+  const birthdayDate = month && day && yearValid ? new Date(Number(year), Number(month) - 1, Number(day), 12, 0, 0, 0) : null
+  const birthdayNotFuture = birthdayDate ? birthdayDate.getTime() <= Date.now() : false
+  const birthdayValid = month.length > 0 && day.length > 0 && Number(day) <= availableDays.length && yearValid && birthdayNotFuture
   const formValid = usernameValid && emailValid && passwordValid && confirmPasswordValid && birthdayValid
 
   function clearStatus() {
     if (status) setStatus(null)
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitted(true)
     setStatus(null)
 
     if (!formValid || loading) return
+    setConfirmOpen(true)
+  }
+
+  async function createAccount() {
+    if (!formValid || loading) return
 
     const normalizedEmail = email.trim().toLowerCase()
     const referralCode = getStoredReferralCode()
     const referralBrowserHash = referralCode ? await getReferralBrowserHash() : null
+    const birthdayTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
 
     setLoading(true)
     const { data, error } = await supabase.auth.signUp({
@@ -95,7 +105,8 @@ export default function RegisterPage() {
           username: username.trim(),
           birthday_month: Number(month),
           birthday_day: Number(day),
-          birthday_year: year ? Number(year) : null,
+          birthday_year: Number(year),
+          birthday_timezone: birthdayTimezone,
           ...(referralCode ? { referral_code: referralCode, referral_browser_hash: referralBrowserHash } : {}),
         },
       },
@@ -103,6 +114,7 @@ export default function RegisterPage() {
     setLoading(false)
 
     if (error) {
+      setConfirmOpen(false)
       setStatus({ type: 'error', message: mapSignupError(error.message) })
       return
     }
@@ -114,6 +126,7 @@ export default function RegisterPage() {
       return
     }
 
+    setConfirmOpen(false)
     setStatus({
       type: 'success',
       message: 'Account created. Check your inbox and confirm your email address to continue to player creation.',
@@ -220,13 +233,13 @@ export default function RegisterPage() {
                   <span><CalendarDays size={19} /></span>
                   <div>
                     <h3>Birthday</h3>
-                    <p>Used for birthday congratulations and the future birthday reward. It cannot be changed after registration.</p>
+                    <p>Used for your annual real-life birthday gift of 20 Coins. It cannot be changed after registration.</p>
                   </div>
                 </div>
 
-                <p className="tlg-birthday-warning">This value becomes permanent after your manager account is created.</p>
+                <p className="tlg-birthday-warning">Check this carefully. Your full date of birth becomes permanent after your manager account is created.</p>
 
-                <FormField id="birth-month" label="Birthday date" required error={submitted && !birthdayValid ? 'Choose a valid month and day. The year is optional.' : undefined}>
+                <FormField id="birth-month" label="Date of birth" required error={submitted && !birthdayValid ? 'Enter your complete, valid date of birth. The year is required.' : undefined}>
                   <div className="tlg-birthday-fields">
                     <select id="birth-month" value={month} onChange={(event) => { const value = event.target.value; setMonth(value); if (day && Number(day) > createAvailableDays(value, year).length) setDay(''); clearStatus() }} className={`tlg-input ${submitted && !birthdayValid ? 'tlg-input-error' : ''}`}>
                       <option value="">Month</option>
@@ -236,7 +249,7 @@ export default function RegisterPage() {
                       <option value="">Day</option>
                       {availableDays.map((value) => <option key={value} value={String(value)}>{value}</option>)}
                     </select>
-                    <input value={year} onChange={(event) => { const value = event.target.value.replace(/\D/g, '').slice(0, 4); setYear(value); if (day && Number(day) > createAvailableDays(month, value).length) setDay(''); clearStatus() }} className={`tlg-input ${submitted && !yearValid ? 'tlg-input-error' : ''}`} placeholder="Year · optional" inputMode="numeric" autoComplete="bday-year" />
+                    <input value={year} onChange={(event) => { const value = event.target.value.replace(/\D/g, '').slice(0, 4); setYear(value); if (day && Number(day) > createAvailableDays(month, value).length) setDay(''); clearStatus() }} className={`tlg-input ${submitted && !yearValid ? 'tlg-input-error' : ''}`} placeholder="Year" inputMode="numeric" autoComplete="bday-year" aria-label="Birthday year" />
                   </div>
                 </FormField>
               </div>
@@ -260,6 +273,25 @@ export default function RegisterPage() {
       </main>
 
       <footer className="tlg-auth-footer"><span>Tennis Legacy: Rise to Glory</span><span>Secure manager registration</span></footer>
+
+      <GameConfirmDialog
+        open={confirmOpen}
+        eyebrow="Permanent account information"
+        title="Confirm your date of birth"
+        message={
+          <span>
+            You entered <strong>{day} {MONTHS[Math.max(0, Number(month) - 1)]} {year}</strong>.
+            This is your real account-holder birthday and cannot be changed after registration.
+          </span>
+        }
+        detail="Please correct it now if anything is wrong. Your annual 20-Coin Birthday Gift will use this date."
+        confirmLabel="Confirm & create account"
+        cancelLabel="Go back and edit"
+        busy={loading}
+        tone="warning"
+        onConfirm={createAccount}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </div>
   )
 }
