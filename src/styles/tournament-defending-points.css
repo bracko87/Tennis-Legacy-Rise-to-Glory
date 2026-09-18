@@ -521,3 +521,12 @@
     grid-column:2;
   }
 }
+
+
+.tlg-defence-cycle-status small{
+  display:block;
+  margin-top:4px;
+  color:#6f8396;
+  font-size:.54rem;
+  line-height:1.35;
+}
