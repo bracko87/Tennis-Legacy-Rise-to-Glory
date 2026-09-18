@@ -247,6 +247,28 @@
   border: 1px solid #cce6f7;
 }
 
+.tlg-tournament-sponsor-objective-chip {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 8px;
+  border: 1px solid #ecd58b;
+  border-radius: 7px;
+  color: #7a5a04;
+  background: #fff8dd;
+  white-space: nowrap;
+  font-size: .57rem;
+  font-weight: 850;
+  letter-spacing: .01em;
+}
+
+.tlg-tournament-sponsor-objective-chip svg {
+  flex: 0 0 auto;
+  fill: currentColor;
+}
+
 .tlg-tournament-category-chip {
   color: #0a67a7;
   background: #eef7fd;
