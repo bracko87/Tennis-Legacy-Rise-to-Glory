@@ -1,4 +1,5 @@
-import { Minus, TrendingDown, TrendingUp } from 'lucide-react'
+import { Minus, TrendingDown, TrendingUp, Trophy, X } from 'lucide-react'
+import { createPortal } from 'react-dom'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router'
 
@@ -57,6 +58,24 @@ interface DefendingPointsResponse {
   participants: DefendingParticipant[]
 }
 
+interface PastWinner {
+  season_number: number
+  competition_id: string
+  player_id: string
+  first_name: string
+  last_name: string
+  country_code: string
+  is_ai: boolean
+}
+
+interface PastWinnersResponse {
+  competition_id: string
+  tournament_series_id: string
+  world: 'ATP' | 'WTA'
+  current_season_number: number
+  winners: PastWinner[]
+}
+
 function signedPoints(value: number) {
   if (value > 0) return `+${value.toLocaleString()}`
   return value.toLocaleString()
@@ -74,10 +93,23 @@ export default function TournamentDefendingPoints({ competitionId, rewardRows }:
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [expanded, setExpanded] = useState(false)
+  const [pastWinners, setPastWinners] = useState<PastWinner[]>([])
+  const [historyError, setHistoryError] = useState<string | null>(null)
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   useEffect(() => {
     setExpanded(false)
+    setHistoryOpen(false)
   }, [competitionId])
+
+  useEffect(() => {
+    if (!historyOpen) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setHistoryOpen(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [historyOpen])
 
   useEffect(() => {
     if (!competitionId) {
@@ -90,16 +122,31 @@ export default function TournamentDefendingPoints({ competitionId, rewardRows }:
     async function load() {
       setLoading(true)
       setError(null)
-      const { data: response, error: loadError } = await supabase.rpc('get_tournament_defending_points_v1', {
-        p_competition_id: competitionId,
-      })
+      setHistoryError(null)
+      const [defenceResponse, winnersResponse] = await Promise.all([
+        supabase.rpc('get_tournament_defending_points_v1', {
+          p_competition_id: competitionId,
+        }),
+        supabase.rpc('get_tournament_past_winners_v1', {
+          p_competition_id: competitionId,
+        }),
+      ])
       if (!active) return
-      if (loadError || !response) {
+
+      if (defenceResponse.error || !defenceResponse.data) {
         setData(null)
-        setError(loadError?.message ?? 'Defending-points data is unavailable.')
+        setError(defenceResponse.error?.message ?? 'Defending-points data is unavailable.')
       } else {
-        setData(response as DefendingPointsResponse)
+        setData(defenceResponse.data as DefendingPointsResponse)
       }
+
+      if (winnersResponse.error || !winnersResponse.data) {
+        setPastWinners([])
+        setHistoryError(winnersResponse.error?.message ?? 'Tournament history is unavailable.')
+      } else {
+        setPastWinners(((winnersResponse.data as PastWinnersResponse).winners ?? []) as PastWinner[])
+      }
+
       setLoading(false)
     }
 
@@ -122,8 +169,10 @@ export default function TournamentDefendingPoints({ competitionId, rewardRows }:
   }, [data])
 
   const returnPath = `${location.pathname}${location.search}${location.hash}`
+  const recentWinners = pastWinners.slice(0, 5)
 
   return (
+    <>
     <section className={`tlg-detail-panel tlg-defence-panel${expanded ? '' : ' collapsed'}`}>
       <header className="tlg-detail-panel-head tlg-defence-head">
         <div>
@@ -154,6 +203,34 @@ export default function TournamentDefendingPoints({ competitionId, rewardRows }:
               <span>{data.cycle_processed ? 'Ranking cycle processed' : 'Defence pending'}</span>
               <strong>{data.cycle_processed ? 'Old contribution replaced' : `${data.own.points_defending.toLocaleString()} pts at risk`}</strong>
             </div>
+          </div>
+
+          <div className="tlg-past-winners">
+            <div className="tlg-defence-subhead">
+              <div><span>Tournament history</span><strong>Past winners</strong></div>
+              {pastWinners.length > 0 && <button type="button" className="tlg-past-winners-button" onClick={() => setHistoryOpen(true)}>View all winners</button>}
+            </div>
+
+            {historyError ? (
+              <div className="tlg-defence-field-empty">{historyError}</div>
+            ) : recentWinners.length === 0 ? (
+              <div className="tlg-defence-field-empty">No previous champions yet. Season 1 is the first edition of this tournament series.</div>
+            ) : (
+              <div className="tlg-past-winners-strip">
+                {recentWinners.map((winner) => (
+                  <article key={`${winner.season_number}-${winner.player_id}`} className="tlg-past-winner-card">
+                    <Trophy size={14} />
+                    <span>Season {winner.season_number}</span>
+                    <div>
+                      <CountryFlag countryCode={winner.country_code} countryName={winner.country_code} width={19} height={13} />
+                      <Link to={`/game/players/${winner.player_id}`} state={{ playerProfileReturn: returnPath, playerProfileReturnLabel: 'Back to Tournament' }}>
+                        {winner.first_name} {winner.last_name}
+                      </Link>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="tlg-defence-summary-grid">
@@ -233,5 +310,32 @@ export default function TournamentDefendingPoints({ competitionId, rewardRows }:
         </>
       )}
     </section>
+
+    {historyOpen && typeof document !== 'undefined' && createPortal(
+      <div className="tlg-past-winners-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) setHistoryOpen(false) }}>
+        <section className="tlg-past-winners-modal" role="dialog" aria-modal="true" aria-label="Past tournament winners">
+          <header>
+            <div><span>Tournament history</span><h3>Past winners</h3><p>{data?.world ?? ''} champions from previous seasons of this tournament series.</p></div>
+            <button type="button" aria-label="Close past winners" onClick={() => setHistoryOpen(false)}><X size={18} /></button>
+          </header>
+          <div className="tlg-past-winners-modal-list">
+            {pastWinners.map((winner) => (
+              <article key={`modal-${winner.season_number}-${winner.player_id}`}>
+                <div className="season"><Trophy size={15} /><span>Season {winner.season_number}</span></div>
+                <div className="winner">
+                  <CountryFlag countryCode={winner.country_code} countryName={winner.country_code} width={21} height={14} />
+                  <Link to={`/game/players/${winner.player_id}`} state={{ playerProfileReturn: returnPath, playerProfileReturnLabel: 'Back to Tournament' }} onClick={() => setHistoryOpen(false)}>
+                    {winner.first_name} {winner.last_name}
+                  </Link>
+                  <small>{winner.is_ai ? 'AI player' : 'Manager player'}</small>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      </div>,
+      document.body,
+    )}
+    </>
   )
 }
