@@ -76,6 +76,7 @@ import ContactUsPage from './pages/manager/ContactUs'
 import InviteFriendsPage from './pages/manager/InviteFriends'
 import ReferralAdminPage from './pages/manager/ReferralAdmin'
 import AdminAnalyticsPage from './pages/manager/AdminAnalytics'
+import AdminBugReportsPage from './pages/manager/AdminBugReports'
 import AdminReviewsPage from './pages/manager/AdminReviews'
 import NotificationsPage from './pages/manager/Notifications'
 import { ForumPage, HelpPage } from './pages/manager/CommunitySupport'
@@ -225,6 +226,7 @@ export default function App() {
           <Route path="/game/invite-friends" element={<RequirePlayer><InviteFriendsPage /></RequirePlayer>} />
           <Route path="/game/referral-admin" element={<RequirePlayer><ReferralAdminPage /></RequirePlayer>} />
           <Route path="/game/admin/analytics" element={<RequireAdmin><AdminAnalyticsPage /></RequireAdmin>} />
+          <Route path="/game/admin/bug-reports" element={<RequireAdmin><AdminBugReportsPage /></RequireAdmin>} />
           <Route path="/game/admin/reviews" element={<RequireAdmin><AdminReviewsPage /></RequireAdmin>} />
 
           <Route path="*" element={<Navigate to="/" replace />} />

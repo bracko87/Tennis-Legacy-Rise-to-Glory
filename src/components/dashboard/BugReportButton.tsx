@@ -95,8 +95,7 @@ export default function BugReportButton({
 
     if (uploadError) throw uploadError
 
-    const { data } = supabase.storage.from(SCREENSHOT_BUCKET).getPublicUrl(filePath)
-    return { path: filePath, url: data.publicUrl }
+    return { path: filePath, url: null }
   }
 
   async function submitReport(event: FormEvent<HTMLFormElement>) {
@@ -138,7 +137,7 @@ export default function BugReportButton({
         screenshot_path: screenshot.path,
         screenshot_url: screenshot.url,
         reported_from: 'sidebar',
-        status: 'open',
+        status: 'new',
       })
 
       if (insertError) throw insertError

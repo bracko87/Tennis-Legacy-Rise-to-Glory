@@ -92,6 +92,7 @@ export default function AdminReviewsPage() {
       return
     }
 
+    window.dispatchEvent(new Event('tlg-admin-notifications-refresh'))
     await loadReviews(filter)
   }
 

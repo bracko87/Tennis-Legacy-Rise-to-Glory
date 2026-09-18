@@ -1,7 +1,9 @@
+import { useCallback, useEffect, useState } from 'react'
 import clsx from 'clsx'
 import {
   Activity,
   BarChart3,
+  Bug,
   Building2,
   CalendarDays,
   ChevronLeft,
@@ -21,6 +23,7 @@ import {
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
+import { supabase } from '../../lib/supabase'
 import BugReportButton from '../dashboard/BugReportButton'
 
 const TENNIS_LEGACY_LOGO_URL = 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/logo%20333.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9sb2dvIDMzMy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg3OTQ1MDc5LCJleHAiOjQ5MTAwMDkwNzl9.Q7Ocay_B1kouWo_XmmgtVcGOCh0xtzhzaIm713AhU-ci-xJPY3JanaT3xhdkptAuKV5kUJGHov34fSM2TGjmcQ'
@@ -58,6 +61,7 @@ const items: NavItem[] = [
 
 const adminItems: NavItem[] = [
   { key: 'admin-analytics', label: 'Analytics', description: 'Private traffic & activity', to: '/game/admin/analytics', icon: <Gauge size={17} /> },
+  { key: 'admin-bug-reports', label: 'Bug Reports', description: 'Player-reported issues', to: '/game/admin/bug-reports', icon: <Bug size={17} /> },
   { key: 'admin-reviews', label: 'Player Reviews', description: 'Moderate homepage reviews', to: '/game/admin/reviews', icon: <MessageSquareQuote size={17} /> },
 ]
 
@@ -86,8 +90,63 @@ export default function GameSidebar({
 }: GameSidebarProps) {
   const location = useLocation()
   const navigate = useNavigate()
-  const { signOut, isAdmin } = useAuth()
+  const { signOut, isAdmin, user } = useAuth()
   const currentPageLabel = pageLabelForPath(location.pathname)
+  const [adminCounts, setAdminCounts] = useState({ bugs: 0, reviews: 0 })
+
+  const refreshAdminCounts = useCallback(async () => {
+    if (!isAdmin || !user) {
+      setAdminCounts({ bugs: 0, reviews: 0 })
+      return
+    }
+
+    const [bugsResult, reviewsResult] = await Promise.all([
+      supabase.rpc('get_admin_bug_report_unread_count_v1'),
+      supabase.rpc('get_admin_homepage_review_pending_count_v1'),
+    ])
+
+    setAdminCounts({
+      bugs: bugsResult.error ? 0 : Number(bugsResult.data ?? 0),
+      reviews: reviewsResult.error ? 0 : Number(reviewsResult.data ?? 0),
+    })
+  }, [isAdmin, user?.id])
+
+  useEffect(() => {
+    if (!isAdmin || !user) {
+      setAdminCounts({ bugs: 0, reviews: 0 })
+      return
+    }
+
+    void refreshAdminCounts()
+
+    const channel = supabase
+      .channel('tlg-admin-notification-counts-' + user.id)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'bug_reports' },
+        () => void refreshAdminCounts(),
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'player_homepage_reviews' },
+        () => void refreshAdminCounts(),
+      )
+      .subscribe()
+
+    const interval = window.setInterval(() => void refreshAdminCounts(), 30000)
+    const onFocus = () => void refreshAdminCounts()
+    const onManualRefresh = () => void refreshAdminCounts()
+
+    window.addEventListener('focus', onFocus)
+    window.addEventListener('tlg-admin-notifications-refresh', onManualRefresh)
+
+    return () => {
+      window.clearInterval(interval)
+      window.removeEventListener('focus', onFocus)
+      window.removeEventListener('tlg-admin-notifications-refresh', onManualRefresh)
+      void supabase.removeChannel(channel)
+    }
+  }, [isAdmin, user?.id, refreshAdminCounts])
 
   async function handleSignOut() {
     try {
@@ -177,6 +236,12 @@ export default function GameSidebar({
             <nav className="tlg-v2-nav" aria-label="Administration navigation">
               {adminItems.map((item) => {
                 const active = location.pathname === item.to
+                const notificationCount =
+                  item.key === 'admin-bug-reports'
+                    ? adminCounts.bugs
+                    : item.key === 'admin-reviews'
+                      ? adminCounts.reviews
+                      : 0
                 return (
                   <Link
                     key={item.key}
@@ -186,10 +251,24 @@ export default function GameSidebar({
                     title={isCollapsed ? item.label : undefined}
                     aria-current={active ? 'page' : undefined}
                   >
-                    <span className="tlg-v2-nav-icon">{item.icon}</span>
+                    <span className="tlg-v2-nav-icon">
+                      {item.icon}
+                      {notificationCount > 0 && isCollapsed && (
+                        <span className="tlg-admin-nav-badge tlg-admin-nav-badge-collapsed">
+                          {notificationCount > 99 ? '99+' : notificationCount}
+                        </span>
+                      )}
+                    </span>
                     {!isCollapsed && (
                       <span className="tlg-v2-nav-copy">
-                        <span className="tlg-v8-nav-title-line"><strong>{item.label}</strong></span>
+                        <span className="tlg-v8-nav-title-line">
+                          <strong>{item.label}</strong>
+                          {notificationCount > 0 && (
+                            <span className="tlg-admin-nav-badge">
+                              {notificationCount > 99 ? '99+' : notificationCount}
+                            </span>
+                          )}
+                        </span>
                         <small>{item.description}</small>
                       </span>
                     )}
