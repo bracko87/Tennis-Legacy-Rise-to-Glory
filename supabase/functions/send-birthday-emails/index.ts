@@ -1,7 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const CRON_TOKEN = "birthday-email-cron-v1-2026";
 const DEFAULT_FROM = "Tennis Legacy <noreply@tennislegacygame.com>";
 
 Deno.serve(async (req: Request) => {
@@ -12,24 +11,8 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  let body: Record<string, unknown> = {};
-  try {
-    body = await req.json();
-  } catch {
-    // Token check below handles malformed requests.
-  }
-
-  if (body.cron_token !== CRON_TOKEN) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  const resendApiKey = Deno.env.get("RESEND_API_KEY");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const fromAddress = Deno.env.get("BIRTHDAY_EMAIL_FROM") || DEFAULT_FROM;
 
   if (!supabaseUrl || !serviceRoleKey) {
     return new Response(JSON.stringify({ error: "Supabase service configuration is unavailable" }), {
@@ -37,6 +20,32 @@ Deno.serve(async (req: Request) => {
       headers: { "Content-Type": "application/json" },
     });
   }
+
+  let body: Record<string, unknown> = {};
+  try {
+    body = await req.json();
+  } catch {
+    // Unauthorized below.
+  }
+
+  const admin = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const { data: authorized, error: authError } = await admin.rpc(
+    "validate_birthday_email_cron_token_v1",
+    { p_token: typeof body.cron_token === "string" ? body.cron_token : "" },
+  );
+
+  if (authError || authorized !== true) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const resendApiKey = Deno.env.get("RESEND_API_KEY");
+  const fromAddress = Deno.env.get("BIRTHDAY_EMAIL_FROM") || DEFAULT_FROM;
 
   if (!resendApiKey) {
     return new Response(JSON.stringify({
@@ -47,10 +56,6 @@ Deno.serve(async (req: Request) => {
       headers: { "Content-Type": "application/json" },
     });
   }
-
-  const admin = createClient(supabaseUrl, serviceRoleKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
 
   const { data: claimed, error: claimError } = await admin.rpc("claim_birthday_email_outbox_v1", {
     p_limit: 20,
