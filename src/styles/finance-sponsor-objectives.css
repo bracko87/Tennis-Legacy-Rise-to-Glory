@@ -147,8 +147,8 @@ button.tlg-finance-sponsor-objective:hover{
 }
 .tlg-finance-sponsor-offer-objective-list>button:hover{border-color:#cbd9e8;background:#fbfdff}
 .tlg-finance-sponsor-offer-objective-list>button>div{min-width:0}
-.tlg-finance-sponsor-offer-objective-list span{display:block;color:#8a96a5;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tlg-finance-sponsor-offer-objective-list strong{display:block;margin-top:3px;color:#30425a;font-size:10px}
+.tlg-finance-sponsor-offer-objective-list span{display:block;color:#5f7389;font-size:11px;font-weight:750;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tlg-finance-sponsor-offer-objective-list strong{display:block;margin-top:4px;color:#30425a;font-size:10.5px;line-height:1.35}
 .tlg-finance-sponsor-offer-objective-list>button>strong{flex:0 0 auto;margin:0;color:#1f5f8f;font-size:11px}
 
 .tlg-finance-sponsor-objective-modal-backdrop{
