@@ -25,10 +25,12 @@ import {
 import { AuthProvider } from './auth/AuthContext'
 import {
   AnonymousOnly,
+  RequireAdmin,
   RequireAuth,
   RequireNoPlayer,
   RequirePlayer,
 } from './auth/RouteGuards'
+import AnalyticsTracker from './components/analytics/AnalyticsTracker'
 import OverviewInjuryEnhancement from './components/dashboard/OverviewInjuryEnhancement'
 import EquipmentMatchSetupsEnhancement from './components/equipment/EquipmentMatchSetupsEnhancement'
 import FinanceSponsorEnhancement from './components/finance/FinanceSponsorEnhancement'
@@ -73,6 +75,7 @@ import InboxPage from './pages/manager/Inbox'
 import ContactUsPage from './pages/manager/ContactUs'
 import InviteFriendsPage from './pages/manager/InviteFriends'
 import ReferralAdminPage from './pages/manager/ReferralAdmin'
+import AdminAnalyticsPage from './pages/manager/AdminAnalytics'
 import NotificationsPage from './pages/manager/Notifications'
 import { ForumPage, HelpPage } from './pages/manager/CommunitySupport'
 import { PlayerAccountPage } from './pages/manager/ManagerPages'
@@ -183,6 +186,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <AnalyticsTracker />
         <Routes>
           <Route path="/" element={<HomeRoute />} />
           <Route path="/r/:code" element={<ReferralLandingPage />} />
@@ -219,6 +223,7 @@ export default function App() {
           <Route path="/game/contact" element={<RequirePlayer><ContactUsPage /></RequirePlayer>} />
           <Route path="/game/invite-friends" element={<RequirePlayer><InviteFriendsPage /></RequirePlayer>} />
           <Route path="/game/referral-admin" element={<RequirePlayer><ReferralAdminPage /></RequirePlayer>} />
+          <Route path="/game/admin/analytics" element={<RequireAdmin><AdminAnalyticsPage /></RequireAdmin>} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

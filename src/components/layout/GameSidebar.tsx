@@ -10,6 +10,7 @@ import {
   Clock3,
   Crown,
   Dumbbell,
+  Gauge,
   LayoutDashboard,
   LogOut,
   Shield,
@@ -54,8 +55,12 @@ const items: NavItem[] = [
   { key: 'statistics', label: 'Statistics', description: 'Results & analytics', to: '/game/statistics', icon: <BarChart3 size={17} /> },
 ]
 
+const adminItems: NavItem[] = [
+  { key: 'admin-analytics', label: 'Analytics', description: 'Private traffic & activity', to: '/game/admin/analytics', icon: <Gauge size={17} /> },
+]
+
 function pageLabelForPath(pathname: string) {
-  const exact = items.find((item) => item.to === pathname)
+  const exact = [...items, ...adminItems].find((item) => item.to === pathname)
   if (exact) return exact.label
   if (pathname.startsWith('/game/players/')) return 'Player Profile'
   if (pathname.startsWith('/game/tournaments/')) return 'Tournament'
@@ -79,7 +84,7 @@ export default function GameSidebar({
 }: GameSidebarProps) {
   const location = useLocation()
   const navigate = useNavigate()
-  const { signOut } = useAuth()
+  const { signOut, isAdmin } = useAuth()
   const currentPageLabel = pageLabelForPath(location.pathname)
 
   async function handleSignOut() {
@@ -163,6 +168,35 @@ export default function GameSidebar({
             )
           })}
         </nav>
+
+        {isAdmin && (
+          <>
+            {!isCollapsed && <div className="tlg-v2-nav-label">Administration</div>}
+            <nav className="tlg-v2-nav" aria-label="Administration navigation">
+              {adminItems.map((item) => {
+                const active = location.pathname === item.to
+                return (
+                  <Link
+                    key={item.key}
+                    to={item.to}
+                    onClick={onMobileClose}
+                    className={clsx('tlg-v2-nav-link', active && 'tlg-v2-nav-link-active')}
+                    title={isCollapsed ? item.label : undefined}
+                    aria-current={active ? 'page' : undefined}
+                  >
+                    <span className="tlg-v2-nav-icon">{item.icon}</span>
+                    {!isCollapsed && (
+                      <span className="tlg-v2-nav-copy">
+                        <span className="tlg-v8-nav-title-line"><strong>{item.label}</strong></span>
+                        <small>{item.description}</small>
+                      </span>
+                    )}
+                  </Link>
+                )
+              })}
+            </nav>
+          </>
+        )}
 
         <div className="tlg-v2-sidebar-footer tlg-v4-sidebar-footer">
           <BugReportButton
