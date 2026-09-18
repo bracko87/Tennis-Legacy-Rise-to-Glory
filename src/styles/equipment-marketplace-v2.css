@@ -167,3 +167,10 @@
   .tlg-equipment-owned-card>.tlg-equipment-product-image.large{height:175px}
   .tlg-equipment-panel-link{align-self:flex-start;margin-top:8px}
 }
+
+
+/* Shoe marketplace image crop: keep the shoe higher in the banner without affecting other equipment. */
+.tlg-equipment-market-card-v2>.tlg-equipment-product-image.large.is-shoes img{
+  object-fit:cover;
+  object-position:center 70%;
+}
