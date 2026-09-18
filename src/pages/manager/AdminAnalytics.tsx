@@ -144,9 +144,26 @@ function normalizeDashboard(value: AnalyticsDashboard): AnalyticsDashboard {
   }
 }
 
-function flagForCountry(code: string) {
-  if (!/^[A-Z]{2}$/.test(code) || code === 'XX') return '🌐'
-  return String.fromCodePoint(...code.split('').map((char) => 127397 + char.charCodeAt(0)))
+function CountryFlag({ code, name }: { readonly code: string; readonly name: string }) {
+  const normalized = String(code || '').toUpperCase()
+  if (!/^[A-Z]{2}$/.test(normalized) || normalized === 'XX') {
+    return <Globe2 size={18} aria-label="Unknown country" />
+  }
+
+  return (
+    <img
+      className="tlg-admin-country-flag"
+      src={'https://flagcdn.com/28x21/' + normalized.toLowerCase() + '.png'}
+      srcSet={
+        'https://flagcdn.com/56x42/' + normalized.toLowerCase() + '.png 2x, ' +
+        'https://flagcdn.com/84x63/' + normalized.toLowerCase() + '.png 3x'
+      }
+      width="28"
+      height="21"
+      alt={name + ' flag'}
+      loading="lazy"
+    />
+  )
 }
 
 function formatDay(value: string) {
@@ -298,7 +315,9 @@ export default function AdminAnalyticsPage() {
               {dashboard?.countries.map((row) => (
                 <article key={row.country_code}>
                   <div className="rank-main">
-                    <b>{flagForCountry(row.country_code)}</b>
+                    <span className="tlg-admin-country-flag-wrap">
+                      <CountryFlag code={row.country_code} name={row.country_name} />
+                    </span>
                     <div><strong>{row.country_name}</strong><small>{row.country_code}</small></div>
                     <span>{wholeNumber.format(row.unique_visitors)}</span>
                   </div>
