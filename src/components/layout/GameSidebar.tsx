@@ -13,6 +13,7 @@ import {
   Gauge,
   LayoutDashboard,
   LogOut,
+  MessageSquareQuote,
   Shield,
   Trophy,
   UsersRound,
@@ -57,6 +58,7 @@ const items: NavItem[] = [
 
 const adminItems: NavItem[] = [
   { key: 'admin-analytics', label: 'Analytics', description: 'Private traffic & activity', to: '/game/admin/analytics', icon: <Gauge size={17} /> },
+  { key: 'admin-reviews', label: 'Player Reviews', description: 'Moderate homepage reviews', to: '/game/admin/reviews', icon: <MessageSquareQuote size={17} /> },
 ]
 
 function pageLabelForPath(pathname: string) {

@@ -30,6 +30,7 @@ import {
 import MarketingHeader from '../components/layout/MarketingHeader'
 import MarketingFooter from '../components/layout/MarketingFooter'
 import StatCard from '../components/common/StatCard'
+import HomepagePlayerReviews from '../components/marketing/HomepagePlayerReviews'
 
 const statistics = [
   {
@@ -494,6 +495,8 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        <HomepagePlayerReviews />
 
         <section className="tlg-content-section">
           <div className="tlg-section">
