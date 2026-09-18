@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronLeft, ChevronRight, Plane } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, Plane, Star } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 
@@ -59,6 +59,15 @@ interface TournamentCalendarRow {
   user_status: string
   user_status_label: string
   user_entry_projection: string | null
+}
+
+interface SponsorTournamentObjective {
+  competition_id: string
+  objective_id: string
+  tournament_name: string | null
+  requirement_label: string | null
+  reward_amount: number
+  status: 'upcoming' | 'active' | 'completed' | 'failed' | 'expired'
 }
 
 interface TournamentReturnPosition {
@@ -304,6 +313,7 @@ function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: 
   const [restoreWeek, setRestoreWeek] = useState<number | null>(initialWeek ?? null)
   const [focusedSeasonWeek, setFocusedSeasonWeek] = useState<number | null>(initialSeasonWeek)
   const [events, setEvents] = useState<TournamentCalendarRow[]>([])
+  const [sponsorObjectives, setSponsorObjectives] = useState<SponsorTournamentObjective[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -342,6 +352,39 @@ function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: 
     void loadTournamentCalendar()
     return () => { cancelled = true }
   }, [clock.loading, clock.season, clock.day, clock.monthIndex, monthIndex, world])
+
+  useEffect(() => {
+    if (!player?.id || clock.loading) {
+      setSponsorObjectives([])
+      return
+    }
+
+    let cancelled = false
+    async function loadSponsorObjectives() {
+      const { data, error: sponsorObjectiveError } = await supabase.rpc('get_my_sponsor_tournament_objectives_v1', {
+        p_season: clock.season,
+      })
+      if (cancelled) return
+      if (sponsorObjectiveError) {
+        setSponsorObjectives([])
+        return
+      }
+      setSponsorObjectives((data ?? []) as SponsorTournamentObjective[])
+    }
+
+    void loadSponsorObjectives()
+    return () => { cancelled = true }
+  }, [player?.id, clock.loading, clock.season])
+
+  const sponsorObjectivesByCompetition = useMemo(() => {
+    const grouped = new Map<string, SponsorTournamentObjective[]>()
+    for (const objective of sponsorObjectives) {
+      const current = grouped.get(objective.competition_id) ?? []
+      current.push(objective)
+      grouped.set(objective.competition_id, current)
+    }
+    return grouped
+  }, [sponsorObjectives])
 
   useEffect(() => {
     if (loading || !restoreWeek) return
@@ -443,6 +486,10 @@ function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: 
 
                   {weekEvents.map((event) => {
                     const currentPhaseLabel = phaseLabel(event.phase)
+                    const sponsorObjectiveList = sponsorObjectivesByCompetition.get(event.competition_id) ?? []
+                    const sponsorObjectiveTitle = sponsorObjectiveList
+                      .map((objective) => `${objective.requirement_label ?? 'Sponsor objective'} · ${Math.max(0, Number(objective.reward_amount) || 0).toLocaleString()}`)
+                      .join(' | ')
                     const returnQuery = `tab=tournament-calendar&month=${monthIndex + 1}&week=${week}`
                     return (
                       <Link
@@ -453,7 +500,20 @@ function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: 
                         aria-label={`Open ${event.tournament_name}`}
                         state={{ tournamentCalendarReturn: `/game/calendar?${returnQuery}#tournament-week-${week}` }}
                       >
-                        <div className="tlg-tournament-name-cell"><strong>{event.tournament_name}</strong>{currentPhaseLabel && <span className="tlg-tournament-phase-chip">{currentPhaseLabel}</span>}</div>
+                        <div className="tlg-tournament-name-cell">
+                          <strong>{event.tournament_name}</strong>
+                          {currentPhaseLabel && <span className="tlg-tournament-phase-chip">{currentPhaseLabel}</span>}
+                          {sponsorObjectiveList.length > 0 && (
+                            <span
+                              className="tlg-tournament-sponsor-objective-chip"
+                              title={sponsorObjectiveTitle || 'Sponsor objective'}
+                              aria-label={sponsorObjectiveTitle || 'Sponsor objective'}
+                            >
+                              <Star size={11} aria-hidden="true" />
+                              Sponsor objective
+                            </span>
+                          )}
+                        </div>
                         <div className="tlg-tournament-location-cell">
                           <CountryFlag countryCode={event.country_code} countryName={event.country_name} width={24} height={16} />
                           <div><strong>{event.city}</strong><small>{event.country_name}</small></div>
