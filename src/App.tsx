@@ -49,6 +49,7 @@ import TournamentPreMatchRealData from './components/tournament/TournamentPreMat
 import TrainingHealthStatus from './components/training/TrainingHealthStatus'
 import HomePage from './pages/Home'
 import ReferralLandingPage from './pages/ReferralLanding'
+import PublicReviewSubmissionPage from './pages/PublicReviewSubmission'
 import LoginPage from './pages/auth/Login'
 import RegisterPage from './pages/auth/Register'
 import ForgotPasswordPage from './pages/auth/ForgotPassword'
@@ -192,6 +193,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomeRoute />} />
           <Route path="/r/:code" element={<ReferralLandingPage />} />
+          <Route path="/reviews/add" element={<PublicReviewSubmissionPage />} />
 
           <Route path="/login" element={<AnonymousOnly><LoginPage /></AnonymousOnly>} />
           <Route path="/register" element={<AnonymousOnly><RegisterPage /></AnonymousOnly>} />

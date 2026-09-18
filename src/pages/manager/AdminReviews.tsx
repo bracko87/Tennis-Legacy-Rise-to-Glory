@@ -15,10 +15,13 @@ type ReviewFilter = ReviewStatus | 'all'
 
 interface AdminReview {
   id: string
-  player_id: string
+  user_id: string | null
+  player_id: string | null
   player_name: string
-  country_code: string
-  world: 'ATP' | 'WTA'
+  reviewer_email: string | null
+  country_code: string | null
+  world: 'ATP' | 'WTA' | null
+  submission_source: 'player' | 'account' | 'guest'
   rating: number
   review_text: string
   status: ReviewStatus
@@ -33,7 +36,7 @@ const FILTERS: Array<{ value: ReviewFilter; label: string }> = [
   { value: 'all', label: 'All' },
 ]
 
-function flagForCountry(code: string) {
+function flagForCountry(code: string | null) {
   const upper = String(code || '').toUpperCase()
   if (!/^[A-Z]{2}$/.test(upper)) return '🌐'
   return String.fromCodePoint(...upper.split('').map((char) => 127397 + char.charCodeAt(0)))
@@ -49,6 +52,14 @@ function formatDate(value: string | null) {
   }).format(date)
 }
 
+function sourceLabel(review: AdminReview) {
+  if (review.submission_source === 'player') {
+    return review.world ? review.world + ' player' : 'Registered player'
+  }
+  if (review.submission_source === 'account') return 'Registered account'
+  return 'Guest reviewer'
+}
+
 export default function AdminReviewsPage() {
   const [filter, setFilter] = useState<ReviewFilter>('pending')
   const [reviews, setReviews] = useState<AdminReview[]>([])
@@ -59,6 +70,7 @@ export default function AdminReviewsPage() {
   async function loadReviews(nextFilter = filter) {
     setLoading(true)
     setError(null)
+
     const { data, error: rpcError } = await supabase.rpc('get_admin_homepage_reviews_v1', {
       p_status: nextFilter,
     })
@@ -69,6 +81,7 @@ export default function AdminReviewsPage() {
     } else {
       setReviews((data ?? []) as AdminReview[])
     }
+
     setLoading(false)
   }
 
@@ -97,7 +110,7 @@ export default function AdminReviewsPage() {
   }
 
   return (
-    <GameLayout title="Player Reviews" subtitle="Approve or reject reviews submitted for the public homepage">
+    <GameLayout title="Player Reviews" subtitle="Moderate homepage reviews from players, registered users and guests">
       <div className="tlg-admin-reviews">
         <div className="tlg-admin-reviews-toolbar">
           <div className="tlg-admin-review-tabs" role="tablist" aria-label="Review status">
@@ -125,7 +138,7 @@ export default function AdminReviewsPage() {
           <div className="tlg-admin-review-empty">Loading review requests…</div>
         ) : reviews.length === 0 ? (
           <div className="tlg-admin-review-empty">
-            {filter === 'pending' ? 'There are no player reviews waiting for approval.' : 'No reviews found for this filter.'}
+            {filter === 'pending' ? 'There are no reviews waiting for approval.' : 'No reviews found for this filter.'}
           </div>
         ) : (
           <div className="tlg-admin-review-list">
@@ -136,7 +149,7 @@ export default function AdminReviewsPage() {
                     <span>{flagForCountry(review.country_code)}</span>
                     <div>
                       <strong>{review.player_name}</strong>
-                      <small>{review.world} · {review.country_code}</small>
+                      <small>{sourceLabel(review)}</small>
                     </div>
                   </div>
 
@@ -153,6 +166,12 @@ export default function AdminReviewsPage() {
                 </div>
 
                 <blockquote>{review.review_text}</blockquote>
+
+                <div className="tlg-admin-review-contact">
+                  <span><strong>Email:</strong> {review.reviewer_email || '—'}</span>
+                  <span><strong>User ID:</strong> {review.user_id || 'Guest'}</span>
+                  <span><strong>Player ID:</strong> {review.player_id || '—'}</span>
+                </div>
 
                 <div className="tlg-admin-review-meta">
                   <span>Submitted: {formatDate(review.submitted_at)}</span>
