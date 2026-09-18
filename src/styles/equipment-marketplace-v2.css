@@ -171,6 +171,9 @@
 
 /* Shoe marketplace image crop: keep the shoe higher in the banner without affecting other equipment. */
 .tlg-equipment-market-card-v2>.tlg-equipment-product-image.large.is-shoes img{
+  width:100%;
+  height:125%;
   object-fit:cover;
-  object-position:center 70%;
+  object-position:center center;
+  transform:translateY(-16%);
 }
