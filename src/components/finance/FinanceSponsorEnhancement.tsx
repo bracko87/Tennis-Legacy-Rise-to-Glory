@@ -3,9 +3,44 @@ import { createPortal } from 'react-dom'
 
 import { supabase } from '../../lib/supabase'
 import '../../styles/finance-sponsors.css'
+import '../../styles/finance-sponsor-objectives.css'
 
 type SponsorSourcePool = 'market' | 'worldwide'
-type SponsorObjectiveStatus = 'active' | 'achieved' | 'failed'
+type SponsorObjectiveStatus = 'upcoming' | 'active' | 'completed' | 'failed' | 'expired'
+type SponsorObjectiveCode =
+  | 'tournament_appearance'
+  | 'tournament_result'
+  | 'ranking_peak'
+  | 'season_finish_rank'
+  | 'match_wins_period'
+  | 'appearances'
+  | 'match_wins'
+  | 'performance_result'
+
+interface SponsorObjectiveView {
+  id?: string
+  objective_key?: string
+  objective_code: SponsorObjectiveCode
+  title: string
+  description: string
+  target_value: number
+  current_value?: number
+  reward_amount: number
+  status?: SponsorObjectiveStatus
+  achieved_absolute_day?: number | null
+  competition_id?: string | null
+  tournament_series_id?: string | null
+  tournament_name?: string | null
+  requirement_label?: string | null
+  start_absolute_day?: number | null
+  deadline_absolute_day?: number | null
+  country_code?: string | null
+  category_code?: string | null
+  surface?: string | null
+  target_rank?: number | null
+  geography_basis?: string | null
+  metadata?: Record<string, unknown> | null
+}
 
 interface SponsorOffer {
   id: string
@@ -24,19 +59,16 @@ interface SponsorOffer {
   weekly_payment_amount: number
   scheduled_payment_count: number
   total_contract_value: number
+  performance_bonus_pool?: number
+  maximum_total_value?: number
+  objective_plan?: SponsorObjectiveView[]
   status: string
 }
 
-interface SponsorObjective {
+interface SponsorObjective extends SponsorObjectiveView {
   id: string
-  objective_code: 'appearances' | 'match_wins' | 'performance_result'
-  title: string
-  description: string
-  target_value: number
   current_value: number
-  reward_amount: number
   status: SponsorObjectiveStatus
-  achieved_absolute_day?: number | null
 }
 
 interface SponsorContract {
@@ -58,10 +90,13 @@ interface SponsorContract {
   weekly_payment_amount: number
   scheduled_payment_count: number
   total_contract_value: number
+  maximum_total_value?: number
   income_received: number
   next_payment_absolute_day?: number | null
   bonus_pool_total?: number
   bonus_earned?: number
+  bonus_available?: number
+  bonus_missed?: number
   objectives?: SponsorObjective[]
   status: string
 }
@@ -96,6 +131,59 @@ function absoluteGameDate(absoluteDay: number) {
   return `${MONTHS[Math.max(0, Math.min(month, 12) - 1)]} ${remaining + 1} · Season ${season}`
 }
 
+function resultLevelLabel(level: number) {
+  switch (Math.max(0, Math.round(Number(level) || 0))) {
+    case 8: return 'Champion'
+    case 7: return 'Final'
+    case 6: return 'Semifinal'
+    case 5: return 'Quarterfinal'
+    case 4: return 'Round of 16'
+    case 3: return 'Round of 32'
+    case 2: return 'Round of 64'
+    case 1: return 'Main Draw'
+    default: return 'Not played'
+  }
+}
+
+function statusLabel(status?: SponsorObjectiveStatus) {
+  if (!status) return 'Preview'
+  return status.charAt(0).toUpperCase() + status.slice(1)
+}
+
+function targetRankFor(objective: SponsorObjectiveView) {
+  const fromTopLevel = Number(objective.target_rank)
+  if (Number.isFinite(fromTopLevel) && fromTopLevel > 0) return fromTopLevel
+  const fromMetadata = Number(objective.metadata?.target_rank)
+  return Number.isFinite(fromMetadata) && fromMetadata > 0 ? fromMetadata : null
+}
+
+function currentRankFor(objective: SponsorObjectiveView) {
+  const currentRank = Number(objective.metadata?.current_rank)
+  return Number.isFinite(currentRank) && currentRank > 0 ? currentRank : null
+}
+
+function objectiveProgressText(objective: SponsorObjectiveView) {
+  const current = Math.max(0, Number(objective.current_value) || 0)
+  const target = Math.max(1, Number(objective.target_value) || 1)
+
+  if (objective.objective_code === 'tournament_result') {
+    return `${resultLevelLabel(current)} · target ${objective.requirement_label ?? resultLevelLabel(target)}`
+  }
+
+  if (objective.objective_code === 'tournament_appearance') {
+    return current >= 1 ? 'Tournament appearance completed' : 'Not yet played'
+  }
+
+  if (objective.objective_code === 'ranking_peak' || objective.objective_code === 'season_finish_rank') {
+    const targetRank = targetRankFor(objective)
+    const currentRank = currentRankFor(objective)
+    if (targetRank && currentRank) return `Current #${currentRank} · target Top ${targetRank}`
+    if (targetRank) return `Target Top ${targetRank}`
+  }
+
+  return `${Math.min(current, target)} / ${target}`
+}
+
 function SponsorLogo({ name, url }: { name: string; url?: string | null }) {
   const [failed, setFailed] = useState(false)
   const src = (url ?? '').trim()
@@ -105,32 +193,125 @@ function SponsorLogo({ name, url }: { name: string; url?: string | null }) {
   return <div className="tlg-finance-sponsor-logo"><img src={src} alt={`${name} logo`} onError={() => setFailed(true)} /></div>
 }
 
+function ObjectiveDetailModal({
+  objective,
+  onClose,
+}: {
+  objective: SponsorObjectiveView | null
+  onClose: () => void
+}) {
+  useEffect(() => {
+    if (!objective) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [objective, onClose])
+
+  if (!objective || typeof document === 'undefined') return null
+
+  return createPortal(
+    <div
+      className="tlg-finance-sponsor-objective-modal-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose()
+      }}
+    >
+      <section className="tlg-finance-sponsor-objective-modal" role="dialog" aria-modal="true" aria-label={objective.title}>
+        <button type="button" className="tlg-finance-sponsor-objective-modal-close" onClick={onClose} aria-label="Close objective details">×</button>
+        <div className="tlg-finance-sponsor-objective-modal-head">
+          <div>
+            <span className="tlg-finance-sponsor-kicker">SPONSOR PERFORMANCE OBJECTIVE</span>
+            <h2>{objective.title}</h2>
+          </div>
+          <span className={`tlg-finance-sponsor-objective-status ${objective.status ?? 'preview'}`}>{statusLabel(objective.status)}</span>
+        </div>
+
+        <p className="tlg-finance-sponsor-objective-modal-description">{objective.description}</p>
+
+        <div className="tlg-finance-sponsor-objective-modal-grid">
+          {objective.tournament_name && (
+            <div><span>Tournament</span><strong>{objective.tournament_name}</strong></div>
+          )}
+          <div><span>Requirement</span><strong>{objective.requirement_label ?? objective.title}</strong></div>
+          {objective.start_absolute_day != null && (
+            <div><span>Starts</span><strong>{absoluteGameDate(objective.start_absolute_day)}</strong></div>
+          )}
+          {objective.deadline_absolute_day != null && (
+            <div><span>Deadline</span><strong>{absoluteGameDate(objective.deadline_absolute_day)}</strong></div>
+          )}
+          <div><span>Bonus</span><strong>{money(objective.reward_amount)}</strong></div>
+          {objective.status && (
+            <div><span>Current progress</span><strong>{objectiveProgressText(objective)}</strong></div>
+          )}
+          {objective.category_code && (
+            <div><span>Category</span><strong>{objective.category_code.replaceAll('_', ' ')}</strong></div>
+          )}
+          {objective.surface && (
+            <div><span>Surface</span><strong>{objective.surface}</strong></div>
+          )}
+        </div>
+
+        {objective.status === 'completed' && objective.achieved_absolute_day != null && (
+          <p className="tlg-finance-sponsor-objective-modal-note success">
+            Completed {absoluteGameDate(objective.achieved_absolute_day)}. The bonus was posted to Career Balance.
+          </p>
+        )}
+        {objective.status === 'failed' && (
+          <p className="tlg-finance-sponsor-objective-modal-note failed">The requirement was attempted but not achieved.</p>
+        )}
+        {objective.status === 'expired' && (
+          <p className="tlg-finance-sponsor-objective-modal-note failed">The deadline passed and this bonus is no longer available.</p>
+        )}
+      </section>
+    </div>,
+    document.body,
+  )
+}
+
 function ObjectiveCard({ objective }: { objective: SponsorObjective }) {
+  const [open, setOpen] = useState(false)
   const current = Math.max(0, Number(objective.current_value) || 0)
   const target = Math.max(1, Number(objective.target_value) || 1)
-  const progress = Math.min(100, (current / target) * 100)
-  const displayCurrent = Math.min(current, target)
+  const progress = objective.objective_code === 'ranking_peak' || objective.objective_code === 'season_finish_rank'
+    ? (current >= 1 ? 100 : 0)
+    : Math.min(100, (current / target) * 100)
 
   return (
-    <article className={`tlg-finance-sponsor-objective ${objective.status}`}>
-      <div className="tlg-finance-sponsor-objective-head">
-        <div>
-          <span className="tlg-finance-sponsor-kicker">PERFORMANCE OBJECTIVE</span>
-          <h3>{objective.title}</h3>
+    <>
+      <button
+        type="button"
+        className={`tlg-finance-sponsor-objective ${objective.status}`}
+        onClick={() => setOpen(true)}
+      >
+        <div className="tlg-finance-sponsor-objective-head">
+          <div>
+            <span className="tlg-finance-sponsor-kicker">{objective.tournament_name ? objective.tournament_name.toUpperCase() : 'PERFORMANCE OBJECTIVE'}</span>
+            <h3>{objective.title}</h3>
+          </div>
+          <span className={`tlg-finance-sponsor-objective-status ${objective.status}`}>{statusLabel(objective.status)}</span>
         </div>
-        <span className={`tlg-finance-sponsor-objective-status ${objective.status}`}>{objective.status}</span>
-      </div>
-      <p>{objective.description}</p>
-      <div className="tlg-finance-sponsor-objective-metrics">
-        <div><span>Progress</span><strong>{displayCurrent} / {target}</strong></div>
-        <div><span>Bonus</span><strong>{money(objective.reward_amount)}</strong></div>
-      </div>
-      <div className="tlg-finance-sponsor-objective-progress"><i style={{ width: `${progress}%` }} /></div>
-      {objective.status === 'achieved' && objective.achieved_absolute_day != null && (
-        <small>Completed {absoluteGameDate(objective.achieved_absolute_day)} · Bonus posted to Career Balance</small>
-      )}
-      {objective.status === 'failed' && <small>Agreement ended before this objective was completed.</small>}
-    </article>
+        <p>{objective.description}</p>
+        <div className="tlg-finance-sponsor-objective-metrics">
+          <div><span>Progress</span><strong>{objectiveProgressText(objective)}</strong></div>
+          <div><span>Bonus</span><strong>{money(objective.reward_amount)}</strong></div>
+        </div>
+        {objective.deadline_absolute_day != null && (
+          <div className="tlg-finance-sponsor-objective-deadline">
+            <span>Deadline</span><strong>{absoluteGameDate(objective.deadline_absolute_day)}</strong>
+          </div>
+        )}
+        <div className="tlg-finance-sponsor-objective-progress"><i style={{ width: `${progress}%` }} /></div>
+        {objective.status === 'completed' && objective.achieved_absolute_day != null && (
+          <small>Completed {absoluteGameDate(objective.achieved_absolute_day)} · Bonus posted to Career Balance</small>
+        )}
+        {objective.status === 'failed' && <small>Requirement missed. This bonus cannot be paid later.</small>}
+        {objective.status === 'expired' && <small>Deadline passed. This bonus is no longer available.</small>}
+        <span className="tlg-finance-sponsor-objective-open-hint">Open details</span>
+      </button>
+      <ObjectiveDetailModal objective={open ? objective : null} onClose={() => setOpen(false)} />
+    </>
   )
 }
 
@@ -149,7 +330,9 @@ function ActiveSponsor({ contract }: { contract: SponsorContract }) {
   const objectives = contract.objectives ?? []
   const bonusPool = Math.max(0, Number(contract.bonus_pool_total) || 0)
   const bonusEarned = Math.max(0, Number(contract.bonus_earned) || 0)
-  const achievedObjectives = objectives.filter((objective) => objective.status === 'achieved').length
+  const bonusMissed = Math.max(0, Number(contract.bonus_missed) || 0)
+  const bonusAvailable = Math.max(0, Number(contract.bonus_available) || Math.max(0, bonusPool - bonusEarned - bonusMissed))
+  const completedObjectives = objectives.filter((objective) => objective.status === 'completed').length
 
   return (
     <section className="tlg-finance-sponsor-active">
@@ -180,7 +363,7 @@ function ActiveSponsor({ contract }: { contract: SponsorContract }) {
         <div className="tlg-finance-sponsor-payment-schedule-copy">
           <span className="tlg-finance-sponsor-kicker">GUARANTEED PAYMENT SCHEDULE</span>
           <h3>{scheduledPayments} weekly payments × {money(weeklyPayment)} = {money(contract.total_contract_value)}</h3>
-          <p>The guaranteed agreement is the total sponsor income promised for the season. It is paid in installments, not as one upfront payment.</p>
+          <p>The guaranteed agreement is the fixed sponsor income promised for the season. Performance bonuses sit outside this guaranteed amount.</p>
         </div>
         <div className="tlg-finance-sponsor-payment-schedule-grid">
           <div><span>Agreement signed</span><strong>{absoluteGameDate(contract.signed_absolute_day)}</strong></div>
@@ -198,13 +381,15 @@ function ActiveSponsor({ contract }: { contract: SponsorContract }) {
 
       <section className="tlg-finance-sponsor-bonus-summary">
         <div>
-          <span className="tlg-finance-sponsor-kicker">PERFORMANCE BONUS POOL</span>
-          <h3>{money(bonusPool)} available</h3>
-          <p>Performance bonuses sit on top of the guaranteed agreement and are paid automatically when an objective is achieved.</p>
+          <span className="tlg-finance-sponsor-kicker">OBJECTIVES / PERFORMANCE BONUSES</span>
+          <h3>{money(bonusPool)} maximum Performance Bonus Pool</h3>
+          <p>Each objective has its own requirement, deadline and cash value. Completed objectives pay automatically and exactly once.</p>
         </div>
-        <div className="tlg-finance-sponsor-bonus-numbers">
+        <div className="tlg-finance-sponsor-bonus-numbers expanded">
           <div><span>Earned</span><strong>{money(bonusEarned)}</strong></div>
-          <div><span>Objectives complete</span><strong>{achievedObjectives} / {objectives.length}</strong></div>
+          <div><span>Still available</span><strong>{money(bonusAvailable)}</strong></div>
+          <div><span>Missed / expired</span><strong>{money(bonusMissed)}</strong></div>
+          <div><span>Completed</span><strong>{completedObjectives} / {objectives.length}</strong></div>
         </div>
       </section>
 
@@ -214,7 +399,7 @@ function ActiveSponsor({ contract }: { contract: SponsorContract }) {
         </section>
       )}
 
-      <p className="tlg-finance-sponsor-note">Guaranteed payments and achieved objective bonuses are posted automatically to the Finance transaction ledger.</p>
+      <p className="tlg-finance-sponsor-note">Guaranteed payments and completed objective bonuses are posted automatically to the Finance transaction ledger.</p>
     </section>
   )
 }
@@ -230,45 +415,87 @@ function SponsorOfferCard({
   onSign: (id: string) => void
   onDecline: (id: string) => void
 }) {
+  const [showObjectives, setShowObjectives] = useState(false)
+  const [selectedObjective, setSelectedObjective] = useState<SponsorObjectiveView | null>(null)
   const busy = actionId === offer.id
-  return (
-    <article className="tlg-finance-sponsor-offer">
-      <div className="tlg-finance-sponsor-offer-visual">
-        <SponsorLogo name={offer.sponsor_name} url={offer.logo_url} />
-      </div>
+  const objectivePlan = offer.objective_plan ?? []
+  const bonusPool = Math.max(0, Number(offer.performance_bonus_pool) || 0)
+  const maximumTotal = Math.max(0, Number(offer.maximum_total_value) || (Number(offer.total_contract_value) || 0) + bonusPool)
 
-      <div className="tlg-finance-sponsor-offer-content">
-        <div className="tlg-finance-sponsor-offer-heading">
-          <div>
-            <span className="tlg-finance-sponsor-kicker">MAIN SPONSOR OFFER</span>
-            <h3>{offer.sponsor_name}</h3>
-            <span className="tlg-finance-sponsor-country">{offer.sponsor_country_code}</span>
+  return (
+    <>
+      <article className="tlg-finance-sponsor-offer">
+        <div className="tlg-finance-sponsor-offer-visual">
+          <SponsorLogo name={offer.sponsor_name} url={offer.logo_url} />
+        </div>
+
+        <div className="tlg-finance-sponsor-offer-content">
+          <div className="tlg-finance-sponsor-offer-heading">
+            <div>
+              <span className="tlg-finance-sponsor-kicker">MAIN SPONSOR OFFER</span>
+              <h3>{offer.sponsor_name}</h3>
+              <span className="tlg-finance-sponsor-country">{offer.sponsor_country_code}</span>
+            </div>
+          </div>
+
+          <div className="tlg-finance-sponsor-offer-value">
+            <span>GUARANTEED VALUE TO SEASON END</span>
+            <strong>{money(offer.total_contract_value)}</strong>
+            <small>{money(offer.weekly_payment_amount)} per week · {offer.scheduled_payment_count} guaranteed payments</small>
+          </div>
+
+          <div className="tlg-finance-sponsor-offer-money-grid">
+            <div><span>Performance Bonus Pool</span><strong>{money(bonusPool)}</strong></div>
+            <div><span>Maximum possible value</span><strong>{money(maximumTotal)}</strong></div>
+          </div>
+
+          <div className="tlg-finance-sponsor-offer-details">
+            <div><span>First payment</span><strong>{absoluteGameDate(offer.first_payment_absolute_day)}</strong></div>
+            <div><span>Offer expires</span><strong>{absoluteGameDate(offer.expires_absolute_day)}</strong></div>
+          </div>
+
+          <div className="tlg-finance-sponsor-offer-objective-summary">
+            <div>
+              <span className="tlg-finance-sponsor-kicker">SPONSOR EXPECTATIONS</span>
+              <strong>{objectivePlan.length} performance objectives</strong>
+              <small>Objectives are matched to ranking, sponsor/player geography and realistic tournament level.</small>
+            </div>
+            <button type="button" onClick={() => setShowObjectives((value) => !value)}>
+              {showObjectives ? 'Hide objectives' : 'View objectives'}
+            </button>
+          </div>
+
+          {showObjectives && objectivePlan.length > 0 && (
+            <div className="tlg-finance-sponsor-offer-objective-list">
+              {objectivePlan.map((objective, index) => (
+                <button
+                  key={objective.objective_key ?? `${offer.id}-objective-${index}`}
+                  type="button"
+                  onClick={() => setSelectedObjective(objective)}
+                >
+                  <div>
+                    <span>{objective.tournament_name ?? 'Season objective'}</span>
+                    <strong>{objective.requirement_label ?? objective.title}</strong>
+                  </div>
+                  <strong>{money(objective.reward_amount)}</strong>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="tlg-finance-sponsor-offer-actions">
+            <button type="button" className="secondary" disabled={actionId !== null} onClick={() => onDecline(offer.id)}>
+              {busy ? 'Working…' : 'Decline'}
+            </button>
+            <button type="button" className="primary" disabled={actionId !== null} onClick={() => onSign(offer.id)}>
+              {busy ? 'Signing…' : 'Sign agreement'}
+            </button>
           </div>
         </div>
+      </article>
 
-        <div className="tlg-finance-sponsor-offer-value">
-          <span>CONTRACT VALUE TO SEASON END</span>
-          <strong>{money(offer.total_contract_value)}</strong>
-          <small>{money(offer.weekly_payment_amount)} per week · {offer.scheduled_payment_count} payments</small>
-        </div>
-
-        <div className="tlg-finance-sponsor-offer-details">
-          <div><span>First payment</span><strong>{absoluteGameDate(offer.first_payment_absolute_day)}</strong></div>
-          <div><span>Offer expires</span><strong>{absoluteGameDate(offer.expires_absolute_day)}</strong></div>
-        </div>
-
-        <p className="tlg-finance-sponsor-offer-bonus-note">Three performance objectives add extra cash bonuses on top of the guaranteed contract.</p>
-
-        <div className="tlg-finance-sponsor-offer-actions">
-          <button type="button" className="secondary" disabled={actionId !== null} onClick={() => onDecline(offer.id)}>
-            {busy ? 'Working…' : 'Decline'}
-          </button>
-          <button type="button" className="primary" disabled={actionId !== null} onClick={() => onSign(offer.id)}>
-            {busy ? 'Signing…' : 'Sign agreement'}
-          </button>
-        </div>
-      </div>
-    </article>
+      <ObjectiveDetailModal objective={selectedObjective} onClose={() => setSelectedObjective(null)} />
+    </>
   )
 }
 
@@ -305,7 +532,7 @@ function SponsorContent({
         <div>
           <span className="tlg-finance-sponsor-kicker">COMMERCIAL PARTNERSHIPS</span>
           <h2>Sponsor agreements</h2>
-          <p>Choose one main sponsor for the current season. Contract value follows your ranking and is recalculated at the exact moment you sign.</p>
+          <p>Choose one main sponsor for the current season. Guaranteed income is paid weekly; the separate Performance Bonus Pool is earned through clearly defined objectives.</p>
         </div>
         <button type="button" className="tlg-finance-sponsor-refresh" onClick={onRetry} disabled={loading}>{loading ? 'Refreshing…' : 'Refresh offers'}</button>
       </section>
@@ -329,7 +556,7 @@ function SponsorContent({
             </section>
           )}
 
-          <p className="tlg-finance-sponsor-note standalone">Signing one agreement closes the other main-sponsor offers for the current season.</p>
+          <p className="tlg-finance-sponsor-note standalone">Signing one agreement locks that sponsor's displayed objectives and closes the other main-sponsor offers for the current season.</p>
         </>
       )}
     </div>
