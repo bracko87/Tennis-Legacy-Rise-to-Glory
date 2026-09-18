@@ -161,3 +161,88 @@
     display: none;
   }
 }
+
+
+/* Upcoming ranking contribution expirations */
+.tlg-ranking-expiry-panel{
+  margin-bottom:18px;
+}
+.tlg-ranking-expiry-panel>.tlg-v2-panel-header>svg{
+  flex:0 0 auto;
+  color:#0b6fc8;
+}
+.tlg-ranking-expiry-list{
+  display:grid;
+}
+.tlg-ranking-expiry-list article{
+  display:grid;
+  grid-template-columns:minmax(0,1.4fr) 150px 210px;
+  gap:18px;
+  align-items:center;
+  min-height:70px;
+  padding:12px 18px;
+  border-top:1px solid #edf1f4;
+  background:#fff;
+}
+.tlg-ranking-expiry-main{
+  min-width:0;
+}
+.tlg-ranking-expiry-main>span,
+.tlg-ranking-expiry-date>span{
+  display:block;
+  color:#74899b;
+  font-size:.54rem;
+  font-weight:850;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.tlg-ranking-expiry-main>strong{
+  display:block;
+  overflow:hidden;
+  margin-top:4px;
+  color:#173149;
+  font-size:.75rem;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.tlg-ranking-expiry-main>small,
+.tlg-ranking-expiry-points>small,
+.tlg-ranking-expiry-date>small{
+  display:block;
+  margin-top:4px;
+  color:#8193a3;
+  font-size:.58rem;
+}
+.tlg-ranking-expiry-points{
+  text-align:right;
+}
+.tlg-ranking-expiry-points>strong{
+  color:#0b6fc8;
+  font-size:.78rem;
+}
+.tlg-ranking-expiry-date{
+  text-align:right;
+}
+.tlg-ranking-expiry-date>strong{
+  display:block;
+  margin-top:4px;
+  color:#173149;
+  font-size:.68rem;
+}
+.tlg-ranking-expiry-empty{
+  padding:18px;
+  border-top:1px solid #edf1f4;
+  color:#758a9b;
+  font-size:.66rem;
+}
+
+@media(max-width:760px){
+  .tlg-ranking-expiry-list article{
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+  .tlg-ranking-expiry-points,
+  .tlg-ranking-expiry-date{
+    text-align:left;
+  }
+}
