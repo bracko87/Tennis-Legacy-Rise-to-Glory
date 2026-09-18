@@ -23,6 +23,11 @@ interface DefendingOwnPlayer {
   previous_result_label: string | null
   previous_points: number
   points_defending: number
+  points_expire_absolute_day: number | null
+  points_expire_season: number | null
+  points_expire_week: number | null
+  points_expire_month: number | null
+  points_expire_day: number | null
   current_result_code: string | null
   current_result_label: string | null
   current_result_points: number
@@ -178,7 +183,7 @@ export default function TournamentDefendingPoints({ competitionId, rewardRows }:
         <div>
           <span>Ranking protection</span>
           <h2>Defending Points</h2>
-          {expanded && <p>Last season's points from this same tournament series stay in the ranking until this edition's ranking cycle replaces them.</p>}
+          {expanded && <p>Ranking points stay active until their scheduled expiration. A new result from this tournament may replace the expiring contribution.</p>}
         </div>
         <div className="tlg-defence-head-actions">
           {data && <span>{data.own.points_defending.toLocaleString()} pts defending</span>}
@@ -202,6 +207,9 @@ export default function TournamentDefendingPoints({ competitionId, rewardRows }:
             <div className={`tlg-defence-cycle-status ${data.cycle_processed ? 'processed' : 'pending'}`}>
               <span>{data.cycle_processed ? 'Ranking cycle processed' : 'Defence pending'}</span>
               <strong>{data.cycle_processed ? 'Old contribution replaced' : `${data.own.points_defending.toLocaleString()} pts at risk`}</strong>
+              {!data.cycle_processed && data.own.points_expire_season && (
+                <small>Expires Season {data.own.points_expire_season} · Week {data.own.points_expire_week ?? 0}</small>
+              )}
             </div>
           </div>
 
@@ -242,7 +250,13 @@ export default function TournamentDefendingPoints({ competitionId, rewardRows }:
             <article className="primary">
               <span>Points defending this year</span>
               <strong>{data.own.points_defending.toLocaleString()}</strong>
-              <small>{data.cycle_processed ? 'Already removed/replaced' : 'Removed at this edition’s ranking update'}</small>
+              <small>
+                {data.cycle_processed
+                  ? 'Already removed/replaced'
+                  : data.own.points_expire_season
+                    ? `Scheduled expiry: Season ${data.own.points_expire_season} · Week ${data.own.points_expire_week ?? 0}`
+                    : 'No active previous-season contribution'}
+              </small>
             </article>
             <article>
               <span>Current ranking</span>
@@ -306,7 +320,7 @@ export default function TournamentDefendingPoints({ competitionId, rewardRows }:
             )}
           </div>
 
-          <p className="tlg-defence-note">If a player skips, is injured, withdraws before earning a result, or otherwise has no current contribution, the previous-season contribution expires at this tournament’s processed ranking cycle. A category or points-table change does not alter the amount being defended: the exact points actually earned last season are removed, and the current edition uses its current points table.</p>
+          <p className="tlg-defence-note">Every ranking contribution has a scheduled expiration. If this tournament returns next season, its ranking cycle may replace the old contribution with the new result. If the tournament disappears, is replaced, or never reaches a replacement cycle, the old points still expire automatically on schedule. A category or points-table change does not alter the amount already earned.</p>
         </>
       )}
     </section>
