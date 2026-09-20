@@ -473,9 +473,18 @@ export default function NotificationsPage() {
   }
 
   async function toggleNotification(notification: NotificationRow) {
-    const willOpen = expandedId !== notification.id
-    setExpandedId(willOpen ? notification.id : null)
-    if (willOpen) await markRead(notification)
+    if (expandedId === notification.id) {
+      await markRead(notification)
+      setExpandedId(null)
+      return
+    }
+
+    const previous = expandedId
+      ? notifications.find((item) => item.id === expandedId) ?? null
+      : null
+
+    if (previous) await markRead(previous)
+    setExpandedId(notification.id)
   }
 
   async function markAllRead() {
