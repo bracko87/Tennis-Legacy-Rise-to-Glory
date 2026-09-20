@@ -10,7 +10,7 @@ import {
   X,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
@@ -149,6 +149,9 @@ function distance(value: number | null | undefined) {
 export default function SchedulePage() {
   const { player, playerLoading } = useAuth()
   const { dashboard: staffDashboard, loading: staffLoading } = useStaff()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const requestedCompetitionId = searchParams.get('competition')
+  const shouldOpenPreparation = searchParams.get('prepare') === '1'
   const [upcoming, setUpcoming] = useState<TournamentSummaryItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -191,8 +194,14 @@ export default function SchedulePage() {
     return () => { cancelled = true }
   }, [player?.id])
 
-  const nextTournament = upcoming[0] ?? null
-  const laterTournaments = upcoming.slice(1)
+  const nextTournament = useMemo(
+    () => upcoming.find((item) => item.competition_id === requestedCompetitionId) ?? upcoming[0] ?? null,
+    [requestedCompetitionId, upcoming],
+  )
+  const laterTournaments = useMemo(
+    () => upcoming.filter((item) => item.competition_id !== nextTournament?.competition_id),
+    [nextTournament?.competition_id, upcoming],
+  )
   const activeStaff = staffDashboard?.contracts ?? []
 
   useEffect(() => {
@@ -227,6 +236,30 @@ export default function SchedulePage() {
     void loadPreparation()
     return () => { cancelled = true }
   }, [nextTournament?.competition_id, player?.id])
+
+  useEffect(() => {
+    if (
+      loading
+      || !shouldOpenPreparation
+      || !requestedCompetitionId
+      || nextTournament?.competition_id !== requestedCompetitionId
+    ) return
+
+    setActiveTab('travel')
+    setPlanMessage(null)
+    setPrepareOpen(true)
+
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.delete('prepare')
+    setSearchParams(nextParams, { replace: true })
+  }, [
+    loading,
+    nextTournament?.competition_id,
+    requestedCompetitionId,
+    searchParams,
+    setSearchParams,
+    shouldOpenPreparation,
+  ])
 
   useEffect(() => {
     if (!prepareOpen || planLoading || !player?.id || !nextTournament?.competition_id) return

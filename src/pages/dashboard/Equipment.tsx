@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router'
 
 import GameConfirmDialog from '../../components/common/GameConfirmDialog'
 import TechnicalSponsorsPanel from '../../components/equipment/TechnicalSponsorsPanel'
@@ -284,13 +285,25 @@ function makeRequestKey() {
 }
 
 export default function EquipmentPage() {
-  const [tab, setTab] = useState<EquipmentTab>('gear')
+  const [searchParams] = useSearchParams()
+  const requestedTab = searchParams.get('tab')
+  const [tab, setTab] = useState<EquipmentTab>(() => (
+    requestedTab === 'gear' || requestedTab === 'inventory' || requestedTab === 'market' || requestedTab === 'sponsors'
+      ? requestedTab
+      : 'gear'
+  ))
   const [dashboard, setDashboard] = useState<EquipmentDashboard | null>(null)
   const [surface, setSurface] = useState<CourtSurface>('hard')
   const [marketFilter, setMarketFilter] = useState<MarketFilter>('all')
   const [marketTag, setMarketTag] = useState('all')
   const [marketSort, setMarketSort] = useState<MarketSort>('featured')
   const [inventoryFilter, setInventoryFilter] = useState<InventoryFilter>('all')
+
+  useEffect(() => {
+    if (requestedTab === 'gear' || requestedTab === 'inventory' || requestedTab === 'market' || requestedTab === 'sponsors') {
+      setTab(requestedTab)
+    }
+  }, [requestedTab])
   const [inventorySort, setInventorySort] = useState<InventorySort>('recent')
   const [selectedMarketItem, setSelectedMarketItem] = useState<CatalogItem | null>(null)
   const [selectedInventoryItem, setSelectedInventoryItem] = useState<InventoryItem | null>(null)
