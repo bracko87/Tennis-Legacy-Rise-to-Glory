@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, CalendarClock, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router'
 
@@ -7,6 +7,7 @@ import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
 import { supabase } from '../../lib/supabase'
 import '../../styles/rankings-live.css'
+import '../../styles/shared-segmented-tabs.css'
 
 interface RankingRow {
   rank_position: number
@@ -22,30 +23,6 @@ interface RankingRow {
   points_change: number | null
 }
 
-interface RankingExpiration {
-  contribution_id: string
-  competition_id: string
-  tournament_series_id: string
-  tournament_name: string
-  source_result_code: string
-  source_result_label: string
-  ranking_points: number
-  awarded_absolute_day: number
-  expires_absolute_day: number
-  expiration_season: number
-  expiration_week: number
-  expiration_month: number
-  expiration_day: number
-  days_remaining: number
-  next_edition_scheduled: boolean
-}
-
-interface RankingExpirationResponse {
-  player_id: string
-  world: 'ATP' | 'WTA'
-  game_absolute_day: number
-  contributions: RankingExpiration[]
-}
 
 interface RankingReturnState {
   rankingReturnPlayerId?: string
@@ -153,8 +130,6 @@ export default function RankingsPage() {
   const [rows, setRows] = useState<RankingRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [expirations, setExpirations] = useState<RankingExpiration[]>([])
-  const [expirationError, setExpirationError] = useState<string | null>(null)
   const previousWorldRef = useRef(world)
   const restoredReturnRef = useRef<string | null>(null)
   const returnState = location.state as RankingReturnState | null
@@ -165,24 +140,18 @@ export default function RankingsPage() {
   const loadRankings = useCallback(async () => {
     setLoading(true)
     setError(null)
-    setExpirationError(null)
 
-    const [rankingResponse, expirationResponse] = await Promise.all([
-      discipline === 'doubles'
-        ? supabase.rpc('get_world_doubles_rankings_v1', {
-          p_world: world,
-          p_offset: page * PAGE_SIZE,
-          p_limit: PAGE_SIZE,
-        })
-        : supabase.rpc('get_world_rankings_v3', {
-          p_world: world,
-          p_offset: page * PAGE_SIZE,
-          p_limit: PAGE_SIZE,
-        }),
-      discipline === 'doubles'
-        ? supabase.rpc('get_player_doubles_ranking_expirations_v1')
-        : supabase.rpc('get_player_ranking_expirations_v1'),
-    ])
+    const rankingResponse = discipline === 'doubles'
+      ? await supabase.rpc('get_world_doubles_rankings_v1', {
+        p_world: world,
+        p_offset: page * PAGE_SIZE,
+        p_limit: PAGE_SIZE,
+      })
+      : await supabase.rpc('get_world_rankings_v3', {
+        p_world: world,
+        p_offset: page * PAGE_SIZE,
+        p_limit: PAGE_SIZE,
+      })
 
     if (rankingResponse.error) {
       setError(rankingResponse.error.message)
@@ -191,12 +160,6 @@ export default function RankingsPage() {
       setRows((rankingResponse.data ?? []) as RankingRow[])
     }
 
-    if (expirationResponse.error || !expirationResponse.data) {
-      setExpirationError(expirationResponse.error?.message ?? 'Ranking expiration data is unavailable.')
-      setExpirations([])
-    } else {
-      setExpirations(((expirationResponse.data as RankingExpirationResponse).contributions ?? []) as RankingExpiration[])
-    }
 
     setLoading(false)
   }, [discipline, page, world])
@@ -271,7 +234,7 @@ export default function RankingsPage() {
 
   return (
     <GameLayout title="Rankings" subtitle={`${world} ${discipline} world ranking`}>
-      <header className="tlg-v2-page-head">
+      <header className="tlg-v2-page-head tlg-ranking-page-head-with-tabs">
         <div className="tlg-v2-page-head-copy">
           <div className="tlg-v2-page-eyebrow">World competition</div>
           <h2 className="tlg-v2-page-title">{world} Ranking</h2>
@@ -279,48 +242,11 @@ export default function RankingsPage() {
             Singles and doubles have completely separate ATP/WTA rankings. Doubles points belong to the individual player and stay with them when partners change.
           </p>
         </div>
-        <div className="tlg-ranking-discipline-tabs" role="tablist" aria-label="Ranking discipline">
+        <div className="tlg-ranking-discipline-tabs tlg-standard-tabs" role="tablist" aria-label="Ranking discipline">
           <button type="button" role="tab" aria-selected={discipline === 'singles'} className={discipline === 'singles' ? 'active' : ''} onClick={() => setDiscipline('singles')}>Singles</button>
           <button type="button" role="tab" aria-selected={discipline === 'doubles'} className={discipline === 'doubles' ? 'active' : ''} onClick={() => setDiscipline('doubles')}>Doubles</button>
         </div>
       </header>
-
-      <section className="tlg-v2-panel tlg-ranking-expiry-panel">
-        <header className="tlg-v2-panel-header">
-          <div>
-            <span>Ranking protection</span>
-            <h3>Upcoming Point Expirations</h3>
-          </div>
-          <CalendarClock size={19} />
-        </header>
-
-        {expirationError ? (
-          <div className="tlg-ranking-expiry-empty">{expirationError}</div>
-        ) : expirations.length === 0 ? (
-          <div className="tlg-ranking-expiry-empty">You do not currently have active ranking points waiting to expire.</div>
-        ) : (
-          <div className="tlg-ranking-expiry-list">
-            {expirations.slice(0, 5).map((item) => (
-              <article key={item.contribution_id}>
-                <div className="tlg-ranking-expiry-main">
-                  <span>{item.next_edition_scheduled ? 'Defending points' : 'Scheduled expiration'}</span>
-                  <strong>{item.tournament_name}</strong>
-                  <small>{item.source_result_label}</small>
-                </div>
-                <div className="tlg-ranking-expiry-points">
-                  <strong>{item.ranking_points.toLocaleString()} pts</strong>
-                  <small>{item.days_remaining.toLocaleString()} game days remaining</small>
-                </div>
-                <div className="tlg-ranking-expiry-date">
-                  <span>Expires</span>
-                  <strong>Season {item.expiration_season} · Week {item.expiration_week}</strong>
-                  <small>Month {item.expiration_month}, Day {item.expiration_day}</small>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
 
       <section className="tlg-v2-panel">
         <header className="tlg-v2-panel-header tlg-ranking-panel-header">
