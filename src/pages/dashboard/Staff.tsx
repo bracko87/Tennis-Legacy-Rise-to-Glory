@@ -16,6 +16,7 @@ import {
 } from '../../hooks/useStaff'
 import '../../styles/staff.css'
 import '../../styles/staff-interactions.css'
+import '../../styles/shared-segmented-tabs.css'
 
 const ROLES: Array<{ role: StaffRole; label: string; description: string }> = [
   { role: 'head_coach', label: 'Head Coach', description: 'Technical development, tactics and match preparation.' },
@@ -298,7 +299,7 @@ export default function StaffPage() {
             <h1>Staff</h1>
             <p>Build a six-role support team with transparent, capped career effects. Staff strengthen development, recovery, analysis and commercial management without replacing player attributes or career decisions.</p>
           </div>
-          <div className="tlg-staff-tabs">
+          <div className="tlg-staff-tabs tlg-standard-tabs">
             <button type="button" className={view === 'team' ? 'active' : ''} onClick={() => setView('team')}>My Staff</button>
             <button type="button" className={view === 'market' ? 'active' : ''} onClick={() => setView('market')}>Staff Market</button>
           </div>
