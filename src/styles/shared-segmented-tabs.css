@@ -1,0 +1,50 @@
+.tlg-standard-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px;
+  border: 1px solid #dce6ed;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.tlg-standard-tabs button {
+  min-height: 38px;
+  padding: 0 17px;
+  border: 0;
+  border-radius: 8px;
+  color: #61798c;
+  background: transparent;
+  font: inherit;
+  font-size: .74rem;
+  font-weight: 760;
+  cursor: pointer;
+  transition: color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+}
+
+.tlg-standard-tabs button:hover:not(:disabled) {
+  color: #076db5;
+  background: #f3f9fd;
+}
+
+.tlg-standard-tabs button.active,
+.tlg-standard-tabs button[aria-selected="true"] {
+  color: #076db5;
+  background: #eaf5fc;
+  box-shadow: inset 0 0 0 1px #cfe8f8;
+}
+
+.tlg-standard-tabs button:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+@media (max-width: 720px) {
+  .tlg-standard-tabs {
+    width: 100%;
+  }
+
+  .tlg-standard-tabs button {
+    flex: 1;
+  }
+}
