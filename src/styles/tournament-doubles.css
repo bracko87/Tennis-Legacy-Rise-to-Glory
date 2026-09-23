@@ -986,10 +986,9 @@
 }
 
 .tlg-tournament-discipline-tabs.tlg-standard-tabs {
-  position: absolute !important;
-  top: 0 !important;
-  right: 0 !important;
-  z-index: 4 !important;
+  position: static !important;
+  z-index: auto !important;
+  justify-self: end;
   width: auto !important;
   margin: 0 !important;
 }
@@ -1002,16 +1001,10 @@
   border-bottom: 0 !important;
 }
 
-@media (max-width: 900px) {
-  .tlg-tournament-discipline-tabs.tlg-standard-tabs {
-    position: static !important;
-    margin: 0 0 10px auto !important;
-  }
-}
-
 @media (max-width: 620px) {
   .tlg-tournament-discipline-tabs.tlg-standard-tabs {
+    justify-self: stretch;
     width: 100% !important;
-    margin-left: 0 !important;
+    margin: 0 !important;
   }
 }
