@@ -73,31 +73,31 @@ export default function TabbedModulePage({
 
   return (
     <GameLayout title={title} subtitle={subtitle}>
-      <header className="tlg-v2-page-head tlg-module-page-head-with-tabs">
+      <header className="tlg-v2-page-head">
         <div className="tlg-v2-page-head-copy">
           <div className="tlg-v2-page-eyebrow">{eyebrow}</div>
           <h2 className="tlg-v2-page-title">{title}</h2>
           <p className="tlg-v2-page-description">{intro}</p>
         </div>
-
-        <div className="tlg-module-tabs tlg-module-tabs-top tlg-standard-tabs" role="tablist" aria-label={`${title} sections`}>
-          {tabs.map((tab) => {
-            const active = tab.id === activeTab?.id
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                className={active ? 'tlg-module-tab tlg-module-tab-active active' : 'tlg-module-tab'}
-                onClick={() => setActiveTabId(tab.id)}
-              >
-                {tab.label}
-              </button>
-            )
-          })}
-        </div>
       </header>
+
+      <div className="tlg-module-tabs tlg-module-tabs-top tlg-standard-tabs" role="tablist" aria-label={`${title} sections`}>
+        {tabs.map((tab) => {
+          const active = tab.id === activeTab?.id
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              className={active ? 'tlg-module-tab tlg-module-tab-active active' : 'tlg-module-tab'}
+              onClick={() => setActiveTabId(tab.id)}
+            >
+              {tab.label}
+            </button>
+          )
+        })}
+      </div>
 
       <div className={wide ? 'tlg-v2-module-grid tlg-module-grid-wide' : 'tlg-v2-module-grid'}>
         <section className="tlg-v2-panel tlg-module-active-panel">
