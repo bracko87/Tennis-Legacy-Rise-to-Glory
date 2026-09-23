@@ -63,6 +63,7 @@ import CalendarPage from './pages/dashboard/Calendar'
 import TournamentPage from './pages/dashboard/Tournament'
 import TournamentDoublesPage from './pages/dashboard/TournamentDoubles'
 import RankingsPage from './pages/dashboard/Rankings'
+import NationalTeamPage from './pages/dashboard/NationalTeam'
 import PlayerProfilePage from './pages/dashboard/PlayerProfile'
 import SchedulePage from './pages/dashboard/Schedule'
 import EquipmentPage from './pages/dashboard/Equipment'
@@ -210,6 +211,7 @@ export default function App() {
           <Route path="/game/tournaments/:competitionId" element={<RequirePlayer><TournamentRoute /></RequirePlayer>} />
           <Route path="/game/tournaments/:competitionId/doubles" element={<RequirePlayer><TournamentDoublesPage /></RequirePlayer>} />
           <Route path="/game/rankings" element={<RequirePlayer><RankingsPage /></RequirePlayer>} />
+          <Route path="/game/national-team" element={<RequirePlayer><NationalTeamPage /></RequirePlayer>} />
           <Route path="/game/players/:playerId" element={<RequirePlayer><PlayerProfilePage /></RequirePlayer>} />
           <Route path="/game/schedule" element={<RequirePlayer><ScheduleRoute /></RequirePlayer>} />
           <Route path="/game/equipment" element={<RequirePlayer><EquipmentRoute /></RequirePlayer>} />

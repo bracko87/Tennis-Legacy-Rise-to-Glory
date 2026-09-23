@@ -1,0 +1,537 @@
+.nt-page-head {
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.nt-title-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nt-title-line img {
+  flex: 0 0 auto;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.12);
+}
+
+.nt-status-card {
+  min-width: 210px;
+  display: grid;
+  gap: 5px;
+  justify-items: end;
+}
+
+.nt-status-card > strong {
+  color: #f8fafc;
+  font-size: 14px;
+}
+
+.nt-status-card > small {
+  color: #8fa3b8;
+}
+
+.nt-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  border: 1px solid rgba(148,163,184,.22);
+  background: rgba(15,23,42,.8);
+  color: #cbd5e1;
+}
+
+.nt-status-active { color: #86efac; border-color: rgba(34,197,94,.35); background: rgba(22,101,52,.18); }
+.nt-status-renewal_required { color: #fde68a; border-color: rgba(245,158,11,.38); background: rgba(146,64,14,.18); }
+.nt-status-suspended { color: #fca5a5; border-color: rgba(239,68,68,.36); background: rgba(127,29,29,.2); }
+.nt-status-activation_funding { color: #93c5fd; border-color: rgba(59,130,246,.35); background: rgba(30,64,175,.18); }
+
+.nt-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 18px;
+}
+
+.nt-tabs button {
+  border: 1px solid rgba(148,163,184,.16);
+  background: rgba(15,23,42,.56);
+  color: #94a3b8;
+  border-radius: 9px;
+  padding: 9px 14px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.nt-tabs button.active {
+  color: #f8fafc;
+  border-color: rgba(59,130,246,.45);
+  background: rgba(37,99,235,.16);
+}
+
+.nt-alert {
+  border-radius: 10px;
+  padding: 11px 13px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.nt-alert-error { color: #fecaca; background: rgba(127,29,29,.24); border: 1px solid rgba(239,68,68,.28); }
+.nt-alert-success { color: #bbf7d0; background: rgba(20,83,45,.22); border: 1px solid rgba(34,197,94,.25); }
+
+.nt-overview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, .95fr);
+  gap: 16px;
+}
+
+.nt-hero-card,
+.nt-rules-card {
+  grid-column: 1;
+}
+
+.nt-fund-card,
+.nt-contribution-history {
+  grid-column: 2;
+}
+
+.nt-hero-card header,
+.nt-fund-card header,
+.nt-rules-card header,
+.nt-contribution-history header,
+.nt-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.nt-hero-card header span,
+.nt-fund-card header span,
+.nt-rules-card header span,
+.nt-contribution-history header span,
+.nt-section-header span,
+.nt-election-rules > span {
+  display: block;
+  color: #60a5fa;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+
+.nt-hero-card h3,
+.nt-fund-card h3,
+.nt-rules-card h3,
+.nt-contribution-history h3,
+.nt-section-header h3,
+.nt-election-rules h3 {
+  margin: 4px 0 0;
+  color: #f8fafc;
+  font-size: 18px;
+}
+
+.nt-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.nt-metric-grid > div,
+.nt-fund-summary > div,
+.nt-election-meta > div {
+  border: 1px solid rgba(148,163,184,.12);
+  background: rgba(15,23,42,.45);
+  border-radius: 10px;
+  padding: 12px;
+  display: grid;
+  gap: 4px;
+}
+
+.nt-metric-grid span,
+.nt-fund-summary span,
+.nt-election-meta span {
+  color: #8fa3b8;
+  font-size: 11px;
+}
+
+.nt-metric-grid strong,
+.nt-fund-summary strong,
+.nt-election-meta strong {
+  color: #f8fafc;
+  font-size: 14px;
+}
+
+.nt-metric-grid small { color: #64748b; font-size: 11px; }
+
+.nt-progress {
+  height: 9px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(30,41,59,.95);
+  border: 1px solid rgba(148,163,184,.1);
+  margin-bottom: 14px;
+}
+
+.nt-progress span {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2563eb, #38bdf8);
+}
+
+.nt-requirements {
+  display: grid;
+  gap: 8px;
+}
+
+.nt-requirements > div {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+  padding: 9px 10px;
+  border-radius: 9px;
+  background: rgba(15,23,42,.4);
+}
+
+.nt-requirements > div.done { color: #86efac; }
+.nt-requirements strong { color: inherit; font-size: 12px; }
+
+.nt-rule-note {
+  color: #8293a8;
+  line-height: 1.55;
+  font-size: 12px;
+  margin: 14px 0 0;
+}
+
+.nt-contribution-box {
+  margin-top: 15px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(148,163,184,.12);
+  display: grid;
+  gap: 10px;
+}
+
+.nt-wallet {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.nt-wallet strong { color: #f8fafc; }
+
+.nt-quick-coins {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+
+.nt-quick-coins button,
+.nt-custom-contribution button,
+.nt-manifesto-box button,
+.nt-candidates button {
+  border: 1px solid rgba(59,130,246,.36);
+  background: rgba(37,99,235,.18);
+  color: #bfdbfe;
+  border-radius: 8px;
+  padding: 8px 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.nt-quick-coins button:disabled,
+.nt-custom-contribution button:disabled,
+.nt-manifesto-box button:disabled,
+.nt-candidates button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.nt-custom-contribution {
+  display: grid;
+  grid-template-columns: minmax(80px, .45fr) 1fr;
+  gap: 8px;
+}
+
+.nt-custom-contribution input,
+.nt-manifesto-box textarea {
+  border: 1px solid rgba(148,163,184,.2);
+  background: rgba(2,6,23,.45);
+  color: #f8fafc;
+  border-radius: 8px;
+  padding: 9px 10px;
+  outline: none;
+}
+
+.nt-custom-contribution small,
+.nt-contribution-box > small {
+  color: #64748b;
+  font-size: 10px;
+}
+
+.nt-waiting,
+.nt-placeholder {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #9fb0c3;
+  background: rgba(15,23,42,.42);
+  border: 1px dashed rgba(148,163,184,.18);
+  border-radius: 10px;
+  padding: 13px;
+  line-height: 1.5;
+}
+
+.nt-placeholder div { display: grid; gap: 3px; }
+.nt-placeholder strong { color: #e2e8f0; }
+.nt-placeholder span { color: #8293a8; font-size: 12px; }
+
+.nt-fund-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 8px;
+}
+
+.nt-rule-list {
+  display: grid;
+  gap: 9px;
+}
+
+.nt-rule-list > div {
+  padding: 11px 12px;
+  border-radius: 9px;
+  background: rgba(15,23,42,.42);
+  display: grid;
+  gap: 3px;
+}
+
+.nt-rule-list strong { color: #e2e8f0; font-size: 13px; }
+.nt-rule-list span { color: #8293a8; font-size: 12px; }
+
+.nt-contribution-history {
+  align-content: start;
+}
+
+.nt-big-number {
+  display: block;
+  color: #f8fafc;
+  font-size: 34px;
+  line-height: 1;
+  margin: 10px 0 6px;
+}
+
+.nt-contribution-history > span { color: #94a3b8; font-size: 12px; }
+.nt-contribution-history > small { color: #64748b; font-size: 11px; display: block; margin-top: 10px; }
+
+.nt-members-panel,
+.nt-history-panel {
+  min-height: 340px;
+}
+
+.nt-section-copy {
+  color: #8293a8;
+  font-size: 13px;
+  line-height: 1.55;
+  margin: -5px 0 16px;
+}
+
+.nt-roster {
+  display: grid;
+}
+
+.nt-roster-head,
+.nt-roster-row {
+  display: grid;
+  grid-template-columns: 1.4fr .8fr .7fr;
+  gap: 12px;
+  align-items: center;
+  padding: 11px 12px;
+}
+
+.nt-roster-head {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(148,163,184,.12);
+}
+
+.nt-roster-row {
+  color: #94a3b8;
+  border-bottom: 1px solid rgba(148,163,184,.08);
+  font-size: 12px;
+}
+
+.nt-roster-row strong { color: #e2e8f0; font-size: 13px; }
+
+.nt-election-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, .6fr);
+  gap: 16px;
+}
+
+.nt-election-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.nt-manifesto-box {
+  display: grid;
+  gap: 8px;
+  padding: 13px;
+  border-radius: 10px;
+  background: rgba(15,23,42,.45);
+  border: 1px solid rgba(148,163,184,.12);
+  margin-bottom: 14px;
+}
+
+.nt-manifesto-box label { color: #e2e8f0; font-size: 12px; font-weight: 800; }
+.nt-manifesto-box textarea { min-height: 105px; resize: vertical; }
+.nt-manifesto-box > div { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.nt-manifesto-box small { color: #64748b; }
+
+.nt-candidates {
+  display: grid;
+  gap: 10px;
+}
+
+.nt-candidates article {
+  border: 1px solid rgba(148,163,184,.13);
+  background: rgba(15,23,42,.4);
+  border-radius: 11px;
+  padding: 13px;
+}
+
+.nt-candidates article.winner {
+  border-color: rgba(245,158,11,.32);
+  background: rgba(120,53,15,.12);
+}
+
+.nt-candidates article header,
+.nt-candidates article footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nt-candidates article header > div { display: grid; gap: 3px; }
+.nt-candidates article header span { color: #60a5fa; font-size: 9px; font-weight: 900; letter-spacing: .12em; }
+.nt-candidates article header strong { color: #f8fafc; }
+.nt-candidates article p { color: #a7b4c5; line-height: 1.55; font-size: 12px; margin: 10px 0 12px; }
+.nt-candidates article footer span { color: #94a3b8; font-size: 11px; }
+.nt-candidates article footer strong { color: #86efac; font-size: 11px; }
+
+.nt-election-rules ul {
+  margin: 14px 0 0;
+  padding-left: 18px;
+  color: #94a3b8;
+  display: grid;
+  gap: 9px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.nt-history-list {
+  display: grid;
+}
+
+.nt-history-list article {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 11px;
+  padding: 11px 2px;
+  border-bottom: 1px solid rgba(148,163,184,.08);
+}
+
+.nt-history-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #3b82f6;
+  margin-top: 5px;
+  box-shadow: 0 0 0 4px rgba(59,130,246,.12);
+}
+
+.nt-history-list article > div:last-child { display: grid; gap: 3px; }
+.nt-history-list strong { color: #e2e8f0; font-size: 13px; }
+.nt-history-list span { color: #64748b; font-size: 11px; }
+
+.nt-loading,
+.nt-empty {
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.nt-empty h2 { color: #f8fafc; margin: 4px 0 0; }
+.nt-empty p { max-width: 520px; margin: 0; color: #8293a8; }
+
+.nt-spin { animation: nt-spin 1s linear infinite; }
+
+@keyframes nt-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 1000px) {
+  .nt-overview-grid,
+  .nt-election-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nt-hero-card,
+  .nt-rules-card,
+  .nt-fund-card,
+  .nt-contribution-history {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .nt-page-head {
+    flex-direction: column;
+  }
+
+  .nt-status-card {
+    justify-items: start;
+    min-width: 0;
+  }
+
+  .nt-metric-grid,
+  .nt-fund-summary,
+  .nt-election-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .nt-roster-head {
+    display: none;
+  }
+
+  .nt-roster-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 12px 2px;
+  }
+
+  .nt-custom-contribution {
+    grid-template-columns: 1fr;
+  }
+}
