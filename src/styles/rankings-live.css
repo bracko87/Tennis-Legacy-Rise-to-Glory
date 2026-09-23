@@ -246,3 +246,48 @@
     text-align:left;
   }
 }
+
+
+.tlg-ranking-discipline-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.62);
+}
+
+.tlg-ranking-discipline-tabs button {
+  appearance: none;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #94a3b8;
+  font: inherit;
+  font-weight: 700;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.tlg-ranking-discipline-tabs button:hover {
+  color: #e2e8f0;
+  background: rgba(148, 163, 184, 0.1);
+}
+
+.tlg-ranking-discipline-tabs button.active {
+  color: #ecfdf5;
+  background: rgba(16, 185, 129, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.3);
+}
+
+@media (max-width: 720px) {
+  .tlg-ranking-discipline-tabs {
+    width: 100%;
+  }
+
+  .tlg-ranking-discipline-tabs button {
+    flex: 1;
+  }
+}
