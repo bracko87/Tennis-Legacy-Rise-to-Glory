@@ -827,8 +827,9 @@ export default function TournamentDoublesPage() {
           </header>
 
           <p className="tlg-doubles-market-note">
-            Only players who explicitly pressed “Look for a Partner” for {tournament.name} appear here.
-            Listings never carry over to another tournament.
+            Human managers appear here only after choosing “Look for a Partner” for {tournament.name}.
+            AI candidates are selected only from players already applied to or entered in this same singles tournament,
+            with qualifying and lower-ranked entrants receiving priority. Listings never carry over to another event.
           </p>
 
           {hub.marketplace.length === 0 ? (
