@@ -978,3 +978,40 @@
     border-bottom: 0;
   }
 }
+
+
+/* Shared Finance Center-style tournament discipline switch. */
+.tlg-detail-page {
+  position: relative;
+}
+
+.tlg-tournament-discipline-tabs.tlg-standard-tabs {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  z-index: 4 !important;
+  width: auto !important;
+  margin: 0 !important;
+}
+
+.tlg-tournament-discipline-tabs.tlg-standard-tabs a {
+  min-width: 0 !important;
+}
+
+.tlg-doubles-entry-summary {
+  border-bottom: 0 !important;
+}
+
+@media (max-width: 900px) {
+  .tlg-tournament-discipline-tabs.tlg-standard-tabs {
+    position: static !important;
+    margin: 0 0 10px auto !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .tlg-tournament-discipline-tabs.tlg-standard-tabs {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+}
