@@ -310,6 +310,17 @@ function teamName(
   return `${playerName(first1, last1)} / ${playerName(first2, last2)}`
 }
 
+function doublesPhaseIndex(phase: DoublesTimeline['phase']) {
+  const order: Record<DoublesTimeline['phase'], number> = {
+    not_open: 0,
+    marketplace_open: 1,
+    partnership_resolution: 2,
+    entry_locked: 3,
+    draw_locked: 4,
+  }
+  return order[phase] ?? 0
+}
+
 function statusLabel(status: string) {
   const labels: Record<string, string> = {
     available: 'Available for doubles',
@@ -504,6 +515,16 @@ export default function TournamentDoublesPage() {
   const hasLiveTeam = hub.my_team && ['confirmed', 'active', 'alternate'].includes(hub.my_team.status)
   const canList = timeline.can_create_listing && hub.availability.available && !hasLiveTeam
   const canInvite = timeline.can_send_invitation && hub.availability.available && !hasLiveTeam
+  const surface = detail?.surface ?? (
+    ['hard', 'clay', 'grass'].includes(tournament.surface.toLowerCase())
+      ? tournament.surface.toLowerCase() as 'hard' | 'clay' | 'grass'
+      : 'hard'
+  )
+  const environment = detail?.environment ?? 'outdoor'
+  const countryName = detail?.country_name ?? tournament.country_code
+  const categoryLabel = detail?.category_label ?? tournament.category_code.replaceAll('_', ' ')
+  const seasonNumber = detail?.season_number ?? timeline.tournament_start.season
+  const entryPhaseIndex = doublesPhaseIndex(timeline.phase)
 
   return (
     <GameLayout title={`${tournament.name} Doubles`} subtitle={`${tournament.world} · ${tournament.city} · ${tournament.surface} doubles`}>
