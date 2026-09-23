@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   Clock3,
   Hourglass,
+  MapPin,
   Send,
   Trophy,
   UserMinus,
@@ -18,11 +19,56 @@ import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
 import DoublesMatchTacticPanel from '../../components/tournament/DoublesMatchTacticPanel'
 import GameLayout from '../../components/layout/GameLayout'
-import { MONTHS } from '../../lib/competitionCalendar'
+import {
+  MONTHS,
+  formatCompetitionWeekDay,
+  formatCompetitionWeekRange,
+} from '../../lib/competitionCalendar'
 import { supabase } from '../../lib/supabase'
 import '../../styles/tournament-detail.css'
+import '../../styles/tournament-detail-schedule.css'
 import '../../styles/tournament-detail-v2.css'
+import '../../styles/tournament-logo.css'
 import '../../styles/tournament-doubles.css'
+
+
+const SURFACE_IMAGES: Record<'hard' | 'clay' | 'grass', string> = {
+  hard: 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/hard.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9oYXJkLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODgxODM3MTgsImV4cCI6NDkxMDI0NzcxOH0.A8nFMfrv24zncDCqjuE5PihskAwMLdak04-Qz64_2ksvFiHfzDpunlMMdcGqy9IDh-qPQCfoFe5HP0Hu9pcfow',
+  grass: 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/grass.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9ncmFzcy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg4MTgzNzM2LCJleHAiOjQ5MTAyNDc3MzZ9.wENm_84C6GKo4fyTBxTsJ04OiNa8SZwLrEIxACdxJQN5D8EQDd6WhiRVDUbM5pwqQPgrovW009ULGRV92alrOQ',
+  clay: 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/clay.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9jbGF5LnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODgxODM3NTUsImV4cCI6NDkxMDI0Nzc1NX0.8AJ27KTGHBvo0Sf4xnNqHv8KXY9Sh2lVo7Fi1mbjtPY_Wi7_hqAVkFkC8GfiYbhN5mS3d4QI03HWyQ5wT9PVpA',
+}
+
+
+interface TournamentScheduleSlot {
+  season_week: number
+  calendar_month: number
+  month_week: number
+  phase: 'full' | 'qualification' | 'main_draw'
+  slot_order: number
+}
+
+interface TournamentDetailRow {
+  competition_id: string
+  world: 'ATP' | 'WTA'
+  season_number: number
+  tournament_name: string
+  city: string
+  country_code: string
+  country_name: string
+  category_code: string
+  category_label: string
+  surface: 'hard' | 'clay' | 'grass'
+  environment: 'indoor' | 'outdoor'
+  logo_url: string | null
+  schedule_slots: TournamentScheduleSlot[]
+}
+
+interface DoublesDayPlan {
+  day: number
+  date: string
+  activity: string
+  kind: 'main' | 'preparation'
+}
 
 interface GameMoment {
   season: number
@@ -195,6 +241,50 @@ interface DoublesDrawMatch {
   winner_team_id: string | null
 }
 
+
+function titleCase(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
+function tournamentInitials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 3)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('')
+}
+
+function phaseLabel(phase: TournamentScheduleSlot['phase']) {
+  if (phase === 'qualification') return 'Qualification'
+  if (phase === 'main_draw') return 'Main Draw'
+  return 'Tournament Week'
+}
+
+function buildDoublesDayPlan(slot: TournamentScheduleSlot, draw: DoublesDrawMatch[]): DoublesDayPlan[] {
+  return Array.from({ length: 7 }, (_, index) => {
+    const day = index + 1
+    const matches = draw.filter((match) =>
+      match.scheduled_season_week === slot.season_week
+      && match.scheduled_day === day
+      && match.match_status !== 'cancelled'
+    )
+    const rounds = Array.from(new Set(matches.map((match) => match.round_label).filter(Boolean)))
+    const activity = rounds.length > 0
+      ? rounds.join(' / ')
+      : slot.phase === 'qualification'
+        ? 'Partner marketplace / tournament qualifying'
+        : 'Doubles match window / recovery'
+
+    return {
+      day,
+      date: formatCompetitionWeekDay(slot.season_week, day),
+      activity,
+      kind: matches.length > 0 ? 'main' : 'preparation',
+    }
+  })
+}
+
 function formatMoney(value: number | null | undefined) {
   return `$${Math.round(Number(value) || 0).toLocaleString()}`
 }
@@ -277,6 +367,7 @@ export default function TournamentDoublesPage() {
   const { competitionId } = useParams()
   const { player } = useAuth()
   const [hub, setHub] = useState<DoublesHub | null>(null)
+  const [detail, setDetail] = useState<TournamentDetailRow | null>(null)
   const [draw, setDraw] = useState<DoublesDrawMatch[]>([])
   const [loading, setLoading] = useState(true)
   const [busyKey, setBusyKey] = useState<string | null>(null)
@@ -285,19 +376,23 @@ export default function TournamentDoublesPage() {
   const load = useCallback(async () => {
     if (!competitionId) return
 
-    const [hubResponse, drawResponse] = await Promise.all([
+    const [hubResponse, drawResponse, detailResponse] = await Promise.all([
       supabase.rpc('get_tournament_doubles_hub_v1', { p_competition_id: competitionId }),
       supabase.rpc('get_tournament_doubles_draw_v1', { p_competition_id: competitionId }),
+      supabase.rpc('get_tournament_detail_v1', { p_competition_id: competitionId }),
     ])
 
     if (hubResponse.error) {
       setError(hubResponse.error.message)
       setHub(null)
+      setDetail(null)
       setDraw([])
     } else {
       setError(null)
       setHub(hubResponse.data as DoublesHub)
       setDraw(drawResponse.error ? [] : ((drawResponse.data ?? []) as DoublesDrawMatch[]))
+      const detailRow = Array.isArray(detailResponse.data) ? detailResponse.data[0] : detailResponse.data
+      setDetail(detailResponse.error || !detailRow ? null : (detailRow as TournamentDetailRow))
     }
 
     setLoading(false)
