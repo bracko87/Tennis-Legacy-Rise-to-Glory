@@ -29,6 +29,7 @@ import '../../styles/tournament-detail.css'
 import '../../styles/tournament-detail-schedule.css'
 import '../../styles/tournament-detail-v2.css'
 import '../../styles/tournament-doubles.css'
+import '../../styles/shared-segmented-tabs.css'
 import '../../styles/tournament-rewards-live.css'
 
 const SURFACE_IMAGES: Record<'hard' | 'clay' | 'grass', string> = {
@@ -639,7 +640,7 @@ export default function TournamentPage() {
           <ArrowLeft size={15} /> Back to Tournament Calendar
         </Link>
 
-        <nav className="tlg-tournament-discipline-tabs" aria-label="Tournament competition">
+        <nav className="tlg-tournament-discipline-tabs tlg-standard-tabs" aria-label="Tournament competition">
           <Link to={`/game/tournaments/${competitionId}`} className="active" aria-current="page">Singles</Link>
           {doublesCore?.enabled && <Link to={`/game/tournaments/${competitionId}/doubles`}>Doubles</Link>}
         </nav>
