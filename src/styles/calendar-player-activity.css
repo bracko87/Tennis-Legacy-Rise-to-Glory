@@ -240,3 +240,12 @@
 .tlg-calendar-day:has(.tlg-calendar-player-activities .tlg-calendar-player-activity:nth-child(2)) {
   min-height: 124px;
 }
+
+
+.tlg-calendar-day:has(.tlg-calendar-player-activities .tlg-calendar-player-activity:nth-child(3)) {
+  min-height: 160px;
+}
+
+.tlg-calendar-day:has(.tlg-calendar-player-activities .tlg-calendar-player-activity:nth-child(4)) {
+  min-height: 196px;
+}
