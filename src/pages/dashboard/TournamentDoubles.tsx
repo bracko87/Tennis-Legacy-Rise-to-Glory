@@ -14,7 +14,9 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router'
 
+import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
+import DoublesMatchTacticPanel from '../../components/tournament/DoublesMatchTacticPanel'
 import GameLayout from '../../components/layout/GameLayout'
 import { MONTHS } from '../../lib/competitionCalendar'
 import { supabase } from '../../lib/supabase'
@@ -176,12 +178,18 @@ interface DoublesDrawMatch {
   scheduled_start_minute: number | null
   court_number: number | null
   match_status: string
+  team1_id: string | null
+  team1_player1_id: string | null
   team1_player1_first_name: string | null
   team1_player1_last_name: string | null
+  team1_player2_id: string | null
   team1_player2_first_name: string | null
   team1_player2_last_name: string | null
+  team2_id: string | null
+  team2_player1_id: string | null
   team2_player1_first_name: string | null
   team2_player1_last_name: string | null
+  team2_player2_id: string | null
   team2_player2_first_name: string | null
   team2_player2_last_name: string | null
   winner_team_id: string | null
@@ -244,8 +252,30 @@ function rankLabel(rank: number | null, points: number) {
   return rank ? `#${rank} · ${points.toLocaleString()} pts` : `Unranked · ${points.toLocaleString()} pts`
 }
 
+
+function isPlayerInDoublesMatch(match: DoublesDrawMatch, playerId: string | null | undefined) {
+  if (!playerId) return false
+  return [
+    match.team1_player1_id,
+    match.team1_player2_id,
+    match.team2_player1_id,
+    match.team2_player2_id,
+  ].includes(playerId)
+}
+
+function doublesScheduleLabel(match: DoublesDrawMatch) {
+  if (match.scheduled_start_minute == null) {
+    return match.match_status === 'bye' ? 'Bye' : 'Time TBD'
+  }
+  const hour = String(Math.floor(match.scheduled_start_minute / 60)).padStart(2, '0')
+  const minute = String(match.scheduled_start_minute % 60).padStart(2, '0')
+  const court = match.court_number ? ' · Court ' + match.court_number : ''
+  return 'Week ' + match.scheduled_season_week + ' · Day ' + match.scheduled_day + ' · ' + hour + ':' + minute + court
+}
+
 export default function TournamentDoublesPage() {
   const { competitionId } = useParams()
+  const { player } = useAuth()
   const [hub, setHub] = useState<DoublesHub | null>(null)
   const [draw, setDraw] = useState<DoublesDrawMatch[]>([])
   const [loading, setLoading] = useState(true)
@@ -641,21 +671,26 @@ export default function TournamentDoublesPage() {
               <Trophy size={18} />
             </header>
             <div className="tlg-doubles-draw-list">
-              {draw.map((match) => (
-                <article key={match.match_id} className={`tlg-doubles-draw-match status-${match.match_status}`}>
-                  <div>
-                    <span>{match.round_label} · Match #{match.match_number}</span>
-                    <strong>{teamName(match.team1_player1_first_name,match.team1_player1_last_name,match.team1_player2_first_name,match.team1_player2_last_name)}</strong>
-                    <b>vs</b>
-                    <strong>{teamName(match.team2_player1_first_name,match.team2_player1_last_name,match.team2_player2_first_name,match.team2_player2_last_name)}</strong>
+              {draw.map((match) => {
+                const isOwnMatch = isPlayerInDoublesMatch(match, player?.id)
+
+                return (
+                  <div key={match.match_id} className={'tlg-doubles-draw-match-block' + (isOwnMatch ? ' is-own-match' : '')}>
+                    <article className={'tlg-doubles-draw-match status-' + match.match_status}>
+                      <div>
+                        <span>{match.round_label} · Match #{match.match_number}{isOwnMatch ? ' · Your match' : ''}</span>
+                        <strong>{teamName(match.team1_player1_first_name,match.team1_player1_last_name,match.team1_player2_first_name,match.team1_player2_last_name)}</strong>
+                        <b>vs</b>
+                        <strong>{teamName(match.team2_player1_first_name,match.team2_player1_last_name,match.team2_player2_first_name,match.team2_player2_last_name)}</strong>
+                      </div>
+                      <small>{doublesScheduleLabel(match)}</small>
+                    </article>
+                    {isOwnMatch && player?.id && match.match_status !== 'bye' && match.match_status !== 'cancelled' && (
+                      <DoublesMatchTacticPanel matchId={match.match_id} currentPlayerId={player.id} />
+                    )}
                   </div>
-                  <small>
-                    {match.scheduled_start_minute == null
-                      ? match.match_status === 'bye' ? 'Bye' : 'Time TBD'
-                      : `Week ${match.scheduled_season_week} · Day ${match.scheduled_day} · ${String(Math.floor(match.scheduled_start_minute / 60)).padStart(2,'0')}:${String(match.scheduled_start_minute % 60).padStart(2,'0')}${match.court_number ? ` · Court ${match.court_number}` : ''}`}
-                  </small>
-                </article>
-              ))}
+                )
+              })}
             </div>
           </section>
         )}
