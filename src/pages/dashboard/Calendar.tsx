@@ -269,9 +269,35 @@ function SeasonCalendarView() {
           const openingDay = isSeasonOpeningDay(monthIndex, day)
           const dayActivities = activityByDay.get(day) ?? []
           const primaryActivity = dayActivities[0] ?? null
+          const primaryAbsoluteDay = primaryActivity
+            ? absoluteGameDay(primaryActivity.season, primaryActivity.month - 1, primaryActivity.day)
+            : null
+          const primaryCompleted = primaryActivity?.activity_type === 'tournament'
+            && (
+              primaryActivity.source === 'tournament_completed'
+              || primaryActivity.source === 'doubles_tournament_completed'
+              || (primaryAbsoluteDay !== null && primaryAbsoluteDay < todayAbsoluteDay)
+            )
+          const primaryAccepted = primaryActivity?.activity_type === 'tournament'
+            && (primaryActivity.source === 'tournament_accepted' || primaryActivity.source === 'doubles_tournament_accepted')
+          const primaryPredicted = primaryActivity?.activity_type === 'tournament'
+            && (primaryActivity.source === 'tournament_predicted' || primaryActivity.source === 'doubles_tournament_predicted')
+          const primaryConfirmed = primaryActivity?.activity_type === 'tournament'
+            && !primaryCompleted && !primaryAccepted && !primaryPredicted
+          const primaryTournamentState = primaryCompleted
+            ? 'completed'
+            : primaryAccepted
+              ? 'accepted'
+              : primaryPredicted
+                ? 'predicted'
+                : primaryConfirmed
+                  ? 'confirmed'
+                  : ''
+
           const classes = ['tlg-calendar-day']
           if (current) classes.push('tlg-calendar-day-current')
           if (primaryActivity) classes.push(`tlg-calendar-day-${primaryActivity.activity_type}`)
+          if (primaryTournamentState) classes.push(`tlg-calendar-day-tournament-${primaryTournamentState}`)
 
           return (
             <div key={`${month.name}-${day}`} className={classes.join(' ')}>
