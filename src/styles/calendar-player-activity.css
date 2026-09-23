@@ -224,3 +224,19 @@
     width: 100%;
   }
 }
+
+
+/* Multiple competition disciplines can coexist on the same calendar day. */
+.tlg-calendar-player-activities {
+  display: grid;
+  gap: 2px;
+}
+
+.tlg-calendar-player-activities .tlg-calendar-player-activity + .tlg-calendar-player-activity {
+  border-top: 1px solid rgba(126,149,165,.18);
+  padding-top: 5px;
+}
+
+.tlg-calendar-day:has(.tlg-calendar-player-activities .tlg-calendar-player-activity:nth-child(2)) {
+  min-height: 124px;
+}
