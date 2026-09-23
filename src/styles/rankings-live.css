@@ -291,3 +291,26 @@
     flex: 1;
   }
 }
+
+
+.tlg-ranking-page-head-with-tabs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 28px;
+}
+
+.tlg-ranking-page-head-with-tabs .tlg-ranking-discipline-tabs {
+  justify-self: end;
+  align-self: start;
+}
+
+@media (max-width: 900px) {
+  .tlg-ranking-page-head-with-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .tlg-ranking-page-head-with-tabs .tlg-ranking-discipline-tabs {
+    justify-self: start;
+  }
+}
