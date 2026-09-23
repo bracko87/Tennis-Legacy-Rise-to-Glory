@@ -11,6 +11,7 @@ import {
   useTraining,
 } from '../../hooks/useTraining'
 import '../../styles/training.css'
+import '../../styles/shared-segmented-tabs.css'
 import '../../styles/training-weekly-planner.css'
 import '../../styles/training-history.css'
 
@@ -170,7 +171,7 @@ export default function TrainingPage() {
           )}
         </section>
 
-        <div className="tlg-training-main-tabs" role="tablist" aria-label="Training areas">
+        <div className="tlg-training-main-tabs tlg-standard-tabs" role="tablist" aria-label="Training areas">
           <button type="button" className={view === 'regular' ? 'active' : ''} onClick={() => setView('regular')}>Regular Training</button>
           <button type="button" className={view === 'camps' ? 'active' : ''} onClick={() => setView('camps')}>Training Camps</button>
         </div>
