@@ -22,6 +22,7 @@ import {
 import { supabase } from '../../lib/supabase'
 import '../../styles/tournament-calendar.css'
 import '../../styles/calendar-player-activity.css'
+import '../../styles/national-team.css'
 import '../../styles/tournament-status.css'
 
 const TOURNAMENT_RETURN_STORAGE_KEY = 'tlg-tournament-calendar-return'
@@ -70,6 +71,22 @@ interface SponsorTournamentObjective {
   status: 'upcoming' | 'active' | 'completed' | 'failed' | 'expired'
 }
 
+interface NationalTeamCalendarWindow {
+  window_id: string
+  window_code: string
+  label: string
+  season_week: number
+  start_absolute_day: number
+  end_absolute_day: number
+  announcement_absolute_day: number
+  status: string
+  my_fixture_id: string | null
+  opponent_name: string | null
+  opponent_country_code: string | null
+  host_city: string | null
+  host_country_code: string | null
+}
+
 interface TournamentReturnPosition {
   month: number
   week: number
@@ -79,7 +96,7 @@ interface PlayerCalendarActivityRow {
   season: number
   month: number
   day: number
-  activity_type: 'travel' | 'tournament' | 'training_camp' | 'injured' | 'home'
+  activity_type: 'travel' | 'tournament' | 'national_team' | 'training_camp' | 'injured' | 'home'
   source: string | null
   note: string | null
   reference_id: string | null
@@ -135,6 +152,7 @@ function phaseLabel(phase: TournamentCalendarRow['phase']) {
 function playerActivityLabel(activity: PlayerCalendarActivityRow['activity_type']) {
   if (activity === 'training_camp') return 'Training Camp'
   if (activity === 'tournament') return 'Tournament'
+  if (activity === 'national_team') return 'National Team'
   if (activity === 'travel') return 'Travel'
   if (activity === 'injured') return 'Health / Recovery'
   return 'Home'
@@ -142,6 +160,7 @@ function playerActivityLabel(activity: PlayerCalendarActivityRow['activity_type'
 
 function playerActivityPriority(activity: PlayerCalendarActivityRow) {
   if (activity.activity_type === 'injured') return 1
+  if (activity.activity_type === 'national_team') return 2
   if (activity.activity_type === 'tournament' && activity.source === 'tournament_accepted') return 8
   if (activity.activity_type === 'tournament' && activity.source !== 'tournament_predicted') return 2
   if (activity.activity_type === 'travel') return 3
@@ -172,12 +191,33 @@ function SeasonCalendarView() {
   const clock = useGameClock()
   const [monthIndex, setMonthIndex] = useState(0)
   const [activities, setActivities] = useState<PlayerCalendarActivityRow[]>([])
+  const [nationalWindows, setNationalWindows] = useState<NationalTeamCalendarWindow[]>([])
   const [activityError, setActivityError] = useState<string | null>(null)
   const [activityVersion, setActivityVersion] = useState(0)
 
   useEffect(() => {
     if (!clock.loading) setMonthIndex(clock.monthIndex)
   }, [clock.loading, clock.monthIndex])
+
+  useEffect(() => {
+    if (!player?.id || clock.loading) {
+      setNationalWindows([])
+      return
+    }
+
+    let cancelled = false
+    async function loadNationalWindows() {
+      const { data, error } = await supabase.rpc('get_national_team_calendar_windows_v1', {
+        p_season_number: clock.season,
+        p_world: player.world,
+      })
+      if (cancelled) return
+      setNationalWindows(error ? [] : ((data ?? []) as NationalTeamCalendarWindow[]))
+    }
+
+    void loadNationalWindows()
+    return () => { cancelled = true }
+  }, [player?.id, player?.world, clock.loading, clock.season])
 
   useEffect(() => {
     if (!player?.id || clock.loading) {
@@ -268,6 +308,10 @@ function SeasonCalendarView() {
           const current = monthIndex === clock.monthIndex && day === clock.day
           const openingDay = isSeasonOpeningDay(monthIndex, day)
           const dayActivities = activityByDay.get(day) ?? []
+          const cellAbsoluteDay = absoluteGameDay(clock.season, monthIndex, day)
+          const nationalWindow = nationalWindows.find((window) =>
+            window.start_absolute_day <= cellAbsoluteDay && window.end_absolute_day >= cellAbsoluteDay
+          ) ?? null
           const primaryActivity = dayActivities[0] ?? null
           const primaryAbsoluteDay = primaryActivity
             ? absoluteGameDay(primaryActivity.season, primaryActivity.month - 1, primaryActivity.day)
@@ -297,6 +341,7 @@ function SeasonCalendarView() {
           const classes = ['tlg-calendar-day']
           if (current) classes.push('tlg-calendar-day-current')
           if (primaryActivity) classes.push(`tlg-calendar-day-${primaryActivity.activity_type}`)
+          if (nationalWindow) classes.push('tlg-calendar-day-national-window')
           if (primaryTournamentState) classes.push(`tlg-calendar-day-tournament-${primaryTournamentState}`)
 
           return (
@@ -304,6 +349,13 @@ function SeasonCalendarView() {
               <span className="tlg-calendar-day-number">{month.name} {day}</span>
               {current && <span className="tlg-calendar-today-badge">Today</span>}
               {openingDay && !current && <span className="tlg-calendar-today-badge">Season opening</span>}
+              {nationalWindow && (
+                <Link className="tlg-calendar-national-window" to="/game/national-team">
+                  <span>{nationalWindow.my_fixture_id ? 'National Team Fixture' : 'National Team Window'}</span>
+                  <strong>{nationalWindow.opponent_name ? `vs ${nationalWindow.opponent_name}` : nationalWindow.label}</strong>
+                  <small>{nationalWindow.host_city ? `${nationalWindow.host_city}, ${nationalWindow.host_country_code ?? ''}` : `Season Week ${nationalWindow.season_week}`}</small>
+                </Link>
+              )}
               {dayActivities.length > 0 && (
                 <div className="tlg-calendar-player-activities">
                   {dayActivities.slice(0, 4).map((activity, activityIndex) => {

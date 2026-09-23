@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
+import NationalTeamCompetition from '../../components/national-team/NationalTeamCompetition'
 import { useCommerce } from '../../hooks/useCommerce'
 import { supabase } from '../../lib/supabase'
 import '../../styles/national-team.css'
@@ -139,7 +140,7 @@ interface NationalAssociationSnapshot {
   }
 }
 
-type PageTab = 'overview' | 'members' | 'elections' | 'history'
+type PageTab = 'overview' | 'competition' | 'members' | 'elections' | 'history'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -346,6 +347,7 @@ export default function NationalTeamPage() {
       <div className="nt-tabs" role="tablist" aria-label="National association sections">
         {([
           ['overview', 'Overview'],
+          ['competition', 'Competition'],
           ['members', `Members (${association.member_count})`],
           ['elections', 'Elections'],
           ['history', 'History'],
@@ -509,6 +511,8 @@ export default function NationalTeamPage() {
           </section>
         </div>
       )}
+
+      {tab === 'competition' && <NationalTeamCompetition />}
 
       {tab === 'members' && (
         <section className="tlg-v2-panel nt-members-panel">
