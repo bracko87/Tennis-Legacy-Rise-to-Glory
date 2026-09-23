@@ -1,31 +1,31 @@
 .tlg-standard-tabs {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 4px !important;
+  gap: 5px !important;
   width: max-content !important;
-  padding: 4px !important;
-  border: 1px solid #d8e1eb !important;
-  border-radius: 10px !important;
+  padding: 5px !important;
+  border: 1px solid #dce6ed !important;
+  border-radius: 11px !important;
   background: #fff !important;
-  box-shadow: 0 4px 12px rgba(28,49,73,.045) !important;
+  box-shadow: none !important;
 }
 
 .tlg-standard-tabs button,
 .tlg-standard-tabs a,
 .tlg-standard-tabs.tlg-module-tabs-top .tlg-module-tab {
-  min-height: 34px !important;
+  min-height: 38px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: 0 14px !important;
+  padding: 0 17px !important;
   border: 0 !important;
-  border-radius: 7px !important;
+  border-radius: 8px !important;
+  color: #61798c !important;
   background: transparent !important;
-  color: #66758a !important;
   box-shadow: none !important;
   font-family: inherit !important;
-  font-size: .72rem !important;
-  font-weight: 750 !important;
+  font-size: .74rem !important;
+  font-weight: 760 !important;
   line-height: 1 !important;
   text-decoration: none !important;
   white-space: nowrap !important;
@@ -37,18 +37,17 @@
 .tlg-standard-tabs a.active,
 .tlg-standard-tabs a[aria-current="page"],
 .tlg-standard-tabs.tlg-module-tabs-top .tlg-module-tab-active {
-  color: #fff !important;
-  background: #172c4e !important;
+  color: #076db5 !important;
+  background: #eaf5fc !important;
   border-color: transparent !important;
-  box-shadow: none !important;
+  box-shadow: inset 0 0 0 1px #cfe8f8 !important;
 }
 
 .tlg-standard-tabs button:hover:not(.active):not([aria-selected="true"]):not(:disabled),
 .tlg-standard-tabs a:hover:not(.active):not([aria-current="page"]),
 .tlg-standard-tabs.tlg-module-tabs-top .tlg-module-tab:hover:not(.tlg-module-tab-active) {
-  color: #243750 !important;
-  background: #f5f8fb !important;
-  border-color: transparent !important;
+  color: #076db5 !important;
+  background: #f3f9fd !important;
 }
 
 .tlg-standard-tabs button:disabled {
@@ -56,7 +55,8 @@
   cursor: default !important;
 }
 
-.tlg-page-head-with-tabs {
+.tlg-page-head-with-tabs,
+.tlg-ranking-page-head-with-tabs {
   position: relative !important;
   display: grid !important;
   grid-template-columns: minmax(0,1fr) auto !important;
@@ -64,17 +64,20 @@
   gap: 24px !important;
 }
 
-.tlg-page-head-with-tabs > .tlg-standard-tabs {
+.tlg-page-head-with-tabs > .tlg-standard-tabs,
+.tlg-ranking-page-head-with-tabs > .tlg-standard-tabs {
   justify-self: end !important;
   align-self: start !important;
 }
 
 @media(max-width:1080px) {
-  .tlg-page-head-with-tabs {
+  .tlg-page-head-with-tabs,
+  .tlg-ranking-page-head-with-tabs {
     grid-template-columns: 1fr !important;
   }
 
-  .tlg-page-head-with-tabs > .tlg-standard-tabs {
+  .tlg-page-head-with-tabs > .tlg-standard-tabs,
+  .tlg-ranking-page-head-with-tabs > .tlg-standard-tabs {
     justify-self: end !important;
   }
 }
@@ -90,7 +93,8 @@
     padding: 0 9px !important;
   }
 
-  .tlg-page-head-with-tabs > .tlg-standard-tabs {
+  .tlg-page-head-with-tabs > .tlg-standard-tabs,
+  .tlg-ranking-page-head-with-tabs > .tlg-standard-tabs {
     justify-self: stretch !important;
   }
 }
