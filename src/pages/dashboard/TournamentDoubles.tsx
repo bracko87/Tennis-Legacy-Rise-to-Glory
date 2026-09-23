@@ -606,48 +606,6 @@ export default function TournamentDoublesPage() {
           <article><span>Your doubles status</span><strong>{statusLabel(hub.player_status)}</strong></article>
         </section>
 
-        <section className="tlg-detail-panel tlg-doubles-entry-timeline-panel">
-          <header className="tlg-detail-panel-head">
-            <div>
-              <span>Tournament entry</span>
-              <h2>Application & entry timeline</h2>
-            </div>
-            <strong className="tlg-doubles-current-phase">{statusLabel(timeline.phase)}</strong>
-          </header>
-
-          <div className="tlg-doubles-entry-steps">
-            <article className={entryPhaseIndex > 0 ? 'complete' : 'current'}>
-              <b>1</b>
-              <div><strong>Registration opens</strong><span>{formatMoment(timeline.registration_open)}</span></div>
-            </article>
-            <article className={entryPhaseIndex > 1 ? 'complete' : entryPhaseIndex === 1 ? 'current' : ''}>
-              <b>2</b>
-              <div><strong>Marketplace deadline</strong><span>{formatMoment(timeline.registration_deadline)}</span></div>
-            </article>
-            <article className={entryPhaseIndex > 2 ? 'complete' : entryPhaseIndex === 2 ? 'current' : ''}>
-              <b>3</b>
-              <div><strong>Partnership deadline</strong><span>{formatMoment(timeline.partnership_deadline)}</span></div>
-            </article>
-            <article className={entryPhaseIndex > 3 ? 'complete' : entryPhaseIndex === 3 ? 'current' : ''}>
-              <b>4</b>
-              <div><strong>Final doubles field locked</strong><span>{formatMoment(timeline.draw_lock)}</span></div>
-            </article>
-            <article className={core.draw_published ? 'complete' : entryPhaseIndex === 4 ? 'current' : ''}>
-              <b>5</b>
-              <div><strong>Draw published</strong><span>{core.draw_published ? 'Published' : 'After final entry lock'}</span></div>
-            </article>
-            <article className={core.draw_published ? 'current' : ''}>
-              <b>6</b>
-              <div><strong>Tournament begins</strong><span>{formatMoment(timeline.tournament_start,false)}</span></div>
-            </article>
-          </div>
-
-          <p className="tlg-doubles-phase-note">
-            <Clock3 size={14} /> Human managers opt in tournament-by-tournament. AI partner candidates are drawn only
-            from players already applied to or entered in this same singles tournament.
-          </p>
-        </section>
-
         <section className="tlg-detail-panel">
           <header className="tlg-detail-panel-head">
             <div>
@@ -700,6 +658,48 @@ export default function TournamentDoublesPage() {
             scheduling engine so a player cannot be scheduled for singles and doubles at the same time, and the required
             recovery interval is preserved.
           </p>
+        </section>
+
+        <section className="tlg-detail-panel">
+          <header className="tlg-detail-panel-head">
+            <div>
+              <span>Tournament entry</span>
+              <h2>Application window</h2>
+            </div>
+            <UserPlus size={18} />
+          </header>
+
+          <div className="tlg-detail-application-body">
+            <div className="tlg-detail-application-status-row">
+              <div>
+                <span className="tlg-detail-application-open"><Clock3 size={14} /> {statusLabel(timeline.phase)}</span>
+                <h3>Doubles partner registration & entry timeline</h3>
+                <p>Players opt in specifically for {tournament.name} doubles. Partnerships, field selection and the draw are locked by the deadlines below.</p>
+              </div>
+              <div className="tlg-detail-projection">
+                <small>Your current doubles status</small>
+                <strong>{statusLabel(hub.player_status)}</strong>
+              </div>
+            </div>
+
+            <div className="tlg-detail-application-grid">
+              <article><span>Registration opens</span><strong>{formatMoment(timeline.registration_open)}</strong></article>
+              <article><span>Marketplace deadline</span><strong>{formatMoment(timeline.registration_deadline)}</strong></article>
+              <article><span>Partnership deadline</span><strong>{formatMoment(timeline.partnership_deadline)}</strong></article>
+              <article><span>Final field lock</span><strong>{formatMoment(timeline.draw_lock)}</strong></article>
+            </div>
+
+            <div className="tlg-detail-entry-breakdown">
+              <div><span>Confirmed teams</span><strong>{core.confirmed_teams}</strong></div>
+              <div><span>Maximum draw</span><strong>{core.draw_size} teams</strong></div>
+              <div><span>Players looking for partner</span><strong>{hub.marketplace.length}</strong></div>
+            </div>
+
+            <p className="tlg-detail-application-note">
+              AI doubles candidates come only from players already applied to or entered in this same singles tournament.
+              Qualification/main-draw participants are prioritized, so doubles does not pull players away from another tournament in the same week.
+            </p>
+          </div>
         </section>
 
         <section className="tlg-detail-panel">
