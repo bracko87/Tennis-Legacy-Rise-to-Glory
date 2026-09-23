@@ -267,7 +267,7 @@ export default function RankingsPage() {
 
   return (
     <GameLayout title="Rankings" subtitle={`${world} ${discipline} world ranking`}>
-      <header className="tlg-v2-page-head">
+      <header className="tlg-v2-page-head tlg-page-head-with-tabs">
         <div className="tlg-v2-page-head-copy">
           <div className="tlg-v2-page-eyebrow">World competition</div>
           <h2 className="tlg-v2-page-title">{world} Ranking</h2>
@@ -275,12 +275,12 @@ export default function RankingsPage() {
             Singles and doubles have completely separate ATP/WTA rankings. Doubles points belong to the individual player and stay with them when partners change.
           </p>
         </div>
-      </header>
 
-      <div className="tlg-ranking-discipline-tabs tlg-standard-tabs" role="tablist" aria-label="Ranking discipline">
-        <button type="button" role="tab" aria-selected={discipline === 'singles'} className={discipline === 'singles' ? 'active' : ''} onClick={() => setDiscipline('singles')}>Singles</button>
-        <button type="button" role="tab" aria-selected={discipline === 'doubles'} className={discipline === 'doubles' ? 'active' : ''} onClick={() => setDiscipline('doubles')}>Doubles</button>
-      </div>
+        <div className="tlg-ranking-discipline-tabs tlg-standard-tabs" role="tablist" aria-label="Ranking discipline">
+          <button type="button" role="tab" aria-selected={discipline === 'singles'} className={discipline === 'singles' ? 'active' : ''} onClick={() => setDiscipline('singles')}>Singles</button>
+          <button type="button" role="tab" aria-selected={discipline === 'doubles'} className={discipline === 'doubles' ? 'active' : ''} onClick={() => setDiscipline('doubles')}>Doubles</button>
+        </div>
+      </header>
 
       <section className={'tlg-v2-panel tlg-ranking-protection-panel' + (rankingProtectionOpen ? ' is-open' : '')}>
         <button
