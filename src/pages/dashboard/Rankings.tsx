@@ -69,8 +69,10 @@ function pageFromSearch(value: string | null) {
   return Number.isInteger(parsed) && parsed > 0 ? parsed - 1 : 0
 }
 
-function rankingScrollKey(world: string, page: number, playerId: string) {
-  return `tlg-ranking-return:${world}:${page + 1}:${playerId}`
+type RankingDiscipline = 'singles' | 'doubles'
+
+function rankingScrollKey(world: string, discipline: RankingDiscipline, page: number, playerId: string) {
+  return `tlg-ranking-return:${world}:${discipline}:${page + 1}:${playerId}`
 }
 
 function RankingPagination({ page, rowCount, loading, placement = 'bottom', onPrevious, onNext }: RankingPaginationProps) {
@@ -147,6 +149,7 @@ export default function RankingsPage() {
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const page = pageFromSearch(searchParams.get('page'))
+  const discipline: RankingDiscipline = searchParams.get('discipline') === 'doubles' ? 'doubles' : 'singles'
   const [rows, setRows] = useState<RankingRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -165,12 +168,20 @@ export default function RankingsPage() {
     setExpirationError(null)
 
     const [rankingResponse, expirationResponse] = await Promise.all([
-      supabase.rpc('get_world_rankings_v3', {
-        p_world: world,
-        p_offset: page * PAGE_SIZE,
-        p_limit: PAGE_SIZE,
-      }),
-      supabase.rpc('get_player_ranking_expirations_v1'),
+      discipline === 'doubles'
+        ? supabase.rpc('get_world_doubles_rankings_v1', {
+          p_world: world,
+          p_offset: page * PAGE_SIZE,
+          p_limit: PAGE_SIZE,
+        })
+        : supabase.rpc('get_world_rankings_v3', {
+          p_world: world,
+          p_offset: page * PAGE_SIZE,
+          p_limit: PAGE_SIZE,
+        }),
+      discipline === 'doubles'
+        ? supabase.rpc('get_player_doubles_ranking_expirations_v1')
+        : supabase.rpc('get_player_ranking_expirations_v1'),
     ])
 
     if (rankingResponse.error) {
@@ -188,7 +199,17 @@ export default function RankingsPage() {
     }
 
     setLoading(false)
-  }, [page, world])
+  }, [discipline, page, world])
+
+  const setDiscipline = useCallback((nextDiscipline: RankingDiscipline) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current)
+      next.delete('page')
+      if (nextDiscipline === 'singles') next.delete('discipline')
+      else next.set('discipline', 'doubles')
+      return next
+    })
+  }, [setSearchParams])
 
   const goToPage = useCallback((nextPage: number) => {
     const safePage = Math.max(0, nextPage)
@@ -249,14 +270,18 @@ export default function RankingsPage() {
   }, [loading, returnPlayerId, returnScrollKey, rows])
 
   return (
-    <GameLayout title="Rankings" subtitle={`${world} singles world ranking`}>
+    <GameLayout title="Rankings" subtitle={`${world} ${discipline} world ranking`}>
       <header className="tlg-v2-page-head">
         <div className="tlg-v2-page-head-copy">
           <div className="tlg-v2-page-eyebrow">World competition</div>
           <h2 className="tlg-v2-page-title">{world} Ranking</h2>
           <p className="tlg-v2-page-description">
-            Every created player enters the appropriate singles ranking immediately. ATP and WTA rankings remain completely separate.
+            Singles and doubles have completely separate ATP/WTA rankings. Doubles points belong to the individual player and stay with them when partners change.
           </p>
+        </div>
+        <div className="tlg-ranking-discipline-tabs" role="tablist" aria-label="Ranking discipline">
+          <button type="button" role="tab" aria-selected={discipline === 'singles'} className={discipline === 'singles' ? 'active' : ''} onClick={() => setDiscipline('singles')}>Singles</button>
+          <button type="button" role="tab" aria-selected={discipline === 'doubles'} className={discipline === 'doubles' ? 'active' : ''} onClick={() => setDiscipline('doubles')}>Doubles</button>
         </div>
       </header>
 
@@ -300,8 +325,8 @@ export default function RankingsPage() {
       <section className="tlg-v2-panel">
         <header className="tlg-v2-panel-header tlg-ranking-panel-header">
           <div>
-            <span>{world} singles</span>
-            <h3>World Ranking</h3>
+            <span>{world} {discipline}</span>
+            <h3>{discipline === 'doubles' ? 'Doubles World Ranking' : 'Singles World Ranking'}</h3>
           </div>
           <RankingPagination
             page={page}
@@ -334,7 +359,7 @@ export default function RankingsPage() {
         ) : (
           <div className="tlg-live-ranking-rows">
             {rows.map((row) => {
-              const scrollKey = rankingScrollKey(world, page, row.player_id)
+              const scrollKey = rankingScrollKey(world, discipline, page, row.player_id)
               return (
                 <Link
                   key={row.player_id}
