@@ -3,6 +3,7 @@ import { Construction, Database } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import '../../styles/module-tabs-calendar.css'
+import '../../styles/shared-segmented-tabs.css'
 import GameLayout from '../layout/GameLayout'
 
 export interface DashboardModuleTab {
@@ -79,7 +80,7 @@ export default function TabbedModulePage({
           <p className="tlg-v2-page-description">{intro}</p>
         </div>
 
-        <div className="tlg-module-tabs tlg-module-tabs-top" role="tablist" aria-label={`${title} sections`}>
+        <div className="tlg-module-tabs tlg-module-tabs-top tlg-standard-tabs" role="tablist" aria-label={`${title} sections`}>
           {tabs.map((tab) => {
             const active = tab.id === activeTab?.id
             return (
@@ -88,7 +89,7 @@ export default function TabbedModulePage({
                 type="button"
                 role="tab"
                 aria-selected={active}
-                className={active ? 'tlg-module-tab tlg-module-tab-active' : 'tlg-module-tab'}
+                className={active ? 'tlg-module-tab tlg-module-tab-active active' : 'tlg-module-tab'}
                 onClick={() => setActiveTabId(tab.id)}
               >
                 {tab.label}
