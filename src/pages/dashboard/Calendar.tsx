@@ -212,6 +212,8 @@ function SeasonCalendarView() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_entries', filter: `player_id=eq.${player.id}` }, refresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'player_travel_legs', filter: `player_id=eq.${player.id}` }, refresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_matches' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_doubles_teams' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_doubles_matches' }, refresh)
       .subscribe()
     return () => { void supabase.removeChannel(channel) }
   }, [player?.id])
@@ -226,10 +228,14 @@ function SeasonCalendarView() {
     return values
   }, [leadingEmptyCells, month.days])
   const activityByDay = useMemo(() => {
-    const grouped = new Map<number, PlayerCalendarActivityRow>()
+    const grouped = new Map<number, PlayerCalendarActivityRow[]>()
     for (const activity of activities) {
-      const current = grouped.get(activity.day)
-      if (!current || playerActivityPriority(activity) < playerActivityPriority(current)) grouped.set(activity.day, activity)
+      const current = grouped.get(activity.day) ?? []
+      current.push(activity)
+      grouped.set(activity.day, current)
+    }
+    for (const rows of grouped.values()) {
+      rows.sort((a, b) => playerActivityPriority(a) - playerActivityPriority(b) || (a.source ?? '').localeCompare(b.source ?? ''))
     }
     return grouped
   }, [activities])
@@ -261,33 +267,57 @@ function SeasonCalendarView() {
           if (day === null) return <div key={`empty-${index}`} className="tlg-calendar-day-empty" aria-hidden="true" />
           const current = monthIndex === clock.monthIndex && day === clock.day
           const openingDay = isSeasonOpeningDay(monthIndex, day)
-          const activity = activityByDay.get(day)
-          const activityAbsoluteDay = activity ? absoluteGameDay(activity.season, activity.month - 1, activity.day) : null
-          const tournamentCompleted = activity?.activity_type === 'tournament'
-            && (activity.source === 'tournament_completed' || (activityAbsoluteDay !== null && activityAbsoluteDay < todayAbsoluteDay))
-          const tournamentAccepted = activity?.activity_type === 'tournament' && activity.source === 'tournament_accepted'
-          const tournamentPredicted = activity?.activity_type === 'tournament' && activity.source === 'tournament_predicted'
-          const tournamentConfirmed = activity?.activity_type === 'tournament' && !tournamentCompleted && !tournamentAccepted && !tournamentPredicted
-          const tournamentState = tournamentCompleted ? 'completed' : tournamentAccepted ? 'accepted' : tournamentPredicted ? 'predicted' : tournamentConfirmed ? 'confirmed' : ''
+          const dayActivities = activityByDay.get(day) ?? []
+          const primaryActivity = dayActivities[0] ?? null
           const classes = ['tlg-calendar-day']
           if (current) classes.push('tlg-calendar-day-current')
-          if (activity) classes.push(`tlg-calendar-day-${activity.activity_type}`)
-          if (tournamentState) classes.push(`tlg-calendar-day-tournament-${tournamentState}`)
+          if (primaryActivity) classes.push(`tlg-calendar-day-${primaryActivity.activity_type}`)
 
           return (
             <div key={`${month.name}-${day}`} className={classes.join(' ')}>
               <span className="tlg-calendar-day-number">{month.name} {day}</span>
               {current && <span className="tlg-calendar-today-badge">Today</span>}
               {openingDay && !current && <span className="tlg-calendar-today-badge">Season opening</span>}
-              {activity && (
+              {dayActivities.length > 0 && (
                 <div className="tlg-calendar-player-activities">
-                  <div className={`tlg-calendar-player-activity ${activity.activity_type}${tournamentState ? ` ${tournamentState}` : ''}`}>
-                    {activity.activity_type === 'travel' && <Plane size={13} className="tlg-calendar-travel-icon" aria-hidden="true" />}
-                    <span>{activity.activity_type === 'tournament'
-                      ? `Tournament · ${tournamentCompleted ? 'Played' : tournamentAccepted ? 'Accepted' : tournamentPredicted ? 'Predicted' : 'Confirmed'}`
-                      : playerActivityLabel(activity.activity_type)}</span>
-                    <strong>{activity.note || playerActivityLabel(activity.activity_type)}</strong>
-                  </div>
+                  {dayActivities.slice(0, 4).map((activity, activityIndex) => {
+                    const activityAbsoluteDay = absoluteGameDay(activity.season, activity.month - 1, activity.day)
+                    const isDoubles = activity.source?.startsWith('doubles_') ?? false
+                    const tournamentCompleted = activity.activity_type === 'tournament'
+                      && (
+                        activity.source === 'tournament_completed'
+                        || activity.source === 'doubles_tournament_completed'
+                        || activityAbsoluteDay < todayAbsoluteDay
+                      )
+                    const tournamentAccepted = activity.activity_type === 'tournament'
+                      && (activity.source === 'tournament_accepted' || activity.source === 'doubles_tournament_accepted')
+                    const tournamentPredicted = activity.activity_type === 'tournament'
+                      && (activity.source === 'tournament_predicted' || activity.source === 'doubles_tournament_predicted')
+                    const tournamentConfirmed = activity.activity_type === 'tournament'
+                      && !tournamentCompleted && !tournamentAccepted && !tournamentPredicted
+                    const tournamentState = tournamentCompleted
+                      ? 'completed'
+                      : tournamentAccepted
+                        ? 'accepted'
+                        : tournamentPredicted
+                          ? 'predicted'
+                          : tournamentConfirmed
+                            ? 'confirmed'
+                            : ''
+
+                    return (
+                      <div
+                        key={`${activity.source ?? activity.activity_type}-${activity.reference_id ?? activityIndex}-${activityIndex}`}
+                        className={`tlg-calendar-player-activity ${activity.activity_type}${tournamentState ? ` ${tournamentState}` : ''}`}
+                      >
+                        {activity.activity_type === 'travel' && <Plane size={13} className="tlg-calendar-travel-icon" aria-hidden="true" />}
+                        <span>{activity.activity_type === 'tournament'
+                          ? `Tournament ${isDoubles ? '(D)' : '(S)'} · ${tournamentCompleted ? 'Played' : tournamentAccepted ? 'Accepted' : tournamentPredicted ? 'Predicted' : 'Confirmed'}`
+                          : playerActivityLabel(activity.activity_type)}</span>
+                        <strong>{activity.note || playerActivityLabel(activity.activity_type)}</strong>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>
