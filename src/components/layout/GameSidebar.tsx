@@ -197,7 +197,7 @@ export default function GameSidebar({
 
         {!isCollapsed && <div className="tlg-v2-nav-label">Manager center</div>}
 
-        <nav className="tlg-v2-nav" aria-label="Game navigation">
+        <nav className="tlg-v2-nav tlg-v2-nav-main" aria-label="Game navigation">
           {items.map((item) => {
             const active = location.pathname === item.to
 
@@ -231,9 +231,10 @@ export default function GameSidebar({
         </nav>
 
         {isAdmin && (
-          <>
-            {!isCollapsed && <div className="tlg-v2-nav-label">Administration</div>}
-            <nav className="tlg-v2-nav" aria-label="Administration navigation">
+          <section className="tlg-v2-admin-section" aria-label="Administration">
+            <div className="tlg-v2-admin-divider" aria-hidden="true" />
+            {!isCollapsed && <div className="tlg-v2-nav-label tlg-v2-admin-label">Administration</div>}
+            <nav className="tlg-v2-nav tlg-v2-nav-admin" aria-label="Administration navigation">
               {adminItems.map((item) => {
                 const active = location.pathname === item.to
                 const notificationCount =
@@ -276,7 +277,7 @@ export default function GameSidebar({
                 )
               })}
             </nav>
-          </>
+          </section>
         )}
 
         <div className="tlg-v2-sidebar-footer tlg-v4-sidebar-footer">
