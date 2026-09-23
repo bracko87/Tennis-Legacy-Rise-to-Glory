@@ -538,47 +538,167 @@ export default function TournamentDoublesPage() {
           <Link to={`/game/tournaments/${competitionId}/doubles`} className="active" aria-current="page">Doubles</Link>
         </nav>
 
-        <section className="tlg-doubles-hero">
-          <div>
-            <span className="tlg-doubles-eyebrow">{tournament.world} doubles · {tournament.surface}</span>
-            <h1>{tournament.name} Doubles</h1>
-            <p>
-              Doubles uses the same {tournament.city} tournament location, surface and dates as singles.
-              Partner selection is tournament-specific—there is no global doubles-partner setting.
-            </p>
-          </div>
-          <div className="tlg-doubles-location">
-            <CountryFlag countryCode={tournament.country_code} width={28} height={19} />
-            <div>
-              <strong>{tournament.city}</strong>
-              <span>{tournament.country_code} · {tournament.surface}</span>
+        <section className="tlg-detail-hero">
+          <div className="tlg-detail-surface-card">
+            <img
+              src={SURFACE_IMAGES[surface]}
+              alt={titleCase(surface) + ' tennis court surface'}
+              className="tlg-detail-surface-image"
+            />
+            <div className="tlg-detail-surface-copy">
+              <strong>{titleCase(surface)}</strong>
+              <span>{titleCase(environment)} court</span>
             </div>
           </div>
+
+          <div className="tlg-detail-hero-copy">
+            <div className="tlg-detail-eyebrow">Season {seasonNumber} · {tournament.world} doubles</div>
+            <h1>{tournament.name}</h1>
+
+            <div className="tlg-detail-location-line">
+              <CountryFlag
+                countryCode={tournament.country_code}
+                countryName={countryName}
+                width={24}
+                height={16}
+              />
+              <div>
+                <strong>{tournament.city}, {countryName}</strong>
+                <span><MapPin size={13} /> Official tournament location</span>
+              </div>
+            </div>
+
+            <p>
+              A {categoryLabel} doubles event played on {titleCase(surface)} courts in {tournament.city}.
+              It uses the same location, surface and tournament dates as singles, while the doubles draw,
+              partner marketplace, ranking points and prize money remain separate.
+            </p>
+
+            <div className="tlg-detail-tags">
+              <span>{categoryLabel}</span>
+              <span>{titleCase(surface)}</span>
+              <span>{titleCase(environment)}</span>
+              <span>Doubles</span>
+            </div>
+          </div>
+
+          <div className={'tlg-detail-logo-slot' + (detail?.logo_url ? ' tlg-detail-logo-slot-recovered' : '')} aria-label="Tournament logo">
+            {detail?.logo_url ? (
+              <img
+                className="tlg-tournament-logo-image tlg-tournament-logo-image-ready"
+                src={detail.logo_url}
+                alt={tournament.name + ' tournament logo'}
+                decoding="async"
+              />
+            ) : (
+              <>
+                <span>{tournamentInitials(tournament.name)}</span>
+                <small>{tournament.name}</small>
+              </>
+            )}
+          </div>
         </section>
 
-        <section className="tlg-doubles-stat-grid">
+        <section className="tlg-detail-stats-grid">
           <article><span>Draw capacity</span><strong>{core.draw_size} teams</strong></article>
           <article><span>Team prize pool</span><strong>{formatMoney(core.announced_team_prize_pool_usd)}</strong></article>
-          <article><span>Winner points</span><strong>{core.winner_points.toLocaleString()} pts each</strong></article>
-          <article><span>Your status</span><strong>{statusLabel(hub.player_status)}</strong></article>
+          <article><span>Winner ranking points</span><strong>{core.winner_points.toLocaleString()} pts each</strong></article>
+          <article><span>Your doubles status</span><strong>{statusLabel(hub.player_status)}</strong></article>
         </section>
 
-        <section className="tlg-detail-panel tlg-doubles-deadlines">
+        <section className="tlg-detail-panel tlg-doubles-entry-timeline-panel">
           <header className="tlg-detail-panel-head">
-            <div><span>Doubles entry</span><h2>Registration & tournament dates</h2></div>
+            <div>
+              <span>Tournament entry</span>
+              <h2>Application & entry timeline</h2>
+            </div>
+            <strong className="tlg-doubles-current-phase">{statusLabel(timeline.phase)}</strong>
+          </header>
+
+          <div className="tlg-doubles-entry-steps">
+            <article className={entryPhaseIndex > 0 ? 'complete' : 'current'}>
+              <b>1</b>
+              <div><strong>Registration opens</strong><span>{formatMoment(timeline.registration_open)}</span></div>
+            </article>
+            <article className={entryPhaseIndex > 1 ? 'complete' : entryPhaseIndex === 1 ? 'current' : ''}>
+              <b>2</b>
+              <div><strong>Marketplace deadline</strong><span>{formatMoment(timeline.registration_deadline)}</span></div>
+            </article>
+            <article className={entryPhaseIndex > 2 ? 'complete' : entryPhaseIndex === 2 ? 'current' : ''}>
+              <b>3</b>
+              <div><strong>Partnership deadline</strong><span>{formatMoment(timeline.partnership_deadline)}</span></div>
+            </article>
+            <article className={entryPhaseIndex > 3 ? 'complete' : entryPhaseIndex === 3 ? 'current' : ''}>
+              <b>4</b>
+              <div><strong>Final doubles field locked</strong><span>{formatMoment(timeline.draw_lock)}</span></div>
+            </article>
+            <article className={core.draw_published ? 'complete' : entryPhaseIndex === 4 ? 'current' : ''}>
+              <b>5</b>
+              <div><strong>Draw published</strong><span>{core.draw_published ? 'Published' : 'After final entry lock'}</span></div>
+            </article>
+            <article className={core.draw_published ? 'current' : ''}>
+              <b>6</b>
+              <div><strong>Tournament begins</strong><span>{formatMoment(timeline.tournament_start,false)}</span></div>
+            </article>
+          </div>
+
+          <p className="tlg-doubles-phase-note">
+            <Clock3 size={14} /> Human managers opt in tournament-by-tournament. AI partner candidates are drawn only
+            from players already applied to or entered in this same singles tournament.
+          </p>
+        </section>
+
+        <section className="tlg-detail-panel">
+          <header className="tlg-detail-panel-head">
+            <div>
+              <span>Tournament schedule</span>
+              <h2>Competition window</h2>
+            </div>
             <CalendarDays size={18} />
           </header>
-          <div className="tlg-doubles-timeline-grid">
-            <article><span>Registration opens</span><strong>{formatMoment(timeline.registration_open)}</strong></article>
-            <article><span>Marketplace registration deadline</span><strong>{formatMoment(timeline.registration_deadline)}</strong></article>
-            <article><span>Partnership deadline</span><strong>{formatMoment(timeline.partnership_deadline)}</strong></article>
-            <article><span>Draw / entry lock</span><strong>{formatMoment(timeline.draw_lock)}</strong></article>
-            <article><span>Tournament starts</span><strong>{formatMoment(timeline.tournament_start,false)}</strong></article>
-            <article><span>Tournament ends</span><strong>{formatMoment(timeline.tournament_end,false)}</strong></article>
-          </div>
-          <p className="tlg-doubles-phase-note">
-            <Clock3 size={14} /> Current phase: <strong>{statusLabel(timeline.phase)}</strong>.
-            New marketplace listings close first; pending invitations can still be resolved until the partnership deadline.
+
+          {detail?.schedule_slots?.length ? (
+            <div className="tlg-detail-schedule-list tlg-detail-schedule-list-expanded">
+              {detail.schedule_slots.map((slot) => {
+                const dayPlan = buildDoublesDayPlan(slot, draw)
+                return (
+                  <article key={slot.season_week + '-' + slot.phase} className="tlg-detail-schedule-card">
+                    <div className="tlg-detail-schedule-card-head">
+                      <div>
+                        <span>{phaseLabel(slot.phase)}</span>
+                        <strong>{MONTHS[slot.calendar_month - 1]?.name ?? 'Month ' + slot.calendar_month} · Week {slot.month_week} · Season Week {slot.season_week}</strong>
+                      </div>
+                      <p>{formatCompetitionWeekRange(slot.season_week)} · Monday–Sunday</p>
+                    </div>
+
+                    <div className="tlg-detail-day-strip" role="table" aria-label={phaseLabel(slot.phase) + ' doubles day schedule'}>
+                      {dayPlan.map((item) => (
+                        <div
+                          key={item.day}
+                          className={'tlg-detail-day-tile tlg-detail-day-tile-' + item.kind}
+                          role="row"
+                        >
+                          <span role="cell">Day {item.day}</span>
+                          <strong role="cell">{item.date}</strong>
+                          <p role="cell">{item.activity}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="tlg-doubles-empty">
+              <strong>Tournament schedule is loading</strong>
+              <p>Doubles uses the same official competition weeks and venue as singles.</p>
+            </div>
+          )}
+
+          <p className="tlg-detail-schedule-note">
+            Doubles shares the tournament venue and calendar with singles. Match times are assigned through the unified
+            scheduling engine so a player cannot be scheduled for singles and doubles at the same time, and the required
+            recovery interval is preserved.
           </p>
         </section>
 
