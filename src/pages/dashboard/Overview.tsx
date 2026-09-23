@@ -1,9 +1,12 @@
 import {
   Activity,
   CalendarDays,
+  ChevronDown,
   ChevronRight,
+  ChevronUp,
   CircleDollarSign,
   Dumbbell,
+  LockKeyhole,
   Medal,
   ShieldCheck,
   ShoppingBag,
@@ -41,6 +44,25 @@ type GameDay = {
   day: number
   absolute_day: number
   season_week: number
+}
+
+type RankingProtectionEntry = {
+  contribution_id: string
+  tournament_name: string
+  source_result_label: string
+  ranking_points: number
+  expiration_season: number
+  expiration_week: number
+  expiration_month: number
+  expiration_day: number
+  days_remaining: number
+  next_edition_scheduled: boolean
+}
+
+type RankingProtectionResponse = {
+  premium: boolean
+  locked: boolean
+  contributions: RankingProtectionEntry[]
 }
 
 type SeasonStats = {
@@ -283,6 +305,8 @@ function resultScore(result: LatestResult) {
 export default function OverviewPage() {
   const { player } = useAuth()
   const [dashboard, setDashboard] = useState<OverviewDashboard | null>(null)
+  const [rankingProtection, setRankingProtection] = useState<RankingProtectionResponse | null>(null)
+  const [rankingProtectionOpen, setRankingProtectionOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -296,10 +320,21 @@ export default function OverviewPage() {
     async function load() {
       setLoading(true)
       setError(null)
-      const { data, error: overviewError } = await supabase.rpc('get_overview_dashboard_v1')
+      const [overviewResponse, rankingProtectionResponse] = await Promise.all([
+        supabase.rpc('get_overview_dashboard_v1'),
+        supabase.rpc('get_premium_ranking_protection_v1'),
+      ])
       if (!mounted) return
-      if (overviewError || !data) setError(overviewError?.message ?? 'Unable to load career overview.')
-      else setDashboard(data as OverviewDashboard)
+      if (overviewResponse.error || !overviewResponse.data) {
+        setError(overviewResponse.error?.message ?? 'Unable to load career overview.')
+      } else {
+        setDashboard(overviewResponse.data as OverviewDashboard)
+      }
+      if (!rankingProtectionResponse.error && rankingProtectionResponse.data) {
+        setRankingProtection(rankingProtectionResponse.data as RankingProtectionResponse)
+      } else {
+        setRankingProtection(null)
+      }
       setLoading(false)
     }
     void load()
@@ -357,6 +392,64 @@ export default function OverviewPage() {
             <OverviewKpi label="Fatigue" value={`${number(readiness.fatigue)}/100`} detail={`${number(readiness.sharpness)} sharpness`} />
             <OverviewKpi label="Equipment" value={`${equipmentAverage}%`} detail="Average equipped condition" />
             <OverviewKpi label="Team" value={`${dashboard.staff.active_count} staff`} detail={`${money(dashboard.staff.weekly_payroll)}/week payroll`} />
+          </section>
+
+          <section className={`tlg-overview-panel tlg-overview-ranking-protection${rankingProtectionOpen ? ' is-open' : ''}`}>
+            <div className="tlg-overview-ranking-protection-head">
+              <div>
+                <span>PREMIUM · RANKING PROTECTION</span>
+                <h3>Upcoming Point Expirations</h3>
+                <p>Track the next five singles ranking results that will expire and need to be defended.</p>
+              </div>
+              {rankingProtection?.premium ? (
+                <button
+                  type="button"
+                  className="tlg-overview-ranking-protection-toggle"
+                  aria-expanded={rankingProtectionOpen}
+                  onClick={() => setRankingProtectionOpen((current) => !current)}
+                >
+                  {rankingProtectionOpen ? 'Minimize' : 'Expand'}
+                  {rankingProtectionOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                </button>
+              ) : (
+                <span className="tlg-overview-premium-lock"><LockKeyhole size={14} /> Premium</span>
+              )}
+            </div>
+
+            {!rankingProtection?.premium ? (
+              <div className="tlg-overview-ranking-protection-locked">
+                <LockKeyhole size={17} />
+                <div>
+                  <strong>Ranking Protection is a Premium feature</strong>
+                  <span>Premium managers can expand this panel to see the next five ranking-point expirations.</span>
+                </div>
+              </div>
+            ) : rankingProtectionOpen ? (
+              rankingProtection.contributions.length ? (
+                <div className="tlg-overview-ranking-protection-list">
+                  {rankingProtection.contributions.slice(0, 5).map((item) => (
+                    <article key={item.contribution_id}>
+                      <div>
+                        <span>{item.next_edition_scheduled ? 'Defending points' : 'Scheduled expiration'}</span>
+                        <strong>{item.tournament_name}</strong>
+                        <small>{item.source_result_label}</small>
+                      </div>
+                      <div className="points">
+                        <strong>{item.ranking_points.toLocaleString()} pts</strong>
+                        <small>{item.days_remaining.toLocaleString()} game days</small>
+                      </div>
+                      <div className="expires">
+                        <span>Expires</span>
+                        <strong>Season {item.expiration_season} · Week {item.expiration_week}</strong>
+                        <small>Month {item.expiration_month}, Day {item.expiration_day}</small>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="tlg-overview-ranking-protection-empty">No active ranking points are currently waiting to expire.</div>
+              )
+            ) : null}
           </section>
 
           <section className="tlg-overview-primary-grid">
