@@ -665,7 +665,7 @@ export default function TournamentDoublesPage() {
         </section>
 
         <section className="tlg-detail-panel">
-          <header className="tlg-detail-panel-head">
+          <header className="tlg-detail-panel-head tlg-entry-lifecycle-head">
             <div>
               <span>Tournament schedule</span>
               <h2>Competition window</h2>
