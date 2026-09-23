@@ -1,15 +1,11 @@
 import {
   ArrowLeft,
-  CalendarDays,
   CheckCircle2,
   Clock3,
-  Hourglass,
   MapPin,
   Send,
-  Trophy,
   UserMinus,
   UserPlus,
-  Users,
   XCircle,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -608,13 +604,72 @@ export default function TournamentDoublesPage() {
           <article><span>Your doubles status</span><strong>{statusLabel(hub.player_status)}</strong></article>
         </section>
 
+        <section className="tlg-detail-panel tlg-entry-lifecycle-panel tlg-doubles-entry-timeline-panel">
+          <header className="tlg-detail-panel-head tlg-entry-lifecycle-head">
+            <div>
+              <span>Tournament entry</span>
+              <h2>Application & entry timeline</h2>
+              <p>
+                Doubles follows the same six-step tournament-entry presentation as singles. Partner registration,
+                partnership resolution, field locking and draw publication use the deadlines below.
+              </p>
+            </div>
+            <strong className={'tlg-entry-phase phase-' + timeline.phase}>{statusLabel(timeline.phase)}</strong>
+          </header>
+
+          <div className="tlg-entry-milestones">
+            <article className={entryPhaseIndex > 0 ? 'done' : entryPhaseIndex === 0 ? 'current' : ''}>
+              <span>1</span>
+              <div><strong>Registration opens</strong><small>{formatMoment(timeline.registration_open)}</small></div>
+            </article>
+            <article className={entryPhaseIndex > 1 ? 'done' : entryPhaseIndex === 1 ? 'current' : ''}>
+              <span>2</span>
+              <div><strong>Marketplace deadline</strong><small>{formatMoment(timeline.registration_deadline)}</small></div>
+            </article>
+            <article className={entryPhaseIndex > 2 ? 'done' : entryPhaseIndex === 2 ? 'current' : ''}>
+              <span>3</span>
+              <div><strong>Partnership deadline</strong><small>{formatMoment(timeline.partnership_deadline)}</small></div>
+            </article>
+            <article className={entryPhaseIndex > 3 ? 'done' : entryPhaseIndex === 3 ? 'current' : ''}>
+              <span>4</span>
+              <div><strong>Final field locked</strong><small>{formatMoment(timeline.draw_lock)}</small></div>
+            </article>
+            <article className={core.draw_published ? 'done' : entryPhaseIndex === 4 ? 'current' : ''}>
+              <span>5</span>
+              <div><strong>Draw published</strong><small>{core.draw_published ? 'Published' : 'After final field lock'}</small></div>
+            </article>
+            <article className={core.draw_published ? 'current' : ''}>
+              <span>6</span>
+              <div><strong>Tournament begins</strong><small>{formatMoment(timeline.tournament_start,false)}</small></div>
+            </article>
+          </div>
+
+          <div className="tlg-entry-personal-card tlg-doubles-entry-summary">
+            <div className="tlg-entry-personal-head">
+              <div>
+                <span>Your status</span>
+                <strong>{statusLabel(hub.player_status)}</strong>
+              </div>
+              <div className="tlg-entry-vacancy-mini">
+                <span>Confirmed teams {core.confirmed_teams}</span>
+                <span>Maximum draw {core.draw_size} teams</span>
+                <span>Looking for partner {hub.marketplace.length}</span>
+              </div>
+            </div>
+            <p className="tlg-entry-passive-note">
+              AI doubles interest is sampled only from AI players already entered in this exact singles tournament:
+              about 40% of qualification players and 15% of main-draw players. High-tier events may use a limited
+              last-minute fill when genuine doubles places remain.
+            </p>
+          </div>
+        </section>
+
         <section className="tlg-detail-panel">
           <header className="tlg-detail-panel-head">
             <div>
               <span>Tournament schedule</span>
               <h2>Competition window</h2>
             </div>
-            <CalendarDays size={18} />
           </header>
 
           {detail?.schedule_slots?.length ? (
@@ -664,50 +719,7 @@ export default function TournamentDoublesPage() {
 
         <section className="tlg-detail-panel">
           <header className="tlg-detail-panel-head">
-            <div>
-              <span>Tournament entry</span>
-              <h2>Application window</h2>
-            </div>
-            <UserPlus size={18} />
-          </header>
-
-          <div className="tlg-detail-application-body">
-            <div className="tlg-detail-application-status-row">
-              <div>
-                <span className="tlg-detail-application-open"><Clock3 size={14} /> {statusLabel(timeline.phase)}</span>
-                <h3>Doubles partner registration & entry timeline</h3>
-                <p>Players opt in specifically for {tournament.name} doubles. Partnerships, field selection and the draw are locked by the deadlines below.</p>
-              </div>
-              <div className="tlg-detail-projection">
-                <small>Your current doubles status</small>
-                <strong>{statusLabel(hub.player_status)}</strong>
-              </div>
-            </div>
-
-            <div className="tlg-detail-application-grid">
-              <article><span>Registration opens</span><strong>{formatMoment(timeline.registration_open)}</strong></article>
-              <article><span>Marketplace deadline</span><strong>{formatMoment(timeline.registration_deadline)}</strong></article>
-              <article><span>Partnership deadline</span><strong>{formatMoment(timeline.partnership_deadline)}</strong></article>
-              <article><span>Final field lock</span><strong>{formatMoment(timeline.draw_lock)}</strong></article>
-            </div>
-
-            <div className="tlg-detail-entry-breakdown">
-              <div><span>Confirmed teams</span><strong>{core.confirmed_teams}</strong></div>
-              <div><span>Maximum draw</span><strong>{core.draw_size} teams</strong></div>
-              <div><span>Players looking for partner</span><strong>{hub.marketplace.length}</strong></div>
-            </div>
-
-            <p className="tlg-detail-application-note">
-              AI doubles candidates come only from players already applied to or entered in this same singles tournament.
-              Qualification/main-draw participants are prioritized, so doubles does not pull players away from another tournament in the same week.
-            </p>
-          </div>
-        </section>
-
-        <section className="tlg-detail-panel">
-          <header className="tlg-detail-panel-head">
             <div><span>Your doubles entry</span><h2>Partner & entry status</h2></div>
-            <UserPlus size={18} />
           </header>
 
           <div className="tlg-doubles-my-status">
@@ -773,7 +785,6 @@ export default function TournamentDoublesPage() {
           <section className="tlg-detail-panel">
             <header className="tlg-detail-panel-head">
               <div><span>Action required</span><h2>Doubles invitations</h2></div>
-              <Hourglass size={18} />
             </header>
             <div className="tlg-doubles-invitations">
               {hub.incoming_invitations.map((invitation) => (
@@ -803,7 +814,6 @@ export default function TournamentDoublesPage() {
           <section className="tlg-detail-panel">
             <header className="tlg-detail-panel-head">
               <div><span>Pending</span><h2>Invitations you sent</h2></div>
-              <Send size={18} />
             </header>
             <div className="tlg-doubles-outgoing">
               {hub.outgoing_invitations.map((invitation) => (
@@ -825,7 +835,6 @@ export default function TournamentDoublesPage() {
         <section className="tlg-detail-panel">
           <header className="tlg-detail-panel-head">
             <div><span>Tournament-specific marketplace</span><h2>Players looking for a partner</h2></div>
-            <Users size={18} />
           </header>
 
           <p className="tlg-doubles-market-note">
@@ -879,7 +888,6 @@ export default function TournamentDoublesPage() {
         <section className="tlg-detail-panel">
           <header className="tlg-detail-panel-head">
             <div><span>Entry field</span><h2>Confirmed teams & alternates</h2></div>
-            <Users size={18} />
           </header>
 
           {hub.teams.length === 0 ? (
@@ -907,7 +915,6 @@ export default function TournamentDoublesPage() {
           <section className="tlg-detail-panel">
             <header className="tlg-detail-panel-head">
               <div><span>Official doubles draw</span><h2>Matches & schedule</h2></div>
-              <Trophy size={18} />
             </header>
             <div className="tlg-doubles-draw-list">
               {draw.map((match) => {
@@ -937,7 +944,6 @@ export default function TournamentDoublesPage() {
         <section className="tlg-detail-panel">
           <header className="tlg-detail-panel-head">
             <div><span>Doubles rewards</span><h2>Ranking points & prize money</h2></div>
-            <Trophy size={18} />
           </header>
           <div className="tlg-doubles-rules-strip">
             <span>Team prize is split 50/50.</span>
