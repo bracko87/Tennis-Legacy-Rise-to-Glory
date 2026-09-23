@@ -9,7 +9,7 @@ import '../../styles/tournament-match-schedule.css'
 
 type ScheduleReason = 'standard' | 'travel_accommodation' | 'travel_risk'
 
-interface ScheduledDrawMatch {
+interface SinglesScheduledDrawMatch {
   match_id: string
   draw_type: 'main_draw' | 'qualification'
   round_number: number
@@ -25,6 +25,46 @@ interface ScheduledDrawMatch {
   player1_last_name: string | null
   player2_first_name: string | null
   player2_last_name: string | null
+}
+
+interface DoublesScheduledDrawMatch {
+  match_id: string
+  discipline: 'doubles'
+  round_number: number
+  round_label: string
+  match_number: number
+  scheduled_season_week: number
+  scheduled_day: number
+  scheduled_start_minute: number | null
+  court_number: number | null
+  schedule_reason: ScheduleReason | 'conflict_rescheduled' | 'conflict_pending'
+  match_status: string
+  team1_player1_first_name: string | null
+  team1_player1_last_name: string | null
+  team1_player2_first_name: string | null
+  team1_player2_last_name: string | null
+  team2_player1_first_name: string | null
+  team2_player1_last_name: string | null
+  team2_player2_first_name: string | null
+  team2_player2_last_name: string | null
+}
+
+interface ScheduledDrawMatch {
+  match_id: string
+  discipline: 'singles' | 'doubles'
+  draw_type: 'main_draw' | 'qualification' | 'doubles'
+  round_number: number
+  round_label: string
+  match_number: number
+  scheduled_season_week: number
+  scheduled_day: number
+  scheduled_start_minute: number | null
+  court_number: number | null
+  schedule_reason: string
+  match_status: string
+  side1_label: string
+  side2_label: string
+  replay_available: boolean
 }
 
 interface MatchWeather {
@@ -99,9 +139,51 @@ export default function TournamentMatchSchedule() {
     let cancelled = false
 
     const load = async () => {
-      const { data, error } = await supabase.rpc('get_tournament_draw_v1', { p_competition_id: competitionId })
-      if (cancelled || error) return
-      const rows = (data ?? []) as ScheduledDrawMatch[]
+      const [singlesResponse, doublesResponse] = await Promise.all([
+        supabase.rpc('get_tournament_draw_v1', { p_competition_id: competitionId }),
+        supabase.rpc('get_tournament_doubles_draw_v1', { p_competition_id: competitionId }),
+      ])
+      if (cancelled || singlesResponse.error) return
+
+      const singles = ((singlesResponse.data ?? []) as SinglesScheduledDrawMatch[]).map((row): ScheduledDrawMatch => ({
+        match_id: row.match_id,
+        discipline: 'singles',
+        draw_type: row.draw_type,
+        round_number: row.round_number,
+        round_label: row.round_label,
+        match_number: row.match_number,
+        scheduled_season_week: row.scheduled_season_week,
+        scheduled_day: row.scheduled_day,
+        scheduled_start_minute: row.scheduled_start_minute,
+        court_number: row.court_number,
+        schedule_reason: row.schedule_reason,
+        match_status: row.match_status,
+        side1_label: playerLabel(row.player1_first_name, row.player1_last_name),
+        side2_label: playerLabel(row.player2_first_name, row.player2_last_name),
+        replay_available: true,
+      }))
+
+      const doubles = doublesResponse.error
+        ? []
+        : ((doublesResponse.data ?? []) as DoublesScheduledDrawMatch[]).map((row): ScheduledDrawMatch => ({
+          match_id: row.match_id,
+          discipline: 'doubles',
+          draw_type: 'doubles',
+          round_number: row.round_number,
+          round_label: row.round_label,
+          match_number: row.match_number,
+          scheduled_season_week: row.scheduled_season_week,
+          scheduled_day: row.scheduled_day,
+          scheduled_start_minute: row.scheduled_start_minute,
+          court_number: row.court_number,
+          schedule_reason: row.schedule_reason,
+          match_status: row.match_status,
+          side1_label: `${playerLabel(row.team1_player1_first_name, row.team1_player1_last_name)} / ${playerLabel(row.team1_player2_first_name, row.team1_player2_last_name)}`,
+          side2_label: `${playerLabel(row.team2_player1_first_name, row.team2_player1_last_name)} / ${playerLabel(row.team2_player2_first_name, row.team2_player2_last_name)}`,
+          replay_available: false,
+        }))
+
+      const rows = [...singles, ...doubles]
       setMatches(rows)
       const keys = Array.from(new Set(rows.map(dayKey)))
       setSelectedDay((current) => current && keys.includes(current) ? current : (keys[0] ?? ''))
@@ -110,6 +192,7 @@ export default function TournamentMatchSchedule() {
     void load()
     const channel = supabase.channel(`tournament-schedule-${competitionId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_matches', filter: `competition_id=eq.${competitionId}` }, () => void load())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_doubles_matches', filter: `competition_id=eq.${competitionId}` }, () => void load())
       .subscribe()
 
     return () => {
@@ -135,7 +218,7 @@ export default function TournamentMatchSchedule() {
 
   useEffect(() => {
     let cancelled = false
-    const missing = visible.filter((match) => !weatherByMatch[match.match_id])
+    const missing = visible.filter((match) => match.discipline === 'singles' && !weatherByMatch[match.match_id])
     if (missing.length === 0) return
     const loadWeather = async () => {
       const rows = await Promise.all(missing.map(async (match) => {
@@ -197,21 +280,31 @@ export default function TournamentMatchSchedule() {
             <div className="tlg-match-schedule-table">
               <div className="tlg-match-schedule-row head"><span>Time</span><span>Court</span><span>Draw</span><span>Round</span><span>Match</span><span>Players</span><span>Note / weather</span><span>Replay</span></div>
               {visible.map((match) => {
-                const p1 = playerLabel(match.player1_first_name, match.player1_last_name)
-                const p2 = playerLabel(match.player2_first_name, match.player2_last_name)
-                const scheduleNote = match.schedule_reason === 'travel_accommodation' ? 'Travel-adjusted start' : match.schedule_reason === 'travel_risk' ? 'Travel connection at risk' : 'Standard schedule'
-                const weather = weatherLabel(weatherByMatch[match.match_id])
+                const scheduleNote = match.schedule_reason === 'travel_accommodation'
+                  ? 'Travel-adjusted start'
+                  : match.schedule_reason === 'travel_risk'
+                    ? 'Travel connection at risk'
+                    : match.schedule_reason === 'conflict_rescheduled'
+                      ? 'Rescheduled around player recovery'
+                      : match.schedule_reason === 'conflict_pending'
+                        ? 'Awaiting a conflict-free slot'
+                        : 'Standard schedule'
+                const weather = match.discipline === 'singles' ? weatherLabel(weatherByMatch[match.match_id]) : ''
                 const note = weather ? `${scheduleNote} · ${weather}` : scheduleNote
                 return (
                   <div key={match.match_id} className={`tlg-match-schedule-row ${match.schedule_reason} status-${match.match_status}`}>
                     <strong>{timeLabel(match.scheduled_start_minute)}</strong>
                     <span>{match.court_number ? `Court ${match.court_number}` : 'TBD'}</span>
-                    <span>{match.draw_type === 'qualification' ? 'Qualifying' : 'Main Draw'}</span>
+                    <span>{match.discipline === 'doubles' ? 'Doubles' : match.draw_type === 'qualification' ? 'Qualifying' : 'Singles'}</span>
                     <span>{match.round_label}</span>
                     <span>#{match.match_number}</span>
-                    <span className="players">{p1} <b>vs</b> {p2}</span>
+                    <span className="players">{match.side1_label} <b>vs</b> {match.side2_label}</span>
                     <span className="note">{note}</span>
-                    <button type="button" className={`replay-action ${match.match_status}`} onClick={() => setReplayMatchId(match.match_id)}>{replayActionLabel(match.match_status)}</button>
+                    {match.replay_available ? (
+                      <button type="button" className={`replay-action ${match.match_status}`} onClick={() => setReplayMatchId(match.match_id)}>{replayActionLabel(match.match_status)}</button>
+                    ) : (
+                      <span className="tlg-match-schedule-no-replay">—</span>
+                    )}
                   </div>
                 )
               })}
