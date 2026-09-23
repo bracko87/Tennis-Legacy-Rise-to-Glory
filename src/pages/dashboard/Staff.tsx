@@ -293,18 +293,18 @@ export default function StaffPage() {
   return (
     <GameLayout title="Staff" subtitle="Build the team around your professional player">
       <div className="tlg-staff-page">
-        <header className="tlg-staff-page-head">
+        <header className="tlg-staff-page-head tlg-page-head-with-tabs">
           <div>
             <span>CAREER SUPPORT TEAM</span>
             <h1>Staff</h1>
             <p>Build a six-role support team with transparent, capped career effects. Staff strengthen development, recovery, analysis and commercial management without replacing player attributes or career decisions.</p>
           </div>
-        </header>
 
-        <div className="tlg-staff-tabs tlg-standard-tabs">
-          <button type="button" className={view === 'team' ? 'active' : ''} onClick={() => setView('team')}>My Staff</button>
-          <button type="button" className={view === 'market' ? 'active' : ''} onClick={() => setView('market')}>Staff Market</button>
-        </div>
+          <div className="tlg-staff-tabs tlg-standard-tabs" role="tablist" aria-label="Staff sections">
+            <button type="button" role="tab" aria-selected={view === 'team'} className={view === 'team' ? 'active' : ''} onClick={() => setView('team')}>My Staff</button>
+            <button type="button" role="tab" aria-selected={view === 'market'} className={view === 'market' ? 'active' : ''} onClick={() => setView('market')}>Staff Market</button>
+          </div>
+        </header>
 
         {error && <div className="tlg-staff-alert error">{error}</div>}
         {message && <div className="tlg-staff-alert">{message}</div>}
