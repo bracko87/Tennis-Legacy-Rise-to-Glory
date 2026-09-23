@@ -1,0 +1,551 @@
+/* Tournament doubles marketplace -------------------------------------- */
+
+.tlg-doubles-page {
+  --doubles-blue: #0b6fc8;
+  --doubles-ink: #163047;
+  --doubles-muted: #6c8395;
+  --doubles-border: #dce6ed;
+}
+
+.tlg-tournament-discipline-tabs {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #d7e4ec;
+  border-radius: 10px;
+  background: #f5f9fc;
+}
+
+.tlg-tournament-discipline-tabs a {
+  min-width: 92px;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border-radius: 7px;
+  color: #637d91;
+  font-size: .68rem;
+  font-weight: 820;
+  text-decoration: none;
+}
+
+.tlg-tournament-discipline-tabs a:hover {
+  color: #0b6fc8;
+  background: #fff;
+}
+
+.tlg-tournament-discipline-tabs a.active {
+  color: #fff;
+  background: #0b6fc8;
+  box-shadow: 0 3px 9px rgba(11,111,200,.18);
+}
+
+.tlg-doubles-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 24px;
+  border: 1px solid var(--doubles-border);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(20,51,76,.055);
+}
+
+.tlg-doubles-eyebrow {
+  color: var(--doubles-blue);
+  font-size: .6rem;
+  font-weight: 850;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.tlg-doubles-hero h1 {
+  margin: 7px 0 0;
+  color: #10283e;
+  font-size: clamp(1.65rem, 3vw, 2.5rem);
+  letter-spacing: -.04em;
+}
+
+.tlg-doubles-hero p {
+  max-width: 760px;
+  margin: 12px 0 0;
+  color: var(--doubles-muted);
+  font-size: .76rem;
+  line-height: 1.65;
+}
+
+.tlg-doubles-location {
+  min-width: 185px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 15px;
+  border: 1px solid #dce7ee;
+  border-radius: 11px;
+  background: #f8fbfd;
+}
+
+.tlg-doubles-location strong,
+.tlg-doubles-location span {
+  display: block;
+}
+
+.tlg-doubles-location strong {
+  color: #244158;
+  font-size: .8rem;
+}
+
+.tlg-doubles-location span {
+  margin-top: 3px;
+  color: #7a8f9f;
+  font-size: .6rem;
+  text-transform: capitalize;
+}
+
+.tlg-doubles-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 12px;
+}
+
+.tlg-doubles-stat-grid article {
+  min-height: 100px;
+  display: grid;
+  align-content: center;
+  gap: 5px;
+  padding: 15px;
+  border: 1px solid var(--doubles-border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.tlg-doubles-stat-grid svg {
+  margin-bottom: 2px;
+  color: var(--doubles-blue);
+}
+
+.tlg-doubles-stat-grid span {
+  color: #73899a;
+  font-size: .58rem;
+  font-weight: 780;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.tlg-doubles-stat-grid strong {
+  color: var(--doubles-ink);
+  font-size: .88rem;
+}
+
+.tlg-doubles-timeline-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 10px;
+  padding: 18px;
+}
+
+.tlg-doubles-timeline-grid article {
+  min-height: 76px;
+  display: grid;
+  align-content: center;
+  gap: 5px;
+  padding: 11px 13px;
+  border: 1px solid #e1eaf0;
+  border-radius: 9px;
+  background: #fbfdff;
+}
+
+.tlg-doubles-timeline-grid span {
+  color: #778d9e;
+  font-size: .56rem;
+  font-weight: 790;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.tlg-doubles-timeline-grid strong {
+  color: #29475d;
+  font-size: .69rem;
+}
+
+.tlg-doubles-phase-note {
+  margin: 0 18px 18px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #687f91;
+  font-size: .66rem;
+}
+
+.tlg-doubles-my-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px;
+}
+
+.tlg-doubles-my-status h3 {
+  margin: 8px 0 0;
+  color: var(--doubles-ink);
+  font-size: .95rem;
+}
+
+.tlg-doubles-my-status p {
+  margin: 5px 0 0;
+  color: #718697;
+  font-size: .68rem;
+  line-height: 1.55;
+}
+
+.tlg-doubles-status-chip,
+.tlg-doubles-entry-chip,
+.tlg-doubles-you-chip {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 0 8px;
+  border-radius: 999px;
+  color: #355c75;
+  background: #edf4f8;
+  border: 1px solid #dbe7ee;
+  font-size: .55rem;
+  font-weight: 830;
+  letter-spacing: .03em;
+}
+
+.tlg-doubles-status-chip.status-looking_for_partner,
+.tlg-doubles-entry-chip.status-confirmed {
+  color: #0a679d;
+  background: #eef8fd;
+  border-color: #cfe7f5;
+}
+
+.tlg-doubles-status-chip.status-entry_accepted,
+.tlg-doubles-entry-chip.status-active,
+.tlg-doubles-status-chip.status-champion {
+  color: #147149;
+  background: #eef9f3;
+  border-color: #cbe9d8;
+}
+
+.tlg-doubles-status-chip.status-waitlisted,
+.tlg-doubles-entry-chip.status-alternate {
+  color: #8b6513;
+  background: #fff9e9;
+  border-color: #eedda6;
+}
+
+.tlg-doubles-status-chip.status-unavailable,
+.tlg-doubles-entry-chip.status-withdrawn {
+  color: #9d4848;
+  background: #fff3f3;
+  border-color: #efd0d0;
+}
+
+.tlg-doubles-my-actions,
+.tlg-doubles-invite-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.tlg-doubles-availability-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #9d4848 !important;
+}
+
+.tlg-doubles-invitations,
+.tlg-doubles-outgoing,
+.tlg-doubles-market-list,
+.tlg-doubles-team-list {
+  display: grid;
+  gap: 9px;
+  padding: 18px;
+}
+
+.tlg-doubles-invitations article,
+.tlg-doubles-outgoing article,
+.tlg-doubles-team-list article {
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  border: 1px solid #e0e9ef;
+  border-radius: 10px;
+  background: #fbfdff;
+}
+
+.tlg-doubles-invitations article {
+  justify-content: space-between;
+}
+
+.tlg-doubles-invite-player,
+.tlg-doubles-market-player {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.tlg-doubles-invite-player strong,
+.tlg-doubles-invite-player span,
+.tlg-doubles-outgoing strong,
+.tlg-doubles-outgoing span,
+.tlg-doubles-market-player strong,
+.tlg-doubles-market-player span {
+  display: block;
+}
+
+.tlg-doubles-invite-player strong,
+.tlg-doubles-outgoing strong,
+.tlg-doubles-market-player strong,
+.tlg-doubles-team-list strong {
+  color: #213e54;
+  font-size: .72rem;
+}
+
+.tlg-doubles-invite-player span,
+.tlg-doubles-outgoing span,
+.tlg-doubles-market-player span,
+.tlg-doubles-team-list article > div > span {
+  margin-top: 3px;
+  color: #788c9c;
+  font-size: .59rem;
+}
+
+.tlg-doubles-outgoing article > div {
+  flex: 1;
+}
+
+.tlg-doubles-market-note {
+  margin: 16px 18px 0;
+  color: #718697;
+  font-size: .67rem;
+  line-height: 1.55;
+}
+
+.tlg-doubles-market-list article {
+  display: grid;
+  grid-template-columns: minmax(190px,1.1fr) minmax(420px,2.2fr) 120px;
+  align-items: center;
+  gap: 15px;
+  padding: 13px 14px;
+  border: 1px solid #e0e9ef;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.tlg-doubles-market-list article.is-me {
+  border-color: #badcef;
+  background: #f5fbff;
+}
+
+.tlg-doubles-market-metrics {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 7px;
+}
+
+.tlg-doubles-market-metrics > span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  padding: 7px 8px;
+  border-radius: 7px;
+  background: #f6f9fb;
+}
+
+.tlg-doubles-market-metrics small {
+  color: #8093a2;
+  font-size: .5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.tlg-doubles-market-metrics b {
+  overflow: hidden;
+  color: #38566d;
+  font-size: .58rem;
+  font-weight: 740;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tlg-doubles-market-action {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.tlg-doubles-you-chip {
+  color: #0b6fc8;
+}
+
+.tlg-doubles-empty {
+  margin: 18px;
+  padding: 18px;
+  border: 1px dashed #cedce6;
+  border-radius: 10px;
+  background: #fafcfe;
+  text-align: center;
+}
+
+.tlg-doubles-empty strong {
+  display: block;
+  color: #29475d;
+  font-size: .76rem;
+}
+
+.tlg-doubles-empty p {
+  margin: 5px 0 0;
+  color: #7b8f9e;
+  font-size: .64rem;
+}
+
+.tlg-doubles-team-list article {
+  display: grid;
+  grid-template-columns: 38px minmax(0,1fr) auto;
+}
+
+.tlg-doubles-team-order {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: #0b6fc8;
+  background: #eef7fc;
+  font-size: .62rem;
+  font-weight: 850;
+}
+
+.tlg-doubles-page .tlg-doubles-draw-list {
+  padding: 18px;
+}
+
+.tlg-doubles-page .tlg-doubles-draw-match {
+  border-color: #e0e9ef;
+  background: #fbfdff;
+}
+
+.tlg-doubles-page .tlg-doubles-draw-match span,
+.tlg-doubles-page .tlg-doubles-draw-match small {
+  color: #7890a1;
+  font-size: .62rem;
+}
+
+.tlg-doubles-page .tlg-doubles-draw-match strong {
+  color: #27465d;
+  font-size: .7rem;
+}
+
+.tlg-doubles-page .tlg-doubles-draw-match b {
+  color: #7890a1;
+  font-size: .55rem;
+}
+
+.tlg-doubles-rules-strip {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 8px;
+  padding: 18px 18px 0;
+}
+
+.tlg-doubles-rules-strip span {
+  padding: 9px 10px;
+  border: 1px solid #e0e9ef;
+  border-radius: 8px;
+  color: #607a8e;
+  background: #f8fbfd;
+  font-size: .6rem;
+  font-weight: 700;
+}
+
+@media (max-width: 1080px) {
+  .tlg-doubles-stat-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+
+  .tlg-doubles-market-list article {
+    grid-template-columns: 1fr;
+  }
+
+  .tlg-doubles-market-metrics {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+
+  .tlg-doubles-market-action {
+    justify-content: flex-start;
+  }
+
+  .tlg-doubles-rules-strip {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .tlg-tournament-discipline-tabs {
+    width: 100%;
+  }
+
+  .tlg-tournament-discipline-tabs a {
+    flex: 1;
+  }
+
+  .tlg-doubles-hero,
+  .tlg-doubles-my-status,
+  .tlg-doubles-invitations article {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tlg-doubles-location {
+    min-width: 0;
+  }
+
+  .tlg-doubles-timeline-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tlg-doubles-my-actions,
+  .tlg-doubles-invite-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 560px) {
+  .tlg-doubles-stat-grid,
+  .tlg-doubles-timeline-grid,
+  .tlg-doubles-market-metrics,
+  .tlg-doubles-rules-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .tlg-doubles-team-list article {
+    grid-template-columns: 34px minmax(0,1fr);
+  }
+
+  .tlg-doubles-team-list .tlg-doubles-entry-chip {
+    grid-column: 2;
+  }
+
+  .tlg-doubles-page .tlg-doubles-rewards-table {
+    overflow-x: auto;
+  }
+
+  .tlg-doubles-page .tlg-doubles-rewards-table .tlg-detail-rewards-row {
+    min-width: 590px;
+  }
+}
