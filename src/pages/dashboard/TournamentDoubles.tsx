@@ -2,11 +2,9 @@ import {
   ArrowLeft,
   CalendarDays,
   CheckCircle2,
-  CircleDollarSign,
   Clock3,
   Hourglass,
   Send,
-  ShieldCheck,
   Trophy,
   UserMinus,
   UserPlus,
@@ -413,10 +411,10 @@ export default function TournamentDoublesPage() {
         </section>
 
         <section className="tlg-doubles-stat-grid">
-          <article><Users size={18} /><span>Draw capacity</span><strong>{core.draw_size} teams</strong></article>
-          <article><CircleDollarSign size={18} /><span>Team prize pool</span><strong>{formatMoney(core.announced_team_prize_pool_usd)}</strong></article>
-          <article><Trophy size={18} /><span>Winner points</span><strong>{core.winner_points.toLocaleString()} pts each</strong></article>
-          <article><ShieldCheck size={18} /><span>Your status</span><strong>{statusLabel(hub.player_status)}</strong></article>
+          <article><span>Draw capacity</span><strong>{core.draw_size} teams</strong></article>
+          <article><span>Team prize pool</span><strong>{formatMoney(core.announced_team_prize_pool_usd)}</strong></article>
+          <article><span>Winner points</span><strong>{core.winner_points.toLocaleString()} pts each</strong></article>
+          <article><span>Your status</span><strong>{statusLabel(hub.player_status)}</strong></article>
         </section>
 
         <section className="tlg-detail-panel tlg-doubles-deadlines">
