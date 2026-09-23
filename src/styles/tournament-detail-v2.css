@@ -385,3 +385,128 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+.tlg-doubles-core-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.tlg-doubles-core-summary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.tlg-doubles-draw-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.tlg-doubles-draw-match {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.46);
+}
+
+.tlg-doubles-draw-match > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.tlg-doubles-draw-match span,
+.tlg-doubles-draw-match small {
+  color: #94a3b8;
+  font-size: 0.78rem;
+}
+
+.tlg-doubles-draw-match strong {
+  color: #e2e8f0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tlg-doubles-draw-match b {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.tlg-doubles-core-empty {
+  padding: 18px;
+  border: 1px dashed rgba(148, 163, 184, 0.24);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.3);
+}
+
+.tlg-doubles-core-empty strong {
+  display: block;
+  color: #e2e8f0;
+  margin-bottom: 5px;
+}
+
+.tlg-doubles-core-empty p {
+  margin: 0;
+  color: #94a3b8;
+}
+
+.tlg-doubles-rewards-table .tlg-detail-rewards-row {
+  grid-template-columns: minmax(180px, 1.4fr) repeat(3, minmax(110px, 0.8fr));
+}
+
+.tlg-doubles-withdraw-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px;
+  border: 1px solid rgba(248, 113, 113, 0.18);
+  border-radius: 12px;
+  background: rgba(127, 29, 29, 0.08);
+}
+
+.tlg-doubles-withdraw-row strong {
+  color: #f8fafc;
+}
+
+.tlg-doubles-withdraw-row p {
+  margin: 5px 0 0;
+  color: #94a3b8;
+  font-size: 0.88rem;
+}
+
+@media (max-width: 900px) {
+  .tlg-doubles-core-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tlg-doubles-draw-list {
+    grid-template-columns: 1fr;
+  }
+
+  .tlg-doubles-withdraw-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .tlg-doubles-core-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .tlg-doubles-rewards-table {
+    overflow-x: auto;
+  }
+
+  .tlg-doubles-rewards-table .tlg-detail-rewards-row {
+    min-width: 620px;
+  }
+}
