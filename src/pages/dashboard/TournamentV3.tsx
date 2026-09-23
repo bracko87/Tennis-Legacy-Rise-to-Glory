@@ -13,7 +13,6 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router'
 
-import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
 import TournamentDefendingPoints from '../../components/tournament/TournamentDefendingPoints'
@@ -29,6 +28,7 @@ import { supabase } from '../../lib/supabase'
 import '../../styles/tournament-detail.css'
 import '../../styles/tournament-detail-schedule.css'
 import '../../styles/tournament-detail-v2.css'
+import '../../styles/tournament-doubles.css'
 import '../../styles/tournament-rewards-live.css'
 
 const SURFACE_IMAGES: Record<'hard' | 'clay' | 'grass', string> = {
@@ -125,35 +125,6 @@ interface TournamentDoublesCore {
   announced_team_prize_pool_usd: number
   winner_points: number
   reward_rows: DoublesRewardRow[]
-}
-
-interface TournamentDoublesDrawMatch {
-  match_id: string
-  discipline: 'doubles'
-  round_number: number
-  round_label: string
-  match_number: number
-  bracket_size: number
-  scheduled_season_week: number
-  scheduled_day: number
-  scheduled_start_minute: number | null
-  court_number: number | null
-  schedule_reason: string
-  match_status: string
-  team1_player1_first_name: string | null
-  team1_player1_last_name: string | null
-  team1_player2_first_name: string | null
-  team1_player2_last_name: string | null
-  team2_player1_first_name: string | null
-  team2_player1_last_name: string | null
-  team2_player2_first_name: string | null
-  team2_player2_last_name: string | null
-  winner_team_id: string | null
-}
-
-interface TournamentDoublesTeamState {
-  id: string
-  status: 'confirmed' | 'active' | 'alternate' | 'eliminated' | 'champion' | 'withdrawn'
 }
 
 interface TournamentApplicationState {
@@ -450,17 +421,12 @@ function RewardInfoPopover({ rewards, mode }: { rewards: TournamentRewards | nul
 
 export default function TournamentPage() {
   const { competitionId } = useParams()
-  const { player } = useAuth()
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const clock = useGameClock()
   const [detail, setDetail] = useState<TournamentDetailRow | null>(null)
   const [rewards, setRewards] = useState<TournamentRewards | null>(null)
   const [doublesCore, setDoublesCore] = useState<TournamentDoublesCore | null>(null)
-  const [doublesDraw, setDoublesDraw] = useState<TournamentDoublesDrawMatch[]>([])
-  const [myDoublesTeam, setMyDoublesTeam] = useState<TournamentDoublesTeamState | null>(null)
-  const [doublesLoading, setDoublesLoading] = useState(false)
-  const [doublesError, setDoublesError] = useState<string | null>(null)
   const [applicationState, setApplicationState] = useState<TournamentApplicationState | null>(null)
   const [loading, setLoading] = useState(true)
   const [applicationLoading, setApplicationLoading] = useState(false)
@@ -479,44 +445,12 @@ export default function TournamentPage() {
   const loadDoubles = useCallback(async () => {
     if (!competitionId) return
 
-    const [coreResponse, drawResponse] = await Promise.all([
-      supabase.rpc('get_tournament_doubles_core_v1', { p_competition_id: competitionId }),
-      supabase.rpc('get_tournament_doubles_draw_v1', { p_competition_id: competitionId }),
-    ])
+    const { data, error: doublesLoadError } = await supabase.rpc('get_tournament_doubles_core_v1', {
+      p_competition_id: competitionId,
+    })
 
-    if (coreResponse.error) {
-      setDoublesCore(null)
-      setDoublesDraw([])
-      setDoublesError(coreResponse.error.message)
-      return
-    }
-
-    setDoublesCore(coreResponse.data as TournamentDoublesCore)
-    setDoublesDraw(drawResponse.error ? [] : ((drawResponse.data ?? []) as TournamentDoublesDrawMatch[]))
-    setDoublesError(drawResponse.error ? drawResponse.error.message : null)
+    setDoublesCore(doublesLoadError ? null : (data as TournamentDoublesCore))
   }, [competitionId])
-
-  const loadMyDoublesTeam = useCallback(async () => {
-    if (!competitionId || !player?.id) {
-      setMyDoublesTeam(null)
-      return
-    }
-
-    const { data, error: teamError } = await supabase
-      .from('tournament_doubles_teams')
-      .select('id,status')
-      .eq('competition_id', competitionId)
-      .or(`player1_id.eq.${player.id},player2_id.eq.${player.id}`)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    if (teamError) {
-      setMyDoublesTeam(null)
-      return
-    }
-    setMyDoublesTeam((data as TournamentDoublesTeamState | null) ?? null)
-  }, [competitionId, player?.id])
 
   const loadApplicationState = useCallback(async () => {
     if (!competitionId) return
@@ -591,8 +525,7 @@ export default function TournamentPage() {
 
   useEffect(() => {
     void loadDoubles()
-    void loadMyDoublesTeam()
-  }, [loadDoubles, loadMyDoublesTeam])
+  }, [loadDoubles])
 
   const mainRounds = useMemo(
     () => mainDrawRounds(detail?.main_draw_capacity ?? 0),
@@ -662,20 +595,6 @@ export default function TournamentPage() {
     setApplicationLoading(false)
   }
 
-  async function withdrawFromDoubles() {
-    if (!competitionId) return
-    setDoublesLoading(true)
-    setDoublesError(null)
-
-    const { error: withdrawError } = await supabase.rpc('withdraw_from_doubles_v1', {
-      p_competition_id: competitionId,
-    })
-
-    if (withdrawError) setDoublesError(withdrawError.message)
-    await Promise.all([loadDoubles(), loadMyDoublesTeam()])
-    setDoublesLoading(false)
-  }
-
   async function withdrawApplication() {
     if (!competitionId) return
     setApplicationLoading(true)
@@ -719,6 +638,11 @@ export default function TournamentPage() {
         <Link to={backTarget} className="tlg-detail-back-link">
           <ArrowLeft size={15} /> Back to Tournament Calendar
         </Link>
+
+        <nav className="tlg-tournament-discipline-tabs" aria-label="Tournament competition">
+          <Link to={`/game/tournaments/${competitionId}`} className="active" aria-current="page">Singles</Link>
+          {doublesCore?.enabled && <Link to={`/game/tournaments/${competitionId}/doubles`}>Doubles</Link>}
+        </nav>
 
         <section className="tlg-detail-hero">
           <div className="tlg-detail-surface-card">
@@ -841,97 +765,23 @@ export default function TournamentPage() {
         </section>
 
         {doublesCore?.enabled && (
-          <section className="tlg-detail-panel tlg-doubles-core-panel">
-            <header className="tlg-detail-panel-head">
-              <div>
-                <span>{detail.world} doubles</span>
-                <h2>Doubles competition</h2>
-              </div>
-              <Users size={18} />
-            </header>
-
-            <div className="tlg-live-reward-summary tlg-doubles-core-summary">
-              <div>
-                <span>Draw</span>
-                <strong>{doublesCore.draw_published ? `${doublesDraw[0]?.bracket_size ?? doublesCore.draw_size} teams` : `Up to ${doublesCore.draw_size} teams`}</strong>
-              </div>
-              <div>
-                <span>Registered teams</span>
-                <strong>{doublesCore.confirmed_teams}</strong>
-              </div>
-              <div>
-                <span>Team prize pool</span>
-                <strong>{formatMoney(doublesCore.announced_team_prize_pool_usd)}</strong>
-              </div>
-              <div>
-                <span>Winner points</span>
-                <strong>{doublesCore.winner_points.toLocaleString()} pts</strong>
-              </div>
+          <section className="tlg-detail-panel tlg-doubles-singles-callout">
+            <div>
+              <span>${detail.world} doubles</span>
+              <h2>Doubles competition is available at ${detail.tournament_name}</h2>
               <p>
-                Doubles shares this tournament's city, surface and courts with singles. Match fatigue runs at about {Math.round(doublesCore.fatigue_multiplier * 100)}% of the singles model and equipment wear at about {Math.round(doublesCore.equipment_wear_multiplier * 100)}%, with at least {Math.round(doublesCore.minimum_recovery_minutes / 60)} hours between a player's matches.
+                Doubles uses this same tournament, city, surface and dates. Open the dedicated Doubles page to
+                look for a partner, manage invitations, review deadlines, entry status, prize money and the doubles draw.
               </p>
             </div>
-
-            {doublesCore.draw_published && doublesDraw.length > 0 ? (
-              <div className="tlg-doubles-draw-list">
-                {doublesDraw.map((match) => (
-                  <article key={match.match_id} className={`tlg-doubles-draw-match status-${match.match_status}`}>
-                    <div>
-                      <span>{match.round_label} · Match #{match.match_number}</span>
-                      <strong>{doublesTeamLabel(match.team1_player1_first_name, match.team1_player1_last_name, match.team1_player2_first_name, match.team1_player2_last_name)}</strong>
-                      <b>vs</b>
-                      <strong>{doublesTeamLabel(match.team2_player1_first_name, match.team2_player1_last_name, match.team2_player2_first_name, match.team2_player2_last_name)}</strong>
-                    </div>
-                    <small>
-                      {match.scheduled_start_minute == null
-                        ? match.match_status === 'bye' ? 'Bye' : 'Time TBD'
-                        : `Week ${match.scheduled_season_week} · Day ${match.scheduled_day} · ${String(Math.floor(match.scheduled_start_minute / 60)).padStart(2, '0')}:${String(match.scheduled_start_minute % 60).padStart(2, '0')}${match.court_number ? ` · Court ${match.court_number}` : ''}`}
-                    </small>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <div className="tlg-doubles-core-empty">
-                <strong>Doubles draw not published yet</strong>
-                <p>The draw will appear here after the doubles field is locked. Singles and doubles use the same player-location availability rules.</p>
-              </div>
-            )}
-
-            <div className="tlg-detail-rewards-table tlg-doubles-rewards-table">
-              <div className="tlg-detail-rewards-row tlg-detail-rewards-head">
-                <span>Finishing stage</span><span>Ranking points</span><span>Team prize</span><span>Per player</span>
-              </div>
-              {(doublesCore.reward_rows ?? []).filter((row) => {
-                const bracketSize = doublesDraw[0]?.bracket_size ?? doublesCore.draw_size
-                if (row.stage_code === 'round_64') return bracketSize >= 64
-                if (row.stage_code === 'round_32') return bracketSize >= 32
-                if (row.stage_code === 'round_16') return bracketSize >= 16
-                if (row.stage_code === 'quarterfinal') return bracketSize >= 8
-                if (row.stage_code === 'semifinal') return bracketSize >= 4
-                return true
-              }).map((row) => (
-                <div key={`doubles-${row.stage_code}`} className="tlg-detail-rewards-row">
-                  <strong>{row.stage_label}</strong>
-                  <span>{row.ranking_points.toLocaleString()} pts</span>
-                  <span>{formatMoney(row.team_prize_usd)}</span>
-                  <span>{formatMoney(row.player_prize_usd)}</span>
-                </div>
-              ))}
+            <div className="tlg-doubles-singles-callout-stats">
+              <span><small>Draw</small><strong>Up to ${doublesCore.draw_size} teams</strong></span>
+              <span><small>Team prize pool</small><strong>${formatMoney(doublesCore.announced_team_prize_pool_usd)}</strong></span>
+              <span><small>Winner points</small><strong>${doublesCore.winner_points.toLocaleString()} pts</strong></span>
             </div>
-
-            {myDoublesTeam && ['confirmed', 'active'].includes(myDoublesTeam.status) && (
-              <div className="tlg-doubles-withdraw-row">
-                <div>
-                  <strong>Your doubles team is active</strong>
-                  <p>Withdrawing forfeits the team's next doubles match. Ranking points and prize money already earned remain yours, and your singles entry is unchanged.</p>
-                </div>
-                <button type="button" className="tlg-detail-secondary-button" disabled={doublesLoading} onClick={() => void withdrawFromDoubles()}>
-                  {doublesLoading ? 'Withdrawing…' : 'Withdraw from doubles'}
-                </button>
-              </div>
-            )}
-
-            {doublesError && <div className="tlg-detail-inline-error"><XCircle size={14} /> {doublesError}</div>}
+            <Link className="tlg-detail-primary-button" to={`/game/tournaments/${competitionId}/doubles`}>
+              Open Doubles
+            </Link>
           </section>
         )}
 
