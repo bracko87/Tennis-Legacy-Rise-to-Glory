@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, LockKeyhole } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router'
 
@@ -21,6 +21,26 @@ interface RankingRow {
   rank_change: number | null
   previous_week_points: number | null
   points_change: number | null
+}
+
+
+interface RankingProtectionEntry {
+  contribution_id: string
+  tournament_name: string
+  source_result_label: string
+  ranking_points: number
+  expiration_season: number
+  expiration_week: number
+  expiration_month: number
+  expiration_day: number
+  days_remaining: number
+  next_edition_scheduled: boolean
+}
+
+interface RankingProtectionResponse {
+  premium: boolean
+  locked: boolean
+  contributions: RankingProtectionEntry[]
 }
 
 
@@ -128,6 +148,8 @@ export default function RankingsPage() {
   const page = pageFromSearch(searchParams.get('page'))
   const discipline: RankingDiscipline = searchParams.get('discipline') === 'doubles' ? 'doubles' : 'singles'
   const [rows, setRows] = useState<RankingRow[]>([])
+  const [rankingProtection, setRankingProtection] = useState<RankingProtectionResponse | null>(null)
+  const [rankingProtectionOpen, setRankingProtectionOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const previousWorldRef = useRef(world)
@@ -141,17 +163,22 @@ export default function RankingsPage() {
     setLoading(true)
     setError(null)
 
-    const rankingResponse = discipline === 'doubles'
-      ? await supabase.rpc('get_world_doubles_rankings_v1', {
-        p_world: world,
-        p_offset: page * PAGE_SIZE,
-        p_limit: PAGE_SIZE,
-      })
-      : await supabase.rpc('get_world_rankings_v3', {
-        p_world: world,
-        p_offset: page * PAGE_SIZE,
-        p_limit: PAGE_SIZE,
-      })
+    const [rankingResponse, protectionResponse] = await Promise.all([
+      discipline === 'doubles'
+        ? supabase.rpc('get_world_doubles_rankings_v1', {
+          p_world: world,
+          p_offset: page * PAGE_SIZE,
+          p_limit: PAGE_SIZE,
+        })
+        : supabase.rpc('get_world_rankings_v3', {
+          p_world: world,
+          p_offset: page * PAGE_SIZE,
+          p_limit: PAGE_SIZE,
+        }),
+      discipline === 'doubles'
+        ? supabase.rpc('get_premium_doubles_ranking_protection_v1')
+        : supabase.rpc('get_premium_ranking_protection_v1'),
+    ])
 
     if (rankingResponse.error) {
       setError(rankingResponse.error.message)
@@ -160,11 +187,17 @@ export default function RankingsPage() {
       setRows((rankingResponse.data ?? []) as RankingRow[])
     }
 
+    if (!protectionResponse.error && protectionResponse.data) {
+      setRankingProtection(protectionResponse.data as RankingProtectionResponse)
+    } else {
+      setRankingProtection(null)
+    }
 
     setLoading(false)
   }, [discipline, page, world])
 
   const setDiscipline = useCallback((nextDiscipline: RankingDiscipline) => {
+    setRankingProtectionOpen(false)
     setSearchParams((current) => {
       const next = new URLSearchParams(current)
       next.delete('page')
@@ -247,6 +280,69 @@ export default function RankingsPage() {
           <button type="button" role="tab" aria-selected={discipline === 'doubles'} className={discipline === 'doubles' ? 'active' : ''} onClick={() => setDiscipline('doubles')}>Doubles</button>
         </div>
       </header>
+
+      <section className={'tlg-v2-panel tlg-ranking-protection-panel' + (rankingProtectionOpen ? ' is-open' : '')}>
+        <button
+          type="button"
+          className="tlg-ranking-protection-summary"
+          aria-expanded={Boolean(rankingProtection?.premium && rankingProtectionOpen)}
+          onClick={() => {
+            if (rankingProtection?.premium) setRankingProtectionOpen((current) => !current)
+          }}
+        >
+          <div>
+            <span>PREMIUM · RANKING PROTECTION</span>
+            <h3>Upcoming Point Expirations</h3>
+            <p>
+              {discipline === 'doubles'
+                ? 'Your next doubles ranking results due to expire.'
+                : 'Your next singles ranking results due to expire.'}
+            </p>
+          </div>
+          {rankingProtection?.premium ? (
+            <strong>
+              {rankingProtectionOpen ? 'Minimize' : 'Expand'}
+              {rankingProtectionOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+            </strong>
+          ) : (
+            <strong className="locked"><LockKeyhole size={14} /> Premium</strong>
+          )}
+        </button>
+
+        {!rankingProtection?.premium ? (
+          <div className="tlg-ranking-protection-locked">
+            <LockKeyhole size={16} />
+            <span>Upgrade to Premium to see the next five ranking-point expirations.</span>
+          </div>
+        ) : rankingProtectionOpen ? (
+          rankingProtection.contributions.length > 0 ? (
+            <div className="tlg-ranking-protection-list">
+              {rankingProtection.contributions.slice(0, 5).map((item) => (
+                <article key={item.contribution_id}>
+                  <div>
+                    <span>{item.next_edition_scheduled ? 'Defending points' : 'Scheduled expiration'}</span>
+                    <strong>{item.tournament_name}</strong>
+                    <small>{item.source_result_label}</small>
+                  </div>
+                  <div className="points">
+                    <strong>{item.ranking_points.toLocaleString()} pts</strong>
+                    <small>{item.days_remaining.toLocaleString()} game days remaining</small>
+                  </div>
+                  <div className="expires">
+                    <span>Expires</span>
+                    <strong>Season {item.expiration_season} · Week {item.expiration_week}</strong>
+                    <small>Month {item.expiration_month}, Day {item.expiration_day}</small>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="tlg-ranking-protection-empty">
+              No {discipline} ranking results are currently waiting to expire.
+            </div>
+          )
+        ) : null}
+      </section>
 
       <section className="tlg-v2-panel">
         <header className="tlg-v2-panel-header tlg-ranking-panel-header">
