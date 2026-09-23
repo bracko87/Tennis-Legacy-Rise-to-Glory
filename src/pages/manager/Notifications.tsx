@@ -171,6 +171,8 @@ function preparationRoute(competitionId: string | null) {
 function primaryActionLabel(code: string) {
   if (code === 'doubles.partner.invitation') return 'Review invitation'
   if (code === 'doubles.draw.published') return 'View doubles draw'
+  if (code === 'doubles.match.scheduled') return 'Prepare doubles match'
+  if (code === 'doubles.match.result') return 'View doubles result'
   if (code.startsWith('doubles.')) return 'Open doubles'
   if (code === 'tournament.draw.published') return 'View draw'
   if (code === 'tournament.preparation.available') return 'Open preparation'
@@ -202,6 +204,8 @@ function notificationActions(notification: NotificationRow) {
     primaryRoute = code === 'tournament.preparation.available'
       ? preparationRoute(competitionId)
       : tournamentRoute(competitionId)
+  } else if (code.startsWith('doubles.') && competitionId) {
+    primaryRoute = `/game/tournaments/${competitionId}/doubles`
   } else if (code === 'account.birthday_gift') {
     primaryRoute = '/game/pro-packages'
   } else if (code.startsWith('equipment.technical_sponsor.')) {
@@ -292,10 +296,30 @@ function contextRows(notification: NotificationRow) {
     add('Tournament', payloadText(payload, 'tournament_name') ?? titleTournament)
     add('City', payloadText(payload, 'city'))
     add('Partner', payloadText(payload, 'partner_name') ?? payloadText(payload, 'proposed_partner_name'))
+    add('Opponents', payloadText(payload, 'opponents'))
+    add('Round', payloadText(payload, 'round_label'))
     add('Entry status', payloadText(payload, 'entry_status')?.replaceAll('_', ' '))
+    add('Result', payloadText(payload, 'result')?.replace(/w/g, (letter) => letter.toUpperCase()))
     add('Partnership deadline', gameMomentLabel(payloadObject(payload, 'partnership_deadline')))
     add('Tournament start', gameMomentLabel(payloadObject(payload, 'tournament_start')))
     add('Tournament end', gameMomentLabel(payloadObject(payload, 'tournament_end')))
+
+    const seasonWeek = payloadNumber(payload, 'season_week')
+    const matchDay = payloadNumber(payload, 'day')
+    const startMinute = payloadNumber(payload, 'start_minute')
+    if (seasonWeek !== null && matchDay !== null) add('Match day', `Season Week ${seasonWeek} · Day ${matchDay}`)
+    if (startMinute !== null) {
+      const hour = Math.floor(startMinute / 60)
+      const minute = startMinute % 60
+      add('Match time', `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`)
+    }
+    const court = payloadNumber(payload, 'court_number')
+    if (court !== null) add('Court', `Court ${court}`)
+    const sets = payloadNumber(payload, 'sets_played')
+    const games = payloadNumber(payload, 'games_played')
+    if (sets !== null) add('Sets played', sets)
+    if (games !== null) add('Games played', games)
+
     const bracketSize = payloadNumber(payload, 'bracket_size')
     if (bracketSize !== null) add('Draw size', `${bracketSize} teams`)
   }
