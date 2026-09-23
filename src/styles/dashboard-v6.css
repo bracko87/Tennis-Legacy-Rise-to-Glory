@@ -88,3 +88,43 @@
     transform: scale(1.12);
   }
 }
+
+
+/* Keep administration directly below Manager Center navigation ---------- */
+
+.tlg-v2-nav-main {
+  flex: 0 0 auto;
+  overflow: visible;
+  padding-bottom: 10px;
+}
+
+.tlg-v2-admin-section {
+  flex: 0 0 auto;
+  padding: 0 10px 12px;
+}
+
+.tlg-v2-admin-divider {
+  height: 1px;
+  margin: 4px 6px 12px;
+  background: rgba(117, 161, 194, 0.14);
+}
+
+.tlg-v2-admin-label {
+  margin: 0 6px 8px;
+}
+
+.tlg-v2-nav-admin {
+  flex: 0 0 auto;
+  overflow: visible;
+  padding: 0;
+}
+
+.tlg-v2-sidebar-collapsed .tlg-v2-admin-section {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.tlg-v2-sidebar-collapsed .tlg-v2-admin-divider {
+  margin-left: 2px;
+  margin-right: 2px;
+}
