@@ -124,7 +124,7 @@ function categoryKey(notification: NotificationRow) {
   if (payloadCategory) return payloadCategory
 
   const code = notification.notification_code
-  if (code.startsWith('tournament.')) return 'tournament'
+  if (code.startsWith('tournament.') || code.startsWith('doubles.')) return 'tournament'
   if (code.startsWith('travel.')) return 'travel'
   if (code.startsWith('equipment.')) return 'equipment'
   if (code.startsWith('training.')) return 'training'
@@ -169,6 +169,9 @@ function preparationRoute(competitionId: string | null) {
 }
 
 function primaryActionLabel(code: string) {
+  if (code === 'doubles.partner.invitation') return 'Review invitation'
+  if (code === 'doubles.draw.published') return 'View doubles draw'
+  if (code.startsWith('doubles.')) return 'Open doubles'
   if (code === 'tournament.draw.published') return 'View draw'
   if (code === 'tournament.preparation.available') return 'Open preparation'
   if (code.startsWith('tournament.application.')) return 'View tournament'
@@ -283,6 +286,18 @@ function contextRows(notification: NotificationRow) {
     add('Minimum players', payloadNumber(payload, 'minimum_players'))
     const refunded = payloadNumber(payload, 'refunded_amount')
     if (refunded !== null) add('Refunded', money(refunded))
+  }
+
+  if (notification.notification_code.startsWith('doubles.')) {
+    add('Tournament', payloadText(payload, 'tournament_name') ?? titleTournament)
+    add('City', payloadText(payload, 'city'))
+    add('Partner', payloadText(payload, 'partner_name') ?? payloadText(payload, 'proposed_partner_name'))
+    add('Entry status', payloadText(payload, 'entry_status')?.replaceAll('_', ' '))
+    add('Partnership deadline', gameMomentLabel(payloadObject(payload, 'partnership_deadline')))
+    add('Tournament start', gameMomentLabel(payloadObject(payload, 'tournament_start')))
+    add('Tournament end', gameMomentLabel(payloadObject(payload, 'tournament_end')))
+    const bracketSize = payloadNumber(payload, 'bracket_size')
+    if (bracketSize !== null) add('Draw size', `${bracketSize} teams`)
   }
 
   if (notification.notification_code.startsWith('travel.')) {
