@@ -48,3 +48,29 @@
     flex: 1;
   }
 }
+
+
+.tlg-standard-tabs.tlg-module-tabs-top .tlg-module-tab {
+  min-height: 38px;
+  padding: 0 17px;
+  border: 0;
+  border-radius: 8px;
+  color: #61798c;
+  background: transparent;
+  box-shadow: none;
+  font-size: .74rem;
+  font-weight: 760;
+}
+
+.tlg-standard-tabs.tlg-module-tabs-top .tlg-module-tab:hover {
+  color: #076db5;
+  background: #f3f9fd;
+  border-color: transparent;
+}
+
+.tlg-standard-tabs.tlg-module-tabs-top .tlg-module-tab-active {
+  color: #076db5;
+  background: #eaf5fc;
+  border-color: transparent;
+  box-shadow: inset 0 0 0 1px #cfe8f8;
+}
