@@ -269,6 +269,7 @@ export default function NationalTeamPage() {
   const [customContribution, setCustomContribution] = useState('5')
   const [manifesto, setManifesto] = useState('')
   const [candidatePanelOpen, setCandidatePanelOpen] = useState(false)
+  const [electionHelpOpen, setElectionHelpOpen] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -1044,13 +1045,24 @@ export default function NationalTeamPage() {
               </>
             )}
 
-            <div className="nt-election-explainer nt-election-explainer-lower">
+            <div className={`nt-election-explainer nt-election-explainer-lower ${electionHelpOpen ? 'expanded' : 'collapsed'}`}>
               <div className="nt-election-explainer-head">
-                <span>HOW CAPTAIN ELECTIONS WORK</span>
-                <strong>One member, one vote — and a winner must have a unique lead</strong>
+                <div>
+                  <span>HOW CAPTAIN ELECTIONS WORK</span>
+                  <strong>One member, one vote — and a winner must have a unique lead</strong>
+                </div>
+                <button
+                  type="button"
+                  className="nt-election-help-toggle"
+                  onClick={() => setElectionHelpOpen((open) => !open)}
+                >
+                  {electionHelpOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                  {electionHelpOpen ? 'Collapse' : 'Expand'}
+                </button>
               </div>
 
-              <div className="nt-election-explainer-grid">
+              {electionHelpOpen && (
+                <div className="nt-election-explainer-grid">
                 <article>
                   <b>Phase 1 · Candidate registration</b>
                   <strong>Annual: 1 January → 10 January</strong>
@@ -1096,7 +1108,8 @@ export default function NationalTeamPage() {
                   <strong>Delivered through the in-game inbox</strong>
                   <span>Members are notified when candidate registration opens, when the main vote opens, when a runoff is required, when a captain resigns or becomes inactive, and when a new captain is elected.</span>
                 </article>
-              </div>
+                </div>
+              )}
             </div>
 
           </section>

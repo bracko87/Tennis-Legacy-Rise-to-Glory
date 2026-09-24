@@ -2619,3 +2619,320 @@
     width: 100%;
   }
 }
+
+
+/* Collapsible captain-election reference --------------------------------- */
+
+.nt-election-explainer-lower.collapsed {
+  padding-bottom: 13px;
+}
+
+.nt-election-explainer-lower .nt-election-explainer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 0;
+}
+
+.nt-election-explainer-lower.expanded .nt-election-explainer-head {
+  margin-bottom: 11px;
+}
+
+.nt-election-explainer-head > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.nt-election-help-toggle {
+  flex: 0 0 auto;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  border: 1px solid #cbdbe6;
+  border-radius: 8px;
+  color: #294358;
+  background: #fff;
+  font: inherit;
+  font-size: .68rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.nt-election-help-toggle:hover {
+  background: #f3f7fa;
+}
+
+/* This is reference/help copy, so deliberately softer than primary UI. */
+.nt-election-explainer-lower .nt-election-explainer-head > div > strong {
+  font-weight: 600;
+}
+
+.nt-election-explainer-lower .nt-election-explainer-grid b {
+  font-weight: 700;
+}
+
+.nt-election-explainer-lower .nt-election-explainer-grid strong {
+  font-weight: 600;
+}
+
+.nt-election-explainer-lower .nt-election-explainer-grid span {
+  font-weight: 400;
+}
+
+/* National Team live chat ------------------------------------------------ */
+
+.nt-chat-layout {
+  display: grid;
+  grid-template-columns: minmax(0,1.75fr) minmax(300px,.85fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.nt-team-chat-page {
+  position: static;
+  max-width: none;
+  min-width: 0;
+}
+
+.nt-chat-room-panel {
+  min-width: 0;
+  padding: 16px;
+}
+
+.nt-chat-stream {
+  min-height: 190px;
+  max-height: 430px;
+  overflow-y: auto;
+}
+
+.nt-chat-compose.locked textarea {
+  background: #f4f7f9;
+  color: #8b9aa6;
+}
+
+.nt-chat-readonly-note {
+  margin-top: 8px;
+  color: #7b8d9b;
+  font-size: .68rem;
+  line-height: 1.45;
+}
+
+.nt-chat-join-card {
+  display: grid;
+  justify-items: start;
+  gap: 7px;
+  padding: 13px;
+  border: 1px solid #dce6ed;
+  border-radius: 10px;
+  background: #f8fbfd;
+}
+
+.nt-chat-join-card > svg {
+  color: #1681c4;
+}
+
+.nt-chat-join-card strong {
+  color: #294358;
+  font-size: .82rem;
+}
+
+.nt-chat-join-card span {
+  color: #718697;
+  font-size: .71rem;
+  line-height: 1.55;
+}
+
+.nt-chat-join-card button {
+  min-height: 34px;
+  padding: 0 13px;
+  border: 1px solid #0b3157;
+  border-radius: 8px;
+  color: #fff;
+  background: #0b3157;
+  font: inherit;
+  font-size: .7rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.nt-chat-join-card small {
+  color: #8a99a5;
+  font-size: .64rem;
+  line-height: 1.4;
+}
+
+.nt-chat-session-status {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #c7e2d2;
+  border-radius: 9px;
+  background: #f3f9f5;
+}
+
+.nt-chat-session-status > div {
+  display: grid;
+  gap: 3px;
+}
+
+.nt-chat-session-status span {
+  color: #2d8a5d;
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.nt-chat-session-status strong {
+  color: #325b46;
+  font-size: .73rem;
+}
+
+.nt-chat-session-status small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #658071;
+  font-size: .65rem;
+}
+
+.nt-chat-side-section {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 13px;
+  border-top: 1px solid #e5edf2;
+}
+
+.nt-chat-side-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.nt-chat-side-heading span {
+  color: #1675b7;
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.nt-chat-side-heading strong {
+  min-width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #0b6fc8;
+  background: #eaf5fc;
+  font-size: .65rem;
+}
+
+.nt-chat-participants {
+  display: grid;
+  gap: 6px;
+}
+
+.nt-chat-participants > div {
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 8px 9px;
+  border: 1px solid #e2eaf0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.nt-chat-presence-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #2fa56c;
+  box-shadow: 0 0 0 3px #e4f5eb;
+}
+
+.nt-chat-participants > div > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.nt-chat-participants strong {
+  color: #294358;
+  font-size: .7rem;
+}
+
+.nt-chat-participants small {
+  color: #8293a0;
+  font-size: .62rem;
+}
+
+.nt-chat-participants p,
+.nt-chat-recent-history > p {
+  margin: 0;
+  color: #81919d;
+  font-size: .68rem;
+}
+
+.nt-chat-recent-history {
+  display: grid;
+  gap: 6px;
+}
+
+.nt-chat-recent-history article {
+  padding: 8px 9px;
+  border: 1px solid #e4ebf0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.nt-chat-recent-history header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.nt-chat-recent-history header strong {
+  color: #294358;
+  font-size: .67rem;
+}
+
+.nt-chat-recent-history header span {
+  color: #8b99a5;
+  font-size: .6rem;
+}
+
+.nt-chat-recent-history p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: #6f8496;
+  font-size: .66rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 980px) {
+  .nt-chat-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .nt-election-explainer-lower .nt-election-explainer-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .nt-election-help-toggle {
+    justify-content: center;
+  }
+}
