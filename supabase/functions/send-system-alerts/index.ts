@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const DEFAULT_FROM = "Tennis Legacy <noreply@tennislegacygame.com>";
+const DEFAULT_FROM = "Tennis Legacy <no-reply@propelotonmanager.com>";
 
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") {
@@ -47,7 +47,6 @@ Deno.serve(async (req: Request) => {
   const resendApiKey = Deno.env.get("RESEND_API_KEY");
   const fromAddress =
     Deno.env.get("SYSTEM_ALERT_EMAIL_FROM")
-    || Deno.env.get("BIRTHDAY_EMAIL_FROM")
     || DEFAULT_FROM;
 
   if (!resendApiKey) {
