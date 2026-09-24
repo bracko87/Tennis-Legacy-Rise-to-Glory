@@ -1,5 +1,7 @@
 import {
   BadgeCheck,
+  ChevronDown,
+  ChevronUp,
   Crown,
   Flag,
   RefreshCw,
@@ -83,7 +85,9 @@ interface ElectionSummary {
   registration_start_game_day?: number
   registration_end_game_day?: number
   campaign_end_game_day?: number
+  voting_start_game_day?: number
   voting_end_game_day?: number
+  runoff_start_game_day?: number | null
   runoff_end_game_day?: number | null
   winning_candidate_id?: string | null
   my_candidate_id?: string | null
@@ -147,6 +151,9 @@ interface NationalAssociationSnapshot {
     renewal_deadline_game_day?: number
     annual_election_start_game_day?: number
     annual_election_first_round_end_game_day?: number
+    annual_candidate_registration_start_game_day?: number
+    annual_voting_start_game_day?: number
+    annual_voting_end_game_day?: number
   }
 }
 
@@ -155,8 +162,8 @@ type PageTab = 'overview' | 'competition' | 'members' | 'elections' | 'chat' | '
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
-function formatAbsoluteGameDay(absoluteDay?: number | null) {
-  if (absoluteDay === null || absoluteDay === undefined || absoluteDay < 0) return '—'
+function absoluteGameDateParts(absoluteDay?: number | null) {
+  if (absoluteDay === null || absoluteDay === undefined || absoluteDay < 0) return null
   const season = Math.floor(absoluteDay / 366) + 1
   let remaining = absoluteDay % 366
   let month = 0
@@ -164,7 +171,29 @@ function formatAbsoluteGameDay(absoluteDay?: number | null) {
     remaining -= MONTH_LENGTHS[month]
     month += 1
   }
-  return `Season ${season} · ${remaining + 1} ${MONTHS[month]}`
+  return { season, month, day: remaining + 1 }
+}
+
+function formatAbsoluteGameDay(absoluteDay?: number | null) {
+  const date = absoluteGameDateParts(absoluteDay)
+  if (!date) return '—'
+  return `Season ${date.season} · ${date.day} ${MONTHS[date.month]}`
+}
+
+function formatAbsoluteGameDayShort(absoluteDay?: number | null) {
+  const date = absoluteGameDateParts(absoluteDay)
+  if (!date) return '—'
+  return `${date.day} ${MONTHS[date.month]}`
+}
+
+function formatAbsoluteGameRange(start?: number | null, end?: number | null) {
+  const startDate = absoluteGameDateParts(start)
+  const endDate = absoluteGameDateParts(end)
+  if (!startDate || !endDate) return 'Not scheduled'
+  if (startDate.season === endDate.season && startDate.month === endDate.month) {
+    return `${startDate.day}–${endDate.day} ${MONTHS[startDate.month]}`
+  }
+  return `${formatAbsoluteGameDayShort(start)} – ${formatAbsoluteGameDayShort(end)}`
 }
 
 function initialNationalTab(): PageTab {
@@ -219,7 +248,7 @@ function progressPercent(fund?: FundSummary) {
 function electionStageLabel(status?: ElectionStatus) {
   switch (status) {
     case 'candidate_registration': return 'Candidate registration'
-    case 'campaign': return 'Manifesto campaign'
+    case 'campaign': return 'Voting open'
     case 'voting': return 'Voting open'
     case 'runoff': return 'Runoff voting'
     case 'completed': return 'Election completed'
@@ -238,6 +267,7 @@ export default function NationalTeamPage() {
   const [tab, setTab] = useState<PageTab>(initialNationalTab)
   const [customContribution, setCustomContribution] = useState('5')
   const [manifesto, setManifesto] = useState('')
+  const [candidatePanelOpen, setCandidatePanelOpen] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -255,6 +285,13 @@ export default function NationalTeamPage() {
   useEffect(() => {
     void load()
   }, [load])
+
+  useEffect(() => {
+    const myCandidateId = snapshot?.election?.my_candidate_id
+    if (!myCandidateId) return
+    const myCandidate = snapshot?.election?.candidates?.find((candidate) => candidate.candidate_id === myCandidateId)
+    if (myCandidate) setManifesto(myCandidate.manifesto ?? '')
+  }, [snapshot?.election?.id, snapshot?.election?.my_candidate_id])
 
   const currentFund = useMemo(() => {
     if (!snapshot?.available) return null
@@ -334,6 +371,7 @@ export default function NationalTeamPage() {
     if (rpcError) setError(rpcError.message)
     else {
       setNotice('Your captain candidacy and manifesto have been registered.')
+      setCandidatePanelOpen(false)
       await load()
     }
 
@@ -414,8 +452,39 @@ export default function NationalTeamPage() {
     : electionInProgress
       ? electionStageLabel(election.status)
       : association.activated_game_day !== null
-        ? 'Annual election starts 10 January'
+        ? 'Annual candidate registration opens 1 January'
         : 'Election starts after activation'
+
+  const registrationDisplayEnd = election.voting_start_game_day ?? (
+    election.registration_end_game_day !== undefined ? election.registration_end_game_day + 1 : undefined
+  )
+  const expectedRunoffStart = election.runoff_start_game_day ?? (
+    election.voting_end_game_day !== undefined ? election.voting_end_game_day + 1 : undefined
+  )
+  const expectedRunoffEnd = election.runoff_end_game_day ?? (
+    election.voting_end_game_day !== undefined ? election.voting_end_game_day + snapshot.rules.runoff_days : undefined
+  )
+  const currentPhaseEnd = election.status === 'candidate_registration'
+    ? election.registration_end_game_day
+    : election.status === 'voting' || election.status === 'campaign'
+      ? election.voting_end_game_day
+      : election.status === 'runoff'
+        ? election.runoff_end_game_day
+        : election.completed_game_day
+
+  const registrationPhaseState = election.status === 'candidate_registration'
+    ? 'active'
+    : election.id ? 'complete' : 'upcoming'
+  const votingPhaseState = election.status === 'voting' || election.status === 'campaign'
+    ? 'active'
+    : election.status === 'runoff' || election.status === 'completed'
+      ? 'complete'
+      : 'upcoming'
+  const runoffPhaseState = election.status === 'runoff'
+    ? 'active'
+    : election.status === 'completed' && (election.current_round ?? 1) > 1
+      ? 'complete'
+      : 'upcoming'
 
   return (
     <GameLayout title="National Team" subtitle={`${association.world} · ${association.name}`}>
@@ -632,7 +701,7 @@ export default function NationalTeamPage() {
             <div className="nt-rule-list">
               <div><strong>1 member = 1 vote</strong><span>Donation amount never changes voting power.</span></div>
               <div><strong>Founding status is cosmetic</strong><span>The activation initiator receives no permanent control.</span></div>
-              <div><strong>Annual captain election: 10–20 January</strong><span>Tied leaders continue into seven-day runoff rounds until one candidate has a unique lead.</span></div>
+              <div><strong>Annual captain process: 1–20 January</strong><span>Candidate registration runs first; voting opens on 10 January and closes on 20 January. Tied leaders then continue into seven-day runoffs.</span></div>
               <div><strong>Playing captain uses a normal squad place</strong><span>Captaincy never guarantees selection or protects a player from fatigue/calendar rules.</span></div>
             </div>
           </section>
@@ -660,15 +729,15 @@ export default function NationalTeamPage() {
               <article>
                 <b>1 Jan</b>
                 <div>
-                  <strong>Annual renewal opens</strong>
-                  <span>Members collectively fund {snapshot.rules.renewal_cost} coins. No single member owns the association and donations never create extra voting power.</span>
+                  <strong>Annual renewal + candidate registration open</strong>
+                  <span>Members collectively fund {snapshot.rules.renewal_cost} coins, while eligible members have until voting opens on 10 January to register a candidacy and manifesto.</span>
                 </div>
               </article>
               <article>
                 <b>10 Jan</b>
                 <div>
-                  <strong>Annual captain election starts</strong>
-                  <span>Eligible association members can stand as candidates, publish a manifesto and vote. Every active member has exactly one vote.</span>
+                  <strong>Main captain vote opens</strong>
+                  <span>Candidate registration has closed. Every active association member can now cast exactly one vote in the main election round.</span>
                 </div>
               </article>
               <article>
@@ -790,16 +859,45 @@ export default function NationalTeamPage() {
                 <Vote size={20} />
                 <div>
                   <strong>No election scheduled yet</strong>
-                  <span>The first election opens when the association activates. After that, the annual election starts every season on 10 January and the first round closes after 20 January.</span>
+                  <span>The first election opens when the association activates: 10 game days for candidate registration, then 10 game days for the main vote. In later seasons, candidate registration opens on 1 January and voting runs from 10–20 January.</span>
                 </div>
               </div>
             ) : (
               <>
                 <div className="nt-election-meta">
                   <div><span>Season</span><strong>{election.season_number}</strong></div>
-                  <div><span>Round</span><strong>{election.current_round ?? 1}</strong></div>
                   <div><span>Election</span><strong>{election.election_kind === 'special' ? 'Replacement' : election.election_kind === 'activation' ? 'First captain' : 'Annual'}</strong></div>
-                  <div><span>Round closes</span><strong>{formatAbsoluteGameDay(election.status === 'runoff' ? election.runoff_end_game_day : election.voting_end_game_day)}</strong></div>
+                  <div><span>Current phase</span><strong>{electionStageLabel(election.status)}</strong></div>
+                  <div><span>Phase closes</span><strong>{formatAbsoluteGameDay(currentPhaseEnd)}</strong></div>
+                </div>
+
+                <div className="nt-election-process">
+                  <article className={`nt-election-phase ${registrationPhaseState}`}>
+                    <div className="nt-election-phase-number">1</div>
+                    <div>
+                      <span>CANDIDATE REGISTRATION</span>
+                      <strong>{formatAbsoluteGameRange(election.registration_start_game_day, registrationDisplayEnd)}</strong>
+                      <p>Eligible members register themselves as candidates and submit a manifesto. Voting is not open during this phase.</p>
+                    </div>
+                  </article>
+
+                  <article className={`nt-election-phase ${votingPhaseState}`}>
+                    <div className="nt-election-phase-number">2</div>
+                    <div>
+                      <span>MAIN ELECTION</span>
+                      <strong>{formatAbsoluteGameRange(election.voting_start_game_day, election.voting_end_game_day)}</strong>
+                      <p>Candidate registration is closed. Every active association member has one vote and may choose among the registered candidates.</p>
+                    </div>
+                  </article>
+
+                  <article className={`nt-election-phase ${runoffPhaseState}`}>
+                    <div className="nt-election-phase-number">3</div>
+                    <div>
+                      <span>RUNOFF · IF NEEDED</span>
+                      <strong>{formatAbsoluteGameRange(expectedRunoffStart, expectedRunoffEnd)}</strong>
+                      <p>Only needed when there is no unique winner. Tied leaders continue for seven game days; further ties create another seven-day runoff.</p>
+                    </div>
+                  </article>
                 </div>
 
                 {snapshot.captain.is_me && (
@@ -810,21 +908,41 @@ export default function NationalTeamPage() {
                 )}
 
                 {canRegister && (
-                  <div className="nt-manifesto-box">
-                    <label htmlFor="captain-manifesto">Your captain manifesto</label>
-                    <textarea
-                      id="captain-manifesto"
-                      maxLength={1000}
-                      value={manifesto}
-                      onChange={(event) => setManifesto(event.target.value)}
-                      placeholder="Explain how you would lead the national team…"
-                    />
-                    <div>
-                      <small>{manifesto.trim().length} / 1000 characters · minimum 10</small>
-                      <button type="button" disabled={working || manifesto.trim().length < 10} onClick={() => void registerCandidate()}>
-                        {election.my_candidate_id ? 'Update manifesto' : 'Register candidacy'}
+                  <div className={`nt-candidacy-action ${candidatePanelOpen ? 'expanded' : ''}`}>
+                    <div className="nt-candidacy-action-head">
+                      <div>
+                        <span>CANDIDATE ACTION</span>
+                        <strong>{election.my_candidate_id ? 'Your candidacy is registered' : 'Stand for national captain'}</strong>
+                        <small>
+                          {election.my_candidate_id
+                            ? 'You can update your manifesto until candidate registration closes.'
+                            : 'Register yourself and submit a manifesto before the candidate-registration deadline.'}
+                        </small>
+                      </div>
+                      <button type="button" className="nt-candidacy-toggle" onClick={() => setCandidatePanelOpen((open) => !open)}>
+                        {candidatePanelOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                        {candidatePanelOpen ? 'Collapse' : 'Expand'}
                       </button>
                     </div>
+
+                    {candidatePanelOpen && (
+                      <div className="nt-manifesto-box">
+                        <label htmlFor="captain-manifesto">Your captain manifesto</label>
+                        <textarea
+                          id="captain-manifesto"
+                          maxLength={1000}
+                          value={manifesto}
+                          onChange={(event) => setManifesto(event.target.value)}
+                          placeholder="Explain how you would lead the national team…"
+                        />
+                        <div>
+                          <small>{manifesto.trim().length} / 1000 characters · minimum 10</small>
+                          <button type="button" disabled={working || manifesto.trim().length < 10} onClick={() => void registerCandidate()}>
+                            {election.my_candidate_id ? 'Update manifesto' : 'Register candidacy'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -864,9 +982,19 @@ export default function NationalTeamPage() {
 
               <div className="nt-election-explainer-grid">
                 <article>
-                  <b>Annual election</b>
-                  <strong>10 January → 20 January</strong>
-                  <span>Every season, association members elect the national captain. Candidates register, publish a manifesto and members cast one vote each.</span>
+                  <b>Phase 1 · Candidate registration</b>
+                  <strong>Annual: 1 January → 10 January</strong>
+                  <span>Before voting begins, eligible members can register themselves as candidates and submit or update a manifesto. On first activation or a replacement election, this phase lasts 10 game days from the moment the election opens.</span>
+                </article>
+                <article>
+                  <b>Phase 2 · Main election</b>
+                  <strong>Annual: 10 January → 20 January</strong>
+                  <span>Candidate registration is closed. Every active association member receives exactly one vote and chooses among the registered candidates. First-activation and replacement elections use the same 10-game-day voting window immediately after registration.</span>
+                </article>
+                <article>
+                  <b>Phase 3 · Runoff</b>
+                  <strong>7 game days · only if needed</strong>
+                  <span>If the main round has no unique winner, only the tied leaders continue into a seven-day runoff. If the runoff is still tied, another seven-day runoff starts automatically.</span>
                 </article>
                 <article>
                   <b>Winning condition</b>
@@ -874,39 +1002,29 @@ export default function NationalTeamPage() {
                   <span>A candidate wins only when their vote total is strictly higher than every other candidate. A zero-vote candidate cannot become captain automatically.</span>
                 </article>
                 <article>
-                  <b>Tied leaders</b>
-                  <strong>Seven-day runoff</strong>
-                  <span>Only candidates tied for the lead continue into the next round. If that round is tied again, another seven-day runoff starts automatically.</span>
-                </article>
-                <article>
                   <b>No candidates / no votes</b>
-                  <strong>Election stays open</strong>
-                  <span>If nobody stands, candidate registration reopens in the next seven-day round. If candidates exist but nobody votes, they continue into another round. The game never assigns a random captain.</span>
+                  <strong>The process continues</strong>
+                  <span>If nobody registers, candidate registration reopens in the next seven-day extension. If candidates exist but nobody votes, the election continues rather than assigning a random captain.</span>
                 </article>
                 <article>
                   <b>Previous captain</b>
                   <strong>Acts until a successor wins</strong>
-                  <span>During an unresolved annual election, the previous elected captain remains the acting captain so the national team never loses leadership only because a runoff is still running.</span>
+                  <span>During an unresolved annual election, the previous elected captain remains acting captain until a new candidate wins with a unique lead.</span>
                 </article>
                 <article>
                   <b>Captain resignation</b>
-                  <strong>Immediate replacement election</strong>
-                  <span>The captain can resign from this page. Their term ends immediately and members receive an inbox message. A new 10-game-day replacement election starts.</span>
+                  <strong>New three-stage process starts immediately</strong>
+                  <span>The captain may resign at any time. Members receive an inbox notification, then a new 10-day candidate-registration phase begins before the 10-day replacement vote.</span>
                 </article>
                 <article>
                   <b>Captain becomes inactive</b>
                   <strong>Seat automatically becomes vacant</strong>
-                  <span>If the captain is no longer an eligible active association member, the game removes the captaincy and starts the same replacement-election process automatically.</span>
-                </article>
-                <article>
-                  <b>Replacement election</b>
-                  <strong>10 game days + 7-day runoffs</strong>
-                  <span>The first replacement round lasts 10 game days. If there is still no unique winner, seven-day runoff rounds continue until somebody wins.</span>
+                  <span>If the captain is no longer an eligible active association member, the game opens the same replacement-election process automatically.</span>
                 </article>
                 <article>
                   <b>Member notifications</b>
                   <strong>Delivered through the in-game inbox</strong>
-                  <span>Members are notified when an election opens, a runoff starts, a captain resigns or becomes inactive, and when a new captain is elected.</span>
+                  <span>Members are notified when candidate registration opens, when the main vote opens, when a runoff is required, when a captain resigns or becomes inactive, and when a new captain is elected.</span>
                 </article>
               </div>
             </div>
@@ -920,10 +1038,11 @@ export default function NationalTeamPage() {
               <li>Every active member receives exactly one vote.</li>
               <li>Activation and renewal donations never create extra votes.</li>
               <li>Candidate manifestos are required.</li>
-              <li>The annual election runs from 10 January through 20 January.</li>
+              <li>Annual candidate registration runs from 1 January until voting opens on 10 January.</li>
+              <li>The annual main vote runs from 10 January through 20 January.</li>
               <li>A tie moves only the tied leaders into a seven-day runoff. Further ties repeat in seven-day rounds until somebody has a unique lead.</li>
               <li>The previous captain remains acting captain while an annual election is unresolved.</li>
-              <li>Resignation or captain ineligibility opens a new 10-day replacement election.</li>
+              <li>Resignation or captain ineligibility opens 10 days of candidate registration followed by a 10-day replacement vote.</li>
               <li>The captain may be a player but receives no automatic squad position.</li>
             </ul>
           </aside>

@@ -2241,3 +2241,180 @@
   max-width: 100%;
   min-width: 0;
 }
+
+
+/* Captain election three-stage process ----------------------------------- */
+
+.nt-election-process {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 10px;
+  margin: 14px 0 16px;
+}
+
+.nt-election-phase {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr);
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid #dfe7ed;
+  border-radius: 10px;
+  background: #fafcfd;
+  min-width: 0;
+}
+
+.nt-election-phase-number {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #657d90;
+  background: #e9eef2;
+  font-size: .7rem;
+  font-weight: 900;
+}
+
+.nt-election-phase > div:last-child {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 4px;
+}
+
+.nt-election-phase span {
+  color: #6d8294;
+  font-size: .6rem;
+  font-weight: 900;
+  letter-spacing: .09em;
+}
+
+.nt-election-phase strong {
+  color: #294358;
+  font-size: .78rem;
+  line-height: 1.4;
+}
+
+.nt-election-phase p {
+  margin: 0;
+  color: #718697;
+  font-size: .72rem;
+  line-height: 1.55;
+}
+
+.nt-election-phase.active {
+  border-color: #9fc9e4;
+  background: #eef7fd;
+  box-shadow: inset 3px 0 #1681c4;
+}
+
+.nt-election-phase.active .nt-election-phase-number {
+  color: #fff;
+  background: #0b6fc8;
+}
+
+.nt-election-phase.active span {
+  color: #0b6fc8;
+}
+
+.nt-election-phase.complete {
+  border-color: #c7e2d2;
+  background: #f3f9f5;
+}
+
+.nt-election-phase.complete .nt-election-phase-number {
+  color: #fff;
+  background: #319060;
+}
+
+.nt-election-phase.upcoming {
+  opacity: .82;
+}
+
+.nt-candidacy-action {
+  margin-bottom: 14px;
+  border: 1px solid #dce6ed;
+  border-radius: 10px;
+  background: #f8fbfd;
+  overflow: hidden;
+}
+
+.nt-candidacy-action-head {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 13px;
+}
+
+.nt-candidacy-action-head > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.nt-candidacy-action-head span {
+  color: #1675b7;
+  font-size: .59rem;
+  font-weight: 900;
+  letter-spacing: .09em;
+}
+
+.nt-candidacy-action-head strong {
+  color: #294358;
+  font-size: .78rem;
+}
+
+.nt-candidacy-action-head small {
+  color: #718697;
+  font-size: .68rem;
+  line-height: 1.45;
+}
+
+.nt-candidacy-toggle {
+  flex: 0 0 auto;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  border: 1px solid #cbdbe6;
+  border-radius: 8px;
+  color: #294358;
+  background: #fff;
+  font: inherit;
+  font-size: .68rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.nt-candidacy-toggle:hover {
+  background: #f2f7fa;
+}
+
+.nt-candidacy-action .nt-manifesto-box {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid #dce6ed;
+  border-radius: 0;
+  background: #fff;
+}
+
+@media (max-width: 900px) {
+  .nt-election-process {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .nt-candidacy-action-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .nt-candidacy-toggle {
+    justify-content: center;
+  }
+}
