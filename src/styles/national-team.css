@@ -3086,3 +3086,328 @@
 .nt-election-rules li::marker {
   font-weight: 400;
 }
+
+
+/* National competition launch, pyramid & four-window calendar ------------ */
+
+.nt-competition-launch {
+  padding: 17px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.nt-competition-launch.building {
+  border-color: #c9deeb;
+  background: linear-gradient(135deg,#f5fbff 0%,#ffffff 65%);
+}
+
+.nt-competition-launch.official {
+  border-color: #c6e2d1;
+  background: linear-gradient(135deg,#f4faf6 0%,#ffffff 65%);
+}
+
+.nt-competition-launch-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.nt-competition-launch-copy > span {
+  color: #1675b7;
+  font-size: .61rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+}
+
+.nt-competition-launch-copy h3 {
+  margin: 0;
+  color: #20384d;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.nt-competition-launch-copy p {
+  max-width: 880px;
+  margin: 0;
+  color: #627b8e;
+  font-size: .74rem;
+  line-height: 1.58;
+}
+
+.nt-competition-launch-meta {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3,minmax(100px,auto));
+  gap: 8px;
+}
+
+.nt-competition-launch-meta > div {
+  min-width: 105px;
+  display: grid;
+  gap: 2px;
+  padding: 9px 10px;
+  border: 1px solid #dde7ed;
+  border-radius: 8px;
+  background: rgba(255,255,255,.82);
+}
+
+.nt-competition-launch-meta span {
+  color: #8293a0;
+  font-size: .59rem;
+}
+
+.nt-competition-launch-meta strong {
+  color: #294358;
+  font-size: .71rem;
+  font-weight: 600;
+}
+
+.nt-pyramid-panel {
+  padding: 17px 18px;
+}
+
+.nt-pyramid-entry {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 13px 0 15px;
+  padding: 10px 12px;
+  border: 1px solid #bddced;
+  border-radius: 9px;
+  background: #eef7fd;
+}
+
+.nt-pyramid-entry > div {
+  display: grid;
+  gap: 2px;
+}
+
+.nt-pyramid-entry span {
+  color: #1675b7;
+  font-size: .57rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.nt-pyramid-entry strong {
+  color: #27455d;
+  font-size: .75rem;
+  font-weight: 600;
+}
+
+.nt-pyramid-global {
+  display: grid;
+  gap: 7px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.nt-pyramid-global > article,
+.nt-pyramid-region > article {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid #dfe7ed;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.nt-pyramid-global > article {
+  background: #f9fbfd;
+}
+
+.nt-pyramid-division-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nt-pyramid-division-head > div {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 1px;
+}
+
+.nt-pyramid-division-head > div > span {
+  color: #8193a1;
+  font-size: .56rem;
+}
+
+.nt-pyramid-division-head > div > strong {
+  color: #294358;
+  font-size: .7rem;
+  font-weight: 600;
+}
+
+.nt-pyramid-division-head > small {
+  color: #8193a1;
+  font-size: .6rem;
+}
+
+.nt-pyramid-associations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 7px;
+}
+
+.nt-pyramid-team {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 6px;
+  border: 1px solid #d7e4ec;
+  border-radius: 6px;
+  color: #355167;
+  background: #fff;
+  font-size: .62rem;
+}
+
+.nt-pyramid-associations .empty {
+  color: #95a3ad;
+  font-size: .61rem;
+  font-style: italic;
+}
+
+.nt-pyramid-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 0;
+  color: #718697;
+  font-size: .66rem;
+}
+
+.nt-pyramid-regions {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 9px;
+}
+
+.nt-pyramid-region {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  padding: 10px;
+  border: 1px solid #e0e8ee;
+  border-radius: 9px;
+  background: #f8fafc;
+}
+
+.nt-pyramid-region h4 {
+  margin: 0 0 2px;
+  color: #20384d;
+  font-size: .75rem;
+  font-weight: 650;
+}
+
+.nt-window-seasons {
+  display: grid;
+  gap: 14px;
+}
+
+.nt-window-season {
+  display: grid;
+  gap: 8px;
+}
+
+.nt-window-season + .nt-window-season {
+  padding-top: 13px;
+  border-top: 1px solid #e5edf2;
+}
+
+.nt-window-season-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nt-window-season-head > div {
+  display: grid;
+  gap: 2px;
+}
+
+.nt-window-season-head span {
+  color: #1675b7;
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.nt-window-season-head strong {
+  color: #294358;
+  font-size: .75rem;
+  font-weight: 600;
+}
+
+.nt-window-season-head > small {
+  color: #8293a0;
+  font-size: .63rem;
+}
+
+.nt-season-one-standings {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px dashed #cddce6;
+  border-radius: 9px;
+  background: #f8fbfd;
+}
+
+.nt-season-one-standings > span {
+  color: #1675b7;
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.nt-season-one-standings > strong {
+  color: #294358;
+  font-size: .78rem;
+  font-weight: 600;
+}
+
+.nt-season-one-standings p {
+  max-width: 850px;
+  margin: 0;
+  color: #718697;
+  font-size: .72rem;
+  line-height: 1.55;
+}
+
+.nt-season-one-standings small {
+  color: #5c788c;
+  font-size: .67rem;
+}
+
+@media (max-width: 1180px) {
+  .nt-competition-launch {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .nt-competition-launch-meta {
+    grid-template-columns: repeat(3,minmax(0,1fr));
+  }
+
+  .nt-pyramid-regions {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .nt-competition-launch-meta,
+  .nt-pyramid-regions {
+    grid-template-columns: 1fr;
+  }
+
+  .nt-window-season-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

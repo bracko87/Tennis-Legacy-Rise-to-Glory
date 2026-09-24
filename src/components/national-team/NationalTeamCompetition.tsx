@@ -1,7 +1,9 @@
 import {
+  ArrowDown,
   CalendarDays,
   CheckCircle2,
   Coins,
+  Globe2,
   LockKeyhole,
   MapPin,
   Trophy,
@@ -26,6 +28,11 @@ interface NationalWindow {
   callup_deadline_absolute_day: number
   squad_deadline_absolute_day: number
   status: string
+  window_number: number
+  window_mode: 'friendly_only' | 'official_mixed'
+  competition_phase: string
+  official_from_season: number
+  allows_friendlies: boolean
 }
 
 interface CallupSummary {
@@ -60,6 +67,43 @@ interface FixtureSummary {
   my_squad_member: boolean
 }
 
+interface PyramidAssociation {
+  association_id: string
+  name: string
+  country_code: string
+  placement_state: 'projected' | 'official'
+}
+
+interface PyramidDivision {
+  division_id: string
+  region_code: string
+  division_code: string
+  label: string
+  tier_level: number
+  capacity: number
+  promotion_slots: number
+  relegation_slots: number
+  is_global: boolean
+  associations: PyramidAssociation[]
+}
+
+interface PyramidData {
+  world: 'ATP' | 'WTA'
+  display_season: number
+  official_launch_season: number
+  divisions: PyramidDivision[]
+}
+
+interface ProjectedEntry {
+  division_id?: string
+  division_code?: string
+  label?: string
+  region_code?: string
+  tier_level?: number
+  season_number?: number
+  placement_state?: 'projected' | 'official'
+}
+
 interface CompetitionHub {
   available: boolean
   game_day: number
@@ -68,6 +112,13 @@ interface CompetitionHub {
   association_name: string
   country_code: string
   world: 'ATP' | 'WTA'
+  official_launch_season: number
+  season_mode: 'association_building' | 'official'
+  competition_label: string
+  pyramid_display_season: number
+  season_notice: string
+  pyramid: PyramidData
+  projected_entry: ProjectedEntry
   is_captain: boolean
   is_member: boolean
   windows: NationalWindow[]
@@ -261,6 +312,19 @@ function callupStatusLabel(status: string | null) {
   return titleCase(status)
 }
 
+function regionLabel(code: string) {
+  if (code === 'EUROPE') return 'Europe'
+  if (code === 'AMERICAS') return 'Americas'
+  if (code === 'ASIA_OCEANIA') return 'Asia / Oceania'
+  if (code === 'AFRICA') return 'Africa'
+  return code
+}
+
+function windowModeLabel(window: NationalWindow) {
+  if (window.window_mode === 'friendly_only') return 'Friendly only'
+  return 'Official + friendlies'
+}
+
 export default function NationalTeamCompetition() {
   const { player } = useAuth()
   const [hub, setHub] = useState<CompetitionHub | null>(null)
@@ -282,7 +346,7 @@ export default function NationalTeamCompetition() {
     setError(null)
 
     const [hubResult, standingsResult] = await Promise.all([
-      supabase.rpc('get_my_national_team_competition_v1'),
+      supabase.rpc('get_my_national_team_competition_v2'),
       supabase.rpc('get_my_national_division_standings_v1'),
     ])
 
@@ -484,8 +548,39 @@ export default function NationalTeamCompetition() {
     )
   }
 
+  const globalDivisions = hub.pyramid?.divisions?.filter((division) => division.is_global) ?? []
+  const regionalDivisions = hub.pyramid?.divisions?.filter((division) => !division.is_global) ?? []
+  const regionCodes = ['EUROPE', 'AMERICAS', 'ASIA_OCEANIA', 'AFRICA']
+  const seasonNumbers = Array.from(new Set(hub.windows.map((window) => window.season_number))).sort((a, b) => a - b)
+
   return (
     <div className="nt-competition-layout">
+      <section className={`tlg-v2-panel nt-competition-launch ${hub.season_mode === 'association_building' ? 'building' : 'official'}`}>
+        <div className="nt-competition-launch-copy">
+          <span>{hub.competition_label}</span>
+          <h3>
+            {hub.season_mode === 'association_building'
+              ? 'Season 1 · Association-building & friendly season'
+              : `Season ${hub.season_number} · Official national competition`}
+          </h3>
+          <p>{hub.season_notice}</p>
+        </div>
+        <div className="nt-competition-launch-meta">
+          <div>
+            <span>Official launch</span>
+            <strong>Season {hub.official_launch_season}</strong>
+          </div>
+          <div>
+            <span>Annual windows</span>
+            <strong>4</strong>
+          </div>
+          <div>
+            <span>Current association</span>
+            <strong>{hub.association_name}</strong>
+          </div>
+        </div>
+      </section>
+
       {pendingFixture?.my_callup && (
         <section className="tlg-v2-panel nt-callup-alert">
           <div className="nt-callup-alert-copy">
@@ -515,6 +610,95 @@ export default function NationalTeamCompetition() {
 
       <div className="nt-competition-main-grid">
         <div className="nt-competition-primary">
+          <section className="tlg-v2-panel nt-pyramid-panel">
+            <header className="nt-section-header">
+              <div>
+                <span>COMPETITION PYRAMID</span>
+                <h3>Season {hub.pyramid_display_season} national-team structure</h3>
+              </div>
+            </header>
+
+            <p className="nt-section-copy">
+              Only active national associations appear below. New associations enter at the lowest active regional level.
+              Promotion eventually leads from the regional structure into World Group II, World Group I, Qualifiers and the Final 8.
+            </p>
+
+            {hub.projected_entry?.label && (
+              <div className="nt-pyramid-entry">
+                <CountryFlag countryCode={hub.country_code} countryName={hub.country_code} width={24} height={16} />
+                <div>
+                  <span>{hub.projected_entry.placement_state === 'official' ? 'CURRENT ENTRY' : 'PROJECTED SEASON 2 ENTRY'}</span>
+                  <strong>{hub.association_name} → {hub.projected_entry.label}</strong>
+                </div>
+              </div>
+            )}
+
+            <div className="nt-pyramid-global">
+              {globalDivisions.map((division) => (
+                <article key={division.division_id}>
+                  <div className="nt-pyramid-division-head">
+                    <Globe2 size={14} />
+                    <div>
+                      <span>Tier {division.tier_level}</span>
+                      <strong>{division.label}</strong>
+                    </div>
+                    <small>{division.associations.length}/{division.capacity}</small>
+                  </div>
+                  <div className="nt-pyramid-associations">
+                    {division.associations.length === 0 ? (
+                      <span className="empty">No active associations placed here yet</span>
+                    ) : division.associations.map((association) => (
+                      <span key={association.association_id} className="nt-pyramid-team">
+                        <CountryFlag countryCode={association.country_code} countryName={association.country_code} width={20} height={14} />
+                        {association.name}
+                      </span>
+                    ))}
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="nt-pyramid-flow">
+              <ArrowDown size={17} />
+              <span>Regional champions and promoted teams move toward the global tiers</span>
+            </div>
+
+            <div className="nt-pyramid-regions">
+              {regionCodes.map((region) => {
+                const divisions = regionalDivisions
+                  .filter((division) => division.region_code === region)
+                  .sort((a, b) => a.tier_level - b.tier_level)
+
+                return (
+                  <div key={region} className="nt-pyramid-region">
+                    <h4>{regionLabel(region)}</h4>
+                    {divisions.map((division) => (
+                      <article key={division.division_id}>
+                        <div className="nt-pyramid-division-head">
+                          <div>
+                            <span>Tier {division.tier_level}</span>
+                            <strong>{division.label.replace(`${regionLabel(region)} `, '')}</strong>
+                          </div>
+                          <small>{division.associations.length}/{division.capacity}</small>
+                        </div>
+                        <div className="nt-pyramid-associations">
+                          {division.associations.length === 0 ? (
+                            <span className="empty">No active associations</span>
+                          ) : division.associations.map((association) => (
+                            <span key={association.association_id} className="nt-pyramid-team">
+                              <CountryFlag countryCode={association.country_code} countryName={association.country_code} width={20} height={14} />
+                              {association.name}
+                            </span>
+                          ))}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+
           <section className="tlg-v2-panel nt-window-panel">
             <header className="nt-section-header">
               <div><span>NATIONAL CALENDAR</span><h3>National-team windows</h3></div>
@@ -523,26 +707,45 @@ export default function NationalTeamCompetition() {
               Windows are visible well before play so tournament planning can account for national-team weeks. Accepted call-ups become hard calendar commitments.
             </p>
 
-            <div className="nt-window-list">
-              {hub.windows.map((window) => (
-                <article key={window.id}>
-                  <div>
-                    <span>{window.status === 'planned' ? 'Scheduled window' : titleCase(window.status)}</span>
-                    <strong>{window.label}</strong>
-                    <small>Season {window.season_number} · Week {window.season_week}</small>
-                  </div>
-                  <div>
-                    <span>Window</span>
-                    <strong>{formatAbsoluteDay(window.start_absolute_day)}</strong>
-                    <small>through {formatAbsoluteDay(window.end_absolute_day)}</small>
-                  </div>
-                  <div>
-                    <span>Fixture announcement target</span>
-                    <strong>{formatAbsoluteDay(window.announcement_absolute_day)}</strong>
-                    <small>approximately 45 game days before the window</small>
-                  </div>
-                </article>
-              ))}
+            <div className="nt-window-seasons">
+              {seasonNumbers.map((seasonNumber) => {
+                const windows = hub.windows.filter((window) => window.season_number === seasonNumber)
+                const friendlySeason = seasonNumber < hub.official_launch_season
+
+                return (
+                  <section key={seasonNumber} className="nt-window-season">
+                    <div className="nt-window-season-head">
+                      <div>
+                        <span>SEASON {seasonNumber}</span>
+                        <strong>{friendlySeason ? 'Friendly programme' : 'Official competition calendar'}</strong>
+                      </div>
+                      <small>{friendlySeason ? 'No standings · no promotion/relegation' : 'Official results affect the pyramid'}</small>
+                    </div>
+
+                    <div className="nt-window-list">
+                      {windows.map((window) => (
+                        <article key={window.id}>
+                          <div>
+                            <span>{windowModeLabel(window)} · {window.status === 'planned' ? 'Scheduled' : titleCase(window.status)}</span>
+                            <strong>{window.label}</strong>
+                            <small>Week {window.season_week} · {window.competition_phase}</small>
+                          </div>
+                          <div>
+                            <span>Match window</span>
+                            <strong>{formatAbsoluteDay(window.start_absolute_day)}</strong>
+                            <small>through {formatAbsoluteDay(window.end_absolute_day)}</small>
+                          </div>
+                          <div>
+                            <span>Announcement target</span>
+                            <strong>{formatAbsoluteDay(window.announcement_absolute_day)}</strong>
+                            <small>Call-ups close {formatAbsoluteDay(window.callup_deadline_absolute_day)}</small>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </section>
+                )
+              })}
             </div>
           </section>
 
@@ -555,8 +758,12 @@ export default function NationalTeamCompetition() {
               <div className="nt-placeholder">
                 <CalendarDays size={20} />
                 <div>
-                  <strong>No announced fixture yet</strong>
-                  <span>The national windows are reserved. Division pairings are announced automatically when the announcement date arrives.</span>
+                  <strong>{hub.season_mode === 'association_building' ? 'No friendly opponent available yet' : 'No announced fixture yet'}</strong>
+                  <span>
+                    {hub.season_mode === 'association_building'
+                      ? 'Season 1 windows are reserved for friendly ties. A friendly can be paired as soon as another active association exists in this competition world.'
+                      : 'Official pairings are announced automatically when the relevant national window reaches its announcement date.'}
+                  </span>
                 </div>
               </div>
             ) : (
@@ -784,11 +991,23 @@ export default function NationalTeamCompetition() {
 
           <section className="tlg-v2-panel nt-standings-panel">
             <header className="nt-section-header">
-              <div><span>DIVISION</span><h3>National standings</h3></div>
+              <div><span>DIVISION</span><h3>{hub.season_mode === 'association_building' ? 'Official standings begin in Season 2' : 'National standings'}</h3></div>
             </header>
 
-            {standings.length === 0 ? (
-              <div className="nt-placeholder">Division standings will appear after the association has an active national division entry.</div>
+            {hub.season_mode === 'association_building' ? (
+              <div className="nt-season-one-standings">
+                <span>SEASON 1</span>
+                <strong>No official table this season</strong>
+                <p>
+                  Friendly results are recorded in national history but do not create standings points, promotion or relegation.
+                  Active associations are being collected now for the Season {hub.official_launch_season} pyramid.
+                </p>
+                {hub.projected_entry?.label && (
+                  <small>Projected entry: {hub.projected_entry.label}</small>
+                )}
+              </div>
+            ) : standings.length === 0 ? (
+              <div className="nt-placeholder">Division standings will appear after official fixtures are played.</div>
             ) : (
               <div className="nt-standings-table">
                 <div className="head"><span>#</span><span>Country</span><span>Ties</span><span>W–L</span><span>Matches</span><span>Pts</span></div>
