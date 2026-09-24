@@ -45,9 +45,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const resendApiKey = Deno.env.get("RESEND_API_KEY");
-  const fromAddress =
-    Deno.env.get("SYSTEM_ALERT_EMAIL_FROM")
-    || DEFAULT_FROM;
+  const fromAddress = DEFAULT_FROM;
 
   if (!resendApiKey) {
     return new Response(JSON.stringify({
