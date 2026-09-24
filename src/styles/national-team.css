@@ -1620,3 +1620,365 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* National Team typography normalization ----------------------------------
+ * Keep compact uppercase labels, but use the normal Tennis Legacy reading
+ * scale for all explanatory/body copy. This prevents 9–10px micro-text.
+ */
+
+.nt-hero-card,
+.nt-fund-card,
+.nt-rules-card,
+.nt-contribution-history,
+.nt-members-panel,
+.nt-history-panel,
+.nt-election-main,
+.nt-election-rules,
+.nt-window-panel,
+.nt-fixtures-panel,
+.nt-fixture-detail,
+.nt-captain-desk,
+.nt-lineup-builder,
+.nt-reveal-panel,
+.nt-match-order,
+.nt-standings-panel,
+.nt-team-chat,
+.nt-callup-alert,
+.nt-membership-status-card,
+.nt-governance-timeline {
+  font-size: .76rem;
+  line-height: 1.55;
+}
+
+/* Eyebrows / compact labels */
+.nt-hero-card header span,
+.nt-fund-card header span,
+.nt-rules-card header span,
+.nt-contribution-history header span,
+.nt-section-header span,
+.nt-election-rules > span,
+.nt-callup-alert-copy > span,
+.nt-squad-builder-head span,
+.nt-lineup-compare > div > span,
+.nt-election-explainer-head > span,
+.nt-election-explainer-grid b {
+  font-size: .62rem;
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: .095em;
+}
+
+/* Panel headings */
+.nt-hero-card h3,
+.nt-fund-card h3,
+.nt-rules-card h3,
+.nt-contribution-history h3,
+.nt-section-header h3,
+.nt-election-rules h3 {
+  font-size: 1rem;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+/* Standard descriptive copy */
+.nt-section-copy,
+.nt-rule-note,
+.nt-contribution-history > span,
+.nt-callup-alert-copy p,
+.nt-central-event-note,
+.nt-team-chat > p,
+.nt-membership-status-content p,
+.nt-governance-steps span,
+.nt-governance-continuity span,
+.nt-election-explainer-grid span,
+.nt-candidates article p,
+.nt-election-rules ul,
+.nt-placeholder span {
+  font-size: .75rem;
+  line-height: 1.6;
+}
+
+/* Secondary / helper copy */
+.nt-metric-grid small,
+.nt-contribution-box > small,
+.nt-contribution-history > small,
+.nt-window-list small,
+.nt-fixture-list button em,
+.nt-eligible-callups small,
+.nt-squad-builder-head small,
+.nt-squad-options small,
+.nt-lineup-grid label small,
+.nt-lineup-actions > span,
+.nt-history-list span,
+.nt-chat-stream header span,
+.nt-chat-empty,
+.nt-join-copy,
+.nt-captain-resign span {
+  font-size: .69rem;
+  line-height: 1.5;
+}
+
+/* Labels inside metrics and compact UI */
+.nt-head-meta > span:not(.nt-status),
+.nt-metric-grid span,
+.nt-fund-summary span,
+.nt-election-meta span,
+.nt-wallet,
+.nt-requirements strong,
+.nt-roster-row,
+.nt-manifesto-box label,
+.nt-candidates article footer span,
+.nt-candidates article footer strong,
+.nt-window-list span,
+.nt-fixture-list button > b,
+.nt-fixture-meta span,
+.nt-format-strip strong,
+.nt-captain-deadlines span,
+.nt-eligible-callups button,
+.callup-status,
+.nt-lineup-grid label > span,
+.nt-lineup-compare b,
+.nt-match-list article > b,
+.nt-match-list a {
+  font-size: .7rem;
+  line-height: 1.4;
+}
+
+/* Primary values */
+.nt-metric-grid strong,
+.nt-fund-summary strong,
+.nt-election-meta strong,
+.nt-rule-list strong,
+.nt-roster-row strong,
+.nt-window-list strong,
+.nt-fixture-meta strong,
+.nt-captain-deadlines strong,
+.nt-eligible-callups strong,
+.nt-squad-options strong,
+.nt-lineup-compare strong,
+.nt-match-list strong,
+.nt-history-list strong,
+.nt-membership-status-content strong,
+.nt-governance-steps strong,
+.nt-governance-continuity strong,
+.nt-election-explainer-grid strong {
+  font-size: .78rem;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+/* Rules need full readable body copy, not badge-sized text */
+.nt-rule-list span {
+  font-size: .73rem;
+  line-height: 1.55;
+}
+
+/* Roster table */
+.nt-roster-head {
+  font-size: .64rem;
+  line-height: 1.3;
+}
+.nt-roster-row {
+  font-size: .74rem;
+  line-height: 1.45;
+}
+.nt-roster-row strong {
+  font-size: .78rem;
+}
+
+/* Elections */
+.nt-candidates article header span {
+  font-size: .62rem;
+}
+.nt-candidates article p {
+  font-size: .75rem;
+  line-height: 1.6;
+}
+.nt-election-explainer-head > strong {
+  font-size: .86rem;
+  line-height: 1.4;
+}
+.nt-election-explainer-grid strong {
+  font-size: .76rem;
+}
+.nt-election-explainer-grid span {
+  font-size: .72rem;
+  line-height: 1.58;
+}
+.nt-election-rules ul {
+  font-size: .74rem;
+  line-height: 1.6;
+}
+
+/* January governance timeline */
+.nt-governance-steps article {
+  min-height: 138px;
+}
+.nt-governance-steps article > b {
+  font-size: .65rem;
+  line-height: 1.2;
+}
+.nt-governance-steps strong {
+  font-size: .76rem;
+}
+.nt-governance-steps span {
+  font-size: .72rem;
+  line-height: 1.58;
+}
+.nt-governance-continuity strong {
+  font-size: .76rem;
+}
+.nt-governance-continuity span {
+  font-size: .72rem;
+  line-height: 1.58;
+}
+
+/* Competition */
+.nt-window-list span {
+  font-size: .65rem;
+}
+.nt-window-list strong {
+  font-size: .78rem;
+}
+.nt-window-list small {
+  font-size: .7rem;
+}
+.nt-fixture-list button em {
+  font-size: .71rem;
+}
+.nt-fixture-list button > b {
+  font-size: .68rem;
+}
+.nt-fixture-meta span {
+  font-size: .67rem;
+}
+.nt-fixture-meta strong {
+  font-size: .75rem;
+}
+.nt-central-event-note {
+  font-size: .73rem;
+  line-height: 1.55;
+}
+.nt-format-strip span {
+  font-size: .64rem;
+}
+.nt-format-strip strong {
+  font-size: .71rem;
+}
+.nt-captain-deadlines span {
+  font-size: .67rem;
+}
+.nt-captain-deadlines strong {
+  font-size: .75rem;
+}
+.nt-eligible-callups strong {
+  font-size: .76rem;
+}
+.nt-eligible-callups small {
+  font-size: .69rem;
+}
+.nt-eligible-callups button,
+.callup-status {
+  font-size: .69rem;
+}
+.nt-squad-builder-head span {
+  font-size: .62rem;
+}
+.nt-squad-options strong {
+  font-size: .75rem;
+}
+.nt-squad-options small {
+  font-size: .68rem;
+}
+.nt-lineup-grid label > span {
+  font-size: .73rem;
+}
+.nt-lineup-actions > span {
+  font-size: .71rem;
+}
+.nt-lineup-compare > div > span {
+  font-size: .62rem;
+}
+.nt-lineup-compare b {
+  font-size: .66rem;
+}
+.nt-lineup-compare strong {
+  font-size: .75rem;
+}
+.nt-match-list strong {
+  font-size: .76rem;
+}
+.nt-match-list article > b,
+.nt-match-list a {
+  font-size: .69rem;
+}
+.nt-standings-table > div {
+  font-size: .72rem;
+}
+.nt-standings-table .head {
+  font-size: .63rem;
+}
+
+/* Team chat */
+.nt-team-chat > p {
+  font-size: .75rem;
+  line-height: 1.6;
+}
+.nt-chat-stream header strong {
+  font-size: .72rem;
+}
+.nt-chat-stream header span {
+  font-size: .66rem;
+}
+.nt-chat-stream p {
+  font-size: .74rem;
+  line-height: 1.55;
+}
+.nt-chat-empty {
+  font-size: .72rem;
+}
+.nt-chat-compose textarea {
+  font-size: .75rem;
+  line-height: 1.5;
+}
+
+/* Controls */
+.nt-quick-coins button,
+.nt-custom-contribution button,
+.nt-manifesto-box button,
+.nt-candidates button,
+.nt-primary-action,
+.nt-lineup-actions button,
+.nt-chat-compose button,
+.nt-eligible-callups button,
+.nt-membership-join-card button,
+.nt-join-association,
+.nt-captain-resign button {
+  font-size: .72rem;
+  font-weight: 700;
+}
+
+/* Status/meta pills stay compact but legible. */
+.nt-status,
+.nt-membership-confirmed,
+.nt-membership-unavailable {
+  font-size: .66rem;
+}
+
+/* Keep calendar chips compact because calendar cells are intentionally dense. */
+.tlg-calendar-national-window span {
+  font-size: .54rem;
+}
+.tlg-calendar-national-window strong {
+  font-size: .64rem;
+}
+.tlg-calendar-national-window small {
+  font-size: .54rem;
+}
+
+@media (max-width: 760px) {
+  .nt-governance-steps article {
+    min-height: auto;
+  }
+}
