@@ -2054,3 +2054,168 @@
   font-size: .76rem;
   line-height: 1.6;
 }
+
+
+/* National Team structural layout hardening ------------------------------ */
+
+/* Keep every National Team grid/flex child inside its own box. */
+.nt-overview-grid > *,
+.nt-metric-grid > *,
+.nt-requirements > *,
+.nt-fund-summary > *,
+.nt-election-grid > *,
+.nt-election-meta > *,
+.nt-governance-steps > *,
+.nt-governance-continuity > *,
+.nt-election-explainer-grid > *,
+.nt-window-list > *,
+.nt-fixture-list > *,
+.nt-fixture-meta > *,
+.nt-captain-deadlines > *,
+.nt-squad-options > *,
+.nt-lineup-grid > *,
+.nt-lineup-compare > *,
+.nt-competition-main-grid > * {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.nt-membership-status-card,
+.nt-governance-timeline,
+.nt-election-main,
+.nt-election-rules,
+.nt-rules-card,
+.nt-contribution-history,
+.nt-hero-card,
+.nt-fund-card,
+.nt-members-panel,
+.nt-history-panel {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Membership box: text owns the flexible column, action owns its own column. */
+.nt-membership-status-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+}
+
+.nt-membership-status-content > div {
+  min-width: 0;
+  max-width: none;
+}
+
+.nt-membership-status-content p {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.nt-membership-status-content button,
+.nt-membership-status-content > .nt-membership-confirmed,
+.nt-membership-status-content > .nt-membership-unavailable {
+  justify-self: end;
+  align-self: center;
+  flex: none;
+  white-space: nowrap;
+}
+
+/* Never allow long explanatory text to escape its card. */
+.nt-governance-steps article > div,
+.nt-governance-continuity > div,
+.nt-election-explainer-grid article,
+.nt-rule-list > div,
+.nt-placeholder > div,
+.nt-candidates article,
+.nt-history-list article > div:last-child {
+  min-width: 0;
+}
+
+.nt-governance-steps strong,
+.nt-governance-steps span,
+.nt-governance-continuity strong,
+.nt-governance-continuity span,
+.nt-election-explainer-grid strong,
+.nt-election-explainer-grid span,
+.nt-rule-list strong,
+.nt-rule-list span,
+.nt-placeholder strong,
+.nt-placeholder span,
+.nt-candidates article p,
+.nt-history-list strong,
+.nt-history-list span {
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+/* Seven timeline cards: fill the final desktop row instead of leaving an empty slot. */
+.nt-governance-steps > article:nth-child(7) {
+  grid-column: span 2;
+}
+
+/* Keep the bottom continuity row evenly filled. */
+.nt-governance-continuity > div {
+  height: 100%;
+}
+
+/* Make the timeline cards size from content rather than forcing awkward empty height. */
+.nt-governance-steps article {
+  min-height: 0;
+  height: 100%;
+  align-content: start;
+}
+
+/* Slightly more breathing room inside the larger explanatory cards. */
+.nt-membership-status-card,
+.nt-governance-timeline {
+  overflow: hidden;
+}
+
+.nt-membership-status-card .nt-section-header,
+.nt-governance-timeline .nt-section-header {
+  margin-bottom: 14px;
+}
+
+.nt-governance-steps {
+  gap: 12px;
+}
+
+.nt-governance-continuity {
+  gap: 12px;
+}
+
+@media (max-width: 1180px) {
+  .nt-membership-status-content {
+    grid-template-columns: minmax(0, 1fr) max-content;
+  }
+
+  /* In the 2-column timeline, the final card spans the full row. */
+  .nt-governance-steps > article:nth-child(7) {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .nt-membership-status-content {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 14px;
+  }
+
+  .nt-membership-status-content button,
+  .nt-membership-status-content > .nt-membership-confirmed,
+  .nt-membership-status-content > .nt-membership-unavailable {
+    justify-self: start;
+  }
+
+  .nt-governance-steps > article:nth-child(7) {
+    grid-column: auto;
+  }
+}
