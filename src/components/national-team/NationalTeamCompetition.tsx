@@ -752,8 +752,7 @@ export default function NationalTeamCompetition() {
             </header>
 
             <p className="nt-section-copy">
-              Only active national associations appear below. New associations enter at the lowest active regional level.
-              Promotion eventually leads from the regional structure into World Group II, World Group I, Qualifiers and the Final 8.
+              Only active national associations appear below. For the one-time Season 2 bootstrap, activation order fills Qualifier Round 1, then World Group I, then World Group II, then the regional structure. After that first official build, new associations enter the lowest active regional level and sporting promotion/relegation controls every move.
             </p>
 
             {hub.projected_entry?.label && (
@@ -894,7 +893,7 @@ export default function NationalTeamCompetition() {
                   <strong>{hub.season_mode === 'association_building' ? 'No friendly opponent available yet' : 'No announced fixture yet'}</strong>
                   <span>
                     {hub.season_mode === 'association_building'
-                      ? 'Season 1 windows are reserved for friendly ties. A friendly can be paired as soon as another active association exists in this competition world.'
+                      ? 'Season 1 windows are reserved for captain-arranged friendly ties. Use the Friendlies section to publish availability or invite another active association.'
                       : 'Official pairings are announced automatically when the relevant national window reaches its announcement date.'}
                   </span>
                 </div>
