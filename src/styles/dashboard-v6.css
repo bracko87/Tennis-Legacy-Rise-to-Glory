@@ -128,17 +128,3 @@
   margin-left: 2px;
   margin-right: 2px;
 }
-
-
-/* Dashboard content sizing hardening -------------------------------------
- * A flex-column child does not need width:100% to fill the workspace.
- * Using auto + stretch prevents the content width and horizontal padding
- * from ever producing a wider-than-workspace page at browser zoom levels.
- */
-.tlg-v2-content {
-  width: auto;
-  max-width: 1640px;
-  min-width: 0;
-  align-self: stretch;
-  box-sizing: border-box;
-}

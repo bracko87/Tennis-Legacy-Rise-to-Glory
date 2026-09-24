@@ -2221,87 +2221,23 @@
 }
 
 
-/* National Team viewport containment ------------------------------------ */
-
-.nt-page-head,
-.nt-overview-grid,
-.nt-election-grid,
-.nt-competition-layout,
-.nt-members-panel,
-.nt-history-panel,
-.nt-team-chat-page {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-}
-
-.nt-overview-grid {
-  grid-template-columns: minmax(0, 1.45fr) minmax(300px, .95fr);
-}
-
-.nt-overview-grid > *,
+/* National Team Overview panel padding fix -------------------------------
+ * These two full-width panels were missing the same internal padding used
+ * by Community Governance, Governance Rules and the other dashboard cards.
+ */
 .nt-membership-status-card,
 .nt-governance-timeline {
-  max-width: 100%;
+  padding: 18px;
 }
 
-.nt-membership-status-content {
-  grid-template-columns: minmax(0, 1fr) 132px;
+.nt-membership-status-card > .nt-section-header,
+.nt-governance-timeline > .nt-section-header {
+  margin-top: 0;
 }
 
-.nt-membership-status-content button,
-.nt-membership-status-content > .nt-membership-confirmed,
-.nt-membership-status-content > .nt-membership-unavailable {
-  width: 132px;
-  max-width: 132px;
-  justify-self: stretch;
-  text-align: center;
-}
-
-.nt-requirements > div {
-  grid-template-columns: auto minmax(0, 1fr) auto;
-}
-
-.nt-requirements > div > span,
-.nt-requirements > div > strong {
-  min-width: 0;
-}
-
-.nt-requirements > div > strong {
-  text-align: right;
-  white-space: normal;
-  overflow-wrap: break-word;
-}
-
-.nt-rule-note,
-.nt-membership-status-content p {
-  max-width: 100%;
-}
-
+.nt-membership-status-content,
 .nt-governance-steps,
-.nt-governance-continuity,
-.nt-election-explainer-grid {
-  width: 100%;
+.nt-governance-continuity {
   max-width: 100%;
-}
-
-@media (max-width: 1180px) {
-  .nt-membership-status-content {
-    grid-template-columns: minmax(0, 1fr) 132px;
-  }
-}
-
-@media (max-width: 760px) {
-  .nt-membership-status-content {
-    grid-template-columns: 1fr;
-  }
-
-  .nt-membership-status-content button,
-  .nt-membership-status-content > .nt-membership-confirmed,
-  .nt-membership-status-content > .nt-membership-unavailable {
-    width: auto;
-    max-width: 100%;
-    justify-self: start;
-  }
+  min-width: 0;
 }
