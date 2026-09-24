@@ -2418,3 +2418,204 @@
     justify-content: center;
   }
 }
+
+
+/* Captain candidate list ------------------------------------------------- */
+
+.nt-candidate-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.nt-candidate-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0,1fr);
+  gap: 11px;
+  padding: 11px 12px;
+  border: 1px solid #dce6ed;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.nt-candidate-row.winner {
+  border-color: #b9dbc6;
+  background: #f4faf6;
+}
+
+.nt-candidate-number {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: #0b6fc8;
+  background: #eaf5fc;
+  font-size: .78rem;
+  font-weight: 900;
+}
+
+.nt-candidate-main {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.nt-candidate-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.nt-candidate-heading > div:first-child {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.nt-candidate-heading > div:first-child > span {
+  color: #1675b7;
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.nt-candidate-player-link {
+  color: #173d5b;
+  font-size: .79rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.nt-candidate-player-link:hover {
+  color: #0b6fc8;
+  text-decoration: underline;
+}
+
+.nt-candidate-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nt-candidate-actions button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid #0b6fc8;
+  border-radius: 7px;
+  color: #fff;
+  background: #0b6fc8;
+  font: inherit;
+  font-size: .67rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.nt-candidate-actions button:disabled {
+  opacity: .55;
+  cursor: default;
+}
+
+.nt-candidate-vote-total {
+  color: #6f8496;
+  font-size: .67rem;
+}
+
+.nt-your-vote {
+  color: #267a50;
+  font-size: .67rem;
+  white-space: nowrap;
+}
+
+.nt-candidate-manifesto {
+  border-top: 1px solid #edf2f5;
+  padding-top: 7px;
+}
+
+.nt-candidate-manifesto summary {
+  width: fit-content;
+  color: #0b6fc8;
+  font-size: .68rem;
+  font-weight: 800;
+  cursor: pointer;
+  user-select: none;
+}
+
+.nt-candidate-manifesto p {
+  margin: 8px 0 0;
+  padding: 9px 10px;
+  border-radius: 7px;
+  color: #60798d;
+  background: #f7fafc;
+  font-size: .73rem;
+  line-height: 1.55;
+}
+
+.nt-vote-final-note {
+  padding: 9px 11px;
+  border: 1px solid #c7e2d2;
+  border-radius: 8px;
+  color: #397256;
+  background: #f3f9f5;
+  font-size: .7rem;
+  line-height: 1.5;
+}
+
+.nt-candidacy-withdraw {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 13px;
+  border-top: 1px solid #eadcdc;
+  background: #fffafa;
+}
+
+.nt-candidacy-withdraw > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.nt-candidacy-withdraw strong {
+  color: #823f3f;
+  font-size: .72rem;
+}
+
+.nt-candidacy-withdraw span {
+  color: #8c6b6b;
+  font-size: .67rem;
+  line-height: 1.45;
+}
+
+.nt-candidacy-withdraw button {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid #d6aaaa;
+  border-radius: 7px;
+  color: #9b4545;
+  background: #fff;
+  font: inherit;
+  font-size: .67rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .nt-candidate-heading,
+  .nt-candidacy-withdraw {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .nt-candidate-actions {
+    flex-wrap: wrap;
+  }
+
+  .nt-candidacy-withdraw button {
+    width: 100%;
+  }
+}

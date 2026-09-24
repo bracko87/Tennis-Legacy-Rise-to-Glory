@@ -10,6 +10,7 @@ import {
   Vote,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router'
 
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
@@ -378,6 +379,26 @@ export default function NationalTeamPage() {
     setWorking(false)
   }
 
+  async function withdrawCandidate() {
+    if (!snapshot?.election?.id || working) return
+    setWorking(true)
+    setError(null)
+    setNotice(null)
+
+    const { error: rpcError } = await supabase.rpc('withdraw_national_captain_candidate_v1', {
+      p_election_id: snapshot.election.id,
+    })
+
+    if (rpcError) setError(rpcError.message)
+    else {
+      setNotice('Your candidacy has been withdrawn. You may register again while candidate registration remains open.')
+      setCandidatePanelOpen(false)
+      await load()
+    }
+
+    setWorking(false)
+  }
+
   async function castVote(candidateId: string) {
     if (!snapshot?.election?.id || working) return
     setWorking(true)
@@ -430,6 +451,7 @@ export default function NationalTeamPage() {
     || (election.status === 'runoff' && Boolean(election.runoff_registration_open))
   )
   const canVote = (election.status === 'voting' || election.status === 'runoff') && !election.my_vote_candidate_id
+  const canWithdrawCandidate = canRegister && Boolean(election.my_candidate_id)
   const electionInProgress = election.status === 'candidate_registration'
     || election.status === 'campaign'
     || election.status === 'voting'
@@ -943,33 +965,81 @@ export default function NationalTeamPage() {
                         </div>
                       </div>
                     )}
+
+                    {canWithdrawCandidate && (
+                      <div className="nt-candidacy-withdraw">
+                        <div>
+                          <strong>Withdraw candidacy</strong>
+                          <span>You can withdraw while candidate registration is open. Once voting starts, the candidate list is locked for that round.</span>
+                        </div>
+                        <button type="button" disabled={working} onClick={() => void withdrawCandidate()}>
+                          Withdraw
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
-                <div className="nt-candidates">
+                <div className="nt-candidate-list">
                   {candidates.length === 0 ? (
                     <div className="nt-placeholder">No candidates registered yet.</div>
-                  ) : candidates.map((candidate) => (
-                    <article key={candidate.candidate_id} className={candidate.candidate_id === election.winning_candidate_id ? 'winner' : ''}>
-                      <header>
-                        <div>
-                          <span>{candidate.candidate_id === election.winning_candidate_id ? 'ELECTED CAPTAIN' : election.status === 'runoff' ? 'RUNOFF CANDIDATE' : 'CANDIDATE'}</span>
-                          <strong>{candidate.first_name} {candidate.last_name}</strong>
+                  ) : candidates.map((candidate, index) => (
+                    <article
+                      key={candidate.candidate_id}
+                      className={`nt-candidate-row ${candidate.candidate_id === election.winning_candidate_id ? 'winner' : ''}`}
+                    >
+                      <div className="nt-candidate-number">{index + 1}</div>
+
+                      <div className="nt-candidate-main">
+                        <div className="nt-candidate-heading">
+                          <div>
+                            <span>
+                              {candidate.candidate_id === election.winning_candidate_id
+                                ? 'ELECTED CAPTAIN'
+                                : election.status === 'runoff'
+                                  ? 'RUNOFF CANDIDATE'
+                                  : 'CANDIDATE'}
+                            </span>
+                            <Link to={`/game/players/${candidate.player_id}`} className="nt-candidate-player-link">
+                              {candidate.first_name} {candidate.last_name}
+                            </Link>
+                          </div>
+
+                          <div className="nt-candidate-actions">
+                            {candidate.vote_total !== null && (
+                              <span className="nt-candidate-vote-total">
+                                {candidate.vote_total} vote{candidate.vote_total === 1 ? '' : 's'}
+                              </span>
+                            )}
+
+                            {canVote && (
+                              <button type="button" disabled={working} onClick={() => void castVote(candidate.candidate_id)}>
+                                Vote #{index + 1}
+                              </button>
+                            )}
+
+                            {election.my_vote_candidate_id === candidate.candidate_id && (
+                              <strong className="nt-your-vote">Your vote · final</strong>
+                            )}
+
+                            {candidate.candidate_id === election.winning_candidate_id && <Crown size={18} />}
+                          </div>
                         </div>
-                        {candidate.candidate_id === election.winning_candidate_id && <Crown size={18} />}
-                      </header>
-                      <p>{candidate.manifesto}</p>
-                      <footer>
-                        {candidate.vote_total !== null && <span>{candidate.vote_total} vote{candidate.vote_total === 1 ? '' : 's'}</span>}
-                        {canVote && (
-                          <button type="button" disabled={working} onClick={() => void castVote(candidate.candidate_id)}>
-                            Vote
-                          </button>
-                        )}
-                        {election.my_vote_candidate_id === candidate.candidate_id && <strong>Your vote</strong>}
-                      </footer>
+
+                        <details className="nt-candidate-manifesto">
+                          <summary>Read manifesto</summary>
+                          <p>{candidate.manifesto}</p>
+                        </details>
+                      </div>
                     </article>
                   ))}
+
+                  {election.my_vote_candidate_id && (
+                    <div className="nt-vote-final-note">
+                      Your vote for this round has been recorded and is final. It cannot be changed or withdrawn.
+                      If a runoff is required, you will receive one new vote in that new round.
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -989,12 +1059,12 @@ export default function NationalTeamPage() {
                 <article>
                   <b>Phase 2 · Main election</b>
                   <strong>Annual: 10 January → 20 January</strong>
-                  <span>Candidate registration is closed. Every active association member receives exactly one vote and chooses among the registered candidates. First-activation and replacement elections use the same 10-game-day voting window immediately after registration.</span>
+                  <span>Candidate registration is closed. Every active member gets exactly one vote for this round, including members who are candidates. A candidate may vote for themselves or any other candidate. Once cast, the vote is final and cannot be changed or withdrawn.</span>
                 </article>
                 <article>
                   <b>Phase 3 · Runoff</b>
                   <strong>7 game days · only if needed</strong>
-                  <span>If the main round has no unique winner, only the tied leaders continue into a seven-day runoff. If the runoff is still tied, another seven-day runoff starts automatically.</span>
+                  <span>If the main round has no unique winner, only the tied leaders continue. Every eligible member receives one new vote for that runoff round. A further tie creates another seven-day round with one new vote per member again.</span>
                 </article>
                 <article>
                   <b>Winning condition</b>
@@ -1002,9 +1072,9 @@ export default function NationalTeamPage() {
                   <span>A candidate wins only when their vote total is strictly higher than every other candidate. A zero-vote candidate cannot become captain automatically.</span>
                 </article>
                 <article>
-                  <b>No candidates / no votes</b>
-                  <strong>The process continues</strong>
-                  <span>If nobody registers, candidate registration reopens in the next seven-day extension. If candidates exist but nobody votes, the election continues rather than assigning a random captain.</span>
+                  <b>Candidate withdrawal</b>
+                  <strong>Allowed while registration is open</strong>
+                  <span>A registered candidate may withdraw before voting begins. Once a voting round starts, the candidate list is locked for that round so already-cast votes cannot be undermined.</span>
                 </article>
                 <article>
                   <b>Previous captain</b>
@@ -1035,9 +1105,13 @@ export default function NationalTeamPage() {
             <span>ELECTION PRINCIPLES</span>
             <h3>No pay-to-govern</h3>
             <ul>
-              <li>Every active member receives exactly one vote.</li>
+              <li>Every active member receives exactly one vote per election round, including members who are candidates.</li>
+              <li>A candidate may vote for themselves or for any other candidate.</li>
+              <li>Once a vote is cast, it is final for that round and cannot be changed or withdrawn.</li>
+              <li>If a runoff starts, every eligible member receives one new vote for that runoff round.</li>
               <li>Activation and renewal donations never create extra votes.</li>
-              <li>Candidate manifestos are required.</li>
+              <li>Candidate manifestos are required and remain available to all members from the candidate list.</li>
+              <li>Candidates may withdraw while candidate registration is open; once voting begins, the candidate list is locked.</li>
               <li>Annual candidate registration runs from 1 January until voting opens on 10 January.</li>
               <li>The annual main vote runs from 10 January through 20 January.</li>
               <li>A tie moves only the tied leaders into a seven-day runoff. Further ties repeat in seven-day rounds until somebody has a unique lead.</li>
