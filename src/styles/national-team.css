@@ -1982,3 +1982,75 @@
     min-height: auto;
   }
 }
+
+
+/* Final National Team readability/layout pass ----------------------------- */
+
+.nt-governance-timeline,
+.nt-election-explainer-lower {
+  margin-top: 18px;
+}
+
+.nt-governance-timeline .nt-section-copy {
+  font-size: .82rem;
+  line-height: 1.65;
+}
+
+.nt-governance-steps strong {
+  font-size: .83rem;
+  line-height: 1.45;
+}
+
+.nt-governance-steps span {
+  font-size: .79rem;
+  line-height: 1.65;
+}
+
+.nt-governance-continuity strong {
+  font-size: .82rem;
+}
+
+.nt-governance-continuity span {
+  font-size: .78rem;
+  line-height: 1.62;
+}
+
+.nt-election-explainer-head > strong {
+  font-size: .92rem;
+  line-height: 1.4;
+}
+
+.nt-election-explainer-grid strong {
+  font-size: .82rem;
+  line-height: 1.45;
+}
+
+.nt-election-explainer-grid span {
+  font-size: .78rem;
+  line-height: 1.65;
+}
+
+.nt-election-rules ul {
+  font-size: .78rem;
+  line-height: 1.65;
+}
+
+.nt-membership-status-content p,
+.nt-members-panel .nt-section-copy,
+.nt-rule-list span,
+.nt-rule-note,
+.nt-placeholder span,
+.nt-history-list span,
+.nt-team-chat > p {
+  font-size: .78rem;
+  line-height: 1.62;
+}
+
+.nt-window-list small,
+.nt-fixture-list button em,
+.nt-central-event-note,
+.nt-squad-builder-head small,
+.nt-chat-stream p {
+  font-size: .76rem;
+  line-height: 1.6;
+}
