@@ -2936,3 +2936,153 @@
     justify-content: center;
   }
 }
+
+
+/* Elections typography hierarchy — calmer, less aggressive -------------- */
+
+/* Main election panel headings: clear, but not heavy. */
+.nt-election-main .nt-section-header > div > span,
+.nt-election-rules > span {
+  font-weight: 650;
+  letter-spacing: .09em;
+}
+
+.nt-election-main .nt-section-header h3,
+.nt-election-rules h3 {
+  font-weight: 650;
+}
+
+/* Election summary cards. */
+.nt-election-main .nt-election-meta span {
+  font-weight: 400;
+}
+
+.nt-election-main .nt-election-meta strong {
+  font-weight: 600;
+}
+
+/* Three-stage process: only the active state should feel prominent. */
+.nt-election-phase-number {
+  font-weight: 650;
+}
+
+.nt-election-phase span {
+  font-weight: 600;
+  letter-spacing: .07em;
+}
+
+.nt-election-phase strong {
+  font-weight: 550;
+}
+
+.nt-election-phase p {
+  font-weight: 400;
+}
+
+.nt-election-phase.active span,
+.nt-election-phase.active strong {
+  font-weight: 650;
+}
+
+.nt-election-phase.upcoming span,
+.nt-election-phase.upcoming strong {
+  font-weight: 500;
+}
+
+/* Candidate action panel. */
+.nt-candidacy-action-head span {
+  font-weight: 600;
+  letter-spacing: .07em;
+}
+
+.nt-candidacy-action-head strong {
+  font-weight: 600;
+}
+
+.nt-candidacy-action-head small {
+  font-weight: 400;
+}
+
+.nt-candidacy-toggle,
+.nt-candidacy-withdraw button {
+  font-weight: 600;
+}
+
+.nt-manifesto-box label {
+  font-weight: 600;
+}
+
+.nt-candidacy-withdraw strong {
+  font-weight: 600;
+}
+
+.nt-candidacy-withdraw span {
+  font-weight: 400;
+}
+
+/* Candidate list: names remain important; everything around them is softer. */
+.nt-candidate-number {
+  font-weight: 650;
+}
+
+.nt-candidate-heading > div:first-child > span {
+  font-weight: 600;
+  letter-spacing: .06em;
+}
+
+.nt-candidate-player-link {
+  font-weight: 600;
+}
+
+.nt-candidate-actions button {
+  font-weight: 650;
+}
+
+.nt-candidate-vote-total,
+.nt-your-vote {
+  font-weight: 500;
+}
+
+.nt-candidate-manifesto summary {
+  font-weight: 600;
+}
+
+.nt-candidate-manifesto p {
+  font-weight: 400;
+}
+
+/* Collapsible help box should look like reference material, not a headline wall. */
+.nt-election-explainer-lower .nt-election-explainer-head > div > span {
+  font-weight: 600;
+  letter-spacing: .07em;
+}
+
+.nt-election-explainer-lower .nt-election-explainer-head > div > strong {
+  font-weight: 500;
+}
+
+.nt-election-explainer-lower .nt-election-explainer-grid b {
+  font-weight: 600;
+}
+
+.nt-election-explainer-lower .nt-election-explainer-grid strong {
+  font-weight: 500;
+}
+
+.nt-election-explainer-lower .nt-election-explainer-grid span {
+  font-weight: 400;
+}
+
+.nt-election-help-toggle {
+  font-weight: 600;
+}
+
+/* Right-side principles: prose first, emphasis only where useful. */
+.nt-election-rules ul,
+.nt-election-rules li {
+  font-weight: 400;
+}
+
+.nt-election-rules li::marker {
+  font-weight: 400;
+}
