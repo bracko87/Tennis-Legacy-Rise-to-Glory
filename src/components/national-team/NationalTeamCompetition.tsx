@@ -246,6 +246,60 @@ interface FixtureDetail {
   }
 }
 
+interface FriendlyMarketAssociation {
+  listing_id: string
+  association_id: string
+  association_name: string
+  country_code: string
+}
+
+interface FriendlyListingState {
+  id: string
+  status: string
+}
+
+interface FriendlyTieSlot {
+  slot: number
+  label: string
+  available: boolean
+  my_listing: FriendlyListingState | null
+  market: FriendlyMarketAssociation[]
+}
+
+interface FriendlyInvitation {
+  id: string
+  tie_slot: number
+  status: string
+  inviter_association_id?: string
+  inviter_association_name?: string
+  invitee_association_id?: string
+  invitee_association_name?: string
+  country_code: string
+  pairing_deadline_absolute_day: number
+}
+
+interface FriendlyWindow {
+  window_id: string
+  label: string
+  season_number: number
+  season_week: number
+  start_absolute_day: number
+  end_absolute_day: number
+  pairing_deadline_absolute_day: number
+  tie_slots: FriendlyTieSlot[]
+  incoming_invitations: FriendlyInvitation[]
+  outgoing_invitations: FriendlyInvitation[]
+}
+
+interface FriendlyHub {
+  available: boolean
+  association_id?: string
+  is_captain: boolean
+  windows: FriendlyWindow[]
+}
+
+type CompetitionView = 'divisions' | 'ties' | 'calendar' | 'friendlies' | 'how'
+
 interface StandingRow {
   rank_position: number
   association_id: string
@@ -329,6 +383,8 @@ export default function NationalTeamCompetition() {
   const { player } = useAuth()
   const [hub, setHub] = useState<CompetitionHub | null>(null)
   const [standings, setStandings] = useState<StandingRow[]>([])
+  const [competitionView, setCompetitionView] = useState<CompetitionView>('divisions')
+  const [friendlyHub, setFriendlyHub] = useState<FriendlyHub | null>(null)
   const [selectedFixtureId, setSelectedFixtureId] = useState<string | null>(null)
   const [detail, setDetail] = useState<FixtureDetail | null>(null)
   const [squadSelection, setSquadSelection] = useState<string[]>([])
@@ -345,9 +401,10 @@ export default function NationalTeamCompetition() {
     setLoading(true)
     setError(null)
 
-    const [hubResult, standingsResult] = await Promise.all([
+    const [hubResult, standingsResult, friendlyResult] = await Promise.all([
       supabase.rpc('get_my_national_team_competition_v2'),
       supabase.rpc('get_my_national_division_standings_v1'),
+      supabase.rpc('get_my_national_team_friendlies_v1'),
     ])
 
     if (hubResult.error) {
@@ -364,6 +421,7 @@ export default function NationalTeamCompetition() {
     }
 
     setStandings(standingsResult.error ? [] : ((standingsResult.data ?? []) as StandingRow[]))
+    setFriendlyHub(friendlyResult.error ? null : ((friendlyResult.data ?? null) as FriendlyHub | null))
     setLoading(false)
   }, [])
 
@@ -531,6 +589,62 @@ export default function NationalTeamCompetition() {
     setWorking(false)
   }
 
+  async function toggleFriendlyListing(windowId: string, tieSlot: number, looking: boolean) {
+    setWorking(true)
+    setError(null)
+    setMessage(null)
+
+    const { error: rpcError } = await supabase.rpc('set_national_team_friendly_listing_v1', {
+      p_window_id: windowId,
+      p_tie_slot: tieSlot,
+      p_looking: looking,
+    })
+
+    if (rpcError) setError(rpcError.message)
+    else {
+      setMessage(looking ? 'Your national team is now looking for a friendly in this tie slot.' : 'Friendly listing removed.')
+      await loadBase()
+    }
+    setWorking(false)
+  }
+
+  async function inviteFriendly(windowId: string, tieSlot: number, associationId: string) {
+    setWorking(true)
+    setError(null)
+    setMessage(null)
+
+    const { error: rpcError } = await supabase.rpc('send_national_team_friendly_invitation_v1', {
+      p_window_id: windowId,
+      p_tie_slot: tieSlot,
+      p_invitee_association_id: associationId,
+    })
+
+    if (rpcError) setError(rpcError.message)
+    else {
+      setMessage('Friendly invitation sent to the other national captain.')
+      await loadBase()
+    }
+    setWorking(false)
+  }
+
+  async function respondFriendly(invitationId: string, accept: boolean) {
+    setWorking(true)
+    setError(null)
+    setMessage(null)
+
+    const { error: rpcError } = await supabase.rpc('respond_national_team_friendly_invitation_v1', {
+      p_invitation_id: invitationId,
+      p_accept: accept,
+    })
+
+    if (rpcError) setError(rpcError.message)
+    else {
+      setMessage(accept ? 'Friendly confirmed. The tie has been added to the national calendar.' : 'Friendly invitation declined.')
+      await refreshAll()
+    }
+    setWorking(false)
+  }
+
   const pendingFixture = useMemo(
     () => hub?.fixtures.find((fixture) => fixture.my_callup?.status === 'pending') ?? null,
     [hub],
@@ -608,7 +722,26 @@ export default function NationalTeamCompetition() {
       {error && <div className="nt-alert nt-alert-error">{error}</div>}
       {message && <div className="nt-alert nt-alert-success">{message}</div>}
 
-      <div className="nt-competition-main-grid">
+      <nav className="nt-competition-subtabs" aria-label="National competition sections">
+        {([
+          ['divisions', 'Divisions'],
+          ['ties', 'National Ties'],
+          ['calendar', 'Calendar'],
+          ['friendlies', 'Friendlies'],
+          ['how', 'How It Works'],
+        ] as Array<[CompetitionView, string]>).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            className={competitionView === key ? 'active' : ''}
+            onClick={() => setCompetitionView(key)}
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+
+      <div className={`nt-competition-main-grid view-${competitionView}`}>
         <div className="nt-competition-primary">
           <section className="tlg-v2-panel nt-pyramid-panel">
             <header className="nt-section-header">
