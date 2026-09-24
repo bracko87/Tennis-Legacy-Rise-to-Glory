@@ -79,6 +79,7 @@ import ContactUsPage from './pages/manager/ContactUs'
 import InviteFriendsPage from './pages/manager/InviteFriends'
 import ReferralAdminPage from './pages/manager/ReferralAdmin'
 import AdminAnalyticsPage from './pages/manager/AdminAnalytics'
+import AdminSystemHealthPage from './pages/manager/AdminSystemHealth'
 import AdminBugReportsPage from './pages/manager/AdminBugReports'
 import AdminReviewsPage from './pages/manager/AdminReviews'
 import NotificationsPage from './pages/manager/Notifications'
@@ -231,6 +232,7 @@ export default function App() {
           <Route path="/game/contact" element={<RequirePlayer><ContactUsPage /></RequirePlayer>} />
           <Route path="/game/invite-friends" element={<RequirePlayer><InviteFriendsPage /></RequirePlayer>} />
           <Route path="/game/referral-admin" element={<RequirePlayer><ReferralAdminPage /></RequirePlayer>} />
+          <Route path="/game/admin/system-health" element={<RequireAdmin><AdminSystemHealthPage /></RequireAdmin>} />
           <Route path="/game/admin/analytics" element={<RequireAdmin><AdminAnalyticsPage /></RequireAdmin>} />
           <Route path="/game/admin/bug-reports" element={<RequireAdmin><AdminBugReportsPage /></RequireAdmin>} />
           <Route path="/game/admin/reviews" element={<RequireAdmin><AdminReviewsPage /></RequireAdmin>} />
