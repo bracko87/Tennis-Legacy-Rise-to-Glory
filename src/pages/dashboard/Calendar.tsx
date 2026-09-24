@@ -213,6 +213,8 @@ function SeasonCalendarView() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'player_daily_activity', filter: `player_id=eq.${player.id}` }, refresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_entries', filter: `player_id=eq.${player.id}` }, refresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'player_travel_legs', filter: `player_id=eq.${player.id}` }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'player_calendar_commitments', filter: `player_id=eq.${player.id}` }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'national_team_callups', filter: `player_id=eq.${player.id}` }, refresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_matches' }, refresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_doubles_teams' }, refresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_doubles_matches' }, refresh)
