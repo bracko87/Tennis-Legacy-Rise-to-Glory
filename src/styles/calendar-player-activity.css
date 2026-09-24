@@ -23,7 +23,8 @@
 
 /* Confirmed sits deliberately between the pale predicted state and the dark
    completed/played state. */
-.tlg-calendar-day-tournament-confirmed {
+.tlg-calendar-day-tournament-confirmed,
+.tlg-calendar-day-national-team-confirmed {
   background: #b9def5;
   border-color: #3f9bd1;
 }
@@ -40,7 +41,8 @@
   border-color: #c5e6d0;
 }
 
-.tlg-calendar-day-tournament-completed {
+.tlg-calendar-day-tournament-completed,
+.tlg-calendar-day-national-team-completed {
   background: #0f659f;
   border-color: #0a507f;
 }
@@ -125,11 +127,14 @@
 }
 
 .tlg-calendar-player-activity.tournament,
-.tlg-calendar-player-activity.tournament.confirmed {
+.tlg-calendar-player-activity.tournament.confirmed,
+.tlg-calendar-player-activity.national_team,
+.tlg-calendar-player-activity.national_team.confirmed {
   color: #075b91;
 }
 
-.tlg-calendar-player-activity.tournament.confirmed > strong {
+.tlg-calendar-player-activity.tournament.confirmed > strong,
+.tlg-calendar-player-activity.national_team.confirmed > strong {
   color: #083f67;
 }
 
@@ -149,20 +154,25 @@
   color: #315f42;
 }
 
-.tlg-calendar-player-activity.tournament.completed {
+.tlg-calendar-player-activity.tournament.completed,
+.tlg-calendar-player-activity.national_team.completed {
   color: #d9efff;
 }
 
-.tlg-calendar-player-activity.tournament.completed > strong {
+.tlg-calendar-player-activity.tournament.completed > strong,
+.tlg-calendar-player-activity.national_team.completed > strong {
   color: #fff;
 }
 
 .tlg-calendar-day-tournament-completed .tlg-calendar-day-number,
-.tlg-calendar-day-tournament-completed .tlg-calendar-player-activity > span {
+.tlg-calendar-day-tournament-completed .tlg-calendar-player-activity > span,
+.tlg-calendar-day-national-team-completed .tlg-calendar-day-number,
+.tlg-calendar-day-national-team-completed .tlg-calendar-player-activity > span {
   color: #d9efff;
 }
 
-.tlg-calendar-day-tournament-completed .tlg-calendar-today-badge {
+.tlg-calendar-day-tournament-completed .tlg-calendar-today-badge,
+.tlg-calendar-day-national-team-completed .tlg-calendar-today-badge {
   border-color: rgba(255,255,255,.5);
 }
 
