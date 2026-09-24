@@ -4053,3 +4053,32 @@ body > #root:empty {
   height: 0 !important;
   min-height: 0 !important;
 }
+
+
+/* Next Quest Studio footer credit --------------------------------------- */
+
+.tlg-footer-company-credit {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  text-align: right;
+}
+
+.tlg-footer-company-credit a {
+  color: rgba(214, 232, 247, 0.72);
+  font-weight: 700;
+  text-decoration: none;
+  transition: color var(--tlg-transition-fast);
+}
+
+.tlg-footer-company-credit a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+@media (max-width: 760px) {
+  .tlg-footer-company-credit {
+    justify-items: start;
+    text-align: left;
+  }
+}

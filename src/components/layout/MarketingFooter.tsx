@@ -16,6 +16,8 @@ import { useGameClock } from '../../hooks/useGameClock'
 const FOOTER_LOGO_URL =
   'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/logo%20333.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9sb2dvIDMzMy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg3OTQ1MDc5LCJleHAiOjQ5MTAwMDkwNzl9.Q7Ocay_B1kouWo_XmmgtVcGOCh0xtzhzaIm713AhU-ci-xJPY3JanaT3xhdkptAuKV5kUJGHov34fSM2TGjmcQ'
 
+const NEXT_QUEST_STUDIO_URL = 'https://www.nextqueststudio.net/'
+
 export interface MarketingFooterProps {
   readonly children?: ReactNode
 }
@@ -155,10 +157,28 @@ export default function MarketingFooter({
             multiplayer tennis management simulation.
           </p>
 
-          <p>
-            Tennis Legacy is published and operated by
-            Next Quest Studio.
-          </p>
+          <div className="tlg-footer-company-credit">
+            <p>
+              Tennis Legacy is published and operated by{' '}
+              <a
+                href={NEXT_QUEST_STUDIO_URL}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Next Quest Studio
+              </a>.
+            </p>
+            <p>
+              © {new Date().getFullYear()}{' '}
+              <a
+                href={NEXT_QUEST_STUDIO_URL}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Next Quest Studio
+              </a>. All rights reserved.
+            </p>
+          </div>
         </div>
       </div>
     </footer>
