@@ -14,6 +14,7 @@ import { Link } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../common/CountryFlag'
+import NationalCompetitionDivisions from './NationalCompetitionDivisions'
 import { supabase } from '../../lib/supabase'
 
 interface NationalWindow {
@@ -743,6 +744,8 @@ export default function NationalTeamCompetition() {
 
       <div className={`nt-competition-main-grid view-${competitionView}`}>
         <div className="nt-competition-primary">
+          {competitionView === 'divisions' && <NationalCompetitionDivisions />}
+
           <section className="tlg-v2-panel nt-pyramid-panel">
             <header className="nt-section-header">
               <div>
