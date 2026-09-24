@@ -1136,40 +1136,6 @@
   padding: 0 11px;
 }
 
-/* Calendar integration -------------------------------------------------- */
-
-.tlg-calendar-day-national-window {
-  box-shadow: inset 0 0 0 1px #b8d9ee;
-}
-
-.tlg-calendar-national-window {
-  display: grid;
-  gap: 2px;
-  margin-top: 6px;
-  padding: 6px 7px;
-  border: 1px solid #cae3f3;
-  border-radius: 7px;
-  background: #eff8fd;
-  text-decoration: none;
-}
-.tlg-calendar-national-window span {
-  color: #1675b7;
-  font-size: .5rem;
-  font-weight: 900;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-.tlg-calendar-national-window strong { color: #21435c; font-size: .61rem; }
-.tlg-calendar-national-window small { color: #74899a; font-size: .5rem; }
-
-.tlg-calendar-player-activity.national_team {
-  border-color: #c3dff0;
-  background: #eef8fd;
-}
-.tlg-calendar-player-activity.national_team > span {
-  color: #0b6fc8;
-}
-
 /* Responsive ------------------------------------------------------------ */
 
 @media (max-width: 1100px) {
@@ -1964,17 +1930,6 @@
 .nt-membership-confirmed,
 .nt-membership-unavailable {
   font-size: .66rem;
-}
-
-/* Keep calendar chips compact because calendar cells are intentionally dense. */
-.tlg-calendar-national-window span {
-  font-size: .54rem;
-}
-.tlg-calendar-national-window strong {
-  font-size: .64rem;
-}
-.tlg-calendar-national-window small {
-  font-size: .54rem;
 }
 
 @media (max-width: 760px) {
