@@ -598,6 +598,115 @@ export default function NationalTeamPage() {
             </section>
           )}
 
+          <section className="tlg-v2-panel nt-membership-status-card">
+            <header className="nt-section-header">
+              <div>
+                <span>ASSOCIATION MEMBERSHIP</span>
+                <h3>{association.is_member ? 'You are already a member' : 'Join your national association'}</h3>
+              </div>
+            </header>
+
+            <div className="nt-membership-status-content">
+              <div>
+                <strong>{association.is_member ? association.name + ' membership is active' : 'Eligible for ' + association.name}</strong>
+                <p>
+                  {association.is_member
+                    ? 'Your player is already part of the association. You can be considered by the national captain for future call-ups, participate in captain elections and use the private Team Chat. Membership does not guarantee selection for a national fixture.'
+                    : 'Membership is voluntary. Join once and your player is immediately added to the association member pool, where the national captain can consider you for future call-ups. Members can also vote, stand for captain and use the private Team Chat.'}
+                </p>
+              </div>
+              {association.is_member ? (
+                <span className="nt-membership-confirmed">Member</span>
+              ) : association.can_join ? (
+                <button type="button" disabled={working} onClick={() => void joinAssociation()}>
+                  {working ? 'Joining…' : 'Join association'}
+                </button>
+              ) : (
+                <span className="nt-membership-unavailable">Not currently eligible</span>
+              )}
+            </div>
+          </section>
+
+          <section className="tlg-v2-panel nt-governance-timeline">
+            <header className="nt-section-header">
+              <div>
+                <span>SEASON GOVERNANCE TIMELINE</span>
+                <h3>What happens every January</h3>
+              </div>
+            </header>
+
+            <p className="nt-section-copy">
+              Renewal and captain elections are separate processes. Renewal keeps the association active in national competition; elections decide who leads the team.
+            </p>
+
+            <div className="nt-governance-steps">
+              <article>
+                <b>1 Jan</b>
+                <div>
+                  <strong>Annual renewal opens</strong>
+                  <span>Members collectively fund {snapshot.rules.renewal_cost} coins. No single member owns the association and donations never create extra voting power.</span>
+                </div>
+              </article>
+              <article>
+                <b>10 Jan</b>
+                <div>
+                  <strong>Annual captain election starts</strong>
+                  <span>Eligible association members can stand as candidates, publish a manifesto and vote. Every active member has exactly one vote.</span>
+                </div>
+              </article>
+              <article>
+                <b>20 Jan</b>
+                <div>
+                  <strong>First election round closes</strong>
+                  <span>A candidate is elected only when they have at least one vote and strictly more votes than every other candidate.</span>
+                </div>
+              </article>
+              <article>
+                <b>21–27 Jan</b>
+                <div>
+                  <strong>First runoff when no unique winner exists</strong>
+                  <span>If leaders are tied, only the tied leaders continue. If nobody stood for election, a new seven-day round opens with candidate registration available again.</span>
+                </div>
+              </article>
+              <article>
+                <b>Every 7 days</b>
+                <div>
+                  <strong>Runoffs repeat until somebody wins</strong>
+                  <span>If the runoff is tied again, another seven-day round begins. There is no random winner and no fixed maximum number of runoff rounds.</span>
+                </div>
+              </article>
+              <article>
+                <b>31 Jan</b>
+                <div>
+                  <strong>Renewal deadline</strong>
+                  <span>The association must have completed the full {snapshot.rules.renewal_cost}-coin community renewal before February begins.</span>
+                </div>
+              </article>
+              <article>
+                <b>1 Feb</b>
+                <div>
+                  <strong>Unpaid association becomes inactive</strong>
+                  <span>If renewal is incomplete, the association loses its sporting place. History remains, but a later return follows the lower-tier re-entry rules rather than restoring the old division.</span>
+                </div>
+              </article>
+            </div>
+
+            <div className="nt-governance-continuity">
+              <div>
+                <strong>Captain continuity</strong>
+                <span>The previous elected captain remains acting captain while the annual election or runoffs are unresolved. As soon as a new candidate wins with a unique lead, the new captain takes office.</span>
+              </div>
+              <div>
+                <strong>Resignation or inactivity</strong>
+                <span>If the captain resigns or is no longer an eligible active member, the position is vacated and a new 10-game-day replacement election begins immediately. Seven-day runoffs repeat if needed.</span>
+              </div>
+              <div>
+                <strong>Inbox notifications</strong>
+                <span>Association members are informed in-game when renewal opens, an election starts, a runoff is required, a captain resigns or becomes inactive, and when a new captain is elected.</span>
+              </div>
+            </div>
+          </section>
+
           <section className="tlg-v2-panel nt-rules-card">
             <header><div><span>GOVERNANCE RULES</span><h3>Community, not ownership</h3></div></header>
             <div className="nt-rule-list">
@@ -631,7 +740,15 @@ export default function NationalTeamPage() {
             Membership is voluntary. Once you join your country's association, your player immediately enters the captain's eligible call-up pool. Membership never guarantees squad selection.
           </p>
 
-          {!association.is_member && association.can_join && (
+          {association.is_member ? (
+            <div className="nt-membership-join-card nt-membership-already-joined">
+              <div>
+                <strong>You are already an association member</strong>
+                <span>Your player is in the captain's eligible call-up pool and can participate in association elections and Team Chat.</span>
+              </div>
+              <span className="nt-membership-confirmed">Member</span>
+            </div>
+          ) : association.can_join ? (
             <div className="nt-membership-join-card">
               <div>
                 <strong>Become an association member</strong>
@@ -641,7 +758,7 @@ export default function NationalTeamPage() {
                 {working ? 'Joining…' : 'Join association'}
               </button>
             </div>
-          )}
+          ) : null}
 
           {snapshot.roster.length === 0 ? (
             <div className="nt-placeholder">No eligible members yet.</div>
@@ -666,6 +783,61 @@ export default function NationalTeamPage() {
             <header className="nt-section-header">
               <div><span>CAPTAIN ELECTION</span><h3>{electionStageLabel(election.status)}</h3></div>
             </header>
+
+            <div className="nt-election-explainer">
+              <div className="nt-election-explainer-head">
+                <span>HOW CAPTAIN ELECTIONS WORK</span>
+                <strong>One member, one vote — and a winner must have a unique lead</strong>
+              </div>
+
+              <div className="nt-election-explainer-grid">
+                <article>
+                  <b>Annual election</b>
+                  <strong>10 January → 20 January</strong>
+                  <span>Every season, association members elect the national captain. Candidates register, publish a manifesto and members cast one vote each.</span>
+                </article>
+                <article>
+                  <b>Winning condition</b>
+                  <strong>At least 1 vote + unique lead</strong>
+                  <span>A candidate wins only when their vote total is strictly higher than every other candidate. A zero-vote candidate cannot become captain automatically.</span>
+                </article>
+                <article>
+                  <b>Tied leaders</b>
+                  <strong>Seven-day runoff</strong>
+                  <span>Only candidates tied for the lead continue into the next round. If that round is tied again, another seven-day runoff starts automatically.</span>
+                </article>
+                <article>
+                  <b>No candidates / no votes</b>
+                  <strong>Election stays open</strong>
+                  <span>If nobody stands, candidate registration reopens in the next seven-day round. If candidates exist but nobody votes, they continue into another round. The game never assigns a random captain.</span>
+                </article>
+                <article>
+                  <b>Previous captain</b>
+                  <strong>Acts until a successor wins</strong>
+                  <span>During an unresolved annual election, the previous elected captain remains the acting captain so the national team never loses leadership only because a runoff is still running.</span>
+                </article>
+                <article>
+                  <b>Captain resignation</b>
+                  <strong>Immediate replacement election</strong>
+                  <span>The captain can resign from this page. Their term ends immediately and members receive an inbox message. A new 10-game-day replacement election starts.</span>
+                </article>
+                <article>
+                  <b>Captain becomes inactive</b>
+                  <strong>Seat automatically becomes vacant</strong>
+                  <span>If the captain is no longer an eligible active association member, the game removes the captaincy and starts the same replacement-election process automatically.</span>
+                </article>
+                <article>
+                  <b>Replacement election</b>
+                  <strong>10 game days + 7-day runoffs</strong>
+                  <span>The first replacement round lasts 10 game days. If there is still no unique winner, seven-day runoff rounds continue until somebody wins.</span>
+                </article>
+                <article>
+                  <b>Member notifications</b>
+                  <strong>Delivered through the in-game inbox</strong>
+                  <span>Members are notified when an election opens, a runoff starts, a captain resigns or becomes inactive, and when a new captain is elected.</span>
+                </article>
+              </div>
+            </div>
 
             {!election.id ? (
               <div className="nt-placeholder">

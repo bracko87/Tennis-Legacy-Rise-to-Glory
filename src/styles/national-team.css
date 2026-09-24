@@ -1369,3 +1369,254 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* National association membership & January governance explainer ---------- */
+
+.nt-membership-status-card,
+.nt-governance-timeline {
+  grid-column: 1 / -1;
+}
+
+.nt-membership-status-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  padding: 14px;
+  border: 1px solid #dfe8ee;
+  border-radius: 10px;
+  background: #f8fbfd;
+}
+
+.nt-membership-status-content > div {
+  display: grid;
+  gap: 5px;
+}
+
+.nt-membership-status-content strong {
+  color: #243d52;
+  font-size: .78rem;
+}
+
+.nt-membership-status-content p {
+  max-width: 900px;
+  margin: 0;
+  color: #6f8496;
+  font-size: .7rem;
+  line-height: 1.55;
+}
+
+.nt-membership-status-content button {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid #0b3157;
+  border-radius: 8px;
+  color: #fff;
+  background: #0b3157;
+  font: inherit;
+  font-size: .68rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.nt-membership-confirmed,
+.nt-membership-unavailable {
+  flex: 0 0 auto;
+  min-height: 31px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 11px;
+  border-radius: 8px;
+  font-size: .64rem;
+  font-weight: 850;
+}
+
+.nt-membership-confirmed {
+  color: #267a50;
+  border: 1px solid #c6e2d1;
+  background: #f0f8f3;
+}
+
+.nt-membership-unavailable {
+  color: #7a8d9d;
+  border: 1px solid #dce5eb;
+  background: #f5f8fa;
+}
+
+.nt-governance-steps {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 9px;
+}
+
+.nt-governance-steps article {
+  min-height: 122px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-content: start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e0e8ee;
+  border-radius: 10px;
+  background: #fafcfd;
+}
+
+.nt-governance-steps article > b {
+  min-width: 52px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 7px;
+  border-radius: 7px;
+  color: #0b6fc8;
+  background: #eaf5fc;
+  font-size: .61rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.nt-governance-steps article > div {
+  display: grid;
+  gap: 5px;
+}
+
+.nt-governance-steps strong {
+  color: #243d52;
+  font-size: .7rem;
+  line-height: 1.35;
+}
+
+.nt-governance-steps span {
+  color: #728798;
+  font-size: .65rem;
+  line-height: 1.5;
+}
+
+.nt-governance-continuity {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 9px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e6edf2;
+}
+
+.nt-governance-continuity > div {
+  display: grid;
+  gap: 4px;
+  padding: 11px 12px;
+  border-radius: 9px;
+  background: #f5f9fc;
+}
+
+.nt-governance-continuity strong {
+  color: #294358;
+  font-size: .7rem;
+}
+
+.nt-governance-continuity span {
+  color: #708597;
+  font-size: .65rem;
+  line-height: 1.5;
+}
+
+.nt-membership-already-joined {
+  border-color: #d5e8dd;
+  background: #f7fbf8;
+}
+
+.nt-membership-already-joined > .nt-membership-confirmed {
+  margin-left: auto;
+}
+
+.nt-election-explainer {
+  margin-bottom: 16px;
+  padding: 13px;
+  border: 1px solid #dce7ee;
+  border-radius: 11px;
+  background: #f8fbfd;
+}
+
+.nt-election-explainer-head {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 11px;
+}
+
+.nt-election-explainer-head > span {
+  color: #1675b7;
+  font-size: .57rem;
+  font-weight: 900;
+  letter-spacing: .11em;
+}
+
+.nt-election-explainer-head > strong {
+  color: #243d52;
+  font-size: .8rem;
+}
+
+.nt-election-explainer-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 8px;
+}
+
+.nt-election-explainer-grid article {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid #e3eaf0;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.nt-election-explainer-grid b {
+  color: #1675b7;
+  font-size: .57rem;
+  font-weight: 900;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.nt-election-explainer-grid strong {
+  color: #294358;
+  font-size: .69rem;
+  line-height: 1.35;
+}
+
+.nt-election-explainer-grid span {
+  color: #718697;
+  font-size: .64rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 1180px) {
+  .nt-governance-steps {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+
+  .nt-election-explainer-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .nt-membership-status-content {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .nt-membership-status-content button {
+    width: 100%;
+  }
+
+  .nt-governance-steps,
+  .nt-governance-continuity,
+  .nt-election-explainer-grid {
+    grid-template-columns: 1fr;
+  }
+}
