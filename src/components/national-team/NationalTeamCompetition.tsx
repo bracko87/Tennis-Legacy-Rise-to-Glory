@@ -4,11 +4,8 @@ import {
   Coins,
   LockKeyhole,
   MapPin,
-  MessageCircle,
   Send,
-  ShieldCheck,
   Trophy,
-  UsersRound,
   XCircle,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -555,7 +552,6 @@ export default function NationalTeamCompetition() {
           <section className="tlg-v2-panel nt-window-panel">
             <header className="nt-section-header">
               <div><span>NATIONAL CALENDAR</span><h3>National-team windows</h3></div>
-              <CalendarDays size={22} />
             </header>
             <p className="nt-section-copy">
               Windows are visible well before play so tournament planning can account for national-team weeks. Accepted call-ups become hard calendar commitments.
@@ -587,7 +583,6 @@ export default function NationalTeamCompetition() {
           <section className="tlg-v2-panel nt-fixtures-panel">
             <header className="nt-section-header">
               <div><span>FIXTURES</span><h3>National ties</h3></div>
-              <Trophy size={22} />
             </header>
 
             {hub.fixtures.length === 0 ? (
@@ -630,7 +625,6 @@ export default function NationalTeamCompetition() {
                     <span>SELECTED TIE</span>
                     <h3>{detail.fixture.home_name} vs {detail.fixture.away_name}</h3>
                   </div>
-                  <ShieldCheck size={22} />
                 </header>
 
                 <div className="nt-fixture-meta">
@@ -662,7 +656,6 @@ export default function NationalTeamCompetition() {
                 <section className="tlg-v2-panel nt-captain-desk">
                   <header className="nt-section-header">
                     <div><span>CAPTAIN DESK</span><h3>Call-ups & five-player squad</h3></div>
-                    <UsersRound size={22} />
                   </header>
 
                   <div className="nt-captain-deadlines">
@@ -716,7 +709,6 @@ export default function NationalTeamCompetition() {
                 <section className="tlg-v2-panel nt-lineup-builder">
                   <header className="nt-section-header">
                     <div><span>HIDDEN LINEUP</span><h3>Submit match roles privately</h3></div>
-                    <LockKeyhole size={22} />
                   </header>
                   <p className="nt-section-copy">
                     Four different players must fill the four singles slots. A player may additionally play doubles, but nobody can play two singles matches in the same tie.
@@ -761,7 +753,6 @@ export default function NationalTeamCompetition() {
               <section className="tlg-v2-panel nt-reveal-panel">
                 <header className="nt-section-header">
                   <div><span>LINEUP REVEAL</span><h3>{detail.lineups_revealed ? 'Both lineups revealed' : 'Opponent lineup hidden'}</h3></div>
-                  <LockKeyhole size={22} />
                 </header>
 
                 <div className="nt-lineup-compare">
@@ -786,7 +777,6 @@ export default function NationalTeamCompetition() {
                 <section className="tlg-v2-panel nt-match-order">
                   <header className="nt-section-header">
                     <div><span>MATCH ORDER</span><h3>Five-match national tie</h3></div>
-                    <Trophy size={22} />
                   </header>
 
                   <div className="nt-match-list">
@@ -829,7 +819,6 @@ export default function NationalTeamCompetition() {
           <section className="tlg-v2-panel nt-standings-panel">
             <header className="nt-section-header">
               <div><span>DIVISION</span><h3>National standings</h3></div>
-              <Trophy size={22} />
             </header>
 
             {standings.length === 0 ? (
@@ -856,7 +845,6 @@ export default function NationalTeamCompetition() {
           <section className="tlg-v2-panel nt-cash-treasury">
             <header className="nt-section-header">
               <div><span>ASSOCIATION CASH</span><h3>{money(detail?.treasury.cash_balance_usd ?? hub.treasury?.cash_balance_usd)}</h3></div>
-              <Coins size={22} />
             </header>
             <p>
               Federation grants, competition income and future sponsorships fund national travel, accommodation and symbolic player appearance payments.
@@ -883,7 +871,6 @@ export default function NationalTeamCompetition() {
           <section className="tlg-v2-panel nt-team-chat">
             <header className="nt-section-header">
               <div><span>PRIVATE TEAM CHAT</span><h3>Association room</h3></div>
-              <MessageCircle size={22} />
             </header>
             <p>Only eligible association members can read or post here. Use it for call-ups, doubles pairing and national strategy.</p>
 

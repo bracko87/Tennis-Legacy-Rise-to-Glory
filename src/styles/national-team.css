@@ -41,9 +41,16 @@
 }
 
 .nt-tabs {
-  justify-self: end;
+  display: inline-flex;
+  justify-self: start;
   align-self: start;
-  margin: 0;
+  width: max-content;
+  gap: 5px;
+  margin: 0 0 18px;
+  padding: 5px;
+  border: 1px solid #dce6ed;
+  border-radius: 11px;
+  background: #fff;
 }
 
 .nt-status {
@@ -152,14 +159,6 @@
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 15px;
-}
-
-.nt-hero-card header > svg,
-.nt-fund-card header > svg,
-.nt-rules-card header > svg,
-.nt-contribution-history header > svg,
-.nt-section-header > svg {
-  color: #1780c5;
 }
 
 .nt-hero-card header span,
@@ -1188,8 +1187,9 @@
   }
 
   .nt-tabs {
-    justify-self: stretch !important;
-    width: 100% !important;
+    justify-self: start !important;
+    max-width: 100%;
+    width: max-content !important;
     overflow-x: auto;
   }
 

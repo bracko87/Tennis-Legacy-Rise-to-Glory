@@ -1,10 +1,7 @@
 import {
   BadgeCheck,
-  CalendarClock,
-  Coins,
   Crown,
   Flag,
-  Landmark,
   RefreshCw,
   ShieldCheck,
   UsersRound,
@@ -323,7 +320,7 @@ export default function NationalTeamPage() {
 
   return (
     <GameLayout title="National Team" subtitle={`${association.world} · ${association.name}`}>
-      <header className="tlg-v2-page-head tlg-page-head-with-tabs nt-page-head">
+      <header className="tlg-v2-page-head nt-page-head">
         <div className="tlg-v2-page-head-copy">
           <div className="tlg-v2-page-eyebrow">National association</div>
           <div className="nt-title-line">
@@ -343,20 +340,22 @@ export default function NationalTeamPage() {
           </div>
         </div>
 
-        <div className="nt-tabs tlg-standard-tabs" role="tablist" aria-label="National association sections">
-          {([
-            ['overview', 'Overview'],
-            ['competition', 'Competition'],
-            ['members', `Members (${association.member_count})`],
-            ['elections', 'Elections'],
-            ['history', 'History'],
-          ] as const).map(([key, label]) => (
-            <button key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? 'active' : ''} onClick={() => setTab(key)}>
-              {label}
-            </button>
-          ))}
-        </div>
       </header>
+
+      <div className="nt-tabs tlg-standard-tabs" role="tablist" aria-label="National association sections">
+        {([
+          ['overview', 'Overview'],
+          ['competition', 'Competition'],
+          ['members', `Members (${association.member_count})`],
+          ['elections', 'Elections'],
+          ['history', 'History'],
+        ] as const).map(([key, label]) => (
+          <button key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? 'active' : ''} onClick={() => setTab(key)}>
+            {label}
+          </button>
+        ))}
+      </div>
+
 
       {error && <div className="nt-alert nt-alert-error">{error}</div>}
       {notice && <div className="nt-alert nt-alert-success">{notice}</div>}
@@ -369,7 +368,6 @@ export default function NationalTeamPage() {
                 <span>COMMUNITY GOVERNANCE</span>
                 <h3>Association status</h3>
               </div>
-              <Landmark size={22} />
             </header>
 
             <div className="nt-metric-grid">
@@ -387,7 +385,6 @@ export default function NationalTeamPage() {
                   <span>ACTIVATION FUND</span>
                   <h3>{Number(activationFund.contributed ?? 0)} / {Number(activationFund.target ?? snapshot.rules.activation_cost)} coins</h3>
                 </div>
-                <Coins size={22} />
               </header>
 
               <div className="nt-progress"><span style={{ width: `${progressPercent(activationFund)}%` }} /></div>
@@ -449,7 +446,6 @@ export default function NationalTeamPage() {
                   <span>SEASON RENEWAL</span>
                   <h3>{renewalFund.id ? `Season ${renewalFund.season_number}` : 'No renewal currently open'}</h3>
                 </div>
-                <CalendarClock size={22} />
               </header>
 
               {renewalFund.id ? (
@@ -494,7 +490,7 @@ export default function NationalTeamPage() {
           )}
 
           <section className="tlg-v2-panel nt-rules-card">
-            <header><div><span>GOVERNANCE RULES</span><h3>Community, not ownership</h3></div><ShieldCheck size={22} /></header>
+            <header><div><span>GOVERNANCE RULES</span><h3>Community, not ownership</h3></div></header>
             <div className="nt-rule-list">
               <div><strong>1 member = 1 vote</strong><span>Donation amount never changes voting power.</span></div>
               <div><strong>Founding status is cosmetic</strong><span>The activation initiator receives no permanent control.</span></div>
@@ -504,7 +500,7 @@ export default function NationalTeamPage() {
           </section>
 
           <section className="tlg-v2-panel nt-contribution-history">
-            <header><div><span>YOUR SUPPORT</span><h3>Personal contribution history</h3></div><Coins size={22} /></header>
+            <header><div><span>YOUR SUPPORT</span><h3>Personal contribution history</h3></div></header>
             <strong className="nt-big-number">{snapshot.my_total_contributions.toLocaleString()}</strong>
             <span>coins contributed across activation and renewal funds</span>
             <small>Recognition only — this total carries no governance weight.</small>
@@ -518,7 +514,6 @@ export default function NationalTeamPage() {
         <section className="tlg-v2-panel nt-members-panel">
           <header className="nt-section-header">
             <div><span>ASSOCIATION MEMBERSHIP</span><h3>{association.member_count} eligible player{association.member_count === 1 ? '' : 's'}</h3></div>
-            <UsersRound size={22} />
           </header>
 
           <p className="nt-section-copy">
@@ -547,7 +542,6 @@ export default function NationalTeamPage() {
           <section className="tlg-v2-panel nt-election-main">
             <header className="nt-section-header">
               <div><span>CAPTAIN ELECTION</span><h3>{electionStageLabel(election.status)}</h3></div>
-              <Vote size={22} />
             </header>
 
             {!election.id ? (
@@ -632,7 +626,6 @@ export default function NationalTeamPage() {
         <section className="tlg-v2-panel nt-history-panel">
           <header className="nt-section-header">
             <div><span>ASSOCIATION HISTORY</span><h3>Permanent national record</h3></div>
-            <Landmark size={22} />
           </header>
           <p className="nt-section-copy">
             Suspension never deletes association history, captaincies, titles, rankings or previous competition records.
