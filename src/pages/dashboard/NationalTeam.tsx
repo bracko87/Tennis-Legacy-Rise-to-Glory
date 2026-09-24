@@ -12,10 +12,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
 import NationalTeamCompetition from '../../components/national-team/NationalTeamCompetition'
+import NationalTeamChat from '../../components/national-team/NationalTeamChat'
 import { useCommerce } from '../../hooks/useCommerce'
 import { supabase } from '../../lib/supabase'
-import '../../styles/national-team.css'
 import '../../styles/shared-segmented-tabs.css'
+import '../../styles/national-team.css'
 
 type AssociationStatus = 'inactive' | 'activation_funding' | 'active' | 'renewal_required' | 'suspended'
 type ElectionStatus = 'candidate_registration' | 'campaign' | 'voting' | 'runoff' | 'completed' | 'cancelled'
@@ -55,6 +56,10 @@ interface CaptainSummary {
   first_name?: string
   last_name?: string
   status?: string
+  term_kind?: 'elected' | 'carryover'
+  is_me?: boolean
+  term_start_game_day?: number
+  term_end_game_day?: number
 }
 
 interface ElectionCandidate {
@@ -71,6 +76,9 @@ interface ElectionSummary {
   id?: string
   season_number?: number
   status?: ElectionStatus
+  election_kind?: 'annual' | 'activation' | 'special'
+  reason?: string | null
+  runoff_registration_open?: boolean
   current_round?: number
   registration_start_game_day?: number
   registration_end_game_day?: number
@@ -118,6 +126,7 @@ interface NationalAssociationSnapshot {
     member_count: number
     minimum_activation_members: number
     is_member: boolean
+    can_join?: boolean
     captain_eligible: boolean
   }
   activation_fund: FundSummary
@@ -127,20 +136,48 @@ interface NationalAssociationSnapshot {
   election: ElectionSummary
   roster: RosterMember[]
   history: AssociationHistoryEvent[]
-  treasury_balance: number
   my_total_contributions: number
   rules: {
     activation_cost: number
     activation_min_members: number
     renewal_cost: number
-    voting_days: number
+    voting_days?: number
     runoff_days: number
+    renewal_opens_game_day?: number
+    renewal_deadline_game_day?: number
+    annual_election_start_game_day?: number
+    annual_election_first_round_end_game_day?: number
   }
 }
 
-type PageTab = 'overview' | 'competition' | 'members' | 'elections' | 'history'
+type PageTab = 'overview' | 'competition' | 'members' | 'elections' | 'chat' | 'history'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+function formatAbsoluteGameDay(absoluteDay?: number | null) {
+  if (absoluteDay === null || absoluteDay === undefined || absoluteDay < 0) return '—'
+  const season = Math.floor(absoluteDay / 366) + 1
+  let remaining = absoluteDay % 366
+  let month = 0
+  while (month < MONTH_LENGTHS.length - 1 && remaining >= MONTH_LENGTHS[month]) {
+    remaining -= MONTH_LENGTHS[month]
+    month += 1
+  }
+  return `Season ${season} · ${remaining + 1} ${MONTHS[month]}`
+}
+
+function initialNationalTab(): PageTab {
+  if (typeof window === 'undefined') return 'overview'
+  const requested = new URLSearchParams(window.location.search).get('tab')
+  return requested === 'competition'
+    || requested === 'members'
+    || requested === 'elections'
+    || requested === 'chat'
+    || requested === 'history'
+    ? requested
+    : 'overview'
+}
 
 function statusLabel(status: AssociationStatus) {
   switch (status) {
@@ -198,7 +235,7 @@ export default function NationalTeamPage() {
   const [working, setWorking] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
-  const [tab, setTab] = useState<PageTab>('overview')
+  const [tab, setTab] = useState<PageTab>(initialNationalTab)
   const [customContribution, setCustomContribution] = useState('5')
   const [manifesto, setManifesto] = useState('')
 
@@ -225,6 +262,41 @@ export default function NationalTeamPage() {
     if (snapshot.renewal_fund?.id && snapshot.renewal_fund.status === 'open') return snapshot.renewal_fund
     return null
   }, [snapshot])
+
+  async function joinAssociation() {
+    if (working) return
+    setWorking(true)
+    setError(null)
+    setNotice(null)
+
+    const { data, error: rpcError } = await supabase.rpc('join_my_national_association_v1')
+
+    if (rpcError) setError(rpcError.message)
+    else {
+      const result = data as { association_name?: string } | null
+      setNotice(`You joined ${result?.association_name ?? 'your national association'}. You are now eligible for national-team call-ups and association elections.`)
+      await load()
+    }
+
+    setWorking(false)
+  }
+
+  async function resignCaptain() {
+    if (working) return
+    setWorking(true)
+    setError(null)
+    setNotice(null)
+
+    const { error: rpcError } = await supabase.rpc('resign_national_captain_v1')
+
+    if (rpcError) setError(rpcError.message)
+    else {
+      setNotice('Captaincy resigned. Association members have been notified and a replacement election is being opened.')
+      await load()
+    }
+
+    setWorking(false)
+  }
 
   async function contribute(amount: number) {
     if (!currentFund?.id || amount <= 0 || working) return
@@ -315,12 +387,39 @@ export default function NationalTeamPage() {
   const membersReady = association.member_count >= association.minimum_activation_members
   const activationReady = Number(activationFund.contributed ?? 0) >= Number(activationFund.target ?? snapshot.rules.activation_cost)
   const candidates = (election.candidates ?? []).filter((candidate) => election.status !== 'runoff' || candidate.in_current_runoff)
-  const canRegister = election.status === 'candidate_registration' && association.captain_eligible
+  const canRegister = association.captain_eligible && (
+    election.status === 'candidate_registration'
+    || (election.status === 'runoff' && Boolean(election.runoff_registration_open))
+  )
   const canVote = (election.status === 'voting' || election.status === 'runoff') && !election.my_vote_candidate_id
+  const electionInProgress = election.status === 'candidate_registration'
+    || election.status === 'campaign'
+    || election.status === 'voting'
+    || election.status === 'runoff'
+  const captainName = snapshot.captain.first_name
+    ? `${snapshot.captain.first_name} ${snapshot.captain.last_name}`
+    : null
+  const captainHeadline = captainName
+    ?? (electionInProgress
+      ? 'Election in progress'
+      : association.activated_game_day !== null
+        ? 'Election pending'
+        : 'Not elected')
+  const captainDetail = captainName
+    ? electionInProgress
+      ? 'Acting captain · election in progress'
+      : snapshot.captain.term_kind === 'carryover'
+        ? 'Acting captain'
+        : 'Current captain'
+    : electionInProgress
+      ? electionStageLabel(election.status)
+      : association.activated_game_day !== null
+        ? 'Annual election starts 10 January'
+        : 'Election starts after activation'
 
   return (
     <GameLayout title="National Team" subtitle={`${association.world} · ${association.name}`}>
-      <header className="tlg-v2-page-head nt-page-head">
+      <header className="tlg-v2-page-head tlg-page-head-with-tabs nt-page-head">
         <div className="tlg-v2-page-head-copy">
           <div className="tlg-v2-page-eyebrow">National association</div>
           <div className="nt-title-line">
@@ -337,24 +436,34 @@ export default function NationalTeamPage() {
             <span className={`nt-status nt-status-${association.status}`}>{statusLabel(association.status)}</span>
             <span>Season {snapshot.season_number}</span>
             <span>{association.world} national-team world</span>
+            {association.is_member ? (
+              <span className="nt-member-chip">Association member</span>
+            ) : association.can_join ? (
+              <button type="button" className="nt-join-association" disabled={working} onClick={() => void joinAssociation()}>
+                {working ? 'Joining…' : 'Join association'}
+              </button>
+            ) : null}
           </div>
+          {!association.is_member && association.can_join && (
+            <p className="nt-join-copy">Join to enter the captain's eligible call-up pool and participate in association elections.</p>
+          )}
         </div>
 
+        <div className="nt-tabs tlg-standard-tabs" role="tablist" aria-label="National association sections">
+          {([
+            ['overview', 'Overview'],
+            ['competition', 'Competition'],
+            ['members', `Members (${association.member_count})`],
+            ['elections', 'Elections'],
+            ['chat', 'Team Chat'],
+            ['history', 'History'],
+          ] as const).map(([key, label]) => (
+            <button key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? 'active' : ''} onClick={() => setTab(key)}>
+              {label}
+            </button>
+          ))}
+        </div>
       </header>
-
-      <div className="nt-tabs tlg-standard-tabs" role="tablist" aria-label="National association sections">
-        {([
-          ['overview', 'Overview'],
-          ['competition', 'Competition'],
-          ['members', `Members (${association.member_count})`],
-          ['elections', 'Elections'],
-          ['history', 'History'],
-        ] as const).map(([key, label]) => (
-          <button key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? 'active' : ''} onClick={() => setTab(key)}>
-            {label}
-          </button>
-        ))}
-      </div>
 
 
       {error && <div className="nt-alert nt-alert-error">{error}</div>}
@@ -373,8 +482,8 @@ export default function NationalTeamPage() {
             <div className="nt-metric-grid">
               <div><span>Eligible members</span><strong>{association.member_count}</strong><small>Minimum {association.minimum_activation_members} for activation</small></div>
               <div><span>Current division</span><strong>{snapshot.division.label ?? 'Not assigned'}</strong><small>{snapshot.division.tier_level ? `Tier ${snapshot.division.tier_level}` : 'Competition structure ready for configuration'}</small></div>
-              <div><span>Captain</span><strong>{snapshot.captain.first_name ? `${snapshot.captain.first_name} ${snapshot.captain.last_name}` : 'Not elected'}</strong><small>{snapshot.captain.season_number ? `Season ${snapshot.captain.season_number}` : electionStageLabel(election.status)}</small></div>
-              <div><span>Association treasury</span><strong>{snapshot.treasury_balance.toLocaleString()} coins</strong><small>Community institution · no user owner</small></div>
+              <div><span>Captain</span><strong>{captainHeadline}</strong><small>{captainDetail}</small></div>
+              <div><span>Annual renewal</span><strong>{snapshot.rules.renewal_cost} coins every January</strong><small>Complete by 31 January · inactive from 1 February if unpaid</small></div>
             </div>
           </section>
 
@@ -479,12 +588,12 @@ export default function NationalTeamPage() {
               ) : (
                 <div className="nt-placeholder">
                   <ShieldCheck size={20} />
-                  <div><strong>Association is currently covered</strong><span>The next 30-coin community renewal fund opens automatically before the following national-team season.</span></div>
+                  <div><strong>Association is currently covered</strong><span>The {snapshot.rules.renewal_cost}-coin community renewal opens on 1 January each season and must be completed by 31 January.</span></div>
                 </div>
               )}
 
               <p className="nt-rule-note">
-                If renewal fails, the association keeps its history but loses its sporting place. A later return enters through the lowest active regional tier.
+                Annual renewal must be completed during January. If it is still unpaid on 1 February, the association becomes inactive, loses its sporting place and later re-enters through the lower competition structure.
               </p>
             </section>
           )}
@@ -494,7 +603,7 @@ export default function NationalTeamPage() {
             <div className="nt-rule-list">
               <div><strong>1 member = 1 vote</strong><span>Donation amount never changes voting power.</span></div>
               <div><strong>Founding status is cosmetic</strong><span>The activation initiator receives no permanent control.</span></div>
-              <div><strong>Captain is elected each season</strong><span>Manifestos, voting and runoff ties are handled by the game clock.</span></div>
+              <div><strong>Annual captain election: 10–20 January</strong><span>Tied leaders continue into seven-day runoff rounds until one candidate has a unique lead.</span></div>
               <div><strong>Playing captain uses a normal squad place</strong><span>Captaincy never guarantees selection or protects a player from fatigue/calendar rules.</span></div>
             </div>
           </section>
@@ -510,6 +619,8 @@ export default function NationalTeamPage() {
 
       {tab === 'competition' && <NationalTeamCompetition />}
 
+      {tab === 'chat' && <NationalTeamChat isMember={association.is_member} associationName={association.name} />}
+
       {tab === 'members' && (
         <section className="tlg-v2-panel nt-members-panel">
           <header className="nt-section-header">
@@ -517,8 +628,20 @@ export default function NationalTeamPage() {
           </header>
 
           <p className="nt-section-copy">
-            Membership means national eligibility. It does not mean automatic selection for a fixture or squad.
+            Membership is voluntary. Once you join your country's association, your player immediately enters the captain's eligible call-up pool. Membership never guarantees squad selection.
           </p>
+
+          {!association.is_member && association.can_join && (
+            <div className="nt-membership-join-card">
+              <div>
+                <strong>Become an association member</strong>
+                <span>Join {association.name} to become eligible for national-team call-ups, captain elections and the private team chat.</span>
+              </div>
+              <button type="button" disabled={working} onClick={() => void joinAssociation()}>
+                {working ? 'Joining…' : 'Join association'}
+              </button>
+            </div>
+          )}
 
           {snapshot.roster.length === 0 ? (
             <div className="nt-placeholder">No eligible members yet.</div>
@@ -549,7 +672,7 @@ export default function NationalTeamPage() {
                 <Vote size={20} />
                 <div>
                   <strong>No election scheduled yet</strong>
-                  <span>The first election opens automatically when the association activates. A new election is created for each season.</span>
+                  <span>The first election opens when the association activates. After that, the annual election starts every season on 10 January and the first round closes after 20 January.</span>
                 </div>
               </div>
             ) : (
@@ -557,8 +680,16 @@ export default function NationalTeamPage() {
                 <div className="nt-election-meta">
                   <div><span>Season</span><strong>{election.season_number}</strong></div>
                   <div><span>Round</span><strong>{election.current_round ?? 1}</strong></div>
-                  <div><span>Voting rule</span><strong>1 member · 1 vote</strong></div>
+                  <div><span>Election</span><strong>{election.election_kind === 'special' ? 'Replacement' : election.election_kind === 'activation' ? 'First captain' : 'Annual'}</strong></div>
+                  <div><span>Round closes</span><strong>{formatAbsoluteGameDay(election.status === 'runoff' ? election.runoff_end_game_day : election.voting_end_game_day)}</strong></div>
                 </div>
+
+                {snapshot.captain.is_me && (
+                  <div className="nt-captain-resign">
+                    <div><strong>You are the current national captain.</strong><span>You may resign at any time. A replacement election will open immediately.</span></div>
+                    <button type="button" disabled={working} onClick={() => void resignCaptain()}>Resign captaincy</button>
+                  </div>
+                )}
 
                 {canRegister && (
                   <div className="nt-manifesto-box">
@@ -615,7 +746,10 @@ export default function NationalTeamPage() {
               <li>Every active member receives exactly one vote.</li>
               <li>Activation and renewal donations never create extra votes.</li>
               <li>Candidate manifestos are required.</li>
-              <li>Tied leaders move to a runoff instead of random selection.</li>
+              <li>The annual election runs from 10 January through 20 January.</li>
+              <li>A tie moves only the tied leaders into a seven-day runoff. Further ties repeat in seven-day rounds until somebody has a unique lead.</li>
+              <li>The previous captain remains acting captain while an annual election is unresolved.</li>
+              <li>Resignation or captain ineligibility opens a new 10-day replacement election.</li>
               <li>The captain may be a player but receives no automatic squad position.</li>
             </ul>
           </aside>

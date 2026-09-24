@@ -41,16 +41,24 @@
 }
 
 .nt-tabs {
-  display: inline-flex;
-  justify-self: start;
-  align-self: start;
-  width: max-content;
-  gap: 5px;
-  margin: 0 0 18px;
-  padding: 5px;
-  border: 1px solid #dce6ed;
-  border-radius: 11px;
-  background: #fff;
+  margin: 0;
+}
+
+.tlg-page-head-with-tabs > .nt-tabs {
+  justify-self: end !important;
+  align-self: start !important;
+}
+
+.nt-tabs.tlg-standard-tabs button.active,
+.nt-tabs.tlg-standard-tabs button[aria-selected="true"] {
+  color: #fff !important;
+  background: #0b3157 !important;
+  box-shadow: inset 0 0 0 1px #082946, 0 1px 2px rgba(15,45,72,.18) !important;
+}
+
+.nt-tabs.tlg-standard-tabs button:hover:not(.active):not([aria-selected="true"]) {
+  color: #23445f !important;
+  background: #f3f7fa !important;
 }
 
 .nt-status {
@@ -1250,5 +1258,114 @@
 
   .nt-format-strip {
     grid-template-columns: auto 1fr auto 1fr;
+  }
+}
+
+
+.nt-member-chip {
+  color: #267a50 !important;
+  border-color: #c6e2d1 !important;
+  background: #f0f8f3 !important;
+}
+
+.nt-join-association,
+.nt-membership-join-card button {
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid #0b3157;
+  border-radius: 8px;
+  color: #fff;
+  background: #0b3157;
+  font: inherit;
+  font-size: .66rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.nt-join-association:disabled,
+.nt-membership-join-card button:disabled {
+  opacity: .55;
+  cursor: default;
+}
+
+.nt-join-copy {
+  margin: 8px 0 0;
+  color: #708699;
+  font-size: .68rem;
+}
+
+.nt-membership-join-card,
+.nt-captain-resign {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+  padding: 13px 14px;
+  border: 1px solid #d8e5ee;
+  border-radius: 10px;
+  background: #f8fbfd;
+}
+
+.nt-membership-join-card > div,
+.nt-captain-resign > div {
+  display: grid;
+  gap: 4px;
+}
+
+.nt-membership-join-card strong,
+.nt-captain-resign strong {
+  color: #243d52;
+  font-size: .75rem;
+}
+
+.nt-membership-join-card span,
+.nt-captain-resign span {
+  color: #718697;
+  font-size: .68rem;
+  line-height: 1.45;
+}
+
+.nt-captain-resign button {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid #e2b9b9;
+  border-radius: 8px;
+  color: #a24343;
+  background: #fff5f5;
+  font: inherit;
+  font-size: .66rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.nt-election-meta {
+  grid-template-columns: repeat(4,minmax(0,1fr));
+}
+
+.nt-competition-main-grid {
+  grid-template-columns: minmax(0,1fr);
+}
+
+.nt-team-chat-page {
+  position: static;
+  max-width: 980px;
+}
+
+@media (max-width: 760px) {
+  .nt-membership-join-card,
+  .nt-captain-resign {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .nt-membership-join-card button,
+  .nt-captain-resign button {
+    width: 100%;
+  }
+
+  .nt-election-meta {
+    grid-template-columns: 1fr;
   }
 }

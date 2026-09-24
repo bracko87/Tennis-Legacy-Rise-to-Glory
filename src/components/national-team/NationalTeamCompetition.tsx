@@ -4,7 +4,6 @@ import {
   Coins,
   LockKeyhole,
   MapPin,
-  Send,
   Trophy,
   XCircle,
 } from 'lucide-react'
@@ -210,16 +209,6 @@ interface StandingRow {
   is_my_association: boolean
 }
 
-interface ChatRow {
-  message_id: string
-  player_id: string
-  player_name: string
-  game_absolute_day: number
-  message: string
-  created_at: string
-  is_mine: boolean
-}
-
 type SlotCode = LineupSlot['slot_code']
 
 const SLOT_LABELS: Array<{ code: SlotCode; label: string; discipline: string }> = [
@@ -278,8 +267,6 @@ export default function NationalTeamCompetition() {
   const [standings, setStandings] = useState<StandingRow[]>([])
   const [selectedFixtureId, setSelectedFixtureId] = useState<string | null>(null)
   const [detail, setDetail] = useState<FixtureDetail | null>(null)
-  const [chat, setChat] = useState<ChatRow[]>([])
-  const [chatDraft, setChatDraft] = useState('')
   const [squadSelection, setSquadSelection] = useState<string[]>([])
   const [lineupDraft, setLineupDraft] = useState<Record<SlotCode, string>>({
     S1: '', S2: '', D1A: '', D1B: '', S3: '', S4: '',
@@ -294,10 +281,9 @@ export default function NationalTeamCompetition() {
     setLoading(true)
     setError(null)
 
-    const [hubResult, standingsResult, chatResult] = await Promise.all([
+    const [hubResult, standingsResult] = await Promise.all([
       supabase.rpc('get_my_national_team_competition_v1'),
       supabase.rpc('get_my_national_division_standings_v1'),
-      supabase.rpc('get_my_national_team_chat_v1', { p_limit: 100 }),
     ])
 
     if (hubResult.error) {
@@ -314,7 +300,6 @@ export default function NationalTeamCompetition() {
     }
 
     setStandings(standingsResult.error ? [] : ((standingsResult.data ?? []) as StandingRow[]))
-    setChat(chatResult.error ? [] : ((chatResult.data ?? []) as ChatRow[]))
     setLoading(false)
   }, [])
 
@@ -478,25 +463,6 @@ export default function NationalTeamCompetition() {
     else {
       setMessage('Lineup locked. It remains hidden until the opponent also locks or the deadline is processed.')
       await refreshAll()
-    }
-    setWorking(false)
-  }
-
-  async function sendChat() {
-    const value = chatDraft.trim()
-    if (!value) return
-
-    setWorking(true)
-    setError(null)
-    const { error: rpcError } = await supabase.rpc('send_national_team_chat_message_v1', {
-      p_message: value,
-    })
-
-    if (rpcError) setError(rpcError.message)
-    else {
-      setChatDraft('')
-      const { data } = await supabase.rpc('get_my_national_team_chat_v1', { p_limit: 100 })
-      setChat((data ?? []) as ChatRow[])
     }
     setWorking(false)
   }
@@ -841,63 +807,6 @@ export default function NationalTeamCompetition() {
           </section>
         </div>
 
-        <aside className="nt-competition-side">
-          <section className="tlg-v2-panel nt-cash-treasury">
-            <header className="nt-section-header">
-              <div><span>ASSOCIATION CASH</span><h3>{money(detail?.treasury.cash_balance_usd ?? hub.treasury?.cash_balance_usd)}</h3></div>
-            </header>
-            <p>
-              Federation grants, competition income and future sponsorships fund national travel, accommodation and symbolic player appearance payments.
-            </p>
-            <div className="nt-cash-summary">
-              <div><span>Lifetime income</span><strong>{money(detail?.treasury.lifetime_cash_income_usd ?? hub.treasury?.lifetime_cash_income_usd)}</strong></div>
-              <div><span>Lifetime spent</span><strong>{money(detail?.treasury.lifetime_cash_spent_usd ?? hub.treasury?.lifetime_cash_spent_usd)}</strong></div>
-            </div>
-            {(detail?.treasury.recent_transactions ?? []).length > 0 && (
-              <div className="nt-finance-mini-list">
-                {(detail?.treasury.recent_transactions ?? []).slice(0, 6).map((item) => (
-                  <div key={item.id}>
-                    <span>{item.description}</span>
-                    <strong className={item.amount_usd >= 0 ? 'positive' : 'negative'}>
-                      {item.amount_usd >= 0 ? '+' : ''}{money(item.amount_usd)}
-                    </strong>
-                  </div>
-                ))}
-              </div>
-            )}
-            <small>Activation and renewal game coins remain separate from this cash treasury.</small>
-          </section>
-
-          <section className="tlg-v2-panel nt-team-chat">
-            <header className="nt-section-header">
-              <div><span>PRIVATE TEAM CHAT</span><h3>Association room</h3></div>
-            </header>
-            <p>Only eligible association members can read or post here. Use it for call-ups, doubles pairing and national strategy.</p>
-
-            <div className="nt-chat-stream">
-              {chat.length === 0 ? (
-                <div className="nt-chat-empty">No messages yet.</div>
-              ) : [...chat].reverse().map((row) => (
-                <article key={row.message_id} className={row.is_mine ? 'mine' : ''}>
-                  <header><strong>{row.player_name}</strong><span>Game day {row.game_absolute_day}</span></header>
-                  <p>{row.message}</p>
-                </article>
-              ))}
-            </div>
-
-            <div className="nt-chat-compose">
-              <textarea
-                value={chatDraft}
-                maxLength={1000}
-                placeholder="Message your national association…"
-                onChange={(event) => setChatDraft(event.target.value)}
-              />
-              <button type="button" disabled={working || !chatDraft.trim()} onClick={() => void sendChat()}>
-                <Send size={15} /> Send
-              </button>
-            </div>
-          </section>
-        </aside>
       </div>
     </div>
   )
