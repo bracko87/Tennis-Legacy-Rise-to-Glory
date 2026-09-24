@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const DEFAULT_FROM = "Tennis Legacy <noreply@tennislegacygame.com>";
+const DEFAULT_FROM = "Tennis Legacy <no-reply@propelotonmanager.com>";
 
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") {
@@ -45,12 +45,12 @@ Deno.serve(async (req: Request) => {
   }
 
   const resendApiKey = Deno.env.get("RESEND_API_KEY");
-  const fromAddress = Deno.env.get("BIRTHDAY_EMAIL_FROM") || DEFAULT_FROM;
+  const fromAddress = DEFAULT_FROM;
 
   if (!resendApiKey) {
     return new Response(JSON.stringify({
       status: "email_provider_not_configured",
-      detail: "Set RESEND_API_KEY in Supabase Edge Function secrets. BIRTHDAY_EMAIL_FROM is optional.",
+      detail: "RESEND_API_KEY is not configured.",
     }), {
       status: 503,
       headers: { "Content-Type": "application/json" },
