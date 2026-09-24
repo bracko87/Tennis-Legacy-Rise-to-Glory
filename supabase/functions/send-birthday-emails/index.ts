@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const DEFAULT_FROM = "Tennis Legacy <no-reply@propelotonmanager.com>";
+const RELAY_URL = "https://okuravitxocyevkexfgi.supabase.co/functions/v1/tennis-legacy-email-relay";
 
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") {
@@ -44,19 +45,6 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  const resendApiKey = Deno.env.get("RESEND_API_KEY");
-  const fromAddress = DEFAULT_FROM;
-
-  if (!resendApiKey) {
-    return new Response(JSON.stringify({
-      status: "email_provider_not_configured",
-      detail: "RESEND_API_KEY is not configured.",
-    }), {
-      status: 503,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
   const { data: claimed, error: claimError } = await admin.rpc("claim_birthday_email_outbox_v1", {
     p_limit: 20,
   });
@@ -74,26 +62,26 @@ Deno.serve(async (req: Request) => {
 
   for (const job of jobs) {
     try {
-      const providerResponse = await fetch("https://api.resend.com/emails", {
+      const providerResponse = await fetch(RELAY_URL, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${resendApiKey}`,
           "Content-Type": "application/json",
-          "Idempotency-Key": `birthday-email-${job.id}`,
+          "x-tennis-legacy-relay-token":
+            typeof body.cron_token === "string" ? body.cron_token : "",
         },
         body: JSON.stringify({
-          from: fromAddress,
           to: [job.recipient_email],
           subject: job.subject,
           text: job.text_body,
           html: job.html_body,
+          idempotencyKey: `birthday-email-${job.id}`,
         }),
       });
 
       const providerBody = await providerResponse.json().catch(() => ({}));
 
       if (!providerResponse.ok) {
-        throw new Error(providerBody?.message || `Email provider returned HTTP ${providerResponse.status}`);
+        throw new Error(providerBody?.error || `Email relay returned HTTP ${providerResponse.status}`);
       }
 
       const sentAt = new Date().toISOString();
