@@ -1157,6 +1157,177 @@ export default function NationalTeamCompetition() {
               </div>
             )}
           </section>
+
+          {competitionView === 'friendlies' && (
+            <section className="tlg-v2-panel nt-friendly-market">
+              <header className="nt-section-header">
+                <div>
+                  <span>CAPTAIN FRIENDLY MARKETPLACE</span>
+                  <h3>Arrange a national-team friendly</h3>
+                </div>
+              </header>
+
+              <p className="nt-section-copy">
+                Friendly pairings must be confirmed at least six game days before the national window.
+                Slot 1 is played Tuesday–Wednesday; Slot 2 is played Friday–Saturday. Only the active national captain can publish availability or accept a pairing.
+              </p>
+
+              {!friendlyHub?.is_captain && (
+                <div className="nt-placeholder">
+                  You can browse the friendly programme, but only the active national captain can publish a listing or arrange a match.
+                </div>
+              )}
+
+              <div className="nt-friendly-windows">
+                {(friendlyHub?.windows ?? []).map((window) => (
+                  <article key={window.window_id} className="nt-friendly-window">
+                    <header>
+                      <div>
+                        <span>SEASON {window.season_number} · WEEK {window.season_week}</span>
+                        <strong>{window.label}</strong>
+                        <small>{formatAbsoluteDay(window.start_absolute_day)} – {formatAbsoluteDay(window.end_absolute_day)}</small>
+                      </div>
+                      <div className="nt-friendly-deadline">
+                        <span>PAIRING DEADLINE</span>
+                        <strong>{formatAbsoluteDay(window.pairing_deadline_absolute_day)}</strong>
+                      </div>
+                    </header>
+
+                    {window.incoming_invitations.length > 0 && (
+                      <div className="nt-friendly-incoming">
+                        {window.incoming_invitations.map((invitation) => (
+                          <div key={invitation.id}>
+                            <CountryFlag countryCode={invitation.country_code} countryName={invitation.country_code} width={22} height={15} />
+                            <span>
+                              <strong>{invitation.inviter_association_name}</strong>
+                              <small>invited you for Tie slot {invitation.tie_slot}</small>
+                            </span>
+                            <button type="button" className="accept" disabled={working} onClick={() => void respondFriendly(invitation.id, true)}>Accept</button>
+                            <button type="button" className="decline" disabled={working} onClick={() => void respondFriendly(invitation.id, false)}>Decline</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="nt-friendly-slots">
+                      {window.tie_slots.map((slot) => {
+                        const listingActive = slot.my_listing?.status === 'active'
+                        return (
+                          <section key={slot.slot}>
+                            <div className="nt-friendly-slot-head">
+                              <div>
+                                <span>TIE SLOT {slot.slot}</span>
+                                <strong>{slot.label}</strong>
+                              </div>
+                              <span className={slot.available ? 'free' : 'occupied'}>{slot.available ? 'Available' : 'Occupied'}</span>
+                            </div>
+
+                            {friendlyHub?.is_captain && slot.available && (
+                              <div className="nt-friendly-listing-action">
+                                <span>{listingActive ? 'Your association is visible in the friendly market.' : 'Need an opponent? Publish your association as looking for a friendly.'}</span>
+                                <button
+                                  type="button"
+                                  disabled={working}
+                                  onClick={() => void toggleFriendlyListing(window.window_id, slot.slot, !listingActive)}
+                                >
+                                  {listingActive ? 'Stop looking' : 'Arrange friendly'}
+                                </button>
+                              </div>
+                            )}
+
+                            <div className="nt-friendly-market-list">
+                              {slot.market.length === 0 ? (
+                                <p>No other national association is currently looking in this slot.</p>
+                              ) : slot.market.map((association) => (
+                                <div key={association.listing_id}>
+                                  <CountryFlag countryCode={association.country_code} countryName={association.country_code} width={23} height={16} />
+                                  <strong>{association.association_name}</strong>
+                                  {friendlyHub?.is_captain && slot.available && (
+                                    <button type="button" disabled={working} onClick={() => void inviteFriendly(window.window_id, slot.slot, association.association_id)}>
+                                      Invite
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+
+                            {window.outgoing_invitations.filter((invite) => invite.tie_slot === slot.slot).map((invite) => (
+                              <div key={invite.id} className="nt-friendly-outgoing">
+                                Invitation pending with {invite.invitee_association_name}.
+                              </div>
+                            ))}
+                          </section>
+                        )
+                      })}
+                    </div>
+                  </article>
+                ))}
+
+                {(friendlyHub?.windows ?? []).length === 0 && (
+                  <div className="nt-placeholder">There are no future national windows available for friendly arrangements.</div>
+                )}
+              </div>
+            </section>
+          )}
+
+          {competitionView === 'how' && (
+            <section className="tlg-v2-panel nt-competition-how">
+              <header className="nt-section-header">
+                <div>
+                  <span>HOW THE NATIONAL COMPETITION WORKS</span>
+                  <h3>From association activation to the Final 8</h3>
+                </div>
+              </header>
+
+              <div className="nt-how-grid">
+                <article>
+                  <span>SEASON 1</span>
+                  <strong>Association-building season</strong>
+                  <p>No official standings. Active associations use the four national windows for captain-arranged friendlies while the Season 2 field is built.</p>
+                </article>
+                <article>
+                  <span>SEASON 2 BOOTSTRAP</span>
+                  <strong>Activation order is used once</strong>
+                  <p>Associations 1–32 enter Qualifier Round 1; 33–64 enter World Group I; 65–96 enter World Group II; later associations enter the regional system by geography.</p>
+                </article>
+                <article>
+                  <span>AFTER THE BOOTSTRAP</span>
+                  <strong>Sporting results take over</strong>
+                  <p>Activation order no longer matters. Promotion and relegation determine every following season. A newly activated association joins the lowest active regional tier for the next season.</p>
+                </article>
+                <article>
+                  <span>QUALIFIER ROUND 1</span>
+                  <strong>32 teams → 16 winners</strong>
+                  <p>The winners reach Qualifier Round 2 later in the same season. The Q1 retention/relegation path decides which losing teams keep their Q1 place for the following season.</p>
+                </article>
+                <article>
+                  <span>WORLD GROUP I</span>
+                  <strong>Eight groups of four</strong>
+                  <p>Three official ties per association. Group winners move to Qualifier Round 1 next season; bottom teams drop to World Group II.</p>
+                </article>
+                <article>
+                  <span>WORLD GROUP II</span>
+                  <strong>Eight groups of four</strong>
+                  <p>Group winners move to World Group I next season. Bottom teams drop into Regional Group I.</p>
+                </article>
+                <article>
+                  <span>REGIONAL PYRAMID</span>
+                  <strong>Europe · Americas · Asia/Oceania · Africa</strong>
+                  <p>Regional I promotes into World Group II. Lower regional groups promote one level at a time; extra bottom tiers are created dynamically when more associations activate.</p>
+                </article>
+                <article>
+                  <span>NORMAL NATIONAL WINDOW</span>
+                  <strong>Maximum two ties</strong>
+                  <p>Monday travel; Tuesday–Wednesday Tie 1; Thursday recovery/travel; Friday–Saturday Tie 2; Sunday recovery/departure. A team may play fewer than two ties.</p>
+                </article>
+                <article>
+                  <span>FINAL 8</span>
+                  <strong>Weeks 47–48</strong>
+                  <p>Centralized event. Week 47 contains travel and quarterfinals; Week 48 contains semifinals and the final in the second half of the week. A champion can play three ties at the Final 8.</p>
+                </article>
+              </div>
+            </section>
+          )}
         </div>
 
       </div>
