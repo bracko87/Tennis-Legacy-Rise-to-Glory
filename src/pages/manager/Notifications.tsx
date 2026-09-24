@@ -46,6 +46,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   player_health: 'Health & injuries',
   private_life: 'Private life',
   staff: 'Staff',
+  national_team: 'National Team',
   tournament: 'Tournament',
   training: 'Training',
   travel: 'Travel',
@@ -135,6 +136,7 @@ function categoryKey(notification: NotificationRow) {
   if (code.startsWith('avatar.') || code.startsWith('account.')) return 'account'
   if (code.startsWith('finance.')) return 'finance'
   if (code.startsWith('staff.')) return 'staff'
+  if (code.startsWith('national.') || code.startsWith('national_team.')) return 'national_team'
   return 'account'
 }
 
@@ -191,6 +193,10 @@ function primaryActionLabel(code: string) {
   if (code.startsWith('avatar.')) return 'Open account'
   if (code.startsWith('finance.')) return 'Open finance'
   if (code.startsWith('staff.')) return 'Open staff'
+  if (code === 'national_team.callup') return 'Review call-up'
+  if (code === 'national.captain.election' || code === 'national.captain.runoff') return 'Vote now'
+  if (code === 'national.captain.elected') return 'Open election'
+  if (code.startsWith('national.')) return 'Open National Team'
   return 'Open'
 }
 
@@ -225,6 +231,7 @@ function notificationActions(notification: NotificationRow) {
       private_life: '/game/private-life',
       finance: '/game/finance',
       staff: '/game/staff',
+      national_team: '/game/national-team',
       account: '/game/player-account',
     }[category] ?? null
   }
@@ -322,6 +329,20 @@ function contextRows(notification: NotificationRow) {
 
     const bracketSize = payloadNumber(payload, 'bracket_size')
     if (bracketSize !== null) add('Draw size', `${bracketSize} teams`)
+  }
+
+  if (notification.notification_code.startsWith('national.') || notification.notification_code.startsWith('national_team.')) {
+    add('Association', payloadText(payload, 'association_name'))
+    add('Captain', payloadText(payload, 'captain_name'))
+    add('Opponent', payloadText(payload, 'opponent_name'))
+    add('Host city', payloadText(payload, 'host_city'))
+    add('Voting deadline', payloadText(payload, 'voting_deadline_label'))
+    const round = payloadNumber(payload, 'round')
+    if (round !== null) add('Election round', round)
+    const responseDeadline = payloadNumber(payload, 'response_deadline_absolute_day')
+    if (responseDeadline !== null) add('Response deadline', `Game day ${responseDeadline}`)
+    const compensation = payloadNumber(payload, 'expected_compensation_usd')
+    if (compensation !== null) add('Appearance payment', money(compensation))
   }
 
   if (notification.notification_code.startsWith('travel.')) {
