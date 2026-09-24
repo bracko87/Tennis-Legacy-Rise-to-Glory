@@ -230,7 +230,7 @@ export default function NationalTeamChat({ isMember, associationName }: National
               ))}
             </div>
 
-            <div className={\`nt-chat-compose \${presence.joined ? '' : 'locked'}\`}>
+            <div className={`nt-chat-compose ${presence.joined ? '' : 'locked'}`}>
               <textarea
                 value={draft}
                 maxLength={1000}
@@ -277,7 +277,7 @@ export default function NationalTeamChat({ isMember, associationName }: National
                 <strong>{joinLabel}</strong>
                 <span>
                   {activeParticipants.length > 0
-                    ? \`\${activeParticipants.length} member\${activeParticipants.length === 1 ? '' : 's'} currently active. You can read the conversation before joining.\`
+                    ? `${activeParticipants.length} member${activeParticipants.length === 1 ? '' : 's'} currently active. You can read the conversation before joining.`
                     : 'Nobody is active in the live room right now. You can start the session.'}
                 </span>
                 <button type="button" disabled={working} onClick={() => void joinChat()}>
