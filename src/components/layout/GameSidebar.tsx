@@ -62,6 +62,7 @@ const items: NavItem[] = [
 ]
 
 const adminItems: NavItem[] = [
+  { key: 'admin-system-health', label: 'System Health', description: 'Processes, incidents & logs', to: '/game/admin/system-health', icon: <Activity size={17} /> },
   { key: 'admin-analytics', label: 'Analytics', description: 'Private traffic & activity', to: '/game/admin/analytics', icon: <Gauge size={17} /> },
   { key: 'admin-bug-reports', label: 'Bug Reports', description: 'Player-reported issues', to: '/game/admin/bug-reports', icon: <Bug size={17} /> },
   { key: 'admin-reviews', label: 'Player Reviews', description: 'Moderate homepage reviews', to: '/game/admin/reviews', icon: <MessageSquareQuote size={17} /> },
@@ -94,20 +95,22 @@ export default function GameSidebar({
   const navigate = useNavigate()
   const { signOut, isAdmin, user } = useAuth()
   const currentPageLabel = pageLabelForPath(location.pathname)
-  const [adminCounts, setAdminCounts] = useState({ bugs: 0, reviews: 0 })
+  const [adminCounts, setAdminCounts] = useState({ system: 0, bugs: 0, reviews: 0 })
 
   const refreshAdminCounts = useCallback(async () => {
     if (!isAdmin || !user) {
-      setAdminCounts({ bugs: 0, reviews: 0 })
+      setAdminCounts({ system: 0, bugs: 0, reviews: 0 })
       return
     }
 
-    const [bugsResult, reviewsResult] = await Promise.all([
+    const [systemResult, bugsResult, reviewsResult] = await Promise.all([
+      supabase.rpc('get_admin_system_incident_unread_count_v1'),
       supabase.rpc('get_admin_bug_report_unread_count_v1'),
       supabase.rpc('get_admin_homepage_review_pending_count_v1'),
     ])
 
     setAdminCounts({
+      system: systemResult.error ? 0 : Number(systemResult.data ?? 0),
       bugs: bugsResult.error ? 0 : Number(bugsResult.data ?? 0),
       reviews: reviewsResult.error ? 0 : Number(reviewsResult.data ?? 0),
     })
@@ -115,7 +118,7 @@ export default function GameSidebar({
 
   useEffect(() => {
     if (!isAdmin || !user) {
-      setAdminCounts({ bugs: 0, reviews: 0 })
+      setAdminCounts({ system: 0, bugs: 0, reviews: 0 })
       return
     }
 
@@ -123,6 +126,11 @@ export default function GameSidebar({
 
     const channel = supabase
       .channel('tlg-admin-notification-counts-' + user.id)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'system_incidents' },
+        () => void refreshAdminCounts(),
+      )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'bug_reports' },
@@ -240,11 +248,13 @@ export default function GameSidebar({
               {adminItems.map((item) => {
                 const active = location.pathname === item.to
                 const notificationCount =
-                  item.key === 'admin-bug-reports'
-                    ? adminCounts.bugs
-                    : item.key === 'admin-reviews'
-                      ? adminCounts.reviews
-                      : 0
+                  item.key === 'admin-system-health'
+                    ? adminCounts.system
+                    : item.key === 'admin-bug-reports'
+                      ? adminCounts.bugs
+                      : item.key === 'admin-reviews'
+                        ? adminCounts.reviews
+                        : 0
                 return (
                   <Link
                     key={item.key}
