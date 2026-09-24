@@ -128,3 +128,35 @@
   margin-left: 2px;
   margin-right: 2px;
 }
+
+
+/* Header ranking identity ------------------------------------------------ */
+
+.tlg-v6-header-rank {
+  flex: 0 0 auto;
+  min-width: 48px;
+  color: #0b3157;
+  font-size: .95rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  text-align: center;
+  line-height: 1;
+}
+
+.tlg-v6-header-identity-divider {
+  width: 1px;
+  height: 32px;
+  flex: 0 0 1px;
+  background: #d8e2e9;
+}
+
+@media (max-width: 760px) {
+  .tlg-v6-header-rank {
+    min-width: 40px;
+    font-size: .82rem;
+  }
+
+  .tlg-v6-header-identity-divider {
+    height: 28px;
+  }
+}

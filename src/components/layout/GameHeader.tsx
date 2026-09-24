@@ -20,6 +20,7 @@ import { useNavigate } from 'react-router'
 import { useAuth } from '../../auth/AuthContext'
 import { useCommerce } from '../../hooks/useCommerce'
 import useUnreadNotificationCount from '../../hooks/useUnreadNotificationCount'
+import { supabase } from '../../lib/supabase'
 import CountryFlag from '../common/CountryFlag'
 
 export interface GameHeaderProps {
@@ -46,12 +47,44 @@ export default function GameHeader({
   const { isPremium } = useCommerce()
   const { unreadCount } = useUnreadNotificationCount()
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [currentRank, setCurrentRank] = useState<number | null>(null)
   const settingsRef = useRef<HTMLDivElement | null>(null)
 
   const displayName = player
     ? `${player.first_name} ${player.last_name}`.trim()
     : 'Tennis Legacy Player'
   const countryName = getCountryName(player?.country_code)
+
+  useEffect(() => {
+    let active = true
+
+    async function loadCurrentRank() {
+      if (!player?.id) {
+        setCurrentRank(null)
+        return
+      }
+
+      const { data, error } = await supabase.rpc('player_current_rank_position_v1', {
+        p_player_id: player.id,
+      })
+
+      if (!active) return
+
+      if (error || data === null || data === undefined) {
+        setCurrentRank(null)
+        return
+      }
+
+      const rank = Number(data)
+      setCurrentRank(Number.isFinite(rank) && rank > 0 ? rank : null)
+    }
+
+    void loadCurrentRank()
+
+    return () => {
+      active = false
+    }
+  }, [player?.id])
 
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
@@ -95,6 +128,15 @@ export default function GameHeader({
         >
           <Menu size={18} />
         </button>
+
+        {player && (
+          <>
+            <div className="tlg-v6-header-rank" aria-label={currentRank ? `Current world ranking number ${currentRank}` : 'World ranking unavailable'}>
+              {currentRank ? `#${currentRank.toLocaleString()}` : '—'}
+            </div>
+            <span className="tlg-v6-header-identity-divider" aria-hidden="true" />
+          </>
+        )}
 
         <div className="min-w-0">
           <strong className="tlg-v4-player-name">{displayName}</strong>
