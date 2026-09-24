@@ -18,6 +18,7 @@ import NationalTeamCompetition from '../../components/national-team/NationalTeam
 import { useCommerce } from '../../hooks/useCommerce'
 import { supabase } from '../../lib/supabase'
 import '../../styles/national-team.css'
+import '../../styles/shared-segmented-tabs.css'
 
 type AssociationStatus = 'inactive' | 'activation_funding' | 'active' | 'renewal_required' | 'suspended'
 type ElectionStatus = 'candidate_registration' | 'campaign' | 'voting' | 'runoff' | 'completed' | 'cancelled'
@@ -322,7 +323,7 @@ export default function NationalTeamPage() {
 
   return (
     <GameLayout title="National Team" subtitle={`${association.world} · ${association.name}`}>
-      <header className="tlg-v2-page-head nt-page-head">
+      <header className="tlg-v2-page-head tlg-page-head-with-tabs nt-page-head">
         <div className="tlg-v2-page-head-copy">
           <div className="tlg-v2-page-eyebrow">National association</div>
           <div className="nt-title-line">
@@ -335,28 +336,27 @@ export default function NationalTeamPage() {
             <h2 className="tlg-v2-page-title">{association.name}</h2>
           </div>
           <p className="tlg-v2-page-description">{statusCopy(association.status)}</p>
+          <div className="nt-head-meta">
+            <span className={`nt-status nt-status-${association.status}`}>{statusLabel(association.status)}</span>
+            <span>Season {snapshot.season_number}</span>
+            <span>{association.world} national-team world</span>
+          </div>
         </div>
 
-        <div className="nt-status-card">
-          <span className={`nt-status nt-status-${association.status}`}>{statusLabel(association.status)}</span>
-          <strong>Season {snapshot.season_number}</strong>
-          <small>{association.world} national-team world</small>
+        <div className="nt-tabs tlg-standard-tabs" role="tablist" aria-label="National association sections">
+          {([
+            ['overview', 'Overview'],
+            ['competition', 'Competition'],
+            ['members', `Members (${association.member_count})`],
+            ['elections', 'Elections'],
+            ['history', 'History'],
+          ] as const).map(([key, label]) => (
+            <button key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? 'active' : ''} onClick={() => setTab(key)}>
+              {label}
+            </button>
+          ))}
         </div>
       </header>
-
-      <div className="nt-tabs" role="tablist" aria-label="National association sections">
-        {([
-          ['overview', 'Overview'],
-          ['competition', 'Competition'],
-          ['members', `Members (${association.member_count})`],
-          ['elections', 'Elections'],
-          ['history', 'History'],
-        ] as const).map(([key, label]) => (
-          <button key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? 'active' : ''} onClick={() => setTab(key)}>
-            {label}
-          </button>
-        ))}
-      </div>
 
       {error && <div className="nt-alert nt-alert-error">{error}</div>}
       {notice && <div className="nt-alert nt-alert-success">{notice}</div>}
