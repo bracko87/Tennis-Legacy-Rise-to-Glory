@@ -7,7 +7,6 @@ import {
   Mail,
   RefreshCw,
   ShieldAlert,
-  Wrench,
 } from 'lucide-react'
 
 import GameLayout from '../../components/layout/GameLayout'
