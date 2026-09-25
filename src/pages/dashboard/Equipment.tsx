@@ -497,7 +497,13 @@ export default function EquipmentPage() {
 }
 
 function ProductImage({ item, large = false }: { item: CatalogItem; large?: boolean }) {
-  const typeClass = item.item_type === 'shoes' ? ' is-shoes' : ''
+  const typeClass = item.item_type === 'shoes'
+    ? ' is-shoes'
+    : item.item_type === 'racket'
+      ? ' is-racket'
+      : item.item_type === 'accessory' && item.accessory_kind === 'bag'
+        ? ' is-bag'
+        : ''
   return <div className={`tlg-equipment-product-image${large ? ' large' : ''}${typeClass}`}>{item.image_url ? <img src={item.image_url} alt={`${item.brand} ${item.model}`} loading="lazy" /> : <span>{TYPE_LABELS[item.item_type]}</span>}</div>
 }
 
