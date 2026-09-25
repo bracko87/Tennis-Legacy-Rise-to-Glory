@@ -15,6 +15,7 @@ import { Link } from 'react-router'
 import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../common/CountryFlag'
 import NationalCompetitionDivisions from './NationalCompetitionDivisions'
+import { nationalCountryName } from '../../lib/nationalCountryName'
 import { supabase } from '../../lib/supabase'
 
 interface NationalWindow {
@@ -701,7 +702,7 @@ export default function NationalTeamCompetition() {
           <div className="nt-callup-alert-copy">
             <span>NATIONAL-TEAM CALL-UP</span>
             <h3>
-              {hub.association_name} vs {pendingFixture.opponent_name}
+              {nationalCountryName(hub.country_code, hub.association_name)} vs {nationalCountryName(pendingFixture.opponent_country_code, pendingFixture.opponent_name)}
             </h3>
             <p>
               {formatAbsoluteDay(pendingFixture.tie_start_absolute_day)} · {pendingFixture.host_city}, {pendingFixture.host_country_code}
@@ -763,7 +764,7 @@ export default function NationalTeamCompetition() {
                 <CountryFlag countryCode={hub.country_code} countryName={hub.country_code} width={24} height={16} />
                 <div>
                   <span>{hub.projected_entry.placement_state === 'official' ? 'CURRENT ENTRY' : 'PROJECTED SEASON 2 ENTRY'}</span>
-                  <strong>{hub.association_name} → {hub.projected_entry.label}</strong>
+                  <strong>{nationalCountryName(hub.country_code, hub.association_name)} → {hub.projected_entry.label}</strong>
                 </div>
               </div>
             )}
@@ -785,7 +786,7 @@ export default function NationalTeamCompetition() {
                     ) : division.associations.map((association) => (
                       <span key={association.association_id} className="nt-pyramid-team">
                         <CountryFlag countryCode={association.country_code} countryName={association.country_code} width={20} height={14} />
-                        {association.name}
+                        {nationalCountryName(association.country_code, association.name)}
                       </span>
                     ))}
                   </div>
@@ -822,7 +823,7 @@ export default function NationalTeamCompetition() {
                           ) : division.associations.map((association) => (
                             <span key={association.association_id} className="nt-pyramid-team">
                               <CountryFlag countryCode={association.country_code} countryName={association.country_code} width={20} height={14} />
-                              {association.name}
+                              {nationalCountryName(association.country_code, association.name)}
                             </span>
                           ))}
                         </div>
@@ -913,7 +914,7 @@ export default function NationalTeamCompetition() {
                     <CountryFlag countryCode={fixture.opponent_country_code} countryName={fixture.opponent_country_code} width={28} height={19} />
                     <span>
                       <small>{formatAbsoluteDay(fixture.tie_start_absolute_day)}</small>
-                      <strong>vs {fixture.opponent_name}</strong>
+                      <strong>vs {nationalCountryName(fixture.opponent_country_code, fixture.opponent_name)}</strong>
                       <em>{fixture.host_city} · {titleCase(fixture.surface)} · {titleCase(fixture.status)}</em>
                     </span>
                     {fixture.my_callup?.status && <b className={`callup-${fixture.my_callup.status}`}>{callupStatusLabel(fixture.my_callup.status)}</b>}
@@ -931,7 +932,7 @@ export default function NationalTeamCompetition() {
                 <header className="nt-section-header">
                   <div>
                     <span>SELECTED TIE</span>
-                    <h3>{detail.fixture.home_name} vs {detail.fixture.away_name}</h3>
+                    <h3>{nationalCountryName(detail.fixture.home_country_code, detail.fixture.home_name)} vs {nationalCountryName(detail.fixture.away_country_code, detail.fixture.away_name)}</h3>
                   </div>
                 </header>
 
@@ -1065,13 +1066,13 @@ export default function NationalTeamCompetition() {
 
                 <div className="nt-lineup-compare">
                   <div>
-                    <span>{detail.association.name}</span>
+                    <span>{nationalCountryName(detail.association.country_code, detail.association.name)}</span>
                     {detail.our_lineup.length === 0 ? <small>No lineup submitted yet.</small> : detail.our_lineup.map((slot) => (
                       <div key={slot.slot_code}><b>{slot.slot_code}</b><strong>{slot.first_name} {slot.last_name}</strong></div>
                     ))}
                   </div>
                   <div className={!detail.lineups_revealed ? 'hidden' : ''}>
-                    <span>{detail.fixture.opponent_name}</span>
+                    <span>{nationalCountryName(detail.fixture.opponent_country_code, detail.fixture.opponent_name)}</span>
                     {!detail.lineups_revealed ? (
                       <div className="nt-hidden-lineup"><LockKeyhole size={20} /><strong>Hidden until simultaneous reveal</strong></div>
                     ) : detail.opponent_lineup.map((slot) => (
@@ -1149,7 +1150,7 @@ export default function NationalTeamCompetition() {
                 {standings.map((row) => (
                   <div key={row.association_id} className={row.is_my_association ? 'mine' : ''}>
                     <strong>{row.rank_position}</strong>
-                    <span className="country"><CountryFlag countryCode={row.country_code} countryName={row.country_code} width={21} height={14} /> {row.association_name}</span>
+                    <span className="country"><CountryFlag countryCode={row.country_code} countryName={row.country_code} width={21} height={14} /> {nationalCountryName(row.country_code, row.association_name)}</span>
                     <span>{row.ties_played}</span>
                     <span>{row.ties_won}–{row.ties_lost}</span>
                     <span>{row.matches_won}–{row.matches_lost}</span>
@@ -1201,7 +1202,7 @@ export default function NationalTeamCompetition() {
                           <div key={invitation.id}>
                             <CountryFlag countryCode={invitation.country_code} countryName={invitation.country_code} width={22} height={15} />
                             <span>
-                              <strong>{invitation.inviter_association_name}</strong>
+                              <strong>{nationalCountryName(invitation.country_code, invitation.inviter_association_name)}</strong>
                               <small>invited you for Tie slot {invitation.tie_slot}</small>
                             </span>
                             <button type="button" className="accept" disabled={working} onClick={() => void respondFriendly(invitation.id, true)}>Accept</button>
@@ -1243,7 +1244,7 @@ export default function NationalTeamCompetition() {
                               ) : slot.market.map((association) => (
                                 <div key={association.listing_id}>
                                   <CountryFlag countryCode={association.country_code} countryName={association.country_code} width={23} height={16} />
-                                  <strong>{association.association_name}</strong>
+                                  <strong>{nationalCountryName(association.country_code, association.association_name)}</strong>
                                   {friendlyHub?.is_captain && slot.available && (
                                     <button type="button" disabled={working} onClick={() => void inviteFriendly(window.window_id, slot.slot, association.association_id)}>
                                       Invite
@@ -1255,7 +1256,7 @@ export default function NationalTeamCompetition() {
 
                             {window.outgoing_invitations.filter((invite) => invite.tie_slot === slot.slot).map((invite) => (
                               <div key={invite.id} className="nt-friendly-outgoing">
-                                Invitation pending with {invite.invitee_association_name}.
+                                Invitation pending with {nationalCountryName(invite.country_code, invite.invitee_association_name)}.
                               </div>
                             ))}
                           </section>
