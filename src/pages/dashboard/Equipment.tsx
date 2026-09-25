@@ -503,7 +503,9 @@ function ProductImage({ item, large = false }: { item: CatalogItem; large?: bool
       ? ' is-racket'
       : item.item_type === 'accessory' && item.accessory_kind === 'bag'
         ? ' is-bag'
-        : ''
+        : item.item_type === 'accessory' && item.accessory_kind === 'towel'
+          ? ' is-towel'
+          : ''
   return <div className={`tlg-equipment-product-image${large ? ' large' : ''}${typeClass}`}>{item.image_url ? <img src={item.image_url} alt={`${item.brand} ${item.model}`} loading="lazy" /> : <span>{TYPE_LABELS[item.item_type]}</span>}</div>
 }
 
