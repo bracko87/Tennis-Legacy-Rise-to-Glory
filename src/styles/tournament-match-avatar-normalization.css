@@ -44,13 +44,25 @@
   --portrait-shift-y: -10%;
 }
 
-/* Keep the image-side fade on a pure white portrait canvas. */
+/* Keep the image-side fade subtle so faces remain clear. */
 .tlg-match-versus > .tlg-match-player-card-polished:first-child .tlg-match-player-portrait-stage.has-image::after {
-  background: linear-gradient(90deg,rgba(255,255,255,0) 45%,#fff 96%) !important;
+  background: linear-gradient(90deg,rgba(255,255,255,0) 45%,rgba(255,255,255,.5) 96%) !important;
 }
 
 .tlg-match-versus > .tlg-match-player-card-polished:last-child .tlg-match-player-portrait-stage.has-image::after {
-  background: linear-gradient(270deg,rgba(255,255,255,0) 45%,#fff 96%) !important;
+  background: linear-gradient(270deg,rgba(255,255,255,0) 45%,rgba(255,255,255,.5) 96%) !important;
+}
+
+@media(min-width:981px) {
+  /* On the left player card, keep the identity fully in the clear text zone
+     instead of overlapping the portrait. The right card stays mirrored. */
+  .tlg-match-versus > .tlg-match-player-card-polished:first-child .tlg-match-player-summary {
+    margin-left: 58% !important;
+    padding-left: 8px !important;
+    padding-right: 18px !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+  }
 }
 
 /* Keep identical base framing on both mirrored sides. */
