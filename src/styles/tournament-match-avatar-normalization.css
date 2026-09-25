@@ -60,8 +60,20 @@
     margin-left: 58% !important;
     padding-left: 8px !important;
     padding-right: 18px !important;
-    align-items: flex-start !important;
-    text-align: left !important;
+    align-items: flex-end !important;
+    text-align: right !important;
+  }
+
+  /* Mirror the left identity against the right card:
+     name -> flag, then Seed -> World rank. */
+  .tlg-match-versus > .tlg-match-player-card-polished:first-child .tlg-match-player-summary .identity,
+  .tlg-match-versus > .tlg-match-player-card-polished:first-child .tlg-match-player-summary .meta {
+    flex-direction: row-reverse !important;
+    justify-content: flex-start !important;
+  }
+
+  .tlg-match-versus > .tlg-match-player-card-polished:first-child .tlg-match-player-summary .identity a {
+    text-align: right !important;
   }
 }
 
