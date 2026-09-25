@@ -2,6 +2,7 @@ import { RotateCcw } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import CountryFlag from '../common/CountryFlag'
+import { nationalCountryName } from '../../lib/nationalCountryName'
 import { supabase } from '../../lib/supabase'
 
 interface CompetitionOption {
@@ -158,7 +159,7 @@ function participantTeam(participant?: BrowserParticipant): BracketTeam {
   if (!participant) return placeholderTeam()
   return {
     association_id: participant.association_id,
-    name: participant.name,
+    name: nationalCountryName(participant.country_code, participant.name),
     country_code: participant.country_code,
     is_mine: participant.is_mine,
   }
@@ -173,7 +174,10 @@ function fixtureTeam(
   const score = side === 'home' ? fixture.home_match_wins : fixture.away_match_wins
   return {
     association_id: associationId,
-    name: side === 'home' ? fixture.home_name : fixture.away_name,
+    name: nationalCountryName(
+      side === 'home' ? fixture.home_country_code : fixture.away_country_code,
+      side === 'home' ? fixture.home_name : fixture.away_name,
+    ),
     country_code: side === 'home' ? fixture.home_country_code : fixture.away_country_code,
     score,
     winner: fixture.winner_association_id === associationId,
@@ -376,7 +380,7 @@ function GroupView({
             <strong>{row.rank_position}</strong>
             <span className="team">
               <CountryFlag countryCode={row.country_code} countryName={row.country_code} width={22} height={15} />
-              <b>{row.association_name}</b>
+              <b>{nationalCountryName(row.country_code, row.association_name)}</b>
             </span>
             <span>{row.ties_played}</span>
             <span>{row.ties_won}</span>
@@ -389,7 +393,7 @@ function GroupView({
             <strong>{index + 1}</strong>
             <span className="team">
               <CountryFlag countryCode={participant.country_code} countryName={participant.country_code} width={22} height={15} />
-              <b>{participant.name}</b>
+              <b>{nationalCountryName(participant.country_code, participant.name)}</b>
             </span>
             <span>0</span><span>0</span><span>0</span><span>0–0</span><strong>0</strong>
           </div>
@@ -411,11 +415,11 @@ function GroupView({
             <span className="date">{formatAbsoluteDay(fixture.tie_start_absolute_day)}</span>
             <div className="side">
               <CountryFlag countryCode={fixture.home_country_code} countryName={fixture.home_country_code} width={22} height={15} />
-              <strong>{fixture.home_name}</strong>
+              <strong>{nationalCountryName(fixture.home_country_code, fixture.home_name)}</strong>
             </div>
             <b className="score">{fixture.home_match_wins} – {fixture.away_match_wins}</b>
             <div className="side away">
-              <strong>{fixture.away_name}</strong>
+              <strong>{nationalCountryName(fixture.away_country_code, fixture.away_name)}</strong>
               <CountryFlag countryCode={fixture.away_country_code} countryName={fixture.away_country_code} width={22} height={15} />
             </div>
             <span className="status">{fixture.status.replaceAll('_', ' ')}</span>
