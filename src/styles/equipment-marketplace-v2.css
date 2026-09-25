@@ -169,11 +169,13 @@
 }
 
 
-/* Card image crop: keep shoes, bags and racquets higher in both Market and Inventory banners. */
+/* Card image crop: keep shoes, bags, towels and racquets higher in both Market and Inventory banners. */
 .tlg-equipment-market-card-v2>.tlg-equipment-product-image.large.is-shoes img,
 .tlg-equipment-owned-card>.tlg-equipment-product-image.large.is-shoes img,
 .tlg-equipment-market-card-v2>.tlg-equipment-product-image.large.is-bag img,
 .tlg-equipment-owned-card>.tlg-equipment-product-image.large.is-bag img,
+.tlg-equipment-market-card-v2>.tlg-equipment-product-image.large.is-towel img,
+.tlg-equipment-owned-card>.tlg-equipment-product-image.large.is-towel img,
 .tlg-equipment-market-card-v2>.tlg-equipment-product-image.large.is-racket img,
 .tlg-equipment-owned-card>.tlg-equipment-product-image.large.is-racket img{
   width:100%;
