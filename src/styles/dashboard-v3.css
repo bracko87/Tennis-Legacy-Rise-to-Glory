@@ -71,6 +71,13 @@
   min-width: 0;
 }
 
+@media (max-width: 1440px) {
+  .tlg-v2-content {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
 /* Sidebar ---------------------------------------------------------------- */
 
 .tlg-v2-sidebar {
