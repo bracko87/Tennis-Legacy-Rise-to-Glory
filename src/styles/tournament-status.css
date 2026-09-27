@@ -2,12 +2,12 @@
 
 .tlg-tournament-row {
   grid-template-columns:
-    minmax(225px, 1.45fr)
-    minmax(150px, .95fr)
-    minmax(118px, .72fr)
-    minmax(90px, .58fr)
-    minmax(160px, .9fr)
-    minmax(285px, 1.45fr) !important;
+    minmax(180px, 1.45fr)
+    minmax(120px, .95fr)
+    minmax(96px, .72fr)
+    minmax(72px, .58fr)
+    minmax(130px, .9fr)
+    minmax(0, 1.55fr) !important;
 }
 
 /* The calendar keeps lifecycle and personal entry state visually separate.
@@ -16,7 +16,7 @@
 .tlg-tournament-status-cell {
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(120px, 1fr) minmax(125px, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: center;
   justify-items: start;
   gap: 10px;
@@ -32,7 +32,7 @@
    the existing Calendar markup. */
 .tlg-tournament-row-head > span:last-child {
   display: grid;
-  grid-template-columns: minmax(120px, 1fr) minmax(125px, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   font-size: 0;
 }
@@ -70,7 +70,9 @@
   font-weight: 760;
   line-height: 1.2;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 /* Tournament lifecycle colors remain independent from the player's entry
@@ -176,21 +178,41 @@
   font-weight: 800;
 }
 
-@media (max-width: 1260px) {
+@media (max-width: 1380px) {
   .tlg-tournament-row {
     grid-template-columns:
-      minmax(205px, 1.3fr)
-      minmax(135px, .85fr)
-      108px
-      84px
-      minmax(135px, .8fr)
-      minmax(250px, 1.35fr) !important;
+      minmax(165px, 1.35fr)
+      minmax(110px, .9fr)
+      minmax(92px, .72fr)
+      minmax(68px, .55fr)
+      minmax(120px, .85fr)
+      minmax(0, 1.45fr) !important;
+    gap: 10px;
+    padding-left: 12px;
+    padding-right: 12px;
   }
 
   .tlg-tournament-status-cell,
   .tlg-tournament-row-head > span:last-child {
-    grid-template-columns: minmax(108px, 1fr) minmax(112px, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .tlg-tournament-row-head {
+    display: none;
+  }
+
+  .tlg-tournament-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 9px 14px;
+    padding: 13px 14px;
+  }
+
+  .tlg-tournament-status-cell {
+    grid-column: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
