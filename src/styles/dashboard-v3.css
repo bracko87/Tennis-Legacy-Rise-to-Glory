@@ -53,10 +53,22 @@
   position: relative;
   z-index: 1;
   width: 100%;
+  min-width: 0;
   max-width: 1640px;
   margin: 0 auto;
   padding: 30px clamp(24px, 3vw, 48px) 52px;
   flex: 1;
+}
+
+/* Shared shrink-safety for laptop widths: nested grid/flex children must be
+   allowed to contract instead of forcing buttons, chips or tables outside the page. */
+.tlg-v2-content > *,
+.tlg-v2-module-grid,
+.tlg-v2-module-grid > *,
+.tlg-v2-panel,
+.tlg-v2-panel-header > *,
+.tlg-v2-panel-body {
+  min-width: 0;
 }
 
 /* Sidebar ---------------------------------------------------------------- */
