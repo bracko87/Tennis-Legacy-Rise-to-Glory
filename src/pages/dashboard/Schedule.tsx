@@ -45,6 +45,29 @@ interface PlayerTournamentSummary {
   next_tournaments: TournamentSummaryItem[]
 }
 
+interface TournamentApplicationItem {
+  competition_id: string
+  season: number
+  start_week: number
+  end_week: number
+  tournament_name: string
+  city: string
+  country_code: string
+  category_code: string
+  category_label: string
+  surface: string
+  status_code: string
+  status_label: string
+  draw_type?: string | null
+  partner_name?: string | null
+  partner_country_code?: string | null
+}
+
+interface TournamentApplicationHistory {
+  singles: TournamentApplicationItem[]
+  doubles: TournamentApplicationItem[]
+}
+
 type PreparationTab = 'travel' | 'staff' | 'tactics' | 'summary'
 type TravelClass = 'Economy' | 'Premium Economy' | 'Business' | 'First Class'
 type HotelTier = 'Budget' | 'Standard' | 'Premium' | 'Luxury'
@@ -129,7 +152,7 @@ const HOTEL_TIERS: Array<{ value: HotelTier; label: string; detail: string; nigh
   { value: 'Luxury', label: 'Luxury Hotel ★★★★★', detail: 'Maximum comfort', nightly: 420, effect: '+15% recovery support' },
 ]
 
-function tournamentWeekLabel(item: TournamentSummaryItem) {
+function tournamentWeekLabel(item: Pick<TournamentSummaryItem, 'season' | 'start_week' | 'end_week'>) {
   if (item.start_week === item.end_week) return `Season ${item.season} · Week ${item.start_week}`
   return `Season ${item.season} · Weeks ${item.start_week}–${item.end_week}`
 }
@@ -144,6 +167,69 @@ function money(value: number) {
 
 function distance(value: number | null | undefined) {
   return value == null ? 'Distance estimate unavailable' : `${Math.round(value).toLocaleString()} km`
+}
+
+function applicationStatusTone(status: string) {
+  if (['accepted_main_draw', 'accepted_qualification', 'active', 'confirmed', 'champion'].includes(status)) return 'positive'
+  if (['applied', 'looking_for_partner', 'alternate', 'waitlisted'].includes(status)) return 'pending'
+  if (['rejected', 'withdrawn', 'canceled', 'cancelled', 'listing_cancelled', 'listing_expired'].includes(status)) return 'negative'
+  return 'neutral'
+}
+
+function TournamentApplicationList({
+  title,
+  subtitle,
+  items,
+  doubles = false,
+}: {
+  title: string
+  subtitle: string
+  items: TournamentApplicationItem[]
+  doubles?: boolean
+}) {
+  return (
+    <section className="tlg-schedule-application-group">
+      <header>
+        <div><span>{doubles ? 'Doubles' : 'Singles'}</span><h3>{title}</h3><p>{subtitle}</p></div>
+        <strong>{items.length} {items.length === 1 ? 'tournament' : 'tournaments'}</strong>
+      </header>
+
+      {items.length === 0 ? (
+        <div className="tlg-schedule-application-empty">No {doubles ? 'doubles' : 'singles'} applications yet.</div>
+      ) : (
+        <div className="tlg-schedule-application-table">
+          <div className="tlg-schedule-application-row head" aria-hidden="true">
+            <span>Tournament</span><span>Schedule</span><span>Category / Surface</span><span>{doubles ? 'Partner' : 'Entry'}</span><span>Status</span>
+          </div>
+          {items.map((item) => {
+            const entryDetail = doubles
+              ? (item.partner_name ? `With ${item.partner_name}` : 'Partner not confirmed')
+              : item.draw_type === 'main_draw'
+                ? 'Main Draw'
+                : item.draw_type === 'qualification'
+                  ? 'Qualification'
+                  : 'Application'
+            const href = doubles
+              ? `/game/tournaments/${item.competition_id}/doubles`
+              : `/game/tournaments/${item.competition_id}`
+
+            return (
+              <Link key={`${doubles ? 'd' : 's'}-${item.competition_id}`} to={href} className="tlg-schedule-application-row">
+                <div className="tlg-schedule-application-name">
+                  <CountryFlag countryCode={item.country_code} countryName={item.country_code} width={24} height={16} />
+                  <div><strong>{item.tournament_name}</strong><small>{item.city}, {item.country_code}</small></div>
+                </div>
+                <span>{tournamentWeekLabel(item)}</span>
+                <span>{item.category_label} · {titleCase(item.surface)}</span>
+                <span>{entryDetail}</span>
+                <strong className={`tlg-schedule-application-status ${applicationStatusTone(item.status_code)}`}>{item.status_label}</strong>
+              </Link>
+            )
+          })}
+        </div>
+      )}
+    </section>
+  )
 }
 
 export default function SchedulePage() {
@@ -168,6 +254,9 @@ export default function SchedulePage() {
   const [planMessage, setPlanMessage] = useState<string | null>(null)
   const [engineQuote, setEngineQuote] = useState<TournamentPreparationQuote | null>(null)
   const [quoteLoading, setQuoteLoading] = useState(false)
+  const [applicationHistory, setApplicationHistory] = useState<TournamentApplicationHistory>({ singles: [], doubles: [] })
+  const [applicationsLoading, setApplicationsLoading] = useState(true)
+  const [applicationsError, setApplicationsError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!player?.id) {
@@ -191,6 +280,39 @@ export default function SchedulePage() {
       setLoading(false)
     }
     void loadSchedule()
+    return () => { cancelled = true }
+  }, [player?.id])
+
+  useEffect(() => {
+    if (!player?.id) {
+      setApplicationHistory({ singles: [], doubles: [] })
+      setApplicationsLoading(false)
+      setApplicationsError(null)
+      return
+    }
+
+    let cancelled = false
+    async function loadApplications() {
+      setApplicationsLoading(true)
+      setApplicationsError(null)
+      const { data, error: applicationError } = await supabase.rpc('get_player_tournament_application_history_v1', {
+        p_player_id: player!.id,
+      })
+      if (cancelled) return
+      if (applicationError) {
+        setApplicationHistory({ singles: [], doubles: [] })
+        setApplicationsError(applicationError.message)
+      } else {
+        const history = (data ?? { singles: [], doubles: [] }) as TournamentApplicationHistory
+        setApplicationHistory({
+          singles: history.singles ?? [],
+          doubles: history.doubles ?? [],
+        })
+      }
+      setApplicationsLoading(false)
+    }
+
+    void loadApplications()
     return () => { cancelled = true }
   }, [player?.id])
 
@@ -410,6 +532,36 @@ export default function SchedulePage() {
                   <span>{item.category_code}</span><span>{titleCase(item.surface)}</span><span>{tournamentWeekLabel(item)}</span><ChevronRight size={16} />
                 </Link>
               ))}
+            </div>
+          )}
+        </section>
+
+        <section className="tlg-schedule-applications-card">
+          <div className="tlg-schedule-section-head compact">
+            <div>
+              <span>Tournament applications</span>
+              <h2>Your application history</h2>
+              <p>Every tournament you entered is listed here separately for singles and doubles, with its current server-backed entry status.</p>
+            </div>
+          </div>
+
+          {applicationsLoading ? (
+            <div className="tlg-schedule-empty">Loading tournament applications…</div>
+          ) : applicationsError ? (
+            <div className="tlg-schedule-error">Unable to load tournament applications: {applicationsError}</div>
+          ) : (
+            <div className="tlg-schedule-application-groups">
+              <TournamentApplicationList
+                title="Singles applications"
+                subtitle="Applications, accepted entries and completed entry outcomes."
+                items={applicationHistory.singles}
+              />
+              <TournamentApplicationList
+                title="Doubles applications"
+                subtitle="Partner searches and confirmed doubles teams are tracked separately."
+                items={applicationHistory.doubles}
+                doubles
+              />
             </div>
           )}
         </section>
