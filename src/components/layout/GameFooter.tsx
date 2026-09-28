@@ -1,4 +1,4 @@
-import { Clock3, Coins, ExternalLink } from 'lucide-react'
+import { Clock3, Coins } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { useCommerce } from '../../hooks/useCommerce'
@@ -7,9 +7,6 @@ import { weekdayForDate } from '../../lib/competitionCalendar'
 import { supabase } from '../../lib/supabase'
 
 const PROPELOTON_URL = 'https://propelotonmanager.com/?source=tennis_legacy'
-const PROPELOTON_LOGO_URL =
-  'https://okuravitxocyevkexfgi.supabase.co/storage/v1/object/public/Admin%20Staff/Brend%20images/5c3417dc-3924-4423-948a-745ae5902ed0.png'
-
 export default function GameFooter() {
   const clock = useGameClock()
   const commerce = useCommerce()
@@ -50,35 +47,15 @@ export default function GameFooter() {
         onClick={recordCrossGameClick}
         aria-label="Play ProPeloton Manager, another game from Next Quest Studio"
         style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
           marginLeft: 'auto',
-          padding: '6px 9px',
-          border: '1px solid #d9e5ec',
-          borderRadius: 10,
-          background: '#fff',
-          color: '#17344b',
+          color: '#1377ad',
+          fontSize: 11,
+          fontWeight: 800,
           textDecoration: 'none',
-          minWidth: 0,
+          whiteSpace: 'nowrap',
         }}
       >
-        <img
-          src={PROPELOTON_LOGO_URL}
-          alt=""
-          aria-hidden="true"
-          style={{ width: 30, height: 30, objectFit: 'contain', borderRadius: 7, background: '#081224' }}
-        />
-        <span style={{ display: 'grid', gap: 1, lineHeight: 1.1 }}>
-          <small style={{ color: '#718697', fontSize: 8, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em' }}>
-            Also from our studio
-          </small>
-          <strong style={{ fontSize: 11 }}>ProPeloton Manager</strong>
-        </span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#1377ad', fontSize: 9, fontWeight: 850 }}>
-          Play
-          <ExternalLink size={12} />
-        </span>
+        Also from our studio: ProPeloton Manager ↗
       </a>
 
       <Link
