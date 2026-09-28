@@ -9,14 +9,18 @@ import {
   Link,
   useNavigate,
 } from 'react-router'
-import { Clock3 } from 'lucide-react'
+import { Clock3, ExternalLink } from 'lucide-react'
 
 import { useGameClock } from '../../hooks/useGameClock'
+import { supabase } from '../../lib/supabase'
 
 const FOOTER_LOGO_URL =
   'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/logo%20333.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9sb2dvIDMzMy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg3OTQ1MDc5LCJleHAiOjQ5MTAwMDkwNzl9.Q7Ocay_B1kouWo_XmmgtVcGOCh0xtzhzaIm713AhU-ci-xJPY3JanaT3xhdkptAuKV5kUJGHov34fSM2TGjmcQ'
 
 const NEXT_QUEST_STUDIO_URL = 'https://www.nextqueststudio.net/'
+const PROPELOTON_URL = 'https://propelotonmanager.com/?source=tennis_legacy'
+const PROPELOTON_LOGO_URL =
+  'https://okuravitxocyevkexfgi.supabase.co/storage/v1/object/public/Admin%20Staff/Brend%20images/5c3417dc-3924-4423-948a-745ae5902ed0.png'
 
 export interface MarketingFooterProps {
   readonly children?: ReactNode
@@ -27,6 +31,15 @@ export default function MarketingFooter({
 }: MarketingFooterProps) {
   const navigate = useNavigate()
   const clock = useGameClock()
+
+  function recordCrossGameClick() {
+    void supabase.rpc('record_cross_game_referral_event_v1', {
+      p_event_type: 'outgoing_click',
+      p_source_game: 'tennis_legacy',
+      p_destination_game: 'propeloton_manager',
+      p_surface: 'marketing_footer',
+    })
+  }
 
   const goToSection = (
     sectionId: string,
@@ -150,6 +163,54 @@ export default function MarketingFooter({
             {children}
           </div>
         )}
+
+        <div
+          style={{
+            marginTop: 22,
+            paddingTop: 18,
+            borderTop: '1px solid rgba(255,255,255,.09)',
+          }}
+        >
+          <a
+            href={PROPELOTON_URL}
+            target="_blank"
+            rel="noreferrer"
+            onClick={recordCrossGameClick}
+            aria-label="Play ProPeloton Manager, another game from Next Quest Studio"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              maxWidth: 520,
+              padding: '12px 14px',
+              border: '1px solid rgba(255,255,255,.14)',
+              borderRadius: 12,
+              background: 'rgba(255,255,255,.05)',
+              color: '#fff',
+              textDecoration: 'none',
+            }}
+          >
+            <img
+              src={PROPELOTON_LOGO_URL}
+              alt=""
+              aria-hidden="true"
+              style={{ width: 42, height: 42, objectFit: 'contain', borderRadius: 9, background: '#081224' }}
+            />
+            <span style={{ display: 'grid', gap: 2, minWidth: 0 }}>
+              <small style={{ color: 'rgba(255,255,255,.55)', fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                Also from our studio
+              </small>
+              <strong style={{ fontSize: 14 }}>ProPeloton Manager</strong>
+              <span style={{ color: 'rgba(255,255,255,.68)', fontSize: 11, lineHeight: 1.35 }}>
+                Build and manage your own professional cycling team.
+              </span>
+            </span>
+            <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 5, color: '#8bd1f6', fontSize: 11, fontWeight: 800, whiteSpace: 'nowrap' }}>
+              Play Now
+              <ExternalLink size={14} />
+            </span>
+          </a>
+        </div>
 
         <div className="tlg-footer-bottom">
           <p>
