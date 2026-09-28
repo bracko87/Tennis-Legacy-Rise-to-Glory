@@ -186,9 +186,11 @@
 }
 
 
-/* ATP/WTA cap artwork: lift the product itself higher inside Market and Inventory banners. */
+/* Cap and wristband artwork: lift the product itself 20% higher inside Market and Inventory banners. */
 .tlg-equipment-market-card-v2>.tlg-equipment-product-image.large.is-cap img,
-.tlg-equipment-owned-card>.tlg-equipment-product-image.large.is-cap img{
+.tlg-equipment-owned-card>.tlg-equipment-product-image.large.is-cap img,
+.tlg-equipment-market-card-v2>.tlg-equipment-product-image.large.is-wristband img,
+.tlg-equipment-owned-card>.tlg-equipment-product-image.large.is-wristband img{
   width:100%;
   height:125%;
   object-fit:cover;
