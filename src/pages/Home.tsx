@@ -4,6 +4,7 @@
  * Premium marketing homepage for Tennis Legacy: Rise to Glory.
  */
 
+import { useEffect } from 'react'
 import { Link } from 'react-router'
 import {
   Activity,
@@ -31,6 +32,7 @@ import MarketingHeader from '../components/layout/MarketingHeader'
 import MarketingFooter from '../components/layout/MarketingFooter'
 import StatCard from '../components/common/StatCard'
 import HomepagePlayerReviews from '../components/marketing/HomepagePlayerReviews'
+import { supabase } from '../lib/supabase'
 
 const statistics = [
   {
@@ -166,6 +168,19 @@ const seasonMonths = [
 ] as const
 
 export default function HomePage() {
+  useEffect(() => {
+    const source = new URLSearchParams(window.location.search).get('source')
+    if (source !== 'propeloton_manager') return
+
+    window.localStorage.setItem('tlg-cross-game-source', source)
+    void supabase.rpc('record_cross_game_referral_event_v1', {
+      p_event_type: 'landing',
+      p_source_game: 'propeloton_manager',
+      p_destination_game: 'tennis_legacy',
+      p_surface: 'public_home',
+    })
+  }, [])
+
   return (
     <div className="tlg-marketing-page">
       <MarketingHeader />
