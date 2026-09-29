@@ -155,7 +155,15 @@ export default function LoginPage() {
             </form>
 
             <div className="tlg-auth-divider"><span>New to Tennis Legacy?</span></div>
-            <Link to="/register" className="tlg-auth-outline-button">Create Account <ArrowRight size={17} /></Link>
+            <button
+              type="button"
+              className="tlg-auth-outline-button tlg-auth-registration-disabled"
+              disabled
+              aria-disabled="true"
+              title="New account registration is temporarily closed."
+            >
+              Create Account <ArrowRight size={17} />
+            </button>
 
             <p className="tlg-auth-supabase-note">Secure account access · persistent career data</p>
           </div>
