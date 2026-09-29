@@ -13,7 +13,9 @@ import GameLayout from '../../components/layout/GameLayout'
 import { supabase } from '../../lib/supabase'
 import '../../styles/admin-system-health.css'
 
-type AdminTab = 'overview' | 'incidents' | 'logs'
+type AdminTab = 'overview' | 'tournaments' | 'incidents' | 'logs'
+type TournamentOpsView = 'today' | 'problems' | 'history'
+type TournamentOpsStatus = 'waiting' | 'running' | 'done' | 'overdue' | 'cancelled'
 type IncidentFilter = 'active' | 'resolved' | 'all'
 type Severity = 'warning' | 'high' | 'critical'
 type IncidentStatus = 'open' | 'acknowledged' | 'resolved'
@@ -90,6 +92,71 @@ interface HealthOverview {
   recent_runs: HealthRun[]
 }
 
+
+interface TournamentOperationsRow {
+  competition_id: string
+  tournament_name: string
+  world: string
+  category_code: string
+  city: string
+  season_number: number
+  start_absolute_day: number
+  end_absolute_day: number
+  application_open_absolute_day: number
+  application_close_absolute_day: number
+  draw_due_absolute_day: number
+  ranking_publish_absolute_day: number
+  phase: string
+  entry_status: TournamentOpsStatus
+  draw_status: TournamentOpsStatus
+  matches_status: TournamentOpsStatus
+  rewards_status: TournamentOpsStatus
+  closure_status: TournamentOpsStatus
+  application_count: number
+  entry_count: number
+  human_entry_count: number
+  match_count: number
+  completed_matches: number
+  bye_matches: number
+  cancelled_matches: number
+  scheduled_matches: number
+  in_progress_matches: number
+  playable_unresolved_matches: number
+  result_rows: number
+  pending_ranking_rows: number
+  ranking_contribution_rows: number
+  human_prize_results: number
+  human_prize_payments: number
+  stale_calendar_commitments: number
+  main_final_completed: boolean
+  champion_id: string | null
+  champion_name: string | null
+  has_problem: boolean
+  issue_key: string | null
+  issue_severity: Severity | null
+  issue_message: string | null
+  incident_id: string | null
+  incident_status: string | null
+  incident_first_seen_at: string | null
+  incident_last_seen_at: string | null
+}
+
+interface TournamentOperationsPayload {
+  game_day: {
+    season: number
+    month: number
+    day: number
+    absolute_day: number
+  }
+  counts: {
+    lifecycle_total: number
+    active_now: number
+    active_problems: number
+    completed_recent: number
+  }
+  rows: TournamentOperationsRow[]
+}
+
 const EMPTY_SUMMARY: HealthSummary = {
   open_incidents: 0,
   critical_incidents: 0,
@@ -137,6 +204,26 @@ function processHealth(process: HealthProcess) {
   return 'unknown'
 }
 
+
+function TournamentOpsStatusPill({ status }: { status: TournamentOpsStatus }) {
+  return (
+    <span className={`tlg-tournament-ops-status status-${status}`}>
+      <i />
+      {statusLabel(status)}
+    </span>
+  )
+}
+
+function tournamentOverallLabel(row: TournamentOperationsRow) {
+  if (row.has_problem) return 'Problem'
+  if (row.closure_status === 'done') return 'Closed'
+  if (row.phase === 'cancelled') return 'Canceled'
+  if (row.phase === 'in_progress') return 'Live'
+  if (row.phase === 'pre_tournament') return 'Preparing'
+  if (row.phase === 'post_tournament') return 'Closing'
+  return statusLabel(row.phase)
+}
+
 export default function AdminSystemHealthPage() {
   const [tab, setTab] = useState<AdminTab>('overview')
   const [overview, setOverview] = useState<HealthOverview>({
@@ -150,6 +237,10 @@ export default function AdminSystemHealthPage() {
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null)
   const [selectedProcessKey, setSelectedProcessKey] = useState<string>('all')
   const [runs, setRuns] = useState<HealthRun[]>([])
+  const [tournamentView, setTournamentView] = useState<TournamentOpsView>('today')
+  const [tournamentOps, setTournamentOps] = useState<TournamentOperationsPayload | null>(null)
+  const [selectedTournamentId, setSelectedTournamentId] = useState<string | null>(null)
+  const [tournamentLoading, setTournamentLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [secondaryLoading, setSecondaryLoading] = useState(false)
   const [working, setWorking] = useState(false)
@@ -160,6 +251,12 @@ export default function AdminSystemHealthPage() {
       ?? overview.incidents.find((incident) => incident.id === selectedIncidentId)
       ?? null,
     [incidents, overview.incidents, selectedIncidentId],
+  )
+
+
+  const selectedTournament = useMemo(
+    () => tournamentOps?.rows.find((row) => row.competition_id === selectedTournamentId) ?? null,
+    [tournamentOps, selectedTournamentId],
   )
 
   const loadOverview = useCallback(async (silent = false) => {
@@ -215,9 +312,45 @@ export default function AdminSystemHealthPage() {
     setSecondaryLoading(false)
   }, [selectedProcessKey])
 
+
+  const loadTournamentOperations = useCallback(async (
+    view: TournamentOpsView = tournamentView,
+    silent = false,
+  ) => {
+    if (!silent) setTournamentLoading(true)
+    setError(null)
+
+    const { data, error: rpcError } = await supabase.rpc('get_admin_tournament_operations_v1', {
+      p_view: view,
+      p_days: 7,
+    })
+
+    if (rpcError) {
+      setError(rpcError.message)
+      if (!silent) setTournamentLoading(false)
+      return
+    }
+
+    const next = (data ?? null) as TournamentOperationsPayload | null
+    setTournamentOps(next ? {
+      ...next,
+      rows: next.rows ?? [],
+    } : null)
+
+    if (next?.rows?.length && !next.rows.some((row) => row.competition_id === selectedTournamentId)) {
+      setSelectedTournamentId(null)
+    }
+
+    if (!silent) setTournamentLoading(false)
+  }, [tournamentView, selectedTournamentId])
+
   useEffect(() => {
     void loadOverview()
   }, [loadOverview])
+
+  useEffect(() => {
+    if (tab === 'tournaments') void loadTournamentOperations(tournamentView)
+  }, [tab, tournamentView, loadTournamentOperations])
 
   useEffect(() => {
     if (tab === 'incidents') void loadIncidents(incidentFilter)
@@ -236,6 +369,7 @@ export default function AdminSystemHealthPage() {
         () => {
           void loadOverview(true)
           if (tab === 'incidents') void loadIncidents(incidentFilter)
+          if (tab === 'tournaments') void loadTournamentOperations(tournamentView, true)
         },
       )
       .subscribe()
@@ -243,12 +377,14 @@ export default function AdminSystemHealthPage() {
     const interval = window.setInterval(() => {
       void loadOverview(true)
       if (tab === 'logs') void loadRuns(selectedProcessKey)
+      if (tab === 'tournaments') void loadTournamentOperations(tournamentView, true)
     }, 30000)
 
     const onFocus = () => {
       void loadOverview(true)
       if (tab === 'incidents') void loadIncidents(incidentFilter)
       if (tab === 'logs') void loadRuns(selectedProcessKey)
+      if (tab === 'tournaments') void loadTournamentOperations(tournamentView, true)
     }
 
     window.addEventListener('focus', onFocus)
@@ -257,13 +393,32 @@ export default function AdminSystemHealthPage() {
       window.removeEventListener('focus', onFocus)
       void supabase.removeChannel(channel)
     }
-  }, [tab, incidentFilter, selectedProcessKey, loadOverview, loadIncidents, loadRuns])
+  }, [tab, incidentFilter, selectedProcessKey, tournamentView, loadOverview, loadIncidents, loadRuns, loadTournamentOperations])
 
   async function refreshAll() {
     setWorking(true)
     await loadOverview(true)
     if (tab === 'incidents') await loadIncidents(incidentFilter)
     if (tab === 'logs') await loadRuns(selectedProcessKey)
+    if (tab === 'tournaments') await loadTournamentOperations(tournamentView, true)
+    setWorking(false)
+  }
+
+  async function runTournamentOperationsCheck() {
+    setWorking(true)
+    setError(null)
+
+    const { error: rpcError } = await supabase.rpc('admin_refresh_tournament_operations_v1')
+    if (rpcError) {
+      setError(rpcError.message)
+      setWorking(false)
+      return
+    }
+
+    await Promise.all([
+      loadTournamentOperations(tournamentView, true),
+      loadOverview(true),
+    ])
     setWorking(false)
   }
 
@@ -324,6 +479,7 @@ export default function AdminSystemHealthPage() {
           <div className="tlg-system-health-tabs" role="tablist" aria-label="System health sections">
             {([
               ['overview', 'Overview'],
+              ['tournaments', 'Tournament Operations'],
               ['incidents', 'Incidents'],
               ['logs', 'Process Logs'],
             ] as Array<[AdminTab, string]>).map(([key, label]) => (
@@ -474,6 +630,171 @@ export default function AdminSystemHealthPage() {
                       )
                     })}
                   </div>
+                </section>
+              </div>
+            )}
+
+
+            {tab === 'tournaments' && (
+              <div className="tlg-tournament-ops">
+                <div className="tlg-tournament-ops-toolbar">
+                  <div className="tlg-tournament-ops-view-tabs" role="tablist" aria-label="Tournament Operations view">
+                    {([
+                      ['today', 'Today'],
+                      ['problems', 'Problems only'],
+                      ['history', 'Last 7 days'],
+                    ] as Array<[TournamentOpsView, string]>).map(([view, label]) => (
+                      <button
+                        key={view}
+                        type="button"
+                        className={tournamentView === view ? 'active' : ''}
+                        onClick={() => {
+                          setTournamentView(view)
+                          setSelectedTournamentId(null)
+                        }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="tlg-tournament-ops-run"
+                    onClick={() => void runTournamentOperationsCheck()}
+                    disabled={working || tournamentLoading}
+                  >
+                    <RefreshCw size={14} className={working ? 'spin' : ''} />
+                    Run check now
+                  </button>
+                </div>
+
+                <section className="tlg-tournament-ops-summary">
+                  <article>
+                    <span>Lifecycle window</span>
+                    <strong>{tournamentOps?.counts.lifecycle_total ?? 0}</strong>
+                    <small>From applications through ranking publication</small>
+                  </article>
+                  <article>
+                    <span>Active tournaments</span>
+                    <strong>{tournamentOps?.counts.active_now ?? 0}</strong>
+                    <small>Currently inside tournament dates</small>
+                  </article>
+                  <article className={(tournamentOps?.counts.active_problems ?? 0) > 0 ? 'attention' : 'healthy'}>
+                    <span>Active problems</span>
+                    <strong>{tournamentOps?.counts.active_problems ?? 0}</strong>
+                    <small>{(tournamentOps?.counts.active_problems ?? 0) > 0 ? 'Requires operational attention' : 'No lifecycle failures detected'}</small>
+                  </article>
+                  <article>
+                    <span>Closed last 7 days</span>
+                    <strong>{tournamentOps?.counts.completed_recent ?? 0}</strong>
+                    <small>Final + results + rewards + ranking checks</small>
+                  </article>
+                </section>
+
+                <section className="tlg-tournament-ops-panel">
+                  <header>
+                    <div>
+                      <span>TOURNAMENT LIFECYCLE MONITOR</span>
+                      <h3>
+                        Season {tournamentOps?.game_day.season ?? '—'} · Month {tournamentOps?.game_day.month ?? '—'} Day {tournamentOps?.game_day.day ?? '—'}
+                      </h3>
+                    </div>
+                    <small>Automatic watchdog every 5 minutes</small>
+                  </header>
+
+                  <div className="tlg-tournament-ops-table">
+                    <div className="head">
+                      <span>Tournament</span>
+                      <span>Window</span>
+                      <span>Entry</span>
+                      <span>Draw</span>
+                      <span>Matches</span>
+                      <span>Rewards</span>
+                      <span>Closure</span>
+                      <span>Overall</span>
+                    </div>
+
+                    {tournamentLoading ? (
+                      <div className="empty">Loading Tournament Operations…</div>
+                    ) : (tournamentOps?.rows.length ?? 0) === 0 ? (
+                      <div className="empty">
+                        {tournamentView === 'problems'
+                          ? 'No tournament lifecycle problems are active.'
+                          : 'No tournaments match this operational window.'}
+                      </div>
+                    ) : tournamentOps?.rows.map((row) => (
+                      <button
+                        key={row.competition_id}
+                        type="button"
+                        className={`tlg-tournament-ops-row ${row.has_problem ? 'has-problem' : ''} ${selectedTournamentId === row.competition_id ? 'selected' : ''}`}
+                        onClick={() => setSelectedTournamentId((current) => current === row.competition_id ? null : row.competition_id)}
+                      >
+                        <span className="tournament">
+                          <strong>{row.tournament_name}</strong>
+                          <small>{row.world} · {row.category_code.replaceAll('_', ' ')} · {row.city}</small>
+                        </span>
+                        <span className="window">
+                          <strong>Day {row.start_absolute_day}–{row.end_absolute_day}</strong>
+                          <small>Season {row.season_number}</small>
+                        </span>
+                        <TournamentOpsStatusPill status={row.entry_status} />
+                        <TournamentOpsStatusPill status={row.draw_status} />
+                        <TournamentOpsStatusPill status={row.matches_status} />
+                        <TournamentOpsStatusPill status={row.rewards_status} />
+                        <TournamentOpsStatusPill status={row.closure_status} />
+                        <span className={`tlg-tournament-ops-overall ${row.has_problem ? 'problem' : 'ok'}`}>
+                          {tournamentOverallLabel(row)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {selectedTournament && (
+                    <div className="tlg-tournament-ops-detail">
+                      <header>
+                        <div>
+                          <span>{selectedTournament.world} · {selectedTournament.category_code.replaceAll('_', ' ')}</span>
+                          <h3>{selectedTournament.tournament_name}</h3>
+                          <p>{selectedTournament.city} · Season {selectedTournament.season_number} · Day {selectedTournament.start_absolute_day}–{selectedTournament.end_absolute_day}</p>
+                        </div>
+                        <a href={`/game/tournaments/${selectedTournament.competition_id}`}>Open tournament</a>
+                      </header>
+
+                      {selectedTournament.has_problem && (
+                        <div className={`tlg-tournament-ops-alert severity-${selectedTournament.issue_severity ?? 'high'}`}>
+                          <AlertTriangle size={16} />
+                          <div>
+                            <strong>{selectedTournament.issue_key?.replaceAll('_', ' ') ?? 'Tournament lifecycle problem'}</strong>
+                            <span>{selectedTournament.issue_message ?? 'Tournament Operations detected an inconsistency.'}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="tlg-tournament-ops-metrics">
+                        <div><span>Applications</span><strong>{selectedTournament.application_count}</strong></div>
+                        <div><span>Entries</span><strong>{selectedTournament.entry_count}</strong><small>{selectedTournament.human_entry_count} human</small></div>
+                        <div><span>Matches</span><strong>{selectedTournament.match_count}</strong><small>{selectedTournament.completed_matches} completed · {selectedTournament.bye_matches} byes</small></div>
+                        <div><span>Still scheduled</span><strong>{selectedTournament.scheduled_matches}</strong><small>{selectedTournament.in_progress_matches} in progress</small></div>
+                        <div><span>Results</span><strong>{selectedTournament.result_rows}</strong><small>{selectedTournament.pending_ranking_rows} ranking pending</small></div>
+                        <div><span>Ranking rows</span><strong>{selectedTournament.ranking_contribution_rows}</strong></div>
+                        <div><span>Human prizes</span><strong>{selectedTournament.human_prize_payments}/{selectedTournament.human_prize_results}</strong><small>paid / due</small></div>
+                        <div><span>Calendar cleanup</span><strong>{selectedTournament.stale_calendar_commitments}</strong><small>stale commitments</small></div>
+                      </div>
+
+                      <div className="tlg-tournament-ops-foot">
+                        <span>
+                          Final: <strong>{selectedTournament.main_final_completed ? 'Completed' : 'Not completed'}</strong>
+                        </span>
+                        <span>
+                          Champion: <strong>{selectedTournament.champion_name ?? '—'}</strong>
+                        </span>
+                        <span>
+                          Playable unresolved matches: <strong>{selectedTournament.playable_unresolved_matches}</strong>
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </section>
               </div>
             )}
