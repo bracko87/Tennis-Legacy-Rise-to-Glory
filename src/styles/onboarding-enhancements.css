@@ -2679,3 +2679,22 @@
 .tlg-auth-register-page .tlg-auth-verification-next strong {
   color: #dcecf8 !important;
 }
+
+
+/* Registration closed state 2026-09-29 -------------------------------- */
+
+.tlg-auth-page-v2 .tlg-auth-registration-disabled,
+.tlg-auth-page-v2 .tlg-auth-registration-disabled:hover {
+  color: #738598 !important;
+  border-color: rgba(118, 143, 164, .12) !important;
+  background: rgba(115, 131, 146, .10) !important;
+  box-shadow: none !important;
+  opacity: .52;
+  cursor: not-allowed;
+  pointer-events: none;
+  filter: grayscale(.35);
+}
+
+.tlg-auth-page-v2 .tlg-auth-registration-disabled svg {
+  opacity: .58;
+}
