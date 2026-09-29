@@ -265,7 +265,7 @@ export default function RegisterPage() {
             {registrationComplete ? (
               <div className="tlg-auth-verification-panel" role="status">
                 <span className="tlg-auth-verification-icon"><Mail size={24} /></span>
-                <span className="tlg-auth-eyebrow">Step 2 of 3 · Verify</span>
+                <span className="tlg-auth-eyebrow">Email verification</span>
                 <h3>Check your email</h3>
                 <p>
                   We sent a verification link to <strong>{email.trim().toLowerCase()}</strong>.
@@ -556,7 +556,7 @@ export default function RegisterPage() {
                           variant="primary"
                           size="large"
                           loading={loading}
-                          disabled={!formValid}
+                          disabled={loading}
                           rightIcon={<ArrowRight size={18} />}
                         >
                           {loading ? 'Creating account…' : 'Create Account'}
