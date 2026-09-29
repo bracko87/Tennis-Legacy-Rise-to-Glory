@@ -1737,3 +1737,213 @@
 .tlg-auth-page-v2 .tlg-auth-feature p {
   font-weight: 400 !important;
 }
+
+
+/* Register horizontal layout 2026-09-29 -------------------------------- */
+
+/* Create Account only — keep Sign In untouched --------------------------- */
+
+.tlg-auth-register-page .tlg-auth-register-main {
+  width: min(100% - 48px, 1180px);
+  max-width: none;
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: 24px;
+  padding-top: 24px;
+  padding-bottom: 56px;
+}
+
+.tlg-auth-register-page .tlg-auth-showcase {
+  width: 100%;
+}
+
+.tlg-auth-register-page .tlg-auth-showcase-content {
+  width: 100%;
+  max-width: none;
+}
+
+.tlg-auth-register-page .tlg-auth-showcase-compact h1 {
+  max-width: 940px;
+  font-size: clamp(2.25rem, 3.6vw, 3.7rem);
+  line-height: 1.02;
+}
+
+.tlg-auth-register-page .tlg-auth-showcase h1 strong {
+  display: inline;
+  margin-left: .18em;
+}
+
+.tlg-auth-register-page .tlg-auth-showcase-content > p {
+  max-width: 850px;
+  margin-top: 14px;
+}
+
+.tlg-auth-register-page .tlg-auth-journey {
+  width: min(100%, 760px);
+  max-width: 760px;
+  margin-top: 22px;
+}
+
+.tlg-auth-register-page .tlg-auth-form-column {
+  width: 100%;
+  min-width: 0;
+}
+
+.tlg-auth-register-page .tlg-auth-register-card {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 24px 26px 26px;
+  border-radius: 20px;
+}
+
+.tlg-auth-register-page .tlg-auth-card-heading {
+  padding-bottom: 4px;
+}
+
+.tlg-auth-register-page .tlg-auth-card-description {
+  max-width: 780px;
+  margin-top: 10px;
+}
+
+/* Three clearly separated horizontal setup areas */
+
+.tlg-auth-register-page .tlg-auth-register-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px !important;
+  margin-top: 20px;
+  align-items: stretch;
+}
+
+.tlg-auth-register-page .tlg-auth-form-section {
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 15px;
+}
+
+.tlg-auth-register-page .tlg-auth-form-section-heading {
+  min-height: 72px;
+  padding: 14px 15px;
+}
+
+.tlg-auth-register-page .tlg-auth-form-section-heading h3 {
+  font-size: .9rem;
+}
+
+.tlg-auth-register-page .tlg-auth-form-section-heading p {
+  max-width: 270px;
+}
+
+.tlg-auth-register-page .tlg-auth-form-section-body {
+  flex: 1 1 auto;
+  padding: 16px;
+  align-content: start;
+}
+
+/* In each horizontal panel, stack its own fields vertically */
+.tlg-auth-register-page .tlg-auth-form-section .tlg-auth-form-grid {
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+/* Birthday controls stay compact across their own panel */
+.tlg-auth-register-page .tlg-birthday-fields {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, .78fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.tlg-auth-register-page .tlg-birthday-panel-v2 {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tlg-auth-register-page .tlg-birthday-panel-v2 .tlg-field-root {
+  margin-top: auto;
+}
+
+/* Form-wide feedback/actions sit below the three horizontal panels */
+.tlg-auth-register-page .tlg-auth-register-form > .tlg-auth-status,
+.tlg-auth-register-page .tlg-auth-register-primary-action {
+  grid-column: 1 / -1;
+}
+
+.tlg-auth-register-page .tlg-auth-register-primary-action {
+  width: min(100%, 440px);
+  justify-self: center;
+  padding-top: 4px;
+}
+
+.tlg-auth-register-page .tlg-auth-register-card > .tlg-auth-divider {
+  width: min(100%, 440px);
+  margin: 22px auto 16px;
+}
+
+.tlg-auth-register-page .tlg-auth-register-card > .tlg-auth-outline-button {
+  width: min(100%, 440px);
+  margin-inline: auto;
+}
+
+.tlg-auth-register-page .tlg-auth-register-card > .tlg-auth-supabase-note {
+  max-width: 520px;
+  margin-inline: auto;
+}
+
+/* Tablet: keep horizontal feeling with two columns */
+@media (max-width: 1100px) and (min-width: 701px) {
+  .tlg-auth-register-page .tlg-auth-register-main {
+    width: min(100% - 36px, 920px);
+    max-width: none;
+  }
+
+  .tlg-auth-register-page .tlg-auth-register-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tlg-auth-register-page .tlg-auth-register-form > .tlg-auth-form-section:nth-of-type(3) {
+    grid-column: 1 / -1;
+  }
+
+  .tlg-auth-register-page .tlg-auth-register-form > .tlg-auth-form-section:nth-of-type(3) .tlg-auth-form-section-body {
+    max-width: 620px;
+    width: 100%;
+  }
+}
+
+/* Mobile: return to a clean vertical stack */
+@media (max-width: 700px) {
+  .tlg-auth-register-page .tlg-auth-register-main {
+    width: calc(100% - 28px);
+    gap: 18px;
+    padding-top: 16px;
+  }
+
+  .tlg-auth-register-page .tlg-auth-showcase-compact h1 {
+    font-size: 2.25rem;
+  }
+
+  .tlg-auth-register-page .tlg-auth-showcase h1 strong {
+    display: block;
+    margin-left: 0;
+  }
+
+  .tlg-auth-register-page .tlg-auth-register-card {
+    padding: 20px 16px;
+  }
+
+  .tlg-auth-register-page .tlg-auth-register-form {
+    grid-template-columns: 1fr;
+    gap: 14px !important;
+  }
+
+  .tlg-auth-register-page .tlg-auth-register-form > .tlg-auth-form-section:nth-of-type(3) {
+    grid-column: auto;
+  }
+
+  .tlg-auth-register-page .tlg-birthday-fields {
+    grid-template-columns: 1fr;
+  }
+}
