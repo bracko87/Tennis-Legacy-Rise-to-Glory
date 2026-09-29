@@ -583,11 +583,13 @@ export default function RegisterPage() {
         title="Confirm your account birthday"
         message={
           <span>
-            You entered <strong>{day} {MONTHS[Math.max(0, Number(month) - 1)]} {year}</strong>.
-            This belongs to your Tennis Legacy account, not your tennis player, and cannot be changed after registration.
+            You entered <strong>{day} {MONTHS[Math.max(0, Number(month) - 1)]}{yearProvided ? ` ${year}` : ''}</strong>.
+            {yearProvided
+              ? ' This account birthday cannot be changed after registration.'
+              : ' You chose not to provide a birth year. Month and day cannot be changed after registration.'}
           </span>
         }
-        detail="Please correct it now if anything is wrong. Your annual 20-Coin Birthday Gift will use this date."
+        detail="Please correct it now if anything is wrong. The annual 20-Coin Birthday Gift uses the month and day."
         confirmLabel="Confirm & Create Account"
         cancelLabel="Go back and edit"
         busy={loading}
