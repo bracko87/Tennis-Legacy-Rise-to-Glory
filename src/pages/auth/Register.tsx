@@ -277,7 +277,7 @@ export default function RegisterPage() {
                         clearStatus()
                       }}
                       className={`tlg-input tlg-input-with-leading-icon ${submitted && !emailValid ? 'tlg-input-error' : ''}`}
-                      placeholder="manager@example.com"
+                      placeholder="you@example.com"
                       autoComplete="email"
                       readOnly={Boolean(inviteEmail)}
                       aria-readonly={Boolean(inviteEmail)}
