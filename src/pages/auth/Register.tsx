@@ -182,12 +182,12 @@ export default function RegisterPage() {
     setConfirmOpen(false)
     setStatus({
       type: 'success',
-      message: 'Account created. Check your inbox and confirm your email address to continue to player creation.',
+      message: 'Account created. Check your inbox and confirm your email. After verification, Tennis Legacy will take you to Create Your Player.',
     })
   }
 
   return (
-    <div className="tlg-auth-page tlg-auth-register-page">
+    <div className="tlg-auth-page tlg-auth-register-page tlg-auth-page-v2">
       <AuthBackground />
 
       <header className="tlg-auth-topbar">
@@ -202,18 +202,29 @@ export default function RegisterPage() {
       </header>
 
       <main className="tlg-auth-main tlg-auth-register-main">
-        <section className="tlg-auth-showcase">
+        <section className="tlg-auth-showcase tlg-auth-showcase-compact">
           <div className="tlg-auth-showcase-content">
-            <span className="tlg-auth-eyebrow">Start Your Journey</span>
-            <h1>Create the manager behind<strong> a future champion.</strong></h1>
+            <span className="tlg-auth-eyebrow">Create Account</span>
+            <h1>Create your account.<strong> Your player comes next.</strong></h1>
             <p>
-              Register your manager account, verify your email and create the ATP or WTA professional who will represent your career in the persistent Tennis Legacy world.
+              First create the real account you use to sign in. After email verification, you will create the fictional tennis player for your career.
             </p>
 
-            <div className="tlg-auth-feature-list">
-              <AuthFeature icon={<UserRound size={18} />} title="Own one professional career" description="Create a realistic identity and build it season after season." />
-              <AuthFeature icon={<Globe2 size={18} />} title="Join a shared universe" description="Your player lives in the same competitive ecosystem as other managers." />
-              <AuthFeature icon={<Trophy size={18} />} title="Build a legacy" description="Rankings, titles, records and career history will persist across seasons." />
+            <div className="tlg-auth-journey" aria-label="Account creation journey">
+              <div className="tlg-auth-journey-step active">
+                <span>1</span>
+                <div><strong>Account</strong><small>Email, password and account details</small></div>
+              </div>
+              <div className="tlg-auth-journey-line" />
+              <div className="tlg-auth-journey-step">
+                <span>2</span>
+                <div><strong>Verify</strong><small>Confirm your email address</small></div>
+              </div>
+              <div className="tlg-auth-journey-line" />
+              <div className="tlg-auth-journey-step">
+                <span>3</span>
+                <div><strong>Player</strong><small>Create your tennis career identity</small></div>
+              </div>
             </div>
           </div>
         </section>
@@ -222,21 +233,21 @@ export default function RegisterPage() {
           <div className="tlg-auth-card tlg-auth-register-card">
             <div className="tlg-auth-card-heading">
               <span className="tlg-auth-card-icon"><UserRound size={21} /></span>
-              <div><span>Manager registration</span><h2>Create account</h2></div>
+              <div><span>Account setup</span><h2>Create Account</h2></div>
             </div>
 
-            <p className="tlg-auth-card-description">Create your secure manager identity before building your professional player.</p>
+            <p className="tlg-auth-card-description">Your account is your login and ownership identity. Your tennis player is created separately after verification.</p>
 
             <form className="tlg-auth-form" onSubmit={handleSubmit} noValidate>
               <div className="tlg-auth-form-grid">
-                <FormField id="register-username" label="Username" required hint={!submitted ? '3–24 characters · letters, numbers, dots, dashes and underscores.' : undefined} error={submitted && !usernameValid ? 'Enter a valid 3–24 character username.' : undefined}>
+                <FormField id="register-username" label="Account username" required hint={!submitted ? 'This identifies your account. Your player will have a separate first and last name.' : undefined} error={submitted && !usernameValid ? 'Enter a valid 3–24 character username.' : undefined}>
                   <div className="tlg-input-shell">
                     <UserRound className="tlg-input-leading-icon" size={18} />
                     <input id="register-username" value={username} onChange={(event) => { setUsername(event.target.value); clearStatus() }} className={`tlg-input tlg-input-with-leading-icon ${submitted && !usernameValid ? 'tlg-input-error' : ''}`} placeholder="Choose a username" autoComplete="username" maxLength={24} />
                   </div>
                 </FormField>
 
-                <FormField id="register-email" label="Email address" required hint={!submitted ? 'One manager account per email address.' : undefined} error={submitted && !emailValid ? 'Enter a valid email address.' : undefined}>
+                <FormField id="register-email" label="Email address" required hint={!submitted ? 'One Tennis Legacy account per email address.' : undefined} error={submitted && !emailValid ? 'Enter a valid email address.' : undefined}>
                   <div className="tlg-input-shell">
                     <Mail className="tlg-input-leading-icon" size={18} />
                     <input
@@ -312,12 +323,12 @@ export default function RegisterPage() {
                 <div className="tlg-birthday-panel-heading">
                   <span><CalendarDays size={19} /></span>
                   <div>
-                    <h3>Birthday</h3>
-                    <p>Used for your annual real-life birthday gift of 20 Coins. It cannot be changed after registration.</p>
+                    <h3>Account holder date of birth</h3>
+                    <p>Used only for the account birthday system and annual birthday gift. This is not your tennis player’s age.</p>
                   </div>
                 </div>
 
-                <p className="tlg-birthday-warning">Check this carefully. Your full date of birth becomes permanent after your manager account is created.</p>
+                <p className="tlg-birthday-warning">Check this carefully. Your date of birth becomes permanent when the account is created.</p>
 
                 <FormField id="birth-month" label="Date of birth" required error={submitted && !birthdayValid ? 'Enter your complete, valid date of birth. The year is required.' : undefined}>
                   <div className="tlg-birthday-fields">
@@ -341,31 +352,31 @@ export default function RegisterPage() {
               )}
 
               <AppButton type="submit" variant="primary" size="large" fullWidth loading={loading} rightIcon={<ArrowRight size={18} />}>
-                {loading ? 'Creating account…' : 'Create account'}
+                {loading ? 'Creating account…' : 'Create Account'}
               </AppButton>
             </form>
 
-            <div className="tlg-auth-divider"><span>Already registered?</span></div>
-            <Link to="/login" className="tlg-auth-outline-button">Sign in to your account <ArrowRight size={17} /></Link>
-            <p className="tlg-auth-supabase-note">Your account is secured by Tennis Legacy Supabase Auth. Game and profile state remains server-side.</p>
+            <div className="tlg-auth-divider"><span>Already have an account?</span></div>
+            <Link to="/login" className="tlg-auth-outline-button">Sign In <ArrowRight size={17} /></Link>
+            <p className="tlg-auth-supabase-note">Secure account authentication. Player and career data remain separate from your login details.</p>
           </div>
         </section>
       </main>
 
-      <footer className="tlg-auth-footer"><span>Tennis Legacy: Rise to Glory</span><span>Secure manager registration</span></footer>
+      <footer className="tlg-auth-footer"><span>Tennis Legacy: Rise to Glory</span><span>Account → Verify → Player</span></footer>
 
       <GameConfirmDialog
         open={confirmOpen}
         eyebrow="Permanent account information"
-        title="Confirm your date of birth"
+        title="Confirm your account birthday"
         message={
           <span>
             You entered <strong>{day} {MONTHS[Math.max(0, Number(month) - 1)]} {year}</strong>.
-            This is your real account-holder birthday and cannot be changed after registration.
+            This belongs to your Tennis Legacy account, not your tennis player, and cannot be changed after registration.
           </span>
         }
         detail="Please correct it now if anything is wrong. Your annual 20-Coin Birthday Gift will use this date."
-        confirmLabel="Confirm & create account"
+        confirmLabel="Confirm & Create Account"
         cancelLabel="Go back and edit"
         busy={loading}
         tone="warning"
