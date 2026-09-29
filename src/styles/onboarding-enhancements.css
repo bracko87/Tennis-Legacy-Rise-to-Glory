@@ -2541,3 +2541,141 @@
     border-radius: 18px;
   }
 }
+
+
+/* Forgot Password text-parity lock 2026-09-29 ------------------------- */
+
+/*
+ * The earlier white-card readability pass used !important rules. Sign In and
+ * Create Account are dark cards now, so explicitly lock their text hierarchy
+ * to the same palette used by Forgot Password.
+ */
+
+.tlg-auth-page-v2 .tlg-auth-card-heading > div > span {
+  color: #6f8ba4 !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-card-heading h2 {
+  color: #f2f8fe !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-card-description {
+  color: #7f96ab !important;
+}
+
+.tlg-auth-page-v2 .tlg-field-label {
+  color: #c6d8e8 !important;
+}
+
+.tlg-auth-page-v2 .tlg-field-required {
+  color: #58b7f1 !important;
+}
+
+.tlg-auth-page-v2 .tlg-field-hint,
+.tlg-auth-page-v2 .tlg-field-message {
+  color: #71889d !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-inline-action {
+  color: #85a7c5 !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-inline-action:hover {
+  color: #cdeaff !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-divider span {
+  color: #587086 !important;
+  background: #091a2e !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-outline-button {
+  color: #b7cee2 !important;
+  border-color: rgba(111, 171, 220, .16) !important;
+  background: rgba(5, 17, 31, .42) !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-outline-button:hover {
+  color: #e0f2ff !important;
+  border-color: rgba(89, 176, 243, .35) !important;
+  background: rgba(10, 35, 59, .6) !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-supabase-note {
+  color: #536a80 !important;
+}
+
+/* Registration-specific dark text hierarchy */
+.tlg-auth-register-page .tlg-register-step-copy strong {
+  color: #cfe3f2 !important;
+}
+
+.tlg-auth-register-page .tlg-register-step.active .tlg-register-step-copy strong {
+  color: #ffffff !important;
+}
+
+.tlg-auth-register-page .tlg-register-step-copy small {
+  color: #607c90 !important;
+}
+
+.tlg-auth-register-page .tlg-register-wizard-stage-head span {
+  color: #59b8f0 !important;
+}
+
+.tlg-auth-register-page .tlg-register-wizard-stage-head h3 {
+  color: #f1f8fd !important;
+}
+
+.tlg-auth-register-page .tlg-register-wizard-stage-head > strong {
+  color: #63869f !important;
+}
+
+.tlg-auth-register-page .tlg-register-step-intro {
+  color: #7894aa !important;
+}
+
+.tlg-auth-register-page .tlg-register-wizard-nav-status {
+  color: #658198 !important;
+}
+
+.tlg-auth-register-page .tlg-birthday-panel-heading h3 {
+  color: #dfeefb !important;
+}
+
+.tlg-auth-register-page .tlg-birthday-panel-heading p {
+  color: #6f879d !important;
+}
+
+.tlg-auth-register-page .tlg-birthday-warning {
+  color: #86a4bf !important;
+  background: rgba(17, 101, 178, .08) !important;
+  border-left-color: #2389da !important;
+}
+
+.tlg-auth-register-page .tlg-optional-year-field > span {
+  color: #6e8799 !important;
+}
+
+.tlg-auth-register-page .tlg-auth-verification-panel .tlg-auth-eyebrow {
+  color: #68baf0 !important;
+}
+
+.tlg-auth-register-page .tlg-auth-verification-panel h3 {
+  color: #f1f8fd !important;
+}
+
+.tlg-auth-register-page .tlg-auth-verification-panel > p {
+  color: #7f98ac !important;
+}
+
+.tlg-auth-register-page .tlg-auth-verification-panel > p strong {
+  color: #cfe3f2 !important;
+}
+
+.tlg-auth-register-page .tlg-auth-verification-next span {
+  color: #67849a !important;
+}
+
+.tlg-auth-register-page .tlg-auth-verification-next strong {
+  color: #dcecf8 !important;
+}
