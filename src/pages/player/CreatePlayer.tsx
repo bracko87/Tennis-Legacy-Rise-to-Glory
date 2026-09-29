@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import {
   AlertTriangle,
+  ArrowLeft,
   ArrowRight,
   Check,
   ChevronDown,
@@ -465,9 +466,16 @@ export default function CreatePlayerPage(): JSX.Element {
           </span>
         </Link>
 
-        <div className="tlg-onboarding-account-state">
-          <span>Account verified</span>
-          <strong>{user?.email ?? 'Authenticated account'}</strong>
+        <div className="tlg-onboarding-topbar-actions">
+          <div className="tlg-onboarding-account-state">
+            <span>Account verified</span>
+            <strong>{user?.email ?? 'Authenticated account'}</strong>
+          </div>
+
+          <Link to="/" className="tlg-onboarding-home-link">
+            <ArrowLeft size={15} />
+            <span>Back to Home</span>
+          </Link>
         </div>
       </header>
 
