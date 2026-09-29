@@ -86,7 +86,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="tlg-auth-page">
+    <div className="tlg-auth-page tlg-auth-page-v2">
       <AuthBackground />
 
       <header className="tlg-auth-topbar">
@@ -101,31 +101,21 @@ export default function LoginPage() {
       </header>
 
       <main className="tlg-auth-main">
-        <section className="tlg-auth-showcase">
+        <section className="tlg-auth-showcase tlg-auth-showcase-compact">
           <div className="tlg-auth-showcase-content">
-            <span className="tlg-auth-eyebrow">Manager Access</span>
-            <h1>Continue building<strong> your tennis legacy.</strong></h1>
+            <span className="tlg-auth-eyebrow">Welcome back</span>
+            <h1>Sign in.<strong> Continue your career.</strong></h1>
             <p>
-              Return to your professional career, manage the next decisions and continue competing in a persistent multiplayer tennis universe.
+              Your Tennis Legacy account takes you straight back to your existing player and career.
             </p>
 
             <div className="tlg-auth-feature-list">
-              <AuthFeature icon={<Globe2 size={18} />} title="Persistent career world" description="Your professional identity remains connected across every game season." />
-              <AuthFeature icon={<CalendarDays size={18} />} title="Manager operations" description="Prepare tournaments, training, travel, recovery and career decisions." />
-              <AuthFeature icon={<Trophy size={18} />} title="Long-term legacy" description="Rankings, titles, records and milestones will build one continuous career history." />
+              <AuthFeature icon={<Globe2 size={18} />} title="One account, one career" description="Your account securely owns your persistent Tennis Legacy player." />
+              <AuthFeature icon={<CalendarDays size={18} />} title="Resume where you left off" description="Sign in and continue directly from your current career state." />
+              <AuthFeature icon={<Trophy size={18} />} title="Your progress stays yours" description="Rankings, titles, records and milestones remain attached to your career." />
             </div>
 
-            <div className="tlg-auth-career-preview">
-              <div className="tlg-auth-career-preview-header">
-                <span><ShieldCheck size={15} /> Secure career access</span>
-                <span className="tlg-auth-preview-status"><i /> Online</span>
-              </div>
-              <div className="tlg-auth-career-preview-body">
-                <div><span>World</span><strong>ATP or WTA</strong></div>
-                <div><span>Career</span><strong>Persistent</strong></div>
-                <div><span>Session</span><strong>Protected</strong></div>
-              </div>
-            </div>
+>
           </div>
         </section>
 
@@ -133,10 +123,10 @@ export default function LoginPage() {
           <div className="tlg-auth-card">
             <div className="tlg-auth-card-heading">
               <span className="tlg-auth-card-icon"><LockKeyhole size={21} /></span>
-              <div><span>Secure manager access</span><h2>Sign in</h2></div>
+              <div><span>Account access</span><h2>Sign In</h2></div>
             </div>
 
-            <p className="tlg-auth-card-description">Enter the credentials for your Tennis Legacy manager account.</p>
+            <p className="tlg-auth-card-description">Use the email and password for your Tennis Legacy account.</p>
 
             <form className="tlg-auth-form" onSubmit={handleSubmit} noValidate>
               <FormField id="login-email" label="Email address" required error={submitted && !emailValid ? 'Enter a valid email address.' : undefined}>
@@ -146,7 +136,7 @@ export default function LoginPage() {
                 </div>
               </FormField>
 
-              <FormField id="login-password" label="Password" required labelAction={<Link className="tlg-auth-inline-action" to="/forgot-password">Reset password by email</Link>} error={submitted && !passwordValid ? 'Enter your account password.' : undefined}>
+              <FormField id="login-password" label="Password" required labelAction={<Link className="tlg-auth-inline-action" to="/forgot-password">Forgot password?</Link>} error={submitted && !passwordValid ? 'Enter your account password.' : undefined}>
                 <div className="tlg-input-shell">
                   <LockKeyhole className="tlg-input-leading-icon" size={18} />
                   <input id="login-password" type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => { setPassword(event.target.value); setStatus(null) }} className={`tlg-input tlg-input-with-leading-icon tlg-input-with-action ${submitted && !passwordValid ? 'tlg-input-error' : ''}`} placeholder="Enter your password" autoComplete="current-password" />
@@ -161,19 +151,19 @@ export default function LoginPage() {
               )}
 
               <AppButton type="submit" variant="primary" size="large" fullWidth loading={loading} rightIcon={<ArrowRight size={18} />}>
-                {loading ? 'Signing in…' : 'Enter manager center'}
+                {loading ? 'Signing in…' : 'Sign In'}
               </AppButton>
             </form>
 
             <div className="tlg-auth-divider"><span>New to Tennis Legacy?</span></div>
-            <Link to="/register" className="tlg-auth-outline-button">Create a manager account <ArrowRight size={17} /></Link>
+            <Link to="/register" className="tlg-auth-outline-button">Create Account <ArrowRight size={17} /></Link>
 
-            <p className="tlg-auth-supabase-note">Secure authentication · server-side career data · protected manager session</p>
+            <p className="tlg-auth-supabase-note">Secure account access · persistent career data</p>
           </div>
         </section>
       </main>
 
-      <footer className="tlg-auth-footer"><span>Tennis Legacy: Rise to Glory</span><span>Persistent multiplayer tennis management</span></footer>
+      <footer className="tlg-auth-footer"><span>Tennis Legacy: Rise to Glory</span><span>Account → Player → Career</span></footer>
     </div>
   )
 }
