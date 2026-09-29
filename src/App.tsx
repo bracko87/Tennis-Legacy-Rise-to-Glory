@@ -50,7 +50,6 @@ import HomePage from './pages/Home'
 import ReferralLandingPage from './pages/ReferralLanding'
 import PublicReviewSubmissionPage from './pages/PublicReviewSubmission'
 import LoginPage from './pages/auth/Login'
-import RegisterPage from './pages/auth/Register'
 import ForgotPasswordPage from './pages/auth/ForgotPassword'
 import ResetPasswordPage from './pages/auth/ResetPassword'
 import CreatePlayerPage from './pages/player/CreatePlayer'
@@ -198,7 +197,7 @@ export default function App() {
           <Route path="/reviews/add" element={<PublicReviewSubmissionPage />} />
 
           <Route path="/login" element={<AnonymousOnly><LoginPage /></AnonymousOnly>} />
-          <Route path="/register" element={<AnonymousOnly><RegisterPage /></AnonymousOnly>} />
+          <Route path="/register" element={<Navigate to="/login" replace />} />
           <Route path="/forgot-password" element={<AnonymousOnly><ForgotPasswordPage /></AnonymousOnly>} />
           <Route path="/reset-password" element={<RequireAuth><ResetPasswordPage /></RequireAuth>} />
           <Route path="/create-player" element={<RequireNoPlayer><CreatePlayerRoute /></RequireNoPlayer>} />
