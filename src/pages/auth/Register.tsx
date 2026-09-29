@@ -6,7 +6,7 @@
  * signup trigger.
  */
 
-import type { FormEvent, ReactNode } from 'react'
+import type { FormEvent } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import {
@@ -16,11 +16,9 @@ import {
   Check,
   Eye,
   EyeOff,
-  Globe2,
   LockKeyhole,
   Mail,
   ShieldCheck,
-  Trophy,
   UserRound,
 } from 'lucide-react'
 
@@ -443,10 +441,6 @@ function PasswordRequirement({ passed, text }: { passed: boolean; text: string }
       {text}
     </span>
   )
-}
-
-function AuthFeature({ icon, title, description }: { icon: ReactNode; title: string; description: string }) {
-  return <div className="tlg-auth-feature"><span className="tlg-auth-feature-icon">{icon}</span><div><strong>{title}</strong><p>{description}</p></div></div>
 }
 
 function AuthBackground() {
