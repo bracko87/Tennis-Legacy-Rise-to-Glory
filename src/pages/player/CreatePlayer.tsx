@@ -30,6 +30,20 @@ import '../../styles/create-player-enhancements.css'
 type PlayerWorld = 'ATP' | 'WTA'
 type PreferredSurface = 'Hard' | 'Clay' | 'Grass'
 type PlayingStyle = 'Aggressive Baseliner' | 'Defensive Baseliner' | 'All-court' | 'Serve & Volley'
+type OnboardingStep = 1 | 2 | 3 | 4 | 5
+
+interface PlayerDraft {
+  step?: number
+  world?: PlayerWorld
+  firstName?: string
+  lastName?: string
+  country?: string
+  homeCity?: string
+  selectedAvatarPath?: string | null
+  preferredSurface?: PreferredSurface | null
+  playingStyle?: PlayingStyle | null
+}
+
 
 interface CountryOption {
   code: string
@@ -61,6 +75,16 @@ interface AvatarOption {
 }
 
 const NAME_PATTERN = /^[\p{L}][\p{L}'’ -]*$/u
+const PLAYER_DRAFT_KEY_PREFIX = 'tlg-create-player-draft:'
+
+const ONBOARDING_STEPS: Array<{ id: OnboardingStep; label: string; short: string }> = [
+  { id: 1, label: 'Career', short: 'Tour' },
+  { id: 2, label: 'Player', short: 'Identity' },
+  { id: 3, label: 'Appearance', short: 'Portrait' },
+  { id: 4, label: 'Profile', short: 'Style' },
+  { id: 5, label: 'Confirm', short: 'Review' },
+]
+
 
 const SURFACES: Array<{ value: PreferredSurface; text: string }> = [
   { value: 'Hard', text: 'Balanced modern surface' },
@@ -101,8 +125,51 @@ export default function CreatePlayerPage(): JSX.Element {
   const [submitted, setSubmitted] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [step, setStep] = useState<OnboardingStep>(1)
+  const [attemptedStep, setAttemptedStep] = useState<OnboardingStep | null>(null)
+  const [draftReady, setDraftReady] = useState(false)
 
   const countryPickerRef = useRef<HTMLDivElement | null>(null)
+  const resumeHomeCityRef = useRef('')
+
+  useEffect(() => {
+    if (!user) {
+      setDraftReady(false)
+      return
+    }
+
+    try {
+      const raw = window.localStorage.getItem(`${PLAYER_DRAFT_KEY_PREFIX}${user.id}`)
+      if (raw) {
+        const draft = JSON.parse(raw) as PlayerDraft
+        if (draft.world === 'ATP' || draft.world === 'WTA') setWorld(draft.world)
+        if (typeof draft.firstName === 'string') setFirstName(draft.firstName)
+        if (typeof draft.lastName === 'string') setLastName(draft.lastName)
+        if (typeof draft.country === 'string') setCountry(draft.country)
+        if (typeof draft.homeCity === 'string') resumeHomeCityRef.current = draft.homeCity
+        if (typeof draft.selectedAvatarPath === 'string' || draft.selectedAvatarPath === null) {
+          setSelectedAvatarPath(draft.selectedAvatarPath)
+        }
+        if (draft.preferredSurface === 'Hard' || draft.preferredSurface === 'Clay' || draft.preferredSurface === 'Grass') {
+          setPreferredSurface(draft.preferredSurface)
+        }
+        if (
+          draft.playingStyle === 'Aggressive Baseliner'
+          || draft.playingStyle === 'Defensive Baseliner'
+          || draft.playingStyle === 'All-court'
+          || draft.playingStyle === 'Serve & Volley'
+        ) {
+          setPlayingStyle(draft.playingStyle)
+        }
+        if (draft.step && draft.step >= 1 && draft.step <= 5) setStep(draft.step as OnboardingStep)
+      }
+    } catch {
+      window.localStorage.removeItem(`${PLAYER_DRAFT_KEY_PREFIX}${user.id}`)
+    } finally {
+      setDraftReady(true)
+    }
+  }, [user])
+
 
   useEffect(() => {
     let active = true
@@ -152,8 +219,13 @@ export default function CreatePlayerPage(): JSX.Element {
       if (error || !data?.length) {
         setHomeCities([])
         setHomeCityLoadError('Home cities could not be loaded for this country. Choose the country again or refresh the page.')
+        resumeHomeCityRef.current = ''
       } else {
-        setHomeCities(data as HomeCityOption[])
+        const rows = data as HomeCityOption[]
+        setHomeCities(rows)
+        const resumeCity = resumeHomeCityRef.current
+        if (resumeCity && rows.some((item) => item.city === resumeCity)) setHomeCity(resumeCity)
+        resumeHomeCityRef.current = ''
       }
       setHomeCitiesLoading(false)
     }
@@ -239,6 +311,39 @@ export default function CreatePlayerPage(): JSX.Element {
     return () => { active = false }
   }, [world, avatarRefreshKey])
 
+  useEffect(() => {
+    if (!user || !draftReady) return
+
+    const draft: PlayerDraft = {
+      step,
+      world,
+      firstName,
+      lastName,
+      country,
+      homeCity,
+      selectedAvatarPath,
+      preferredSurface,
+      playingStyle,
+    }
+
+    window.localStorage.setItem(
+      `${PLAYER_DRAFT_KEY_PREFIX}${user.id}`,
+      JSON.stringify(draft),
+    )
+  }, [
+    user,
+    draftReady,
+    step,
+    world,
+    firstName,
+    lastName,
+    country,
+    homeCity,
+    selectedAvatarPath,
+    preferredSurface,
+    playingStyle,
+  ])
+
   const selectedCountry = useMemo(
     () => countries.find((item) => item.code === country) ?? null,
     [countries, country],
@@ -265,7 +370,41 @@ export default function CreatePlayerPage(): JSX.Element {
   const homeCityValid = homeCity.length > 0 && homeCities.some((item) => item.city === homeCity)
   const surfaceValid = preferredSurface !== null
   const styleValid = playingStyle !== null
-  const formValid = firstNameValid && lastNameValid && countryValid && homeCityValid && surfaceValid && styleValid
+  const identityValid = firstNameValid && lastNameValid && countryValid && homeCityValid
+  const profileValid = surfaceValid && styleValid
+  const formValid = identityValid && profileValid
+
+  const currentStep = ONBOARDING_STEPS.find((item) => item.id === step) ?? ONBOARDING_STEPS[0]
+
+  function scrollToWizardTop() {
+    window.requestAnimationFrame(() => {
+      document.querySelector('.tlg-onboarding-stage-card')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
+    })
+  }
+
+  function goNext() {
+    setAttemptedStep(step)
+    setSaveError(null)
+
+    if (step === 2 && !identityValid) return
+    if (step === 4 && !profileValid) return
+    if (step >= 5) return
+
+    setAttemptedStep(null)
+    setStep((step + 1) as OnboardingStep)
+    scrollToWizardTop()
+  }
+
+  function goBack() {
+    if (step <= 1 || saving) return
+    setAttemptedStep(null)
+    setSaveError(null)
+    setStep((step - 1) as OnboardingStep)
+    scrollToWizardTop()
+  }
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -292,12 +431,14 @@ export default function CreatePlayerPage(): JSX.Element {
         if (error.code === '23505') {
           const existingPlayer = await refreshPlayer()
           if (existingPlayer) {
+            window.localStorage.removeItem(`${PLAYER_DRAFT_KEY_PREFIX}${user.id}`)
             navigate('/game/overview', { replace: true })
             return
           }
 
           setSelectedAvatarPath(null)
           setAvatarRefreshKey((value) => value + 1)
+          setStep(3)
           setSaving(false)
           setSaveError('That player portrait was just selected by another manager. Choose another available portrait and try again.')
           return
@@ -306,6 +447,7 @@ export default function CreatePlayerPage(): JSX.Element {
       }
 
       await refreshPlayer()
+      window.localStorage.removeItem(`${PLAYER_DRAFT_KEY_PREFIX}${user.id}`)
       navigate('/game/overview', { replace: true })
     } catch (error) {
       console.error('Unable to create Tennis Legacy player:', error)
@@ -315,7 +457,7 @@ export default function CreatePlayerPage(): JSX.Element {
   }
 
   return (
-    <div className="tlg-onboarding-page">
+    <div className="tlg-onboarding-page tlg-onboarding-page-v2">
       <header className="tlg-onboarding-topbar">
         <Link to="/" className="tlg-brand" aria-label="Tennis Legacy homepage">
           <span className="tlg-brand-mark" aria-hidden="true" />
@@ -324,237 +466,473 @@ export default function CreatePlayerPage(): JSX.Element {
             <span className="tlg-brand-subtitle">Rise to Glory</span>
           </span>
         </Link>
-        <div className="tlg-onboarding-progress" aria-label="Onboarding progress">
-          <span>Account</span><i className="active" />
-          <span>Player</span><i className="active" />
-          <span>Career</span><i />
+
+        <div className="tlg-onboarding-account-state">
+          <span>Account verified</span>
+          <strong>{user?.email ?? 'Authenticated account'}</strong>
         </div>
       </header>
 
-      <main className="tlg-onboarding-main">
-        <div className="tlg-onboarding-hero">
+      <main className="tlg-onboarding-main tlg-onboarding-main-v2">
+        <div className="tlg-onboarding-hero tlg-onboarding-hero-v2">
           <div>
-            <p className="tlg-page-heading-eyebrow">Build your professional</p>
-            <h1>Create your player identity.</h1>
-            <p>Choose the identity that will represent your entire Tennis Legacy career. Your world and core player identity become part of the shared multiplayer universe.</p>
+            <p className="tlg-page-heading-eyebrow">Create Your Player</p>
+            <h1>Build the player who starts your career.</h1>
+            <p>
+              Your account is already created. These steps define only your fictional tennis player and starting career identity.
+            </p>
           </div>
         </div>
 
-        <form className="tlg-onboarding-grid" onSubmit={handleCreate} noValidate>
-          <div className="space-y-4">
-            <section className="tlg-onboarding-section">
-              <header className="tlg-onboarding-section-header">
-                <div><span>01 · Identity</span><h2>Professional profile</h2></div>
-                <UserRound size={20} className="text-[color:var(--tlg-cyan)]" />
-              </header>
-              <div className="tlg-onboarding-section-body space-y-4">
-                <div className="tlg-onboarding-form-grid">
-                  <FormField id="first-name" label="First name" required error={submitted && !firstNameValid ? 'Use a valid first name with letters only.' : undefined}>
-                    <input id="first-name" value={firstName} onChange={(event) => { setFirstName(event.target.value); setSaveError(null) }} className={`tlg-input ${submitted && !firstNameValid ? 'tlg-input-error' : ''}`} placeholder="First name" maxLength={40} autoComplete="off" />
-                  </FormField>
-                  <FormField id="last-name" label="Last name" required error={submitted && !lastNameValid ? 'Use a valid last name with letters only.' : undefined}>
-                    <input id="last-name" value={lastName} onChange={(event) => { setLastName(event.target.value); setSaveError(null) }} className={`tlg-input ${submitted && !lastNameValid ? 'tlg-input-error' : ''}`} placeholder="Last name" maxLength={40} autoComplete="off" />
-                  </FormField>
-                </div>
+        <nav className="tlg-onboarding-stepper" aria-label="Player creation progress">
+          {ONBOARDING_STEPS.map((item) => {
+            const active = item.id === step
+            const complete = item.id < step
 
-                <FormField id="country" label="Representing country" required error={submitted && !countryValid ? 'Choose the country your player represents.' : undefined}>
-                  <div className="tlg-country-picker" ref={countryPickerRef}>
-                    <button id="country" type="button" className={`tlg-country-trigger ${countryOpen ? 'open' : ''} ${submitted && !countryValid ? 'tlg-input-error' : ''}`} onClick={() => { if (!countriesLoading) { setCountryOpen((value) => !value); setCountryQuery('') } }} aria-haspopup="listbox" aria-expanded={countryOpen} disabled={countriesLoading}>
-                      <span className="tlg-country-trigger-main">
-                        {selectedCountry ? <><CountryFlag code={selectedCountry.code} name={selectedCountry.name} /><span>{selectedCountry.name}</span></> : <span className="tlg-country-trigger-placeholder">{countriesLoading ? 'Loading countries…' : 'Choose a country'}</span>}
-                      </span>
-                      <ChevronDown size={18} />
-                    </button>
-                    {countryOpen && (
-                      <div className="tlg-country-menu">
-                        <div className="tlg-country-search"><Search size={16} /><input autoFocus value={countryQuery} onChange={(event) => setCountryQuery(event.target.value)} placeholder="Search country…" aria-label="Search countries" onKeyDown={(event) => { if (event.key === 'Escape') setCountryOpen(false) }} /></div>
-                        <div className="tlg-country-options" role="listbox" aria-label="Countries">
-                          {filteredCountries.map((item) => (
-                            <button key={item.code} type="button" role="option" aria-selected={country === item.code} className={`tlg-country-option ${country === item.code ? 'selected' : ''}`} onClick={() => { setCountry(item.code); setCountryOpen(false); setCountryQuery(''); setHomeCity(''); setSaveError(null) }}>
-                              <CountryFlag code={item.code} name={item.name} /><span>{item.name}</span>{country === item.code && <Check size={15} />}
-                            </button>
-                          ))}
-                          {!filteredCountries.length && <div className="tlg-country-empty">No country matches your search.</div>}
-                        </div>
-                      </div>
-                    )}
+            return (
+              <div
+                key={item.id}
+                className={`tlg-onboarding-step ${active ? 'active' : ''} ${complete ? 'complete' : ''}`}
+                aria-current={active ? 'step' : undefined}
+              >
+                <span className="tlg-onboarding-step-number">{complete ? <Check size={14} /> : item.id}</span>
+                <span className="tlg-onboarding-step-copy">
+                  <strong>{item.label}</strong>
+                  <small>{item.short}</small>
+                </span>
+              </div>
+            )
+          })}
+        </nav>
+
+        <form className="tlg-onboarding-wizard" onSubmit={handleCreate} noValidate>
+          <section className="tlg-onboarding-stage-card">
+            <header className="tlg-onboarding-stage-header">
+              <div>
+                <span>Step {step} of 5 · {currentStep.label}</span>
+                <h2>
+                  {step === 1 && 'Choose your professional tour'}
+                  {step === 2 && 'Create your player identity'}
+                  {step === 3 && 'Choose your appearance'}
+                  {step === 4 && 'Set your playing profile'}
+                  {step === 5 && 'Review and start your career'}
+                </h2>
+              </div>
+              <strong>{Math.round((step / 5) * 100)}%</strong>
+            </header>
+
+            <div className="tlg-onboarding-stage-body">
+              {step === 1 && (
+                <div className="tlg-onboarding-stage-content">
+                  <p className="tlg-onboarding-stage-intro">
+                    Choose the professional world your player will join. This defines the competitive ecosystem for the career.
+                  </p>
+
+                  <div className="tlg-world-grid tlg-world-grid-v2">
+                    {(['ATP', 'WTA'] as PlayerWorld[]).map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        className={`tlg-world-option ${world === option ? 'active' : ''}`}
+                        onClick={() => {
+                          setWorld(option)
+                          setSelectedAvatarPath(null)
+                          setSaveError(null)
+                        }}
+                        aria-pressed={world === option}
+                      >
+                        <span className="tlg-world-option-badge">{world === option ? 'SELECTED' : 'CHOOSE TOUR'}</span>
+                        <strong>{option}</strong>
+                        <p>
+                          {option === 'ATP'
+                            ? 'Join the men’s professional multiplayer world.'
+                            : 'Join the women’s professional multiplayer world.'}
+                        </p>
+                        {world === option && <Check size={18} className="absolute right-4 top-4 text-[color:var(--tlg-cyan)]" />}
+                      </button>
+                    ))}
                   </div>
-                </FormField>
+                </div>
+              )}
 
-                <FormField
-                  id="home-city"
-                  label="Home city"
-                  required
-                  hint="Your home city is your player’s permanent home base. It is used for travel origins and will also support future private-life features."
-                  error={submitted && !homeCityValid ? (homeCityLoadError ?? 'Choose one of the 10 available home cities for your country.') : undefined}
-                >
-                  <div className="tlg-home-city-control">
-                    <select
-                      id="home-city"
-                      value={homeCity}
-                      onChange={(event) => { setHomeCity(event.target.value); setSaveError(null) }}
-                      className={`tlg-input tlg-home-city-select ${submitted && !homeCityValid ? 'tlg-input-error' : ''}`}
-                      disabled={!country || homeCitiesLoading || Boolean(homeCityLoadError)}
+              {step === 2 && (
+                <div className="tlg-onboarding-stage-content">
+                  <p className="tlg-onboarding-stage-intro">
+                    This is your in-game player, not your login account. Use a realistic first and last name and choose the country and permanent home city for the career.
+                  </p>
+
+                  <div className="tlg-onboarding-form-grid">
+                    <FormField
+                      id="first-name"
+                      label="Player first name"
+                      required
+                      error={(attemptedStep === 2 || submitted) && !firstNameValid ? 'Use a valid first name with letters only.' : undefined}
                     >
-                      <option value="">
-                        {!country
-                          ? 'Choose a country first'
-                          : homeCitiesLoading
-                            ? 'Loading 10 home cities…'
-                            : homeCityLoadError
-                              ? 'Home cities unavailable'
-                              : 'Choose your home city'}
-                      </option>
-                      {homeCities.map((item) => <option key={`${country}-${item.city}`} value={item.city}>{item.city}</option>)}
-                    </select>
-                    {selectedCountry && homeCity && (
-                      <span className="tlg-home-city-selected" aria-label={`${homeCity}, ${selectedCountry.name}`}>
-                        <span>{homeCity}</span>
-                        <CountryFlag code={selectedCountry.code} name={selectedCountry.name} />
-                      </span>
+                      <input
+                        id="first-name"
+                        value={firstName}
+                        onChange={(event) => { setFirstName(event.target.value); setSaveError(null) }}
+                        className={`tlg-input ${(attemptedStep === 2 || submitted) && !firstNameValid ? 'tlg-input-error' : ''}`}
+                        placeholder="First name"
+                        maxLength={40}
+                        autoComplete="off"
+                      />
+                    </FormField>
+
+                    <FormField
+                      id="last-name"
+                      label="Player last name"
+                      required
+                      error={(attemptedStep === 2 || submitted) && !lastNameValid ? 'Use a valid last name with letters only.' : undefined}
+                    >
+                      <input
+                        id="last-name"
+                        value={lastName}
+                        onChange={(event) => { setLastName(event.target.value); setSaveError(null) }}
+                        className={`tlg-input ${(attemptedStep === 2 || submitted) && !lastNameValid ? 'tlg-input-error' : ''}`}
+                        placeholder="Last name"
+                        maxLength={40}
+                        autoComplete="off"
+                      />
+                    </FormField>
+                  </div>
+
+                  <FormField
+                    id="country"
+                    label="Nationality"
+                    required
+                    error={(attemptedStep === 2 || submitted) && !countryValid ? 'Choose the country your player represents.' : undefined}
+                  >
+                    <div className="tlg-country-picker" ref={countryPickerRef}>
+                      <button
+                        id="country"
+                        type="button"
+                        className={`tlg-country-trigger ${countryOpen ? 'open' : ''} ${(attemptedStep === 2 || submitted) && !countryValid ? 'tlg-input-error' : ''}`}
+                        onClick={() => {
+                          if (!countriesLoading) {
+                            setCountryOpen((value) => !value)
+                            setCountryQuery('')
+                          }
+                        }}
+                        aria-haspopup="listbox"
+                        aria-expanded={countryOpen}
+                        disabled={countriesLoading}
+                      >
+                        <span className="tlg-country-trigger-main">
+                          {selectedCountry
+                            ? <><CountryFlag code={selectedCountry.code} name={selectedCountry.name} /><span>{selectedCountry.name}</span></>
+                            : <span className="tlg-country-trigger-placeholder">{countriesLoading ? 'Loading countries…' : 'Choose a country'}</span>}
+                        </span>
+                        <ChevronDown size={18} />
+                      </button>
+
+                      {countryOpen && (
+                        <div className="tlg-country-menu">
+                          <div className="tlg-country-search">
+                            <Search size={16} />
+                            <input
+                              autoFocus
+                              value={countryQuery}
+                              onChange={(event) => setCountryQuery(event.target.value)}
+                              placeholder="Search country…"
+                              aria-label="Search countries"
+                              onKeyDown={(event) => { if (event.key === 'Escape') setCountryOpen(false) }}
+                            />
+                          </div>
+
+                          <div className="tlg-country-options" role="listbox" aria-label="Countries">
+                            {filteredCountries.map((item) => (
+                              <button
+                                key={item.code}
+                                type="button"
+                                role="option"
+                                aria-selected={country === item.code}
+                                className={`tlg-country-option ${country === item.code ? 'selected' : ''}`}
+                                onClick={() => {
+                                  setCountry(item.code)
+                                  setCountryOpen(false)
+                                  setCountryQuery('')
+                                  setHomeCity('')
+                                  setSaveError(null)
+                                }}
+                              >
+                                <CountryFlag code={item.code} name={item.name} />
+                                <span>{item.name}</span>
+                                {country === item.code && <Check size={15} />}
+                              </button>
+                            ))}
+                            {!filteredCountries.length && <div className="tlg-country-empty">No country matches your search.</div>}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </FormField>
+
+                  <FormField
+                    id="home-city"
+                    label="Permanent home city"
+                    required
+                    hint="Your home city is used as the starting point for travel and future home-based systems."
+                    error={(attemptedStep === 2 || submitted) && !homeCityValid ? (homeCityLoadError ?? 'Choose one of the available home cities for your country.') : undefined}
+                  >
+                    <div className="tlg-home-city-control">
+                      <select
+                        id="home-city"
+                        value={homeCity}
+                        onChange={(event) => { setHomeCity(event.target.value); setSaveError(null) }}
+                        className={`tlg-input tlg-home-city-select ${(attemptedStep === 2 || submitted) && !homeCityValid ? 'tlg-input-error' : ''}`}
+                        disabled={!country || homeCitiesLoading || Boolean(homeCityLoadError)}
+                      >
+                        <option value="">
+                          {!country
+                            ? 'Choose a country first'
+                            : homeCitiesLoading
+                              ? 'Loading home cities…'
+                              : homeCityLoadError
+                                ? 'Home cities unavailable'
+                                : 'Choose your home city'}
+                        </option>
+                        {homeCities.map((item) => (
+                          <option key={`${country}-${item.city}`} value={item.city}>{item.city}</option>
+                        ))}
+                      </select>
+
+                      {selectedCountry && homeCity && (
+                        <span className="tlg-home-city-selected">
+                          <span>{homeCity}</span>
+                          <CountryFlag code={selectedCountry.code} name={selectedCountry.name} />
+                        </span>
+                      )}
+                    </div>
+                  </FormField>
+
+                  <div className="tlg-real-name-policy tlg-real-name-policy-v2" role="note">
+                    <AlertTriangle size={20} aria-hidden="true" />
+                    <div>
+                      <strong>REALISTIC PLAYER NAME REQUIRED</strong>
+                      <p>Use a normal first and last name. Gamer tags, joke identities, offensive names and impersonating a real professional player are not allowed.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {step === 3 && (
+                <div className="tlg-onboarding-stage-content">
+                  <div className="tlg-avatar-picker-header">
+                    <div>
+                      <strong>Choose a {world} portrait</strong>
+                      <p>Portrait selection is optional. Used portraits are unavailable to other active careers.</p>
+                    </div>
+                    {!avatarsLoading && avatars.length > 0 && <span className="tlg-avatar-count">{availableAvatarCount} available</span>}
+                  </div>
+
+                  {avatarsLoading ? (
+                    <div className="tlg-avatar-state">Loading {world} player portraits…</div>
+                  ) : avatarError ? (
+                    <div className="tlg-avatar-state">{avatarError}</div>
+                  ) : avatars.length === 0 ? (
+                    <div className="tlg-avatar-state">No {world} portraits are available in the avatar library yet.</div>
+                  ) : (
+                    <div className="tlg-avatar-grid tlg-avatar-grid-v2" aria-label={`${world} player portraits`}>
+                      {avatars.map((avatar) => {
+                        const selected = selectedAvatarPath === avatar.path
+                        return (
+                          <button
+                            key={avatar.path}
+                            type="button"
+                            className={`tlg-avatar-option ${selected ? 'selected' : ''} ${!avatar.available ? 'unavailable' : ''}`}
+                            disabled={!avatar.available}
+                            onClick={() => { setSelectedAvatarPath(avatar.path); setSaveError(null) }}
+                            aria-label={avatar.available ? `Select ${avatar.label}` : `${avatar.label} is already in use`}
+                            aria-pressed={selected}
+                          >
+                            <img src={avatar.signedUrl} alt="" loading="lazy" />
+                            {selected && <span className="tlg-avatar-selected-mark"><Check size={15} /></span>}
+                            {!avatar.available && <span className="tlg-avatar-in-use">In use</span>}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  <div className="tlg-avatar-choice-footer">
+                    <span>{selectedAvatar ? 'Portrait selected' : 'No portrait selected — you can continue without one.'}</span>
+                    {selectedAvatar && (
+                      <button type="button" onClick={() => setSelectedAvatarPath(null)}>Remove selection</button>
                     )}
                   </div>
-                </FormField>
-
-                <div className="tlg-real-name-policy" role="note">
-                  <AlertTriangle size={22} aria-hidden="true" />
-                  <div>
-                    <strong>REAL FIRST AND LAST NAME REQUIRED</strong>
-                    <p>Your player identity must use a normal real-person first name and last name. Numbers, gamer tags, nicknames instead of names, joke/fake identities, offensive names, and impersonating an existing professional tennis player are not allowed.</p>
-                    <p>Accounts that deliberately ignore this rule may have the player removed or access suspended by game moderation.</p>
-                  </div>
                 </div>
-              </div>
-            </section>
+              )}
 
-            <section className="tlg-onboarding-section">
-              <header className="tlg-onboarding-section-header">
-                <div><span>02 · Competition</span><h2>Choose your professional world</h2></div>
-                <Globe2 size={20} className="text-[color:var(--tlg-cyan)]" />
-              </header>
-              <div className="tlg-onboarding-section-body">
-                <div className="tlg-world-grid">
-                  {(['ATP', 'WTA'] as PlayerWorld[]).map((option) => (
-                    <button key={option} type="button" className={`tlg-world-option ${world === option ? 'active' : ''}`} onClick={() => { setWorld(option); setSelectedAvatarPath(null); setSaveError(null) }} aria-pressed={world === option}>
-                      <span className="tlg-world-option-badge">{world === option ? 'SELECTED' : 'WORLD'}</span>
-                      <strong>{option}</strong>
-                      <p>{option === 'ATP' ? 'Enter the men’s professional multiplayer ecosystem.' : 'Enter the women’s professional multiplayer ecosystem.'}</p>
-                      {world === option && <Check size={17} className="absolute right-4 top-4 text-[color:var(--tlg-cyan)]" />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            <section className="tlg-onboarding-section">
-              <header className="tlg-onboarding-section-header">
-                <div><span>03 · Presentation</span><h2>Player portrait</h2></div>
-                <ImagePlus size={20} className="text-[color:var(--tlg-cyan)]" />
-              </header>
-              <div className="tlg-onboarding-section-body">
-                <div className="tlg-avatar-picker-header">
-                  <div><strong>Choose a {world} portrait · optional</strong><p>Curated portraits are shared across the game world. A portrait already used by another active player cannot be selected.</p></div>
-                  {!avatarsLoading && avatars.length > 0 && <span className="tlg-avatar-count">{availableAvatarCount} available</span>}
-                </div>
-
-                {avatarsLoading ? <div className="tlg-avatar-state">Loading {world} player portraits…</div> : avatarError ? <div className="tlg-avatar-state">{avatarError}</div> : avatars.length === 0 ? <div className="tlg-avatar-state">No {world} portraits are available in the avatar library yet.</div> : (
-                  <div className="tlg-avatar-grid" aria-label={`${world} player portraits`}>
-                    {avatars.map((avatar) => {
-                      const selected = selectedAvatarPath === avatar.path
-                      return (
-                        <button key={avatar.path} type="button" className={`tlg-avatar-option ${selected ? 'selected' : ''} ${!avatar.available ? 'unavailable' : ''}`} disabled={!avatar.available} onClick={() => { setSelectedAvatarPath(avatar.path); setSaveError(null) }} aria-label={avatar.available ? `Select ${avatar.label}` : `${avatar.label} is already in use`} aria-pressed={selected}>
-                          <img src={avatar.signedUrl} alt="" loading="lazy" />
-                          {selected && <span className="tlg-avatar-selected-mark"><Check size={15} /></span>}
-                          {!avatar.available && <span className="tlg-avatar-in-use">In use</span>}
+              {step === 4 && (
+                <div className="tlg-onboarding-stage-content tlg-onboarding-profile-stage">
+                  <section className={`tlg-surface-preference-card ${(attemptedStep === 4 || submitted) && !surfaceValid ? 'tlg-surface-preference-error' : ''}`}>
+                    <div className="tlg-surface-preference-head">
+                      <span>PLAYING PROFILE</span>
+                      <h2>Preferred surface</h2>
+                      <p>Choose the surface your player prefers. It redistributes starting tennis skills but does not change total starting strength.</p>
+                    </div>
+                    <div className="tlg-surface-options">
+                      {SURFACES.map((surface) => (
+                        <button
+                          key={surface.value}
+                          type="button"
+                          className={`tlg-surface-option ${preferredSurface === surface.value ? 'selected' : ''}`}
+                          onClick={() => { setPreferredSurface(surface.value); setSaveError(null) }}
+                          aria-pressed={preferredSurface === surface.value}
+                        >
+                          <span className={`tlg-surface-dot tlg-surface-dot-${surface.value.toLowerCase()}`}><Circle size={13} /></span>
+                          <span><strong>{surface.value}</strong><small>{surface.text}</small></span>
+                          {preferredSurface === surface.value && <Check size={17} />}
                         </button>
-                      )
-                    })}
+                      ))}
+                    </div>
+                  </section>
+
+                  <section className={`tlg-style-preference-card ${(attemptedStep === 4 || submitted) && !styleValid ? 'tlg-style-preference-error' : ''}`}>
+                    <div className="tlg-style-preference-head">
+                      <span>PLAYING PROFILE</span>
+                      <h2>Playing style</h2>
+                      <p>Choose how your existing skill profile will be expressed during matches. This is not a flat strength bonus.</p>
+                    </div>
+                    <div className="tlg-style-options">
+                      {PLAYING_STYLES.map((style) => (
+                        <button
+                          key={style.value}
+                          type="button"
+                          className={`tlg-style-option ${playingStyle === style.value ? 'selected' : ''}`}
+                          onClick={() => { setPlayingStyle(style.value); setSaveError(null) }}
+                          aria-pressed={playingStyle === style.value}
+                        >
+                          <span><strong>{style.value}</strong><small>{style.text}</small></span>
+                          <em>{playingStyle === style.value ? 'Selected' : 'Choose'}</em>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+
+                  {(attemptedStep === 4 || submitted) && (!surfaceValid || !styleValid) && (
+                    <div className="tlg-auth-status tlg-auth-status-information" role="alert">
+                      <ShieldCheck size={18} />
+                      <span>Choose both a preferred surface and playing style before continuing.</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {step === 5 && (
+                <div className="tlg-onboarding-stage-content">
+                  <div className="tlg-onboarding-review">
+                    <div className="tlg-onboarding-review-player">
+                      <div className="tlg-onboarding-review-avatar">
+                        {selectedAvatar
+                          ? <img src={selectedAvatar.signedUrl} alt="Selected player portrait" />
+                          : <UserRound size={42} />}
+                      </div>
+                      <div>
+                        <span>Ready to start</span>
+                        <h3>{cleanFirstName} {cleanLastName}</h3>
+                        <p>{world} · {selectedCountryName}</p>
+                      </div>
+                    </div>
+
+                    <div className="tlg-onboarding-review-grid">
+                      <div><span>Tour</span><strong>{world}</strong></div>
+                      <div><span>Nationality</span><strong>{selectedCountryName}</strong></div>
+                      <div><span>Home city</span><strong>{homeCity}</strong></div>
+                      <div><span>Portrait</span><strong>{selectedAvatar ? 'Selected' : 'None'}</strong></div>
+                      <div><span>Preferred surface</span><strong>{preferredSurface ?? 'Not selected'}</strong></div>
+                      <div><span>Playing style</span><strong>{playingStyle ?? 'Not selected'}</strong></div>
+                    </div>
+
+                    <div className="tlg-onboarding-start-note">
+                      <ShieldCheck size={18} />
+                      <p>
+                        <strong>Start Career</strong> creates this player once and starts the existing Tennis Legacy career initialization for skills, equipment, finance, rankings and other starting systems.
+                      </p>
+                    </div>
                   </div>
-                )}
-                <p className="tlg-avatar-note">Portrait upload is disabled during player creation. Custom image upload can be offered later from the in-game profile settings.</p>
-              </div>
-            </section>
+                </div>
+              )}
 
-            {saveError && <div className="tlg-auth-status tlg-auth-status-information" role="alert"><ShieldCheck size={18} /><span>{saveError}</span></div>}
-            {submitted && !surfaceValid && <div className="tlg-auth-status tlg-auth-status-information" role="alert"><ShieldCheck size={18} /><span>Choose your preferred playing surface before entering Tennis Legacy.</span></div>}
-            {submitted && !styleValid && <div className="tlg-auth-status tlg-auth-status-information" role="alert"><ShieldCheck size={18} /><span>Choose your player style before entering Tennis Legacy.</span></div>}
-
-            <div className="tlg-onboarding-actions">
-              <AppButton type="submit" variant="primary" size="large" loading={saving} disabled={!user || countriesLoading || homeCitiesLoading} rightIcon={<ArrowRight size={18} />}>
-                {saving ? 'Creating player…' : 'Enter Tennis Legacy'}
-              </AppButton>
+              {saveError && (
+                <div className="tlg-auth-status tlg-auth-status-information tlg-onboarding-save-error" role="alert">
+                  <ShieldCheck size={18} />
+                  <span>{saveError}</span>
+                </div>
+              )}
             </div>
-          </div>
 
-          <div className="tlg-player-onboarding-side">
-            <aside className="tlg-player-preview-card">
-              <div className="tlg-player-preview-visual">
-                {selectedAvatar ? <img src={selectedAvatar.signedUrl} alt="Selected player portrait" /> : <div className="tlg-player-preview-placeholder"><UserRound size={45} /></div>}
+            <footer className="tlg-onboarding-nav">
+              <div>
+                {step > 1 && (
+                  <AppButton type="button" variant="secondary" size="large" onClick={goBack} disabled={saving}>
+                    Back
+                  </AppButton>
+                )}
               </div>
-              <div className="tlg-player-preview-copy">
-                <p className="tlg-page-heading-eyebrow">Career identity</p>
-                <h3>{`${firstName} ${lastName}`.trim() || 'Your Player'}</h3>
-                <p className="tlg-player-preview-country">{selectedCountry && <CountryFlag code={selectedCountry.code} name={selectedCountry.name} />}<span>{selectedCountryName}</span></p>
-                <div className="tlg-player-preview-tags">
-                  <span className="tlg-player-preview-tag">{world} World</span>
-                  <span className="tlg-player-preview-tag">New Professional</span>
-                  {preferredSurface && <span className="tlg-player-preview-tag">{preferredSurface}</span>}
-                  {playingStyle && <span className="tlg-player-preview-tag">{playingStyle}</span>}
-                </div>
-                <div className="tlg-player-preview-meta">
-                  <div className="tlg-player-preview-meta-row"><span>Home base</span><strong>{homeCity || 'Choose a city'}</strong></div>
-                  <div className="tlg-player-preview-meta-row"><span>Manager account</span><strong>{user?.email ?? 'Authenticated'}</strong></div>
-                  <div className="tlg-player-preview-meta-row"><span>Moderation</span><strong>Review on creation</strong></div>
-                  <div className="tlg-player-preview-meta-row"><span>Starting technical points</span><strong>440–455 · individually varied</strong></div>
-                </div>
-              </div>
-            </aside>
 
-            <section className={`tlg-surface-preference-card ${submitted && !surfaceValid ? 'tlg-surface-preference-error' : ''}`} aria-labelledby="preferred-surface-heading">
-              <div className="tlg-surface-preference-head">
-                <span>04 · SURFACE IDENTITY</span>
-                <h2 id="preferred-surface-heading">Preferred surface</h2>
-                <p>Choose the surface your player prefers. It redistributes starting tennis skills but never changes the total starting strength.</p>
-              </div>
-              <div className="tlg-surface-options">
-                {SURFACES.map((surface) => (
-                  <button key={surface.value} type="button" className={`tlg-surface-option ${preferredSurface === surface.value ? 'selected' : ''}`} onClick={() => { setPreferredSurface(surface.value); setSaveError(null) }} aria-pressed={preferredSurface === surface.value}>
-                    <span className={`tlg-surface-dot tlg-surface-dot-${surface.value.toLowerCase()}`}><Circle size={13} /></span>
-                    <span><strong>{surface.value}</strong><small>{surface.text}</small></span>
-                    {preferredSurface === surface.value && <Check size={17} />}
-                  </button>
-                ))}
-              </div>
-              <p className="tlg-surface-future-note">New human players begin with a varied 440–455 technical-point profile. Preferred surface changes the distribution while individual variation prevents identical starting players.</p>
-            </section>
+              <span className="tlg-onboarding-nav-status">
+                {step < 5 ? 'Your progress is saved on this device.' : 'Review everything before creating the career.'}
+              </span>
 
-            <section className={`tlg-style-preference-card ${submitted && !styleValid ? 'tlg-style-preference-error' : ''}`} aria-labelledby="playing-style-heading">
-              <div className="tlg-style-preference-head">
-                <span>05 · PLAYER STYLE</span>
-                <h2 id="playing-style-heading">Choose your playing style</h2>
-                <p>Playing style changes how your existing skills are used during matches. It is not a flat bonus: the style is strongest only when your skill profile supports it.</p>
+              {step < 5 ? (
+                <AppButton
+                  type="button"
+                  variant="primary"
+                  size="large"
+                  onClick={goNext}
+                  disabled={countriesLoading || homeCitiesLoading}
+                  rightIcon={<ArrowRight size={18} />}
+                >
+                  Continue
+                </AppButton>
+              ) : (
+                <AppButton
+                  type="submit"
+                  variant="primary"
+                  size="large"
+                  loading={saving}
+                  disabled={!user || !formValid}
+                  rightIcon={<ArrowRight size={18} />}
+                >
+                  {saving ? 'Starting your career…' : 'Start Career'}
+                </AppButton>
+              )}
+            </footer>
+          </section>
+
+          <aside className="tlg-player-preview-card tlg-player-preview-card-v2">
+            <div className="tlg-player-preview-visual">
+              {selectedAvatar
+                ? <img src={selectedAvatar.signedUrl} alt="Selected player portrait" />
+                : <div className="tlg-player-preview-placeholder"><UserRound size={45} /></div>}
+            </div>
+            <div className="tlg-player-preview-copy">
+              <p className="tlg-page-heading-eyebrow">Your career</p>
+              <h3>{`${firstName} ${lastName}`.trim() || 'Your Player'}</h3>
+              <p className="tlg-player-preview-country">
+                {selectedCountry && <CountryFlag code={selectedCountry.code} name={selectedCountry.name} />}
+                <span>{selectedCountryName}</span>
+              </p>
+              <div className="tlg-player-preview-tags">
+                <span className="tlg-player-preview-tag">{world}</span>
+                {preferredSurface && <span className="tlg-player-preview-tag">{preferredSurface}</span>}
+                {playingStyle && <span className="tlg-player-preview-tag">{playingStyle}</span>}
               </div>
-              <div className="tlg-style-options">
-                {PLAYING_STYLES.map((style) => (
-                  <button
-                    key={style.value}
-                    type="button"
-                    className={`tlg-style-option ${playingStyle === style.value ? 'selected' : ''}`}
-                    onClick={() => { setPlayingStyle(style.value); setSaveError(null) }}
-                    aria-pressed={playingStyle === style.value}
-                  >
-                    <span><strong>{style.value}</strong><small>{style.text}</small></span>
-                    <em>{playingStyle === style.value ? 'Selected' : 'Choose'}</em>
-                  </button>
-                ))}
+              <div className="tlg-player-preview-meta">
+                <div className="tlg-player-preview-meta-row"><span>Current step</span><strong>{currentStep.label}</strong></div>
+                <div className="tlg-player-preview-meta-row"><span>Home base</span><strong>{homeCity || 'Not selected'}</strong></div>
+                <div className="tlg-player-preview-meta-row"><span>Account</span><strong>{user?.email ?? 'Authenticated'}</strong></div>
+                <div className="tlg-player-preview-meta-row"><span>Starting technical points</span><strong>440–455 · varied</strong></div>
               </div>
-              <p className="tlg-style-note">The choice is permanent for the initial career identity. Development later comes from training and gameplay, not from join date or starting rank.</p>
-            </section>
-          </div>
+            </div>
+          </aside>
         </form>
       </main>
     </div>
   )
+}
 }
 
 function CountryFlag({ code, name }: { code: string; name: string }) {
