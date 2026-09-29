@@ -54,6 +54,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [status, setStatus] = useState<FormStatus | null>(null)
+  const [registrationComplete, setRegistrationComplete] = useState(false)
   const [inviteEmail, setInviteEmail] = useState<string | null>(null)
   const [inviteBonusCoins, setInviteBonusCoins] = useState<number | null>(null)
   const [inviteLoading, setInviteLoading] = useState(false)
@@ -178,6 +179,7 @@ export default function RegisterPage() {
     }
 
     setConfirmOpen(false)
+    setRegistrationComplete(true)
     setStatus({
       type: 'success',
       message: 'Account created. Check your inbox and confirm your email. After verification, Tennis Legacy will take you to Create Your Player.',
@@ -236,7 +238,24 @@ export default function RegisterPage() {
 
             <p className="tlg-auth-card-description">Your account is your login and ownership identity. Your tennis player is created separately after verification.</p>
 
-            <form className="tlg-auth-form" onSubmit={handleSubmit} noValidate>
+            {registrationComplete ? (
+              <div className="tlg-auth-verification-panel" role="status">
+                <span className="tlg-auth-verification-icon"><Mail size={24} /></span>
+                <span className="tlg-auth-eyebrow">Step 2 of 3 · Verify</span>
+                <h3>Check your email</h3>
+                <p>
+                  We sent a verification link to <strong>{email.trim().toLowerCase()}</strong>.
+                  Open it to verify your account. Tennis Legacy will then take you directly to <strong>Create Your Player</strong>.
+                </p>
+                <div className="tlg-auth-verification-next">
+                  <span>Next</span>
+                  <strong>Create Your Player → Start Career</strong>
+                </div>
+                <Link to="/login" className="tlg-auth-inline-action">Already verified? Go to Sign In</Link>
+              </div>
+            ) : (
+              <>
+                <form className="tlg-auth-form" onSubmit={handleSubmit} noValidate>
               <div className="tlg-auth-form-grid">
                 <FormField id="register-username" label="Account username" required hint={!submitted ? 'This identifies your account. Your player will have a separate first and last name.' : undefined} error={submitted && !usernameValid ? 'Enter a valid 3–24 character username.' : undefined}>
                   <div className="tlg-input-shell">
@@ -354,8 +373,10 @@ export default function RegisterPage() {
               </AppButton>
             </form>
 
-            <div className="tlg-auth-divider"><span>Already have an account?</span></div>
-            <Link to="/login" className="tlg-auth-outline-button">Sign In <ArrowRight size={17} /></Link>
+                <div className="tlg-auth-divider"><span>Already have an account?</span></div>
+                <Link to="/login" className="tlg-auth-outline-button">Sign In <ArrowRight size={17} /></Link>
+              </>
+            )}
             <p className="tlg-auth-supabase-note">Secure account authentication. Player and career data remain separate from your login details.</p>
           </div>
         </section>
