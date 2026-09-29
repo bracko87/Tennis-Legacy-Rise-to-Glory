@@ -35,7 +35,6 @@ import OverviewInjuryEnhancement from './components/dashboard/OverviewInjuryEnha
 import EquipmentMatchSetupsEnhancement from './components/equipment/EquipmentMatchSetupsEnhancement'
 import FinanceSponsorEnhancement from './components/finance/FinanceSponsorEnhancement'
 import HomeLiveEnhancements from './components/marketing/HomeLiveEnhancements'
-import PlayingStyleEducation from './components/player/PlayingStyleEducation'
 import ScheduleUiPolish from './components/schedule/ScheduleUiPolish'
 import { ScheduleTacticEducation, TournamentTacticEducation } from './components/tactics/TacticEducation'
 import TournamentEntryLifecycle from './components/tournament/TournamentEntryLifecycle'
@@ -185,7 +184,7 @@ function EquipmentRoute() {
 }
 
 function CreatePlayerRoute() {
-  return <><CreatePlayerPage /><PlayingStyleEducation /></>
+  return <CreatePlayerPage />
 }
 
 export default function App() {
