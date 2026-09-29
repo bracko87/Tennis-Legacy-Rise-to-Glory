@@ -1639,3 +1639,101 @@
     min-height: 118px;
   }
 }
+
+
+/* Auth typography softening 2026-09-29 ---------------------------------- */
+
+/* Reduce visual heaviness on Sign In + Create Account -------------------- */
+
+.tlg-auth-page-v2 .tlg-auth-card-heading > div > span {
+  font-weight: 700 !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-card-heading h2 {
+  font-weight: 720 !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-card-description {
+  font-weight: 450 !important;
+}
+
+.tlg-auth-page-v2 .tlg-field-label {
+  font-weight: 680 !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-inline-action {
+  font-weight: 650 !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-outline-button {
+  font-weight: 680 !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-divider span {
+  font-weight: 560 !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-supabase-note {
+  font-weight: 430 !important;
+}
+
+.tlg-auth-page-v2 .tlg-input {
+  font-weight: 430 !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-feature strong {
+  font-weight: 650 !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-journey-step strong {
+  font-weight: 680 !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-journey-step > span {
+  font-weight: 720 !important;
+}
+
+/* Registration section cards */
+
+.tlg-auth-form-section-heading > span {
+  font-weight: 720 !important;
+}
+
+.tlg-auth-form-section-heading h3 {
+  font-weight: 680 !important;
+}
+
+.tlg-auth-form-section-heading p {
+  font-weight: 430 !important;
+}
+
+.tlg-auth-form-section-body .tlg-field-label {
+  font-weight: 650 !important;
+}
+
+.tlg-password-requirements-v2 > span {
+  font-weight: 500 !important;
+}
+
+.tlg-auth-page-v2 .tlg-birthday-panel-heading h3 {
+  font-weight: 650 !important;
+}
+
+.tlg-auth-page-v2 .tlg-birthday-panel-heading p,
+.tlg-auth-page-v2 .tlg-birthday-warning {
+  font-weight: 430 !important;
+}
+
+.tlg-auth-register-primary-action .tlg-btn {
+  font-weight: 680 !important;
+}
+
+/* Keep hero emphasis, but make supporting copy calmer */
+
+.tlg-auth-page-v2 .tlg-auth-showcase-content > p {
+  font-weight: 400 !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-feature p {
+  font-weight: 400 !important;
+}
