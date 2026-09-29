@@ -1268,3 +1268,374 @@
     padding-inline: 14px;
   }
 }
+
+
+/* Screenshot follow-up fixes 2026-09-29 --------------------------------- */
+
+/* Stronger readability on white auth cards ------------------------------- */
+
+.tlg-auth-page-v2 .tlg-auth-card {
+  color: #173d5a;
+}
+
+.tlg-auth-page-v2 .tlg-auth-card-heading > div > span {
+  color: #426d8e !important;
+  font-weight: 850;
+}
+
+.tlg-auth-page-v2 .tlg-auth-card-heading h2 {
+  color: #123c5c !important;
+  font-weight: 850;
+}
+
+.tlg-auth-page-v2 .tlg-auth-card-description {
+  color: #4e708b !important;
+  font-weight: 560;
+}
+
+.tlg-auth-page-v2 .tlg-field-label {
+  color: #285b7d !important;
+  font-weight: 850;
+}
+
+.tlg-auth-page-v2 .tlg-field-required {
+  color: #0878c3 !important;
+}
+
+.tlg-auth-page-v2 .tlg-field-hint {
+  color: #58778f !important;
+}
+
+.tlg-auth-page-v2 .tlg-input {
+  color: #153d5a !important;
+  border-color: #b8ccdb !important;
+  background: #fbfdff !important;
+  font-weight: 560;
+}
+
+.tlg-auth-page-v2 .tlg-input::placeholder {
+  color: #6f8ba0 !important;
+  opacity: 1;
+}
+
+.tlg-auth-page-v2 .tlg-input-leading-icon,
+.tlg-auth-page-v2 .tlg-input-action {
+  color: #49789a !important;
+}
+
+.tlg-auth-page-v2 .tlg-input:hover {
+  border-color: #8eb2ca !important;
+  background: #fff !important;
+}
+
+.tlg-auth-page-v2 .tlg-input:focus {
+  border-color: #1687cf !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 3px rgba(22, 135, 207, .13) !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-inline-action {
+  color: #0b6fae !important;
+  font-weight: 820;
+}
+
+.tlg-auth-page-v2 .tlg-auth-inline-action:hover {
+  color: #075485 !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-divider span {
+  color: #536f84 !important;
+  background: #fff !important;
+  font-weight: 760;
+}
+
+.tlg-auth-page-v2 .tlg-auth-outline-button {
+  color: #0b6fae !important;
+  border-color: #b8cddd !important;
+  background: #f8fbfe !important;
+  font-weight: 820;
+}
+
+.tlg-auth-page-v2 .tlg-auth-outline-button:hover {
+  color: #075485 !important;
+  border-color: #79aeca !important;
+  background: #eef7fc !important;
+}
+
+.tlg-auth-page-v2 .tlg-auth-supabase-note {
+  color: #607a8e !important;
+  opacity: 1 !important;
+}
+
+/* Create Account grouped form ------------------------------------------- */
+
+.tlg-auth-register-form {
+  gap: 14px !important;
+}
+
+.tlg-auth-form-section {
+  overflow: hidden;
+  border: 1px solid #d7e3eb;
+  border-radius: 14px;
+  background: #f8fbfd;
+  box-shadow: 0 5px 16px rgba(25, 66, 94, .045);
+}
+
+.tlg-auth-form-section-heading {
+  min-height: 60px;
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #e1eaf0;
+  background: #f2f7fa;
+}
+
+.tlg-auth-form-section-heading > span {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  color: #fff !important;
+  background: #107bc0;
+  font-size: .64rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0 !important;
+}
+
+.tlg-auth-form-section-heading > div {
+  min-width: 0;
+}
+
+.tlg-auth-form-section-heading h3 {
+  margin: 0;
+  color: #183f5b !important;
+  font-size: .86rem;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.tlg-auth-form-section-heading p {
+  margin: 3px 0 0;
+  color: #607d92 !important;
+  font-size: .66rem;
+  line-height: 1.4;
+}
+
+.tlg-auth-form-section-body {
+  padding: 14px;
+  display: grid;
+  gap: 13px;
+}
+
+.tlg-auth-form-section .tlg-auth-form-grid {
+  gap: 12px;
+}
+
+.tlg-password-requirements-v2 {
+  margin: 0 !important;
+  padding-top: 1px !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 7px 14px !important;
+}
+
+.tlg-password-requirements-v2 > span {
+  color: #526f85;
+}
+
+.tlg-birthday-panel-v2 {
+  padding: 14px !important;
+  border-color: #d6e2ea !important;
+  background: #fff !important;
+}
+
+.tlg-auth-page-v2 .tlg-birthday-panel-heading h3 {
+  color: #214d69 !important;
+}
+
+.tlg-auth-page-v2 .tlg-birthday-panel-heading p {
+  color: #5e7a90 !important;
+}
+
+.tlg-auth-page-v2 .tlg-birthday-warning {
+  color: #406884 !important;
+  background: #edf6fb !important;
+  border-left-color: #1687cf !important;
+}
+
+.tlg-auth-register-primary-action {
+  padding-top: 2px;
+}
+
+/* Player-creation top bar ------------------------------------------------ */
+
+.tlg-onboarding-page-v2 .tlg-onboarding-topbar {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.tlg-onboarding-page-v2 .tlg-onboarding-topbar::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  border-bottom: 1px solid rgba(119, 174, 218, .1);
+  background: rgba(4, 15, 27, .86);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+  backdrop-filter: blur(18px);
+}
+
+.tlg-onboarding-topbar-actions {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+.tlg-onboarding-account-state {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.tlg-onboarding-account-state strong {
+  display: block;
+  max-width: min(320px, 28vw);
+}
+
+.tlg-onboarding-home-link {
+  min-height: 38px;
+  padding: 0 12px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(126, 181, 225, .22);
+  border-radius: 9px;
+  color: #9ac8e7;
+  background: rgba(255, 255, 255, .045);
+  font-size: .68rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.tlg-onboarding-home-link:hover {
+  color: #fff;
+  border-color: rgba(126, 181, 225, .42);
+  background: rgba(255, 255, 255, .08);
+}
+
+/* Appearance: force stable portrait cards instead of compressed rows ----- */
+
+.tlg-avatar-grid-v2 {
+  grid-auto-rows: 148px;
+  align-items: stretch;
+}
+
+.tlg-avatar-grid-v2 .tlg-avatar-option {
+  width: 100%;
+  height: 148px;
+  min-height: 148px;
+  padding: 0;
+  display: block;
+  aspect-ratio: auto;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #081a29;
+}
+
+.tlg-avatar-grid-v2 .tlg-avatar-option img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.tlg-avatar-grid-v2 .tlg-avatar-option:not(.unavailable) img {
+  opacity: 1;
+  filter: none;
+}
+
+.tlg-avatar-grid-v2 .tlg-avatar-option.unavailable img {
+  opacity: .24;
+  filter: grayscale(1);
+}
+
+@media (max-width: 980px) {
+  .tlg-onboarding-account-state strong {
+    max-width: 220px;
+  }
+
+  .tlg-avatar-grid-v2 {
+    grid-auto-rows: 140px;
+  }
+
+  .tlg-avatar-grid-v2 .tlg-avatar-option {
+    height: 140px;
+    min-height: 140px;
+  }
+}
+
+@media (max-width: 700px) {
+  .tlg-auth-form-section-heading {
+    min-height: 56px;
+  }
+
+  .tlg-auth-form-section-body {
+    padding: 12px;
+  }
+
+  .tlg-onboarding-topbar-actions {
+    gap: 8px;
+  }
+
+  .tlg-onboarding-account-state {
+    display: none;
+  }
+
+  .tlg-onboarding-home-link {
+    min-height: 36px;
+    padding-inline: 10px;
+  }
+
+  .tlg-avatar-grid-v2 {
+    grid-auto-rows: 128px;
+  }
+
+  .tlg-avatar-grid-v2 .tlg-avatar-option {
+    height: 128px;
+    min-height: 128px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tlg-onboarding-home-link span {
+    display: none;
+  }
+
+  .tlg-onboarding-home-link {
+    width: 38px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .tlg-avatar-grid-v2 {
+    grid-auto-rows: 118px;
+  }
+
+  .tlg-avatar-grid-v2 .tlg-avatar-option {
+    height: 118px;
+    min-height: 118px;
+  }
+}
