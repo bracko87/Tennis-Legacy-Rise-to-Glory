@@ -12,8 +12,6 @@ import {
   Check,
   ChevronDown,
   Circle,
-  Globe2,
-  ImagePlus,
   Search,
   ShieldCheck,
   UserRound,
@@ -882,7 +880,7 @@ export default function CreatePlayerPage(): JSX.Element {
                   variant="primary"
                   size="large"
                   onClick={goNext}
-                  disabled={countriesLoading || homeCitiesLoading}
+                  disabled={step === 2 && (countriesLoading || homeCitiesLoading)}
                   rightIcon={<ArrowRight size={18} />}
                 >
                   Continue
@@ -932,7 +930,6 @@ export default function CreatePlayerPage(): JSX.Element {
       </main>
     </div>
   )
-}
 }
 
 function CountryFlag({ code, name }: { code: string; name: string }) {
