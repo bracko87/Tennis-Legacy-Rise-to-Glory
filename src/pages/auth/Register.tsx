@@ -255,123 +255,228 @@ export default function RegisterPage() {
               </div>
             ) : (
               <>
-                <form className="tlg-auth-form" onSubmit={handleSubmit} noValidate>
-              <div className="tlg-auth-form-grid">
-                <FormField id="register-username" label="Account username" required hint={!submitted ? 'This identifies your account. Your player will have a separate first and last name.' : undefined} error={submitted && !usernameValid ? 'Enter a valid 3–24 character username.' : undefined}>
-                  <div className="tlg-input-shell">
-                    <UserRound className="tlg-input-leading-icon" size={18} />
-                    <input id="register-username" value={username} onChange={(event) => { setUsername(event.target.value); clearStatus() }} className={`tlg-input tlg-input-with-leading-icon ${submitted && !usernameValid ? 'tlg-input-error' : ''}`} placeholder="Choose a username" autoComplete="username" maxLength={24} />
+                <form className="tlg-auth-form tlg-auth-register-form" onSubmit={handleSubmit} noValidate>
+                  <section className="tlg-auth-form-section">
+                    <header className="tlg-auth-form-section-heading">
+                      <span>01</span>
+                      <div>
+                        <h3>Account details</h3>
+                        <p>Your login identity. Your tennis player is created later.</p>
+                      </div>
+                    </header>
+
+                    <div className="tlg-auth-form-section-body">
+                      <div className="tlg-auth-form-grid">
+                        <FormField
+                          id="register-username"
+                          label="Account username"
+                          required
+                          hint={!submitted ? 'This identifies your account. Your player will have a separate first and last name.' : undefined}
+                          error={submitted && !usernameValid ? 'Enter a valid 3–24 character username.' : undefined}
+                        >
+                          <div className="tlg-input-shell">
+                            <UserRound className="tlg-input-leading-icon" size={18} />
+                            <input
+                              id="register-username"
+                              value={username}
+                              onChange={(event) => { setUsername(event.target.value); clearStatus() }}
+                              className={`tlg-input tlg-input-with-leading-icon ${submitted && !usernameValid ? 'tlg-input-error' : ''}`}
+                              placeholder="Choose a username"
+                              autoComplete="username"
+                              maxLength={24}
+                            />
+                          </div>
+                        </FormField>
+
+                        <FormField
+                          id="register-email"
+                          label="Email address"
+                          required
+                          hint={!submitted ? 'One Tennis Legacy account per email address.' : undefined}
+                          error={submitted && !emailValid ? 'Enter a valid email address.' : undefined}
+                        >
+                          <div className="tlg-input-shell">
+                            <Mail className="tlg-input-leading-icon" size={18} />
+                            <input
+                              id="register-email"
+                              type="email"
+                              value={email}
+                              onChange={(event) => {
+                                if (inviteEmail) return
+                                setEmail(event.target.value)
+                                clearStatus()
+                              }}
+                              className={`tlg-input tlg-input-with-leading-icon ${submitted && !emailValid ? 'tlg-input-error' : ''}`}
+                              placeholder="you@example.com"
+                              autoComplete="email"
+                              readOnly={Boolean(inviteEmail)}
+                              aria-readonly={Boolean(inviteEmail)}
+                            />
+                          </div>
+                        </FormField>
+                      </div>
+
+                      {inviteToken && (
+                        <div className="tlg-auth-status tlg-auth-status-success" role="status">
+                          <ShieldCheck size={18} />
+                          <span>
+                            {inviteLoading
+                              ? 'Validating registration invitation…'
+                              : inviteEmail
+                                ? `Registration invitation confirmed. ${inviteBonusCoins ?? 0} Coins will be added automatically when the account is created.`
+                                : 'Registration invitation could not be validated.'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+
+                  <section className="tlg-auth-form-section">
+                    <header className="tlg-auth-form-section-heading">
+                      <span>02</span>
+                      <div>
+                        <h3>Security</h3>
+                        <p>Create the password you will use to sign in.</p>
+                      </div>
+                    </header>
+
+                    <div className="tlg-auth-form-section-body">
+                      <div className="tlg-auth-form-grid">
+                        <FormField
+                          id="register-password"
+                          label="Password"
+                          required
+                          error={submitted && !passwordValid ? 'Use at least 8 characters with a letter and number.' : undefined}
+                        >
+                          <div className="tlg-input-shell">
+                            <LockKeyhole className="tlg-input-leading-icon" size={18} />
+                            <input
+                              id="register-password"
+                              type={showPassword ? 'text' : 'password'}
+                              value={password}
+                              onChange={(event) => { setPassword(event.target.value); clearStatus() }}
+                              className={`tlg-input tlg-input-with-leading-icon tlg-input-with-action ${submitted && !passwordValid ? 'tlg-input-error' : ''}`}
+                              placeholder="Create a password"
+                              autoComplete="new-password"
+                            />
+                            <button type="button" className="tlg-input-action" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                          </div>
+                        </FormField>
+
+                        <FormField
+                          id="register-confirm-password"
+                          label="Confirm password"
+                          required
+                          error={submitted && !confirmPasswordValid ? 'The passwords do not match.' : undefined}
+                          success={confirmPasswordValid ? 'Passwords match.' : undefined}
+                        >
+                          <div className="tlg-input-shell">
+                            <LockKeyhole className="tlg-input-leading-icon" size={18} />
+                            <input
+                              id="register-confirm-password"
+                              type={showConfirmPassword ? 'text' : 'password'}
+                              value={confirmPassword}
+                              onChange={(event) => { setConfirmPassword(event.target.value); clearStatus() }}
+                              className={`tlg-input tlg-input-with-leading-icon tlg-input-with-action ${submitted && !confirmPasswordValid ? 'tlg-input-error' : ''} ${confirmPasswordValid ? 'tlg-input-success' : ''}`}
+                              placeholder="Repeat your password"
+                              autoComplete="new-password"
+                            />
+                            <button type="button" className="tlg-input-action" onClick={() => setShowConfirmPassword((value) => !value)} aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}>
+                              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                          </div>
+                        </FormField>
+                      </div>
+
+                      <div className="tlg-password-requirements tlg-password-requirements-v2">
+                        <PasswordRequirement passed={passwordChecks.length} text="At least 8 characters" />
+                        <PasswordRequirement passed={passwordChecks.letter} text="At least one letter" />
+                        <PasswordRequirement passed={passwordChecks.number} text="At least one number" />
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="tlg-auth-form-section">
+                    <header className="tlg-auth-form-section-heading">
+                      <span>03</span>
+                      <div>
+                        <h3>Account holder date of birth</h3>
+                        <p>This belongs to your account, not to your fictional tennis player.</p>
+                      </div>
+                    </header>
+
+                    <div className="tlg-auth-form-section-body">
+                      <div className="tlg-birthday-panel tlg-birthday-panel-v2">
+                        <div className="tlg-birthday-panel-heading">
+                          <span><CalendarDays size={19} /></span>
+                          <div>
+                            <h3>Birthday system</h3>
+                            <p>Used for the annual account birthday gift. This date cannot be changed after registration.</p>
+                          </div>
+                        </div>
+
+                        <p className="tlg-birthday-warning">Please check the date carefully before creating your account.</p>
+
+                        <FormField id="birth-month" label="Date of birth" required error={submitted && !birthdayValid ? 'Enter your complete, valid date of birth. The year is required.' : undefined}>
+                          <div className="tlg-birthday-fields">
+                            <select
+                              id="birth-month"
+                              value={month}
+                              onChange={(event) => {
+                                const value = event.target.value
+                                setMonth(value)
+                                if (day && Number(day) > createAvailableDays(value, year).length) setDay('')
+                                clearStatus()
+                              }}
+                              className={`tlg-input ${submitted && !birthdayValid ? 'tlg-input-error' : ''}`}
+                            >
+                              <option value="">Month</option>
+                              {MONTHS.map((label, index) => <option key={label} value={String(index + 1)}>{label}</option>)}
+                            </select>
+                            <select
+                              value={day}
+                              onChange={(event) => { setDay(event.target.value); clearStatus() }}
+                              className={`tlg-input ${submitted && !birthdayValid ? 'tlg-input-error' : ''}`}
+                              aria-label="Birthday day"
+                            >
+                              <option value="">Day</option>
+                              {availableDays.map((value) => <option key={value} value={String(value)}>{value}</option>)}
+                            </select>
+                            <input
+                              value={year}
+                              onChange={(event) => {
+                                const value = event.target.value.replace(/\D/g, '').slice(0, 4)
+                                setYear(value)
+                                if (day && Number(day) > createAvailableDays(month, value).length) setDay('')
+                                clearStatus()
+                              }}
+                              className={`tlg-input ${submitted && !yearValid ? 'tlg-input-error' : ''}`}
+                              placeholder="Year"
+                              inputMode="numeric"
+                              autoComplete="bday-year"
+                              aria-label="Birthday year"
+                            />
+                          </div>
+                        </FormField>
+                      </div>
+                    </div>
+                  </section>
+
+                  {status && (
+                    <div className={`tlg-auth-status ${status.type === 'success' ? 'tlg-auth-status-success' : 'tlg-auth-status-information'}`} role={status.type === 'error' ? 'alert' : 'status'}>
+                      <ShieldCheck size={18} />
+                      <span>{status.message}</span>
+                    </div>
+                  )}
+
+                  <div className="tlg-auth-register-primary-action">
+                    <AppButton type="submit" variant="primary" size="large" fullWidth loading={loading} rightIcon={<ArrowRight size={18} />}>
+                      {loading ? 'Creating account…' : 'Create Account'}
+                    </AppButton>
                   </div>
-                </FormField>
-
-                <FormField id="register-email" label="Email address" required hint={!submitted ? 'One Tennis Legacy account per email address.' : undefined} error={submitted && !emailValid ? 'Enter a valid email address.' : undefined}>
-                  <div className="tlg-input-shell">
-                    <Mail className="tlg-input-leading-icon" size={18} />
-                    <input
-                      id="register-email"
-                      type="email"
-                      value={email}
-                      onChange={(event) => {
-                        if (inviteEmail) return
-                        setEmail(event.target.value)
-                        clearStatus()
-                      }}
-                      className={`tlg-input tlg-input-with-leading-icon ${submitted && !emailValid ? 'tlg-input-error' : ''}`}
-                      placeholder="you@example.com"
-                      autoComplete="email"
-                      readOnly={Boolean(inviteEmail)}
-                      aria-readonly={Boolean(inviteEmail)}
-                    />
-                  </div>
-                </FormField>
-              </div>
-
-              {inviteToken && (
-                <div className="tlg-auth-status tlg-auth-status-success" role="status">
-                  <ShieldCheck size={18} />
-                  <span>
-                    {inviteLoading
-                      ? 'Validating registration invitation…'
-                      : inviteEmail
-                        ? `Registration invitation confirmed. ${inviteBonusCoins ?? 0} Coins will be added automatically when the account is created.`
-                        : 'Registration invitation could not be validated.'}
-                  </span>
-                </div>
-              )}
-
-              <div className="tlg-auth-form-grid">
-                <FormField id="register-password" label="Password" required error={submitted && !passwordValid ? 'Use at least 8 characters with a letter and number.' : undefined}>
-                  <div className="tlg-input-shell">
-                    <LockKeyhole className="tlg-input-leading-icon" size={18} />
-                    <input id="register-password" type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => { setPassword(event.target.value); clearStatus() }} className={`tlg-input tlg-input-with-leading-icon tlg-input-with-action ${submitted && !passwordValid ? 'tlg-input-error' : ''}`} placeholder="Create a password" autoComplete="new-password" />
-                    <button type="button" className="tlg-input-action" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
-                  </div>
-                </FormField>
-
-                <FormField id="register-confirm-password" label="Confirm password" required error={submitted && !confirmPasswordValid ? 'The passwords do not match.' : undefined} success={confirmPasswordValid ? 'Passwords match.' : undefined}>
-                  <div className="tlg-input-shell">
-                    <LockKeyhole className="tlg-input-leading-icon" size={18} />
-                    <input id="register-confirm-password" type={showConfirmPassword ? 'text' : 'password'} value={confirmPassword} onChange={(event) => { setConfirmPassword(event.target.value); clearStatus() }} className={`tlg-input tlg-input-with-leading-icon tlg-input-with-action ${submitted && !confirmPasswordValid ? 'tlg-input-error' : ''} ${confirmPasswordValid ? 'tlg-input-success' : ''}`} placeholder="Repeat your password" autoComplete="new-password" />
-                    <button type="button" className="tlg-input-action" onClick={() => setShowConfirmPassword((value) => !value)} aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}>{showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
-                  </div>
-                </FormField>
-              </div>
-
-              <div
-                className="tlg-password-requirements"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  flexWrap: 'nowrap',
-                  gap: '18px',
-                  width: '100%',
-                  background: 'transparent',
-                  border: 0,
-                  padding: 0,
-                  boxShadow: 'none',
-                }}
-              >
-                <PasswordRequirement passed={passwordChecks.length} text="At least 8 characters" />
-                <PasswordRequirement passed={passwordChecks.letter} text="At least one letter" />
-                <PasswordRequirement passed={passwordChecks.number} text="At least one number" />
-              </div>
-
-              <div className="tlg-birthday-panel">
-                <div className="tlg-birthday-panel-heading">
-                  <span><CalendarDays size={19} /></span>
-                  <div>
-                    <h3>Account holder date of birth</h3>
-                    <p>Used only for the account birthday system and annual birthday gift. This is not your tennis player’s age.</p>
-                  </div>
-                </div>
-
-                <p className="tlg-birthday-warning">Check this carefully. Your date of birth becomes permanent when the account is created.</p>
-
-                <FormField id="birth-month" label="Date of birth" required error={submitted && !birthdayValid ? 'Enter your complete, valid date of birth. The year is required.' : undefined}>
-                  <div className="tlg-birthday-fields">
-                    <select id="birth-month" value={month} onChange={(event) => { const value = event.target.value; setMonth(value); if (day && Number(day) > createAvailableDays(value, year).length) setDay(''); clearStatus() }} className={`tlg-input ${submitted && !birthdayValid ? 'tlg-input-error' : ''}`}>
-                      <option value="">Month</option>
-                      {MONTHS.map((label, index) => <option key={label} value={String(index + 1)}>{label}</option>)}
-                    </select>
-                    <select value={day} onChange={(event) => { setDay(event.target.value); clearStatus() }} className={`tlg-input ${submitted && !birthdayValid ? 'tlg-input-error' : ''}`} aria-label="Birthday day">
-                      <option value="">Day</option>
-                      {availableDays.map((value) => <option key={value} value={String(value)}>{value}</option>)}
-                    </select>
-                    <input value={year} onChange={(event) => { const value = event.target.value.replace(/\D/g, '').slice(0, 4); setYear(value); if (day && Number(day) > createAvailableDays(month, value).length) setDay(''); clearStatus() }} className={`tlg-input ${submitted && !yearValid ? 'tlg-input-error' : ''}`} placeholder="Year" inputMode="numeric" autoComplete="bday-year" aria-label="Birthday year" />
-                  </div>
-                </FormField>
-              </div>
-
-              {status && (
-                <div className={`tlg-auth-status ${status.type === 'success' ? 'tlg-auth-status-success' : 'tlg-auth-status-information'}`} role={status.type === 'error' ? 'alert' : 'status'}>
-                  <ShieldCheck size={18} /><span>{status.message}</span>
-                </div>
-              )}
-
-              <AppButton type="submit" variant="primary" size="large" fullWidth loading={loading} rightIcon={<ArrowRight size={18} />}>
-                {loading ? 'Creating account…' : 'Create Account'}
-              </AppButton>
-            </form>
+                </form>
 
                 <div className="tlg-auth-divider"><span>Already have an account?</span></div>
                 <Link to="/login" className="tlg-auth-outline-button">Sign In <ArrowRight size={17} /></Link>
@@ -453,7 +558,7 @@ function PasswordRequirement({ passed, text }: { passed: boolean; text: string }
         borderRadius: 0,
         background: 'transparent',
         boxShadow: 'none',
-        color: passed ? '#9ED7B9' : '#9EB1C5',
+        color: passed ? '#1d6f9f' : '#547188',
         fontSize: '12px',
         fontWeight: 600,
       }}
