@@ -648,7 +648,7 @@ function PasswordRequirement({ passed, text }: { passed: boolean; text: string }
         borderRadius: 0,
         background: 'transparent',
         boxShadow: 'none',
-        color: passed ? '#1d6f9f' : '#547188',
+        color: passed ? '#74c9ff' : '#7894aa',
         fontSize: '12px',
         fontWeight: 600,
       }}
