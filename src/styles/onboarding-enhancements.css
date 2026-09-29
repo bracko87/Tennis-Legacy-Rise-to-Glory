@@ -509,6 +509,73 @@
   font-size: .68rem;
 }
 
+
+.tlg-auth-verification-panel {
+  margin-top: 24px;
+  padding: 24px;
+  display: grid;
+  gap: 12px;
+  border: 1px solid #d7e5ef;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #f8fbfd, #f2f7fb);
+}
+
+.tlg-auth-verification-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(145deg, #0c7bc2, #07528e);
+}
+
+.tlg-auth-verification-panel .tlg-auth-eyebrow {
+  margin: 2px 0 0;
+  color: #5c7e96;
+  font-size: .62rem;
+}
+
+.tlg-auth-verification-panel h3 {
+  margin: -2px 0 0;
+  color: #17344b;
+  font-size: 1.35rem;
+  letter-spacing: -.025em;
+}
+
+.tlg-auth-verification-panel > p {
+  margin: 0;
+  color: #637b8f;
+  font-size: .8rem;
+  line-height: 1.6;
+}
+
+.tlg-auth-verification-panel > p strong {
+  color: #284b64;
+}
+
+.tlg-auth-verification-next {
+  padding: 11px 12px;
+  display: grid;
+  gap: 2px;
+  border: 1px solid #dce7ef;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.tlg-auth-verification-next span {
+  color: #8296a6;
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.tlg-auth-verification-next strong {
+  color: #17344b;
+  font-size: .74rem;
+}
+
 /* Player creation wizard ------------------------------------------------- */
 
 .tlg-onboarding-page-v2 {
