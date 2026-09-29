@@ -7,8 +7,8 @@
  */
 
 import type { FormEvent, ReactNode } from 'react'
-import { useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import {
   ArrowLeft,
   ArrowRight,
@@ -42,6 +42,7 @@ interface FormStatus {
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -55,6 +56,57 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [status, setStatus] = useState<FormStatus | null>(null)
+  const [inviteEmail, setInviteEmail] = useState<string | null>(null)
+  const [inviteBonusCoins, setInviteBonusCoins] = useState<number | null>(null)
+  const [inviteLoading, setInviteLoading] = useState(false)
+
+  const inviteToken = searchParams.get('invite')?.trim() ?? ''
+
+  useEffect(() => {
+    let active = true
+
+    async function loadInvite() {
+      if (!inviteToken) return
+
+      setInviteLoading(true)
+      const { data, error } = await supabase.rpc('get_registration_invite_v1', {
+        p_token: inviteToken,
+      })
+
+      if (!active) return
+      setInviteLoading(false)
+
+      if (error) {
+        setStatus({
+          type: 'error',
+          message: 'This registration invitation could not be validated.',
+        })
+        return
+      }
+
+      const row = Array.isArray(data) ? data[0] : null
+      const invitedEmail = typeof row?.email === 'string' ? row.email.trim().toLowerCase() : ''
+      const bonusCoins = Number(row?.bonus_coins ?? 0)
+
+      if (!invitedEmail) {
+        setStatus({
+          type: 'error',
+          message: 'This registration invitation is invalid or has expired.',
+        })
+        return
+      }
+
+      setInviteEmail(invitedEmail)
+      setInviteBonusCoins(Number.isFinite(bonusCoins) ? bonusCoins : 0)
+      setEmail(invitedEmail)
+      setStatus(null)
+    }
+
+    void loadInvite()
+    return () => {
+      active = false
+    }
+  }, [inviteToken])
 
   const currentYear = new Date().getFullYear()
   const usernameValid = /^[A-Za-z0-9_.-]{3,24}$/.test(username.trim())
@@ -108,6 +160,7 @@ export default function RegisterPage() {
           birthday_year: Number(year),
           birthday_timezone: birthdayTimezone,
           ...(referralCode ? { referral_code: referralCode, referral_browser_hash: referralBrowserHash } : {}),
+          ...(inviteToken ? { registration_invite_token: inviteToken } : {}),
         },
       },
     })
@@ -186,10 +239,37 @@ export default function RegisterPage() {
                 <FormField id="register-email" label="Email address" required hint={!submitted ? 'One manager account per email address.' : undefined} error={submitted && !emailValid ? 'Enter a valid email address.' : undefined}>
                   <div className="tlg-input-shell">
                     <Mail className="tlg-input-leading-icon" size={18} />
-                    <input id="register-email" type="email" value={email} onChange={(event) => { setEmail(event.target.value); clearStatus() }} className={`tlg-input tlg-input-with-leading-icon ${submitted && !emailValid ? 'tlg-input-error' : ''}`} placeholder="manager@example.com" autoComplete="email" />
+                    <input
+                      id="register-email"
+                      type="email"
+                      value={email}
+                      onChange={(event) => {
+                        if (inviteEmail) return
+                        setEmail(event.target.value)
+                        clearStatus()
+                      }}
+                      className={`tlg-input tlg-input-with-leading-icon ${submitted && !emailValid ? 'tlg-input-error' : ''}`}
+                      placeholder="manager@example.com"
+                      autoComplete="email"
+                      readOnly={Boolean(inviteEmail)}
+                      aria-readonly={Boolean(inviteEmail)}
+                    />
                   </div>
                 </FormField>
               </div>
+
+              {inviteToken && (
+                <div className="tlg-auth-status tlg-auth-status-success" role="status">
+                  <ShieldCheck size={18} />
+                  <span>
+                    {inviteLoading
+                      ? 'Validating registration invitation…'
+                      : inviteEmail
+                        ? `Registration invitation confirmed. ${inviteBonusCoins ?? 0} Coins will be added automatically when the account is created.`
+                        : 'Registration invitation could not be validated.'}
+                  </span>
+                </div>
+              )}
 
               <div className="tlg-auth-form-grid">
                 <FormField id="register-password" label="Password" required error={submitted && !passwordValid ? 'Use at least 8 characters with a letter and number.' : undefined}>
