@@ -38,6 +38,14 @@ interface FormStatus {
   message: string
 }
 
+type RegisterStep = 1 | 2 | 3
+
+const REGISTER_STEPS: Array<{ id: RegisterStep; title: string; subtitle: string }> = [
+  { id: 1, title: 'Account Details', subtitle: 'Username & email' },
+  { id: 2, title: 'Security', subtitle: 'Password' },
+  { id: 3, title: 'Date of Birth', subtitle: 'Month & day' },
+]
+
 export default function RegisterPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -58,6 +66,8 @@ export default function RegisterPage() {
   const [inviteEmail, setInviteEmail] = useState<string | null>(null)
   const [inviteBonusCoins, setInviteBonusCoins] = useState<number | null>(null)
   const [inviteLoading, setInviteLoading] = useState(false)
+  const [registerStep, setRegisterStep] = useState<RegisterStep>(1)
+  const [attemptedStep, setAttemptedStep] = useState<RegisterStep | null>(null)
 
   const inviteToken = searchParams.get('invite')?.trim() ?? ''
 
@@ -117,16 +127,45 @@ export default function RegisterPage() {
   }
   const passwordValid = passwordChecks.length && passwordChecks.letter && passwordChecks.number
   const confirmPasswordValid = confirmPassword.length > 0 && password === confirmPassword
-  const yearValid = /^\d{4}$/.test(year) && Number(year) >= 1900 && Number(year) <= currentYear
+  const yearProvided = year.trim().length > 0
+  const yearValid = !yearProvided || (/^\d{4}$/.test(year) && Number(year) >= 1900 && Number(year) <= currentYear)
 
   const availableDays = useMemo(() => createAvailableDays(month, year), [month, year])
-  const birthdayDate = month && day && yearValid ? new Date(Number(year), Number(month) - 1, Number(day), 12, 0, 0, 0) : null
-  const birthdayNotFuture = birthdayDate ? birthdayDate.getTime() <= Date.now() : false
-  const birthdayValid = month.length > 0 && day.length > 0 && Number(day) <= availableDays.length && yearValid && birthdayNotFuture
-  const formValid = usernameValid && emailValid && passwordValid && confirmPasswordValid && birthdayValid
+  const birthdayDate = month && day && yearProvided && yearValid
+    ? new Date(Number(year), Number(month) - 1, Number(day), 12, 0, 0, 0)
+    : null
+  const birthdayNotFuture = !yearProvided || (birthdayDate ? birthdayDate.getTime() <= Date.now() : false)
+  const birthdayValid = month.length > 0
+    && day.length > 0
+    && Number(day) <= availableDays.length
+    && yearValid
+    && birthdayNotFuture
+
+  const accountStepValid = usernameValid && emailValid
+  const securityStepValid = passwordValid && confirmPasswordValid
+  const formValid = accountStepValid && securityStepValid && birthdayValid
 
   function clearStatus() {
     if (status) setStatus(null)
+  }
+
+  function goToNextRegistrationStep() {
+    setAttemptedStep(registerStep)
+    setStatus(null)
+
+    if (registerStep === 1 && !accountStepValid) return
+    if (registerStep === 2 && !securityStepValid) return
+    if (registerStep >= 3) return
+
+    setAttemptedStep(null)
+    setRegisterStep((registerStep + 1) as RegisterStep)
+  }
+
+  function goToPreviousRegistrationStep() {
+    if (registerStep <= 1 || loading) return
+    setAttemptedStep(null)
+    setStatus(null)
+    setRegisterStep((registerStep - 1) as RegisterStep)
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -156,7 +195,7 @@ export default function RegisterPage() {
           username: username.trim(),
           birthday_month: Number(month),
           birthday_day: Number(day),
-          birthday_year: Number(year),
+          birthday_year: yearProvided ? Number(year) : null,
           birthday_timezone: birthdayTimezone,
           ...(referralCode ? { referral_code: referralCode, referral_browser_hash: referralBrowserHash } : {}),
           ...(inviteToken ? { registration_invite_token: inviteToken } : {}),
