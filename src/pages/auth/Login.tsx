@@ -115,7 +115,6 @@ export default function LoginPage() {
               <AuthFeature icon={<Trophy size={18} />} title="Your progress stays yours" description="Rankings, titles, records and milestones remain attached to your career." />
             </div>
 
->
           </div>
         </section>
 
