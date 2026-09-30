@@ -42,12 +42,17 @@ When prices change, update all three layers together:
 
 The Pro Packages page opens Stripe-hosted Payment Links.
 
-The browser app appends:
-- `client_reference_id=<Supabase auth user UUID>`
+Before redirecting to Stripe, the website calls `public.create_commerce_checkout_intent_v1()`.
+The backend creates a short-lived `commerce_checkout_intents` row tied to the authenticated user
+and the exact catalog item being purchased.
+
+The browser then appends:
+- `client_reference_id=<server-issued checkout intent UUID>`
 - `prefilled_email=<authenticated user's email>`
 
-The `client_reference_id` is used by the webhook fulfillment layer to map a successful
-Stripe Checkout Session back to the authenticated Tennis Legacy account.
+The webhook resolves that opaque checkout-intent ID back to the authenticated Tennis Legacy
+account and validates that the Stripe product metadata, Coin quantity and amount match the
+catalog item stored on the intent. The frontend never decides who receives Coins.
 
 ## Webhook
 
@@ -74,9 +79,10 @@ The webhook signing secret is stored privately in Supabase and is not exposed to
 ### Coin packs
 A coin pack is granted only when:
 - Stripe metadata says `game=tennis_legacy`
-- the `client_reference_id` maps to a real Auth user
+- the `client_reference_id` maps to a valid server-issued checkout intent
+- the intent maps to a real Auth user and the intended catalog item
 - Checkout payment status is paid
-- the amount and Coin quantity match an active catalog row
+- the amount and Coin quantity match that active catalog row
 
 Fulfillment writes:
 - `user_wallets`
