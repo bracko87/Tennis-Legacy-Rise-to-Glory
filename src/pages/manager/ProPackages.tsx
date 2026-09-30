@@ -35,20 +35,38 @@ interface CoinLedgerEntry {
   created_at: string
 }
 
+interface CommerceCatalogItem {
+  code: string
+  kind: 'premium' | 'coin_pack'
+  label: string
+  coins: number
+  price_eur_cents: number
+  stripe_payment_link_url: string
+  sort_order: number
+}
+
+interface CommerceSettings {
+  stripe_customer_portal_url: string | null
+  premium_monthly_price_eur_cents: number
+  premium_monthly_coin_reward: number
+}
+
 interface CoinPack {
+  code: string
   coins: number
   price: number
+  paymentLinkUrl: string
   helper: string
   badge?: string
 }
 
-const coinPacks: readonly CoinPack[] = [
-  { coins: 70, price: 3.99, helper: 'Starter boost' },
-  { coins: 130, price: 6.99, helper: 'Great for a new season' },
-  { coins: 270, price: 13.99, helper: 'Most balanced pick' },
-  { coins: 390, price: 19.99, helper: 'Most popular', badge: 'Most popular' },
-  { coins: 570, price: 28.99, helper: 'Serious manager mode' },
-  { coins: 900, price: 44.99, helper: 'Best for long-term play', badge: 'Best value' },
+const fallbackCoinPacks: readonly CoinPack[] = [
+  { code: 'coin_70', coins: 70, price: 2.99, paymentLinkUrl: '', helper: 'Starter boost' },
+  { code: 'coin_130', coins: 130, price: 4.99, paymentLinkUrl: '', helper: 'Great for a new season' },
+  { code: 'coin_270', coins: 270, price: 9.99, paymentLinkUrl: '', helper: 'Most balanced pick' },
+  { code: 'coin_390', coins: 390, price: 13.99, paymentLinkUrl: '', helper: 'Most popular', badge: 'Most popular' },
+  { code: 'coin_570', coins: 570, price: 19.99, paymentLinkUrl: '', helper: 'Serious manager mode' },
+  { code: 'coin_900', coins: 900, price: 29.99, paymentLinkUrl: '', helper: 'Best for long-term play', badge: 'Best value' },
 ]
 
 const comparisonRows = [
@@ -57,7 +75,7 @@ const comparisonRows = [
   ['Core training, equipment and finance systems', true, true],
   ['Account access without coins', true, true],
   ['Premium analysis and advanced tools', false, true],
-  ['Monthly Premium coin reward', '—', '50'],
+  ['Monthly Premium coin reward', '—', '30'],
   ['Buy additional coin packages', true, true],
   ['Use optional coin features', true, true],
 ] as const
@@ -85,6 +103,8 @@ export default function ProPackagesPage() {
   const [historyOpen, setHistoryOpen] = useState<Record<string, boolean>>({})
   const [historyLoading, setHistoryLoading] = useState(true)
   const [checkoutNotice, setCheckoutNotice] = useState<string | null>(null)
+  const [catalog, setCatalog] = useState<CommerceCatalogItem[]>([])
+  const [commerceSettings, setCommerceSettings] = useState<CommerceSettings | null>(null)
 
   const premiumInvoices = useMemo(
     () => billing.filter((entry) => entry.kind === 'premium_invoice'),
@@ -102,7 +122,7 @@ export default function ProPackagesPage() {
 
     async function loadHistory() {
       setHistoryLoading(true)
-      const [billingResult, ledgerResult] = await Promise.all([
+      const [billingResult, ledgerResult, catalogResult, settingsResult] = await Promise.all([
         supabase
           .from('billing_transactions')
           .select('id, kind, status, amount_eur_cents, coins_amount, description, created_at')
@@ -115,11 +135,19 @@ export default function ProPackagesPage() {
           .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(100),
+        supabase.rpc('get_commerce_catalog_v1'),
+        supabase
+          .from('commerce_runtime_settings')
+          .select('stripe_customer_portal_url, premium_monthly_price_eur_cents, premium_monthly_coin_reward')
+          .eq('id', true)
+          .maybeSingle(),
       ])
 
       if (!active) return
       setBilling((billingResult.data ?? []) as BillingTransaction[])
       setLedger((ledgerResult.data ?? []) as CoinLedgerEntry[])
+      setCatalog((catalogResult.data ?? []) as CommerceCatalogItem[])
+      setCommerceSettings((settingsResult.data ?? null) as CommerceSettings | null)
       setHistoryLoading(false)
     }
 
@@ -132,10 +160,33 @@ export default function ProPackagesPage() {
     window.setTimeout(() => setCheckoutNotice(null), 4200)
   }
 
+  function openStripeCheckout(paymentLinkUrl: string) {
+    if (!user || !paymentLinkUrl) {
+      showStripeNotice('Secure checkout is temporarily unavailable. Please refresh and try again.')
+      return
+    }
+
+    const url = new URL(paymentLinkUrl)
+    url.searchParams.set('client_reference_id', user.id)
+    if (user.email) url.searchParams.set('prefilled_email', user.email)
+    window.location.assign(url.toString())
+  }
+
+  const premiumCatalog = catalog.find((item) => item.code === 'premium_monthly')
   const membership = commerce.membership
   const planName = commerce.isPremium ? 'Tennis Legacy Premium' : 'Tennis Legacy Free'
-  const monthlyPrice = commerce.isPremium ? 499 : 0
-  const monthlyCoins = commerce.isPremium ? 50 : 0
+  const premiumPriceCents = premiumCatalog?.price_eur_cents ?? commerceSettings?.premium_monthly_price_eur_cents ?? 329
+  const premiumCoins = premiumCatalog?.coins ?? commerceSettings?.premium_monthly_coin_reward ?? 30
+  const monthlyPrice = commerce.isPremium ? premiumPriceCents : 0
+  const monthlyCoins = commerce.isPremium ? premiumCoins : 0
+  const coinPacks: readonly CoinPack[] = fallbackCoinPacks.map((fallback) => {
+    const item = catalog.find((candidate) => candidate.code === fallback.code)
+    return item ? {
+      ...fallback,
+      price: item.price_eur_cents / 100,
+      paymentLinkUrl: item.stripe_payment_link_url,
+    } : fallback
+  })
 
   return (
     <GameLayout title="Pro Packages" subtitle="Premium membership, coins and billing">
@@ -168,12 +219,12 @@ export default function ProPackagesPage() {
               </span>
             </div>
             <h2>Tennis Legacy Premium</h2>
-            <div className="tlg-commerce-price"><strong>€4.99</strong><span>per real-life month</span></div>
+            <div className="tlg-commerce-price"><strong>€3.29</strong><span>per real-life month</span></div>
             <ul className="tlg-commerce-benefits">
               <li><Check size={15} /> Advanced player analysis and deeper management tools.</li>
               <li><Check size={15} /> Additional scouting, preparation and career-planning insights as those systems launch.</li>
               <li><Check size={15} /> Premium convenience features without removing core gameplay from Free players.</li>
-              <li><Check size={15} /> Receive 50 coins after every successful monthly Premium payment.</li>
+              <li><Check size={15} /> Receive 30 coins after every successful monthly Premium payment.</li>
               <li><Check size={15} /> Cancel at any time; normal gameplay remains free.</li>
             </ul>
             <div className="tlg-commerce-free-rule">
@@ -185,19 +236,23 @@ export default function ProPackagesPage() {
           <aside className="tlg-commerce-premium-side">
             <Crown size={25} />
             <span>Premium membership</span>
-            <strong>€4.99</strong>
+            <strong>€3.29</strong>
             <small>per real-life month</small>
             <button
               type="button"
-              onClick={() => showStripeNotice(
-                commerce.isPremium
-                  ? 'Stripe subscription management will be connected in the billing integration step.'
-                  : 'Stripe checkout will be connected in the billing integration step. No payment has been made.',
-              )}
+              onClick={() => {
+                if (commerce.isPremium) {
+                  const portalUrl = commerceSettings?.stripe_customer_portal_url
+                  if (portalUrl) window.location.assign(portalUrl)
+                  else showStripeNotice('Subscription management is temporarily unavailable.')
+                } else {
+                  openStripeCheckout(premiumCatalog?.stripe_payment_link_url ?? '')
+                }
+              }}
             >
               {commerce.isPremium ? 'Manage subscription' : 'Get Premium'}
             </button>
-            <p>Stripe checkout, invoices and subscription management will be connected later.</p>
+            <p>Secure checkout, recurring billing and subscription management are provided by Stripe.</p>
           </aside>
         </section>
 
@@ -229,7 +284,7 @@ export default function ProPackagesPage() {
           </div>
           <div className="tlg-commerce-pack-grid">
             {coinPacks.map((pack) => (
-              <article key={pack.coins} className={`tlg-commerce-pack ${pack.badge === 'Best value' ? 'tlg-commerce-pack-best' : ''}`}>
+              <article key={pack.code} className={`tlg-commerce-pack ${pack.badge === 'Best value' ? 'tlg-commerce-pack-best' : ''}`}>
                 {pack.badge && <span className="tlg-commerce-pack-badge">{pack.badge}</span>}
                 <span>Coin Pack</span>
                 <h3><Coins size={28} /> {pack.coins}</h3>
@@ -238,7 +293,7 @@ export default function ProPackagesPage() {
                 <small>≈ €{(pack.price / pack.coins).toFixed(2)} per coin</small>
                 <button
                   type="button"
-                  onClick={() => showStripeNotice(`The ${pack.coins}-coin pack will use secure Stripe checkout. No purchase has been made.`)}
+                  onClick={() => openStripeCheckout(pack.paymentLinkUrl)}
                 >
                   Buy now
                 </button>
