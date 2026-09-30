@@ -160,15 +160,42 @@ export default function ProPackagesPage() {
     window.setTimeout(() => setCheckoutNotice(null), 4200)
   }
 
-  function openStripeCheckout(paymentLinkUrl: string) {
-    if (!user || !paymentLinkUrl) {
+  async function openStripeCheckout(catalogCode: string) {
+    if (!user) {
+      showStripeNotice('Please sign in again before starting checkout.')
+      return
+    }
+
+    const { data, error: intentError } = await supabase.rpc('create_commerce_checkout_intent_v1', {
+      p_catalog_code: catalogCode,
+    })
+
+    if (intentError || !data) {
+      showStripeNotice(intentError?.message ?? 'Secure checkout is temporarily unavailable. Please try again.')
+      return
+    }
+
+    const checkout = data as {
+      status?: string
+      intent_id?: string
+      payment_link_url?: string
+      prefilled_email?: string | null
+      portal_url?: string | null
+    }
+
+    if (checkout.status === 'already_premium' && checkout.portal_url) {
+      window.location.assign(checkout.portal_url)
+      return
+    }
+
+    if (checkout.status !== 'ready' || !checkout.intent_id || !checkout.payment_link_url) {
       showStripeNotice('Secure checkout is temporarily unavailable. Please refresh and try again.')
       return
     }
 
-    const url = new URL(paymentLinkUrl)
-    url.searchParams.set('client_reference_id', user.id)
-    if (user.email) url.searchParams.set('prefilled_email', user.email)
+    const url = new URL(checkout.payment_link_url)
+    url.searchParams.set('client_reference_id', checkout.intent_id)
+    if (checkout.prefilled_email) url.searchParams.set('prefilled_email', checkout.prefilled_email)
     window.location.assign(url.toString())
   }
 
@@ -246,7 +273,7 @@ export default function ProPackagesPage() {
                   if (portalUrl) window.location.assign(portalUrl)
                   else showStripeNotice('Subscription management is temporarily unavailable.')
                 } else {
-                  openStripeCheckout(premiumCatalog?.stripe_payment_link_url ?? '')
+                  void openStripeCheckout('premium_monthly')
                 }
               }}
             >
@@ -293,7 +320,7 @@ export default function ProPackagesPage() {
                 <small>≈ €{(pack.price / pack.coins).toFixed(2)} per coin</small>
                 <button
                   type="button"
-                  onClick={() => openStripeCheckout(pack.paymentLinkUrl)}
+                  onClick={() => void openStripeCheckout(pack.code)}
                 >
                   Buy now
                 </button>
