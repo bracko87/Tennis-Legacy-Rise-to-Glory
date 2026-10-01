@@ -195,9 +195,18 @@ function statusLabel(status: string | null) {
   return status.replaceAll('_', ' ').replace(/^./, (char) => char.toUpperCase())
 }
 
+function processIsStale(process: HealthProcess) {
+  if (!process.stale_after_minutes) return false
+  if (!process.latest_started_at) return true
+  const started = new Date(process.latest_started_at).getTime()
+  if (Number.isNaN(started)) return true
+  return Date.now() - started > process.stale_after_minutes * 60_000
+}
+
 function processHealth(process: HealthProcess) {
   if (process.open_incidents > 0) return 'problem'
   if (process.source_kind === 'cron' && process.cron_active === false) return 'problem'
+  if (processIsStale(process)) return 'problem'
   if (process.latest_status === 'error' || process.latest_status === 'stalled') return 'problem'
   if (process.latest_status === 'warning') return 'warning'
   if (process.latest_status === 'success') return 'healthy'
@@ -467,7 +476,8 @@ export default function AdminSystemHealthPage() {
   }
 
   const summary = overview.summary
-  const overallHealthy = summary.open_incidents === 0
+  const unhealthyProcesses = overview.processes.filter((process) => processHealth(process) === 'problem').length
+  const overallHealthy = summary.open_incidents === 0 && unhealthyProcesses === 0
 
   return (
     <GameLayout
@@ -520,7 +530,7 @@ export default function AdminSystemHealthPage() {
                 <div>
                   <span>Overall status</span>
                   <strong>{overallHealthy ? 'Operational' : 'Attention required'}</strong>
-                  <small>{summary.open_incidents} active incident{summary.open_incidents === 1 ? '' : 's'}</small>
+                  <small>{summary.open_incidents} active incident{summary.open_incidents === 1 ? '' : 's'} · {unhealthyProcesses} unhealthy process{unhealthyProcesses === 1 ? '' : 'es'}</small>
                 </div>
               </article>
               <article>
@@ -621,7 +631,7 @@ export default function AdminSystemHealthPage() {
                           <span>{process.category}</span>
                           <span className="status">
                             <i />
-                            {process.open_incidents > 0 ? 'Incident' : statusLabel(process.latest_status)}
+                            {process.open_incidents > 0 ? 'Incident' : processIsStale(process) ? 'Overdue' : statusLabel(process.latest_status)}
                           </span>
                           <span>{formatDate(process.latest_started_at)}</span>
                           <span>{formatDuration(process.latest_duration_ms)}</span>
