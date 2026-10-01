@@ -739,3 +739,223 @@ select cron.schedule(
   '4,19,34,49 * * * *',
   $cron$select public.queue_open_critical_incident_reminders_v1();$cron$
 );
+
+
+-- Controlled repair helpers retained for audit/recovery use.
+create or replace function public.repair_false_minimum_field_cancellation_v1(
+  p_competition_id uuid,
+  p_repair_reason text default 'entry_lifecycle_failed_before_minimum_field_enforcement'
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path=public,pg_temp
+as $$
+declare
+  v_wc public.tournament_world_competitions%rowtype;
+  v_cancel public.tournament_cancellations%rowtype;
+  v_name text;
+  v_world text;
+  v_start_abs integer;
+  v_current_abs integer:=public.national_team_current_abs_day_v1();
+  v_audit_id uuid;
+  v_alloc jsonb;
+  v_fill jsonb;
+  v_lock jsonb;
+  v_rebalance jsonb;
+  v_entries integer:=0;
+  v_apps integer:=0;
+  v_cycle public.tournament_competition_entry_cycles%rowtype;
+begin
+  if not pg_try_advisory_xact_lock(hashtextextended('tournament-repair:'||p_competition_id::text,0)) then
+    return jsonb_build_object('status','busy','competition_id',p_competition_id);
+  end if;
+
+  select * into v_wc
+  from public.tournament_world_competitions
+  where id=p_competition_id;
+
+  if v_wc.id is null then
+    return jsonb_build_object('status','not_found','competition_id',p_competition_id);
+  end if;
+
+  select ts.name into v_name
+  from public.tournament_editions ed
+  join public.tournament_series ts on ts.id=ed.tournament_series_id
+  where ed.id=v_wc.tournament_edition_id;
+
+  v_world:=v_wc.world;
+
+  select * into v_cancel
+  from public.tournament_cancellations
+  where competition_id=p_competition_id;
+
+  if v_wc.status<>'canceled' or v_cancel.competition_id is null then
+    return jsonb_build_object('status','not_canceled','competition_id',p_competition_id);
+  end if;
+
+  if v_cancel.reason_code<>'minimum_field_not_met' then
+    return jsonb_build_object('status','wrong_reason','competition_id',p_competition_id,'reason_code',v_cancel.reason_code);
+  end if;
+
+  if exists(select 1 from public.tournament_draw_publications where competition_id=p_competition_id)
+     or exists(select 1 from public.tournament_matches where competition_id=p_competition_id) then
+    return jsonb_build_object('status','unsafe_existing_draw_or_matches','competition_id',p_competition_id);
+  end if;
+
+  select min(public.training_camp_week_start_absolute_v1(ed.season_number,ss.season_week::smallint))::integer
+  into v_start_abs
+  from public.tournament_editions ed
+  join public.tournament_schedule_slots ss on ss.tournament_edition_id=ed.id
+  where ed.id=v_wc.tournament_edition_id
+  group by ed.season_number;
+
+  if v_start_abs is null or v_start_abs<=v_current_abs then
+    return jsonb_build_object(
+      'status','unsafe_tournament_started_or_due',
+      'competition_id',p_competition_id,
+      'start_absolute_day',v_start_abs,
+      'current_absolute_day',v_current_abs
+    );
+  end if;
+
+  insert into public.tournament_cancellation_repair_audit(
+    competition_id,tournament_name,world,
+    original_reason_code,original_reason_message,original_canceled_at,original_metadata,
+    repair_reason,repair_details
+  )
+  values(
+    p_competition_id,v_name,v_world,
+    v_cancel.reason_code,v_cancel.reason_message,v_cancel.canceled_at,coalesce(v_cancel.metadata,'{}'::jsonb),
+    p_repair_reason,
+    jsonb_build_object('current_absolute_day',v_current_abs,'start_absolute_day',v_start_abs)
+  )
+  returning id into v_audit_id;
+
+  update public.tournament_world_competitions
+  set status='scheduled'
+  where id=p_competition_id;
+
+  delete from public.tournament_cancellations
+  where competition_id=p_competition_id;
+
+  update public.user_notifications
+  set archived_at=coalesce(archived_at,now())
+  where notification_code='tournament.canceled'
+    and payload->>'competition_id'=p_competition_id::text
+    and archived_at is null;
+
+  begin
+    v_alloc:=public.allocate_tournament_applications_v3(p_competition_id);
+  exception when others then
+    v_alloc:=jsonb_build_object('status','error','error',sqlerrm,'sqlstate',sqlstate);
+  end;
+
+  begin
+    v_fill:=public.fill_ai_late_tournament_vacancies_v1(p_competition_id);
+  exception when others then
+    v_fill:=jsonb_build_object('status','error','error',sqlerrm,'sqlstate',sqlstate);
+  end;
+
+  begin
+    v_lock:=public.lock_tournament_field_v1(p_competition_id);
+  exception when others then
+    v_lock:=jsonb_build_object('status','error','error',sqlerrm,'sqlstate',sqlstate);
+  end;
+
+  select count(*) into v_entries
+  from public.tournament_entries
+  where competition_id=p_competition_id and entry_status='active';
+
+  if v_entries<8 then
+    begin
+      v_rebalance:=public.rebalance_tournament_minimum_field_v1(p_competition_id,8);
+    exception when others then
+      v_rebalance:=jsonb_build_object('status','error','error',sqlerrm,'sqlstate',sqlstate);
+    end;
+  end if;
+
+  select count(*) into v_entries
+  from public.tournament_entries
+  where competition_id=p_competition_id and entry_status='active';
+
+  select count(*) into v_apps
+  from public.tournament_applications
+  where competition_id=p_competition_id
+    and status in ('applied','accepted_main_draw','accepted_qualification');
+
+  select * into v_cycle
+  from public.tournament_competition_entry_cycles
+  where competition_id=p_competition_id;
+
+  if v_cycle.normal_allocation_processed_at is not null
+     and v_cycle.ai_late_fill_processed_at is not null
+     and v_cycle.field_locked_at is not null
+     and v_entries>=8 then
+    update public.tournament_cancellation_repair_audit
+    set repair_status='repaired',
+        repair_details=repair_details||jsonb_build_object(
+          'allocation',coalesce(v_alloc,'{}'::jsonb),
+          'late_fill',coalesce(v_fill,'{}'::jsonb),
+          'field_lock',coalesce(v_lock,'{}'::jsonb),
+          'minimum_field_rebalance',coalesce(v_rebalance,'{}'::jsonb),
+          'active_entries',v_entries,
+          'active_applications',v_apps
+        ),
+        completed_at=now()
+    where id=v_audit_id;
+
+    perform public.resolve_system_incident_by_dedupe_v1(
+      'business:tournament-entry-pipeline:'||p_competition_id::text,
+      'Tournament entry pipeline repaired.'
+    );
+
+    return jsonb_build_object(
+      'status','repaired',
+      'competition_id',p_competition_id,
+      'tournament_name',v_name,
+      'world',v_world,
+      'active_entries',v_entries,
+      'allocation',v_alloc,
+      'late_fill',v_fill,
+      'field_lock',v_lock,
+      'minimum_field_rebalance',v_rebalance
+    );
+  end if;
+
+  update public.tournament_cancellation_repair_audit
+  set repair_status='needs_retry',
+      repair_details=repair_details||jsonb_build_object(
+        'allocation',coalesce(v_alloc,'{}'::jsonb),
+        'late_fill',coalesce(v_fill,'{}'::jsonb),
+        'field_lock',coalesce(v_lock,'{}'::jsonb),
+        'minimum_field_rebalance',coalesce(v_rebalance,'{}'::jsonb),
+        'active_entries',v_entries,
+        'active_applications',v_apps
+      )
+  where id=v_audit_id;
+
+  perform public.raise_system_incident_v1(
+    'check:tournament_entry_pipeline',
+    'critical',
+    'Tournament repair requires retry',
+    format('%s · %s was reopened but its entry pipeline remains incomplete. Automatic recovery will keep retrying.',v_name,v_world),
+    'business:tournament-entry-pipeline:'||p_competition_id::text,
+    jsonb_build_object(
+      'competition_id',p_competition_id,
+      'tournament_name',v_name,
+      'world',v_world,
+      'active_entries',v_entries,
+      'audit_id',v_audit_id
+    )
+  );
+
+  return jsonb_build_object(
+    'status','needs_retry',
+    'competition_id',p_competition_id,
+    'tournament_name',v_name,
+    'world',v_world,
+    'active_entries',v_entries
+  );
+end;
+$$;
