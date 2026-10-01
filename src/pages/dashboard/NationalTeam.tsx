@@ -478,9 +478,7 @@ export default function NationalTeamPage() {
         ? 'Annual candidate registration opens 1 January'
         : 'Election starts after activation'
 
-  const registrationDisplayEnd = election.voting_start_game_day ?? (
-    election.registration_end_game_day !== undefined ? election.registration_end_game_day + 1 : undefined
-  )
+  const registrationDisplayEnd = election.registration_end_game_day
   const expectedRunoffStart = election.runoff_start_game_day ?? (
     election.voting_end_game_day !== undefined ? election.voting_end_game_day + 1 : undefined
   )
