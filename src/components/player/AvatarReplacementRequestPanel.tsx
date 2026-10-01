@@ -326,7 +326,7 @@ export default function AvatarReplacementRequestPanel() {
         <div>
           <span>Player image</span>
           <h3>Private avatar replacement request</h3>
-          <p>Upload one clear photo of yourself and, if you want, choose up to three jersey colors. We prepare the Tennis Legacy avatar, you review it, and nothing changes until you approve it.</p>
+          <p>Upload one clear photo of yourself and, if you want, choose up to three jersey colors. We prepare the Tennis Legacy avatar, you review it, and nothing changes until you approve it. Your original source photo is temporary and is automatically deleted no later than 24 hours after upload.</p>
         </div>
       </header>
 
@@ -382,7 +382,7 @@ export default function AvatarReplacementRequestPanel() {
               <p>
                 {request.reference_deleted_at
                   ? `The private original/reference image was deleted on ${formatDate(request.reference_deleted_at)}.`
-                  : 'The private original/reference image is queued for immediate deletion now that the request is closed. If automatic cleanup needs a retry, the file remains private until it is removed.'}
+                  : 'The private original/reference image is queued for automatic deletion now that the request is closed. The server cleanup runs automatically, and source photos are never retained beyond the 24-hour retention window.'}
               </p>
             </div>
           )}
@@ -425,7 +425,7 @@ export default function AvatarReplacementRequestPanel() {
 
               <div className="tlg-avatar-privacy-box">
                 <ShieldCheck size={18} />
-                <div><strong>Private upload</strong><p>Your source photo is stored privately, is not shown to other players, and is queued for deletion after the request is completed or rejected.</p></div>
+                <div><strong>Private upload · temporary source photo</strong><p>Your source photo is stored privately and is never shown to other players. It is automatically deleted when your replacement is approved/applied or the request is closed, and in all cases no later than 24 hours after upload.</p></div>
               </div>
 
               {file && <div className="tlg-avatar-selected-file"><strong>Selected:</strong> {file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB</div>}
@@ -434,7 +434,7 @@ export default function AvatarReplacementRequestPanel() {
 
               <div className="tlg-account-form-actions">
                 <button type="submit" className="tlg-account-primary-button" disabled={!player || !user || busy}>{busy ? 'Uploading privately…' : 'Submit photo for avatar creation'}</button>
-                <small>Your current avatar stays unchanged until you review and approve the prepared replacement.</small>
+                <small>Your current avatar stays unchanged until you review and approve the prepared replacement. The original uploaded photo is temporary and is automatically removed from the server within the 24-hour retention window.</small>
               </div>
             </form>
           )}
