@@ -569,6 +569,20 @@ export default function AvatarReplacementRequestPanel() {
                     </label>
                   </div>
 
+                  <div className="tlg-avatar-prompt-kit-grid">
+                    <label className="tlg-account-field">
+                      <span>Jersey type</span>
+                      <select value={jerseyType} onChange={(event) => setJerseyType(event.target.value as 'sport_jersey' | 'polo_shirt')}>
+                        <option value="sport_jersey">Sport jersey</option>
+                        <option value="polo_shirt">Polo shirt</option>
+                      </select>
+                    </label>
+                    <div className="tlg-account-field tlg-avatar-colors-field">
+                      <span><Palette size={14} /> Jersey colors · at least 1 required</span>
+                      <div>{colors.map((color, index) => <input key={index} maxLength={30} value={color} onChange={(event) => setColors((items) => items.map((item, itemIndex) => itemIndex === index ? event.target.value : item))} placeholder={`Color ${index + 1}${index === 0 ? ' *' : ''}`} />)}</div>
+                    </div>
+                  </div>
+
                   {promptSourceMode === 'description' && (
                     <div className="tlg-avatar-description-grid">
                       <label className="tlg-account-field">
@@ -596,7 +610,7 @@ export default function AvatarReplacementRequestPanel() {
                   </label>
 
                   <div className="tlg-avatar-prompt-requirements">
-                    <span className={cleanedColors.length ? 'done' : ''}>{cleanedColors.length ? '✓' : '1'} Add at least one jersey color below</span>
+                    <span className={cleanedColors.length ? 'done' : ''}>{cleanedColors.length ? '✓' : '1'} Add at least one jersey color above</span>
                     {promptSourceMode === 'description' && <span className={promptDescriptionComplete ? 'done' : ''}>{promptDescriptionComplete ? '✓' : '2'} Complete region, hair style, hair color and eye color</span>}
                   </div>
 
@@ -634,18 +648,22 @@ export default function AvatarReplacementRequestPanel() {
                   <textarea rows={4} maxLength={4000} value={details} onChange={(event) => setDetails(event.target.value)} placeholder="Explain what you would like changed and anything the admin team should know." required />
                 </label>
 
-                <label className="tlg-account-field">
-                  <span>Preferred jersey type</span>
-                  <select value={jerseyType} onChange={(event) => setJerseyType(event.target.value as 'sport_jersey' | 'polo_shirt')}>
-                    <option value="sport_jersey">Sport jersey</option>
-                    <option value="polo_shirt">Polo shirt</option>
-                  </select>
-                </label>
+                {submissionType === 'reference_photo' && (
+                  <>
+                    <label className="tlg-account-field">
+                      <span>Preferred jersey type</span>
+                      <select value={jerseyType} onChange={(event) => setJerseyType(event.target.value as 'sport_jersey' | 'polo_shirt')}>
+                        <option value="sport_jersey">Sport jersey</option>
+                        <option value="polo_shirt">Polo shirt</option>
+                      </select>
+                    </label>
 
-                <div className="tlg-account-field tlg-avatar-colors-field">
-                  <span><Palette size={14} /> Preferred jersey colors · up to 3</span>
-                  <div>{colors.map((color, index) => <input key={index} maxLength={30} value={color} onChange={(event) => setColors((items) => items.map((item, itemIndex) => itemIndex === index ? event.target.value : item))} placeholder={`Color ${index + 1}${index === 0 && submissionType === 'candidate_avatar' ? ' (required for prompt)' : index === 0 ? ' (optional)' : ''}`} />)}</div>
-                </div>
+                    <div className="tlg-account-field tlg-avatar-colors-field">
+                      <span><Palette size={14} /> Preferred jersey colors · up to 3</span>
+                      <div>{colors.map((color, index) => <input key={index} maxLength={30} value={color} onChange={(event) => setColors((items) => items.map((item, itemIndex) => itemIndex === index ? event.target.value : item))} placeholder={`Color ${index + 1}${index === 0 ? ' (optional)' : ''}`} />)}</div>
+                    </div>
+                  </>
+                )}
 
                 <label className="tlg-account-field tlg-avatar-details-field">
                   <span>Optional appearance instructions</span>
