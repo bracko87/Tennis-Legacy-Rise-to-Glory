@@ -10,7 +10,47 @@ const SUPPORT_EMAIL = 'contact@tennislegacygame.com'
 const PRIVATE_BUCKET = 'avatar-replacement-submissions'
 const MAX_FILE_BYTES = 8 * 1024 * 1024
 const ACTIVE_STATUSES = new Set(['submitted', 'under_review', 'preparing', 'ready_for_review', 'revision_requested'])
-const CHATGPT_AVATAR_PROMPT = `Please create a realistic tennis player profile avatar based only on my attached photo and my own appearance. Use the attached Tennis Legacy example image only for framing and alignment. The background must be pure white. Use a passport-style, front-facing composition with the head centered and the eyes, ears, mouth and overall face position at approximately the same level as the example. Keep my real facial identity recognizable and do not make me resemble a celebrity, public figure or any other real person. Show the head and upper shoulders only. Dress me in a clean [sport jersey/polo shirt] in [preferred colors], with no logos, sponsors, text or brand marks. Use realistic lighting and a natural neutral expression, with no hat, sunglasses, props or background objects. Keep the result suitable for a square in-game profile image.`
+interface ChatGptPromptOptions {
+  sourceMode: 'photo' | 'description'
+  jerseyType: 'sport_jersey' | 'polo_shirt'
+  jerseyColors: string[]
+  region: string
+  hairStyle: string
+  hairColor: string
+  eyeColor: string
+  extraAppearance: string
+}
+
+function buildChatGptAvatarPrompt(options: ChatGptPromptOptions) {
+  const jerseyLabel = options.jerseyType === 'sport_jersey' ? 'tennis sport jersey' : 'tennis polo shirt'
+  const colorsLabel = options.jerseyColors.length ? options.jerseyColors.join(', ') : '[ENTER JERSEY COLOR(S)]'
+  const identityBlock = options.sourceMode === 'photo'
+    ? `Base the player only on my attached personal reference photo. Preserve my recognizable facial identity, natural face shape, skin tone, hair, eye color and age appearance. Do not make me resemble a celebrity, public figure or any other person. The separate Tennis Legacy example image is ONLY a composition/framing reference and must not influence my identity.`
+    : `Create an original fictional tennis-player face from this description only. Do not copy or resemble any real person, celebrity or public figure. Regional appearance: ${options.region || '[ENTER REGION, e.g. Eastern Europe]'}. Hair style: ${options.hairStyle || '[ENTER HAIR STYLE]'}. Hair color: ${options.hairColor || '[ENTER HAIR COLOR]'}. Eye color: ${options.eyeColor || '[ENTER EYE COLOR]'}. Keep the result natural and believable rather than exaggerated or stereotyped.`
+
+  const extra = options.extraAppearance.trim()
+    ? `Additional appearance instructions: ${options.extraAppearance.trim()}`
+    : ''
+
+  return [
+    'Create one finished realistic female or male tennis player profile avatar for Tennis Legacy, matching the player described or shown in my personal reference photo.',
+    identityBlock,
+    'Use the attached Tennis Legacy example portrait ONLY as the exact visual reference for crop, scale, camera height and subject placement.',
+    'OUTPUT / FRAMING REQUIREMENTS:',
+    '- Square 1:1 image, preferably 1536 × 1536 px or larger.',
+    '- Pure white (#FFFFFF) background with no gradient, scenery, objects or visible shadow outside the player.',
+    '- Front-facing camera at eye level; head perfectly upright and centered horizontally.',
+    '- Match the Tennis Legacy example framing: small white margin above the hair, full head visible, eyes positioned in the upper third, face centered, neck and upper shoulders/chest visible, shoulders reaching toward both lower side edges.',
+    '- Do not crop the top of the hair, chin, neck or shoulders unnaturally. Do not zoom in to a face-only passport crop and do not show the full torso.',
+    '- Natural neutral/confident expression, looking directly into the camera.',
+    '- Realistic skin texture, realistic hair strands and balanced studio lighting. No beauty-filter look, no excessive retouching and no cartoon/anime style.',
+    `CLOTHING: clean ${jerseyLabel} using these colors: ${colorsLabel}. Use a professional tennis-kit design with no logos, sponsors, text, flags, numbers or brand marks.`,
+    '- No hat, sunglasses, jewelry that dominates the portrait, racket, ball, props or background elements.',
+    '- The result must look like a consistent official in-game player database portrait, not a lifestyle photo.',
+    extra,
+    'Generate only the finished avatar image.'
+  ].filter(Boolean).join('\\n')
+}
 
 interface AvatarRequestRow {
   id: string
@@ -117,6 +157,12 @@ export default function AvatarReplacementRequestPanel() {
   const [revisionMessage, setRevisionMessage] = useState('')
   const [rulesOpen, setRulesOpen] = useState(false)
   const [promptCopied, setPromptCopied] = useState(false)
+  const [promptSourceMode, setPromptSourceMode] = useState<'photo' | 'description'>('photo')
+  const [promptRegion, setPromptRegion] = useState('')
+  const [promptHairStyle, setPromptHairStyle] = useState('')
+  const [promptHairColor, setPromptHairColor] = useState('')
+  const [promptEyeColor, setPromptEyeColor] = useState('')
+  const [promptExtraAppearance, setPromptExtraAppearance] = useState('')
   const [identityConfirmed, setIdentityConfirmed] = useState(false)
   const [privacyConsent, setPrivacyConsent] = useState(false)
 
@@ -185,6 +231,39 @@ export default function AvatarReplacementRequestPanel() {
   }, [loadRequest, request?.id, request?.reference_deleted_at, request?.status])
 
   const cleanedColors = useMemo(() => colors.map((value) => value.trim()).filter(Boolean).slice(0, 3), [colors])
+  const chatGptAvatarPrompt = useMemo(() => buildChatGptAvatarPrompt({
+    sourceMode: promptSourceMode,
+    jerseyType,
+    jerseyColors: cleanedColors,
+    region: promptRegion.trim(),
+    hairStyle: promptHairStyle.trim(),
+    hairColor: promptHairColor.trim(),
+    eyeColor: promptEyeColor.trim(),
+    extraAppearance: promptExtraAppearance,
+  }), [cleanedColors, jerseyType, promptEyeColor, promptExtraAppearance, promptHairColor, promptHairStyle, promptRegion, promptSourceMode])
+  const promptDescriptionComplete = promptSourceMode === 'photo' || Boolean(
+    promptRegion.trim() && promptHairStyle.trim() && promptHairColor.trim() && promptEyeColor.trim()
+  )
+  const promptReady = Boolean(cleanedColors.length && promptDescriptionComplete)
+
+  const copyChatGptPrompt = useCallback(async () => {
+    if (!promptReady) return
+    try {
+      await navigator.clipboard.writeText(chatGptAvatarPrompt)
+    } catch {
+      const textarea = document.createElement('textarea')
+      textarea.value = chatGptAvatarPrompt
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.focus()
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+    }
+    setPromptCopied(true)
+    window.setTimeout(() => setPromptCopied(false), 1800)
+  }, [chatGptAvatarPrompt, promptReady])
 
   async function sendAdminEmailCopy(requestId: string, privatePhotoReference: string) {
     if (!player || !user) return
@@ -386,21 +465,8 @@ export default function AvatarReplacementRequestPanel() {
           <div className="tlg-avatar-chatgpt-box">
             <div>
               <strong>Want to create the avatar yourself with ChatGPT?</strong>
-              <p>Attach your own photo and the Tennis Legacy example image, then use this prompt. You can submit only the finished avatar for approval if you prefer not to send us your real photo.</p>
+              <p>Choose <strong>I created my own avatar</strong> below. The page will build a complete ChatGPT prompt using your jersey choices and either your own reference photo or a required appearance description. The finished image must still be uploaded here and approved before it can become your player image.</p>
             </div>
-            <textarea readOnly rows={6} value={CHATGPT_AVATAR_PROMPT} aria-label="Suggested ChatGPT avatar prompt" />
-            <button
-              type="button"
-              className="tlg-account-secondary-button"
-              onClick={() => {
-                void navigator.clipboard.writeText(CHATGPT_AVATAR_PROMPT).then(() => {
-                  setPromptCopied(true)
-                  window.setTimeout(() => setPromptCopied(false), 1800)
-                })
-              }}
-            >
-              <Copy size={14} /> {promptCopied ? 'Prompt copied' : 'Copy ChatGPT prompt'}
-            </button>
           </div>
         </div>
       )}
@@ -479,6 +545,71 @@ export default function AvatarReplacementRequestPanel() {
                 </label>
               </div>
 
+              {submissionType === 'candidate_avatar' && (
+                <div className="tlg-avatar-prompt-builder">
+                  <div className="tlg-avatar-prompt-builder-head">
+                    <div>
+                      <span>ChatGPT avatar creator</span>
+                      <h4>Build your profile-image prompt</h4>
+                      <p>The final image should match the Tennis Legacy example: square portrait, pure white background, front-facing eye-level camera, centered head, small margin above the hair, and upper shoulders/chest visible.</p>
+                    </div>
+                    <Copy size={19} />
+                  </div>
+
+                  <div className="tlg-avatar-prompt-source">
+                    <label className={promptSourceMode === 'photo' ? 'selected' : ''}>
+                      <input type="radio" name="prompt-source" checked={promptSourceMode === 'photo'} onChange={() => setPromptSourceMode('photo')} />
+                      <strong>I will give ChatGPT my own photo</strong>
+                      <span>Your photo defines your identity. The Tennis Legacy example image is used only for crop, scale and position.</span>
+                    </label>
+                    <label className={promptSourceMode === 'description' ? 'selected' : ''}>
+                      <input type="radio" name="prompt-source" checked={promptSourceMode === 'description'} onChange={() => setPromptSourceMode('description')} />
+                      <strong>I will not upload my own photo</strong>
+                      <span>Describe the player instead. Region, hairstyle, hair color and eye color are required so ChatGPT has enough guidance.</span>
+                    </label>
+                  </div>
+
+                  {promptSourceMode === 'description' && (
+                    <div className="tlg-avatar-description-grid">
+                      <label className="tlg-account-field">
+                        <span>Region / appearance reference *</span>
+                        <input value={promptRegion} maxLength={80} onChange={(event) => setPromptRegion(event.target.value)} placeholder="e.g. Eastern Europe, Southeast Asia" />
+                      </label>
+                      <label className="tlg-account-field">
+                        <span>Hair style *</span>
+                        <input value={promptHairStyle} maxLength={80} onChange={(event) => setPromptHairStyle(event.target.value)} placeholder="e.g. long ponytail, short wavy hair" />
+                      </label>
+                      <label className="tlg-account-field">
+                        <span>Hair color *</span>
+                        <input value={promptHairColor} maxLength={50} onChange={(event) => setPromptHairColor(event.target.value)} placeholder="e.g. dark brown" />
+                      </label>
+                      <label className="tlg-account-field">
+                        <span>Eye color *</span>
+                        <input value={promptEyeColor} maxLength={50} onChange={(event) => setPromptEyeColor(event.target.value)} placeholder="e.g. green" />
+                      </label>
+                    </div>
+                  )}
+
+                  <label className="tlg-account-field tlg-avatar-prompt-extra">
+                    <span>Extra appearance notes for ChatGPT</span>
+                    <textarea rows={2} maxLength={1000} value={promptExtraAppearance} onChange={(event) => setPromptExtraAppearance(event.target.value)} placeholder="Optional: age appearance, freckles, facial hair, specific haircut details, expression, etc." />
+                  </label>
+
+                  <div className="tlg-avatar-prompt-requirements">
+                    <span className={cleanedColors.length ? 'done' : ''}>{cleanedColors.length ? '✓' : '1'} Add at least one jersey color below</span>
+                    {promptSourceMode === 'description' && <span className={promptDescriptionComplete ? 'done' : ''}>{promptDescriptionComplete ? '✓' : '2'} Complete region, hair style, hair color and eye color</span>}
+                  </div>
+
+                  <textarea className="tlg-avatar-generated-prompt" readOnly rows={11} value={chatGptAvatarPrompt} aria-label="Generated ChatGPT avatar prompt" />
+                  <div className="tlg-avatar-prompt-actions">
+                    <button type="button" className="tlg-account-secondary-button" disabled={!promptReady} onClick={() => void copyChatGptPrompt()}>
+                      <Copy size={14} /> {promptCopied ? 'Prompt copied' : 'Copy ChatGPT prompt'}
+                    </button>
+                    <small>{promptReady ? 'Attach the Tennis Legacy example image in ChatGPT as the framing reference. After generation, come back here and upload the finished avatar for approval.' : 'Complete the required prompt information first.'}</small>
+                  </div>
+                </div>
+              )}
+
               <div className="tlg-avatar-request-grid">
                 <label className="tlg-account-field tlg-avatar-file-field">
                   <span>{submissionType === 'candidate_avatar' ? 'Finished avatar image for approval' : 'One reference photo of yourself'}</span>
@@ -513,7 +644,7 @@ export default function AvatarReplacementRequestPanel() {
 
                 <div className="tlg-account-field tlg-avatar-colors-field">
                   <span><Palette size={14} /> Preferred jersey colors · up to 3</span>
-                  <div>{colors.map((color, index) => <input key={index} maxLength={30} value={color} onChange={(event) => setColors((items) => items.map((item, itemIndex) => itemIndex === index ? event.target.value : item))} placeholder={`Color ${index + 1}${index === 0 ? ' (optional)' : ''}`} />)}</div>
+                  <div>{colors.map((color, index) => <input key={index} maxLength={30} value={color} onChange={(event) => setColors((items) => items.map((item, itemIndex) => itemIndex === index ? event.target.value : item))} placeholder={`Color ${index + 1}${index === 0 && submissionType === 'candidate_avatar' ? ' (required for prompt)' : index === 0 ? ' (optional)' : ''}`} />)}</div>
                 </div>
 
                 <label className="tlg-account-field tlg-avatar-details-field">
