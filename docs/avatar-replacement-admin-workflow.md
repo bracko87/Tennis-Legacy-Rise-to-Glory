@@ -79,15 +79,15 @@ The previous avatar is not replaced until the user explicitly approves the prepa
 
 ## Reference-photo retention
 
-Completed or rejected requests set `reference_delete_after` immediately. The client attempts to remove the user-owned private source copy as soon as it sees the closed status; admins should delete it immediately as part of closing a request if it still exists.
+Every source/reference photo has a hard 24-hour maximum retention window from upload. Completed, rejected, or cancelled requests move `reference_delete_after` forward to `now()`, so the source becomes eligible for deletion immediately. The client also attempts immediate cleanup when it sees a closed request.
 
-After physically deleting the object from `avatar-replacement-submissions`, record that cleanup:
+A scheduled cleanup Edge Function runs every five minutes and permanently removes due source objects from `avatar-replacement-submissions`, then records `reference_deleted_at`. This means cleanup does not depend on the player reopening the page. After a manual deletion, record that cleanup:
 
 ```sql
 select public.admin_mark_avatar_reference_deleted_v1('<request-id>'::uuid);
 ```
 
-`reference_deleted_at` is then visible in the request record for audit/retention tracking.
+`reference_deleted_at` is then visible in the request record for audit/retention tracking. The prepared/approved avatar is stored separately in `player-avatars` and is not part of this 24-hour source-photo deletion rule.
 
 ## Supported uploads
 
