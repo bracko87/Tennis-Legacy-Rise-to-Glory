@@ -95,3 +95,21 @@
     --portrait-size: 94%;
   }
 }
+
+
+/* Keep player flag and full name on one line in tournament match cards. */
+.tlg-match-player-summary .identity{
+  flex-wrap:nowrap !important;
+  white-space:nowrap;
+}
+.tlg-match-player-summary .identity a{
+  white-space:nowrap !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+  font-size:clamp(.92rem,1.08vw,1.16rem) !important;
+  line-height:1.1 !important;
+}
+.tlg-match-player-summary .identity img,
+.tlg-match-player-summary .identity svg{
+  flex:0 0 auto;
+}
