@@ -49,7 +49,7 @@ function buildChatGptAvatarPrompt(options: ChatGptPromptOptions) {
     '- The result must look like a consistent official in-game player database portrait, not a lifestyle photo.',
     extra,
     'Generate only the finished avatar image.'
-  ].filter(Boolean).join('\\n')
+  ].filter(Boolean).join('\n')
 }
 
 interface AvatarRequestRow {
