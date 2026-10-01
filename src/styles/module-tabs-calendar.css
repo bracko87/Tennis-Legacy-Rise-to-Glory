@@ -109,7 +109,7 @@
   color: #4f6c83;
   background: #f7fafc;
   font-size: .72rem;
-  font-weight: 750;
+  font-weight: 500;
 }
 
 .tlg-season-calendar-nav button:hover:not(:disabled) {
@@ -127,6 +127,7 @@
   padding: 0 15px;
   color: #152b3f;
   font-size: .76rem;
+  font-weight: 600;
   border-left: 1px solid #e5ecf1;
   border-right: 1px solid #e5ecf1;
 }
@@ -142,7 +143,7 @@
   padding: 0 8px;
   color: #5c7387;
   font-size: .68rem;
-  font-weight: 750;
+  font-weight: 500;
 }
 
 .tlg-calendar-day,
@@ -175,7 +176,7 @@
   display: block;
   color: #1a3349;
   font-size: .72rem;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .tlg-calendar-day-current .tlg-calendar-day-number {
@@ -191,7 +192,7 @@
   color: #0a67a6;
   background: #dff2fe;
   font-size: .5rem;
-  font-weight: 850;
+  font-weight: 600;
   letter-spacing: .04em;
   text-transform: uppercase;
 }
