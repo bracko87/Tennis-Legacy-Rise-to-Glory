@@ -127,6 +127,8 @@ export interface TrainingCampQuote {
   staff_cost: number
   staff: TrainingCampStaffQuoteItem[]
   grand_total: number
+  available_balance: number
+  affordable: boolean
 }
 
 export interface TrainingCampBooking {
@@ -180,6 +182,7 @@ export interface TrainingCampActionResult {
   level_ups?: Record<string, number>
   condition_changes?: Record<string, number>
   quote?: TrainingCampQuote
+  refunded_amount?: number
 }
 
 export function useTrainingCamps() {
