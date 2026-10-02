@@ -119,12 +119,14 @@ $$;
 -- universal $120k/$300k values to their country baseline. Explicit marketplace
 -- cities (New York, London, Monaco, etc.) remain untouched.
 update public.private_life_property_locations l
-set apartment_base_price=b.apartment_base_price,
-    house_base_price=b.house_base_price,
-    annual_value_rate_bps=b.annual_value_rate_bps,
+set apartment_base_price=pt.apartment_base_price,
+    house_base_price=pt.house_base_price,
+    annual_value_rate_bps=pt.annual_value_rate_bps,
     updated_at=now()
-from lateral public.private_life_country_property_baseline_v1(l.country_code) b
-where l.marketplace_enabled=false
+from public.private_life_country_property_tiers ct
+join public.private_life_property_price_tiers pt on pt.tier=ct.tier
+where ct.country_code=upper(l.country_code)
+  and l.marketplace_enabled=false
   and l.code like 'home_%';
 
 -- ---------------------------------------------------------------------------
