@@ -66,7 +66,7 @@ export function HelpPage() {
             <a className="tlg-community-button tlg-community-button-primary" href="/game/manual">
               Full Game Manual
             </a>
-            <a className="tlg-community-button" href="/manual/Tennis-Legacy-Full-Game-Manual-EN.pdf" download>
+            <a className="tlg-community-button" href="/game/manual?download=pdf">
               Download Manual PDF
             </a>
             <a className="tlg-community-button" href="/game/contact">Contact Support</a>
