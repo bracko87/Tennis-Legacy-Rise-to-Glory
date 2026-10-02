@@ -33,6 +33,13 @@
   transform: translateY(var(--portrait-shift-y)) !important;
 }
 
+/* WTA match cards use a slightly tighter crop than ATP on this modal only.
+   The tournament wrapper class is added from the actual competition world, so
+   profiles, rankings, equipment and every ATP match keep the standard framing. */
+.tlg-match-versus-wta .tlg-match-player-portrait-stage.has-image img {
+  --portrait-size: 104%;
+}
+
 /* Current calibrated examples.
    ATP063 already sits on the standard eye line. ATP255's source portrait is
    lower in its canvas, so move it upward while preserving the same 94% scale. */
@@ -88,11 +95,19 @@
   .tlg-match-player-portrait-stage.has-image img {
     --portrait-size: 94%;
   }
+
+  .tlg-match-versus-wta .tlg-match-player-portrait-stage.has-image img {
+    --portrait-size: 104%;
+  }
 }
 
 @media(max-width:680px) {
   .tlg-match-player-portrait-stage.has-image img {
     --portrait-size: 94%;
+  }
+
+  .tlg-match-versus-wta .tlg-match-player-portrait-stage.has-image img {
+    --portrait-size: 104%;
   }
 }
 
