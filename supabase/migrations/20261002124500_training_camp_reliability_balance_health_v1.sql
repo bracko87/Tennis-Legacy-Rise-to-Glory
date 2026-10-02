@@ -818,11 +818,16 @@ declare
   v_focus_bonus smallint:=0;
   v_trigger_fatigue_mitigation smallint:=0;
 begin
-  select t.*,p.category
-  into v_tier,v_category
+  select t.*
+  into v_tier
+  from public.player_training_camp_bookings b
+  join public.training_camp_accommodation_tiers t on t.id=b.accommodation_tier_id
+  where b.id=new.booking_id;
+
+  select p.category
+  into v_category
   from public.player_training_camp_bookings b
   join public.training_camp_programs p on p.id=b.program_id
-  join public.training_camp_accommodation_tiers t on t.id=b.accommodation_tier_id
   where b.id=new.booking_id;
 
   if v_tier.id is null then return new; end if;
