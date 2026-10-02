@@ -122,18 +122,21 @@ Both:
 - Wear per match 1.45
 - Same starter gameplay effects
 
-### Shoes — catalog correction required before final implementation
+### Shoes
 
-ATP currently has a suitable $80 Tier 1 starter:
+Approved starter choice for both ATP and WTA:
+
 - **Antta PG 7**
 - SKU: `SHO-ANTTA-01`
+- Tour scope: **unisex**
 - Tier 1
 - $80
+- All Court
 - Durability 76
+- Wear per match 3.80
+- Gameplay effects: +0.35% Movement, +0.16% Comfort, +0.09% Stamina
 
-The current WTA shoe catalog starts at $420 / Tier 3, which would make the WTA starting package materially stronger and more valuable. That is not acceptable for a universal starting scheme.
-
-Final implementation must therefore first provide a WTA/unisex Tier 1 starter shoe equivalent to the ATP $80 Tier 1 baseline, then lock the exact SKU in this document. Do **not** give WTA players a Tier 3 $420 starter simply because it is currently the cheapest active WTA shoe.
+The lower-price ATP shoe range from $80–$400 is now unisex, so WTA players have the same Starter / Advanced / early Tour progression and identical bonus levels instead of beginning at $420 / Tier 3. Existing premium WTA-specific shoes remain unchanged.
 
 ### Accessories
 
