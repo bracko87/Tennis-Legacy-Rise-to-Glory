@@ -55,7 +55,8 @@ function snippetFor(chapter: ManualChapter, query: string) {
 }
 
 export default function GameManualPage() {
-  const manual = getGameManual('en')
+  const activeLocale = (document.documentElement.lang || navigator.language || 'en').split('-')[0].toLowerCase()
+  const manual = getGameManual(activeLocale)
   const navigate = useNavigate()
   const { chapterId } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
