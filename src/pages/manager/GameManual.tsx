@@ -1,12 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, Download, Search, X } from 'lucide-react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 
 import GameLayout from '../../components/layout/GameLayout'
 import { getGameManual, type ManualChapter, type ManualSection } from '../../content/manual'
+import { downloadGameManualPdf } from '../../lib/manualPdf'
 import '../../styles/game-manual.css'
 
-const PDF_PATH = '/manual/Tennis-Legacy-Full-Game-Manual-EN.pdf'
 
 function sectionText(section: ManualSection) {
   const tableText = section.table
@@ -58,6 +58,8 @@ export default function GameManualPage() {
   const manual = getGameManual('en')
   const navigate = useNavigate()
   const { chapterId } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const pdfAutoDownloadHandled = useRef(false)
   const [query, setQuery] = useState('')
 
   const currentIndex = Math.max(
@@ -79,6 +81,17 @@ export default function GameManualPage() {
         snippet: snippetFor(chapter, normalized),
       }))
   }, [manual.chapters, query])
+
+  useEffect(() => {
+    if (searchParams.get('download') !== 'pdf' || pdfAutoDownloadHandled.current) return
+
+    pdfAutoDownloadHandled.current = true
+    downloadGameManualPdf(manual)
+
+    const next = new URLSearchParams(searchParams)
+    next.delete('download')
+    setSearchParams(next, { replace: true })
+  }, [manual, searchParams, setSearchParams])
 
   const openChapter = (id: string) => {
     setQuery('')
@@ -103,10 +116,10 @@ export default function GameManualPage() {
           </div>
           <div className="tlg-manual-hero-actions">
             <Link to="/game/help">Back to Help Center</Link>
-            <a className="primary" href={PDF_PATH} download>
+            <button className="primary" type="button" onClick={() => downloadGameManualPdf(manual)}>
               <Download size={15} aria-hidden="true" />
               Download PDF
-            </a>
+            </button>
           </div>
         </section>
 
