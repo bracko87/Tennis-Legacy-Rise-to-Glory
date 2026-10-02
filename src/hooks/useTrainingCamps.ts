@@ -145,6 +145,7 @@ export interface TrainingCampBooking {
   end_month: number
   end_day: number
   duration_weeks: number
+  shortened_days: number
   weekly_cost: number
   total_cost: number
   training_fee_total: number
@@ -215,7 +216,7 @@ export function useTrainingCamps() {
       supabase.from('player_training_camp_bookings').select(`
         id, player_id, program_id, start_absolute_day, end_absolute_day,
         start_season, start_season_week, start_month, start_day, end_season, end_month, end_day,
-        duration_weeks, weekly_cost, total_cost, training_fee_total,
+        duration_weeks, shortened_days, weekly_cost, total_cost, training_fee_total,
         accommodation_weekly_cost, accommodation_total, travel_cost,
         travel_distance_km, travel_round_trip_km, travel_band, travel_basis, travel_arrival_fatigue,
         staff_count, staff_travel_cost, staff_accommodation_cost, staff_total_cost,
