@@ -82,6 +82,7 @@ import AdminBugReportsPage from './pages/manager/AdminBugReports'
 import AdminReviewsPage from './pages/manager/AdminReviews'
 import NotificationsPage from './pages/manager/Notifications'
 import { ForumPage, HelpPage } from './pages/manager/CommunitySupport'
+import GameManualPage from './pages/manager/GameManual'
 import { PlayerAccountPage } from './pages/manager/ManagerPages'
 
 function resetTournamentScrollPosition() {
@@ -225,6 +226,8 @@ export default function App() {
           <Route path="/game/preferences" element={<RequirePlayer><GamePreferencesPage /></RequirePlayer>} />
           <Route path="/game/inbox" element={<RequirePlayer><InboxPage /></RequirePlayer>} />
           <Route path="/game/help" element={<RequirePlayer><HelpPage /></RequirePlayer>} />
+          <Route path="/game/manual" element={<RequirePlayer><GameManualPage /></RequirePlayer>} />
+          <Route path="/game/manual/:chapterId" element={<RequirePlayer><GameManualPage /></RequirePlayer>} />
           <Route path="/game/forum" element={<RequirePlayer><ForumPage /></RequirePlayer>} />
           <Route path="/game/pro-packages" element={<RequirePlayer><ProPackagesPage /></RequirePlayer>} />
           <Route path="/game/contact" element={<RequirePlayer><ContactUsPage /></RequirePlayer>} />
