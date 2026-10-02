@@ -273,7 +273,7 @@ export function downloadGameManualPdf(manual: GameManualDocument) {
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
   anchor.href = url
-  anchor.download = 'Tennis-Legacy-Full-Game-Manual-EN.pdf'
+  anchor.download = `Tennis-Legacy-Full-Game-Manual-${manual.meta.locale.toUpperCase()}.pdf`
   document.body.appendChild(anchor)
   anchor.click()
   anchor.remove()
