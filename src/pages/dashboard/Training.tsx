@@ -79,6 +79,10 @@ function signedDelta(before?: number, after?: number) {
   return `${delta > 0 ? '+' : ''}${delta}`
 }
 
+function formatCampDate(month: number, day: number) {
+  return `${MONTH_NAMES[Math.max(0, month - 1)]} ${day}`
+}
+
 function progressGain(value: number) {
   return `+${(Number(value) * 100).toFixed(1)}%`
 }
@@ -181,6 +185,30 @@ export default function TrainingPage() {
 
         {view === 'regular' && dashboard && (
           <>
+            {dashboard.current_or_planned_camp && (
+              <section className="tlg-training-camp-booking-banner">
+                <div>
+                  <span>TRAINING CAMP BOOKED</span>
+                  <h2>{dashboard.current_or_planned_camp.name}</h2>
+                  <p>
+                    {dashboard.current_or_planned_camp.city}, {dashboard.current_or_planned_camp.country}
+                    {' · '}Season {dashboard.current_or_planned_camp.start_season}
+                    {' · '}Week {dashboard.current_or_planned_camp.start_season_week ?? '—'}
+                    {' · '}{formatCampDate(dashboard.current_or_planned_camp.start_month, dashboard.current_or_planned_camp.start_day)}
+                    {'–'}{formatCampDate(dashboard.current_or_planned_camp.end_month, dashboard.current_or_planned_camp.end_day)}
+                    {' · '}{dashboard.current_or_planned_camp.effective_training_days} camp training day{dashboard.current_or_planned_camp.effective_training_days === 1 ? '' : 's'}
+                    {dashboard.current_or_planned_camp.shortened_days > 0 ? ` · shortened by ${dashboard.current_or_planned_camp.shortened_days} travel day${dashboard.current_or_planned_camp.shortened_days === 1 ? '' : 's'}` : ''}
+                  </p>
+                  <small>Regular Training is automatically locked on Training Camp and camp-travel days. You do not need to remove your regular weekly plan manually.</small>
+                </div>
+                <div className="tlg-training-camp-booking-actions">
+                  <span className={`status ${dashboard.current_or_planned_camp.status}`}>{dashboard.current_or_planned_camp.status}</span>
+                  <strong>${dashboard.current_or_planned_camp.total_cost.toLocaleString()}</strong>
+                  <button type="button" onClick={() => setView('camps')}>Open Training Camp</button>
+                </div>
+              </section>
+            )}
+
             <div className="tlg-training-workspace">
               <section className="tlg-training-plan-panel">
                 <header className="tlg-training-section-head">
