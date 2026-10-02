@@ -1,9 +1,9 @@
 # Tennis Legacy — New Player Starting Scheme
 
-Status: **Definition / implementation review**
+Status: **Implemented / production verified**
 Date: 2026-10-02
 
-This document is the single reference for what a newly created **human** Tennis Legacy career should receive. It separates the approved starting rules from current production behavior and flags implementation gaps that must be closed before the ticket is complete.
+This document is the single reference for what a newly created **human** Tennis Legacy career receives. The scheme is implemented in production through the idempotent `initialize_new_human_career_v1(player_id)` orchestration flow.
 
 ## 1. Approved master matrix
 
@@ -155,7 +155,7 @@ This is idempotent and is the approved value.
 
 ### Coins
 
-Production currently creates new wallets at **0 Coins**. This must change to **20 Coins**.
+Production grants **20 Coins** when the first human career for the account is successfully created.
 
 Rules:
 1. Grant 20 once when the first human career for the account is successfully created.
@@ -163,7 +163,7 @@ Rules:
 3. Use an idempotency/reference key so page refresh, retry, duplicate insert attempts and account restart cannot repeatedly mint Coins.
 4. Career restart must **not** be a Coin farming path.
 
-Recommended reference: `new-career-starting-coins-v1` unique per user.
+Implemented reference: `new-career-starting-coins-v1`, unique per user. The ledger entry type is `signup_reward`.
 
 ## 5. Staff, sponsors, memberships and calendar
 
@@ -209,9 +209,9 @@ Current production already has realistic explicit prices for selected marketplac
 
 The problem is non-core home cities: they currently fall back to roughly the same $120k apartment / $300k house baseline regardless of country.
 
-Replace that fallback with a **10-tier country property baseline**.
+Production now uses a **10-tier country property baseline**.
 
-### Proposed country baseline tiers
+### Country baseline tiers
 
 | Tier | Market level | Apartment base | House/Villa base |
 | ---: | --- | ---: | ---: |
@@ -239,7 +239,7 @@ Example:
 - New York keeps its explicit city-specific market value.
 - Novi Sad uses Serbia's country tier if no explicit Novi Sad market override exists.
 
-Country-to-tier mapping should live in data (for example `private_life_country_property_tiers`) rather than being hard-coded across several functions.
+Country-to-tier mapping is stored in `private_life_country_property_tiers`; all 250 supported countries are mapped exactly once.
 
 ## 8. Current production audit
 
@@ -249,29 +249,29 @@ Country-to-tier mapping should live in data (for example `private_life_country_p
 | Human technical skills | Balanced surface/style system, total 440–455 | **Correct** |
 | Physical skills | Total 200 | **Correct** |
 | Fatigue / mental state | 0 / 50 / 50 / 50 / 50 | **Correct** |
-| Coins | Wallet starts at 0 | **Must change to 20** |
-| Equipment | Initializer still looks for retired `APP-START-CORE` and `ACC-START-TOWEL`; no starter racket/shoes | **Broken / must replace** |
-| Accessories | Old initializer tries to grant starter towel if SKU exists | **Must remove** |
+| Coins | 20 Coins granted once through `new-career-starting-coins-v1` | **Implemented** |
+| Equipment | Exact racket + shoes + tour-specific apparel granted at 100% and equipped | **Implemented** |
+| Accessories | No starter accessories | **Implemented** |
 | Staff | No automatic starter staff trigger | **Correct** |
 | National Association | Explicit opt-in | **Correct** |
 | Tennis Club | No automatic membership | **Correct** |
 | Sponsors | No starter sponsor contract | **Correct** |
 | Calendar | No automatic tournament commitment | **Correct** |
-| Private Life | Starter apartment currently granted to every human player with a home city | **Must become Premium-only** |
-| Property fallback | Non-core home cities default to ~120k / 300k | **Must use country tier** |
+| Private Life | Free: no starter property. Premium: one trade-locked starter apartment | **Implemented** |
+| Property fallback | 10-tier country baseline with explicit city overrides | **Implemented** |
 | Training | No plan created at insert, but daily engine lazily creates Day Off if missing | **Acceptable only if UI still treats training as not configured** |
 | Singles points | 0 | **Correct** |
 | Doubles points | 0 | **Correct** |
 
 ## 9. Implementation architecture
 
-The final implementation should use one idempotent human-career initializer as the orchestration point instead of allowing unrelated systems to invent their own defaults.
+Production uses one idempotent human-career initializer as the orchestration point instead of allowing unrelated systems to invent their own defaults.
 
-Recommended entry point:
+Production entry point:
 
 `initialize_new_human_career_v1(player_id)`
 
-It should orchestrate:
+It orchestrates:
 1. finance opening balance
 2. 20-Coin one-time account grant
 3. player skills / ranking initialization
@@ -282,7 +282,7 @@ It should orchestrate:
 
 All substeps must be idempotent.
 
-Create a persistent audit/entitlement record such as:
+Production records initialization in `new_player_initialization_audit`, including:
 - player_id
 - scheme_version
 - initialized_at
@@ -318,3 +318,43 @@ Minimum assertions:
 - Premium: exactly one starter apartment
 - 0 singles and doubles ranking points
 - retry/refresh does not duplicate any starter resource
+
+
+## 11. Production verification — 2026-10-02
+
+The complete creation flow was verified with rollback-only database tests so no test accounts remained in production.
+
+Tested combinations:
+- ATP Free
+- ATP Premium
+- WTA Free
+- WTA Premium
+
+Verified results:
+- $25,000 Career Cash
+- 20 starting Coins with exactly one ledger grant
+- technical starting total within the approved 440–455 range
+- physical total 200
+- Fatigue 0; Sharpness/Morale/Confidence/Focus 50
+- exact three starter equipment items at creation
+- ATP apparel: `APP-BLOKUV-01`
+- WTA apparel: `APP-WTA-BLOKUV-01`
+- racket: `RKT-ROSIGNOL-01`
+- shoes: `SHO-ANTTA-01`
+- all three equipment slots populated in Gear Room
+- zero starter accessories
+- zero staff
+- zero regular sponsors
+- zero technical sponsors
+- zero National Association memberships
+- zero Tennis Club memberships
+- zero committed calendar entries
+- zero configured training plans
+- singles and doubles ranking points 0
+- Free careers receive zero starter homes
+- Premium careers receive exactly one trade-locked starter apartment
+- explicit city pricing works (New York retained its city-specific market value)
+- country-tier fallback works (Serbia Tier 4 test produced a $120,000 apartment base / $72,000 starter-home value)
+- Free → Premium upgrade grants the starter apartment once
+- rerunning the career initializer returns `already_initialized` and does not duplicate Coins, equipment, home or audit records
+- no rollback-only test users remained after verification
