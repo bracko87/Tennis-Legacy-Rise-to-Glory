@@ -110,6 +110,27 @@ export interface TrainingDashboard {
   staff_effects: TrainingStaffEffects
   today_session: TrainingSession | null
   recent_sessions: TrainingSession[]
+  current_or_planned_camp: {
+    id: string
+    status: 'booked' | 'active'
+    name: string
+    city: string
+    country: string
+    country_code: string
+    start_absolute_day: number
+    end_absolute_day: number
+    start_season: number
+    start_season_week: number | null
+    start_month: number
+    start_day: number
+    end_season: number
+    end_month: number
+    end_day: number
+    duration_weeks: number
+    shortened_days: number
+    effective_training_days: number
+    total_cost: number
+  } | null
   rules: {
     focus_share: number
     other_share: number
@@ -245,6 +266,7 @@ export function useTraining() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'player_training_progress', filter: `player_id=eq.${player.id}` }, scheduleRefresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'player_training_sessions', filter: `player_id=eq.${player.id}` }, scheduleRefresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'player_daily_activity', filter: `player_id=eq.${player.id}` }, scheduleRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'player_training_camp_bookings', filter: `player_id=eq.${player.id}` }, scheduleRefresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'player_skills', filter: `player_id=eq.${player.id}` }, scheduleRefresh)
       .subscribe()
 
