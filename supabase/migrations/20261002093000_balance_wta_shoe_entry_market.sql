@@ -11,8 +11,7 @@
 -- introduced.
 
 update public.equipment_catalog_items
-set tour_scope='unisex',
-    updated_at=now()
+set tour_scope='unisex'
 where item_type='shoes'
   and tour_scope='ATP'
   and is_active
