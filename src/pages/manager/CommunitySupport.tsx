@@ -63,9 +63,12 @@ export function HelpPage() {
             </p>
           </div>
           <div className="tlg-community-actions">
-            <button className="tlg-community-button tlg-community-button-disabled" type="button" disabled title="The full manual will be added as more game systems are completed.">
-              Full Manual — coming later
-            </button>
+            <a className="tlg-community-button tlg-community-button-primary" href="/game/manual">
+              Full Game Manual
+            </a>
+            <a className="tlg-community-button" href="/manual/Tennis-Legacy-Full-Game-Manual-EN.pdf" download>
+              Download Manual PDF
+            </a>
             <a className="tlg-community-button" href="/game/contact">Contact Support</a>
             <a className="tlg-community-button tlg-community-button-discord" href={DISCORD_INVITE} target="_blank" rel="noreferrer">Join Discord</a>
           </div>
@@ -104,7 +107,7 @@ export function HelpPage() {
             <InfoCard title="Your player name is permanent" text="The professional player name is fixed when the career is created. Avatar changes require a replacement request." />
             <InfoCard title="Player profiles are social" text="Ranking entries open player profile pages. From another player's profile you can start a private Manager Inbox conversation." />
             <InfoCard title="Rankings start immediately" text="Every created player receives an ATP or WTA ranking entry. Ranking points will later be driven by tournament results." />
-            <InfoCard title="More systems are still developing" text="Training, skills and several deeper career systems are being expanded. The Help Center will grow alongside those systems." />
+            <InfoCard title="Use the Full Game Manual" text="The manual documents the currently implemented game page by page, including training, tournaments, rankings, travel, equipment, staff, finance, health, community systems and important limitations." />
           </div>
         </section>
 
@@ -112,7 +115,7 @@ export function HelpPage() {
           <header>
             <span>Help topics</span>
             <h3>Manual sections</h3>
-            <p>These sections are prepared now and will become the full manual as the corresponding systems are completed.</p>
+            <p>The complete English source manual is now available in-game with search, chapter navigation and a downloadable PDF edition.</p>
           </header>
           <div className="tlg-community-grid tlg-community-grid-three">
             <ManualCard title="Overview" status="Available" href="/game/overview" />
@@ -120,7 +123,8 @@ export function HelpPage() {
             <ManualCard title="Rankings & Player Profiles" status="Available" href="/game/rankings" />
             <ManualCard title="Manager Inbox" status="Available" href="/game/inbox" />
             <ManualCard title="Player & Account" status="Available" href="/game/player-account" />
-            <ManualCard title="Training & Skills" status="Guide coming later" />
+            <ManualCard title="Training & Skills" status="Covered in Full Game Manual" href="/game/manual/regular-training" />
+            <ManualCard title="Full Game Manual" status="33 detailed chapters" href="/game/manual" />
           </div>
         </section>
 
