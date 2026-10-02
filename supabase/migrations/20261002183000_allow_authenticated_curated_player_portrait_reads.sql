@@ -4,7 +4,9 @@
 
 drop policy if exists "Authenticated users can read curated player portraits" on storage.objects;
 
-create policy "Authenticated users can read curated player portraits"
+drop policy if exists admin_player_avatar_authenticated_read on storage.objects;
+
+create policy admin_player_avatar_authenticated_read
 on storage.objects
 for select
 to authenticated
@@ -63,8 +65,9 @@ begin
     from pg_policies
     where schemaname='storage'
       and tablename='objects'
-      and policyname='Authenticated users can read curated player portraits'
+      and policyname='admin_player_avatar_authenticated_read'
       and cmd='SELECT'
+      and qual ilike '%WTA AI Profiles/%'
   ) into v_policy_present;
 
   v_problem_count:=v_missing+v_bad_paths+case when v_policy_present then 0 else 1 end;
