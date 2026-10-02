@@ -106,7 +106,7 @@ export function HelpPage() {
             <InfoCard title="Tournament choice matters" text="Tournament category, surface and calendar timing will shape your season. Use the calendar before committing to a schedule." />
             <InfoCard title="Your player name is permanent" text="The professional player name is fixed when the career is created. Avatar changes require a replacement request." />
             <InfoCard title="Player profiles are social" text="Ranking entries open player profile pages. From another player's profile you can start a private Manager Inbox conversation." />
-            <InfoCard title="Rankings start immediately" text="Every created player receives an ATP or WTA ranking entry. Ranking points will later be driven by tournament results." />
+            <InfoCard title="Rankings start immediately" text="Every created player receives an ATP or WTA ranking entry. Official tournament results create the ranking-point contributions used by the live rankings." />
             <InfoCard title="Use the Full Game Manual" text="The manual documents the currently implemented game page by page, including training, tournaments, rankings, travel, equipment, staff, finance, health, community systems and important limitations." />
           </div>
         </section>
