@@ -1,0 +1,69 @@
+-- Attach approved Private Life watch images (batch 1).
+-- Images are already stored in the Tennis Legacy Supabase Admin bucket.
+
+with watch_images(code,image_url) as (
+  values
+  ('watch_bravelle_coastline', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Citazen%20Tsuyara%20Automatic.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9DaXRhemVuIFRzdXlhcmEgQXV0b21hdGljLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA5NjM3NDcsImV4cCI6NDkxMzAyNzc0N30.Md5MnF2X4zpCFrQs2-Pz5WKBRa3he7mvpENFfic8FZEdkHTJ83ULBT8obaACv_lSkmvnLJsTmWqovPAeThbWTQ'),
+  ('watch_north_crown_metro', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Tissaro%20PRX%2040.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9UaXNzYXJvIFBSWCA0MC5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkwOTYzOTU0LCJleHAiOjQ5MTMwMjc5NTR9.K20DM0ZEqRGcRvRcvfZnBzViD3FJ3f2uYTubcHQgLa5ZoeqxDk7BI675qQd7Q9ym5Gj6rjIlVJQhH1repBBE0g'),
+  ('watch_orion_vale_classic', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Hamilten%20Khaki%20Field%20Auto%2038.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9IYW1pbHRlbiBLaGFraSBGaWVsZCBBdXRvIDM4LnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA5NjM3NjEsImV4cCI6NDkxMzAyNzc2MX0.Fr1lfPsw9-CM1CBuVior9tPCbkJyuObQncGnN8z3LMqPStoWqL9n--QDYDGCzgQH6D5XO4QIS8iVG_P09N8oWA'),
+  ('watch_velmont_field', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Tissaro%20PRX%20Powermatic%2080.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9UaXNzYXJvIFBSWCBQb3dlcm1hdGljIDgwLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA5NjM5NjgsImV4cCI6NDkxMzAyNzk2OH0.gaUElp_8SR5F_NUQoFMDa1BXw_HfJyCP2U_HxomDjkOU1VjZhD52YYWdFxf46Gcbk7UYXw-nGwDV4aVwPxAVXQ'),
+  ('watch_serrin_harbor', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Seikon%20Alpine%20Prospex.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9TZWlrb24gQWxwaW5lIFByb3NwZXgucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MDk2MzkwNywiZXhwIjo0OTEzMDI3OTA3fQ.fWQnIJnsR-q-Hl2A3V9Cx-skoFiUBpiQi5BmIxSFqePRx4gkgtwTVEseW_StVaSMscVM1HFd5UGftue4LZZEJw'),
+  ('watch_alaris_dayline', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Seikon%20Alpine%20GMT.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9TZWlrb24gQWxwaW5lIEdNVC5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkwOTYzODkzLCJleHAiOjQ5MTMwMjc4OTN9.pBOHpOZOx4fWgQ_-oVBME-92HFGznBliSJ-UpXIbURQJSW4f0gSud0bYiu7KCm_HSjPWUbBHmC9ITgoh0wSh9w'),
+  ('watch_marel_automatic', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Longaire%20Conquesta%20Quartz.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9Mb25nYWlyZSBDb25xdWVzdGEgUXVhcnR6LnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA5NjM4MDUsImV4cCI6NDkxMzAyNzgwNX0.NOISMe2ZnSfVV8EGTcHmz8prdPbTiNkY3AnWuuUpsWTkOw53oTs39EwoALX34uboO77eYTQHhVCg_SXbABkb5Q'),
+  ('watch_chronova_pilot', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Longaire%20Hydroquesta%20Automatic.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9Mb25nYWlyZSBIeWRyb3F1ZXN0YSBBdXRvbWF0aWMucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MDk2MzgxNiwiZXhwIjo0OTEzMDI3ODE2fQ.ME6JBoft8QZPZMdWSvdayXWlMup6GPCBolG19e82E4irVgUq7EUKAkNvpZwaYZwzMKMrtMPG-Q2Kl_mmIYT7Lg'),
+  ('watch_avenor_meridian', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Longaire%20Conquesta%20Automatic.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9Mb25nYWlyZSBDb25xdWVzdGEgQXV0b21hdGljLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA5NjM3OTEsImV4cCI6NDkxMzAyNzc5MX0.99bSA-okzF7Yz6aoh7FBj0iQNVdZgjflcEt-hzmhGC2n_MhlPC9o7TFj8Rp1XcdtPLFW_IZVzE65oxSr-GhRkA'),
+  ('watch_lume_hart_reserve', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Tag%20Hauer%20Formula%20One%20Automatic.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9UYWcgSGF1ZXIgRm9ybXVsYSBPbmUgQXV0b21hdGljLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA5NjM5NDMsImV4cCI6NDkxMzAyNzk0M30._dU2AuwbetawhwQEIusauQy-jwjEVGf1RE-5WbXp_AN1k5mt6QcaNRbmjTqFUcMbSjRHYFOoba9D8vQREbQf_g'),
+  ('watch_ferrow_grand_date', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Tag%20Hauer%20Carrera%20Date.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9UYWcgSGF1ZXIgQ2FycmVyYSBEYXRlLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA5NjM5MzIsImV4cCI6NDkxMzAyNzkzMn0.dcwRswsFzgmi13WU0aJQb56wu1xNTgMVmWgsmYNgRnzpuSBq8l6ZKAS_OAFlkK_qCqw1B72z8bscUAkRdYMiIA'),
+  ('watch_montaire_riviera', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Tag%20Hauer%20Carrera%20Date%2036.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9UYWcgSGF1ZXIgQ2FycmVyYSBEYXRlIDM2LnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA5NjM5MTgsImV4cCI6NDkxMzAyNzkxOH0.GQnNodhDAww9EY6mu2w4mgcDcRnMcZcEWnNzXbajSQa8Hv8CaRJjGWl5Sso98XogK9h9s_1uymRYdVI6au2HUQ'),
+  ('watch_solenne_chronograph', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Tudorin%20Black%20Bay%2058.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9UdWRvcmluIEJsYWNrIEJheSA1OC5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkwOTYzOTgxLCJleHAiOjQ5MTMwMjc5ODF9.NgC7VjpIEU06ucl5AKNTP0L_6C2sshMAVyHKsP76E-pGxCDroA71I6TPPHP3GAuaMj04YMuMq3bVn1Xrkg7Gtw'),
+  ('watch_arcton_gmt', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Breitlen%20Chronomat%20GMT%2040.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9CcmVpdGxlbiBDaHJvbm9tYXQgR01UIDQwLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA5NjM3MzMsImV4cCI6NDkxMzAyNzczM30.4rMCNc8O_IqaF-4hfzPl3FfGOE9Tb0JDGoGWoL84vZ5iN7zdlB7kz6Fd2z0D_pttqN5YARVeKljQ1xuKgEvEOg'),
+  ('watch_kestrel_heritage', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Ralex%20Oyster%20Perpetua%2041.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9SYWxleCBPeXN0ZXIgUGVycGV0dWEgNDEucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MDk2Mzg3MSwiZXhwIjo0OTEzMDI3ODcxfQ.lee0oAFGA5SNPDMZc-KrP98Is9A1iVSrDBk2mux7TRCPAgMOptB8xrmm4tN6eo3yJ1OrXMG9MLd3aMikbt4Sow'),
+  ('watch_edevane_moonphase', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Omeira%20SeaMaster%20Aqua%20Terra%20150.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9PbWVpcmEgU2VhTWFzdGVyIEFxdWEgVGVycmEgMTUwLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA5NjM4MjYsImV4cCI6NDkxMzAyNzgyNn0._rB65uoTfrj6T8G2vB_PUNnbRbtdmyrysvvdbnJJWVXCRzmCt3Y6QTgEJC_PJSoPT0JAr58B979ZnmELA6smaQ'),
+  ('watch_rivenhall_regatta', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Ralex%20Datejuste%2041.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9SYWxleCBEYXRlanVzdGUgNDEucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MDk2Mzg1OSwiZXhwIjo0OTEzMDI3ODU5fQ.7HTF0Me387xWpspE8yrqp4diLWndBrjCt0S2PIgo8fqqkhATp6-zEV5IGGZiTr5JRC63Z9pWOSrGSzxUnbhv1g'),
+  ('watch_cadran_atelier', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Santos%20de%20Cartiere%20Large.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9TYW50b3MgZGUgQ2FydGllcmUgTGFyZ2UucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MDk2Mzg4MiwiZXhwIjo0OTEzMDI3ODgyfQ.sFABOpNNPkFC_POpLJ-yyfC3HODB-DuroWKJM06DSdueXGmIk9GeTFGnJVoHy3TlwlXIXbM2hqSFHna8vKeTAg'),
+  ('watch_bellwyn_dual_time', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/IW%20Crown%20Portugieser%20Chrono.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9JVyBDcm93biBQb3J0dWdpZXNlciBDaHJvbm8ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MDk2Mzc3MiwiZXhwIjo0OTEzMDI3NzcyfQ.keq5OvhPFc3GRw6Kflu2lX69LV2oPXEe2OyViB0qICvpzhY_Y5-hJsQjnGsqIcCRYfndQtfuo94ClI6Wtob3Sg'),
+  ('watch_marceau_no8', 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/Omeira%20Speedmaster%20Moon%20Pro.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9Qcml2YXRlIExpZmUvV2F0Y2hlcy9PbWVpcmEgU3BlZWRtYXN0ZXIgTW9vbiBQcm8ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MDk2MzgzOCwiZXhwIjo0OTEzMDI3ODM4fQ.Av4gpN28TJu1nozEleqaLmcgDtT76H11DO1j0kltwCpXlkZecLR2EDufq-5mvDZtdzG8plrRlBBKoqCVjfWZGQ')
+)
+update public.private_life_asset_catalog c
+set image_url=w.image_url,
+    updated_at=now()
+from watch_images w
+where c.code=w.code
+  and c.category='watch';
+
+do $$
+declare
+  v_count integer;
+begin
+  select count(*) into v_count
+  from public.private_life_asset_catalog
+  where code=any(array[
+    'watch_bravelle_coastline',
+    'watch_north_crown_metro',
+    'watch_orion_vale_classic',
+    'watch_velmont_field',
+    'watch_serrin_harbor',
+    'watch_alaris_dayline',
+    'watch_marel_automatic',
+    'watch_chronova_pilot',
+    'watch_avenor_meridian',
+    'watch_lume_hart_reserve',
+    'watch_ferrow_grand_date',
+    'watch_montaire_riviera',
+    'watch_solenne_chronograph',
+    'watch_arcton_gmt',
+    'watch_kestrel_heritage',
+    'watch_edevane_moonphase',
+    'watch_rivenhall_regatta',
+    'watch_cadran_atelier',
+    'watch_bellwyn_dual_time',
+    'watch_marceau_no8'
+  ]::text[])
+    and category='watch'
+    and image_url ilike 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Private%20Life/Watches/%';
+
+  if v_count<>20 then
+    raise exception 'Expected 20 Private Life watch images after update, found %.',v_count;
+  end if;
+end;
+$$;
