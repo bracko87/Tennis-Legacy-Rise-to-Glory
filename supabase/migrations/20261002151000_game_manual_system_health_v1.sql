@@ -23,7 +23,7 @@ insert into public.game_manual_runtime_settings(
 )
 values(
   true,'1.0','en',33,
-  '/game/manual','/game/help','/manual/Tennis-Legacy-Full-Game-Manual-EN.pdf',true,true
+  '/game/manual','/game/help','/game/manual?download=pdf',true,true
 )
 on conflict(singleton_id) do update set
   manual_version=excluded.manual_version,
@@ -110,7 +110,7 @@ begin
     if v_settings.chapter_count<33 then v_problems:=array_append(v_problems,'chapter_count_below_expected'); end if;
     if v_settings.manual_route<>'/game/manual' then v_problems:=array_append(v_problems,'manual_route_mismatch'); end if;
     if v_settings.help_route<>'/game/help' then v_problems:=array_append(v_problems,'help_route_mismatch'); end if;
-    if v_settings.pdf_path<>'/manual/Tennis-Legacy-Full-Game-Manual-EN.pdf' then v_problems:=array_append(v_problems,'pdf_path_mismatch'); end if;
+    if v_settings.pdf_path<>'/game/manual?download=pdf' then v_problems:=array_append(v_problems,'pdf_path_mismatch'); end if;
     if not v_settings.pdf_download_enabled then v_problems:=array_append(v_problems,'pdf_download_disabled'); end if;
   end if;
 
