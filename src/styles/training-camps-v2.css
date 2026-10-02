@@ -37,7 +37,7 @@
 .tlg-camp-accommodation header span,
 .tlg-camp-staff-future span,
 .tlg-camp-cost-card header span,
-.tlg-camp-travel-summary span,
+.tlg-camp-route-label,
 .tlg-camp-grand-total span {
   color: #0872bb;
   font-size: .59rem;
@@ -188,11 +188,39 @@
   border-left: 1px solid #e8eef2;
 }
 
+.tlg-camp-route-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-height: 22px;
+}
+
+.tlg-camp-route-label {
+  flex: 0 0 auto;
+}
+
+.tlg-camp-route-separator {
+  flex: 0 0 auto;
+  color: #93a6b3;
+  font-size: .66rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
 .tlg-camp-travel-summary strong {
-  display: block;
-  margin-top: 4px;
+  display: inline-flex;
+  margin-top: 0;
   color: #18384f;
   font-size: .69rem;
+}
+
+.tlg-camp-route-place > span {
+  color: #18384f;
+  font-size: .69rem;
+  font-weight: 750;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .tlg-camp-travel-summary small {
