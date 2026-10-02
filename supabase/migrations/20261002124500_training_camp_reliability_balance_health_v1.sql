@@ -1119,15 +1119,15 @@ begin
   select count(*) into v_config_issues
   from public.training_camp_programs p
   left join public.training_camp_locations l on l.id=p.location_id and l.is_active
-  left join public.training_camp_pricing_rules r
-    on r.quality_tier=p.quality_tier and r.category=p.category
+  left join public.training_camp_pricing_rules pr
+    on pr.quality_tier=p.quality_tier and pr.category=p.category
   where p.is_active
     and (
       l.id is null
-      or r.quality_tier is null
-      or p.weekly_cost<>r.weekly_training_fee
-      or p.quality_multiplier<>r.quality_multiplier
-      or p.rating<>r.facility_rating
+      or pr.quality_tier is null
+      or p.weekly_cost<>pr.weekly_training_fee
+      or p.quality_multiplier<>pr.quality_multiplier
+      or p.rating<>pr.facility_rating
       or (
         p.category='tennis_skills'
         and (p.surface not in ('hard','clay','grass') or p.development_profile='{}'::jsonb)
