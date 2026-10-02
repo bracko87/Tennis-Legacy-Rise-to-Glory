@@ -129,3 +129,26 @@ Only rendered UI/browser acceptance remains:
 - verify cancellation/full-refund wording if cancelling a future camp
 
 Backend/game-state testing is complete.
+
+
+## Camp visibility and tournament-transition rules
+
+Implemented after UI acceptance review:
+
+- A booked or active Training Camp is now shown on **Regular Training** as well as on the **Training Camps** tab.
+- The Regular Training banner explains that camp and camp-travel days override the weekly regular-training plan automatically.
+- The banner shows the effective number of camp days and explicitly reports if the camp has been shortened by a travel day.
+- Tournament → Training Camp and Training Camp → Tournament transitions now route through the player's home city instead of jumping directly between destinations.
+- If there are two or more transition days, return-home and onward travel use separate days.
+- If only one transition day exists, both legs use the same day as a first-half / second-half split.
+- If the previous tournament ends on the normal pre-camp travel day, the first scheduled camp day becomes the split travel day. The camp keeps its original end date and loses one camp-training day.
+- If the next tournament requires travel on the day immediately after camp, the player travels camp → home in the first half and home → tournament in the second half.
+- If the tournament's first match is on that same split-travel day, travel readiness is `impossible` and the player misses the match by `travel_no_show`; the opponent advances.
+- Travel no-show matches do not apply equipment wear because no match was played.
+- Split transition pairs and shortened-camp calendar ownership are monitored by `check:training_camp_transition_travel` in System Health / Control Center.
+
+Rollback-only verification:
+- inbound tournament → Zrenjanin → Barcelona split produced two ordered half-day legs and shortened the camp by one day;
+- outbound Barcelona → Zrenjanin → tournament split produced two ordered half-day legs on one date;
+- a human player arriving at 23:59 for a same-day scheduled match was classified `impossible`, the match resolved with `completion_reason=travel_no_show`, and exactly one user notification was emitted;
+- all test mutations rolled back.
