@@ -23,6 +23,7 @@ import TournamentPageV3 from './TournamentV3'
 interface TournamentLogoRow {
   logo_url: string | null
   tournament_name: string
+  world: 'ATP' | 'WTA'
 }
 
 interface TournamentDrawMatch {
@@ -192,6 +193,7 @@ export default function TournamentPage() {
   const [logoTarget, setLogoTarget] = useState<HTMLElement | null>(null)
   const [pageTarget, setPageTarget] = useState<HTMLElement | null>(null)
   const [tournamentName, setTournamentName] = useState('Tournament')
+  const [tournamentWorld, setTournamentWorld] = useState<'ATP' | 'WTA' | null>(null)
   const [drawMatches, setDrawMatches] = useState<TournamentDrawMatch[]>([])
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null)
   const [matchDetail, setMatchDetail] = useState<MatchDetail | null>(null)
@@ -211,6 +213,7 @@ export default function TournamentPage() {
       const nextLogoUrl = row?.logo_url ?? null
       setLogoUrl(nextLogoUrl)
       setTournamentName(row?.tournament_name ?? 'Tournament')
+      setTournamentWorld(row?.world === 'WTA' ? 'WTA' : row?.world === 'ATP' ? 'ATP' : null)
       setLogoStatus(nextLogoUrl ? 'loading' : 'none')
     }
     setDrawMatches(drawResponse.error ? [] : ((drawResponse.data ?? []) as TournamentDrawMatch[]))
@@ -220,6 +223,7 @@ export default function TournamentPage() {
     if (!competitionId) {
       setLogoUrl(null)
       setLogoStatus('none')
+      setTournamentWorld(null)
       setDrawMatches([])
       return
     }
@@ -308,7 +312,7 @@ export default function TournamentPage() {
       )}
 
       {selectedMatchId && (
-        <MatchDetailModal detail={matchDetail} drawMatches={drawMatches} loading={matchLoading} error={matchError} currentPlayerId={player?.id ?? null} returnPath={returnPath} tournamentName={tournamentName} onClose={() => setSelectedMatchId(null)} />
+        <MatchDetailModal detail={matchDetail} drawMatches={drawMatches} loading={matchLoading} error={matchError} currentPlayerId={player?.id ?? null} returnPath={returnPath} tournamentName={tournamentName} tournamentWorld={tournamentWorld} onClose={() => setSelectedMatchId(null)} />
       )}
     </div>
   )
@@ -397,19 +401,19 @@ function BracketPlayer({ matchExists, playerId, firstName, lastName, countryCode
   )
 }
 
-function MatchDetailModal({ detail, drawMatches, loading, error, currentPlayerId, returnPath, tournamentName, onClose }: { detail: MatchDetail | null; drawMatches: TournamentDrawMatch[]; loading: boolean; error: string | null; currentPlayerId: string | null; returnPath: string; tournamentName: string; onClose: () => void }) {
+function MatchDetailModal({ detail, drawMatches, loading, error, currentPlayerId, returnPath, tournamentName, tournamentWorld, onClose }: { detail: MatchDetail | null; drawMatches: TournamentDrawMatch[]; loading: boolean; error: string | null; currentPlayerId: string | null; returnPath: string; tournamentName: string; tournamentWorld: 'ATP' | 'WTA' | null; onClose: () => void }) {
   return createPortal(
     <div className="tlg-match-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose() }}>
       <section className="tlg-match-modal" role="dialog" aria-modal="true" aria-label="Tournament match details">
         <button type="button" className="tlg-match-modal-close" onClick={onClose} aria-label="Close match details">×</button>
-        {loading ? <div className="tlg-match-modal-state">Loading match…</div> : error || !detail ? <div className="tlg-match-modal-state">{error ?? 'Match details are unavailable.'}</div> : <MatchDetailContent detail={detail} drawMatches={drawMatches} currentPlayerId={currentPlayerId} returnPath={returnPath} tournamentName={tournamentName} />}
+        {loading ? <div className="tlg-match-modal-state">Loading match…</div> : error || !detail ? <div className="tlg-match-modal-state">{error ?? 'Match details are unavailable.'}</div> : <MatchDetailContent detail={detail} drawMatches={drawMatches} currentPlayerId={currentPlayerId} returnPath={returnPath} tournamentName={tournamentName} tournamentWorld={tournamentWorld} />}
       </section>
     </div>,
     document.body,
   )
 }
 
-function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, tournamentName }: { detail: MatchDetail; drawMatches: TournamentDrawMatch[]; currentPlayerId: string | null; returnPath: string; tournamentName: string }) {
+function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, tournamentName, tournamentWorld }: { detail: MatchDetail; drawMatches: TournamentDrawMatch[]; currentPlayerId: string | null; returnPath: string; tournamentName: string; tournamentWorld: 'ATP' | 'WTA' | null }) {
   const p1Avatar = usePlayerAvatarUrl(detail.player1?.image_path)
   const p2Avatar = usePlayerAvatarUrl(detail.player2?.image_path)
   const hasStats = Object.keys(detail.player1_stats ?? {}).length > 0 || Object.keys(detail.player2_stats ?? {}).length > 0
@@ -419,7 +423,7 @@ function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, 
     <>
       <header className="tlg-match-modal-head"><div><span>{detail.tournament_name} · Season Week {detail.scheduled_season_week}</span><h2>{detail.round_label} · Match {detail.match_number}</h2><p>{detail.city}, {detail.country_code} · Day {detail.scheduled_day}</p></div><strong className={`match-status status-${detail.status}`}>{statusLabel(detail.status)}</strong></header>
 
-      <div className="tlg-match-versus">
+      <div className={`tlg-match-versus${tournamentWorld === 'WTA' ? ' tlg-match-versus-wta' : ''}`}>
         <MatchPlayerCard player={detail.player1} avatarUrl={p1Avatar} winner={detail.winner_id === detail.player1?.id} returnPath={returnPath} tournamentName={tournamentName} />
         <div className="tlg-match-versus-center"><strong>VS</strong><span>{detail.status === 'completed' ? 'Final result' : detail.status === 'in_progress' ? 'Match in progress' : 'Upcoming match'}</span></div>
         <MatchPlayerCard player={detail.player2} avatarUrl={p2Avatar} winner={detail.winner_id === detail.player2?.id} returnPath={returnPath} tournamentName={tournamentName} />
