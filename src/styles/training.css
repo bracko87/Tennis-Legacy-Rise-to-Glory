@@ -362,6 +362,88 @@
 }
 .tlg-training-automation-note strong { color: #264c67; }
 
+.tlg-training-camp-booking-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  padding: 18px 20px;
+  border: 1px solid #cfe1ee;
+  border-radius: 14px;
+  background: linear-gradient(110deg, #ffffff, #f4fafe);
+  box-shadow: 0 8px 24px rgba(25, 66, 94, .05);
+}
+
+.tlg-training-camp-booking-banner > div:first-child {
+  min-width: 0;
+}
+
+.tlg-training-camp-booking-banner > div:first-child > span {
+  color: #0875bd;
+  font-size: .61rem;
+  font-weight: 850;
+  letter-spacing: .08em;
+}
+
+.tlg-training-camp-booking-banner h2 {
+  margin: 6px 0 0;
+  color: #17364d;
+  font-size: 1rem;
+}
+
+.tlg-training-camp-booking-banner p {
+  margin: 6px 0 0;
+  color: #627b8e;
+  font-size: .68rem;
+  line-height: 1.5;
+}
+
+.tlg-training-camp-booking-banner small {
+  display: block;
+  margin-top: 7px;
+  color: #7a8e9d;
+  font-size: .61rem;
+  line-height: 1.45;
+}
+
+.tlg-training-camp-booking-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.tlg-training-camp-booking-actions .status {
+  padding: 5px 8px;
+  border-radius: 999px;
+  color: #1672aa;
+  background: #e9f5fc;
+  font-size: .58rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.tlg-training-camp-booking-actions .status.active {
+  color: #18734f;
+  background: #eaf8f1;
+}
+
+.tlg-training-camp-booking-actions strong {
+  color: #17364d;
+  font-size: .78rem;
+}
+
+.tlg-training-camp-booking-actions button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid #bfd4e2;
+  border-radius: 8px;
+  color: #31536a;
+  background: #fff;
+  font-size: .63rem;
+  font-weight: 750;
+}
+
 .tlg-training-camps { overflow: hidden; }
 .tlg-training-camps > header { padding: 26px; border-bottom: 1px solid #e5ecf1; background: linear-gradient(115deg,#fff,#f5fbfe); }
 .tlg-training-camps h2 { margin: 5px 0 0; color: #142f46; font-size: 1.35rem; }
@@ -397,6 +479,8 @@
   .tlg-training-engine-strip > div:nth-child(-n+2) { border-top: 0; }
   .tlg-training-history article { grid-template-columns: 1fr 1fr; }
   .tlg-training-automation-note { flex-direction: column; }
+  .tlg-training-camp-booking-banner { align-items: flex-start; flex-direction: column; }
+  .tlg-training-camp-booking-actions { width: 100%; flex-wrap: wrap; }
 }
 
 @media (max-width: 560px) {
