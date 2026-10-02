@@ -41,7 +41,7 @@
 .tlg-match-player-card.winner::after {
   content: 'WINNER';
   position: absolute;
-  top: 14px;
+  top: 6px;
   right: 14px;
   padding: 5px 9px;
   border-radius: 999px;
