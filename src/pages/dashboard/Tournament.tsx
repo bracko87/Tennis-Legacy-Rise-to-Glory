@@ -413,6 +413,13 @@ function MatchDetailModal({ detail, drawMatches, loading, error, currentPlayerId
   )
 }
 
+const WTA_MATCH_PORTRAIT_FALLBACK_SHIFT: Record<string, number> = {
+  // Leonie's source portrait sits visibly higher in the shared match crop.
+  // The automatic pair analyser normally handles this; this value is only a
+  // fallback for browsers that block canvas pixel reads.
+  'c54c7515-fd6b-41ae-8b91-b8b28b4eb60d': 0.035,
+}
+
 function measureWtaPortraitSubjectTop(image: HTMLImageElement): number | null {
   try {
     const naturalWidth = image.naturalWidth
@@ -502,7 +509,13 @@ function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, 
     if (tournamentWorld !== 'WTA') return [0, 0]
 
     const [leftTop, rightTop] = wtaPortraitTop
-    if (leftTop === null || rightTop === null) return [0, 0]
+
+    if (leftTop === null || rightTop === null) {
+      return [
+        detail.player1 ? WTA_MATCH_PORTRAIT_FALLBACK_SHIFT[detail.player1.id] ?? 0 : 0,
+        detail.player2 ? WTA_MATCH_PORTRAIT_FALLBACK_SHIFT[detail.player2.id] ?? 0 : 0,
+      ]
+    }
 
     // Never pull a correctly framed portrait upward. Use the lower of the two
     // detected head-top lines as the target and move only the portrait that is
@@ -515,7 +528,7 @@ function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, 
     }
 
     return [normalize(leftTop), normalize(rightTop)]
-  }, [tournamentWorld, wtaPortraitTop])
+  }, [detail.player1, detail.player2, tournamentWorld, wtaPortraitTop])
 
   const hasStats = Object.keys(detail.player1_stats ?? {}).length > 0 || Object.keys(detail.player2_stats ?? {}).length > 0
   const isScheduledPreview = detail.status === 'scheduled' && detail.sets.length === 0
@@ -533,7 +546,7 @@ function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, 
           tournamentName={tournamentName}
           wtaAutoAlign={tournamentWorld === 'WTA'}
           portraitShift={wtaPortraitShift[0]}
-          onPortraitMeasure={(top) => setWtaPortraitTop((current) => current[0] === top ? current : [top, current[1]])}
+          onPortraitMeasure={(top) => setWtaPortraitTop((current) => current[0] === top ? current : [top, current[1]] as [number | null, number | null])}
         />
         <div className="tlg-match-versus-center"><strong>VS</strong><span>{detail.status === 'completed' ? 'Final result' : detail.status === 'in_progress' ? 'Match in progress' : 'Upcoming match'}</span></div>
         <MatchPlayerCard
@@ -544,7 +557,7 @@ function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, 
           tournamentName={tournamentName}
           wtaAutoAlign={tournamentWorld === 'WTA'}
           portraitShift={wtaPortraitShift[1]}
-          onPortraitMeasure={(top) => setWtaPortraitTop((current) => current[1] === top ? current : [current[0], top])}
+          onPortraitMeasure={(top) => setWtaPortraitTop((current) => current[1] === top ? current : [current[0], top] as [number | null, number | null])}
         />
       </div>
 
