@@ -413,9 +413,110 @@ function MatchDetailModal({ detail, drawMatches, loading, error, currentPlayerId
   )
 }
 
+function measureWtaPortraitSubjectTop(image: HTMLImageElement): number | null {
+  try {
+    const naturalWidth = image.naturalWidth
+    const naturalHeight = image.naturalHeight
+    if (!naturalWidth || !naturalHeight) return null
+
+    const sampleWidth = 120
+    const sampleHeight = Math.max(80, Math.round(sampleWidth * naturalHeight / naturalWidth))
+    const canvas = document.createElement('canvas')
+    canvas.width = sampleWidth
+    canvas.height = sampleHeight
+
+    const context = canvas.getContext('2d', { willReadFrequently: true })
+    if (!context) return null
+
+    context.drawImage(image, 0, 0, sampleWidth, sampleHeight)
+    const pixels = context.getImageData(0, 0, sampleWidth, sampleHeight).data
+
+    // The generated WTA portraits use a near-white studio background. Estimate
+    // that background from the corners so slightly off-white exports still work.
+    const cornerPoints = [
+      [2, 2],
+      [sampleWidth - 3, 2],
+      [2, sampleHeight - 3],
+      [sampleWidth - 3, sampleHeight - 3],
+    ]
+    let bgR = 0
+    let bgG = 0
+    let bgB = 0
+    for (const [x, y] of cornerPoints) {
+      const offset = (y * sampleWidth + x) * 4
+      bgR += pixels[offset]
+      bgG += pixels[offset + 1]
+      bgB += pixels[offset + 2]
+    }
+    bgR /= cornerPoints.length
+    bgG /= cornerPoints.length
+    bgB /= cornerPoints.length
+
+    const xStart = Math.floor(sampleWidth * 0.08)
+    const xEnd = Math.ceil(sampleWidth * 0.92)
+    const requiredPixels = Math.max(4, Math.floor((xEnd - xStart) * 0.035))
+    let consecutiveRows = 0
+
+    for (let y = 0; y < Math.floor(sampleHeight * 0.62); y += 1) {
+      let subjectPixels = 0
+      for (let x = xStart; x < xEnd; x += 1) {
+        const offset = (y * sampleWidth + x) * 4
+        const alpha = pixels[offset + 3]
+        if (alpha < 32) continue
+
+        const dr = pixels[offset] - bgR
+        const dg = pixels[offset + 1] - bgG
+        const db = pixels[offset + 2] - bgB
+        const distance = Math.sqrt(dr * dr + dg * dg + db * db)
+
+        if (distance > 34) subjectPixels += 1
+      }
+
+      if (subjectPixels >= requiredPixels) {
+        consecutiveRows += 1
+        if (consecutiveRows >= 2) {
+          return Math.max(0, (y - 1) / sampleHeight)
+        }
+      } else {
+        consecutiveRows = 0
+      }
+    }
+  } catch {
+    // If a browser blocks canvas pixel reads for any reason, simply keep the
+    // existing fixed WTA crop. The match page must never fail because of this.
+  }
+
+  return null
+}
+
 function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, tournamentName, tournamentWorld }: { detail: MatchDetail; drawMatches: TournamentDrawMatch[]; currentPlayerId: string | null; returnPath: string; tournamentName: string; tournamentWorld: 'ATP' | 'WTA' | null }) {
   const p1Avatar = usePlayerAvatarUrl(detail.player1?.image_path)
   const p2Avatar = usePlayerAvatarUrl(detail.player2?.image_path)
+  const [wtaPortraitTop, setWtaPortraitTop] = useState<[number | null, number | null]>([null, null])
+
+  useEffect(() => {
+    setWtaPortraitTop([null, null])
+  }, [detail.match_id, p1Avatar, p2Avatar, tournamentWorld])
+
+  const wtaPortraitShift = useMemo<[number, number]>(() => {
+    if (tournamentWorld !== 'WTA') return [0, 0]
+
+    const [leftTop, rightTop] = wtaPortraitTop
+    if (leftTop === null || rightTop === null) return [0, 0]
+
+    // Never pull a correctly framed portrait upward. Use the lower of the two
+    // detected head-top lines as the target and move only the portrait that is
+    // sitting too high. This also hides excess shoulder/torso at the bottom.
+    const targetTop = Math.max(leftTop, rightTop)
+    const normalize = (top: number) => {
+      const difference = targetTop - top
+      if (difference < 0.008) return 0
+      return Math.min(0.10, difference)
+    }
+
+    return [normalize(leftTop), normalize(rightTop)]
+  }, [tournamentWorld, wtaPortraitTop])
+
   const hasStats = Object.keys(detail.player1_stats ?? {}).length > 0 || Object.keys(detail.player2_stats ?? {}).length > 0
   const isScheduledPreview = detail.status === 'scheduled' && detail.sets.length === 0
 
@@ -424,9 +525,27 @@ function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, 
       <header className="tlg-match-modal-head"><div><span>{detail.tournament_name} · Season Week {detail.scheduled_season_week}</span><h2>{detail.round_label} · Match {detail.match_number}</h2><p>{detail.city}, {detail.country_code} · Day {detail.scheduled_day}</p></div><strong className={`match-status status-${detail.status}`}>{statusLabel(detail.status)}</strong></header>
 
       <div className={`tlg-match-versus${tournamentWorld === 'WTA' ? ' tlg-match-versus-wta' : ''}`}>
-        <MatchPlayerCard player={detail.player1} avatarUrl={p1Avatar} winner={detail.winner_id === detail.player1?.id} returnPath={returnPath} tournamentName={tournamentName} />
+        <MatchPlayerCard
+          player={detail.player1}
+          avatarUrl={p1Avatar}
+          winner={detail.winner_id === detail.player1?.id}
+          returnPath={returnPath}
+          tournamentName={tournamentName}
+          wtaAutoAlign={tournamentWorld === 'WTA'}
+          portraitShift={wtaPortraitShift[0]}
+          onPortraitMeasure={(top) => setWtaPortraitTop((current) => current[0] === top ? current : [top, current[1]])}
+        />
         <div className="tlg-match-versus-center"><strong>VS</strong><span>{detail.status === 'completed' ? 'Final result' : detail.status === 'in_progress' ? 'Match in progress' : 'Upcoming match'}</span></div>
-        <MatchPlayerCard player={detail.player2} avatarUrl={p2Avatar} winner={detail.winner_id === detail.player2?.id} returnPath={returnPath} tournamentName={tournamentName} />
+        <MatchPlayerCard
+          player={detail.player2}
+          avatarUrl={p2Avatar}
+          winner={detail.winner_id === detail.player2?.id}
+          returnPath={returnPath}
+          tournamentName={tournamentName}
+          wtaAutoAlign={tournamentWorld === 'WTA'}
+          portraitShift={wtaPortraitShift[1]}
+          onPortraitMeasure={(top) => setWtaPortraitTop((current) => current[1] === top ? current : [current[0], top])}
+        />
       </div>
 
       {isScheduledPreview ? (
@@ -674,12 +793,47 @@ function TacticSelect({ label, value, values, onChange }: { label: string; value
   return <label className="tlg-match-tactic-field"><span>{label}</span><select value={value} onChange={(event) => onChange(event.target.value)}>{values.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
 }
 
-function MatchPlayerCard({ player, avatarUrl, winner, returnPath, tournamentName }: { player: MatchPlayerDetail | null; avatarUrl: string | null; winner: boolean; returnPath: string; tournamentName: string }) {
+function MatchPlayerCard({
+  player,
+  avatarUrl,
+  winner,
+  returnPath,
+  tournamentName,
+  wtaAutoAlign = false,
+  portraitShift = 0,
+  onPortraitMeasure,
+}: {
+  player: MatchPlayerDetail | null
+  avatarUrl: string | null
+  winner: boolean
+  returnPath: string
+  tournamentName: string
+  wtaAutoAlign?: boolean
+  portraitShift?: number
+  onPortraitMeasure?: (top: number | null) => void
+}) {
   if (!player) return <div className="tlg-match-player-card empty"><strong>BYE</strong></div>
   const name = playerName(player)
+  const portraitStyle = wtaAutoAlign
+    ? ({ '--portrait-auto-shift-y': `${(portraitShift * 100).toFixed(2)}%` } as React.CSSProperties)
+    : undefined
+
   return (
     <article className={`tlg-match-player-card tlg-match-player-card-polished${winner ? ' winner' : ''}`}>
-      <div className={`tlg-match-player-portrait-stage${avatarUrl ? ' has-image' : ''}`}>{avatarUrl ? <img src={avatarUrl} alt={`${name} portrait`} /> : <span>{player.first_name[0]}{player.last_name[0]}</span>}</div>
+      <div className={`tlg-match-player-portrait-stage${avatarUrl ? ' has-image' : ''}`}>
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt={`${name} portrait`}
+            crossOrigin={wtaAutoAlign ? 'anonymous' : undefined}
+            style={portraitStyle}
+            onLoad={wtaAutoAlign ? (event) => onPortraitMeasure?.(measureWtaPortraitSubjectTop(event.currentTarget)) : undefined}
+            onError={wtaAutoAlign ? () => onPortraitMeasure?.(null) : undefined}
+          />
+        ) : (
+          <span>{player.first_name[0]}{player.last_name[0]}</span>
+        )}
+      </div>
       <div className="tlg-match-player-summary">
         <div className="identity"><CountryFlag countryCode={player.country_code} countryName={player.country_code} width={29} height={19} /><Link to={`/game/players/${player.id}`} state={{ playerProfileReturn: returnPath, playerProfileReturnLabel: `Back to ${tournamentName}` }}>{name}</Link></div>
         <div className="meta"><span>{player.ranking_position ? `World #${player.ranking_position}` : 'Unranked'}</span>{player.seed ? <strong>Seed #{player.seed}</strong> : <strong className="unseeded">Unseeded</strong>}</div>
