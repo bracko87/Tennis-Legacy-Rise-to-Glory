@@ -413,21 +413,32 @@ function MatchDetailModal({ detail, drawMatches, loading, error, currentPlayerId
   )
 }
 
-const WTA_MATCH_PORTRAIT_FALLBACK_SHIFT: Record<string, number> = {
-  // Leonie's source portrait sits visibly higher in the shared match crop.
-  // The automatic pair analyser normally handles this; this value is only a
-  // fallback for browsers that block canvas pixel reads.
-  'c54c7515-fd6b-41ae-8b91-b8b28b4eb60d': 0.035,
+type WtaPortraitMetrics = {
+  headTop: number
+  shoulderTop: number
 }
 
-function measureWtaPortraitSubjectTop(image: HTMLImageElement): number | null {
+type WtaPortraitTransform = {
+  size: number
+  shift: number
+}
+
+const WTA_MATCH_PORTRAIT_FALLBACK_TRANSFORM: Record<string, WtaPortraitTransform> = {
+  // Leonie's source portrait sits visibly higher in the shared match crop.
+  // Automatic shoulder normalization normally replaces this fallback.
+  'c54c7515-fd6b-41ae-8b91-b8b28b4eb60d': { size: 1.04, shift: 0.035 },
+}
+
+const DEFAULT_WTA_MATCH_PORTRAIT: WtaPortraitTransform = { size: 1.04, shift: 0 }
+
+function measureWtaPortraitMetrics(image: HTMLImageElement): WtaPortraitMetrics | null {
   try {
     const naturalWidth = image.naturalWidth
     const naturalHeight = image.naturalHeight
     if (!naturalWidth || !naturalHeight) return null
 
-    const sampleWidth = 120
-    const sampleHeight = Math.max(80, Math.round(sampleWidth * naturalHeight / naturalWidth))
+    const sampleWidth = 140
+    const sampleHeight = Math.max(100, Math.round(sampleWidth * naturalHeight / naturalWidth))
     const canvas = document.createElement('canvas')
     canvas.width = sampleWidth
     canvas.height = sampleHeight
@@ -438,8 +449,8 @@ function measureWtaPortraitSubjectTop(image: HTMLImageElement): number | null {
     context.drawImage(image, 0, 0, sampleWidth, sampleHeight)
     const pixels = context.getImageData(0, 0, sampleWidth, sampleHeight).data
 
-    // The generated WTA portraits use a near-white studio background. Estimate
-    // that background from the corners so slightly off-white exports still work.
+    // Generated player portraits use a near-white studio background. Sampling
+    // all four corners makes the detector tolerate slightly off-white exports.
     const cornerPoints = [
       [2, 2],
       [sampleWidth - 3, 2],
@@ -459,13 +470,16 @@ function measureWtaPortraitSubjectTop(image: HTMLImageElement): number | null {
     bgG /= cornerPoints.length
     bgB /= cornerPoints.length
 
-    const xStart = Math.floor(sampleWidth * 0.08)
-    const xEnd = Math.ceil(sampleWidth * 0.92)
-    const requiredPixels = Math.max(4, Math.floor((xEnd - xStart) * 0.035))
-    let consecutiveRows = 0
+    const xStart = Math.floor(sampleWidth * 0.06)
+    const xEnd = Math.ceil(sampleWidth * 0.94)
+    const rowCounts = new Array<number>(sampleHeight).fill(0)
+    const rowSpans = new Array<number>(sampleHeight).fill(0)
 
-    for (let y = 0; y < Math.floor(sampleHeight * 0.62); y += 1) {
-      let subjectPixels = 0
+    for (let y = 0; y < sampleHeight; y += 1) {
+      let count = 0
+      let minX = sampleWidth
+      let maxX = -1
+
       for (let x = xStart; x < xEnd; x += 1) {
         const offset = (y * sampleWidth + x) * 4
         const alpha = pixels[offset + 3]
@@ -476,59 +490,137 @@ function measureWtaPortraitSubjectTop(image: HTMLImageElement): number | null {
         const db = pixels[offset + 2] - bgB
         const distance = Math.sqrt(dr * dr + dg * dg + db * db)
 
-        if (distance > 34) subjectPixels += 1
+        if (distance > 30) {
+          count += 1
+          minX = Math.min(minX, x)
+          maxX = Math.max(maxX, x)
+        }
       }
 
-      if (subjectPixels >= requiredPixels) {
-        consecutiveRows += 1
-        if (consecutiveRows >= 2) {
-          return Math.max(0, (y - 1) / sampleHeight)
+      rowCounts[y] = count
+      rowSpans[y] = maxX >= minX ? maxX - minX + 1 : 0
+    }
+
+    const smooth = (values: number[], radius = 2) => values.map((_, index) => {
+      let sum = 0
+      let samples = 0
+      for (let y = Math.max(0, index - radius); y <= Math.min(values.length - 1, index + radius); y += 1) {
+        sum += values[y]
+        samples += 1
+      }
+      return samples ? sum / samples : 0
+    })
+
+    const counts = smooth(rowCounts)
+    const spans = smooth(rowSpans)
+    const headThreshold = Math.max(4, Math.floor((xEnd - xStart) * 0.035))
+
+    let headRow = -1
+    let headRun = 0
+    for (let y = 0; y < Math.floor(sampleHeight * 0.58); y += 1) {
+      if (counts[y] >= headThreshold) {
+        headRun += 1
+        if (headRun >= 2) {
+          headRow = Math.max(0, y - 1)
+          break
         }
       } else {
-        consecutiveRows = 0
+        headRun = 0
       }
     }
+
+    if (headRow < 0) return null
+
+    // The shoulder line is the first sustained lower-body widening. Using both
+    // filled-pixel count and horizontal span avoids treating a loose hair strand
+    // or ponytail as the shoulder boundary.
+    const shoulderSearchStart = Math.max(
+      Math.floor(sampleHeight * 0.56),
+      headRow + Math.floor(sampleHeight * 0.30),
+    )
+    const shoulderSearchEnd = Math.floor(sampleHeight * 0.94)
+    const lowerCounts = counts.slice(shoulderSearchStart, shoulderSearchEnd + 1)
+    const lowerSpans = spans.slice(shoulderSearchStart, shoulderSearchEnd + 1)
+    const maxLowerCount = Math.max(...lowerCounts, 1)
+    const maxLowerSpan = Math.max(...lowerSpans, 1)
+    const shoulderCountThreshold = maxLowerCount * 0.62
+    const shoulderSpanThreshold = maxLowerSpan * 0.70
+
+    let shoulderRow = -1
+    for (let y = shoulderSearchStart; y <= shoulderSearchEnd - 3; y += 1) {
+      let stableRows = 0
+      for (let lookAhead = 0; lookAhead < 4; lookAhead += 1) {
+        const row = y + lookAhead
+        if (counts[row] >= shoulderCountThreshold && spans[row] >= shoulderSpanThreshold) {
+          stableRows += 1
+        }
+      }
+      if (stableRows >= 3) {
+        shoulderRow = y
+        break
+      }
+    }
+
+    if (shoulderRow < 0) return null
+
+    return {
+      headTop: headRow / sampleHeight,
+      shoulderTop: shoulderRow / sampleHeight,
+    }
   } catch {
-    // If a browser blocks canvas pixel reads for any reason, simply keep the
-    // existing fixed WTA crop. The match page must never fail because of this.
+    // If canvas pixel reads are unavailable, keep the safe fixed/fallback crop.
   }
 
   return null
 }
 
+function buildWtaPortraitTransform(
+  metrics: WtaPortraitMetrics | null,
+  playerId: string | undefined,
+): WtaPortraitTransform {
+  if (!metrics) {
+    return playerId
+      ? WTA_MATCH_PORTRAIT_FALLBACK_TRANSFORM[playerId] ?? DEFAULT_WTA_MATCH_PORTRAIT
+      : DEFAULT_WTA_MATCH_PORTRAIT
+  }
+
+  // These are the intended WTA match-card framing lines from the approved visual:
+  // the top of the hair sits near 7% of the portrait frame and the shoulder
+  // widening starts near 86%. Shoulder placement is the primary anchor.
+  const targetHeadTop = 0.07
+  const targetShoulderTop = 0.86
+  const sourceSpan = Math.max(0.45, metrics.shoulderTop - metrics.headTop)
+
+  let size = (targetShoulderTop - targetHeadTop) / sourceSpan
+  size = Math.min(1.18, Math.max(1.02, size))
+
+  // After scale is chosen, anchor the shoulder line exactly. This intentionally
+  // gives shoulder visibility priority over perfect head alignment.
+  let shift = targetShoulderTop - ((1 - size) / 2 + size * metrics.shoulderTop)
+  shift = Math.min(0.10, Math.max(-0.03, shift))
+
+  return { size, shift }
+}
+
 function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, tournamentName, tournamentWorld }: { detail: MatchDetail; drawMatches: TournamentDrawMatch[]; currentPlayerId: string | null; returnPath: string; tournamentName: string; tournamentWorld: 'ATP' | 'WTA' | null }) {
   const p1Avatar = usePlayerAvatarUrl(detail.player1?.image_path)
   const p2Avatar = usePlayerAvatarUrl(detail.player2?.image_path)
-  const [wtaPortraitTop, setWtaPortraitTop] = useState<[number | null, number | null]>([null, null])
+  const [wtaPortraitMetrics, setWtaPortraitMetrics] = useState<[WtaPortraitMetrics | null, WtaPortraitMetrics | null]>([null, null])
 
   useEffect(() => {
-    setWtaPortraitTop([null, null])
+    setWtaPortraitMetrics([null, null])
   }, [detail.match_id, p1Avatar, p2Avatar, tournamentWorld])
 
-  const wtaPortraitShift = useMemo<[number, number]>(() => {
-    if (tournamentWorld !== 'WTA') return [0, 0]
-
-    const [leftTop, rightTop] = wtaPortraitTop
-
-    if (leftTop === null || rightTop === null) {
-      return [
-        detail.player1 ? WTA_MATCH_PORTRAIT_FALLBACK_SHIFT[detail.player1.id] ?? 0 : 0,
-        detail.player2 ? WTA_MATCH_PORTRAIT_FALLBACK_SHIFT[detail.player2.id] ?? 0 : 0,
-      ]
+  const wtaPortraitTransform = useMemo<[WtaPortraitTransform, WtaPortraitTransform]>(() => {
+    if (tournamentWorld !== 'WTA') {
+      return [DEFAULT_WTA_MATCH_PORTRAIT, DEFAULT_WTA_MATCH_PORTRAIT]
     }
 
-    // Never pull a correctly framed portrait upward. Use the lower of the two
-    // detected head-top lines as the target and move only the portrait that is
-    // sitting too high. This also hides excess shoulder/torso at the bottom.
-    const targetTop = Math.max(leftTop, rightTop)
-    const normalize = (top: number) => {
-      const difference = targetTop - top
-      if (difference < 0.008) return 0
-      return Math.min(0.10, difference)
-    }
-
-    return [normalize(leftTop), normalize(rightTop)]
-  }, [detail.player1, detail.player2, tournamentWorld, wtaPortraitTop])
+    return [
+      buildWtaPortraitTransform(wtaPortraitMetrics[0], detail.player1?.id),
+      buildWtaPortraitTransform(wtaPortraitMetrics[1], detail.player2?.id),
+    ]
+  }, [detail.player1?.id, detail.player2?.id, tournamentWorld, wtaPortraitMetrics])
 
   const hasStats = Object.keys(detail.player1_stats ?? {}).length > 0 || Object.keys(detail.player2_stats ?? {}).length > 0
   const isScheduledPreview = detail.status === 'scheduled' && detail.sets.length === 0
@@ -545,8 +637,8 @@ function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, 
           returnPath={returnPath}
           tournamentName={tournamentName}
           wtaAutoAlign={tournamentWorld === 'WTA'}
-          portraitShift={wtaPortraitShift[0]}
-          onPortraitMeasure={(top) => setWtaPortraitTop((current) => current[0] === top ? current : [top, current[1]] as [number | null, number | null])}
+          portraitTransform={wtaPortraitTransform[0]}
+          onPortraitMeasure={(metrics) => setWtaPortraitMetrics((current) => current[0] === metrics ? current : [metrics, current[1]] as [WtaPortraitMetrics | null, WtaPortraitMetrics | null])}
         />
         <div className="tlg-match-versus-center"><strong>VS</strong><span>{detail.status === 'completed' ? 'Final result' : detail.status === 'in_progress' ? 'Match in progress' : 'Upcoming match'}</span></div>
         <MatchPlayerCard
@@ -556,8 +648,8 @@ function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, 
           returnPath={returnPath}
           tournamentName={tournamentName}
           wtaAutoAlign={tournamentWorld === 'WTA'}
-          portraitShift={wtaPortraitShift[1]}
-          onPortraitMeasure={(top) => setWtaPortraitTop((current) => current[1] === top ? current : [current[0], top] as [number | null, number | null])}
+          portraitTransform={wtaPortraitTransform[1]}
+          onPortraitMeasure={(metrics) => setWtaPortraitMetrics((current) => current[1] === metrics ? current : [current[0], metrics] as [WtaPortraitMetrics | null, WtaPortraitMetrics | null])}
         />
       </div>
 
@@ -813,7 +905,7 @@ function MatchPlayerCard({
   returnPath,
   tournamentName,
   wtaAutoAlign = false,
-  portraitShift = 0,
+  portraitTransform = DEFAULT_WTA_MATCH_PORTRAIT,
   onPortraitMeasure,
 }: {
   player: MatchPlayerDetail | null
@@ -822,13 +914,16 @@ function MatchPlayerCard({
   returnPath: string
   tournamentName: string
   wtaAutoAlign?: boolean
-  portraitShift?: number
-  onPortraitMeasure?: (top: number | null) => void
+  portraitTransform?: WtaPortraitTransform
+  onPortraitMeasure?: (metrics: WtaPortraitMetrics | null) => void
 }) {
   if (!player) return <div className="tlg-match-player-card empty"><strong>BYE</strong></div>
   const name = playerName(player)
   const portraitStyle = wtaAutoAlign
-    ? ({ '--portrait-auto-shift-y': `${(portraitShift * 100).toFixed(2)}%` } as CSSProperties)
+    ? ({
+        '--portrait-size': `${(portraitTransform.size * 100).toFixed(2)}%`,
+        '--portrait-auto-shift-y': `${(portraitTransform.shift * 100).toFixed(2)}%`,
+      } as CSSProperties)
     : undefined
 
   return (
@@ -840,7 +935,7 @@ function MatchPlayerCard({
             alt={`${name} portrait`}
             crossOrigin={wtaAutoAlign ? 'anonymous' : undefined}
             style={portraitStyle}
-            onLoad={wtaAutoAlign ? (event) => onPortraitMeasure?.(measureWtaPortraitSubjectTop(event.currentTarget)) : undefined}
+            onLoad={wtaAutoAlign ? (event) => onPortraitMeasure?.(measureWtaPortraitMetrics(event.currentTarget)) : undefined}
             onError={wtaAutoAlign ? () => onPortraitMeasure?.(null) : undefined}
           />
         ) : (
