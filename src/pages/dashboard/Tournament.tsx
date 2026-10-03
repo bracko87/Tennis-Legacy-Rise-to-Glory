@@ -584,20 +584,18 @@ function buildWtaPortraitTransform(
       : DEFAULT_WTA_MATCH_PORTRAIT
   }
 
-  // These are the intended WTA match-card framing lines from the approved visual:
-  // the top of the hair sits near 7% of the portrait frame and the shoulder
-  // widening starts near 86%. Shoulder placement is the primary anchor.
-  const targetHeadTop = 0.07
-  const targetShoulderTop = 0.86
-  const sourceSpan = Math.max(0.45, metrics.shoulderTop - metrics.headTop)
+  // Keep the WTA crop deliberately conservative. The previous dynamic scale
+  // could enlarge portraits too aggressively. We now keep every portrait at
+  // the shared 104% crop and only make a small vertical correction so the
+  // shoulder line sits consistently near the bottom of the frame.
+  const size = 1.04
+  const targetShoulderTop = 0.89
 
-  let size = (targetShoulderTop - targetHeadTop) / sourceSpan
-  size = Math.min(1.18, Math.max(1.02, size))
-
-  // After scale is chosen, anchor the shoulder line exactly. This intentionally
-  // gives shoulder visibility priority over perfect head alignment.
   let shift = targetShoulderTop - ((1 - size) / 2 + size * metrics.shoulderTop)
-  shift = Math.min(0.10, Math.max(-0.03, shift))
+
+  // Only small corrections are allowed. This preserves the full head and
+  // prevents the portrait from being pushed so far that the face is cropped.
+  shift = Math.min(0.045, Math.max(-0.02, shift))
 
   return { size, shift }
 }
