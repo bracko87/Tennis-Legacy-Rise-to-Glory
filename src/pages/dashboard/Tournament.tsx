@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
@@ -815,7 +815,7 @@ function MatchPlayerCard({
   if (!player) return <div className="tlg-match-player-card empty"><strong>BYE</strong></div>
   const name = playerName(player)
   const portraitStyle = wtaAutoAlign
-    ? ({ '--portrait-auto-shift-y': `${(portraitShift * 100).toFixed(2)}%` } as React.CSSProperties)
+    ? ({ '--portrait-auto-shift-y': `${(portraitShift * 100).toFixed(2)}%` } as CSSProperties)
     : undefined
 
   return (
