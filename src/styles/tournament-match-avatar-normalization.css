@@ -24,13 +24,14 @@
 .tlg-match-player-portrait-stage.has-image img {
   --portrait-size: 94%;
   --portrait-shift-y: 0%;
+  --portrait-auto-shift-y: 0%;
   width: var(--portrait-size) !important;
   height: var(--portrait-size) !important;
   max-width: var(--portrait-size);
   max-height: var(--portrait-size);
   object-fit: contain !important;
   object-position: center center !important;
-  transform: translateY(var(--portrait-shift-y)) !important;
+  transform: translateY(calc(var(--portrait-shift-y) + var(--portrait-auto-shift-y))) !important;
 }
 
 /* WTA match cards use a slightly tighter crop than ATP on this modal only.
@@ -39,6 +40,11 @@
 .tlg-match-versus-wta .tlg-match-player-portrait-stage.has-image img {
   --portrait-size: 104%;
 }
+
+/* WTA head-line alignment is measured per portrait pair in Tournament.tsx.
+   Only the portrait whose detected head sits too high receives a positive
+   --portrait-auto-shift-y. The lower/correct portrait stays at 0%, so this is
+   independent of left/right card position and avoids exposing more shoulder. */
 
 /* Current calibrated examples.
    ATP063 already sits on the standard eye line. ATP255's source portrait is
