@@ -41,10 +41,10 @@
   --portrait-size: 104%;
 }
 
-/* WTA head-line alignment is measured per portrait pair in Tournament.tsx.
-   Only the portrait whose detected head sits too high receives a positive
-   --portrait-auto-shift-y. The lower/correct portrait stays at 0%, so this is
-   independent of left/right card position and avoids exposing more shoulder. */
+/* WTA match framing is measured per portrait in Tournament.tsx.
+   Shoulder placement is the primary visual anchor and head position is the
+   secondary anchor. The analyser can adjust both portrait scale and vertical
+   offset, independent of whether the player is on the left or right card. */
 
 /* Current calibrated examples.
    ATP063 already sits on the standard eye line. ATP255's source portrait is
