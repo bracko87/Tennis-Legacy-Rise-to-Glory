@@ -447,7 +447,9 @@ export default function SchedulePage() {
       p_tactic_approach: tactics.approach,
       p_tactic_rally: tactics.rally,
       p_tactic_serve: tactics.serve,
+      p_tactic_serve_placement: tactics.servePlacement,
       p_tactic_return: tactics.returnGame,
+      p_tactic_return_position: tactics.returnPosition,
       p_tactic_court_position: tactics.courtPosition,
       p_tactic_target: tactics.target,
       p_tactic_risk: tactics.risk,
@@ -616,7 +618,9 @@ export default function SchedulePage() {
                     <SelectField label="Overall approach" value={tactics.approach} values={TACTIC_OPTIONS.approach} onChange={(value) => setTactics((current) => ({ ...current, preset: 'Custom', approach: value }))} />
                     <SelectField label="Rally strategy" value={tactics.rally} values={TACTIC_OPTIONS.rally} onChange={(value) => setTactics((current) => ({ ...current, preset: 'Custom', rally: value }))} />
                     <SelectField label="Serve strategy" value={tactics.serve} values={TACTIC_OPTIONS.serve} onChange={(value) => setTactics((current) => ({ ...current, preset: 'Custom', serve: value }))} />
+                    <SelectField label="Serve placement" value={tactics.servePlacement} values={TACTIC_OPTIONS.servePlacement} onChange={(value) => setTactics((current) => ({ ...current, preset: 'Custom', servePlacement: value }))} />
                     <SelectField label="Return strategy" value={tactics.returnGame} values={TACTIC_OPTIONS.returnGame} onChange={(value) => setTactics((current) => ({ ...current, preset: 'Custom', returnGame: value }))} />
+                    <SelectField label="Return position" value={tactics.returnPosition} values={TACTIC_OPTIONS.returnPosition} onChange={(value) => setTactics((current) => ({ ...current, preset: 'Custom', returnPosition: value }))} />
                     <SelectField label="Court position" value={tactics.courtPosition} values={TACTIC_OPTIONS.courtPosition} onChange={(value) => setTactics((current) => ({ ...current, preset: 'Custom', courtPosition: value }))} />
                     <SelectField label="Opponent target" value={tactics.target} values={TACTIC_OPTIONS.target} onChange={(value) => setTactics((current) => ({ ...current, preset: 'Custom', target: value }))} />
                     <SelectField label="Risk level" value={tactics.risk} values={TACTIC_OPTIONS.risk} onChange={(value) => setTactics((current) => ({ ...current, preset: 'Custom', risk: value }))} />
