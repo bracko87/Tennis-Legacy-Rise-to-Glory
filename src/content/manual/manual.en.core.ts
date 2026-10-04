@@ -49,6 +49,7 @@ export const manualCoreChapters: ManualChapter[] = [
         'Portrait: optional. Catalog portraits already used by another active career are unavailable.',
         'Preferred surface: Hard, Clay or Grass.',
         'Playing style: Aggressive Baseliner, Defensive Baseliner, All-court, or Serve & Volley.',
+        'Playing hand: Right-handed or Left-handed. Handedness changes serve/rally geometry and tactical matchups; it does not grant free Forehand or Backhand skill points.',
       ]}),
       s('Exact Day-1 package', { table: {
         headers: ['System', 'Starting state'],
@@ -162,6 +163,10 @@ export const manualCoreChapters: ManualChapter[] = [
           ['Base total', '450', '450', '450'],
         ],
       }}),
+      s('Playing hand and matchup geometry', { paragraphs: [
+        'Right-handed and left-handed players use the same starting-strength budget. Handedness does not automatically make Forehand or Backhand stronger or weaker.',
+        'Its value appears during matches: serve angles, cross-court patterns and the natural relationship between one player’s forehand and the opponent’s backhand change in same-handed and opposite-handed matchups. Handedness is public opponent information and should be considered when choosing tactics.',
+      ]}),
       s('Playing-style redistribution', { bullets: [
         'Aggressive Baseliner shifts points toward serve and attacking groundstrokes.',
         'Defensive Baseliner shifts points toward return, backhand stability and absorbing pressure.',
@@ -289,7 +294,7 @@ export const manualCoreChapters: ManualChapter[] = [
           ['Fitness Coach', 'Physical development, conditioning and workload control'],
           ['Physiotherapist', 'Fatigue recovery, injury prevention and rehabilitation'],
           ['Sports Psychologist', 'Morale, confidence, focus and pressure management'],
-          ['Performance Analyst', 'Opponent estimates, tactical analysis and match preparation'],
+          ['Performance Analyst', 'Opponent scouting ranges, preparation confidence, handedness-aware observations and tactical recommendations'],
           ['Career Manager', 'Sponsorship, commercial representation and career management'],
         ],
       }}),
@@ -305,6 +310,7 @@ export const manualCoreChapters: ManualChapter[] = [
       ]}),
       s('Termination and travel', { paragraphs: [
         'Active contracts show unpaid weeks, remaining salary value, settlement rate and termination fee. Selected staff can travel to tournaments or Training Camps; travelling staff add cost, and effects that require presence apply only when that staff member travels.',
+        'A Performance Analyst is an information role rather than a hidden direct-strength boost. Better analysts narrow estimated skill ranges. When the next opponent is known, preparation progresses from quick to partial, normal and full analysis over game time, reaching the full preparation stage after 24 game-hours.',
       ], links: [{ label: 'Open Staff', href: '/game/staff' }]}),
     ],
   },
