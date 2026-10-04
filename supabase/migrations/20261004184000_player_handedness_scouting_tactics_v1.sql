@@ -43,7 +43,7 @@ alter table public.players
 create or replace function public.assign_player_handedness_v1()
 returns trigger
 language plpgsql
-set search_path=public,pg_temp
+set search_path to public,pg_temp
 as $$
 begin
   if new.player_type='human' then
@@ -82,7 +82,7 @@ create or replace function public.get_player_avatar_catalog(p_world text)
 returns table(path text,is_available boolean)
 language sql
 stable
-set search_path='pg_catalog','public','storage'
+set search_path to 'pg_catalog','public','storage'
 as $$
   select o.name::text,true
   from storage.objects o
@@ -124,7 +124,7 @@ returns table(
 language sql
 stable
 security definer
-set search_path='public'
+set search_path to 'public'
 as $$
   with target as(
     select p.*
@@ -162,7 +162,7 @@ returns jsonb
 language plpgsql
 stable
 security definer
-set search_path='public'
+set search_path to 'public'
 as $$
 declare v_result jsonb;
 begin
@@ -274,7 +274,7 @@ create or replace function public.ensure_due_opponent_scouting_tasks_v1()
 returns jsonb
 language plpgsql
 security definer
-set search_path='public','pg_temp'
+set search_path to 'public','pg_temp'
 as $$
 declare
   v_now bigint:=public.current_game_second_v1();
@@ -325,7 +325,7 @@ create or replace function public.get_player_scouting_report_v1(p_target_player_
 returns jsonb
 language plpgsql
 security definer
-set search_path='public','pg_temp'
+set search_path to 'public','pg_temp'
 as $$
 declare
   v_me public.players%rowtype;
@@ -556,7 +556,7 @@ returns jsonb
 language plpgsql
 stable
 security definer
-set search_path='public','pg_temp'
+set search_path to 'public','pg_temp'
 as $$
 declare
   b jsonb;
@@ -584,7 +584,7 @@ returns jsonb
 language sql
 stable
 security definer
-set search_path='public','pg_temp'
+set search_path to 'public','pg_temp'
 as $$
   select public.get_player_staff_effects_v3(p_player_id);
 $$;
@@ -629,7 +629,7 @@ returns jsonb
 language plpgsql
 stable
 security definer
-set search_path='public'
+set search_path to 'public'
 as $$
 declare
   m public.tournament_matches%rowtype;
@@ -730,7 +730,7 @@ returns jsonb
 language plpgsql
 stable
 security definer
-set search_path='public'
+set search_path to 'public'
 as $$
 declare
   m public.tournament_matches%rowtype;
@@ -820,7 +820,7 @@ create function public.save_tournament_match_tactic_v1(
 returns jsonb
 language plpgsql
 security definer
-set search_path='public'
+set search_path to 'public'
 as $$
 declare
   v_uid uuid:=auth.uid();
@@ -890,7 +890,7 @@ returns jsonb
 language plpgsql
 stable
 security definer
-set search_path='public'
+set search_path to 'public'
 as $$
 declare
   v_uid uuid:=auth.uid();
@@ -1009,7 +1009,7 @@ create function public.save_tournament_preparation_v1(
 returns jsonb
 language plpgsql
 security definer
-set search_path='public'
+set search_path to 'public'
 as $$
 declare
   v_uid uuid:=auth.uid();
@@ -1094,7 +1094,7 @@ returns jsonb
 language plpgsql
 stable
 security definer
-set search_path='public'
+set search_path to 'public'
 as $$
 declare
   v_uid uuid:=auth.uid();
@@ -1176,7 +1176,7 @@ returns jsonb
 language plpgsql
 stable
 security definer
-set search_path='public'
+set search_path to 'public'
 as $$
 declare
   b jsonb;
@@ -1465,7 +1465,7 @@ create or replace function public.check_player_identity_tactics_health_v1()
 returns jsonb
 language plpgsql
 security definer
-set search_path='public','pg_catalog','pg_temp'
+set search_path to 'public','pg_catalog','pg_temp'
 as $$
 declare
   v_started timestamptz:=clock_timestamp();
@@ -1601,7 +1601,7 @@ returns jsonb
 language plpgsql
 stable
 security definer
-set search_path='public'
+set search_path to 'public'
 as $$
 declare
   v_uid uuid:=auth.uid();
