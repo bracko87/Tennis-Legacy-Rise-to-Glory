@@ -20,7 +20,7 @@ where player_type='human';
 
 update public.players
 set playing_hand=case
-  when mod(coalesce(ai_profile_number::integer, abs(hashtext(id::text))),8)=0 then 'left'
+  when mod(coalesce(ai_profile_number::bigint,(hashtext(id::text)::bigint & 2147483647)),8)=0 then 'left'
   else 'right'
 end
 where player_type='ai';
@@ -48,19 +48,26 @@ as $$
 begin
   if new.player_type='human' then
     new.playing_hand:=coalesce(nullif(new.playing_hand,''),'right');
-  elsif new.player_type='ai' and (new.playing_hand is null or new.playing_hand not in ('right','left')) then
-    new.playing_hand:=case
-      when mod(coalesce(new.ai_profile_number::integer,abs(hashtext(new.id::text))),8)=0 then 'left'
-      else 'right'
-    end;
+  elsif new.player_type='ai' then
+    -- On insert/reclassification, AI handedness is deterministic. The column
+    -- default is right-handed for human/backward compatibility, so AI cannot
+    -- rely on NULL detection here.
+    if tg_op='INSERT'
+       or old.player_type is distinct from new.player_type
+       or old.ai_profile_number is distinct from new.ai_profile_number then
+      new.playing_hand:=case
+        when mod(coalesce(new.ai_profile_number::bigint,(hashtext(new.id::text)::bigint & 2147483647)),8)=0 then 'left'
+        else 'right'
+      end;
+    end if;
   end if;
   return new;
 end;
-$$;
+$;
 
 drop trigger if exists assign_player_handedness_v1 on public.players;
 create trigger assign_player_handedness_v1
-before insert or update of player_type,ai_profile_number,playing_hand
+before insert or update of player_type,ai_profile_number
 on public.players
 for each row
 execute function public.assign_player_handedness_v1();
@@ -372,15 +379,21 @@ begin
     );
   end if;
 
-  select c.*,s.*
-  into v_contract,v_staff
+  select c.*
+  into v_contract
   from public.player_staff_contracts c
-  join public.staff_members s on s.id=c.staff_id
   where c.player_id=v_me.id
     and c.role='performance_analyst'
     and c.status='active'
   order by c.signed_at desc
   limit 1;
+
+  if v_contract.id is not null then
+    select s.*
+    into v_staff
+    from public.staff_members s
+    where s.id=v_contract.staff_id;
+  end if;
 
   if v_contract.id is null then
     return jsonb_build_object(
@@ -1277,6 +1290,80 @@ begin
   v_ace_delta:=coalesce((v_mod->>'ace_delta')::numeric,0);
   v_ue_delta:=coalesce((v_mod->>'ue_delta')::numeric,0);
 
+  -- Compatibility for the actual frontend tactic labels. The older engine
+  -- core used legacy names for several choices, which meant valid UI choices
+  -- could be visually saved without fully changing match execution.
+  if coalesce(t->>'approach','Balanced')='Defensive' then
+    v_serve:=v_serve-0.25;
+    v_rally_rating:=v_rally_rating+0.25;
+    v_ret:=v_ret+0.30;
+    v_ue_delta:=v_ue_delta-0.010;
+  end if;
+
+  if coalesce(t->>'rally','Balanced rallies')='Shorten points' then
+    v_serve:=v_serve+0.35;
+    v_net:=v_net+0.45;
+    v_rally_rating:=v_rally_rating-0.15;
+    v_ue_delta:=v_ue_delta+0.008;
+  elsif coalesce(t->>'rally','Balanced rallies')='Extend rallies' then
+    v_rally_rating:=v_rally_rating+0.45
+      +greatest(-0.25,least(0.35,(sk.stamina+sk.movement-100)*0.008));
+    v_ret:=v_ret+0.25;
+    v_serve:=v_serve-0.15;
+    v_ue_delta:=v_ue_delta-0.004;
+  end if;
+
+  if coalesce(t->>'serve','Balanced')='Power serving' then
+    v_serve:=v_serve+0.65;
+    v_mod:=v_mod||jsonb_build_object(
+      'first_serve_delta',coalesce((v_mod->>'first_serve_delta')::numeric,0)-0.035,
+      'double_fault_delta',coalesce((v_mod->>'double_fault_delta')::numeric,0)+0.010
+    );
+    v_ace_delta:=v_ace_delta+0.018;
+  elsif coalesce(t->>'serve','Balanced')='Safe first serve' then
+    v_serve:=v_serve-0.30;
+    v_mod:=v_mod||jsonb_build_object(
+      'first_serve_delta',coalesce((v_mod->>'first_serve_delta')::numeric,0)+0.040,
+      'double_fault_delta',coalesce((v_mod->>'double_fault_delta')::numeric,0)-0.008
+    );
+    v_ace_delta:=v_ace_delta-0.010;
+  elsif coalesce(t->>'serve','Balanced')='Serve + 1' then
+    v_serve:=v_serve+0.35;
+    v_rally_rating:=v_rally_rating+0.30;
+    v_ue_delta:=v_ue_delta+0.005;
+  end if;
+
+  if coalesce(t->>'returnGame','Balanced')='Aggressive return' then
+    v_ret:=v_ret+0.45;
+    v_ue_delta:=v_ue_delta+0.006;
+  elsif coalesce(t->>'returnGame','Balanced')='Safe return' then
+    v_ret:=v_ret+0.18;
+    v_ue_delta:=v_ue_delta-0.005;
+  end if;
+
+  if coalesce(t->>'courtPosition','Normal baseline')='Inside baseline' then
+    v_ret:=v_ret+0.18;
+    v_net:=v_net+0.30;
+    v_ue_delta:=v_ue_delta+0.005;
+  elsif coalesce(t->>'courtPosition','Normal baseline')='Net attack' then
+    v_net:=v_net+0.55;
+    v_serve:=v_serve+0.15;
+    v_rally_rating:=v_rally_rating-0.12;
+    v_ue_delta:=v_ue_delta+0.008;
+  end if;
+
+  if coalesce(t->>'risk','Balanced')='Aggressive' then
+    v_serve:=v_serve+0.20;
+    v_rally_rating:=v_rally_rating+0.25;
+    v_ret:=v_ret+0.15;
+    v_ue_delta:=v_ue_delta+0.022;
+  elsif coalesce(t->>'risk','Balanced')='Safe' then
+    v_serve:=v_serve-0.15;
+    v_rally_rating:=v_rally_rating+0.05;
+    v_ret:=v_ret+0.08;
+    v_ue_delta:=v_ue_delta-0.020;
+  end if;
+
   if v_placement='Wide' then v_ace_delta:=v_ace_delta+0.004;
   elsif v_placement='T' then v_ace_delta:=v_ace_delta+0.003;
   elsif v_placement='Body' then v_ue_delta:=v_ue_delta-0.002;
@@ -1285,6 +1372,16 @@ begin
   if v_return_position='Closer' then v_ue_delta:=v_ue_delta+0.003;
   elsif v_return_position='Deeper' then v_ue_delta:=v_ue_delta-0.002;
   end if;
+
+  -- Persist any compatibility adjustments added above.
+  b:=jsonb_set(b,'{ratings,serve}',to_jsonb(round(v_serve,2)));
+  b:=jsonb_set(b,'{ratings,return}',to_jsonb(round(v_ret,2)));
+  b:=jsonb_set(b,'{ratings,rally}',to_jsonb(round(v_rally_rating,2)));
+  b:=jsonb_set(b,'{ratings,net}',to_jsonb(round(v_net,2)));
+  b:=jsonb_set(
+    b,'{ratings,effective_overall}',
+    to_jsonb(round(((v_serve+v_ret+v_rally_rating+v_net)/4)*v_expr,2))
+  );
 
   b:=jsonb_set(
     b,'{match_modifiers}',
@@ -1495,3 +1592,131 @@ select cron.schedule(
 
 select public.ensure_due_opponent_scouting_tasks_v1();
 select public.check_player_identity_tactics_health_v1();
+
+
+-- Preserve the complete pre-existing match-tactic response contract (game-date
+-- and lock-date metadata) while exposing the two new tactical dimensions.
+create or replace function public.get_tournament_match_tactic_v1(p_player_id uuid,p_match_id uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path='public'
+as $$
+declare
+  v_uid uuid:=auth.uid();
+  v_match public.tournament_matches%rowtype;
+  v_override public.player_tournament_match_tactics%rowtype;
+  v_plan public.player_tournament_preparation_plans%rowtype;
+  v_tournament jsonb;
+  v_effective jsonb;
+  v_override_json jsonb:=null;
+  v_source text:='automatic_default';
+  v_match_second bigint;
+  v_lock bigint;
+  v_now bigint:=public.current_game_second_v1();
+  v_editable boolean;
+  v_match_day record;
+  v_lock_day record;
+  v_match_minute integer;
+  v_lock_minute integer;
+begin
+  if v_uid is null then raise exception 'Authentication required.'; end if;
+  if not exists(select 1 from public.players p where p.id=p_player_id and p.owner_user_id=v_uid) then
+    raise exception 'Player access denied.';
+  end if;
+
+  select * into v_match from public.tournament_matches where id=p_match_id;
+  if not found then raise exception 'Match not found.'; end if;
+  if p_player_id is distinct from v_match.player1_id and p_player_id is distinct from v_match.player2_id then
+    raise exception 'This player is not in the selected match.';
+  end if;
+
+  v_match_second:=public.tournament_match_game_second_v1(p_match_id);
+  v_lock:=case when v_match_second is null then null else v_match_second-3600 end;
+  v_editable:=v_match.status='scheduled' and (v_lock is null or v_now<v_lock);
+
+  if v_match_second is not null then
+    select * into v_match_day
+    from public.absolute_game_day_v1(floor(v_match_second::numeric/86400)::integer);
+    v_match_minute:=((v_match_second%86400)/60)::integer;
+  end if;
+
+  if v_lock is not null then
+    select * into v_lock_day
+    from public.absolute_game_day_v1(floor(v_lock::numeric/86400)::integer);
+    v_lock_minute:=((v_lock%86400)/60)::integer;
+  end if;
+
+  select * into v_plan
+  from public.player_tournament_preparation_plans
+  where player_id=p_player_id and competition_id=v_match.competition_id;
+
+  if found then
+    v_tournament:=jsonb_build_object(
+      'preset',v_plan.tactic_preset,
+      'approach',v_plan.tactic_approach,
+      'rally',v_plan.tactic_rally,
+      'serve',v_plan.tactic_serve,
+      'servePlacement',v_plan.tactic_serve_placement,
+      'returnGame',v_plan.tactic_return,
+      'returnPosition',v_plan.tactic_return_position,
+      'courtPosition',v_plan.tactic_court_position,
+      'target',v_plan.tactic_target,
+      'risk',v_plan.tactic_risk
+    );
+    v_source:='tournament_default';
+  else
+    v_tournament:=jsonb_build_object(
+      'preset','Balanced','approach','Balanced','rally','Balanced rallies',
+      'serve','Balanced','servePlacement','Automatic',
+      'returnGame','Balanced','returnPosition','Normal',
+      'courtPosition','Normal baseline','target','Automatic','risk','Balanced'
+    );
+  end if;
+
+  select * into v_override
+  from public.player_tournament_match_tactics
+  where player_id=p_player_id and match_id=p_match_id;
+
+  if found then
+    v_override_json:=jsonb_build_object(
+      'preset',v_override.tactic_preset,
+      'approach',v_override.tactic_approach,
+      'rally',v_override.tactic_rally,
+      'serve',v_override.tactic_serve,
+      'servePlacement',v_override.tactic_serve_placement,
+      'returnGame',v_override.tactic_return,
+      'returnPosition',v_override.tactic_return_position,
+      'courtPosition',v_override.tactic_court_position,
+      'target',v_override.tactic_target,
+      'risk',v_override.tactic_risk
+    );
+    v_effective:=v_override_json;
+    v_source:='match_override';
+  else
+    v_effective:=v_tournament;
+  end if;
+
+  return jsonb_build_object(
+    'match_status',v_match.status,
+    'editable',v_editable,
+    'source',v_source,
+    'tournament_default',v_tournament,
+    'override',v_override_json,
+    'effective',v_effective,
+    'scheduled_game_second',v_match_second,
+    'scheduled_start_minute',v_match.scheduled_start_minute,
+    'scheduled_game_date',case when v_match_second is null then null else jsonb_build_object(
+      'season',v_match_day.season,'month',v_match_day.month,'day',v_match_day.day,'season_week',v_match_day.season_week
+    ) end,
+    'tactic_lock_game_second',v_lock,
+    'tactic_lock_game_date',case when v_lock is null then null else jsonb_build_object(
+      'season',v_lock_day.season,'month',v_lock_day.month,'day',v_lock_day.day,'season_week',v_lock_day.season_week
+    ) end,
+    'tactic_lock_minute_of_day',v_lock_minute,
+    'current_game_second',v_now,
+    'lock_minutes_before_start',60
+  );
+end;
+$$;
