@@ -558,3 +558,59 @@
     justify-items: start;
   }
 }
+
+
+/* Performance Analyst intelligence */
+.tlg-public-scouting-progress {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 14px;
+  align-items: baseline;
+  margin: 14px 0;
+  padding: 12px 14px;
+  border: 1px solid #dce9f1;
+  border-radius: 10px;
+  background: #f7fbfe;
+}
+.tlg-public-scouting-progress span,
+.tlg-public-scouting-intelligence span {
+  color: #0b6fc8;
+  font-size: .59rem;
+  font-weight: 750;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.tlg-public-scouting-progress strong { color: #26465d; font-size: .72rem; }
+.tlg-public-scouting-progress small {
+  grid-column: 1 / -1;
+  color: #708798;
+  font-size: .62rem;
+  line-height: 1.5;
+}
+.tlg-public-scouting-intelligence {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.tlg-public-scouting-intelligence > div {
+  padding: 13px 14px;
+  border: 1px solid #e0e8ee;
+  border-radius: 10px;
+  background: #fbfdff;
+}
+.tlg-public-scouting-intelligence p {
+  margin: 7px 0 0;
+  color: #526b7d;
+  font-size: .66rem;
+  line-height: 1.5;
+}
+.tlg-public-scouting-locked small {
+  display: block;
+  margin-top: 6px;
+  color: #668094;
+  font-size: .62rem;
+}
+@media(max-width:760px) {
+  .tlg-public-scouting-intelligence { grid-template-columns: 1fr; }
+}
