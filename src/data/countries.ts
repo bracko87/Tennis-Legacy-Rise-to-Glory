@@ -2,9 +2,9 @@
  * Player-creation country reference.
  *
  * This fallback mirrors the server-side onboarding policy: sovereign states
- * used by Tennis Legacy (UN member states plus Vatican City). Dependencies,
- * territories and disputed/partially-recognized entries are intentionally not
- * included in the creation picker.
+ * used by Tennis Legacy (UN member states plus Vatican City and the explicitly
+ * approved Kosovo entry). Dependencies and other territory-only entries are
+ * intentionally not included in the creation picker.
  */
 
 export interface Country {
@@ -105,6 +105,7 @@ export const COUNTRIES: Country[] = [
   { code: 'KI', name: 'Kiribati' },
   { code: 'KP', name: 'North Korea' },
   { code: 'KR', name: 'South Korea' },
+  { code: 'XK', name: 'Kosovo' },
   { code: 'KW', name: 'Kuwait' },
   { code: 'KG', name: 'Kyrgyzstan' },
   { code: 'LA', name: 'Laos' },
