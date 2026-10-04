@@ -100,9 +100,9 @@ const PLAYING_STYLES: Array<{ value: PlayingStyle; text: string }> = [
   { value: 'Serve & Volley', text: 'More emphasis on serve, volley and moving forward quickly.' },
 ]
 
-const PLAYING_HANDS: Array<{ value: PlayingHand; label: string; short: string; text: string }> = [
-  { value: 'right', label: 'Right-handed', short: 'R', text: 'Standard right-handed serve and rally geometry.' },
-  { value: 'left', label: 'Left-handed', short: 'L', text: 'Creates different serve angles and opposite-handed rally patterns.' },
+const PLAYING_HANDS: Array<{ value: PlayingHand; label: string; text: string }> = [
+  { value: 'right', label: 'Right-handed', text: 'Standard right-handed serve and rally geometry.' },
+  { value: 'left', label: 'Left-handed', text: 'Creates different serve angles and opposite-handed rally patterns.' },
 ]
 
 export default function CreatePlayerPage(): JSX.Element {
@@ -118,6 +118,8 @@ export default function CreatePlayerPage(): JSX.Element {
   const [countryQuery, setCountryQuery] = useState('')
   const [homeCity, setHomeCity] = useState('')
   const [homeCities, setHomeCities] = useState<HomeCityOption[]>([])
+  const [homeCityOpen, setHomeCityOpen] = useState(false)
+  const [homeCityQuery, setHomeCityQuery] = useState('')
   const [homeCitiesLoading, setHomeCitiesLoading] = useState(false)
   const [homeCityLoadError, setHomeCityLoadError] = useState<string | null>(null)
   const [world, setWorld] = useState<PlayerWorld>('ATP')
@@ -137,6 +139,7 @@ export default function CreatePlayerPage(): JSX.Element {
   const [draftReady, setDraftReady] = useState(false)
 
   const countryPickerRef = useRef<HTMLDivElement | null>(null)
+  const homeCityPickerRef = useRef<HTMLDivElement | null>(null)
   const resumeHomeCityRef = useRef('')
 
   useEffect(() => {
@@ -210,6 +213,8 @@ export default function CreatePlayerPage(): JSX.Element {
 
     setHomeCity('')
     setHomeCities([])
+    setHomeCityOpen(false)
+    setHomeCityQuery('')
     setHomeCityLoadError(null)
 
     if (!country) {
@@ -248,6 +253,7 @@ export default function CreatePlayerPage(): JSX.Element {
     function handleDocumentPointerDown(event: MouseEvent) {
       const target = event.target as Node
       if (!countryPickerRef.current?.contains(target)) setCountryOpen(false)
+      if (!homeCityPickerRef.current?.contains(target)) setHomeCityOpen(false)
     }
 
     document.addEventListener('mousedown', handleDocumentPointerDown)
@@ -366,6 +372,12 @@ export default function CreatePlayerPage(): JSX.Element {
     if (!query) return countries
     return countries.filter((item) => `${item.name} ${item.code}`.toLocaleLowerCase().includes(query))
   }, [countries, countryQuery])
+
+  const filteredHomeCities = useMemo(() => {
+    const query = homeCityQuery.trim().toLocaleLowerCase()
+    if (!query) return homeCities
+    return homeCities.filter((item) => item.city.toLocaleLowerCase().includes(query))
+  }, [homeCities, homeCityQuery])
 
   const selectedAvatar = useMemo(
     () => avatars.find((item) => item.path === selectedAvatarPath) ?? null,
@@ -696,33 +708,76 @@ export default function CreatePlayerPage(): JSX.Element {
                     hint="Your home city is used as the starting point for travel and future home-based systems."
                     error={(attemptedStep === 2 || submitted) && !homeCityValid ? (homeCityLoadError ?? 'Choose one of the available home cities for your country.') : undefined}
                   >
-                    <div className="tlg-home-city-control">
-                      <select
+                    <div className="tlg-home-city-control tlg-city-picker" ref={homeCityPickerRef}>
+                      <button
                         id="home-city"
-                        value={homeCity}
-                        onChange={(event) => { setHomeCity(event.target.value); setSaveError(null) }}
-                        className={`tlg-input tlg-home-city-select ${(attemptedStep === 2 || submitted) && !homeCityValid ? 'tlg-input-error' : ''}`}
+                        type="button"
+                        className={`tlg-city-trigger ${homeCityOpen ? 'open' : ''} ${(attemptedStep === 2 || submitted) && !homeCityValid ? 'tlg-input-error' : ''}`}
+                        onClick={() => {
+                          if (country && !homeCitiesLoading && !homeCityLoadError) {
+                            setHomeCityOpen((value) => !value)
+                            setHomeCityQuery('')
+                          }
+                        }}
+                        aria-haspopup="listbox"
+                        aria-expanded={homeCityOpen}
                         disabled={!country || homeCitiesLoading || Boolean(homeCityLoadError)}
                       >
-                        <option value="">
-                          {!country
-                            ? 'Choose a country first'
-                            : homeCitiesLoading
-                              ? 'Loading home cities…'
-                              : homeCityLoadError
-                                ? 'Home cities unavailable'
-                                : 'Choose your home city'}
-                        </option>
-                        {homeCities.map((item) => (
-                          <option key={`${country}-${item.city}`} value={item.city}>{item.city}</option>
-                        ))}
-                      </select>
-
-                      {selectedCountry && homeCity && (
-                        <span className="tlg-home-city-selected">
-                          <span>{homeCity}</span>
-                          <CountryFlag code={selectedCountry.code} name={selectedCountry.name} />
+                        <span className="tlg-city-trigger-main">
+                          {selectedCountry && <CountryFlag code={selectedCountry.code} name={selectedCountry.name} />}
+                          <span className={homeCity ? '' : 'tlg-city-trigger-placeholder'}>
+                            {!country
+                              ? 'Choose a country first'
+                              : homeCitiesLoading
+                                ? `${selectedCountry?.name ?? 'Country'} · Loading home cities…`
+                                : homeCityLoadError
+                                  ? `${selectedCountry?.name ?? 'Country'} · Home cities unavailable`
+                                  : homeCity
+                                    ? `${selectedCountry?.name ?? ''} · ${homeCity}`
+                                    : `${selectedCountry?.name ?? 'Country'} · Choose your home city`}
+                          </span>
                         </span>
+                        <ChevronDown size={18} />
+                      </button>
+
+                      {homeCityOpen && selectedCountry && (
+                        <div className="tlg-city-menu">
+                          <div className="tlg-city-search">
+                            <Search size={16} />
+                            <input
+                              autoFocus
+                              value={homeCityQuery}
+                              onChange={(event) => setHomeCityQuery(event.target.value)}
+                              placeholder={`Search cities in ${selectedCountry.name}…`}
+                              aria-label={`Search cities in ${selectedCountry.name}`}
+                              onKeyDown={(event) => { if (event.key === 'Escape') setHomeCityOpen(false) }}
+                            />
+                          </div>
+
+                          <div className="tlg-city-options" role="listbox" aria-label={`Cities in ${selectedCountry.name}`}>
+                            {filteredHomeCities.map((item) => (
+                              <button
+                                key={`${country}-${item.city}`}
+                                type="button"
+                                role="option"
+                                aria-selected={homeCity === item.city}
+                                className={`tlg-city-option ${homeCity === item.city ? 'selected' : ''}`}
+                                onClick={() => {
+                                  setHomeCity(item.city)
+                                  setHomeCityOpen(false)
+                                  setHomeCityQuery('')
+                                  setSaveError(null)
+                                }}
+                              >
+                                <CountryFlag code={selectedCountry.code} name={selectedCountry.name} />
+                                <span className="tlg-city-option-country">{selectedCountry.name}</span>
+                                <span className="tlg-city-option-name">{item.city}</span>
+                                {homeCity === item.city && <Check size={15} />}
+                              </button>
+                            ))}
+                            {!filteredHomeCities.length && <div className="tlg-city-empty">No city matches your search.</div>}
+                          </div>
+                        </div>
                       )}
                     </div>
                   </FormField>
@@ -845,7 +900,6 @@ export default function CreatePlayerPage(): JSX.Element {
                           onClick={() => { setPlayingHand(hand.value); setSaveError(null) }}
                           aria-pressed={playingHand === hand.value}
                         >
-                          <b>{hand.short}</b>
                           <span><strong>{hand.label}</strong><small>{hand.text}</small></span>
                           {playingHand === hand.value && <Check size={17} />}
                         </button>
@@ -976,10 +1030,12 @@ export default function CreatePlayerPage(): JSX.Element {
                 <span className="tlg-player-preview-tag">{world}</span>
                 {preferredSurface && <span className="tlg-player-preview-tag">{preferredSurface}</span>}
                 {playingStyle && <span className="tlg-player-preview-tag">{playingStyle}</span>}
+                {playingHand && <span className="tlg-player-preview-tag">{playingHand === 'left' ? 'Left-handed' : 'Right-handed'}</span>}
               </div>
               <div className="tlg-player-preview-meta">
                 <div className="tlg-player-preview-meta-row"><span>Current step</span><strong>{currentStep.label}</strong></div>
                 <div className="tlg-player-preview-meta-row"><span>Home base</span><strong>{homeCity || 'Not selected'}</strong></div>
+                <div className="tlg-player-preview-meta-row"><span>Playing hand</span><strong>{playingHand ? (playingHand === 'left' ? 'Left-handed' : 'Right-handed') : 'Not selected'}</strong></div>
                 <div className="tlg-player-preview-meta-row"><span>Account</span><strong>{user?.email ?? 'Authenticated'}</strong></div>
                 <div className="tlg-player-preview-meta-row"><span>Starting technical points</span><strong>440–455 · varied</strong></div>
               </div>
