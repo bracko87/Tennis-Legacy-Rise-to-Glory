@@ -63,7 +63,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists assign_player_handedness_v1 on public.players;
 create trigger assign_player_handedness_v1
