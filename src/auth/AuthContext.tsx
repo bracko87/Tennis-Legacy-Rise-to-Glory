@@ -22,6 +22,7 @@ export interface TennisPlayerRecord {
   image_path: string | null
   preferred_surface: 'Hard' | 'Clay' | 'Grass' | null
   playing_style: 'Aggressive Baseliner' | 'Defensive Baseliner' | 'All-court' | 'Serve & Volley'
+  playing_hand: 'right' | 'left'
   moderation_status: 'pending' | 'approved' | 'rejected'
 }
 
@@ -59,7 +60,7 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     const { data, error } = await supabase
       .from('players')
       .select(
-        'id, owner_user_id, world, first_name, last_name, country_code, home_city, image_path, preferred_surface, playing_style, moderation_status',
+        'id, owner_user_id, world, first_name, last_name, country_code, home_city, image_path, preferred_surface, playing_style, playing_hand, moderation_status',
       )
       .eq('owner_user_id', currentUser.id)
       .maybeSingle()
