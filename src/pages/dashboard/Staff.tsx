@@ -23,7 +23,7 @@ const ROLES: Array<{ role: StaffRole; label: string; description: string }> = [
   { role: 'fitness_coach', label: 'Fitness Coach', description: 'Physical development, conditioning and workload control.' },
   { role: 'physiotherapist', label: 'Physiotherapist', description: 'Fatigue recovery, injury prevention and rehabilitation.' },
   { role: 'sports_psychologist', label: 'Sports Psychologist', description: 'Morale, confidence, focus and pressure management.' },
-  { role: 'performance_analyst', label: 'Performance Analyst', description: 'Opponent estimates, tactical analysis and match preparation.' },
+  { role: 'performance_analyst', label: 'Performance Analyst', description: 'Opponent scouting ranges, preparation confidence and tactical recommendations. Better analysts improve information certainty rather than hidden player strength.' },
   { role: 'agent_manager', label: 'Career Manager', description: 'Sponsorship, commercial representation and career management.' },
 ]
 
