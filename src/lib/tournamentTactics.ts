@@ -3,7 +3,9 @@ export interface TournamentTactic {
   approach: string
   rally: string
   serve: string
+  servePlacement: string
   returnGame: string
+  returnPosition: string
   courtPosition: string
   target: string
   risk: string
@@ -13,7 +15,9 @@ export const TACTIC_OPTIONS = {
   approach: ['Defensive', 'Balanced', 'Aggressive'],
   rally: ['Shorten points', 'Balanced rallies', 'Extend rallies'],
   serve: ['Safe first serve', 'Balanced', 'Power serving', 'Serve + 1'],
+  servePlacement: ['Automatic', 'Wide', 'Body', 'T'],
   returnGame: ['Safe return', 'Balanced', 'Aggressive return', 'Attack second serve'],
+  returnPosition: ['Normal', 'Closer', 'Deeper'],
   courtPosition: ['Deep baseline', 'Normal baseline', 'Inside baseline', 'Net attack'],
   target: ['Automatic', 'Backhand', 'Forehand', 'Movement', 'Stamina', 'Second serve'],
   risk: ['Safe', 'Balanced', 'Aggressive'],
@@ -26,7 +30,9 @@ export const BALANCED_TACTIC: TournamentTactic = {
   approach: 'Balanced',
   rally: 'Balanced rallies',
   serve: 'Balanced',
+  servePlacement: 'Automatic',
   returnGame: 'Balanced',
+  returnPosition: 'Normal',
   courtPosition: 'Normal baseline',
   target: 'Automatic',
   risk: 'Balanced',
@@ -34,19 +40,74 @@ export const BALANCED_TACTIC: TournamentTactic = {
 
 export function tacticFromPreset(preset: string): TournamentTactic {
   if (preset === 'Attack') {
-    return { preset, approach: 'Aggressive', rally: 'Shorten points', serve: 'Serve + 1', returnGame: 'Aggressive return', courtPosition: 'Inside baseline', target: 'Automatic', risk: 'Aggressive' }
+    return {
+      preset,
+      approach: 'Aggressive',
+      rally: 'Shorten points',
+      serve: 'Serve + 1',
+      servePlacement: 'Wide',
+      returnGame: 'Aggressive return',
+      returnPosition: 'Closer',
+      courtPosition: 'Inside baseline',
+      target: 'Automatic',
+      risk: 'Aggressive',
+    }
   }
   if (preset === 'Counterpunch') {
-    return { preset, approach: 'Defensive', rally: 'Extend rallies', serve: 'Safe first serve', returnGame: 'Balanced', courtPosition: 'Deep baseline', target: 'Automatic', risk: 'Safe' }
+    return {
+      preset,
+      approach: 'Defensive',
+      rally: 'Extend rallies',
+      serve: 'Safe first serve',
+      servePlacement: 'Automatic',
+      returnGame: 'Balanced',
+      returnPosition: 'Deeper',
+      courtPosition: 'Deep baseline',
+      target: 'Automatic',
+      risk: 'Safe',
+    }
   }
   if (preset === 'Serve + 1') {
-    return { preset, approach: 'Aggressive', rally: 'Shorten points', serve: 'Serve + 1', returnGame: 'Attack second serve', courtPosition: 'Inside baseline', target: 'Automatic', risk: 'Aggressive' }
+    return {
+      preset,
+      approach: 'Aggressive',
+      rally: 'Shorten points',
+      serve: 'Serve + 1',
+      servePlacement: 'T',
+      returnGame: 'Attack second serve',
+      returnPosition: 'Closer',
+      courtPosition: 'Inside baseline',
+      target: 'Automatic',
+      risk: 'Aggressive',
+    }
   }
   if (preset === 'Defensive / Grind') {
-    return { preset, approach: 'Defensive', rally: 'Extend rallies', serve: 'Safe first serve', returnGame: 'Safe return', courtPosition: 'Deep baseline', target: 'Stamina', risk: 'Safe' }
+    return {
+      preset,
+      approach: 'Defensive',
+      rally: 'Extend rallies',
+      serve: 'Safe first serve',
+      servePlacement: 'Automatic',
+      returnGame: 'Safe return',
+      returnPosition: 'Deeper',
+      courtPosition: 'Deep baseline',
+      target: 'Stamina',
+      risk: 'Safe',
+    }
   }
   if (preset === 'Net Attack') {
-    return { preset, approach: 'Aggressive', rally: 'Shorten points', serve: 'Power serving', returnGame: 'Aggressive return', courtPosition: 'Net attack', target: 'Automatic', risk: 'Aggressive' }
+    return {
+      preset,
+      approach: 'Aggressive',
+      rally: 'Shorten points',
+      serve: 'Power serving',
+      servePlacement: 'Wide',
+      returnGame: 'Aggressive return',
+      returnPosition: 'Closer',
+      courtPosition: 'Net attack',
+      target: 'Automatic',
+      risk: 'Aggressive',
+    }
   }
   return { ...BALANCED_TACTIC }
 }
