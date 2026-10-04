@@ -29,6 +29,7 @@ import '../../styles/create-player-enhancements.css'
 type PlayerWorld = 'ATP' | 'WTA'
 type PreferredSurface = 'Hard' | 'Clay' | 'Grass'
 type PlayingStyle = 'Aggressive Baseliner' | 'Defensive Baseliner' | 'All-court' | 'Serve & Volley'
+type PlayingHand = 'right' | 'left'
 type OnboardingStep = 1 | 2 | 3 | 4 | 5
 
 interface PlayerDraft {
@@ -41,6 +42,7 @@ interface PlayerDraft {
   selectedAvatarPath?: string | null
   preferredSurface?: PreferredSurface | null
   playingStyle?: PlayingStyle | null
+  playingHand?: PlayingHand | null
 }
 
 
@@ -98,6 +100,11 @@ const PLAYING_STYLES: Array<{ value: PlayingStyle; text: string }> = [
   { value: 'Serve & Volley', text: 'More emphasis on serve, volley and moving forward quickly.' },
 ]
 
+const PLAYING_HANDS: Array<{ value: PlayingHand; label: string; short: string; text: string }> = [
+  { value: 'right', label: 'Right-handed', short: 'R', text: 'Standard right-handed serve and rally geometry.' },
+  { value: 'left', label: 'Left-handed', short: 'L', text: 'Creates different serve angles and opposite-handed rally patterns.' },
+]
+
 export default function CreatePlayerPage(): JSX.Element {
   const { user, refreshPlayer } = useAuth()
   const navigate = useNavigate()
@@ -116,6 +123,7 @@ export default function CreatePlayerPage(): JSX.Element {
   const [world, setWorld] = useState<PlayerWorld>('ATP')
   const [preferredSurface, setPreferredSurface] = useState<PreferredSurface | null>(null)
   const [playingStyle, setPlayingStyle] = useState<PlayingStyle | null>(null)
+  const [playingHand, setPlayingHand] = useState<PlayingHand | null>(null)
   const [avatars, setAvatars] = useState<AvatarOption[]>([])
   const [avatarsLoading, setAvatarsLoading] = useState(true)
   const [avatarError, setAvatarError] = useState<string | null>(null)
@@ -159,6 +167,9 @@ export default function CreatePlayerPage(): JSX.Element {
           || draft.playingStyle === 'Serve & Volley'
         ) {
           setPlayingStyle(draft.playingStyle)
+        }
+        if (draft.playingHand === 'right' || draft.playingHand === 'left') {
+          setPlayingHand(draft.playingHand)
         }
         if (draft.step && draft.step >= 1 && draft.step <= 5) setStep(draft.step as OnboardingStep)
       }
@@ -261,7 +272,7 @@ export default function CreatePlayerPage(): JSX.Element {
         return
       }
 
-      const rows = (data ?? []) as AvatarCatalogRow[]
+      const rows = ((data ?? []) as AvatarCatalogRow[]).filter((row) => row.is_available)
       if (!rows.length) {
         setAvatars([])
         setSelectedAvatarPath(null)
@@ -294,14 +305,14 @@ export default function CreatePlayerPage(): JSX.Element {
         .map((row) => ({
           path: row.path,
           signedUrl: signedByPath.get(row.path) ?? '',
-          available: row.is_available,
+          available: true,
           label: avatarLabel(row.path),
         }))
         .filter((item) => item.signedUrl.length > 0)
 
       setAvatars(nextAvatars)
       setSelectedAvatarPath((current) =>
-        current && nextAvatars.some((item) => item.path === current && item.available) ? current : null,
+        current && nextAvatars.some((item) => item.path === current) ? current : null,
       )
       setAvatarsLoading(false)
     }
@@ -323,6 +334,7 @@ export default function CreatePlayerPage(): JSX.Element {
       selectedAvatarPath,
       preferredSurface,
       playingStyle,
+      playingHand,
     }
 
     window.localStorage.setItem(
@@ -341,6 +353,7 @@ export default function CreatePlayerPage(): JSX.Element {
     selectedAvatarPath,
     preferredSurface,
     playingStyle,
+    playingHand,
   ])
 
   const selectedCountry = useMemo(
@@ -360,7 +373,7 @@ export default function CreatePlayerPage(): JSX.Element {
   )
 
   const selectedCountryName = selectedCountry?.name ?? 'Country not selected'
-  const availableAvatarCount = avatars.filter((item) => item.available).length
+  const availableAvatarCount = avatars.length
   const cleanFirstName = firstName.trim()
   const cleanLastName = lastName.trim()
   const firstNameValid = cleanFirstName.length >= 2 && NAME_PATTERN.test(cleanFirstName)
@@ -369,8 +382,9 @@ export default function CreatePlayerPage(): JSX.Element {
   const homeCityValid = homeCity.length > 0 && homeCities.some((item) => item.city === homeCity)
   const surfaceValid = preferredSurface !== null
   const styleValid = playingStyle !== null
+  const handValid = playingHand !== null
   const identityValid = firstNameValid && lastNameValid && countryValid && homeCityValid
-  const profileValid = surfaceValid && styleValid
+  const profileValid = surfaceValid && styleValid && handValid
   const formValid = identityValid && profileValid
 
   const currentStep = ONBOARDING_STEPS.find((item) => item.id === step) ?? ONBOARDING_STEPS[0]
@@ -410,7 +424,7 @@ export default function CreatePlayerPage(): JSX.Element {
     setSubmitted(true)
     setSaveError(null)
 
-    if (!formValid || !user || !preferredSurface || !playingStyle || saving) return
+    if (!formValid || !user || !preferredSurface || !playingStyle || !playingHand || saving) return
     setSaving(true)
 
     try {
@@ -424,6 +438,7 @@ export default function CreatePlayerPage(): JSX.Element {
         image_path: selectedAvatarPath,
         preferred_surface: preferredSurface,
         playing_style: playingStyle,
+        playing_hand: playingHand,
       })
 
       if (error) {
@@ -727,7 +742,7 @@ export default function CreatePlayerPage(): JSX.Element {
                   <div className="tlg-avatar-picker-header">
                     <div>
                       <strong>Choose a {world} portrait</strong>
-                      <p>Portrait selection is optional. Used portraits are unavailable to other active careers.</p>
+                      <p>Portrait selection is optional. Only portraits that are currently free are shown. If you later replace it with an approved custom portrait, this catalog portrait returns to the pool.</p>
                     </div>
                     {!avatarsLoading && avatars.length > 0 && <span className="tlg-avatar-count">{availableAvatarCount} available</span>}
                   </div>
@@ -746,15 +761,13 @@ export default function CreatePlayerPage(): JSX.Element {
                           <button
                             key={avatar.path}
                             type="button"
-                            className={`tlg-avatar-option ${selected ? 'selected' : ''} ${!avatar.available ? 'unavailable' : ''}`}
-                            disabled={!avatar.available}
+                            className={`tlg-avatar-option ${selected ? 'selected' : ''}`}
                             onClick={() => { setSelectedAvatarPath(avatar.path); setSaveError(null) }}
-                            aria-label={avatar.available ? `Select ${avatar.label}` : `${avatar.label} is already in use`}
+                            aria-label={`Select ${avatar.label}`}
                             aria-pressed={selected}
                           >
                             <img src={avatar.signedUrl} alt="" loading="lazy" />
                             {selected && <span className="tlg-avatar-selected-mark"><Check size={15} /></span>}
-                            {!avatar.available && <span className="tlg-avatar-in-use">In use</span>}
                           </button>
                         )
                       })}
@@ -817,10 +830,47 @@ export default function CreatePlayerPage(): JSX.Element {
                     </div>
                   </section>
 
-                  {(attemptedStep === 4 || submitted) && (!surfaceValid || !styleValid) && (
+                  <section className={`tlg-hand-preference-card ${(attemptedStep === 4 || submitted) && !handValid ? 'tlg-hand-preference-error' : ''}`}>
+                    <div className="tlg-hand-preference-head">
+                      <span>PLAYING PROFILE</span>
+                      <h2>Playing hand</h2>
+                      <p>Handedness changes serve angles and tactical rally geometry. It does not add or remove starting Forehand or Backhand skill points.</p>
+                    </div>
+                    <div className="tlg-hand-options">
+                      {PLAYING_HANDS.map((hand) => (
+                        <button
+                          key={hand.value}
+                          type="button"
+                          className={`tlg-hand-option ${playingHand === hand.value ? 'selected' : ''}`}
+                          onClick={() => { setPlayingHand(hand.value); setSaveError(null) }}
+                          aria-pressed={playingHand === hand.value}
+                        >
+                          <b>{hand.short}</b>
+                          <span><strong>{hand.label}</strong><small>{hand.text}</small></span>
+                          {playingHand === hand.value && <Check size={17} />}
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+
+                  <section className="tlg-player-identity-preview">
+                    <span>PLAYER IDENTITY PREVIEW</span>
+                    <strong>
+                      {playingHand ? (playingHand === 'left' ? 'Left-handed' : 'Right-handed') : 'Choose hand'}
+                      {' · '}
+                      {playingStyle ?? 'Choose playing style'}
+                    </strong>
+                    <p>
+                      {preferredSurface ? `${preferredSurface}-court preference.` : 'Choose a preferred surface.'}
+                      {' '}
+                      Handedness changes matchup geometry rather than permanent skill strength.
+                    </p>
+                  </section>
+
+                  {(attemptedStep === 4 || submitted) && (!surfaceValid || !styleValid || !handValid) && (
                     <div className="tlg-auth-status tlg-auth-status-information" role="alert">
                       <ShieldCheck size={18} />
-                      <span>Choose both a preferred surface and playing style before continuing.</span>
+                      <span>Choose a preferred surface, playing style and playing hand before continuing.</span>
                     </div>
                   )}
                 </div>
@@ -849,6 +899,7 @@ export default function CreatePlayerPage(): JSX.Element {
                       <div><span>Portrait</span><strong>{selectedAvatar ? 'Selected' : 'None'}</strong></div>
                       <div><span>Preferred surface</span><strong>{preferredSurface ?? 'Not selected'}</strong></div>
                       <div><span>Playing style</span><strong>{playingStyle ?? 'Not selected'}</strong></div>
+                      <div><span>Playing hand</span><strong>{playingHand ? (playingHand === 'left' ? 'Left-handed' : 'Right-handed') : 'Not selected'}</strong></div>
                     </div>
 
                     <div className="tlg-onboarding-start-note">
