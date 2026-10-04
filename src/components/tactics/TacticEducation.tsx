@@ -5,19 +5,25 @@ import { useEffect, useState } from 'react'
 import '../../styles/tactic-education.css'
 
 const TACTIC_ROWS = [
-  ['Overall approach', 'Aggressive', 'Slightly increases attacking serve/rally pressure.', 'Raises unforced-error risk.'],
-  ['Overall approach', 'Conservative', 'Improves return/rally stability and lowers error risk.', 'Reduces serve pressure.'],
-  ['Rally strategy', 'Short points', 'Rewards serve, attacking shots and net finishing.', 'Higher variance and execution risk.'],
-  ['Rally strategy', 'Long points', 'Rewards return, movement and stamina.', 'Less serve pressure; fatigue and heat matter more.'],
-  ['Serve strategy', 'Aggressive first serve', 'More serve pressure and aces.', 'Lower first-serve percentage and more double-fault risk.'],
-  ['Serve strategy', 'High percentage', 'More first serves in and fewer double faults.', 'Fewer free points and less serving pressure.'],
-  ['Return strategy', 'Attack second serve', 'Adds pressure when the opponent misses the first serve.', 'Slightly raises return-error risk.'],
-  ['Return strategy', 'Deep neutral return', 'Improves stable return quality and point entry.', 'Less immediate attacking pressure.'],
-  ['Court position', 'Step inside', 'Adds return and net pressure.', 'Slightly harder execution.'],
-  ['Court position', 'Deep baseline', 'Helps return and rally defense.', 'Reduces net pressure.'],
-  ['Opponent target', 'Forehand / Backhand', 'Modestly exploits the selected wing when it is weaker than the opponent’s other side.', 'Forcing the stronger wing can be counterproductive.'],
-  ['Risk level', 'High risk', 'Small attacking boost and more winner chances.', 'Substantially more unforced-error risk.'],
-  ['Risk level', 'Low risk', 'Reduces unforced errors and stabilizes points.', 'Less attacking pressure and fewer high-payoff attempts.'],
+  ['Overall approach', 'Aggressive', 'Pushes the player to take initiative earlier.', 'Raises execution and unforced-error risk.'],
+  ['Overall approach', 'Defensive', 'Prioritises patience, coverage and stable point construction.', 'Concedes some first-strike pressure.'],
+  ['Rally strategy', 'Shorten points', 'Rewards serve, attacking shots and net finishing.', 'Higher variance and execution risk.'],
+  ['Rally strategy', 'Extend rallies', 'Can exploit weaker opponent stamina/movement when your own physical profile supports it.', 'Raises physical demand.'],
+  ['Serve strategy', 'Power serving', 'More serve pressure and ace potential.', 'Lower first-serve reliability and more double-fault risk.'],
+  ['Serve strategy', 'Safe first serve', 'More first serves in and fewer double faults.', 'Fewer free points and less serving pressure.'],
+  ['Serve strategy', 'Serve + 1', 'Builds around a strong serve followed by an attacking first groundstroke.', 'Requires suitable serve and attacking skills.'],
+  ['Serve placement', 'Wide / Body / T', 'Changes the geometry of the service pattern and can target movement or return tendencies.', 'A predictable or unsuitable target can reduce the benefit.'],
+  ['Return strategy', 'Aggressive return', 'Adds early return pressure.', 'Raises return-error exposure.'],
+  ['Return strategy', 'Attack second serve', 'Steps in harder when the opponent misses the first serve.', 'Can be less useful against strong second serving.'],
+  ['Return strategy', 'Safe return', 'Prioritises starting the rally.', 'Less immediate attacking pressure.'],
+  ['Return position', 'Closer / Deeper', 'Closer pressures weaker serves; deeper creates reaction time against pace.', 'Each choice gives up something in reaction time or court position.'],
+  ['Court position', 'Inside baseline', 'Takes time away and adds attacking pressure.', 'Less reaction time.'],
+  ['Court position', 'Net attack', 'Rewards suitable serve/volley profiles.', 'Can expose weaker net skills and passing-shot defense.'],
+  ['Court position', 'Deep baseline', 'Helps return and rally defense.', 'Concedes court position.'],
+  ['Opponent target', 'Forehand / Backhand', 'Modestly exploits the selected wing when it is actually weaker.', 'Forcing the stronger wing can be counterproductive.'],
+  ['Opponent target', 'Movement / Stamina / Second serve', 'Builds the plan around a scouted physical or serving vulnerability.', 'Works poorly when the scouting read is wrong or your own skills do not suit the plan.'],
+  ['Risk level', 'Aggressive', 'Small attacking boost and more winner chances.', 'Substantially more unforced-error risk.'],
+  ['Risk level', 'Safe', 'Reduces errors and stabilizes points.', 'Less attacking pressure and fewer high-payoff attempts.'],
 ] as const
 
 function TacticGuide({ matchSpecific = false }: { matchSpecific?: boolean }) {
@@ -47,7 +53,7 @@ function TacticGuide({ matchSpecific = false }: { matchSpecific?: boolean }) {
             </article>
           ))}
         </div>
-        <div className="tlg-tactic-education-rule"><Target size={16} /><span><strong>Balanced / Automatic choices:</strong> no special bias is applied. Your permanent playing style still determines which skills naturally appear more often in the underlying point calculation.</span></div>
+        <div className="tlg-tactic-education-rule"><Target size={16} /><span><strong>Opponent-specific tactics:</strong> handedness changes rally and serve geometry, but it is not a permanent skill bonus. The match engine weighs your own skills, the opponent's real strengths/weaknesses, surface, condition and the chosen plan. A good counter helps modestly; it never guarantees a win.</span></div>
       </div>
     </details>
   )
