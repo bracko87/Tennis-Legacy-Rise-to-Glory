@@ -65,6 +65,9 @@ interface MatchPlayerDetail {
   image_path: string | null
   ranking_position: number | null
   seed: number | null
+  playing_hand: 'right' | 'left'
+  preferred_surface: 'Hard' | 'Clay' | 'Grass' | null
+  playing_style: 'Aggressive Baseliner' | 'Defensive Baseliner' | 'All-court' | 'Serve & Volley'
 }
 
 interface MatchSetDetail {
@@ -120,6 +123,25 @@ interface MatchTacticResponse {
   tournament_default: TournamentTactic
   override: TournamentTactic | null
   effective: TournamentTactic
+}
+
+interface MatchScoutingReport {
+  available: boolean
+  reason?: string
+  analyst_rating?: number
+  analyst_name?: string
+  estimate_margin?: number
+  confidence_percent?: number
+  report_stage?: 'general' | 'quick' | 'partial' | 'normal' | 'full'
+  preparation_hours?: number
+  attributes?: Record<string, { min: number; max: number }>
+  identified_strength?: string
+  identified_weakness?: string
+  preferred_surface?: string | null
+  playing_style?: string
+  playing_hand?: 'right' | 'left'
+  tactical_observations?: string[]
+  recommendations?: string[]
 }
 
 interface TacticEffect {
@@ -722,7 +744,9 @@ function MockHeadToHead({ player1, player2 }: { player1: MatchPlayerDetail | nul
 
 function MatchTacticPanel({ detail, currentPlayerId }: { detail: MatchDetail; currentPlayerId: string | null }) {
   const isOwnMatch = Boolean(currentPlayerId && (detail.player1?.id === currentPlayerId || detail.player2?.id === currentPlayerId))
+  const opponent = currentPlayerId === detail.player1?.id ? detail.player2 : currentPlayerId === detail.player2?.id ? detail.player1 : null
   const [data, setData] = useState<MatchTacticResponse | null>(null)
+  const [scouting, setScouting] = useState<MatchScoutingReport | null>(null)
   const [draft, setDraft] = useState<TournamentTactic>({ ...BALANCED_TACTIC })
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -733,16 +757,22 @@ function MatchTacticPanel({ detail, currentPlayerId }: { detail: MatchDetail; cu
     if (!isOwnMatch || !currentPlayerId) return
     setLoading(true)
     setMessage(null)
-    const { data: tacticData, error } = await supabase.rpc('get_tournament_match_tactic_v1', { p_player_id: currentPlayerId, p_match_id: detail.match_id })
+    const [tacticResponse, scoutingResponse] = await Promise.all([
+      supabase.rpc('get_tournament_match_tactic_v1', { p_player_id: currentPlayerId, p_match_id: detail.match_id }),
+      opponent?.id
+        ? supabase.rpc('get_player_scouting_report_v1', { p_target_player_id: opponent.id })
+        : Promise.resolve({ data: null, error: null }),
+    ])
     setLoading(false)
-    if (error || !tacticData) {
-      setMessage(error?.message ?? 'Unable to load match tactic.')
+    if (tacticResponse.error || !tacticResponse.data) {
+      setMessage(tacticResponse.error?.message ?? 'Unable to load match tactic.')
       return
     }
-    const next = tacticData as MatchTacticResponse
+    const next = tacticResponse.data as MatchTacticResponse
     setData(next)
     setDraft(next.override ?? next.effective ?? { ...BALANCED_TACTIC })
-  }, [currentPlayerId, detail.match_id, isOwnMatch])
+    setScouting(!scoutingResponse.error && scoutingResponse.data ? scoutingResponse.data as MatchScoutingReport : null)
+  }, [currentPlayerId, detail.match_id, isOwnMatch, opponent?.id])
 
   useEffect(() => { void load() }, [load])
 
@@ -759,7 +789,9 @@ function MatchTacticPanel({ detail, currentPlayerId }: { detail: MatchDetail; cu
       p_tactic_approach: draft.approach,
       p_tactic_rally: draft.rally,
       p_tactic_serve: draft.serve,
+      p_tactic_serve_placement: draft.servePlacement,
       p_tactic_return: draft.returnGame,
+      p_tactic_return_position: draft.returnPosition,
       p_tactic_court_position: draft.courtPosition,
       p_tactic_target: draft.target,
       p_tactic_risk: draft.risk,
@@ -802,6 +834,8 @@ function MatchTacticPanel({ detail, currentPlayerId }: { detail: MatchDetail; cu
         <div className="tlg-match-tactic-head-tools"><button type="button" className={`tlg-tactic-info-button${showHelp ? ' active' : ''}`} aria-label="Explain tactical settings" aria-expanded={showHelp} onClick={() => setShowHelp((current) => !current)}>i</button><div className="tlg-match-tactic-source"><span>Currently active</span><strong>{sourceLabel}</strong></div></div>
       </div>
 
+      {opponent && <OpponentAnalysis opponent={opponent} scouting={scouting} />}
+
       {showHelp && <TacticHelp tactic={editable ? draft : effective} />}
 
       {loading ? <div className="tlg-match-tactic-loading">Loading tactical plan…</div> : !data ? <div className="tlg-match-tactic-loading">{message ?? 'Tactical plan unavailable.'}</div> : !editable ? (
@@ -813,7 +847,9 @@ function MatchTacticPanel({ detail, currentPlayerId }: { detail: MatchDetail; cu
             <TacticSelect label="Overall approach" value={draft.approach} values={TACTIC_OPTIONS.approach} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', approach: value }))} />
             <TacticSelect label="Rally strategy" value={draft.rally} values={TACTIC_OPTIONS.rally} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', rally: value }))} />
             <TacticSelect label="Serve strategy" value={draft.serve} values={TACTIC_OPTIONS.serve} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', serve: value }))} />
+            <TacticSelect label="Serve placement" value={draft.servePlacement} values={TACTIC_OPTIONS.servePlacement} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', servePlacement: value }))} />
             <TacticSelect label="Return strategy" value={draft.returnGame} values={TACTIC_OPTIONS.returnGame} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', returnGame: value }))} />
+            <TacticSelect label="Return position" value={draft.returnPosition} values={TACTIC_OPTIONS.returnPosition} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', returnPosition: value }))} />
             <TacticSelect label="Court position" value={draft.courtPosition} values={TACTIC_OPTIONS.courtPosition} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', courtPosition: value }))} />
             <TacticSelect label="Opponent target" value={draft.target} values={TACTIC_OPTIONS.target} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', target: value }))} />
             <TacticSelect label="Risk level" value={draft.risk} values={TACTIC_OPTIONS.risk} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', risk: value }))} />
@@ -826,12 +862,54 @@ function MatchTacticPanel({ detail, currentPlayerId }: { detail: MatchDetail; cu
   )
 }
 
+function OpponentAnalysis({ opponent, scouting }: { opponent: MatchPlayerDetail; scouting: MatchScoutingReport | null }) {
+  const handLabel = opponent.playing_hand === 'left' ? 'Left-handed · L' : 'Right-handed · R'
+  const strength = scouting?.identified_strength ? scouting.identified_strength.replaceAll('_', ' ') : null
+  const weakness = scouting?.identified_weakness ? scouting.identified_weakness.replaceAll('_', ' ') : null
+
+  return (
+    <div className="tlg-opponent-analysis">
+      <header>
+        <div>
+          <span>OPPONENT ANALYSIS</span>
+          <strong>{playerName(opponent)}</strong>
+          <p>{handLabel} · {opponent.playing_style} · {opponent.preferred_surface ?? 'No surface preference'} surface</p>
+        </div>
+        {scouting?.available
+          ? <div className="confidence"><strong>{scouting.confidence_percent ?? 0}%</strong><span>{scouting.report_stage ?? 'general'} report</span><small>±{scouting.estimate_margin} estimate</small></div>
+          : <div className="confidence public"><strong>PUBLIC</strong><span>identity only</span></div>}
+      </header>
+
+      {!scouting?.available ? (
+        <div className="tlg-opponent-analysis-locked">
+          <p>{scouting?.reason ?? 'Hire a Performance Analyst to unlock approximate skill ranges and tactical observations.'}</p>
+          <Link to="/game/staff">Open Staff Market</Link>
+        </div>
+      ) : (
+        <>
+          <div className="tlg-opponent-analysis-key">
+            <div><span>Likely strength</span><strong>{strength ?? '—'}</strong></div>
+            <div><span>Likely weakness</span><strong>{weakness ?? '—'}</strong></div>
+            <div><span>Preparation</span><strong>{Number(scouting.preparation_hours ?? 0).toFixed(1)} game-hours</strong></div>
+          </div>
+          <div className="tlg-opponent-analysis-notes">
+            <div><span>Observed tendencies</span>{scouting.tactical_observations?.map((item) => <p key={item}>{item}</p>)}</div>
+            <div><span>Tactical considerations</span>{scouting.recommendations?.map((item) => <p key={item}>{item}</p>)}</div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 function TacticHelp({ tactic }: { tactic: TournamentTactic }) {
   const rows = [
     ['Overall approach', tactic.approach, tactic.approach === 'Aggressive' ? 'Pushes the player to take initiative earlier and attempt more attacking shots, with more error exposure.' : tactic.approach === 'Defensive' ? 'Prioritises court coverage, patience and safer shot selection over early winners.' : 'Keeps attacking and defensive decisions close to the player’s normal tendencies.'],
     ['Rally strategy', tactic.rally, tactic.rally === 'Shorten points' ? 'Looks to end rallies earlier; useful for first-strike tennis but raises shot-selection pressure.' : tactic.rally === 'Extend rallies' ? 'Accepts longer exchanges to test movement, consistency and stamina.' : 'No deliberate change to normal rally length.'],
     ['Serve strategy', tactic.serve, tactic.serve === 'Power serving' ? 'Adds first-serve pressure and ace potential, but increases serve risk.' : tactic.serve === 'Serve + 1' ? 'Builds points around a strong serve followed by an immediate attacking first groundstroke.' : tactic.serve === 'Safe first serve' ? 'Reduces serve risk and double-fault pressure at the expense of free points.' : 'Uses the player’s normal serve balance.'],
+    ['Serve placement', tactic.servePlacement, tactic.servePlacement === 'Wide' ? 'Uses angle to pull the returner away from the court; especially relevant to movement and opposite-handed geometry.' : tactic.servePlacement === 'Body' ? 'Crowds the returner and reduces clean swings.' : tactic.servePlacement === 'T' ? 'Prioritises the center-line target and direct first-strike patterns.' : 'Lets the player choose placement naturally.'],
     ['Return strategy', tactic.returnGame, tactic.returnGame === 'Aggressive return' ? 'Takes more risk on returns to seize control immediately.' : tactic.returnGame === 'Attack second serve' ? 'Keeps normal first-serve returns but steps in hard against second serves.' : tactic.returnGame === 'Safe return' ? 'Prioritises putting the ball in play and starting neutral rallies.' : 'Uses the player’s normal return balance.'],
+    ['Return position', tactic.returnPosition, tactic.returnPosition === 'Closer' ? 'Steps forward to pressure weaker serves, but reduces reaction time against pace.' : tactic.returnPosition === 'Deeper' ? 'Creates more reaction time against strong serving, while conceding court position.' : 'Uses the normal return position.'],
     ['Court position', tactic.courtPosition, tactic.courtPosition === 'Net attack' ? 'Looks for frequent forward movement and finishing opportunities at net.' : tactic.courtPosition === 'Inside baseline' ? 'Takes time away from the opponent but leaves less reaction time.' : tactic.courtPosition === 'Deep baseline' ? 'Creates more reaction time and defensive coverage while conceding court position.' : 'Uses a normal baseline position.'],
     ['Opponent target', tactic.target, tactic.target === 'Automatic' ? 'No specific weakness is forced; the player reacts naturally to the match.' : `Directs a larger share of tactical pressure toward the opponent’s ${tactic.target.toLowerCase()}.`],
     ['Risk level', tactic.risk, tactic.risk === 'Aggressive' ? 'Raises winner attempts and attacking intent, but also raises unforced-error and fatigue risk.' : tactic.risk === 'Safe' ? 'Reduces low-percentage choices and errors, while limiting peak attacking pressure.' : 'Keeps risk close to the player’s normal level.'],
@@ -855,9 +933,14 @@ function calculateTacticEffects(tactic: TournamentTactic): TacticEffect[] {
   if (tactic.serve === 'Power serving') { servePressure += 14; winnerPressure += 5; errorRisk += 5; fatigue += 2 }
   if (tactic.serve === 'Serve + 1') { servePressure += 10; attack += 8; winnerPressure += 7; errorRisk += 3 }
   if (tactic.serve === 'Safe first serve') { servePressure -= 7; errorRisk -= 5 }
+  if (tactic.servePlacement === 'Wide') { servePressure += 4; attack += 2; errorRisk += 1 }
+  if (tactic.servePlacement === 'Body') { servePressure += 2; errorRisk -= 1 }
+  if (tactic.servePlacement === 'T') { servePressure += 3; winnerPressure += 2 }
   if (tactic.returnGame === 'Aggressive return') { returnPressure += 12; attack += 5; errorRisk += 5 }
   if (tactic.returnGame === 'Attack second serve') { returnPressure += 10; attack += 4; errorRisk += 2 }
   if (tactic.returnGame === 'Safe return') { returnPressure -= 6; errorRisk -= 4; rallyLength += 3 }
+  if (tactic.returnPosition === 'Closer') { returnPressure += 4; attack += 2; errorRisk += 2 }
+  if (tactic.returnPosition === 'Deeper') { returnPressure -= 1; errorRisk -= 2; rallyLength += 2 }
   if (tactic.courtPosition === 'Inside baseline') { attack += 8; winnerPressure += 5; errorRisk += 3 }
   if (tactic.courtPosition === 'Net attack') { attack += 12; winnerPressure += 10; rallyLength -= 7; errorRisk += 6; fatigue += 3 }
   if (tactic.courtPosition === 'Deep baseline') { attack -= 5; rallyLength += 7; errorRisk -= 2; fatigue += 2 }
@@ -889,7 +972,7 @@ function TacticEffects({ tactic, locked = false }: { tactic: TournamentTactic; l
 }
 
 function TacticSummary({ tactic }: { tactic: TournamentTactic }) {
-  return <div className="tlg-match-tactic-effective"><div><span>Preset</span><strong>{tactic.preset}</strong></div><div><span>Approach</span><strong>{tactic.approach}</strong></div><div><span>Serve</span><strong>{tactic.serve}</strong></div><div><span>Return</span><strong>{tactic.returnGame}</strong></div><div><span>Rallies</span><strong>{tactic.rally}</strong></div><div><span>Position</span><strong>{tactic.courtPosition}</strong></div><div><span>Target</span><strong>{tactic.target}</strong></div><div><span>Risk</span><strong>{tactic.risk}</strong></div></div>
+  return <div className="tlg-match-tactic-effective"><div><span>Preset</span><strong>{tactic.preset}</strong></div><div><span>Approach</span><strong>{tactic.approach}</strong></div><div><span>Serve</span><strong>{tactic.serve}</strong></div><div><span>Serve placement</span><strong>{tactic.servePlacement}</strong></div><div><span>Return</span><strong>{tactic.returnGame}</strong></div><div><span>Return position</span><strong>{tactic.returnPosition}</strong></div><div><span>Rallies</span><strong>{tactic.rally}</strong></div><div><span>Position</span><strong>{tactic.courtPosition}</strong></div><div><span>Target</span><strong>{tactic.target}</strong></div><div><span>Risk</span><strong>{tactic.risk}</strong></div></div>
 }
 
 function TacticSelect({ label, value, values, onChange }: { label: string; value: string; values: readonly string[]; onChange: (value: string) => void }) {
@@ -942,7 +1025,7 @@ function MatchPlayerCard({
       </div>
       <div className="tlg-match-player-summary">
         <div className="identity"><CountryFlag countryCode={player.country_code} countryName={player.country_code} width={29} height={19} /><Link to={`/game/players/${player.id}`} state={{ playerProfileReturn: returnPath, playerProfileReturnLabel: `Back to ${tournamentName}` }}>{name}</Link></div>
-        <div className="meta"><span>{player.ranking_position ? `World #${player.ranking_position}` : 'Unranked'}</span>{player.seed ? <strong>Seed #{player.seed}</strong> : <strong className="unseeded">Unseeded</strong>}</div>
+        <div className="meta"><span>{player.ranking_position ? `World #${player.ranking_position}` : 'Unranked'}</span><strong className="handedness">{player.playing_hand === 'left' ? 'L · Left' : 'R · Right'}</strong>{player.seed ? <strong>Seed #{player.seed}</strong> : <strong className="unseeded">Unseeded</strong>}</div>
       </div>
     </article>
   )
