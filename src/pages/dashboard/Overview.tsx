@@ -372,7 +372,7 @@ export default function OverviewPage() {
                 <strong>{displayName}</strong>
                 <p className="tlg-v7-country-line">
                   <CountryFlag countryCode={player?.country_code} countryName={countryName} width={20} height={15} />
-                  <span>{countryName} · {player?.world ?? '—'} World</span>
+                  <span>{countryName} · {player?.world ?? '—'} World · {player?.playing_hand === 'left' ? 'Left-handed' : 'Right-handed'}</span>
                 </p>
               </div>
             </div>
