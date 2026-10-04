@@ -204,3 +204,253 @@
 @media (max-width: 640px) {
   .tlg-hand-options { grid-template-columns: 1fr; }
 }
+
+
+/* Player creation polish: lighter typography + matching custom pickers */
+.tlg-onboarding-page-v2 .tlg-field-label,
+.tlg-onboarding-stage-header span,
+.tlg-hand-preference-head > span,
+.tlg-player-identity-preview > span,
+.tlg-real-name-policy strong {
+  font-weight: 620 !important;
+}
+
+.tlg-onboarding-step-copy strong,
+.tlg-onboarding-review-grid strong,
+.tlg-player-preview-meta-row strong,
+.tlg-hand-option strong,
+.tlg-player-identity-preview strong {
+  font-weight: 560 !important;
+}
+
+.tlg-onboarding-step-number,
+.tlg-onboarding-stage-header > strong {
+  font-weight: 600 !important;
+}
+
+.tlg-onboarding-page-v2 .tlg-input,
+.tlg-country-trigger,
+.tlg-city-trigger {
+  min-height: 50px;
+  font-size: .86rem !important;
+  font-weight: 430 !important;
+  line-height: 1;
+}
+
+.tlg-country-trigger-main,
+.tlg-city-trigger-main {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: .65rem;
+}
+
+.tlg-country-trigger-placeholder,
+.tlg-city-trigger-placeholder {
+  color: #577289;
+  font-weight: 430;
+}
+
+/* City now uses the same dark custom menu language as Country. */
+.tlg-city-picker {
+  position: relative;
+  z-index: 11;
+}
+
+.tlg-city-trigger {
+  width: 100%;
+  padding: 0 .9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  color: #eaf4fc;
+  background: rgba(3, 16, 28, .74);
+  border: 1px solid rgba(113, 166, 207, .22);
+  border-radius: 11px;
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.tlg-city-trigger:hover,
+.tlg-city-trigger.open {
+  color: #fff;
+  border-color: rgba(66, 169, 236, .6);
+  background: rgba(5, 23, 39, .94);
+}
+
+.tlg-city-trigger.open {
+  box-shadow: 0 0 0 3px rgba(34, 137, 224, .12);
+}
+
+.tlg-city-trigger:disabled {
+  cursor: not-allowed;
+  opacity: .58;
+}
+
+.tlg-city-menu {
+  position: absolute;
+  z-index: 100;
+  top: calc(100% + 7px);
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  border: 1px solid rgba(92, 170, 232, .24);
+  border-radius: 13px;
+  background: #071827;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .48);
+}
+
+.tlg-city-search {
+  position: relative;
+  padding: .7rem;
+  border-bottom: 1px solid rgba(116, 169, 213, .1);
+}
+
+.tlg-city-search svg {
+  position: absolute;
+  left: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #66849f;
+  pointer-events: none;
+}
+
+.tlg-city-search input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 .8rem 0 2.45rem;
+  color: #eaf4fd;
+  background: rgba(2, 13, 24, .68);
+  border: 1px solid rgba(121, 174, 216, .12);
+  border-radius: 9px;
+  outline: none;
+  font-size: .78rem;
+  font-weight: 430;
+}
+
+.tlg-city-search input:focus {
+  border-color: rgba(64, 166, 241, .55);
+}
+
+.tlg-city-options {
+  max-height: 300px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: .35rem;
+}
+
+.tlg-city-option {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 .65rem;
+  display: grid;
+  grid-template-columns: 24px minmax(110px, .8fr) minmax(0, 1.2fr) 18px;
+  align-items: center;
+  gap: .65rem;
+  border-radius: 8px;
+  color: #b9cfe1;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-size: .76rem;
+  font-weight: 430;
+}
+
+.tlg-city-option:hover,
+.tlg-city-option.selected {
+  color: #f4faff;
+  background: rgba(18, 91, 151, .26);
+}
+
+.tlg-city-option-country {
+  overflow: hidden;
+  color: #7895aa;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tlg-city-option-name {
+  overflow: hidden;
+  color: #d9e9f5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tlg-city-empty {
+  padding: 1rem;
+  color: #71899f;
+  font-size: .76rem;
+  text-align: center;
+}
+
+/* Hand + identity preview are one visual row and exactly the same height. */
+.tlg-onboarding-profile-stage .tlg-hand-preference-card,
+.tlg-onboarding-profile-stage .tlg-player-identity-preview {
+  min-height: 214px;
+  height: 100%;
+  align-self: stretch;
+  box-sizing: border-box;
+}
+
+.tlg-player-identity-preview {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  border-radius: 16px;
+}
+
+.tlg-hand-option {
+  grid-template-columns: minmax(0, 1fr) 20px;
+  min-height: 70px;
+}
+
+.tlg-hand-option > span {
+  min-width: 0;
+}
+
+.tlg-hand-option strong {
+  font-size: .75rem;
+}
+
+.tlg-hand-option small {
+  font-weight: 400;
+}
+
+.tlg-player-identity-preview p,
+.tlg-hand-preference-head p {
+  font-weight: 400;
+}
+
+/* Remove legacy native-select styling from the home-city control. */
+.tlg-home-city-select,
+.tlg-home-city-selected {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .tlg-city-menu {
+    position: fixed;
+    left: 18px;
+    right: 18px;
+    top: 18vh;
+    max-height: 64vh;
+  }
+
+  .tlg-city-options {
+    max-height: 48vh;
+  }
+
+  .tlg-city-option {
+    grid-template-columns: 24px minmax(0, 1fr) 18px;
+  }
+
+  .tlg-city-option-country {
+    display: none;
+  }
+
+  .tlg-onboarding-profile-stage .tlg-hand-preference-card,
+  .tlg-onboarding-profile-stage .tlg-player-identity-preview {
+    min-height: 0;
+  }
+}
