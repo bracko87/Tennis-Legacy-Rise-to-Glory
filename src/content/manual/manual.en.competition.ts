@@ -103,14 +103,15 @@ export const manualCompetitionChapters: ManualChapter[] = [
         'Choose a travel class and hotel tier.',
         'Choose which contracted staff travel with the player.',
         'Review the travel quote and the cost/fatigue trade-off.',
-        'Save the tournament-default tactic or keep the current default.',
+        'Save the tournament-default tactic or keep the current default. Tactics include approach, rally length, serve strategy and placement, return strategy and position, court position, opponent target and risk.',
         'Save preparation; the shared travel engine recalculates the planned itinerary.',
       ]}),
       s('Tournament default tactic', { paragraphs: [
         'The Tournament Default tactic is used for matches in that tournament unless a specific upcoming match has its own override. This avoids having to create a new tactical plan for every round.',
       ]}),
-      s('Match-specific overrides', { paragraphs: [
-        'When an opponent is known, the match detail can store an opponent-specific plan. Clearing the override returns the match to the Tournament Default.',
+      s('Opponent analysis and match-specific overrides', { paragraphs: [
+        'When an opponent is known, the match page always shows public identity such as playing hand, playing style and preferred surface. If a Performance Analyst is employed, Opponent Analysis adds approximate skill ranges, report confidence, observed tendencies and tactical considerations.',
+        'The match detail can store an opponent-specific plan. Clearing the override returns the match to the Tournament Default. A tactical plan is evaluated against both players: exploiting a real weakness can help, while choosing a counter that does not suit your own skills can be ineffective or harmful.',
       ]}),
       s('Equipment readiness', { paragraphs: [
         'Tournament preparation should be checked together with the Equipment Center. The authoritative match equipment effect uses the currently equipped items, their condition and relevant court-surface matching.',
@@ -132,7 +133,8 @@ export const manualCompetitionChapters: ManualChapter[] = [
         'Match detail shows the players, tournament context, timing, score/result and, when recorded, match statistics such as aces, double faults, first-serve percentage, break points won, winners, unforced errors and total points won.',
       ]}),
       s('Tactical controls', { paragraphs: [
-        'Tactical settings influence attack intent, winner attempts, serve/return pressure, rally length, court position, target and error exposure. More aggressive choices can create upside while increasing tactical and physical risk.',
+        'Tactical settings influence attack intent, winner attempts, serve/return pressure, serve placement (Automatic, Wide, Body or T), return position (Normal, Closer or Deeper), rally length, court position, opponent target and error exposure.',
+        'Opponent targeting can focus on Forehand, Backhand, Movement, Stamina or Second Serve. Handedness changes the geometry of those patterns but is not an inherent strength bonus. More aggressive choices can create upside while increasing tactical and physical risk.',
       ]}),
       s('Result progression', { paragraphs: [
         'A completed match records a winner and advances the bracket. Tournament results then feed ranking contributions, statistics, prize money and relevant sponsor/objective systems.',
