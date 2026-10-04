@@ -23,7 +23,7 @@
 .tlg-match-tactic-message {
   color: #0b6fc8;
   font-size: .59rem;
-  font-weight: 850;
+  font-weight: 650;
   letter-spacing: .08em;
   text-transform: uppercase;
 }
@@ -32,6 +32,7 @@
   margin: 5px 0 0;
   color: #173149;
   font-size: 1.05rem;
+  font-weight: 600;
 }
 
 .tlg-match-tactic-head p {
@@ -55,6 +56,7 @@
 .tlg-match-tactic-source strong {
   color: #29465c;
   font-size: .72rem;
+  font-weight: 560;
 }
 
 .tlg-match-tactic-presets {
@@ -72,7 +74,7 @@
   background: #fff;
   color: #536f83;
   font-size: .67rem;
-  font-weight: 800;
+  font-weight: 620;
   cursor: pointer;
 }
 
@@ -97,7 +99,7 @@
 .tlg-match-tactic-field > span {
   color: #718697;
   font-size: .58rem;
-  font-weight: 800;
+  font-weight: 620;
   letter-spacing: .05em;
   text-transform: uppercase;
 }
@@ -111,7 +113,7 @@
   background: #fff;
   color: #29465c;
   font-size: .69rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .tlg-match-tactic-actions {
@@ -137,7 +139,7 @@
   background: #fff;
   color: #35566e;
   font-size: .67rem;
-  font-weight: 800;
+  font-weight: 620;
   cursor: pointer;
 }
 
@@ -182,13 +184,14 @@
 .tlg-match-tactic-effective span {
   color: #8293a0;
   font-size: .54rem;
-  font-weight: 800;
+  font-weight: 620;
   text-transform: uppercase;
 }
 
 .tlg-match-tactic-effective strong {
   color: #29465c;
   font-size: .65rem;
+  font-weight: 560;
 }
 
 @media(max-width:900px) {
@@ -228,6 +231,7 @@
   color: #2b617f;
   border-color: #c9deea;
   background: #f2f8fb;
+  font-weight: 520;
 }
 
 .tlg-opponent-analysis {
@@ -250,7 +254,7 @@
   display: block;
   color: #0873ba;
   font-size: .58rem;
-  font-weight: 800;
+  font-weight: 620;
   letter-spacing: .09em;
 }
 .tlg-opponent-analysis > header > div:first-child > strong {
@@ -258,6 +262,7 @@
   margin-top: 5px;
   color: #173149;
   font-size: .84rem;
+  font-weight: 600;
 }
 .tlg-opponent-analysis > header p {
   margin: 5px 0 0;
@@ -270,7 +275,7 @@
   justify-items: end;
   gap: 1px;
 }
-.tlg-opponent-analysis .confidence strong { color: #0b765d; font-size: .9rem; }
+.tlg-opponent-analysis .confidence strong { color: #0b765d; font-size: .9rem; font-weight: 600; }
 .tlg-opponent-analysis .confidence span,
 .tlg-opponent-analysis .confidence small {
   color: #718797;
@@ -294,12 +299,13 @@
 .tlg-opponent-analysis-notes span {
   color: #708798;
   font-size: .56rem;
-  font-weight: 750;
+  font-weight: 600;
   text-transform: uppercase;
 }
 .tlg-opponent-analysis-key strong {
   color: #29495f;
   font-size: .69rem;
+  font-weight: 560;
   text-transform: capitalize;
 }
 .tlg-opponent-analysis-notes {
@@ -337,7 +343,7 @@
   flex: 0 0 auto;
   color: #0b6fc8;
   font-size: .63rem;
-  font-weight: 750;
+  font-weight: 600;
   text-decoration: none;
 }
 
