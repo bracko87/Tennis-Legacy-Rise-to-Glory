@@ -210,6 +210,7 @@ export const manualCareerChapters: ManualChapter[] = [
     sections: [
       s('Identity and worlds', { bullets: [
         'The professional player name is fixed after career creation.',
+        'Playing hand is a core player identity. Left-handed and right-handed players do not receive automatic permanent Forehand/Backhand bonuses; handedness affects match geometry and tactical suitability.',
         'ATP and WTA competitive rankings are separate.',
         'Singles and doubles rankings are separate disciplines.',
         'Tennis Clubs can contain members from both ATP and WTA.',
@@ -224,6 +225,12 @@ export const manualCareerChapters: ManualChapter[] = [
         'Premium does not remove the need to manage Career Cash.',
         'Buying Coins does not create Career Cash.',
         'Finance value movements are designed to be idempotent so a retry does not duplicate a charge or reward.',
+      ]}),
+      s('Opponent knowledge and tactics', { bullets: [
+        'Playing hand, preferred surface and playing style are public opponent information.',
+        'Exact opponent skills remain private. A Performance Analyst reports estimates whose range narrows with analyst quality and preparation time.',
+        'Performance Analyst quality improves information certainty rather than directly increasing hidden player strength.',
+        'Tactical counters are modest matchup effects, not guaranteed-win buttons. Own skills, opponent skills, surface, condition and risk still matter.',
       ]}),
       s('Development', { bullets: [
         'Preferred surface/style changes starting distribution, not total starting strength.',
