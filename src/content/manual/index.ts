@@ -10,7 +10,7 @@ const englishManual: GameManualDocument = {
     language: 'English',
     locale: 'en',
     version: '1.0',
-    updated: '2026-10-02',
+    updated: '2026-10-04',
     sourceNotice: 'English is the source edition. Future locale files can reuse the same chapter and section identifiers.',
   },
   chapters: [
