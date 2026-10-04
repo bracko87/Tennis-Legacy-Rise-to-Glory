@@ -20,6 +20,7 @@ interface PlayerProfileRow {
   image_path: string | null
   preferred_surface: 'Hard' | 'Clay' | 'Grass' | null
   playing_style: 'Aggressive Baseliner' | 'Defensive Baseliner' | 'All-court' | 'Serve & Volley'
+  playing_hand: 'right' | 'left'
   ranking_points: number
   rank_position: number
   is_own_player: boolean
@@ -54,12 +55,19 @@ interface ScoutingReport {
   available: boolean
   reason?: string
   analyst_rating?: number
+  analyst_name?: string
   estimate_margin?: number
+  confidence_percent?: number
+  report_stage?: 'general' | 'quick' | 'partial' | 'normal' | 'full'
+  preparation_hours?: number
   attributes?: Record<string, { min: number; max: number }>
   identified_strength?: string
   identified_weakness?: string
   preferred_surface?: string | null
   playing_style?: string
+  playing_hand?: 'right' | 'left'
+  tactical_observations?: string[]
+  recommendations?: string[]
 }
 
 interface PrivateLifePossession {
@@ -262,7 +270,7 @@ export default function PlayerProfilePage() {
                 <div className="tlg-public-player-stats"><article><span>World ranking</span><strong>#{profile.rank_position}</strong></article><article><span>Ranking points</span><strong>{profile.ranking_points.toLocaleString()}</strong></article><article><span>Competition world</span><strong>{profile.world}</strong></article></div>
                 <div className="tlg-public-player-info">
                   <header><span>Player information</span><h2>Career overview</h2></header>
-                  <div className="tlg-public-player-info-grid"><div><span>Home city</span><strong>{profile.home_city ?? 'Not set'}</strong></div><div><span>Country</span><strong>{profile.country_code}</strong></div><div><span>Preferred surface</span><strong>{profile.preferred_surface ?? 'Not set'}</strong></div><div><span>Playing style</span><strong>{profile.playing_style}</strong></div><div><span>Discipline</span><strong>Singles</strong></div><div><span>Tour</span><strong>{profile.world}</strong></div><div><span>Ranking status</span><strong>{profile.rank_position > 0 ? `Ranked #${profile.rank_position}` : 'Unranked'}</strong></div></div>
+                  <div className="tlg-public-player-info-grid"><div><span>Home city</span><strong>{profile.home_city ?? 'Not set'}</strong></div><div><span>Country</span><strong>{profile.country_code}</strong></div><div><span>Playing hand</span><strong>{profile.playing_hand === 'left' ? 'Left-handed · L' : 'Right-handed · R'}</strong></div><div><span>Preferred surface</span><strong>{profile.preferred_surface ?? 'Not set'}</strong></div><div><span>Playing style</span><strong>{profile.playing_style}</strong></div><div><span>Discipline</span><strong>Singles</strong></div><div><span>Tour</span><strong>{profile.world}</strong></div><div><span>Ranking status</span><strong>{profile.rank_position > 0 ? `Ranked #${profile.rank_position}` : 'Unranked'}</strong></div></div>
                   <p>Exact internal skills belong to the player and are private. Public results, form and career history remain visible to everyone.</p>
                 </div>
                 {error && <p className="tlg-public-player-error">{error}</p>}
@@ -273,9 +281,17 @@ export default function PlayerProfilePage() {
 
             {!profile.is_own_player && (
               <section className="tlg-public-scouting-card">
-                <header><div><span>PERFORMANCE ANALYSIS</span><h2>Opponent scouting report</h2><p>Exact opponent attributes are never public. A Performance Analyst converts private data into approximate scouting ranges.</p></div>{scouting?.available && <div className="accuracy"><strong>±{scouting.estimate_margin}</strong><span>estimate range</span><small>Analyst {scouting.analyst_rating}/100</small></div>}</header>
-                {!scouting?.available ? <div className="tlg-public-scouting-locked"><div><strong>Detailed scouting unavailable</strong><p>{scouting?.reason ?? 'Hire a Performance Analyst to unlock opponent estimates.'}</p></div><Link to="/game/staff">Open Staff Market</Link></div> : (
-                  <><div className="tlg-public-scouting-summary"><div><span>IDENTIFIED STRENGTH</span><strong>{SCOUT_LABELS[scouting.identified_strength ?? ''] ?? scouting.identified_strength}</strong></div><div><span>IDENTIFIED WEAKNESS</span><strong>{SCOUT_LABELS[scouting.identified_weakness ?? ''] ?? scouting.identified_weakness}</strong></div><div><span>KNOWN IDENTITY</span><strong>{scouting.preferred_surface} · {scouting.playing_style}</strong></div></div><div className="tlg-public-scouting-grid">{Object.entries(scouting.attributes ?? {}).map(([key, range]) => <div key={key}><span>{SCOUT_LABELS[key] ?? key}</span><strong>{range.min}–{range.max}</strong><small>estimated</small></div>)}</div></>
+                <header><div><span>PERFORMANCE ANALYSIS</span><h2>Opponent scouting report</h2><p>Handedness, surface and style are public. A hired Performance Analyst adds approximate skill ranges, preparation confidence and matchup observations without revealing exact private skills.</p></div>{scouting?.available && <div className="accuracy"><strong>{scouting.confidence_percent ?? 0}%</strong><span>{scouting.report_stage ?? 'general'} report</span><small>±{scouting.estimate_margin} · {scouting.analyst_name ?? `Analyst ${scouting.analyst_rating}/100`}</small></div>}</header>
+                {!scouting?.available ? <div className="tlg-public-scouting-locked"><div><strong>Detailed scouting unavailable</strong><p>{scouting?.reason ?? 'Hire a Performance Analyst to unlock opponent estimates.'}</p><small>Known: {scouting?.playing_hand === 'left' ? 'Left-handed' : 'Right-handed'} · {scouting?.preferred_surface ?? profile.preferred_surface} · {scouting?.playing_style ?? profile.playing_style}</small></div><Link to="/game/staff">Open Staff Market</Link></div> : (
+                  <>
+                    <div className="tlg-public-scouting-summary"><div><span>IDENTIFIED STRENGTH</span><strong>{SCOUT_LABELS[scouting.identified_strength ?? ''] ?? scouting.identified_strength}</strong></div><div><span>IDENTIFIED WEAKNESS</span><strong>{SCOUT_LABELS[scouting.identified_weakness ?? ''] ?? scouting.identified_weakness}</strong></div><div><span>KNOWN IDENTITY</span><strong>{scouting.playing_hand === 'left' ? 'Left-handed' : 'Right-handed'} · {scouting.preferred_surface} · {scouting.playing_style}</strong></div></div>
+                    <div className="tlg-public-scouting-progress"><span>Preparation</span><strong>{scouting.report_stage ?? 'general'} · {Number(scouting.preparation_hours ?? 0).toFixed(1)} game-hours</strong><small>More preparation time narrows the estimate range; analyst quality changes certainty, not the opponent's real abilities.</small></div>
+                    <div className="tlg-public-scouting-grid">{Object.entries(scouting.attributes ?? {}).map(([key, range]) => <div key={key}><span>{SCOUT_LABELS[key] ?? key}</span><strong>{range.min}–{range.max}</strong><small>estimated</small></div>)}</div>
+                    {((scouting.tactical_observations?.length ?? 0) > 0 || (scouting.recommendations?.length ?? 0) > 0) && <div className="tlg-public-scouting-intelligence">
+                      <div><span>OBSERVED TENDENCIES</span>{scouting.tactical_observations?.map((item) => <p key={item}>{item}</p>)}</div>
+                      <div><span>TACTICAL CONSIDERATIONS</span>{scouting.recommendations?.map((item) => <p key={item}>{item}</p>)}</div>
+                    </div>}
+                  </>
                 )}
               </section>
             )}
