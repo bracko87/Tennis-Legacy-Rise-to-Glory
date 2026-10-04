@@ -119,3 +119,88 @@
 @media (max-width: 920px) {
   .tlg-player-onboarding-side { order: -1; }
 }
+
+
+/* Playing hand + identity preview */
+.tlg-hand-preference-card {
+  border: 1px solid rgba(60, 151, 212, .32);
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(10, 35, 59, .96), rgba(6, 25, 43, .98));
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .18);
+}
+.tlg-hand-preference-error { border-color: rgba(248, 113, 113, .8); }
+.tlg-hand-preference-head {
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid rgba(117, 166, 202, .17);
+}
+.tlg-hand-preference-head > span,
+.tlg-player-identity-preview > span {
+  display: block;
+  margin-bottom: 7px;
+  color: #63c7ff;
+  font-size: .67rem;
+  font-weight: 700;
+  letter-spacing: .13em;
+}
+.tlg-hand-preference-head h2 { margin: 0; color: #f8fbff; font-size: 1rem; }
+.tlg-hand-preference-head p,
+.tlg-player-identity-preview p {
+  margin: 7px 0 0;
+  color: #8eabc2;
+  font-size: .68rem;
+  line-height: 1.55;
+}
+.tlg-hand-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px 16px 16px;
+}
+.tlg-hand-option {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 11px;
+  min-height: 70px;
+  padding: 11px 12px;
+  border: 1px solid rgba(109, 154, 190, .24);
+  border-radius: 11px;
+  background: rgba(4, 20, 35, .46);
+  color: #d9e8f4;
+  text-align: left;
+  cursor: pointer;
+}
+.tlg-hand-option:hover { border-color: rgba(76, 188, 255, .5); background: rgba(11, 48, 77, .58); }
+.tlg-hand-option.selected { border-color: #39b8ff; background: rgba(15, 87, 133, .4); }
+.tlg-hand-option > b {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: #dff4ff;
+  background: rgba(43, 147, 211, .22);
+  font-size: .82rem;
+}
+.tlg-hand-option > span { display: grid; gap: 3px; }
+.tlg-hand-option strong { color: #f8fbff; font-size: .77rem; }
+.tlg-hand-option small { color: #829db2; font-size: .62rem; line-height: 1.45; }
+.tlg-hand-option > svg { color: #62c9ff; }
+
+.tlg-player-identity-preview {
+  padding: 16px 18px;
+  border: 1px solid rgba(80, 183, 239, .25);
+  border-radius: 13px;
+  background: rgba(13, 65, 99, .24);
+}
+.tlg-player-identity-preview strong {
+  display: block;
+  color: #f5fbff;
+  font-size: .83rem;
+}
+
+@media (max-width: 640px) {
+  .tlg-hand-options { grid-template-columns: 1fr; }
+}
