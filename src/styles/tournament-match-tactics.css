@@ -221,3 +221,130 @@
     flex-direction: column;
   }
 }
+
+
+/* Opponent identity / Performance Analyst intelligence */
+.tlg-match-player-summary .meta .handedness {
+  color: #2b617f;
+  border-color: #c9deea;
+  background: #f2f8fb;
+}
+
+.tlg-opponent-analysis {
+  margin: 14px 0 18px;
+  overflow: hidden;
+  border: 1px solid #d7e6ef;
+  border-radius: 12px;
+  background: #f9fcfe;
+}
+.tlg-opponent-analysis > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e2ebf1;
+  background: #fff;
+}
+.tlg-opponent-analysis > header > div:first-child > span {
+  display: block;
+  color: #0873ba;
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .09em;
+}
+.tlg-opponent-analysis > header > div:first-child > strong {
+  display: block;
+  margin-top: 5px;
+  color: #173149;
+  font-size: .84rem;
+}
+.tlg-opponent-analysis > header p {
+  margin: 5px 0 0;
+  color: #668094;
+  font-size: .64rem;
+}
+.tlg-opponent-analysis .confidence {
+  min-width: 94px;
+  display: grid;
+  justify-items: end;
+  gap: 1px;
+}
+.tlg-opponent-analysis .confidence strong { color: #0b765d; font-size: .9rem; }
+.tlg-opponent-analysis .confidence span,
+.tlg-opponent-analysis .confidence small {
+  color: #718797;
+  font-size: .56rem;
+}
+.tlg-opponent-analysis .confidence.public strong { color: #59758a; font-size: .66rem; }
+.tlg-opponent-analysis-key {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 8px;
+  padding: 12px 14px 4px;
+}
+.tlg-opponent-analysis-key > div {
+  display: grid;
+  gap: 4px;
+  padding: 10px 11px;
+  border-radius: 8px;
+  background: #fff;
+}
+.tlg-opponent-analysis-key span,
+.tlg-opponent-analysis-notes span {
+  color: #708798;
+  font-size: .56rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+.tlg-opponent-analysis-key strong {
+  color: #29495f;
+  font-size: .69rem;
+  text-transform: capitalize;
+}
+.tlg-opponent-analysis-notes {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 8px;
+  padding: 8px 14px 14px;
+}
+.tlg-opponent-analysis-notes > div {
+  padding: 11px;
+  border: 1px solid #e1eaf0;
+  border-radius: 8px;
+  background: #fff;
+}
+.tlg-opponent-analysis-notes p {
+  margin: 6px 0 0;
+  color: #536d7f;
+  font-size: .63rem;
+  line-height: 1.45;
+}
+.tlg-opponent-analysis-locked {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 15px;
+}
+.tlg-opponent-analysis-locked p {
+  margin: 0;
+  color: #657d8e;
+  font-size: .65rem;
+  line-height: 1.45;
+}
+.tlg-opponent-analysis-locked a {
+  flex: 0 0 auto;
+  color: #0b6fc8;
+  font-size: .63rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+@media(max-width:760px) {
+  .tlg-opponent-analysis > header { flex-direction: column; }
+  .tlg-opponent-analysis .confidence { justify-items: start; }
+  .tlg-opponent-analysis-key,
+  .tlg-opponent-analysis-notes { grid-template-columns: 1fr; }
+  .tlg-opponent-analysis-locked { align-items: flex-start; flex-direction: column; }
+}
