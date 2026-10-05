@@ -164,7 +164,7 @@ type PendingAction =
 const CATEGORY_META: Record<AssetCategory, { label: string }> = {
   watch: { label: 'Watches' },
   jewelry: { label: 'Jewelry' },
-  car: { label: 'Vehicles' },
+  car: { label: 'Cars' },
   apartment: { label: 'Apartments' },
   house_villa: { label: 'Houses & Villas' },
   yacht: { label: 'Yachts' },
