@@ -11,6 +11,8 @@ export interface GameConfirmDialogProps {
   title: string
   message: ReactNode
   detail?: ReactNode
+  hero?: ReactNode
+  size?: 'default' | 'wide'
   confirmLabel?: string
   cancelLabel?: string
   busy?: boolean
@@ -25,6 +27,8 @@ export default function GameConfirmDialog({
   title,
   message,
   detail,
+  hero,
+  size = 'default',
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   busy = false,
@@ -63,7 +67,7 @@ export default function GameConfirmDialog({
       }}
     >
       <section
-        className={`tlg-game-confirm-dialog ${tone}`}
+        className={`tlg-game-confirm-dialog ${tone} ${size === 'wide' ? 'wide' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="tlg-game-confirm-title"
@@ -87,6 +91,8 @@ export default function GameConfirmDialog({
             <h2 id="tlg-game-confirm-title">{title}</h2>
           </div>
         </div>
+
+        {hero ? <div className="tlg-game-confirm-hero">{hero}</div> : null}
 
         <div className="tlg-game-confirm-body">
           <div className="tlg-game-confirm-message">{message}</div>
