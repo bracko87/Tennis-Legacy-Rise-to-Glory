@@ -743,3 +743,71 @@
     height: 195px;
   }
 }
+
+
+/* Private Life typography refinement: reduce unnecessary bold text */
+.private-life-page .private-life-eyebrow,
+.private-life-page .private-life-section-eyebrow {
+  font-weight: 600;
+}
+
+.private-life-page .private-life-hero h2 {
+  font-weight: 650;
+}
+
+.private-life-page .private-life-metric span,
+.private-life-page .private-life-category-name,
+.private-life-page .private-life-investment-card-top > span:first-child,
+.private-life-page .private-life-card-stat span {
+  font-weight: 520;
+}
+
+.private-life-page .private-life-metric strong {
+  font-weight: 600;
+}
+
+.private-life-page .private-life-tabs button,
+.private-life-page .private-life-filter-bar button {
+  font-weight: 520;
+}
+
+.private-life-page .private-life-tabs button.active,
+.private-life-page .private-life-filter-bar button.active {
+  font-weight: 600;
+}
+
+.private-life-page .private-life-section-head h3,
+.private-life-page .private-life-panel h4,
+.private-life-page .private-life-future-card h4,
+.private-life-page .private-life-investment-card h4 {
+  font-weight: 560;
+}
+
+.private-life-page .private-life-refresh,
+.private-life-page .private-life-inline-action,
+.private-life-page .private-life-action {
+  font-weight: 560;
+}
+
+.private-life-page .private-life-status-pill,
+.private-life-page .private-life-badge {
+  font-weight: 600;
+}
+
+.private-life-page .private-life-card h4,
+.private-life-page .private-life-owned-card h4 {
+  font-weight: 500;
+}
+
+.private-life-page .private-life-price {
+  font-weight: 600;
+}
+
+.private-life-page .private-life-card-stat strong,
+.private-life-page .private-life-owned-value-row strong,
+.private-life-page .private-life-category-row strong,
+.private-life-page .private-life-investment-rule-grid strong,
+.private-life-page .private-life-empty strong,
+.private-life-page .private-life-error strong {
+  font-weight: 520;
+}
