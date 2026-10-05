@@ -372,6 +372,165 @@ function doublesScheduleLabel(match: DoublesDrawMatch) {
   return 'Week ' + match.scheduled_season_week + ' · Day ' + match.scheduled_day + ' · ' + hour + ':' + minute + court
 }
 
+interface DoublesBracketRound {
+  label: string
+  matches: number
+  roundNumber: number
+}
+
+const DOUBLES_BRACKET_MATCH_WIDTH = 300
+const DOUBLES_BRACKET_MATCH_HEIGHT = 76
+const DOUBLES_BRACKET_COLUMN_GAP = 80
+const DOUBLES_BRACKET_FIRST_ROUND_GAP = 14
+const DOUBLES_BRACKET_STEP = DOUBLES_BRACKET_MATCH_HEIGHT + DOUBLES_BRACKET_FIRST_ROUND_GAP
+
+function doublesBracketRounds(capacity: number): DoublesBracketRound[] {
+  const rounds: DoublesBracketRound[] = []
+  let teams = capacity
+  let roundNumber = 1
+  while (teams >= 2) {
+    const label = teams === 2 ? 'Final' : teams === 4 ? 'Semifinal' : teams === 8 ? 'Quarterfinal' : `Round of ${teams}`
+    rounds.push({ label, matches: teams / 2, roundNumber })
+    teams /= 2
+    roundNumber += 1
+  }
+  return rounds
+}
+
+function doublesBracketMatchCenter(roundIndex: number, matchIndex: number) {
+  const firstRoundMatchSpan = 2 ** roundIndex
+  const representedFirstMatchCenter = matchIndex * firstRoundMatchSpan + (firstRoundMatchSpan - 1) / 2
+  return DOUBLES_BRACKET_MATCH_HEIGHT / 2 + representedFirstMatchCenter * DOUBLES_BRACKET_STEP
+}
+
+function doublesTeamLabel(match: DoublesDrawMatch | undefined, side: 1 | 2) {
+  if (!match) return 'TBD'
+  const teamId = side === 1 ? match.team1_id : match.team2_id
+  if (!teamId) return match.match_status === 'bye' ? 'BYE' : 'TBD'
+  return side === 1
+    ? teamName(match.team1_player1_first_name,match.team1_player1_last_name,match.team1_player2_first_name,match.team1_player2_last_name)
+    : teamName(match.team2_player1_first_name,match.team2_player1_last_name,match.team2_player2_first_name,match.team2_player2_last_name)
+}
+
+function doublesBracketStatus(match: DoublesDrawMatch | undefined, side: 1 | 2) {
+  if (!match) return '—'
+  const teamId = side === 1 ? match.team1_id : match.team2_id
+  if (!teamId) return match.match_status === 'bye' ? 'BYE' : '—'
+  if (match.winner_team_id === teamId) return 'WIN'
+  if (match.match_status === 'completed') return 'OUT'
+  if (match.match_status === 'in_progress') return 'LIVE'
+  return match.match_status === 'bye' ? 'BYE' : '—'
+}
+
+function DoublesPublishedDrawTree({ matches, currentPlayerId }: { matches: DoublesDrawMatch[]; currentPlayerId: string | null }) {
+  const firstRound = matches.filter((match) => match.round_number === 1)
+  const first = firstRound[0]
+  const bracketSize = first?.bracket_size ?? 0
+  const rounds = doublesBracketRounds(bracketSize)
+  const matchByRound = new Map(matches.map((match) => [`${match.round_number}:${match.match_number}`, match]))
+
+  if (rounds.length === 0) return null
+
+  const width = rounds.length * DOUBLES_BRACKET_MATCH_WIDTH + (rounds.length - 1) * DOUBLES_BRACKET_COLUMN_GAP
+  const height = Math.max(
+    DOUBLES_BRACKET_MATCH_HEIGHT,
+    (rounds[0].matches - 1) * DOUBLES_BRACKET_STEP + DOUBLES_BRACKET_MATCH_HEIGHT,
+  )
+
+  return (
+    <section className="tlg-detail-panel tlg-doubles-bracket-panel">
+      <header className="tlg-detail-panel-head tlg-doubles-bracket-head">
+        <div>
+          <span>Official doubles draw</span>
+          <h2>Tournament tree</h2>
+          <p>{firstRound.length} first-round matches · {bracketSize} team draw · Season Week {first?.scheduled_season_week}</p>
+        </div>
+        <span className="tlg-doubles-draw-published">Draw published</span>
+      </header>
+
+      <div className="tlg-detail-bracket-scroll tlg-doubles-bracket-scroll">
+        <div className="tlg-detail-bracket-headings" style={{ width }}>
+          {rounds.map((round, roundIndex) => (
+            <header
+              key={`${round.label}-${round.matches}`}
+              style={{ left: roundIndex * (DOUBLES_BRACKET_MATCH_WIDTH + DOUBLES_BRACKET_COLUMN_GAP), width: DOUBLES_BRACKET_MATCH_WIDTH }}
+            >
+              <strong>{round.label}</strong>
+              <span>{round.matches} {round.matches === 1 ? 'match' : 'matches'}</span>
+            </header>
+          ))}
+        </div>
+
+        <div className="tlg-detail-bracket-tree" style={{ width, height }}>
+          <svg className="tlg-detail-bracket-connectors" width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
+            {rounds.slice(0, -1).flatMap((_, roundIndex) => {
+              const parentRound = rounds[roundIndex + 1]
+              const startX = roundIndex * (DOUBLES_BRACKET_MATCH_WIDTH + DOUBLES_BRACKET_COLUMN_GAP) + DOUBLES_BRACKET_MATCH_WIDTH
+              const middleX = startX + DOUBLES_BRACKET_COLUMN_GAP / 2
+              const endX = (roundIndex + 1) * (DOUBLES_BRACKET_MATCH_WIDTH + DOUBLES_BRACKET_COLUMN_GAP)
+
+              return Array.from({ length: parentRound.matches }, (_, parentIndex) => {
+                const firstY = doublesBracketMatchCenter(roundIndex, parentIndex * 2)
+                const secondY = doublesBracketMatchCenter(roundIndex, parentIndex * 2 + 1)
+                const parentY = doublesBracketMatchCenter(roundIndex + 1, parentIndex)
+
+                return (
+                  <path
+                    key={`doubles-connector-${roundIndex}-${parentIndex}`}
+                    d={`M ${startX} ${firstY} H ${middleX} M ${startX} ${secondY} H ${middleX} M ${middleX} ${firstY} V ${secondY} M ${middleX} ${parentY} H ${endX}`}
+                  />
+                )
+              })
+            })}
+          </svg>
+
+          {rounds.map((round, roundIndex) => (
+            <section
+              key={`${round.label}-${round.matches}`}
+              className="tlg-detail-bracket-round"
+              style={{ left: roundIndex * (DOUBLES_BRACKET_MATCH_WIDTH + DOUBLES_BRACKET_COLUMN_GAP), width: DOUBLES_BRACKET_MATCH_WIDTH }}
+            >
+              {Array.from({ length: round.matches }, (_, matchIndex) => {
+                const top = doublesBracketMatchCenter(roundIndex, matchIndex) - DOUBLES_BRACKET_MATCH_HEIGHT / 2
+                const match = matchByRound.get(`${round.roundNumber}:${matchIndex + 1}`)
+                const ownMatch = Boolean(match && isPlayerInDoublesMatch(match, currentPlayerId))
+
+                return (
+                  <div
+                    key={`${round.label}-${matchIndex}`}
+                    className={`tlg-detail-bracket-match tlg-doubles-tree-match${ownMatch ? ' own-match' : ''}`}
+                    style={{ top, width: DOUBLES_BRACKET_MATCH_WIDTH, height: DOUBLES_BRACKET_MATCH_HEIGHT }}
+                  >
+                    <DoublesBracketTeam
+                      label={doublesTeamLabel(match, 1)}
+                      status={doublesBracketStatus(match, 1)}
+                      winner={Boolean(match?.team1_id && match.winner_team_id === match.team1_id)}
+                    />
+                    <DoublesBracketTeam
+                      label={doublesTeamLabel(match, 2)}
+                      status={doublesBracketStatus(match, 2)}
+                      winner={Boolean(match?.team2_id && match.winner_team_id === match.team2_id)}
+                    />
+                  </div>
+                )
+              })}
+            </section>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function DoublesBracketTeam({ label, status, winner }: { label: string; status: string; winner: boolean }) {
+  return (
+    <div className={`tlg-doubles-tree-team${winner ? ' winner' : ''}`}>
+      <span className="tlg-doubles-tree-team-name">{label}</span>
+      <span className={`tlg-doubles-tree-team-status status-${status.toLowerCase()}`}>{status}</span>
+    </div>
+  )
+}
+
 export default function TournamentDoublesPage() {
   const { competitionId } = useParams()
   const { player } = useAuth()
@@ -523,6 +682,10 @@ export default function TournamentDoublesPage() {
   const categoryLabel = detail?.category_label ?? tournament.category_code.replaceAll('_', ' ')
   const seasonNumber = detail?.season_number ?? timeline.tournament_start.season
   const entryPhaseIndex = doublesPhaseIndex(timeline.phase)
+  const ownDrawMatches = draw
+    .filter((match) => isPlayerInDoublesMatch(match, player?.id) && match.match_status !== 'bye' && match.match_status !== 'cancelled')
+    .sort((left, right) => right.round_number - left.round_number || right.match_number - left.match_number)
+  const activeOwnDrawMatch = ownDrawMatches.find((match) => ['scheduled','in_progress'].includes(match.match_status)) ?? ownDrawMatches[0] ?? null
 
   return (
     <GameLayout title={`${tournament.name} Doubles`} subtitle={`${tournament.world} · ${tournament.city} · ${tournament.surface} doubles`}>
@@ -885,12 +1048,13 @@ export default function TournamentDoublesPage() {
           )}
         </section>
 
-        <section className="tlg-detail-panel">
-          <header className="tlg-detail-panel-head">
-            <div><span>Entry field</span><h2>Confirmed teams & alternates</h2></div>
-          </header>
+        {!core.draw_published && (
+          <section className="tlg-detail-panel">
+            <header className="tlg-detail-panel-head">
+              <div><span>Entry field</span><h2>Confirmed teams & alternates</h2></div>
+            </header>
 
-          {hub.teams.length === 0 ? (
+            {hub.teams.length === 0 ? (
             <div className="tlg-doubles-empty">
               <strong>No partnerships confirmed yet</strong>
               <p>Teams appear here immediately after an invitation is accepted.</p>
@@ -908,40 +1072,28 @@ export default function TournamentDoublesPage() {
                 </article>
               ))}
             </div>
-          )}
-        </section>
-
-        {core.draw_published && draw.length > 0 && (
-          <section className="tlg-detail-panel">
-            <header className="tlg-detail-panel-head">
-              <div><span>Official doubles draw</span><h2>Matches & schedule</h2></div>
-            </header>
-            <div className="tlg-doubles-draw-list">
-              {draw.map((match) => {
-                const isOwnMatch = isPlayerInDoublesMatch(match, player?.id)
-
-                return (
-                  <div key={match.match_id} className={'tlg-doubles-draw-match-block' + (isOwnMatch ? ' is-own-match' : '')}>
-                    <article className={'tlg-doubles-draw-match status-' + match.match_status}>
-                      <div>
-                        <span>{match.round_label} · Match #{match.match_number}{isOwnMatch ? ' · Your match' : ''}</span>
-                        <strong>{teamName(match.team1_player1_first_name,match.team1_player1_last_name,match.team1_player2_first_name,match.team1_player2_last_name)}</strong>
-                        <b>vs</b>
-                        <strong>{teamName(match.team2_player1_first_name,match.team2_player1_last_name,match.team2_player2_first_name,match.team2_player2_last_name)}</strong>
-                      </div>
-                      <small>{doublesScheduleLabel(match)}</small>
-                    </article>
-                    {isOwnMatch && player?.id && match.match_status !== 'bye' && match.match_status !== 'cancelled' && (
-                      <DoublesMatchTacticPanel matchId={match.match_id} currentPlayerId={player.id} />
-                    )}
-                  </div>
-                )
-              })}
-            </div>
+            )}
           </section>
         )}
 
-        <section className="tlg-detail-panel">
+        {core.draw_published && draw.length > 0 && (
+          <DoublesPublishedDrawTree matches={draw} currentPlayerId={player?.id ?? null} />
+        )}
+
+        {core.draw_published && activeOwnDrawMatch && player?.id && (
+          <section className="tlg-detail-panel tlg-doubles-own-tactic-panel">
+            <header className="tlg-detail-panel-head">
+              <div>
+                <span>Your doubles match</span>
+                <h2>{activeOwnDrawMatch.round_label} · Match #{activeOwnDrawMatch.match_number}</h2>
+                <p>{doublesScheduleLabel(activeOwnDrawMatch)}</p>
+              </div>
+            </header>
+            <DoublesMatchTacticPanel matchId={activeOwnDrawMatch.match_id} currentPlayerId={player.id} />
+          </section>
+        )}
+
+        <section className="tlg-detail-panel tlg-doubles-rewards-panel">
           <header className="tlg-detail-panel-head">
             <div><span>Doubles rewards</span><h2>Ranking points & prize money</h2></div>
           </header>
