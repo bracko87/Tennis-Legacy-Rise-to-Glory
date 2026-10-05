@@ -22,6 +22,10 @@
   box-shadow: 0 24px 70px rgba(10, 31, 47, .30);
 }
 
+.tlg-game-confirm-dialog.wide {
+  width: min(760px, calc(100vw - 32px));
+}
+
 .tlg-game-confirm-dialog.danger {
   border-left-color: #c94f4f;
 }
@@ -99,6 +103,21 @@
   color: #173149;
   font-size: .98rem;
   line-height: 1.2;
+}
+
+.tlg-game-confirm-hero {
+  padding: 16px 18px 0;
+  background: #fff;
+}
+
+.tlg-game-confirm-hero img {
+  display: block;
+  width: 100%;
+  height: min(38vh, 320px);
+  object-fit: contain;
+  border: 1px solid #e1e9ef;
+  border-radius: 11px;
+  background: #f5f8fb;
 }
 
 .tlg-game-confirm-body {
@@ -212,8 +231,19 @@
     padding: 12px;
   }
 
-  .tlg-game-confirm-dialog {
+  .tlg-game-confirm-dialog,
+  .tlg-game-confirm-dialog.wide {
     width: 100%;
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+  }
+
+  .tlg-game-confirm-hero {
+    padding: 12px 14px 0;
+  }
+
+  .tlg-game-confirm-hero img {
+    height: min(34vh, 260px);
   }
 
   .tlg-game-confirm-actions {
