@@ -267,6 +267,23 @@ function metadataNumber(asset: CatalogAsset, key: string, fallback: number) {
   return Number.isFinite(numeric) ? numeric : fallback
 }
 
+function propertyImageUrl(asset: CatalogAsset, location?: PropertyLocation | null) {
+  if (!location) return asset.image_url
+
+  const homeCountryImage = asset.metadata?.home_country_image_url
+  if (location.code.startsWith('home_') && typeof homeCountryImage === 'string' && homeCountryImage.length > 0) {
+    return homeCountryImage
+  }
+
+  const locationImages = asset.metadata?.location_image_urls
+  if (locationImages && typeof locationImages === 'object' && !Array.isArray(locationImages)) {
+    const candidate = (locationImages as Record<string, unknown>)[location.code]
+    if (typeof candidate === 'string' && candidate.length > 0) return candidate
+  }
+
+  return asset.image_url
+}
+
 function monthlyOwnershipCost(category: AssetCategory, value: number) {
   const price = Math.max(0, Number(value || 0))
   if (category === 'car') return Math.max(150, Math.round(price * 0.006))
@@ -454,6 +471,7 @@ export default function PrivateLifePage() {
       const alreadyOwned = (dashboard?.owned_assets ?? []).some((owned) => owned.catalog_code === asset.code && owned.location_code === selectedPropertyLocation.code)
       return [{
         ...asset,
+        image_url: propertyImageUrl(asset, selectedPropertyLocation),
         effective_price: price,
         effective_annual_cost: annualCost,
         effective_value_rate_bps: valueRate,
@@ -751,9 +769,12 @@ export default function PrivateLifePage() {
                 {visibleOwned.map((asset) => {
                   const isResidence = asset.category === 'apartment' || asset.category === 'house_villa'
                   const canSellResidence = !isResidence || availableResidenceCount >= 2
+                  const catalogAsset = dashboard.catalog.find((catalog) => catalog.code === asset.catalog_code)
+                  const ownedLocation = asset.location_code ? dashboard.property_locations.find((location) => location.code === asset.location_code) : undefined
+                  const ownedImageUrl = catalogAsset ? propertyImageUrl(catalogAsset, ownedLocation) : asset.image_url
                   return (
                     <article className="private-life-owned-card" key={asset.id}>
-                      <div className="private-life-card-image"><AssetImage src={asset.image_url} name={asset.name} /><div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(asset.rarity)}</span><span className="private-life-badge level">+{asset.prestige} prestige pts</span></div></div>
+                      <div className="private-life-card-image"><AssetImage src={ownedImageUrl} name={asset.name} /><div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(asset.rarity)}</span><span className="private-life-badge level">+{asset.prestige} prestige pts</span></div></div>
                       <div className="private-life-card-body">
                         <div className="private-life-card-title-row"><h4>{asset.name}</h4><div className="private-life-price">{money(asset.current_market_value, currency)}</div></div>
                         {asset.acquisition_type === 'starter_home' ? <div className="private-life-starter-home-label">Starting home residence</div> : null}
