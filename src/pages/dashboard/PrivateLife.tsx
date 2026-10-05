@@ -283,8 +283,74 @@ function ownershipCostLabel(category: AssetCategory) {
   return 'Maintenance'
 }
 
+const privateLifeImageUrlCache = new Map<string, string>()
+
+function parsePrivateStorageSource(src: string) {
+  if (!src.startsWith('storage://')) return null
+  const source = src.slice('storage://'.length)
+  const slashIndex = source.indexOf('/')
+  if (slashIndex <= 0 || slashIndex >= source.length - 1) return null
+  return {
+    bucket: source.slice(0, slashIndex),
+    path: source.slice(slashIndex + 1),
+  }
+}
+
 function AssetImage({ src, name }: { src: string; name: string }) {
-  return <img src={src} alt={name} loading="lazy" onError={(event) => { event.currentTarget.style.opacity = '0' }} />
+  const storageSource = useMemo(() => parsePrivateStorageSource(src), [src])
+  const [resolvedSrc, setResolvedSrc] = useState(() => {
+    if (!storageSource) return src
+    return privateLifeImageUrlCache.get(src) || ''
+  })
+
+  useEffect(() => {
+    let cancelled = false
+
+    if (!storageSource) {
+      setResolvedSrc(src)
+      return () => {
+        cancelled = true
+      }
+    }
+
+    const cachedUrl = privateLifeImageUrlCache.get(src)
+    if (cachedUrl) {
+      setResolvedSrc(cachedUrl)
+      return () => {
+        cancelled = true
+      }
+    }
+
+    setResolvedSrc('')
+    void supabase.storage
+      .from(storageSource.bucket)
+      .createSignedUrl(storageSource.path, 60 * 60 * 24)
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error || !data?.signedUrl) {
+          setResolvedSrc('')
+          return
+        }
+        privateLifeImageUrlCache.set(src, data.signedUrl)
+        setResolvedSrc(data.signedUrl)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [src, storageSource])
+
+  return (
+    <img
+      src={resolvedSrc || undefined}
+      alt={name}
+      loading="lazy"
+      style={resolvedSrc ? undefined : { opacity: 0 }}
+      onError={(event) => {
+        event.currentTarget.style.opacity = '0'
+      }}
+    />
+  )
 }
 
 export default function PrivateLifePage() {
