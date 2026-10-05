@@ -1058,14 +1058,33 @@
 .tlg-doubles-tree-team {
   height: 37px !important;
   display: grid !important;
-  grid-template-columns: minmax(0,1fr) 38px !important;
+  grid-template-columns: 34px minmax(0,1fr) 28px 38px !important;
   align-items: center;
-  gap: 8px !important;
-  padding: 0 10px !important;
+  gap: 7px !important;
+  padding: 0 9px !important;
 }
 
 .tlg-doubles-tree-team + .tlg-doubles-tree-team {
   border-top: 1px solid #edf1f4;
+}
+
+.tlg-doubles-tree-flags {
+  width: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tlg-doubles-tree-flags img {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.tlg-doubles-tree-seed {
+  color: #23764d !important;
+  font-size: .52rem !important;
+  font-weight: 560;
+  text-align: center;
 }
 
 .tlg-doubles-tree-team-name {
