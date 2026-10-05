@@ -157,3 +157,20 @@
 .private-life-asset-history-pagination button:disabled { opacity: .4; cursor: default; }
 .private-life-asset-history-pagination span { text-align: center; color: #7d899b; font-size: 10px; }
 .private-life-asset-history-pagination span strong { color: #324258; }
+
+
+/* Private Life history typography refinement */
+.private-life-page .private-life-asset-history-head strong,
+.private-life-page .private-life-asset-history-table td strong,
+.private-life-page .private-life-asset-history-pagination span strong {
+  font-weight: 520;
+}
+
+.private-life-page .private-life-asset-history-type,
+.private-life-page .private-life-asset-history-pagination button {
+  font-weight: 520;
+}
+
+.private-life-page .private-life-asset-history-table th {
+  font-weight: 560;
+}
