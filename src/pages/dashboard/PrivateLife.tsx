@@ -602,14 +602,47 @@ export default function PrivateLifePage() {
       ? {
           eyebrow: 'Private Life purchase',
           title: `Buy ${pendingAction.listing.name}${pendingAction.listing.location ? ` in ${pendingAction.listing.location.city}` : ''}?`,
-          message: `${money(pendingAction.listing.effective_price, currency)} will be taken from your normal career Finance balance.`,
-          detail: `Prestige +${pendingAction.listing.prestige} points · ${ownershipCostLabel(pendingAction.listing.category)} ${money(pendingAction.listing.effective_annual_cost / 12, currency)} · ${trendText(pendingAction.listing.effective_value_rate_bps)}`,
+          hero: <AssetImage src={pendingAction.listing.image_url} name={pendingAction.listing.name} />,
+          size: 'wide' as const,
+          message: (
+            <div className="private-life-purchase-copy">
+              <p>{pendingAction.listing.description}</p>
+              {pendingAction.listing.location ? (
+                <div className="private-life-purchase-location">
+                  {pendingAction.listing.location.city}, {pendingAction.listing.location.country_name}
+                </div>
+              ) : null}
+            </div>
+          ),
+          detail: (
+            <div className="private-life-purchase-summary">
+              <div className="private-life-purchase-price-row">
+                <span>Purchase price</span>
+                <strong>{money(pendingAction.listing.effective_price, currency)}</strong>
+              </div>
+              <div className="private-life-purchase-info-grid">
+                <div><span>Category</span><strong>{categoryLabel(pendingAction.listing.category)}</strong></div>
+                <div><span>Rarity</span><strong>{rarityLabel(pendingAction.listing.rarity)}</strong></div>
+                <div><span>Prestige points</span><strong>+{pendingAction.listing.prestige}</strong></div>
+                <div><span>Monthly market move</span><strong className={Number(pendingAction.listing.effective_market_change_bps ?? 0) < 0 ? 'private-life-trend-negative' : Number(pendingAction.listing.effective_market_change_bps ?? 0) > 0 ? 'private-life-trend-positive' : ''}>{marketMoveText(pendingAction.listing.effective_market_change_bps)}</strong></div>
+                <div><span>{ownershipCostLabel(pendingAction.listing.category)}</span><strong>{pendingAction.listing.effective_annual_cost > 0 ? money(pendingAction.listing.effective_annual_cost / 12, currency) : 'None'}</strong></div>
+                <div><span>Annual ownership cost</span><strong>{pendingAction.listing.effective_annual_cost > 0 ? money(pendingAction.listing.effective_annual_cost, currency) : 'None'}</strong></div>
+                <div><span>Annual value trend</span><strong className={pendingAction.listing.effective_value_rate_bps < 0 ? 'private-life-trend-negative' : pendingAction.listing.effective_value_rate_bps > 0 ? 'private-life-trend-positive' : ''}>{trendText(pendingAction.listing.effective_value_rate_bps)}</strong></div>
+                <div><span>Finance balance after purchase</span><strong>{money(dashboard.cash_balance - pendingAction.listing.effective_price, currency)}</strong></div>
+              </div>
+              <div className="private-life-purchase-finance-note">
+                {money(pendingAction.listing.effective_price, currency)} will be taken from your normal career Finance balance. Private Life purchases never use Premium coins.
+              </div>
+            </div>
+          ),
           confirmLabel: `Buy for ${money(pendingAction.listing.effective_price, currency)}`,
           tone: 'warning' as const,
         }
       : {
           eyebrow: 'Sell private asset',
           title: `${SALE_META[pendingAction.saleMode].label}: ${pendingAction.asset.name}?`,
+          hero: null,
+          size: 'default' as const,
           message: `${money(pendingAction.quote.price, currency)} is the current game sale quote.`,
           detail: `${SALE_META[pendingAction.saleMode].detail} · Current market value ${money(pendingAction.asset.current_market_value, currency)} · Original value ${money(pendingAction.asset.purchase_price, currency)}.`,
           confirmLabel: pendingAction.saleMode === 'urgent' ? `Sell now for ${money(pendingAction.quote.price, currency)}` : `List for ${money(pendingAction.quote.price, currency)}`,
@@ -818,7 +851,7 @@ export default function PrivateLifePage() {
         <div className="private-life-notice"><span>Private Life uses your existing career Finance account. Prestige is a point total from currently owned assets; there are no prestige levels and no direct tennis-skill bonuses.</span></div>
       </div>
 
-      <GameConfirmDialog open={Boolean(confirmation)} eyebrow={confirmation?.eyebrow} title={confirmation?.title ?? ''} message={confirmation?.message ?? ''} detail={confirmation?.detail} confirmLabel={confirmation?.confirmLabel} cancelLabel="Cancel" busy={actionBusy} tone={confirmation?.tone} onConfirm={confirmAction} onCancel={() => { if (!actionBusy) setPendingAction(null) }} />
+      <GameConfirmDialog open={Boolean(confirmation)} eyebrow={confirmation?.eyebrow} title={confirmation?.title ?? ''} hero={confirmation?.hero} size={confirmation?.size} message={confirmation?.message ?? ''} detail={confirmation?.detail} confirmLabel={confirmation?.confirmLabel} cancelLabel="Cancel" busy={actionBusy} tone={confirmation?.tone} onConfirm={confirmAction} onCancel={() => { if (!actionBusy) setPendingAction(null) }} />
     </GameLayout>
   )
 }
