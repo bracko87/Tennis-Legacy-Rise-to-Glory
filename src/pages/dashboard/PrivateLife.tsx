@@ -838,7 +838,7 @@ export default function PrivateLifePage() {
                           <div className="private-life-card-stat"><span>Market move</span><strong className={Number(marketMove ?? 0) < 0 ? 'private-life-trend-negative' : isPositive ? 'private-life-trend-positive' : ''}>{Number(marketMove ?? 0) < 0 ? <TrendingDown size={12} /> : isPositive ? <TrendingUp size={12} /> : null} {marketMoveText(marketMove)}</strong></div>
                           <div className="private-life-card-stat"><span>Category</span><strong>{categoryLabel(listing.category)}</strong></div>
                         </div>
-                        <button type="button" className="private-life-action" disabled={!canBuy} onClick={() => setPendingAction({ type: 'buy', listing })}>{listing.effective_owned ? 'Already owned here' : !listing.effective_affordable ? 'Insufficient funds' : 'Purchase asset'}</button>
+                        <button type="button" className="private-life-action" disabled={!canBuy} onClick={() => setPendingAction({ type: 'buy', listing })}>{listing.effective_owned ? 'Already owned here' : !listing.effective_affordable ? 'Insufficient funds' : 'Purchase'}</button>
                       </div>
                     </article>
                   )
