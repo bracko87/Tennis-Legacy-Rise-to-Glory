@@ -422,12 +422,13 @@ function doublesBracketStatus(match: DoublesDrawMatch | undefined, side: 1 | 2) 
   return match.match_status === 'bye' ? 'BYE' : '—'
 }
 
-function DoublesPublishedDrawTree({ matches, currentPlayerId }: { matches: DoublesDrawMatch[]; currentPlayerId: string | null }) {
+function DoublesPublishedDrawTree({ matches, teams, currentPlayerId }: { matches: DoublesDrawMatch[]; teams: TeamRow[]; currentPlayerId: string | null }) {
   const firstRound = matches.filter((match) => match.round_number === 1)
   const first = firstRound[0]
   const bracketSize = first?.bracket_size ?? 0
   const rounds = doublesBracketRounds(bracketSize)
   const matchByRound = new Map(matches.map((match) => [`${match.round_number}:${match.match_number}`, match]))
+  const teamById = new Map(teams.map((team) => [team.id, team]))
 
   if (rounds.length === 0) return null
 
@@ -503,11 +504,13 @@ function DoublesPublishedDrawTree({ matches, currentPlayerId }: { matches: Doubl
                   >
                     <DoublesBracketTeam
                       label={doublesTeamLabel(match, 1)}
+                      team={match?.team1_id ? teamById.get(match.team1_id) : undefined}
                       status={doublesBracketStatus(match, 1)}
                       winner={Boolean(match?.team1_id && match.winner_team_id === match.team1_id)}
                     />
                     <DoublesBracketTeam
                       label={doublesTeamLabel(match, 2)}
+                      team={match?.team2_id ? teamById.get(match.team2_id) : undefined}
                       status={doublesBracketStatus(match, 2)}
                       winner={Boolean(match?.team2_id && match.winner_team_id === match.team2_id)}
                     />
@@ -522,10 +525,19 @@ function DoublesPublishedDrawTree({ matches, currentPlayerId }: { matches: Doubl
   )
 }
 
-function DoublesBracketTeam({ label, status, winner }: { label: string; status: string; winner: boolean }) {
+function DoublesBracketTeam({ label, team, status, winner }: { label: string; team?: TeamRow; status: string; winner: boolean }) {
   return (
     <div className={`tlg-doubles-tree-team${winner ? ' winner' : ''}`}>
+      <span className="tlg-doubles-tree-flags" aria-hidden="true">
+        {team ? (
+          <>
+            <CountryFlag countryCode={team.player1_country_code} width={15} height={10} />
+            <CountryFlag countryCode={team.player2_country_code} width={15} height={10} />
+          </>
+        ) : null}
+      </span>
       <span className="tlg-doubles-tree-team-name">{label}</span>
+      <span className="tlg-doubles-tree-seed">{team?.seed_number ? `#${team.seed_number}` : ''}</span>
       <span className={`tlg-doubles-tree-team-status status-${status.toLowerCase()}`}>{status}</span>
     </div>
   )
@@ -1077,7 +1089,7 @@ export default function TournamentDoublesPage() {
         )}
 
         {core.draw_published && draw.length > 0 && (
-          <DoublesPublishedDrawTree matches={draw} currentPlayerId={player?.id ?? null} />
+          <DoublesPublishedDrawTree matches={draw} teams={hub.teams} currentPlayerId={player?.id ?? null} />
         )}
 
         {core.draw_published && activeOwnDrawMatch && player?.id && (
