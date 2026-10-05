@@ -1008,3 +1008,129 @@
     margin: 0 !important;
   }
 }
+
+
+/* Doubles published bracket tree */
+.tlg-doubles-bracket-panel {
+  overflow: hidden;
+}
+
+.tlg-doubles-bracket-head {
+  align-items: center;
+}
+
+.tlg-doubles-bracket-head p {
+  margin: 5px 0 0;
+  color: #718697;
+  font-size: .66rem;
+  line-height: 1.45;
+}
+
+.tlg-doubles-draw-published {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid #cfe7da;
+  border-radius: 999px;
+  color: #23725b;
+  background: #edf8f4;
+  font-size: .58rem;
+  font-weight: 560;
+  white-space: nowrap;
+}
+
+.tlg-doubles-bracket-scroll {
+  padding-bottom: 22px;
+}
+
+.tlg-doubles-tree-match {
+  overflow: hidden;
+  border-color: #d6e3ec;
+  background: #fff;
+}
+
+.tlg-doubles-tree-match.own-match {
+  border-color: #79b2dc;
+  box-shadow: 0 0 0 2px rgba(11,111,200,.10);
+}
+
+.tlg-doubles-tree-team {
+  height: 37px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0,1fr) 38px !important;
+  align-items: center;
+  gap: 8px !important;
+  padding: 0 10px !important;
+}
+
+.tlg-doubles-tree-team + .tlg-doubles-tree-team {
+  border-top: 1px solid #edf1f4;
+}
+
+.tlg-doubles-tree-team-name {
+  min-width: 0;
+  overflow: hidden;
+  color: #29455a !important;
+  font-size: .64rem !important;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tlg-doubles-tree-team-status {
+  justify-self: end;
+  color: #8a9aa6 !important;
+  font-size: .52rem !important;
+  font-weight: 520;
+  letter-spacing: .03em;
+}
+
+.tlg-doubles-tree-team.winner .tlg-doubles-tree-team-name,
+.tlg-doubles-tree-team.winner .tlg-doubles-tree-team-status {
+  color: #0b765d !important;
+}
+
+.tlg-doubles-tree-team-status.status-live {
+  color: #bd3f37 !important;
+}
+
+.tlg-doubles-tree-team-status.status-bye {
+  color: #718697 !important;
+}
+
+.tlg-doubles-own-tactic-panel > .tlg-doubles-tactic-panel {
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+}
+
+.tlg-doubles-own-tactic-panel .tlg-detail-panel-head p {
+  margin: 5px 0 0;
+  color: #73899a;
+  font-size: .62rem;
+}
+
+.tlg-doubles-rewards-panel {
+  margin-top: 6px;
+  margin-bottom: 28px;
+}
+
+.tlg-doubles-page {
+  padding-bottom: 10px;
+}
+
+@media (max-width: 760px) {
+  .tlg-doubles-bracket-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .tlg-doubles-draw-published {
+    min-height: 26px;
+  }
+
+  .tlg-doubles-rewards-panel {
+    margin-bottom: 22px;
+  }
+}
