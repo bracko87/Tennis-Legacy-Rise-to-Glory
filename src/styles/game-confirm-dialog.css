@@ -114,7 +114,8 @@
   display: block;
   width: 100%;
   height: min(38vh, 320px);
-  object-fit: contain;
+  object-fit: cover;
+  object-position: center;
   border: 1px solid #e1e9ef;
   border-radius: 11px;
   background: #f5f8fb;
