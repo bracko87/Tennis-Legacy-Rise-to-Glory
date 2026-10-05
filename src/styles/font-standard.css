@@ -62,3 +62,185 @@ svg text,
 svg tspan {
   font-family: var(--tlg-font-ui) !important;
 }
+
+
+/* Game-wide font-weight hierarchy
+ *
+ * The authenticated game had accumulated too many 700-900 weight declarations.
+ * Keep true hierarchy strong, but return ordinary UI copy to normal/medium
+ * weights. This stylesheet is loaded last so the policy also normalizes legacy
+ * module styles without requiring one-off fixes on every screen.
+ */
+
+/* Ordinary game copy should not look bold by default. */
+.tlg-v2-shell,
+.tlg-onboarding-page-v2 {
+  font-weight: 400;
+}
+
+.tlg-v2-shell p,
+.tlg-v2-shell small,
+.tlg-v2-shell li,
+.tlg-v2-shell dd,
+.tlg-v2-shell input,
+.tlg-v2-shell select,
+.tlg-v2-shell textarea,
+.tlg-onboarding-page-v2 p,
+.tlg-onboarding-page-v2 small,
+.tlg-onboarding-page-v2 li,
+.tlg-onboarding-page-v2 input,
+.tlg-onboarding-page-v2 select,
+.tlg-onboarding-page-v2 textarea {
+  font-weight: 400 !important;
+}
+
+/* Generic emphasis is medium, not bold. */
+.tlg-v2-shell strong,
+.tlg-v2-shell b,
+.tlg-onboarding-page-v2 strong,
+.tlg-onboarding-page-v2 b {
+  font-weight: 550 !important;
+}
+
+/* Labels, table headings, metadata labels and controls only need light emphasis. */
+.tlg-v2-shell label,
+.tlg-v2-shell th,
+.tlg-v2-shell button,
+.tlg-v2-shell [role="tab"],
+.tlg-onboarding-page-v2 label,
+.tlg-onboarding-page-v2 th,
+.tlg-onboarding-page-v2 button,
+.tlg-onboarding-page-v2 [role="tab"] {
+  font-weight: 520 !important;
+}
+
+.tlg-v2-shell th,
+.tlg-onboarding-page-v2 th {
+  font-weight: 550 !important;
+}
+
+/* Headings retain hierarchy without using extra-bold display weights. */
+.tlg-v2-shell h1,
+.tlg-onboarding-page-v2 h1 {
+  font-weight: 650 !important;
+}
+
+.tlg-v2-shell h2,
+.tlg-onboarding-page-v2 h2 {
+  font-weight: 620 !important;
+}
+
+.tlg-v2-shell h3,
+.tlg-v2-shell h4,
+.tlg-v2-shell h5,
+.tlg-v2-shell h6,
+.tlg-onboarding-page-v2 h3,
+.tlg-onboarding-page-v2 h4,
+.tlg-onboarding-page-v2 h5,
+.tlg-onboarding-page-v2 h6 {
+  font-weight: 560 !important;
+}
+
+/* Repeated navigation and menu labels should read cleanly, not heavily. */
+.tlg-v2-shell .tlg-v2-nav-copy strong,
+.tlg-v2-shell .tlg-v4-player-name,
+.tlg-v2-shell .tlg-v4-header-action,
+.tlg-v2-shell .tlg-v4-settings-row strong,
+.tlg-v2-shell .tlg-v2-roadmap-copy strong,
+.tlg-v2-shell .tlg-module-planned-row strong {
+  font-weight: 550 !important;
+}
+
+.tlg-v2-shell .tlg-v2-nav-link-active .tlg-v2-nav-copy strong,
+.tlg-v2-shell .tlg-v4-header-action[aria-expanded="true"] {
+  font-weight: 600 !important;
+}
+
+/* Uppercase eyebrows, field labels, badges and chips need distinction, not 800+. */
+.tlg-v2-shell [class*="eyebrow"],
+.tlg-v2-shell [class*="field-label"],
+.tlg-v2-shell [class*="badge"],
+.tlg-v2-shell [class*="pill"],
+.tlg-v2-shell [class*="chip"],
+.tlg-v2-shell [class*="status"],
+.tlg-onboarding-page-v2 [class*="eyebrow"],
+.tlg-onboarding-page-v2 [class*="field-label"],
+.tlg-onboarding-page-v2 [class*="badge"],
+.tlg-onboarding-page-v2 [class*="pill"],
+.tlg-onboarding-page-v2 [class*="chip"],
+.tlg-onboarding-page-v2 [class*="status"] {
+  font-weight: 550 !important;
+}
+
+/* Active/selected controls may be slightly stronger so state is still obvious. */
+.tlg-v2-shell button.active,
+.tlg-v2-shell button.selected,
+.tlg-v2-shell [aria-selected="true"],
+.tlg-v2-shell [aria-pressed="true"],
+.tlg-v2-shell [class*="-active"],
+.tlg-onboarding-page-v2 button.active,
+.tlg-onboarding-page-v2 button.selected,
+.tlg-onboarding-page-v2 [aria-selected="true"],
+.tlg-onboarding-page-v2 [aria-pressed="true"],
+.tlg-onboarding-page-v2 [class*="-active"] {
+  font-weight: 600 !important;
+}
+
+/* Primary actions remain clear without extra-bold text. */
+.tlg-v2-shell .tlg-btn-primary,
+.tlg-v2-shell [class*="primary-action"],
+.tlg-v2-shell [class*="save-button"],
+.tlg-v2-shell [class*="submit-button"],
+.tlg-onboarding-page-v2 .tlg-btn-primary,
+.tlg-onboarding-page-v2 [class*="primary-action"],
+.tlg-onboarding-page-v2 [class*="save-button"],
+.tlg-onboarding-page-v2 [class*="submit-button"] {
+  font-weight: 600 !important;
+}
+
+/* Key numeric information can stay prominent. */
+.tlg-v2-shell [class*="metric"] strong,
+.tlg-v2-shell [class*="metric"][class*="value"],
+.tlg-v2-shell [class*="stat"][class*="value"],
+.tlg-v2-shell [class*="score"] strong,
+.tlg-v2-shell [class*="rank"] strong,
+.tlg-v2-shell [class*="price"],
+.tlg-v2-shell [class*="balance"] strong,
+.tlg-v2-shell [class*="total"] strong,
+.tlg-onboarding-page-v2 [class*="metric"] strong,
+.tlg-onboarding-page-v2 [class*="metric"][class*="value"] {
+  font-weight: 600 !important;
+}
+
+/* Preserve page-title emphasis while avoiding the previous 700-900 look. */
+.tlg-v2-shell .tlg-v2-page-title,
+.tlg-v2-shell .tlg-page-title,
+.tlg-v2-shell [class*="page-title"],
+.tlg-v2-shell [class*="hero-title"],
+.tlg-onboarding-page-v2 [class*="page-title"],
+.tlg-onboarding-page-v2 [class*="hero-title"] {
+  font-weight: 650 !important;
+}
+
+/* Avoid synthetic bolding in dense data areas. */
+.tlg-v2-shell table td strong,
+.tlg-v2-shell table td b,
+.tlg-v2-shell [class*="card"] strong,
+.tlg-v2-shell [class*="row"] strong,
+.tlg-onboarding-page-v2 table td strong,
+.tlg-onboarding-page-v2 [class*="card"] strong,
+.tlg-onboarding-page-v2 [class*="row"] strong {
+  font-weight: 520 !important;
+}
+
+/* Re-apply the few intentional hierarchy exceptions after dense-area rules. */
+.tlg-v2-shell [class*="metric"] strong,
+.tlg-v2-shell [class*="score"] strong,
+.tlg-v2-shell [class*="rank"] strong,
+.tlg-v2-shell [class*="price"],
+.tlg-v2-shell [class*="winner"] strong,
+.tlg-v2-shell strong[class*="winner"],
+.tlg-v2-shell [class*="champion"] strong,
+.tlg-v2-shell strong[class*="champion"] {
+  font-weight: 600 !important;
+}
