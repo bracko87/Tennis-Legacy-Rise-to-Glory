@@ -423,28 +423,41 @@ export default function PrivateLifePage() {
     if (!commerceLoading && isPremium) void loadDashboard()
   }, [commerceLoading, isPremium, loadDashboard])
 
+  const standardPropertyLocations = useMemo(
+    () => (dashboard?.property_locations ?? []).filter((location) => location.is_standard_location !== false),
+    [dashboard?.property_locations],
+  )
+
   useEffect(() => {
     if (!dashboard || propertyCountry || propertyLocationCode) return
     const starter = dashboard.owned_assets.find((asset) => asset.acquisition_type === 'starter_home' && asset.location_code)
     const homeLocation = starter?.location_code ? dashboard.property_locations.find((location) => location.code === starter.location_code) : undefined
-    const firstLocation = homeLocation ?? dashboard.property_locations[0]
+    const matchingMarketplaceLocation = homeLocation
+      ? standardPropertyLocations.find((location) =>
+          location.country_code === homeLocation.country_code &&
+          location.city.localeCompare(homeLocation.city, undefined, { sensitivity: 'base' }) === 0,
+        )
+      : undefined
+    const firstLocation =
+      (homeLocation?.is_standard_location !== false ? homeLocation : undefined) ??
+      matchingMarketplaceLocation ??
+      standardPropertyLocations[0]
     if (firstLocation) {
       setPropertyCountry(firstLocation.country_code)
       setPropertyLocationCode(firstLocation.code)
     }
-  }, [dashboard, propertyCountry, propertyLocationCode])
+  }, [dashboard, propertyCountry, propertyLocationCode, standardPropertyLocations])
 
   const countries = useMemo(() => {
-    const rows = dashboard?.property_locations ?? []
     const map = new Map<string, string>()
-    rows.forEach((location) => map.set(location.country_code, location.country_name))
+    standardPropertyLocations.forEach((location) => map.set(location.country_code, location.country_name))
     return [...map.entries()].map(([code, name]) => ({ code, name })).sort((a, b) => a.name.localeCompare(b.name))
-  }, [dashboard?.property_locations])
+  }, [standardPropertyLocations])
 
-  const countryLocations = useMemo(() => {
-    const rows = dashboard?.property_locations ?? []
-    return rows.filter((location) => !propertyCountry || location.country_code === propertyCountry)
-  }, [dashboard?.property_locations, propertyCountry])
+  const countryLocations = useMemo(
+    () => standardPropertyLocations.filter((location) => !propertyCountry || location.country_code === propertyCountry),
+    [standardPropertyLocations, propertyCountry],
+  )
 
   useEffect(() => {
     if (!propertyCountry || !countryLocations.length) return
@@ -838,7 +851,7 @@ export default function PrivateLifePage() {
               <div className="private-life-property-selector">
                 <div><span>Property country</span><select value={propertyCountry} onChange={(event) => {
                   const countryCode = event.target.value
-                  const firstLocation = dashboard.property_locations.find((location) => location.country_code === countryCode)
+                  const firstLocation = standardPropertyLocations.find((location) => location.country_code === countryCode)
                   setPropertyCountry(countryCode)
                   setPropertyLocationCode(firstLocation?.code ?? '')
                 }}>{countries.map((country) => <option key={country.code} value={country.code}>{country.name}</option>)}</select></div>
@@ -854,7 +867,7 @@ export default function PrivateLifePage() {
               <label className="private-life-marketplace-affordable"><input type="checkbox" checked={marketAffordableOnly} onChange={(event) => setMarketAffordableOnly(event.target.checked)} /><span>Affordable only</span></label>
               <button type="button" className="private-life-marketplace-reset" onClick={() => { setMarketSearch(''); setMarketPrice('all'); setMarketRarity('all'); setMarketSort('default'); setMarketAffordableOnly(false); setFilter('all') }}>Reset</button>
             </div>
-            <div className="private-life-marketplace-results"><span>{visibleCatalog.length} listings</span><span>{dashboard.catalog.length} base asset types · {dashboard.property_locations.filter((location) => location.is_standard_location !== false).length} standard property destinations</span></div>
+            <div className="private-life-marketplace-results"><span>{visibleCatalog.length} listings</span><span>{dashboard.catalog.length} base asset types · {standardPropertyLocations.length} standard property destinations</span></div>
             {visibleCatalog.length === 0 ? <div className="private-life-empty"><strong>No marketplace matches</strong><p>Change the category, destination, price or rarity filters to see more assets.</p></div> : (
               <div className="private-life-market-grid">
                 {visibleCatalog.map((listing) => {
