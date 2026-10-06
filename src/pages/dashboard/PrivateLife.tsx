@@ -269,6 +269,38 @@ function metadataNumber(asset: CatalogAsset, key: string, fallback: number) {
   return Number.isFinite(numeric) ? numeric : fallback
 }
 
+function metadataLocationNumber(asset: CatalogAsset, key: string, location: PropertyLocation) {
+  const values = asset.metadata?.[key]
+  if (!values || typeof values !== 'object' || Array.isArray(values)) return null
+  const record = values as Record<string, unknown>
+  const candidates = [
+    record[location.code],
+    record[`${location.country_code}|${location.city}`],
+    record[location.city],
+  ]
+  for (const candidate of candidates) {
+    const numeric = Number(candidate)
+    if (Number.isFinite(numeric)) return numeric
+  }
+  return null
+}
+
+function propertyEffectivePrice(asset: CatalogAsset, location: PropertyLocation) {
+  const basePrice = asset.category === 'apartment' ? location.apartment_base_price : location.house_base_price
+  const override = metadataLocationNumber(asset, 'city_price_overrides', location)
+  const baseSnapshot = metadataLocationNumber(asset, 'city_price_base_snapshots', location)
+
+  if (override !== null && override > 0) {
+    if (baseSnapshot !== null && baseSnapshot > 0) {
+      return Math.max(1, Math.round(override * basePrice / baseSnapshot))
+    }
+    return Math.max(1, Math.round(override))
+  }
+
+  const multiplier = metadataNumber(asset, 'price_multiplier_bps', 10000)
+  return Math.max(1, Math.round(basePrice * multiplier / 10000))
+}
+
 function propertyImageUrl(asset: CatalogAsset, location?: PropertyLocation | null) {
   if (!location) return asset.image_url
 
@@ -490,10 +522,8 @@ export default function PrivateLifePage() {
         const availableApartments = selectedPropertyLocation.available_apartment_codes ?? []
         if (!availableApartments.includes(asset.code)) return []
       }
-      const basePrice = asset.category === 'apartment' ? selectedPropertyLocation.apartment_base_price : selectedPropertyLocation.house_base_price
-      const multiplier = metadataNumber(asset, 'price_multiplier_bps', 10000)
       const valueAdjustment = metadataNumber(asset, 'value_rate_adjustment_bps', 0)
-      const price = Math.round(basePrice * multiplier / 10000)
+      const price = propertyEffectivePrice(asset, selectedPropertyLocation)
       const annualCost = monthlyOwnershipCost(asset.category, price) * 12
       const valueRate = selectedPropertyLocation.annual_value_rate_bps + valueAdjustment
       const alreadyOwned = (dashboard?.owned_assets ?? []).some((owned) => owned.catalog_code === asset.code && owned.location_code === selectedPropertyLocation.code)
