@@ -17,8 +17,17 @@ alter table public.private_life_property_catalog_availability enable row level s
 create index if not exists private_life_property_catalog_availability_catalog_idx
   on public.private_life_property_catalog_availability(catalog_code,active);
 
-with seed(code,country_code,city,price_tier,factor_bps,sort_order) as (
-  values
+create temporary table tmp_private_life_city_seed(
+  code text primary key,
+  country_code text not null,
+  city text not null,
+  price_tier smallint not null,
+  factor_bps integer not null,
+  sort_order integer not null
+) on commit drop;
+
+insert into tmp_private_life_city_seed(code,country_code,city,price_tier,factor_bps,sort_order)
+values
     ('al_tirana','AL','Tirana',3,10000,51),
     ('ba_sarajevo','BA','Sarajevo',3,10000,52),
     ('hr_zagreb','HR','Zagreb',4,10500,53),
@@ -168,8 +177,33 @@ with seed(code,country_code,city,price_tier,factor_bps,sort_order) as (
     ('au_perth','AU','Perth',7,10000,197),
     ('au_goldcoast','AU','Gold Coast',7,10000,198),
     ('nz_wellington','NZ','Wellington',6,10000,199),
-    ('nz_queenstown','NZ','Queenstown',7,11000,200)
-)
+    ('nz_queenstown','NZ','Queenstown',7,11000,200);
+
+-- Some player home towns may already exist as dynamic home_* rows. Promote those
+-- rows into standard marketplace destinations rather than creating duplicates.
+update public.private_life_property_locations l
+set
+  country_name=case s.country_code
+    when 'KR' then 'South Korea'
+    when 'TW' then 'Taiwan'
+    when 'TZ' then 'Tanzania'
+    when 'VN' then 'Vietnam'
+    when 'MO' then 'Macau'
+    else c.name
+  end,
+  apartment_base_price=greatest(1,round(pt.apartment_base_price::numeric*s.factor_bps/10000)::bigint),
+  house_base_price=greatest(1,round(pt.house_base_price::numeric*s.factor_bps/10000)::bigint),
+  annual_value_rate_bps=pt.annual_value_rate_bps,
+  marketplace_enabled=true,
+  active=true,
+  sort_order=s.sort_order,
+  updated_at=now()
+from tmp_private_life_city_seed s
+join public.private_life_property_price_tiers pt on pt.tier=s.price_tier
+join public.countries c on upper(c.code)=s.country_code
+where upper(l.country_code)=s.country_code
+  and lower(l.city)=lower(s.city);
+
 insert into public.private_life_property_locations(
   code,country_code,country_name,city,apartment_base_price,house_base_price,
   annual_value_rate_bps,marketplace_enabled,active,sort_order
@@ -190,9 +224,15 @@ select
   greatest(1,round(pt.house_base_price::numeric*s.factor_bps/10000)::bigint),
   pt.annual_value_rate_bps,
   true,true,s.sort_order
-from seed s
+from tmp_private_life_city_seed s
 join public.private_life_property_price_tiers pt on pt.tier=s.price_tier
 join public.countries c on upper(c.code)=s.country_code
+where not exists (
+  select 1
+  from public.private_life_property_locations l
+  where upper(l.country_code)=s.country_code
+    and lower(l.city)=lower(s.city)
+)
 on conflict(code) do update set
   country_code=excluded.country_code,
   country_name=excluded.country_name,
@@ -209,7 +249,13 @@ delete from public.private_life_property_catalog_availability a
 using public.private_life_asset_catalog c
 where c.code=a.catalog_code and c.category='apartment';
 
-insert into public.private_life_property_catalog_availability(location_code,catalog_code,active)
+create temporary table tmp_private_life_availability_seed(
+  desired_location_code text not null,
+  catalog_code text not null,
+  active boolean not null
+) on commit drop;
+
+insert into tmp_private_life_availability_seed(desired_location_code,catalog_code,active)
 values
     ('rs_belgrade','apt_starter_city',true),
     ('gb_london','apt_starter_city',true),
@@ -661,7 +707,23 @@ values
     ('in_mumbai','apt_trophy_residence',true),
     ('dk_copenhagen','apt_trophy_residence',true),
     ('lu_luxembourg','apt_trophy_residence',true),
-    ('mo_macau','apt_trophy_residence',true)
+    ('mo_macau','apt_trophy_residence',true);
+
+insert into public.private_life_property_catalog_availability(location_code,catalog_code,active)
+select
+  coalesce(by_code.code,by_city.code) as location_code,
+  a.catalog_code,
+  a.active
+from tmp_private_life_availability_seed a
+left join public.private_life_property_locations by_code
+  on by_code.code=a.desired_location_code
+left join tmp_private_life_city_seed s
+  on s.code=a.desired_location_code
+left join public.private_life_property_locations by_city
+  on s.code is not null
+ and upper(by_city.country_code)=s.country_code
+ and lower(by_city.city)=lower(s.city)
+where coalesce(by_code.code,by_city.code) is not null
 on conflict(location_code,catalog_code) do update set
   active=excluded.active,
   updated_at=now();
@@ -695,9 +757,18 @@ begin
       'previous_house_base_price',hist.previous_house_base_price,
       'market_season',hist.season,
       'market_month',hist.month,
+      'is_standard_location',coalesce((
+        select pl.marketplace_enabled
+        from public.private_life_property_locations pl
+        where pl.code=l.code
+      ),false),
       'available_apartment_codes',
         case
-          when l.code like 'home_%' then jsonb_build_array('apt_starter_city')
+          when not coalesce((
+            select pl.marketplace_enabled
+            from public.private_life_property_locations pl
+            where pl.code=l.code
+          ),false) then jsonb_build_array('apt_starter_city')
           else coalesce((
             select jsonb_agg(a.catalog_code order by coalesce((c.metadata->>'catalog_order')::integer,999),a.catalog_code)
             from public.private_life_property_catalog_availability a
