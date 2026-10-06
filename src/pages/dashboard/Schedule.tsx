@@ -101,6 +101,27 @@ interface AccommodationEngineQuote {
   total: number
 }
 
+interface TournamentStaffEffectItem {
+  contract_id: string
+  role: string
+  name: string
+  overall_rating: number
+  benefit_label: string
+  benefit_value: string
+  active_tournament_effect: boolean
+}
+
+interface TournamentStaffEffects {
+  selected_count: number
+  match_staff_multiplier: number
+  match_execution_bonus_pct: number
+  match_fatigue_reduction: number
+  match_fatigue_reduction_pct: number
+  injury_prevention_reduction: number
+  injury_risk_reduction_pct: number
+  staff: TournamentStaffEffectItem[]
+}
+
 interface TournamentPreparationQuote {
   engine: string
   origin: { city?: string; country_code?: string; continuity?: string }
@@ -114,6 +135,7 @@ interface TournamentPreparationQuote {
   staff_travel: TravelEngineLeg
   player_travel_cost: number
   staff_travel_cost: number
+  staff_effects?: TournamentStaffEffects
   minimum_total: number
   maximum_total: number
   hotel: {
@@ -461,7 +483,7 @@ export default function SchedulePage() {
     }
     const saved = data as PreparationPlanResponse
     setPlanSaved(true)
-    setPlanMessage('Tournament preparation saved. Planned travel has been recalculated by the shared travel engine.')
+    setPlanMessage('Tournament preparation saved. Your travel, stay, staff and tactic choices are active for this tournament.')
     setPlayerTravelClass(saved.player_travel_class)
     setStaffTravelClass(saved.staff_travel_class)
     setHotelTier(saved.hotel_tier)
@@ -581,32 +603,33 @@ export default function SchedulePage() {
               <PrepTab active={activeTab === 'travel'} icon={<Plane size={15} />} label="Travel & Stay" onClick={() => setActiveTab('travel')} />
               <PrepTab active={activeTab === 'staff'} icon={<Users size={15} />} label="Travelling Staff" onClick={() => setActiveTab('staff')} />
               <PrepTab active={activeTab === 'tactics'} icon={<SlidersHorizontal size={15} />} label="Default Tactic" onClick={() => setActiveTab('tactics')} />
-              <PrepTab active={activeTab === 'summary'} icon={<ShieldCheck size={15} />} label="Cost Summary" onClick={() => setActiveTab('summary')} />
+              <PrepTab active={activeTab === 'summary'} icon={<ShieldCheck size={15} />} label="Summary & Effects" onClick={() => setActiveTab('summary')} />
             </nav>
 
             <div className="tlg-tournament-prep-body">
               {activeTab === 'travel' && (
                 <div className="tlg-prep-stack">
                   <div className="tlg-prep-rule"><Plane size={18} /><div><strong>Automatic travel timing</strong><p>Arrive one day before qualification if you are qualifying, otherwise one day before the main draw. Return home the day after elimination.</p></div></div>
-                  {estimate && <div className="tlg-prep-copy"><h3>{estimate.origin.city ?? 'Current location'} → {estimate.destination.city}</h3><p>{distance(estimate.player_travel.distance_km)} · {estimate.player_travel.band.replace('_', ' ')} · about {estimate.player_travel.estimated_hours_one_way}h one way. The same engine is used by Training Camps and planned travel legs.</p></div>}
+                  {estimate && <div className="tlg-prep-copy"><h3>{estimate.origin.city ?? 'Current location'} → {estimate.destination.city}</h3><p>{distance(estimate.player_travel.distance_km)} · about {estimate.player_travel.estimated_hours_one_way}h one way.</p></div>}
                   <ChoiceSection title="Player travel class" subtitle="Changing class changes both the shared-engine fare and arrival fatigue."><ChoiceGrid values={TRAVEL_CLASSES} selected={playerTravelClass} onSelect={(value) => setPlayerTravelClass(value as TravelClass)} /></ChoiceSection>
                   <PlanImpact label="Player travel effect" value={estimate ? `${TRAVEL_CLASS_INFO[playerTravelClass].effect} · +${estimate.player_travel.arrival_fatigue} fatigue on arrival` : TRAVEL_CLASS_INFO[playerTravelClass].effect} cost={estimate ? `${money(estimate.player_travel_cost)} round trip` : '—'} />
                   <ChoiceSection title="Staff travel class" subtitle="Applied to every staff member you select on the Staff tab."><ChoiceGrid values={TRAVEL_CLASSES} selected={staffTravelClass} onSelect={(value) => setStaffTravelClass(value as TravelClass)} /></ChoiceSection>
                   <PlanImpact label="Staff travel effect" value={selectedStaff.length > 0 && estimate ? `${TRAVEL_CLASS_INFO[staffTravelClass].effect} · +${estimate.staff_travel.arrival_fatigue} fatigue per traveller · ${selectedStaff.length} staff` : 'No travelling staff selected'} cost={estimate ? money(estimate.staff_travel_cost) : '—'} />
-                  <ChoiceSection title="Hotel" subtitle="Destination pricing is adjusted by a shared country/city cost index. The hotel stays booked automatically only while you remain in the tournament.">
+                  <ChoiceSection title="Hotel" subtitle="The hotel stays booked automatically only while you remain in the tournament.">
                     <div className="tlg-prep-hotel-grid">{HOTEL_TIERS.map((tier) => <button key={tier.value} type="button" className={hotelTier === tier.value ? 'selected' : ''} onClick={() => setHotelTier(tier.value)}><Hotel size={17} /><strong>{tier.label}</strong><span>{tier.detail} · {tier.effect}</span><small>{money(tier.nightly)} base / person / night</small></button>)}</div>
                   </ChoiceSection>
-                  <PlanImpact label="Selected hotel effect" value={estimate ? `${hotel.effect} · destination index ×${estimate.hotel.minimum.destination_cost_index.toFixed(2)} (${estimate.hotel.minimum.cost_tier} cost)` : hotel.effect} cost={estimate ? `${money(estimate.hotel.minimum.adjusted_unit_cost)} per person/night` : `${money(hotel.nightly)} base/night`} />
+                  <PlanImpact label="Selected hotel effect" value={hotel.effect} cost={estimate ? `${money(estimate.hotel.minimum.adjusted_unit_cost)} per person/night` : `${money(hotel.nightly)} per person/night`} />
                 </div>
               )}
 
               {activeTab === 'staff' && (
                 <div className="tlg-prep-stack">
-                  <div className="tlg-prep-copy"><h3>Choose who travels with the player</h3><p>The default is player-only travel. Every selected staff member adds the same route quote in the selected staff class plus hotel accommodation.</p></div>
+                  <div className="tlg-prep-copy"><h3>Choose who travels with the player</h3><p>Travelling staff provide their role-specific tournament support while they are with you. Every selected staff member also adds travel and hotel cost.</p></div>
                   {staffLoading ? <div className="tlg-schedule-empty">Loading contracted staff…</div> : activeStaff.length === 0 ? <div className="tlg-schedule-empty">You do not currently employ any staff.</div> : (
-                    <div className="tlg-prep-staff-list">{activeStaff.map((contract) => { const checked = selectedStaff.includes(contract.contract_id); return <button key={contract.contract_id} type="button" className={checked ? 'selected' : ''} onClick={() => toggleStaff(contract.contract_id)}><span className="checkbox">{checked ? '✓' : ''}</span><div><strong>{contract.staff.first_name} {contract.staff.last_name}</strong><span>{contract.role_label} · Rating {contract.staff.overall_rating}</span></div><small>{checked ? 'Travelling' : 'Stays home'}</small></button> })}</div>
+                    <div className="tlg-prep-staff-list">{activeStaff.map((contract) => { const checked = selectedStaff.includes(contract.contract_id); const effect = estimate?.staff_effects?.staff.find((item) => item.contract_id === contract.contract_id); return <button key={contract.contract_id} type="button" className={checked ? 'selected' : ''} onClick={() => toggleStaff(contract.contract_id)}><span className="checkbox">{checked ? '✓' : ''}</span><div><strong>{contract.staff.first_name} {contract.staff.last_name}</strong><span>{contract.role_label} · Rating {contract.staff.overall_rating}</span>{checked && effect && <span>Tournament effect: {effect.benefit_label} {effect.benefit_value}</span>}</div><small>{checked ? 'Travelling' : 'Stays home'}</small></button> })}</div>
                   )}
                   {estimate && <PlanImpact label="Current travelling party" value={`${estimate.party_size} total traveller${estimate.party_size === 1 ? '' : 's'}`} cost={`${money(estimate.staff_travel_cost)} staff travel`} />}
+                  {estimate?.staff_effects && selectedStaff.length > 0 && <PlanImpact label="Tournament staff effects" value={[`Match execution +${estimate.staff_effects.match_execution_bonus_pct}%`, `Match fatigue gain -${estimate.staff_effects.match_fatigue_reduction_pct}%`, `Match injury risk -${estimate.staff_effects.injury_risk_reduction_pct}%`].join(' · ')} cost="Active while travelling" />}
                 </div>
               )}
 
@@ -637,12 +660,14 @@ export default function SchedulePage() {
                     <SummaryItem label="Staff flight" value={selectedStaff.length === 0 ? 'No staff travel' : `${staffTravelClass} · ${money(estimate.staff_travel_cost)}`} />
                     <SummaryItem label="Hotel" value={`${estimate.hotel.label} · ${money(estimate.hotel.minimum.adjusted_unit_cost)}/night · ${hotel.effect}`} />
                     <SummaryItem label="Travelling staff" value={selectedStaff.length === 0 ? 'Player only' : `${selectedStaff.length} staff`} />
+                    {estimate.staff_effects && selectedStaff.length > 0 && <SummaryItem label="Staff match execution" value={`+${estimate.staff_effects.match_execution_bonus_pct}%`} />}
+                    {estimate.staff_effects && selectedStaff.length > 0 && <SummaryItem label="Staff fatigue support" value={`-${estimate.staff_effects.match_fatigue_reduction_pct}% match fatigue gain`} />}
+                    {estimate.staff_effects && selectedStaff.length > 0 && <SummaryItem label="Staff injury support" value={`-${estimate.staff_effects.injury_risk_reduction_pct}% relative match risk`} />}
                     <SummaryItem label="Default tactic" value={tactics.preset} />
                     <SummaryItem label="Return travel" value="Day after elimination" />
-                    <SummaryItem label="Pricing basis" value={`${estimate.player_travel.band.replace('_', ' ')} · destination hotel index ×${estimate.hotel.minimum.destination_cost_index.toFixed(2)}`} />
                   </div>
                   {selectedStaffNames.length > 0 && <div className="tlg-prep-selected-staff"><span>Travelling party</span><strong>{selectedStaffNames.join(', ')}</strong></div>}
-                  <div className="tlg-prep-cost-placeholder tlg-prep-cost-live"><span>Shared-engine tournament trip estimate {quoteLoading ? '· recalculating…' : ''}</span><strong>{money(estimate.minimum_total)} – {money(estimate.maximum_total)}</strong><div className="tlg-prep-cost-breakdown"><small>Travel: {money(estimate.player_travel_cost + estimate.staff_travel_cost)} round trip</small><small>Hotel: {money(estimate.hotel.minimum.adjusted_unit_cost * estimate.party_size)} / night for the party</small><small>Automatic stay range: {estimate.minimum_nights}–{estimate.maximum_nights} nights</small><small>Economy baseline fatigue: +{estimate.player_travel.base_arrival_fatigue} · selected class: +{estimate.player_travel.arrival_fatigue}</small></div><p>Travel price and fatigue now come from the same server-side engine used for Training Camps and planned travel. Hotel usage ends automatically after elimination.</p></div>
+                  <div className="tlg-prep-cost-placeholder tlg-prep-cost-live"><span>Estimated tournament trip cost {quoteLoading ? '· recalculating…' : ''}</span><strong>{money(estimate.minimum_total)} – {money(estimate.maximum_total)}</strong><div className="tlg-prep-cost-breakdown"><small>Travel: {money(estimate.player_travel_cost + estimate.staff_travel_cost)} round trip</small><small>Hotel: {money(estimate.hotel.minimum.adjusted_unit_cost * estimate.party_size)} / night for the party</small><small>Automatic stay range: {estimate.minimum_nights}–{estimate.maximum_nights} nights</small><small>Arrival fatigue: +{estimate.player_travel.arrival_fatigue}</small></div><p>Your hotel stay ends automatically after elimination, so the final cost depends on how long you remain in the tournament.</p></div>
                 </div>
               )}
             </div>
