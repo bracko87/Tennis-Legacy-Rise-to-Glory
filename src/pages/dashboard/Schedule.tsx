@@ -182,7 +182,12 @@ function titleCase(value: string) {
 }
 
 function money(value: number) {
-  return `$${Math.round(value).toLocaleString()}`
+  return `${Math.round(value).toLocaleString()}`
+}
+
+function formatPlanSummary(playerClass: TravelClass, selectedHotelTier: HotelTier, staffCount: number, tacticPreset: string) {
+  const selectedHotel = HOTEL_TIERS.find((tier) => tier.value === selectedHotelTier) ?? HOTEL_TIERS[1]
+  return `${playerClass} · ${selectedHotel.label} · ${staffCount === 0 ? 'Player only' : `${staffCount} staff`} · ${tacticPreset} tactic`
 }
 
 function distance(value: number | null | undefined) {
@@ -269,6 +274,8 @@ export default function SchedulePage() {
   const [selectedStaff, setSelectedStaff] = useState<string[]>([])
   const [tactics, setTactics] = useState<TournamentTactic>({ ...BALANCED_TACTIC })
   const [planSaved, setPlanSaved] = useState(false)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [savedPlanSummary, setSavedPlanSummary] = useState<string | null>(null)
   const [planLoading, setPlanLoading] = useState(false)
   const [planSaving, setPlanSaving] = useState(false)
   const [planMessage, setPlanMessage] = useState<string | null>(null)
@@ -349,6 +356,8 @@ export default function SchedulePage() {
   useEffect(() => {
     if (!player?.id || !nextTournament?.competition_id) {
       setPlanSaved(false)
+      setHasUnsavedChanges(false)
+      setSavedPlanSummary(null)
       setEngineQuote(null)
       return
     }
@@ -367,12 +376,19 @@ export default function SchedulePage() {
         return
       }
       const plan = data as PreparationPlanResponse
-      setPlayerTravelClass(plan.player_travel_class ?? 'Economy')
-      setStaffTravelClass(plan.staff_travel_class ?? 'Economy')
-      setHotelTier(plan.hotel_tier ?? 'Standard')
-      setSelectedStaff(plan.selected_staff_contract_ids ?? [])
-      setTactics(plan.tactic ?? { ...BALANCED_TACTIC })
+      const loadedPlayerTravelClass = plan.player_travel_class ?? 'Economy'
+      const loadedStaffTravelClass = plan.staff_travel_class ?? 'Economy'
+      const loadedHotelTier = plan.hotel_tier ?? 'Standard'
+      const loadedStaff = plan.selected_staff_contract_ids ?? []
+      const loadedTactic = plan.tactic ?? { ...BALANCED_TACTIC }
+      setPlayerTravelClass(loadedPlayerTravelClass)
+      setStaffTravelClass(loadedStaffTravelClass)
+      setHotelTier(loadedHotelTier)
+      setSelectedStaff(loadedStaff)
+      setTactics(loadedTactic)
       setPlanSaved(Boolean(plan.saved))
+      setHasUnsavedChanges(false)
+      setSavedPlanSummary(plan.saved ? formatPlanSummary(loadedPlayerTravelClass, loadedHotelTier, loadedStaff.length, loadedTactic.preset) : null)
       setEngineQuote(plan.quote ?? null)
     }
     void loadPreparation()
@@ -444,11 +460,18 @@ export default function SchedulePage() {
     setPrepareOpen(true)
   }
 
+  function markPlanDirty() {
+    setHasUnsavedChanges(true)
+    setPlanMessage(null)
+  }
+
   function toggleStaff(contractId: string) {
+    markPlanDirty()
     setSelectedStaff((current) => current.includes(contractId) ? current.filter((id) => id !== contractId) : [...current, contractId])
   }
 
   function applyPreset(preset: string) {
+    markPlanDirty()
     setTactics(tacticFromPreset(preset))
   }
 
@@ -480,17 +503,21 @@ export default function SchedulePage() {
       return
     }
     const saved = data as PreparationPlanResponse
+    const savedStaff = saved.selected_staff_contract_ids ?? []
+    const savedTactic = saved.tactic ?? tactics
     setPlanSaved(true)
+    setHasUnsavedChanges(false)
     setPlanMessage('Tournament preparation saved. Your travel, stay, staff and tactic choices are active for this tournament.')
     setPlayerTravelClass(saved.player_travel_class)
     setStaffTravelClass(saved.staff_travel_class)
     setHotelTier(saved.hotel_tier)
-    setSelectedStaff(saved.selected_staff_contract_ids ?? [])
-    setTactics(saved.tactic ?? tactics)
+    setSelectedStaff(savedStaff)
+    setTactics(savedTactic)
+    setSavedPlanSummary(formatPlanSummary(saved.player_travel_class, saved.hotel_tier, savedStaff.length, savedTactic.preset))
     setEngineQuote(saved.quote ?? engineQuote)
   }
 
-  const planSummary = `${playerTravelClass} · ${hotel.label} · ${selectedStaff.length === 0 ? 'Player only' : `${selectedStaff.length} staff`} · ${tactics.preset} tactic`
+  const planSummary = savedPlanSummary ?? 'Economy · Standard Hotel ★★★ · Player only · Balanced tactic'
 
   return (
     <GameLayout title="Schedule" subtitle="Tournament operations and player commitments">
@@ -609,12 +636,12 @@ export default function SchedulePage() {
                 <div className="tlg-prep-stack">
                   <div className="tlg-prep-rule"><Plane size={18} /><div><strong>Automatic travel timing</strong><p>Arrive one day before qualification if you are qualifying, otherwise one day before the main draw. Return home the day after elimination.</p></div></div>
                   {estimate && <div className="tlg-prep-copy"><h3>{estimate.origin.city ?? 'Current location'} → {estimate.destination.city}</h3><p>{distance(estimate.player_travel.distance_km)} · about {estimate.player_travel.estimated_hours_one_way}h one way.</p></div>}
-                  <ChoiceSection title="Player travel class" subtitle="Changing class changes both your fare and arrival fatigue."><ChoiceGrid values={TRAVEL_CLASSES} selected={playerTravelClass} onSelect={(value) => setPlayerTravelClass(value as TravelClass)} /></ChoiceSection>
+                  <ChoiceSection title="Player travel class" subtitle="Changing class changes both your fare and arrival fatigue."><ChoiceGrid values={TRAVEL_CLASSES} selected={playerTravelClass} onSelect={(value) => { markPlanDirty(); setPlayerTravelClass(value as TravelClass) }} /></ChoiceSection>
                   <PlanImpact label="Player travel effect" value={estimate ? `${TRAVEL_CLASS_INFO[playerTravelClass].effect} · +${estimate.player_travel.arrival_fatigue} fatigue on arrival` : TRAVEL_CLASS_INFO[playerTravelClass].effect} cost={estimate ? `${money(estimate.player_travel_cost)} round trip` : '—'} />
-                  <ChoiceSection title="Staff travel class" subtitle="Applied to every staff member you select on the Staff tab."><ChoiceGrid values={TRAVEL_CLASSES} selected={staffTravelClass} onSelect={(value) => setStaffTravelClass(value as TravelClass)} /></ChoiceSection>
+                  <ChoiceSection title="Staff travel class" subtitle="Applied to every staff member you select on the Staff tab."><ChoiceGrid values={TRAVEL_CLASSES} selected={staffTravelClass} onSelect={(value) => { markPlanDirty(); setStaffTravelClass(value as TravelClass) }} /></ChoiceSection>
                   <PlanImpact label="Staff travel effect" value={selectedStaff.length > 0 && estimate ? `${TRAVEL_CLASS_INFO[staffTravelClass].effect} · +${estimate.staff_travel.arrival_fatigue} fatigue per traveller · ${selectedStaff.length} staff` : 'No travelling staff selected'} cost={estimate ? money(estimate.staff_travel_cost) : '—'} />
                   <ChoiceSection title="Hotel" subtitle="The hotel stays booked automatically only while you remain in the tournament.">
-                    <div className="tlg-prep-hotel-grid">{HOTEL_TIERS.map((tier) => <button key={tier.value} type="button" className={hotelTier === tier.value ? 'selected' : ''} onClick={() => setHotelTier(tier.value)}><Hotel size={17} /><strong>{tier.label}</strong><span>{tier.detail} · {tier.effect}</span><small>{money(tier.nightly)} base / person / night</small></button>)}</div>
+                    <div className="tlg-prep-hotel-grid">{HOTEL_TIERS.map((tier) => <button key={tier.value} type="button" className={hotelTier === tier.value ? 'selected' : ''} onClick={() => { markPlanDirty(); setHotelTier(tier.value) }}><Hotel size={17} /><strong>{tier.label}</strong><span>{tier.detail} · {tier.effect}</span><small>{money(tier.nightly)} base / person / night</small></button>)}</div>
                   </ChoiceSection>
                   <PlanImpact label="Selected hotel effect" value={hotel.effect} cost={estimate ? `${money(estimate.hotel.minimum.adjusted_unit_cost)} per person/night` : `${money(hotel.nightly)} per person/night`} />
                 </div>
@@ -636,15 +663,15 @@ export default function SchedulePage() {
                   <div className="tlg-prep-copy"><h3>Tournament default tactic</h3><p>This saved plan is used in every match unless you create a specific override from an upcoming match window.</p></div>
                   <div className="tlg-tactic-presets">{TACTIC_PRESETS.map((preset) => <button key={preset} type="button" className={tactics.preset === preset ? 'selected' : ''} onClick={() => applyPreset(preset)}>{preset}</button>)}</div>
                   <div className="tlg-tactic-grid">
-                    <SelectField label="Overall approach" value={tactics.approach} values={TACTIC_OPTIONS.approach} onChange={(value) => setTactics((current) => ({ ...current, preset: 'Custom', approach: value }))} />
-                    <SelectField label="Rally strategy" value={tactics.rally} values={TACTIC_OPTIONS.rally} onChange={(value) => setTactics((current) => ({ ...current, preset: 'Custom', rally: value }))} />
-                    <SelectField label="Serve strategy" value={tactics.serve} values={TACTIC_OPTIONS.serve} onChange={(value) => setTactics((current) => ({ ...current, preset: 'Custom', serve: value }))} />
-                    <SelectField label="Serve placement" value={tactics.servePlacement} values={TACTIC_OPTIONS.servePlacement} onChange={(value) => setTactics((current) => ({ ...current, preset: 'Custom', servePlacement: value }))} />
-                    <SelectField label="Return strategy" value={tactics.returnGame} values={TACTIC_OPTIONS.returnGame} onChange={(value) => setTactics((current) => ({ ...current, preset: 'Custom', returnGame: value }))} />
-                    <SelectField label="Return position" value={tactics.returnPosition} values={TACTIC_OPTIONS.returnPosition} onChange={(value) => setTactics((current) => ({ ...current, preset: 'Custom', returnPosition: value }))} />
-                    <SelectField label="Court position" value={tactics.courtPosition} values={TACTIC_OPTIONS.courtPosition} onChange={(value) => setTactics((current) => ({ ...current, preset: 'Custom', courtPosition: value }))} />
-                    <SelectField label="Opponent target" value={tactics.target} values={TACTIC_OPTIONS.target} onChange={(value) => setTactics((current) => ({ ...current, preset: 'Custom', target: value }))} />
-                    <SelectField label="Risk level" value={tactics.risk} values={TACTIC_OPTIONS.risk} onChange={(value) => setTactics((current) => ({ ...current, preset: 'Custom', risk: value }))} />
+                    <SelectField label="Overall approach" value={tactics.approach} values={TACTIC_OPTIONS.approach} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', approach: value })) }} />
+                    <SelectField label="Rally strategy" value={tactics.rally} values={TACTIC_OPTIONS.rally} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', rally: value })) }} />
+                    <SelectField label="Serve strategy" value={tactics.serve} values={TACTIC_OPTIONS.serve} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', serve: value })) }} />
+                    <SelectField label="Serve placement" value={tactics.servePlacement} values={TACTIC_OPTIONS.servePlacement} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', servePlacement: value })) }} />
+                    <SelectField label="Return strategy" value={tactics.returnGame} values={TACTIC_OPTIONS.returnGame} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', returnGame: value })) }} />
+                    <SelectField label="Return position" value={tactics.returnPosition} values={TACTIC_OPTIONS.returnPosition} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', returnPosition: value })) }} />
+                    <SelectField label="Court position" value={tactics.courtPosition} values={TACTIC_OPTIONS.courtPosition} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', courtPosition: value })) }} />
+                    <SelectField label="Opponent target" value={tactics.target} values={TACTIC_OPTIONS.target} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', target: value })) }} />
+                    <SelectField label="Risk level" value={tactics.risk} values={TACTIC_OPTIONS.risk} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', risk: value })) }} />
                   </div>
                   <div className="tlg-prep-rule soft"><SlidersHorizontal size={18} /><div><strong>Match-specific override</strong><p>When the opponent is known, open your scheduled match on the Tournament page. You can keep this default or save a one-match tactic specifically for that opponent.</p></div></div>
                 </div>
@@ -670,8 +697,8 @@ export default function SchedulePage() {
             </div>
 
             <footer className="tlg-tournament-prep-footer">
-              <span>{planMessage ?? (quoteLoading ? 'Recalculating route and stay…' : planSaved ? 'Saved plan is active for this tournament.' : 'Automatic defaults remain active until you save a plan.')}</span>
-              <button type="button" onClick={savePreparation} disabled={planSaving || planLoading || quoteLoading}>{planSaving ? 'Saving…' : 'Save Tournament Plan'}</button>
+              <span>{planMessage ?? (quoteLoading ? 'Recalculating route and stay…' : hasUnsavedChanges ? 'You have unsaved changes. Save the tournament plan to activate them.' : planSaved ? 'Saved plan is active for this tournament.' : 'Automatic defaults remain active until you save a plan.')}</span>
+              <button type="button" onClick={savePreparation} disabled={planSaving || planLoading || quoteLoading}>{planSaving ? 'Saving…' : hasUnsavedChanges && planSaved ? 'Save Changes' : 'Save Tournament Plan'}</button>
             </footer>
           </section>
         </div>
