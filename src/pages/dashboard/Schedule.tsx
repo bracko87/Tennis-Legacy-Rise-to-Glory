@@ -204,7 +204,7 @@ function tournamentStaffEffectsSummary(effects: TournamentStaffEffects) {
   if (effects.match_fatigue_reduction_pct > 0) values.push(`Match fatigue gain -${effects.match_fatigue_reduction_pct}%`)
   if (effects.injury_risk_reduction_pct > 0) values.push(`Match injury risk -${effects.injury_risk_reduction_pct}%`)
   if (effects.commercial_bonus_pct > 0) values.push(`Sponsor objective payout +${effects.commercial_bonus_pct}%`)
-  return values.join(' · ')
+  return values.length > 0 ? values.join(' · ') : 'No measurable tournament bonus'
 }
 
 function applicationStatusTone(status: string) {
