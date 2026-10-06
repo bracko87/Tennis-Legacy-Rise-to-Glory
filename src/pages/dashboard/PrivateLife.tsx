@@ -277,6 +277,15 @@ function propertyImageUrl(asset: CatalogAsset, location?: PropertyLocation | nul
     return homeCountryImage
   }
 
+  const cityImages = asset.metadata?.city_image_urls
+  if (cityImages && typeof cityImages === 'object' && !Array.isArray(cityImages)) {
+    const byCountryAndCity = (cityImages as Record<string, unknown>)[`${location.country_code}|${location.city}`]
+    if (typeof byCountryAndCity === 'string' && byCountryAndCity.length > 0) return byCountryAndCity
+
+    const byCity = (cityImages as Record<string, unknown>)[location.city]
+    if (typeof byCity === 'string' && byCity.length > 0) return byCity
+  }
+
   const locationImages = asset.metadata?.location_image_urls
   if (locationImages && typeof locationImages === 'object' && !Array.isArray(locationImages)) {
     const candidate = (locationImages as Record<string, unknown>)[location.code]
