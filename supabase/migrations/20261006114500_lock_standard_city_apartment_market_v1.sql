@@ -3,8 +3,14 @@
 -- but remain hidden (availability.active=false) until the image set is uploaded
 -- and connected in a later migration.
 
-with city_seed(country_code,city) as (
-  values
+create temporary table tmp_standard_city_apartment_seed(
+  country_code text not null,
+  city text not null,
+  primary key(country_code,city)
+) on commit drop;
+
+insert into tmp_standard_city_apartment_seed(country_code,city)
+values
     ('GB','London'),
     ('FR','Paris'),
     ('MC','Monaco'),
@@ -69,14 +75,14 @@ with city_seed(country_code,city) as (
     ('AU','Brisbane'),
     ('AU','Perth'),
     ('AU','Gold Coast'),
-    ('NZ','Queenstown')
-),
-resolved as (
+    ('NZ','Queenstown');
+
+with resolved as (
   select distinct on (s.country_code,lower(s.city))
     l.code as location_code,
     s.country_code,
     s.city
-  from city_seed s
+  from tmp_standard_city_apartment_seed s
   join public.private_life_property_locations l
     on upper(l.country_code)=s.country_code
    and lower(l.city)=lower(s.city)
@@ -95,7 +101,7 @@ delete from public.private_life_property_catalog_availability a
 where a.catalog_code='apt_modern_residence'
   and not exists (
     select 1
-    from city_seed s
+    from tmp_standard_city_apartment_seed s
     join public.private_life_property_locations l
       on upper(l.country_code)=s.country_code
      and lower(l.city)=lower(s.city)
