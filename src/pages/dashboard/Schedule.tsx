@@ -182,7 +182,7 @@ function titleCase(value: string) {
 }
 
 function money(value: number) {
-  return `${Math.round(value).toLocaleString()}`
+  return `$${Math.round(value).toLocaleString()}`
 }
 
 function formatPlanSummary(playerClass: TravelClass, selectedHotelTier: HotelTier, staffCount: number, tacticPreset: string) {
