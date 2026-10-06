@@ -123,10 +123,10 @@ revoke all on function public.get_tournament_staff_effects_v1(uuid,uuid,uuid[]) 
 create or replace function public.quote_tournament_preparation_v1(
   p_player_id uuid,
   p_competition_id uuid,
-  p_player_travel_class text,
-  p_staff_travel_class text,
-  p_hotel_tier text,
-  p_selected_staff_contract_ids uuid[]
+  p_player_travel_class text default 'Economy'::text,
+  p_staff_travel_class text default 'Economy'::text,
+  p_hotel_tier text default 'Standard'::text,
+  p_selected_staff_contract_ids uuid[] default '{}'::uuid[]
 )
 returns jsonb
 language plpgsql
