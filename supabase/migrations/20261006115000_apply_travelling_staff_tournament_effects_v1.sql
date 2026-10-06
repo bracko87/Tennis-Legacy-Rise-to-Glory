@@ -74,11 +74,8 @@ begin
       v_value:='-'||round(v_effect*100,2)::text||'%';
       v_has_effect:=v_effect>0;
     elsif r.role='physiotherapist' then
-      v_effect:=0.12*public.staff_effect_factor_v2((r.attributes->>'injury_prevention')::numeric);
-      v_injury_reduction:=greatest(v_injury_reduction,v_effect);
-      v_label:='Match injury risk';
-      v_value:='-'||round(v_effect*100,2)::text||'% relative risk';
-      v_has_effect:=v_effect>0;
+      v_label:='Recovery and injury care';
+      v_value:='No additional match bonus from travel';
     elsif r.role='sports_psychologist' then
       v_effect:=0.005*public.staff_effect_factor_v2((r.attributes->>'pressure_management')::numeric);
       v_match_raw:=v_match_raw+v_effect;
@@ -458,145 +455,6 @@ begin
   end loop;
 
   return new;
-end;
-$function$;
-
-create or replace function public.get_player_injury_risk_v1(
-  p_player_id uuid,
-  p_context text default 'general'::text,
-  p_intensity text default null::text,
-  p_match_minutes integer default 0,
-  p_heat_index numeric default 0
-)
-returns jsonb
-language plpgsql
-stable
-security definer
-set search_path to 'public'
-as $function$
-declare
-  s public.player_skills%rowtype;
-  v_base numeric;
-  v_mult numeric:=1;
-  v_risk numeric;
-  v_reasons jsonb:='[]'::jsonb;
-  v_context text:=lower(coalesce(p_context,'general'));
-  v_active integer:=0;
-  v_active_illness integer:=0;
-  v_staff jsonb;
-  v_staff_red numeric:=0;
-  v_abs integer;
-  v_match_competition_id uuid;
-begin
-  select * into s from public.player_skills where player_id=p_player_id;
-  if s.player_id is null then
-    return jsonb_build_object('risk_percent',0,'risk_level','low','reasons','[]'::jsonb);
-  end if;
-
-  select public.game_day_absolute_v1(d.season,d.month,d.day)
-  into v_abs
-  from public.get_current_game_day_internal_v1() d;
-
-  v_base:=case v_context
-    when 'regular_training' then case lower(coalesce(p_intensity,'standard')) when 'light' then 0.12 when 'hard' then 0.55 else 0.25 end
-    when 'training_camp' then 0.30
-    when 'match' then 0.45
-    else 0.18
-  end;
-
-  if s.fatigue>=80 then
-    v_mult:=v_mult*2.4;
-    v_reasons:=v_reasons||'"Very high fatigue"'::jsonb;
-  elsif s.fatigue>=65 then
-    v_mult:=v_mult*1.75;
-    v_reasons:=v_reasons||'"High fatigue"'::jsonb;
-  elsif s.fatigue>=50 then
-    v_mult:=v_mult*1.30;
-    v_reasons:=v_reasons||'"Accumulated fatigue"'::jsonb;
-  end if;
-
-  if s.fitness<45 then
-    v_mult:=v_mult*1.28;
-    v_reasons:=v_reasons||'"Low fitness"'::jsonb;
-  elsif s.fitness>=70 then
-    v_mult:=v_mult*0.90;
-  end if;
-
-  if s.recovery<45 then
-    v_mult:=v_mult*1.20;
-    v_reasons:=v_reasons||'"Low recovery ability"'::jsonb;
-  elsif s.recovery>=70 then
-    v_mult:=v_mult*0.92;
-  end if;
-
-  if s.movement<45 and v_context in('match','training_camp') then
-    v_mult:=v_mult*1.12;
-    v_reasons:=v_reasons||'"Limited movement resilience"'::jsonb;
-  end if;
-
-  if v_context='match' and p_match_minutes>120 then
-    v_mult:=v_mult*(1+least(0.90,(p_match_minutes-120)::numeric/240.0));
-    v_reasons:=v_reasons||to_jsonb(format('Long match load (%s min)',p_match_minutes));
-  end if;
-
-  if v_context='match' and p_heat_index>0 then
-    v_mult:=v_mult*(1+least(0.55,p_heat_index));
-    v_reasons:=v_reasons||'"Hot outdoor conditions"'::jsonb;
-  end if;
-
-  select count(*) into v_active
-  from public.player_injuries
-  where player_id=p_player_id
-    and status in('active','recovering')
-    and v_abs<expected_full_recovery_absolute_day;
-
-  if v_active>0 then
-    v_mult:=v_mult*1.35;
-    v_reasons:=v_reasons||'"Existing injury / aggravation risk"'::jsonb;
-  end if;
-
-  select count(*) into v_active_illness
-  from public.player_illnesses
-  where player_id=p_player_id
-    and status in('active','recovering')
-    and v_abs<expected_full_recovery_absolute_day;
-
-  if v_active_illness>0 then
-    v_mult:=v_mult*1.15;
-    v_reasons:=v_reasons||'"Body is recovering from illness"'::jsonb;
-  end if;
-
-  if v_context='match' and p_source_reference_id is not null then
-    select competition_id
-    into v_match_competition_id
-    from public.tournament_matches
-    where id=p_source_reference_id;
-  end if;
-
-  if v_match_competition_id is not null then
-    v_staff:=public.get_tournament_staff_effects_v1(p_player_id,v_match_competition_id,null);
-  else
-    v_staff:=public.get_player_staff_effects_v1(p_player_id);
-  end if;
-
-  v_staff_red:=greatest(0,least(0.12,coalesce((v_staff->>'injury_prevention_reduction')::numeric,0)));
-  if v_staff_red>0 then
-    v_reasons:=v_reasons||to_jsonb(format('Physiotherapist prevention: -%s%% relative risk',round(v_staff_red*100,1)));
-  end if;
-
-  v_risk:=round(least(7.5,greatest(0.03,v_base*v_mult*(1-v_staff_red))),2);
-  if jsonb_array_length(v_reasons)=0 then
-    v_reasons:='["Normal tennis activity risk"]'::jsonb;
-  end if;
-
-  return jsonb_build_object(
-    'risk_percent',v_risk,
-    'risk_level',public.injury_risk_level_v1(v_risk),
-    'reasons',v_reasons,
-    'context',v_context,
-    'staff_modifier_applied',v_staff_red>0,
-    'staff_injury_reduction',round(v_staff_red,4)
-  );
 end;
 $function$;
 
