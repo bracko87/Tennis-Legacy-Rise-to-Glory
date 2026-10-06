@@ -99,6 +99,7 @@ type PropertyLocation = {
   monthly_change_bps?: number | null
   sort_order: number
   available_apartment_codes?: string[]
+  is_standard_location?: boolean
 }
 
 type CategoryTotal = {
@@ -272,7 +273,7 @@ function propertyImageUrl(asset: CatalogAsset, location?: PropertyLocation | nul
   if (!location) return asset.image_url
 
   const homeCountryImage = asset.metadata?.home_country_image_url
-  if (location.code.startsWith('home_') && typeof homeCountryImage === 'string' && homeCountryImage.length > 0) {
+  if (location.is_standard_location === false && typeof homeCountryImage === 'string' && homeCountryImage.length > 0) {
     return homeCountryImage
   }
 
@@ -844,7 +845,7 @@ export default function PrivateLifePage() {
               <label className="private-life-marketplace-affordable"><input type="checkbox" checked={marketAffordableOnly} onChange={(event) => setMarketAffordableOnly(event.target.checked)} /><span>Affordable only</span></label>
               <button type="button" className="private-life-marketplace-reset" onClick={() => { setMarketSearch(''); setMarketPrice('all'); setMarketRarity('all'); setMarketSort('default'); setMarketAffordableOnly(false); setFilter('all') }}>Reset</button>
             </div>
-            <div className="private-life-marketplace-results"><span>{visibleCatalog.length} listings</span><span>{dashboard.catalog.length} base asset types · {dashboard.property_locations.filter((location) => !location.code.startsWith('home_')).length} standard property destinations</span></div>
+            <div className="private-life-marketplace-results"><span>{visibleCatalog.length} listings</span><span>{dashboard.catalog.length} base asset types · {dashboard.property_locations.filter((location) => location.is_standard_location !== false).length} standard property destinations</span></div>
             {visibleCatalog.length === 0 ? <div className="private-life-empty"><strong>No marketplace matches</strong><p>Change the category, destination, price or rarity filters to see more assets.</p></div> : (
               <div className="private-life-market-grid">
                 {visibleCatalog.map((listing) => {
