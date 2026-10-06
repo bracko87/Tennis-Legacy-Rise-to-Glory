@@ -117,8 +117,6 @@ interface TournamentStaffEffects {
   match_execution_bonus_pct: number
   match_fatigue_reduction: number
   match_fatigue_reduction_pct: number
-  injury_prevention_reduction: number
-  injury_risk_reduction_pct: number
   staff: TournamentStaffEffectItem[]
 }
 
@@ -629,7 +627,7 @@ export default function SchedulePage() {
                     <div className="tlg-prep-staff-list">{activeStaff.map((contract) => { const checked = selectedStaff.includes(contract.contract_id); const effect = estimate?.staff_effects?.staff.find((item) => item.contract_id === contract.contract_id); return <button key={contract.contract_id} type="button" className={checked ? 'selected' : ''} onClick={() => toggleStaff(contract.contract_id)}><span className="checkbox">{checked ? '✓' : ''}</span><div><strong>{contract.staff.first_name} {contract.staff.last_name}</strong><span>{contract.role_label} · Rating {contract.staff.overall_rating}</span>{checked && effect && <span>Tournament effect: {effect.benefit_label} {effect.benefit_value}</span>}</div><small>{checked ? 'Travelling' : 'Stays home'}</small></button> })}</div>
                   )}
                   {estimate && <PlanImpact label="Current travelling party" value={`${estimate.party_size} total traveller${estimate.party_size === 1 ? '' : 's'}`} cost={`${money(estimate.staff_travel_cost)} staff travel`} />}
-                  {estimate?.staff_effects && selectedStaff.length > 0 && <PlanImpact label="Tournament staff effects" value={[`Match execution +${estimate.staff_effects.match_execution_bonus_pct}%`, `Match fatigue gain -${estimate.staff_effects.match_fatigue_reduction_pct}%`, `Match injury risk -${estimate.staff_effects.injury_risk_reduction_pct}%`].join(' · ')} cost="Active while travelling" />}
+                  {estimate?.staff_effects && selectedStaff.length > 0 && <PlanImpact label="Tournament staff effects" value={[`Match execution +${estimate.staff_effects.match_execution_bonus_pct}%`, `Match fatigue gain -${estimate.staff_effects.match_fatigue_reduction_pct}%`].join(' · ')} cost="Active while travelling" />}
                 </div>
               )}
 
@@ -662,7 +660,6 @@ export default function SchedulePage() {
                     <SummaryItem label="Travelling staff" value={selectedStaff.length === 0 ? 'Player only' : `${selectedStaff.length} staff`} />
                     {estimate.staff_effects && selectedStaff.length > 0 && <SummaryItem label="Staff match execution" value={`+${estimate.staff_effects.match_execution_bonus_pct}%`} />}
                     {estimate.staff_effects && selectedStaff.length > 0 && <SummaryItem label="Staff fatigue support" value={`-${estimate.staff_effects.match_fatigue_reduction_pct}% match fatigue gain`} />}
-                    {estimate.staff_effects && selectedStaff.length > 0 && <SummaryItem label="Staff injury support" value={`-${estimate.staff_effects.injury_risk_reduction_pct}% relative match risk`} />}
                     <SummaryItem label="Default tactic" value={tactics.preset} />
                     <SummaryItem label="Return travel" value="Day after elimination" />
                   </div>
