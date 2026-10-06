@@ -106,10 +106,11 @@ begin
   from public.private_life_property_catalog_availability
   where catalog_code='apt_luxury_residence';
 
-  select jsonb_object_length(coalesce(metadata->'city_price_overrides','{}'::jsonb))
+  select count(*)
   into v_prices
-  from public.private_life_asset_catalog
-  where code='apt_luxury_residence';
+  from public.private_life_asset_catalog c,
+       lateral jsonb_object_keys(coalesce(c.metadata->'city_price_overrides','{}'::jsonb)) k
+  where c.code='apt_luxury_residence';
 
   select count(distinct (value::text)::bigint)
   into v_distinct_prices
