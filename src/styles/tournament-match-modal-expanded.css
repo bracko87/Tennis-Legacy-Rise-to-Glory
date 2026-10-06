@@ -112,9 +112,18 @@
   font-size: .78rem !important;
 }
 
+.tlg-match-score-table > div > span {
+  font-weight: 500 !important;
+}
+
+.tlg-match-score-table > div > strong {
+  font-weight: 600 !important;
+}
+
 .tlg-match-score-table .head span,
 .tlg-match-score-table .head strong {
   font-size: .62rem !important;
+  font-weight: 560 !important;
 }
 
 .tlg-match-stats-table > div {
@@ -123,11 +132,12 @@
 
 .tlg-match-stats-table > div span {
   font-size: .71rem !important;
-  font-weight: 700;
+  font-weight: 500 !important;
 }
 
 .tlg-match-stats-table > div strong {
   font-size: .8rem !important;
+  font-weight: 560 !important;
 }
 
 .tlg-match-modal-close {
