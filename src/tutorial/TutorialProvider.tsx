@@ -39,6 +39,7 @@ type TutorialProgressRow = {
   started_at: string | null
   completed_at: string | null
   skipped_at: string | null
+  auto_launched_at: string | null
   updated_at: string
 }
 
@@ -72,8 +73,12 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
 }
 
+function tutorialSessionKey(playerId: string, lastSignInAt?: string | null) {
+  return `tlg:tutorial-session:${playerId}:${lastSignInAt ?? 'current'}`
+}
+
 export function TutorialProvider({ children }: { children: ReactNode }) {
-  const { player } = useAuth()
+  const { player, user } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [status, setStatus] = useState<TutorialStatus>('loading')
@@ -139,7 +144,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       setStatus('loading')
       const { data, error } = await supabase
         .from('player_tutorial_progress')
-        .select('player_id,tutorial_version,status,current_step_id,completed_step_ids,locale,started_at,completed_at,skipped_at,updated_at')
+        .select('player_id,tutorial_version,status,current_step_id,completed_step_ids,locale,started_at,completed_at,skipped_at,auto_launched_at,updated_at')
         .eq('player_id', player!.id)
         .maybeSingle()
 
@@ -166,22 +171,49 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
           completed_step_ids: [],
           locale: currentLocale,
           started_at: new Date().toISOString(),
+          auto_launched_at: new Date().toISOString(),
         })
+        window.sessionStorage.setItem(tutorialSessionKey(player!.id, user?.last_sign_in_at), '1')
         return
       }
 
       const row = data as TutorialProgressRow
       const nextLocale = normalizeTutorialLocale(row.locale || readLocale())
       const index = Math.max(0, TUTORIAL_STEPS.findIndex((step) => step.id === row.current_step_id))
+      const sessionKey = tutorialSessionKey(player!.id, user?.last_sign_in_at)
+      const sessionActive = window.sessionStorage.getItem(sessionKey) === '1'
+
       setLocale(nextLocale)
       setCurrentStepIndex(index)
       setCompletedStepIds(row.completed_step_ids ?? [])
+
+      if (row.status === 'active' && row.auto_launched_at === null) {
+        window.sessionStorage.setItem(sessionKey, '1')
+        setStatus('active')
+        const { error: launchError } = await supabase
+          .from('player_tutorial_progress')
+          .update({ auto_launched_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+          .eq('player_id', player!.id)
+        if (launchError) console.error('Unable to mark first tutorial launch:', launchError.message)
+        return
+      }
+
+      if ((row.status === 'active' || row.status === 'paused') && sessionActive) {
+        setStatus(row.status)
+        return
+      }
+
+      if (row.status === 'active' || row.status === 'paused') {
+        setStatus('available')
+        return
+      }
+
       setStatus(row.status)
     }
 
     void loadProgress()
     return () => { cancelled = true }
-  }, [player?.id])
+  }, [player?.id, user?.last_sign_in_at])
 
   useEffect(() => {
     if (!player?.id) return
@@ -339,13 +371,16 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     setCompletedStepIds(completed)
 
     if (currentStepIndex >= TUTORIAL_STEPS.length - 1) {
+      if (player?.id) {
+        window.sessionStorage.removeItem(tutorialSessionKey(player.id, user?.last_sign_in_at))
+      }
       setStatus('completed')
       await persist('completed', currentStepIndex, completed)
       return
     }
 
     await goToStep(currentStepIndex + 1, completed)
-  }, [completedStepIds, currentStep, currentStepIndex, goToStep, persist])
+  }, [completedStepIds, currentStep, currentStepIndex, goToStep, persist, player?.id, user?.last_sign_in_at])
 
   const previousStep = useCallback(async () => {
     if (currentStepIndex <= 0) return
@@ -359,6 +394,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     setCurrentStepIndex(0)
     setStatus('active')
     if (player?.id) {
+      window.sessionStorage.setItem(tutorialSessionKey(player.id, user?.last_sign_in_at), '1')
       const now = new Date().toISOString()
       const { error } = await supabase
         .from('player_tutorial_progress')
@@ -377,12 +413,15 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       if (error) console.error('Unable to restart tutorial:', error.message)
     }
     navigate('/game/overview')
-  }, [navigate, player?.id])
+  }, [navigate, player?.id, user?.last_sign_in_at])
 
   const resumeTutorial = useCallback(async () => {
+    if (player?.id) {
+      window.sessionStorage.setItem(tutorialSessionKey(player.id, user?.last_sign_in_at), '1')
+    }
     setStatus('active')
     await persist('active', currentStepIndex, completedStepIds)
-  }, [completedStepIds, currentStepIndex, persist])
+  }, [completedStepIds, currentStepIndex, persist, player?.id, user?.last_sign_in_at])
 
   const pauseTutorial = useCallback(async () => {
     setStatus('paused')
@@ -390,9 +429,12 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   }, [completedStepIds, currentStepIndex, persist])
 
   const skipTutorial = useCallback(async () => {
+    if (player?.id) {
+      window.sessionStorage.removeItem(tutorialSessionKey(player.id, user?.last_sign_in_at))
+    }
     setStatus('skipped')
     await persist('skipped', currentStepIndex, completedStepIds)
-  }, [completedStepIds, currentStepIndex, persist])
+  }, [completedStepIds, currentStepIndex, persist, player?.id, user?.last_sign_in_at])
 
   const value = useMemo<TutorialContextValue>(() => ({
     status,
@@ -414,7 +456,10 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   ])
 
   const tutorialUiVisible = status === 'active' && currentStep && location.pathname.startsWith('/game/')
-  const pausedUiVisible = status === 'paused' && location.pathname.startsWith('/game/')
+  const pausedUiVisible = status === 'paused'
+    && Boolean(player?.id)
+    && window.sessionStorage.getItem(tutorialSessionKey(player!.id, user?.last_sign_in_at)) === '1'
+    && location.pathname.startsWith('/game/')
 
   return (
     <TutorialContext.Provider value={value}>
