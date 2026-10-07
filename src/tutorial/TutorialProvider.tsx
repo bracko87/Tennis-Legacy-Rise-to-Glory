@@ -229,6 +229,16 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     if (usesTournament && !tournamentLookupDone) return
 
     const route = resolveRoute(currentStep)
+
+    if (currentStep.route === 'tournament-preparation' && nextCompetitionId) {
+      const params = new URLSearchParams(location.search)
+      const alreadyOnPreparationTournament =
+        location.pathname === '/game/schedule'
+        && params.get('competition') === nextCompetitionId
+
+      if (alreadyOnPreparationTournament) return
+    }
+
     const current = `${location.pathname}${location.search}`
     if (current !== route) {
       navigate(route, { replace: true })
@@ -294,7 +304,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     }
 
     const observer = new MutationObserver(findTarget)
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true })
+    observer.observe(document.body, { childList: true, subtree: true })
 
     const onResize = () => findTarget()
     const onScroll = () => findTarget()
