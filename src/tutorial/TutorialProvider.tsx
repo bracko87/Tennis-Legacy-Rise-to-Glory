@@ -647,7 +647,6 @@ function TutorialOverlay({
           <div>
             <span>{resources.ui.tutorial}</span>
             <strong>{phaseCopy?.title ?? phase.id}</strong>
-            {phaseCopy?.description && <small>{phaseCopy.description}</small>}
             <span className="tlg-tutorial-drag-hint"><GripHorizontal size={13} /> Drag window to move it</span>
           </div>
           <button type="button" onClick={() => void onPause()} aria-label={resources.ui.closeLabel} title={resources.ui.pause}>
@@ -665,6 +664,20 @@ function TutorialOverlay({
         </div>
 
         <div className="tlg-tutorial-copy">
+          <h2>{copy.title}</h2>
+          <p>{copy.body}</p>
+          {copy.action && (
+            <div className="tlg-tutorial-action">
+              <span>{copy.actionLabel ?? resources.ui.tip}</span>
+              <p>{copy.action}</p>
+            </div>
+          )}
+          {copy.tip && (
+            <div className="tlg-tutorial-tip">
+              <span>{resources.ui.tip}</span>
+              <p>{copy.tip}</p>
+            </div>
+          )}
           {access && (
             <div className={`tlg-tutorial-access tlg-tutorial-access-${access.tone}`}>
               <span className="tlg-tutorial-access-icon" aria-hidden="true">
@@ -681,18 +694,6 @@ function TutorialOverlay({
                 <strong>{access.title}</strong>
                 <p>{access.body}</p>
               </div>
-            </div>
-          )}
-          <h2>{copy.title}</h2>
-          <p>{copy.body}</p>
-          <div className="tlg-tutorial-action">
-            <span>{resources.ui.doThis}</span>
-            <p>{copy.action}</p>
-          </div>
-          {copy.tip && (
-            <div className="tlg-tutorial-tip">
-              <span>{resources.ui.tip}</span>
-              <p>{copy.tip}</p>
             </div>
           )}
         </div>
