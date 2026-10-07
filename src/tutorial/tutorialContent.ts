@@ -1,0 +1,562 @@
+export const TUTORIAL_VERSION = 'launch-v1'
+
+export type TutorialRoute =
+  | string
+  | 'player-profile'
+  | 'next-tournament'
+  | 'next-tournament-doubles'
+  | 'tournament-preparation'
+
+export type TutorialPlacement = 'auto' | 'top' | 'bottom' | 'left' | 'right'
+
+export interface TutorialPhase {
+  id: string
+  titleKey: string
+  descriptionKey: string
+}
+
+export interface TutorialStep {
+  id: string
+  phaseId: string
+  route: TutorialRoute
+  target?: string
+  fallbackTarget?: string
+  placement?: TutorialPlacement
+  copyKey: string
+  noTournamentCopyKey?: string
+}
+
+export interface TutorialCopy {
+  title: string
+  body: string
+  action: string
+  tip?: string
+}
+
+type TutorialResources = {
+  phases: Record<string, { title: string; description: string }>
+  steps: Record<string, TutorialCopy>
+  ui: {
+    tutorial: string
+    phase: string
+    step: string
+    back: string
+    next: string
+    finish: string
+    pause: string
+    skip: string
+    resume: string
+    start: string
+    restart: string
+    completed: string
+    doThis: string
+    tip: string
+    closeLabel: string
+  }
+}
+
+export const TUTORIAL_PHASES: TutorialPhase[] = [
+  { id: 'welcome', titleKey: 'welcome', descriptionKey: 'welcome' },
+  { id: 'player', titleKey: 'player', descriptionKey: 'player' },
+  { id: 'development', titleKey: 'development', descriptionKey: 'development' },
+  { id: 'season', titleKey: 'season', descriptionKey: 'season' },
+  { id: 'competition', titleKey: 'competition', descriptionKey: 'competition' },
+  { id: 'career', titleKey: 'career', descriptionKey: 'career' },
+  { id: 'communication', titleKey: 'communication', descriptionKey: 'communication' },
+  { id: 'support', titleKey: 'support', descriptionKey: 'support' },
+]
+
+export const TUTORIAL_STEPS: TutorialStep[] = [
+  {
+    id: 'welcome.overview',
+    phaseId: 'welcome',
+    route: '/game/overview',
+    target: '[data-tutorial-page-content]',
+    placement: 'bottom',
+    copyKey: 'welcome.overview',
+  },
+  {
+    id: 'welcome.rank',
+    phaseId: 'welcome',
+    route: '/game/overview',
+    target: '[data-tutorial-id="header-rank"]',
+    fallbackTarget: '[data-tutorial-page-content]',
+    copyKey: 'welcome.rank',
+  },
+  {
+    id: 'welcome.navigation',
+    phaseId: 'welcome',
+    route: '/game/overview',
+    target: '[data-tutorial-id="nav-overview"]',
+    fallbackTarget: '[data-tutorial-page-content]',
+    copyKey: 'welcome.navigation',
+  },
+
+  {
+    id: 'player.profile',
+    phaseId: 'player',
+    route: 'player-profile',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'player.profile',
+  },
+  {
+    id: 'player.account',
+    phaseId: 'player',
+    route: '/game/player-account',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'player.account',
+  },
+  {
+    id: 'player.skills',
+    phaseId: 'player',
+    route: '/game/skills',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'player.skills',
+  },
+
+  {
+    id: 'development.training',
+    phaseId: 'development',
+    route: '/game/training',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'development.training',
+  },
+  {
+    id: 'development.staff',
+    phaseId: 'development',
+    route: '/game/staff',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'development.staff',
+  },
+  {
+    id: 'development.health',
+    phaseId: 'development',
+    route: '/game/injuries',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'development.health',
+  },
+
+  {
+    id: 'season.calendar',
+    phaseId: 'season',
+    route: '/game/calendar',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'season.calendar',
+  },
+  {
+    id: 'season.schedule',
+    phaseId: 'season',
+    route: '/game/schedule',
+    target: '.tlg-next-tournament-card',
+    fallbackTarget: '[data-tutorial-page-content]',
+    copyKey: 'season.schedule',
+  },
+  {
+    id: 'season.tournament',
+    phaseId: 'season',
+    route: 'next-tournament',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'season.tournament',
+    noTournamentCopyKey: 'season.tournament.empty',
+  },
+  {
+    id: 'season.preparation',
+    phaseId: 'season',
+    route: 'tournament-preparation',
+    target: '.tlg-tournament-prep-dialog',
+    fallbackTarget: '[data-tutorial-page-content]',
+    copyKey: 'season.preparation',
+    noTournamentCopyKey: 'season.preparation.empty',
+  },
+  {
+    id: 'season.doubles',
+    phaseId: 'season',
+    route: 'next-tournament-doubles',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'season.doubles',
+    noTournamentCopyKey: 'season.doubles.empty',
+  },
+
+  {
+    id: 'competition.rankings',
+    phaseId: 'competition',
+    route: '/game/rankings',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'competition.rankings',
+  },
+  {
+    id: 'competition.national-team',
+    phaseId: 'competition',
+    route: '/game/national-team',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'competition.national-team',
+  },
+  {
+    id: 'competition.equipment',
+    phaseId: 'competition',
+    route: '/game/equipment',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'competition.equipment',
+  },
+
+  {
+    id: 'career.finance',
+    phaseId: 'career',
+    route: '/game/finance',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'career.finance',
+  },
+  {
+    id: 'career.private-life',
+    phaseId: 'career',
+    route: '/game/private-life',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'career.private-life',
+  },
+  {
+    id: 'career.tennis-club',
+    phaseId: 'career',
+    route: '/game/tennis-club',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'career.tennis-club',
+  },
+  {
+    id: 'career.statistics',
+    phaseId: 'career',
+    route: '/game/statistics',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'career.statistics',
+  },
+
+  {
+    id: 'communication.notifications',
+    phaseId: 'communication',
+    route: '/game/notifications',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'communication.notifications',
+  },
+  {
+    id: 'communication.inbox',
+    phaseId: 'communication',
+    route: '/game/inbox',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'communication.inbox',
+  },
+  {
+    id: 'communication.preferences',
+    phaseId: 'communication',
+    route: '/game/preferences',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'communication.preferences',
+  },
+  {
+    id: 'communication.premium',
+    phaseId: 'communication',
+    route: '/game/pro-packages',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'communication.premium',
+  },
+
+  {
+    id: 'support.help',
+    phaseId: 'support',
+    route: '/game/help',
+    target: '.tlg-help-hero',
+    fallbackTarget: '[data-tutorial-page-content]',
+    copyKey: 'support.help',
+  },
+  {
+    id: 'support.manual',
+    phaseId: 'support',
+    route: '/game/manual',
+    target: '.tlg-manual-page',
+    fallbackTarget: '[data-tutorial-page-content]',
+    copyKey: 'support.manual',
+  },
+  {
+    id: 'support.forum',
+    phaseId: 'support',
+    route: '/game/forum',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'support.forum',
+  },
+  {
+    id: 'support.contact',
+    phaseId: 'support',
+    route: '/game/contact',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'support.contact',
+  },
+  {
+    id: 'support.invite',
+    phaseId: 'support',
+    route: '/game/invite-friends',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'support.invite',
+  },
+  {
+    id: 'support.complete',
+    phaseId: 'support',
+    route: '/game/overview',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'support.complete',
+  },
+]
+
+const EN: TutorialResources = {
+  phases: {
+    welcome: {
+      title: 'Welcome to your career',
+      description: 'Learn the manager center, your world ranking and the navigation you will use every game day.',
+    },
+    player: {
+      title: 'Your player',
+      description: 'Understand your identity, attributes and the information that defines your tennis career.',
+    },
+    development: {
+      title: 'Development & health',
+      description: 'Learn how training, staff and health decisions change your player over time.',
+    },
+    season: {
+      title: 'Season planning & tournaments',
+      description: 'Plan the calendar, manage commitments and prepare correctly for competition.',
+    },
+    competition: {
+      title: 'Competitive systems',
+      description: 'Understand rankings, national competition and the equipment you take onto court.',
+    },
+    career: {
+      title: 'Career management',
+      description: 'Control money, optional lifestyle systems, club features and long-term statistics.',
+    },
+    communication: {
+      title: 'Communication & preferences',
+      description: 'Stay informed, manage messages and understand optional premium services.',
+    },
+    support: {
+      title: 'Help & community',
+      description: 'Know where to find detailed rules, support and the Tennis Legacy community.',
+    },
+  },
+  steps: {
+    'welcome.overview': {
+      title: 'Welcome to Tennis Legacy',
+      body: 'Overview is your career command center. It brings together your current condition, next tournament, recent results, ranking context, finances and the most important actions that need your attention.',
+      action: 'Use Overview as the first page you check when a new game day begins.',
+      tip: 'The tutorial will move page by page. You can pause it at any time and resume later.',
+    },
+    'welcome.rank': {
+      title: 'Your current world ranking',
+      body: 'The number in the header is your live ATP or WTA singles ranking. Tournament results add ranking points and older contributions eventually expire, so your position can move even when you are not playing.',
+      action: 'Keep an eye on this number, but make season decisions from the Rankings and Calendar pages rather than chasing rank alone.',
+    },
+    'welcome.navigation': {
+      title: 'The Manager Center',
+      body: 'The left navigation is the main map of your career. Each page owns a specific system, so important changes should be made on the page designed for them instead of from Overview.',
+      action: 'On mobile, open the menu button in the header to reach the same navigation.',
+    },
+
+    'player.profile': {
+      title: 'Player Profile',
+      body: 'Your profile is the public tennis identity other managers can inspect. It shows your nationality, ranking context, playing identity and career-facing information without exposing private management controls.',
+      action: 'Use profiles to understand opponents and other players; use Player & Account for your own account-level actions.',
+    },
+    'player.account': {
+      title: 'Player & Account',
+      body: 'This page contains identity and account controls such as your player name, competition world, country, avatar management, password recovery and destructive account actions.',
+      action: 'Treat restart and delete actions carefully. Your professional player name is intentionally permanent after career creation.',
+    },
+    'player.skills': {
+      title: 'Skills & attributes',
+      body: 'Skills are the foundation of match performance. Technical abilities, physical qualities and player condition work together; a high number in one area cannot completely compensate for weaknesses elsewhere.',
+      action: 'Use this page to identify what your player needs to improve before choosing training priorities.',
+      tip: 'Surface preference and playing style matter when you interpret the same attribute values.',
+    },
+
+    'development.training': {
+      title: 'Training',
+      body: 'Training is where you turn time into development. Regular sessions, intensity, recovery and training camps affect progress, fatigue and readiness, so the strongest option is not always the best option today.',
+      action: 'Plan training around your tournament calendar and avoid carrying unnecessary fatigue into important matches.',
+    },
+    'development.staff': {
+      title: 'Staff',
+      body: 'Coaches and specialists improve different parts of your career. Head Coaches, Fitness Coaches, Physiotherapists, Sports Psychologists, Performance Analysts and Career Managers each have separate responsibilities.',
+      action: 'Compare role, attributes, salary and contract terms. For tournaments, only staff selected to travel receive their tournament-specific travel benefit.',
+    },
+    'development.health': {
+      title: 'Health, injuries & illness',
+      body: 'This page explains your current health state, fatigue, injury risk, illness risk, restrictions and recovery timeline. Health rules are game-day based and can block training or competition when necessary.',
+      action: 'If risk rises, reduce workload and prioritize recovery instead of waiting for an injury to happen.',
+    },
+
+    'season.calendar': {
+      title: 'Tournament Calendar',
+      body: 'Calendar is where season planning begins. Tournament week, category, surface, location and eligibility determine which events fit your player and whether consecutive commitments are realistic.',
+      action: 'Look several weeks ahead before applying so travel, training and recovery remain manageable.',
+    },
+    'season.schedule': {
+      title: 'Schedule & commitments',
+      body: 'Schedule turns applications and accepted events into your personal plan. It shows what is coming next, travel timing, preparation status and other commitments that can conflict with one another.',
+      action: 'Check this page after every tournament application or schedule change.',
+    },
+    'season.tournament': {
+      title: 'Tournament page',
+      body: 'A tournament page contains the event-specific information you need: draw and entry state, match schedule, opponents, results and tournament actions. This is where the general calendar becomes a real competition.',
+      action: 'Before the event starts, confirm your entry state and watch for the first scheduled match.',
+    },
+    'season.tournament.empty': {
+      title: 'Tournament page',
+      body: 'You do not currently have a next tournament that the tutorial can open. Tournament pages become available from Calendar or Schedule once you have an event to inspect.',
+      action: 'Use Calendar to choose an event, then return to Schedule when the application or entry becomes relevant.',
+    },
+    'season.preparation': {
+      title: 'Prepare Tournament',
+      body: 'Tournament preparation controls travel class, hotel, travelling staff and your default tactic. Costs and effects are calculated before saving, and unsaved changes do not become active.',
+      action: 'Review Summary & Effects before saving. Travelling staff cost money but provide their role-specific tournament benefit while they travel with you.',
+      tip: 'Preparation locks according to the real travel and match schedule, so do not wait until the last moment.',
+    },
+    'season.preparation.empty': {
+      title: 'Tournament preparation',
+      body: 'There is no eligible upcoming tournament to open in preparation mode right now. The Prepare Tournament action appears on Schedule when an event is available and preparation is still open.',
+      action: 'Remember the flow: Schedule → Prepare Tournament → review costs/effects → Save Tournament Plan.',
+    },
+    'season.doubles': {
+      title: 'Tournament doubles',
+      body: 'When doubles is available, the doubles tournament view keeps partner, entry and draw information separate from your singles competition. A doubles commitment can still affect your overall schedule.',
+      action: 'Treat doubles as an additional commitment when planning fatigue, travel and match timing.',
+    },
+    'season.doubles.empty': {
+      title: 'Tournament doubles',
+      body: 'No upcoming tournament is available for the tutorial to open in doubles mode. When you have an event, the tournament page provides the doubles entry and partner flow where supported.',
+      action: 'Remember that singles and doubles entries are separate even when they happen at the same tournament.',
+    },
+
+    'competition.rankings': {
+      title: 'ATP / WTA Rankings',
+      body: 'Rankings show the live competitive order of your tennis world. ATP and WTA remain separate, and official results create ranking-point contributions that move players over time.',
+      action: 'Use rankings to compare your position, open player profiles and understand what level of tournament is realistic for your current career.',
+    },
+    'competition.national-team': {
+      title: 'National Team',
+      body: 'National competition adds country-based selection and association systems on top of your individual career. Eligibility, squad choices and competition rules are separate from normal tour entry.',
+      action: 'Check this page when national competitions or association actions become relevant to your player.',
+    },
+    'competition.equipment': {
+      title: 'Equipment',
+      body: 'Equipment affects match performance through the items and setup you actually use. Different gear can support different areas, and tournament match setups should be reviewed before important matches.',
+      action: 'Build a sensible setup rather than choosing items only by price or rarity. Confirm the active match setup before competition.',
+    },
+
+    'career.finance': {
+      title: 'Finance',
+      body: 'Finance records the real career economy: income, expenses, taxes, staff obligations, travel, accommodation, sponsors and other posted transactions. Money should only be deducted when the related action really happens.',
+      action: 'Check both cash balance and future commitments before expensive travel, staff contracts or optional purchases.',
+    },
+    'career.private-life': {
+      title: 'Private Life',
+      body: 'Private Life is an optional premium lifestyle system. It expands the career fantasy with properties, vehicles and other personal assets, but it should never be required to understand or play the core tennis career.',
+      action: 'Treat this as optional progression. Core tournament performance remains driven by the tennis systems explained elsewhere in the tutorial.',
+    },
+    'career.tennis-club': {
+      title: 'Tennis Club',
+      body: 'Tennis Club is the shared club layer for community and club-related gameplay. It is separate from your individual training staff and from national-team systems.',
+      action: 'Use this page when you want to participate in the club features available to your account.',
+    },
+    'career.statistics': {
+      title: 'Statistics & career history',
+      body: 'Statistics turns completed matches and tournament results into records. You can compare player statistics, tournament statistics and your own career records across surfaces, categories and seasons.',
+      action: 'Use this page to evaluate long-term performance instead of judging your player from one good or bad match.',
+    },
+
+    'communication.notifications': {
+      title: 'Notifications',
+      body: 'Notifications surface important game events such as tournament changes, results, health information and other career updates. The unread badge in the header tells you when something still needs attention.',
+      action: 'Open notifications regularly and clear important items after you understand what changed.',
+    },
+    'communication.inbox': {
+      title: 'Manager Inbox',
+      body: 'Inbox is for direct manager communication and messages that belong to a conversation rather than a system alert. It is intentionally separate from Notifications.',
+      action: 'Use Notifications for automated game events and Inbox for direct correspondence.',
+    },
+    'communication.preferences': {
+      title: 'Game Preferences',
+      body: 'Preferences is the home for personal game-experience controls. Only settings that are actually connected to a live system should appear here.',
+      action: 'You can also restart this tutorial from this page whenever you want a guided refresher.',
+    },
+    'communication.premium': {
+      title: 'Premium & coin packages',
+      body: 'This page explains optional paid services, membership and coin packages. Premium can unlock convenience or optional systems, but the tutorial keeps premium explanations separate from the core career flow.',
+      action: 'Review exactly what a package unlocks before purchasing; never assume a premium label changes every game system.',
+    },
+
+    'support.help': {
+      title: 'Help Center',
+      body: 'Help Center is the quick starting point when something is unclear. It links to common pages, support and the Full Game Manual without forcing you to search outside the game.',
+      action: 'Use Help for quick direction. Use the Manual when you need the full rule or calculation explanation.',
+    },
+    'support.manual': {
+      title: 'Full Game Manual',
+      body: 'The Manual is the detailed reference for implemented gameplay. Unlike this tutorial, it is designed to be searched and revisited when you need exact rules, page explanations or system limitations.',
+      action: 'Search by page or system whenever you need more detail than a tutorial step should provide.',
+    },
+    'support.forum': {
+      title: 'Forum / Discord',
+      body: 'The official community area is where players can discuss careers, strategy, tournaments, bugs and suggestions. Community advice can be useful, but the in-game Manual remains the authoritative gameplay reference.',
+      action: 'Use the community to compare experiences and report reproducible issues.',
+    },
+    'support.contact': {
+      title: 'Contact Support',
+      body: 'Contact is for account questions, technical problems or support cases that need direct attention from the Tennis Legacy team.',
+      action: 'When reporting a problem, include the page, what you expected, what happened and a screenshot when possible.',
+    },
+    'support.invite': {
+      title: 'Invite Friends',
+      body: 'Invite Friends gives you the game referral flow for bringing another manager into Tennis Legacy. Their career remains completely separate from yours.',
+      action: 'Use the official invite link so referral tracking can work correctly when applicable.',
+    },
+    'support.complete': {
+      title: 'You are ready to manage your career',
+      body: 'You now know where every launch page belongs and how the core systems connect: develop the player, plan the season, prepare tournaments, protect health, manage money and review results.',
+      action: 'Return to Overview, check your next commitment and decide the single most important action for the current game day.',
+      tip: 'You can restart this tutorial later from Help, Game Preferences or the Settings menu.',
+    },
+  },
+  ui: {
+    tutorial: 'Game Tutorial',
+    phase: 'Phase',
+    step: 'Step',
+    back: 'Back',
+    next: 'Next',
+    finish: 'Finish tutorial',
+    pause: 'Pause',
+    skip: 'Skip tutorial',
+    resume: 'Resume tutorial',
+    start: 'Start tutorial',
+    restart: 'Restart tutorial',
+    completed: 'Tutorial completed',
+    doThis: 'What to do',
+    tip: 'Tip',
+    closeLabel: 'Pause tutorial',
+  },
+}
+
+const RESOURCES: Record<string, TutorialResources> = {
+  en: EN,
+}
+
+export function normalizeTutorialLocale(locale?: string | null) {
+  const value = (locale || 'en').split('-')[0].toLowerCase()
+  return RESOURCES[value] ? value : 'en'
+}
+
+export function getTutorialResources(locale?: string | null) {
+  return RESOURCES[normalizeTutorialLocale(locale)]
+}
+
+export function getTutorialPhase(phaseId: string) {
+  return TUTORIAL_PHASES.find((phase) => phase.id === phaseId) ?? TUTORIAL_PHASES[0]
+}
+
+export function getTutorialPhaseSteps(phaseId: string) {
+  return TUTORIAL_STEPS.filter((step) => step.phaseId === phaseId)
+}
