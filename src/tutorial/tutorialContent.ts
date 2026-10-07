@@ -30,7 +30,8 @@ export interface TutorialStep {
 export interface TutorialCopy {
   title: string
   body: string
-  action: string
+  action?: string
+  actionLabel?: string
   tip?: string
 }
 
@@ -130,11 +131,27 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     copyKey: 'development.training',
   },
   {
+    id: 'development.training-camps',
+    phaseId: 'development',
+    route: '/game/training?view=camps',
+    target: '.tlg-camp-page',
+    fallbackTarget: '.tlg-training-main-tabs',
+    copyKey: 'development.training-camps',
+  },
+  {
     id: 'development.staff',
     phaseId: 'development',
     route: '/game/staff',
     target: '[data-tutorial-page-content]',
     copyKey: 'development.staff',
+  },
+  {
+    id: 'development.staff-market',
+    phaseId: 'development',
+    route: '/game/staff?view=market',
+    target: '.tlg-staff-market-layout',
+    fallbackTarget: '.tlg-staff-tabs',
+    copyKey: 'development.staff-market',
   },
   {
     id: 'development.health',
@@ -148,8 +165,17 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: 'season.calendar',
     phaseId: 'season',
     route: '/game/calendar',
-    target: '[data-tutorial-page-content]',
+    target: '.tlg-season-calendar',
+    fallbackTarget: '[data-tutorial-page-content]',
     copyKey: 'season.calendar',
+  },
+  {
+    id: 'season.tournament-calendar',
+    phaseId: 'season',
+    route: '/game/calendar?tab=tournament-calendar',
+    target: '.tlg-tournament-calendar',
+    fallbackTarget: '[data-tutorial-page-content]',
+    copyKey: 'season.tournament-calendar',
   },
   {
     id: 'season.schedule',
@@ -208,6 +234,14 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     target: '[data-tutorial-page-content]',
     copyKey: 'competition.equipment',
   },
+  {
+    id: 'competition.technical-sponsors',
+    phaseId: 'competition',
+    route: '/game/equipment?tab=sponsors',
+    target: '.tlg-technical-sponsor-panel',
+    fallbackTarget: '.tlg-equipment-tabs',
+    copyKey: 'competition.technical-sponsors',
+  },
 
   {
     id: 'career.finance',
@@ -215,6 +249,14 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     route: '/game/finance',
     target: '[data-tutorial-page-content]',
     copyKey: 'career.finance',
+  },
+  {
+    id: 'career.financial-sponsors',
+    phaseId: 'career',
+    route: '/game/finance?tab=sponsors',
+    target: '.tlg-finance-sponsor-page',
+    fallbackTarget: '.tlg-finance-v2-sponsors',
+    copyKey: 'career.financial-sponsors',
   },
   {
     id: 'career.private-life',
@@ -299,6 +341,14 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     route: '/game/contact',
     target: '[data-tutorial-page-content]',
     copyKey: 'support.contact',
+  },
+  {
+    id: 'support.bug-report',
+    phaseId: 'support',
+    route: '/game/help',
+    target: '.tlg-bug-launcher',
+    fallbackTarget: '.tlg-help-hero',
+    copyKey: 'support.bug-report',
   },
   {
     id: 'support.invite',
@@ -395,14 +445,28 @@ const EN: TutorialResources = {
     },
 
     'development.training': {
-      title: 'Training',
-      body: 'Training is where you turn time into development. Regular sessions, intensity, recovery and training camps affect progress, fatigue and readiness, so the strongest option is not always the best option today.',
-      action: 'Plan training around your tournament calendar and avoid carrying unnecessary fatigue into important matches.',
+      title: 'Regular Training',
+      body: 'Plan weekly development on Home days. Tournament, travel, camp and health days automatically take priority.',
+      action: 'Use harder sessions when fresh; use recovery or a Day Off when fatigue is building.',
+    },
+    'development.training-camps': {
+      title: 'Training Camps',
+      body: 'Camps are focused development blocks with destination, week, duration, accommodation, staff, travel and total cost.',
+      action: 'Choose a camp that fits your development goal and calendar. A camp cannot overlap a tournament or blocked travel period.',
+      actionLabel: 'What to check',
+      tip: 'Travelling staff can add camp-specific benefits, but they also increase travel and accommodation cost.',
     },
     'development.staff': {
-      title: 'Staff',
-      body: 'Coaches and specialists improve different parts of your career. Head Coaches, Fitness Coaches, Physiotherapists, Sports Psychologists, Performance Analysts and Career Managers each have separate responsibilities.',
-      action: 'Compare role, attributes, salary and contract terms. For tournaments, only staff selected to travel receive their tournament-specific travel benefit.',
+      title: 'Your Staff',
+      body: 'You can employ one specialist per role. Each role affects a different part of development, recovery, analysis or career management.',
+      action: 'Check the real effect, weekly salary and remaining contract before changing your team.',
+    },
+    'development.staff-market': {
+      title: 'Staff Market',
+      body: 'The Staff Market is where you search worldwide candidates by role, quality, country and salary.',
+      action: 'Select a candidate, compare attributes and total contract commitment, then negotiate before confirming the hire.',
+      actionLabel: 'What to do',
+      tip: 'Higher-rated staff are useful, but salary and role fit matter more than simply hiring the most expensive person.',
     },
     'development.health': {
       title: 'Health, injuries & illness',
@@ -411,9 +475,16 @@ const EN: TutorialResources = {
     },
 
     'season.calendar': {
+      title: 'Your Career Calendar',
+      body: 'The Calendar tab shows your own season: matches, tournament commitments, travel, training camps, recovery and other blocked days.',
+      action: 'Check this view before booking a camp or adding another tournament so you do not create avoidable conflicts.',
+    },
+    'season.tournament-calendar': {
       title: 'Tournament Calendar',
-      body: 'Calendar is where season planning begins. Tournament week, category, surface, location and eligibility determine which events fit your player and whether consecutive commitments are realistic.',
-      action: 'Look several weeks ahead before applying so travel, training and recovery remain manageable.',
+      body: 'The Tournament Calendar lists official ATP or WTA events by competition week, category, surface, location and entry status.',
+      action: 'Open a tournament row, review the application window and your entry status, then submit the tournament application from that tournament page when applications are open.',
+      actionLabel: 'How to join a tournament',
+      tip: 'Plan at least a few weeks ahead. Consecutive events can create extra travel and reduce recovery time.',
     },
     'season.schedule': {
       title: 'Schedule & commitments',
@@ -464,14 +535,27 @@ const EN: TutorialResources = {
     },
     'competition.equipment': {
       title: 'Equipment',
-      body: 'Equipment affects match performance through the items and setup you actually use. Different gear can support different areas, and tournament match setups should be reviewed before important matches.',
-      action: 'Build a sensible setup rather than choosing items only by price or rarity. Confirm the active match setup before competition.',
+      body: 'Your equipped racquet, shoes, clothing and accessories affect matches, condition and wear.',
+      action: 'Check the active setup and equipment condition before important tournaments.',
+    },
+    'competition.technical-sponsors': {
+      title: 'Technical Sponsors',
+      body: 'Technical sponsors are equipment partnerships for racquets, shoes or clothing. They are separate from your main financial sponsor.',
+      action: 'Compare the brand, contract slot, equipment discount, signing payment and season exclusivity before signing.',
+      tip: 'A technical sponsor can lower equipment costs, but sponsored equipment is still managed through Equipment and Inventory.',
     },
 
     'career.finance': {
       title: 'Finance',
-      body: 'Finance records the real career economy: income, expenses, taxes, staff obligations, travel, accommodation, sponsors and other posted transactions. Money should only be deducted when the related action really happens.',
-      action: 'Check both cash balance and future commitments before expensive travel, staff contracts or optional purchases.',
+      body: 'Finance tracks career cash, income, expenses, tax, staff, travel, accommodation and the permanent transaction ledger.',
+      action: 'Check available cash and upcoming commitments before an expensive decision.',
+    },
+    'career.financial-sponsors': {
+      title: 'Main Financial Sponsor',
+      body: 'Your main sponsor pays guaranteed career income and may add separate performance objectives with cash bonuses.',
+      action: 'Compare guaranteed value, weekly payments, objectives, deadlines and maximum bonus value before signing.',
+      actionLabel: 'What to compare',
+      tip: 'This is separate from Technical Sponsors: the main sponsor is primarily a financial agreement, not an equipment contract.',
     },
     'career.private-life': {
       title: 'Private Life',
@@ -502,7 +586,7 @@ const EN: TutorialResources = {
     'communication.preferences': {
       title: 'Game Preferences',
       body: 'Preferences is the home for personal game-experience controls. Only settings that are actually connected to a live system should appear here.',
-      action: 'You can also restart this tutorial from this page whenever you want a guided refresher.',
+      action: 'Tutorial restart is kept in Help Center, so Game Preferences stays focused on actual personal settings.',
     },
     'communication.premium': {
       title: 'Premium & coin packages',
@@ -530,6 +614,13 @@ const EN: TutorialResources = {
       body: 'Contact is for account questions, technical problems or support cases that need direct attention from the Tennis Legacy team.',
       action: 'When reporting a problem, include the page, what you expected, what happened and a screenshot when possible.',
     },
+    'support.bug-report': {
+      title: 'Report a Bug',
+      body: 'If something looks wrong in the game, use the Report Bug button. The report automatically knows which page you are on.',
+      action: 'Describe what happened, what you expected, and the steps to reproduce it. Add a screenshot when it helps.',
+      actionLabel: 'Best bug report',
+      tip: 'Please report problems instead of working around them silently — reproducible reports help us fix the game faster.',
+    },
     'support.invite': {
       title: 'Invite Friends',
       body: 'Invite Friends gives you the game referral flow for bringing another manager into Tennis Legacy. Their career remains completely separate from yours.',
@@ -545,7 +636,7 @@ const EN: TutorialResources = {
       title: 'You are ready to manage your career',
       body: 'You now know where every launch page belongs and how the core systems connect: develop the player, plan the season, prepare tournaments, protect health, manage money and review results. The core career remains playable on the Free plan; optional Coins and Premium features are clearly marked when they appear.',
       action: 'Return to Overview, check your next commitment and decide the single most important action for the current game day.',
-      tip: 'You can restart this tutorial later from Help, Game Preferences or the Settings menu. Free, Coin and Premium access rules are explained again whenever a tutorial step reaches a paid or locked feature.',
+      tip: 'You can restart this tutorial later only from Help Center. Paid or locked features are clearly marked inside the relevant tutorial step.',
     },
   },
   access: {
