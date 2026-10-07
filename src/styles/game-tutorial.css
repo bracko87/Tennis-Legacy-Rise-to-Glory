@@ -71,6 +71,13 @@
   font-weight: 600;
 }
 
+.tlg-tutorial-card-head small {
+  max-width: 330px;
+  color: #72899b;
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+
 .tlg-tutorial-card-head button {
   width: 31px;
   height: 31px;
