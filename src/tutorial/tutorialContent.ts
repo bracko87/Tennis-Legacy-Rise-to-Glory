@@ -24,6 +24,7 @@ export interface TutorialStep {
   placement?: TutorialPlacement
   copyKey: string
   noTournamentCopyKey?: string
+  accessKey?: string
 }
 
 export interface TutorialCopy {
@@ -36,6 +37,12 @@ export interface TutorialCopy {
 type TutorialResources = {
   phases: Record<string, { title: string; description: string }>
   steps: Record<string, TutorialCopy>
+  access: Record<string, {
+    tone: 'premium' | 'coins' | 'mixed' | 'optional'
+    label: string
+    title: string
+    body: string
+  }>
   ui: {
     tutorial: string
     phase: string
@@ -74,6 +81,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     target: '[data-tutorial-page-content]',
     placement: 'bottom',
     copyKey: 'welcome.overview',
+    accessKey: 'overview-premium-extra',
   },
   {
     id: 'welcome.rank',
@@ -183,6 +191,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     route: '/game/rankings',
     target: '[data-tutorial-page-content]',
     copyKey: 'competition.rankings',
+    accessKey: 'rankings-premium-extra',
   },
   {
     id: 'competition.national-team',
@@ -190,6 +199,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     route: '/game/national-team',
     target: '[data-tutorial-page-content]',
     copyKey: 'competition.national-team',
+    accessKey: 'national-team-coins',
   },
   {
     id: 'competition.equipment',
@@ -212,6 +222,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     route: '/game/private-life',
     target: '[data-tutorial-page-content]',
     copyKey: 'career.private-life',
+    accessKey: 'private-life-premium',
   },
   {
     id: 'career.tennis-club',
@@ -219,6 +230,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     route: '/game/tennis-club',
     target: '[data-tutorial-page-content]',
     copyKey: 'career.tennis-club',
+    accessKey: 'tennis-club-coins',
   },
   {
     id: 'career.statistics',
@@ -255,6 +267,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     route: '/game/pro-packages',
     target: '[data-tutorial-page-content]',
     copyKey: 'communication.premium',
+    accessKey: 'premium-store-optional',
   },
 
   {
@@ -293,6 +306,14 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     route: '/game/invite-friends',
     target: '[data-tutorial-page-content]',
     copyKey: 'support.invite',
+  },
+  {
+    id: 'support.access-model',
+    phaseId: 'support',
+    route: '/game/pro-packages',
+    target: '[data-tutorial-page-content]',
+    copyKey: 'support.access-model',
+    accessKey: 'free-coins-premium',
   },
   {
     id: 'support.complete',
@@ -341,7 +362,7 @@ const EN: TutorialResources = {
   steps: {
     'welcome.overview': {
       title: 'Welcome to Tennis Legacy',
-      body: 'Overview is your career command center. It brings together your current condition, next tournament, recent results, ranking context, finances and the most important actions that need your attention.',
+      body: 'Overview is your career command center. It brings together your current condition, next tournament, recent results, ranking context, finances and the most important actions that need your attention. The page itself is part of the free core game; only the Ranking Protection panel is a Premium extra.',
       action: 'Use Overview as the first page you check when a new game day begins.',
       tip: 'The tutorial will move page by page. You can pause it at any time and resume later.',
     },
@@ -433,13 +454,13 @@ const EN: TutorialResources = {
 
     'competition.rankings': {
       title: 'ATP / WTA Rankings',
-      body: 'Rankings show the live competitive order of your tennis world. ATP and WTA remain separate, and official results create ranking-point contributions that move players over time.',
+      body: 'Rankings show the live competitive order of your tennis world. ATP and WTA remain separate, and official results create ranking-point contributions that move players over time. The ranking tables are free; the detailed Ranking Protection view showing upcoming point expirations is Premium-only.',
       action: 'Use rankings to compare your position, open player profiles and understand what level of tournament is realistic for your current career.',
     },
     'competition.national-team': {
       title: 'National Team',
-      body: 'National competition adds country-based selection and association systems on top of your individual career. Eligibility, squad choices and competition rules are separate from normal tour entry.',
-      action: 'Check this page when national competitions or association actions become relevant to your player.',
+      body: 'National competition adds country-based selection and association systems on top of your individual career. The page is not Premium-only, but association activation and seasonal renewal use community Coin funding. The current association activation target is 50 Coins plus at least 5 members, and the renewal target is 30 Coins.',
+      action: 'Joining and participating are separate from purchasing Premium. Only contribute Coins when you choose to support an activation or renewal fund; contributions come from your Coin wallet.',
     },
     'competition.equipment': {
       title: 'Equipment',
@@ -454,13 +475,13 @@ const EN: TutorialResources = {
     },
     'career.private-life': {
       title: 'Private Life',
-      body: 'Private Life is an optional premium lifestyle system. It expands the career fantasy with properties, vehicles and other personal assets, but it should never be required to understand or play the core tennis career.',
-      action: 'Treat this as optional progression. Core tournament performance remains driven by the tennis systems explained elsewhere in the tutorial.',
+      body: 'Private Life is a Premium-only lifestyle system. Free players can continue the complete core tennis career without it. Premium members can use the page for properties, vehicles and other personal assets; purchases inside Private Life use the normal career Finance balance, not Coins.',
+      action: 'If you are a Free player, you can simply skip this system. Becoming Premium unlocks the page, but it is not required for the core tennis career.',
     },
     'career.tennis-club': {
       title: 'Tennis Club',
-      body: 'Tennis Club is the shared club layer for community and club-related gameplay. It is separate from your individual training staff and from national-team systems.',
-      action: 'Use this page when you want to participate in the club features available to your account.',
+      body: 'Tennis Club is the shared club layer for community and club-related gameplay. Viewing clubs, applying to join and accepting an invitation are different from creating your own club. Creating a new Tennis Club currently costs 50 Coins.',
+      action: 'You do not need Premium membership to use the club system. Spend Coins only if you choose to create a new club; joining an existing club does not use the club-creation Coin fee.',
     },
     'career.statistics': {
       title: 'Statistics & career history',
@@ -485,8 +506,8 @@ const EN: TutorialResources = {
     },
     'communication.premium': {
       title: 'Premium & coin packages',
-      body: 'This page explains optional paid services, membership and coin packages. Premium can unlock convenience or optional systems, but the tutorial keeps premium explanations separate from the core career flow.',
-      action: 'Review exactly what a package unlocks before purchasing; never assume a premium label changes every game system.',
+      body: 'This page is where optional purchases are kept transparent. Tennis Legacy Free provides the core career. Premium membership unlocks Premium-only features and currently grants a monthly Coin reward after successful payment. Coin packs are separate one-time purchases for optional Coin actions.',
+      action: 'Premium and Coins are separate: buying Coins does not activate Premium, and becoming Premium does not make every Coin action free. Review the exact benefit before purchasing.',
     },
 
     'support.help': {
@@ -514,11 +535,61 @@ const EN: TutorialResources = {
       body: 'Invite Friends gives you the game referral flow for bringing another manager into Tennis Legacy. Their career remains completely separate from yours.',
       action: 'Use the official invite link so referral tracking can work correctly when applicable.',
     },
+    'support.access-model': {
+      title: 'Free, Coins and Premium',
+      body: 'You can play the core Tennis Legacy career for free. Optional Coins are used only for specific Coin actions, such as contributing to National Association funding or creating your own Tennis Club. Premium membership unlocks Premium-only features such as Private Life and Ranking Protection. Coin packs and Premium membership are optional purchases.',
+      action: 'Play Free for the core career. Buy Coins only when you want an optional Coin action, or choose Premium only when its additional features are valuable to you.',
+      tip: 'Coins and Premium are separate products: buying Coins does not activate Premium, and Premium does not remove every Coin cost.',
+    },
     'support.complete': {
       title: 'You are ready to manage your career',
-      body: 'You now know where every launch page belongs and how the core systems connect: develop the player, plan the season, prepare tournaments, protect health, manage money and review results.',
+      body: 'You now know where every launch page belongs and how the core systems connect: develop the player, plan the season, prepare tournaments, protect health, manage money and review results. The core career remains playable on the Free plan; optional Coins and Premium features are clearly marked when they appear.',
       action: 'Return to Overview, check your next commitment and decide the single most important action for the current game day.',
-      tip: 'You can restart this tutorial later from Help, Game Preferences or the Settings menu.',
+      tip: 'You can restart this tutorial later from Help, Game Preferences or the Settings menu. Free, Coin and Premium access rules are explained again whenever a tutorial step reaches a paid or locked feature.',
+    },
+  },
+  access: {
+    'overview-premium-extra': {
+      tone: 'mixed',
+      label: 'FREE PAGE · PREMIUM EXTRA',
+      title: 'Overview is free; Ranking Protection is Premium',
+      body: 'All core Overview information remains available to Free players. Only the Ranking Protection panel is locked to Premium membership.',
+    },
+    'rankings-premium-extra': {
+      tone: 'mixed',
+      label: 'FREE PAGE · PREMIUM EXTRA',
+      title: 'Rankings are free; Ranking Protection is Premium',
+      body: 'ATP/WTA singles and doubles rankings remain available to Free players. The next ranking-point expiration view is a Premium feature.',
+    },
+    'national-team-coins': {
+      tone: 'coins',
+      label: 'COIN-FUNDED FEATURE',
+      title: 'National Association funding uses Coins',
+      body: 'The National Team page is not Premium-only. Association activation currently needs a 50-Coin community target plus 5 members; seasonal renewal needs a 30-Coin community target. Individual contributions are optional and come from the member’s Coin wallet.',
+    },
+    'private-life-premium': {
+      tone: 'premium',
+      label: 'PREMIUM REQUIRED',
+      title: 'Private Life is locked for Free players',
+      body: 'An active Premium membership is required to enter Private Life. Once unlocked, asset purchases use normal career Finance money — not Coins.',
+    },
+    'tennis-club-coins': {
+      tone: 'coins',
+      label: 'OPTIONAL COIN ACTION',
+      title: 'Creating a Tennis Club costs 50 Coins',
+      body: 'You can view clubs and join an existing club without paying the club-creation fee. The 50-Coin cost applies when you choose to create a new club.',
+    },
+    'premium-store-optional': {
+      tone: 'optional',
+      label: 'OPTIONAL PURCHASES',
+      title: 'Premium and Coin packs are optional',
+      body: 'The core game is playable on Free. Premium membership and one-time Coin packs are separate optional purchases.',
+    },
+    'free-coins-premium': {
+      tone: 'optional',
+      label: 'CORE GAME IS FREE',
+      title: 'Free career, optional Coins, optional Premium',
+      body: 'Free covers the core tennis career. Coins pay for specific optional Coin actions. Premium unlocks clearly marked Premium-only features. Neither purchase is required to start and play the core career.',
     },
   },
   ui: {
