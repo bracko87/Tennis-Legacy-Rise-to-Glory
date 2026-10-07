@@ -503,6 +503,7 @@ function TutorialOverlay({
           <div>
             <span>{resources.ui.tutorial}</span>
             <strong>{phaseCopy?.title ?? phase.id}</strong>
+            {phaseCopy?.description && <small>{phaseCopy.description}</small>}
           </div>
           <button type="button" onClick={() => void onPause()} aria-label={resources.ui.closeLabel} title={resources.ui.pause}>
             <X size={17} />
