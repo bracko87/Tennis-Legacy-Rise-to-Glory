@@ -55,7 +55,11 @@ export default function GameLayout({ title, subtitle, children }: GameLayoutProp
           onToggleSidebarMobile={() => setSidebarMobileOpen((value) => !value)}
         />
 
-        <main className="tlg-v2-content">
+        <main
+          className="tlg-v2-content"
+          data-tutorial-page-content
+          data-tutorial-page-title={title}
+        >
           {children}
         </main>
 
