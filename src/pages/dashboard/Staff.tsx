@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router'
 
 import CountryFlag from '../../components/common/CountryFlag'
 import GameConfirmDialog from '../../components/common/GameConfirmDialog'
@@ -95,12 +96,14 @@ function pendingContractFromQuote(selected: StaffCandidate, quote: StaffNegotiat
 }
 
 export default function StaffPage() {
+  const [searchParams] = useSearchParams()
+  const requestedView = searchParams.get('view')
   const {
     dashboard, market, loading, marketLoading, saving, error,
     loadStaffProfile, loadMarket, quoteNegotiation, negotiateStaff, confirmStaffOffer,
     quoteStaffTermination, terminateContract,
   } = useStaff()
-  const [view, setView] = useState<'team' | 'market'>('team')
+  const [view, setView] = useState<'team' | 'market'>(() => requestedView === 'market' ? 'market' : 'team')
   const [role, setRole] = useState<StaffRole | ''>('')
   const [quality, setQuality] = useState<StaffQuality | ''>('')
   const [country, setCountry] = useState('')
@@ -119,6 +122,10 @@ export default function StaffPage() {
   const [terminationTarget, setTerminationTarget] = useState<StaffContract | null>(null)
   const [terminationQuote, setTerminationQuote] = useState<StaffTerminationQuote | null>(null)
   const [terminationLoading, setTerminationLoading] = useState(false)
+
+  useEffect(() => {
+    if (requestedView === 'team' || requestedView === 'market') setView(requestedView)
+  }, [requestedView])
 
   useEffect(() => {
     if (view !== 'market') return
