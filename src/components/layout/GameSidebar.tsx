@@ -150,6 +150,7 @@ export default function GameSidebar({
               <Link
                 key={item.key}
                 to={item.to}
+                data-tutorial-id={`nav-${item.key}`}
                 onClick={onMobileClose}
                 className={clsx(
                   'tlg-v2-nav-link',
