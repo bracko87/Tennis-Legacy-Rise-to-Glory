@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Construction, Database } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import '../../styles/module-tabs-calendar.css'
 import '../../styles/shared-segmented-tabs.css'
@@ -66,6 +66,13 @@ export default function TabbedModulePage({
     ? initialTabId ?? tabs[0]?.id ?? ''
     : tabs[0]?.id ?? ''
   const [activeTabId, setActiveTabId] = useState(initialTab)
+
+  useEffect(() => {
+    if (initialTabId && tabs.some((tab) => tab.id === initialTabId)) {
+      setActiveTabId(initialTabId)
+    }
+  }, [initialTabId, tabs])
+
   const activeTab = useMemo(
     () => tabs.find((tab) => tab.id === activeTabId) ?? tabs[0],
     [activeTabId, tabs],
