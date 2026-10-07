@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router'
 
 import GameLayout from '../../components/layout/GameLayout'
 import TrainingCampsPanel from '../../components/training/TrainingCampsPanel'
@@ -100,6 +101,8 @@ function sharedDevelopment(session: TrainingSession) {
 }
 
 export default function TrainingPage() {
+  const [searchParams] = useSearchParams()
+  const requestedView = searchParams.get('view')
   const {
     dashboard,
     loading,
@@ -108,8 +111,12 @@ export default function TrainingPage() {
     completeToday,
   } = useTraining()
 
-  const [view, setView] = useState<TrainingView>('regular')
+  const [view, setView] = useState<TrainingView>(() => requestedView === 'camps' ? 'camps' : 'regular')
   const [actionMessage, setActionMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (requestedView === 'regular' || requestedView === 'camps') setView(requestedView)
+  }, [requestedView])
 
   const readiness = dashboard ? scoreReadiness(dashboard.skills) : 0
 
