@@ -4,6 +4,7 @@ import {
   CircleHelp,
   Crown,
   Gift,
+  GraduationCap,
   Inbox,
   LogOut,
   Mail,
@@ -21,6 +22,7 @@ import { useAuth } from '../../auth/AuthContext'
 import { useCommerce } from '../../hooks/useCommerce'
 import useUnreadNotificationCount from '../../hooks/useUnreadNotificationCount'
 import { supabase } from '../../lib/supabase'
+import { useTutorial } from '../../tutorial/TutorialProvider'
 import CountryFlag from '../common/CountryFlag'
 
 export interface GameHeaderProps {
@@ -46,6 +48,7 @@ export default function GameHeader({
   const { player, signOut } = useAuth()
   const { isPremium } = useCommerce()
   const { unreadCount } = useUnreadNotificationCount()
+  const { status: tutorialStatus, restartTutorial } = useTutorial()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [currentRank, setCurrentRank] = useState<number | null>(null)
   const settingsRef = useRef<HTMLDivElement | null>(null)
@@ -131,7 +134,7 @@ export default function GameHeader({
 
         {player && (
           <>
-            <div className="tlg-v6-header-rank" aria-label={currentRank ? `Current world ranking number ${currentRank}` : 'World ranking unavailable'}>
+            <div className="tlg-v6-header-rank" data-tutorial-id="header-rank" aria-label={currentRank ? `Current world ranking number ${currentRank}` : 'World ranking unavailable'}>
               {currentRank ? `#${currentRank.toLocaleString()}` : '—'}
             </div>
             <span className="tlg-v6-header-identity-divider" aria-hidden="true" />
@@ -156,6 +159,7 @@ export default function GameHeader({
         <button
           type="button"
           className="tlg-v4-header-action tlg-v4-notification-button"
+          data-tutorial-id="header-notifications"
           aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
           onClick={() => navigate('/game/notifications')}
         >
@@ -172,6 +176,7 @@ export default function GameHeader({
           <button
             type="button"
             className="tlg-v4-header-action tlg-commerce-premium-tab"
+            data-tutorial-id="header-premium"
             aria-label="Premium membership"
             onClick={() => navigate('/game/pro-packages')}
           >
@@ -184,6 +189,7 @@ export default function GameHeader({
           <button
             type="button"
             className="tlg-v4-header-action"
+            data-tutorial-id="header-settings"
             aria-haspopup="menu"
             aria-expanded={settingsOpen}
             onClick={() => setSettingsOpen((value) => !value)}
@@ -215,6 +221,21 @@ export default function GameHeader({
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/help')}>
                 <CircleHelp size={15} />
                 <span><strong>Help</strong><small>Guides and support</small></span>
+              </button>
+
+              <button
+                type="button"
+                className="tlg-v4-settings-row"
+                onClick={() => {
+                  setSettingsOpen(false)
+                  void restartTutorial()
+                }}
+              >
+                <GraduationCap size={15} />
+                <span>
+                  <strong>${tutorialStatus === 'completed' || tutorialStatus === 'skipped' ? 'Restart Tutorial' : 'Game Tutorial'}</strong>
+                  <small>Guided tour of every game page</small>
+                </span>
               </button>
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/forum')}>
