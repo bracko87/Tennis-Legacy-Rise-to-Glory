@@ -99,6 +99,7 @@ type PropertyLocation = {
   monthly_change_bps?: number | null
   sort_order: number
   available_apartment_codes?: string[]
+  available_house_codes?: string[]
   is_standard_location?: boolean
 }
 
@@ -521,6 +522,10 @@ export default function PrivateLifePage() {
       if (asset.category === 'apartment') {
         const availableApartments = selectedPropertyLocation.available_apartment_codes ?? []
         if (!availableApartments.includes(asset.code)) return []
+      }
+      if (asset.category === 'house_villa' && asset.metadata?.location_availability_enforced === true) {
+        const availableHouses = selectedPropertyLocation.available_house_codes ?? []
+        if (!availableHouses.includes(asset.code)) return []
       }
       const valueAdjustment = metadataNumber(asset, 'value_rate_adjustment_bps', 0)
       const price = propertyEffectivePrice(asset, selectedPropertyLocation)
