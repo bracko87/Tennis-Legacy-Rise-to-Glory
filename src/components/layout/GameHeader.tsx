@@ -1,18 +1,9 @@
 import {
   Bell,
   ChevronDown,
-  CircleHelp,
   Crown,
-  Gift,
-  Inbox,
-  LogOut,
-  Mail,
   Menu,
-  MessageSquare,
   Settings,
-  SlidersHorizontal,
-  Sparkles,
-  UserRound,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -201,47 +192,38 @@ export default function GameHeader({
               <div className="tlg-v4-settings-heading">Manager settings</div>
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/player-account')}>
-                <UserRound size={15} />
                 <span><strong>Player & account</strong><small>Identity and account</small></span>
               </button>
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/preferences')}>
-                <SlidersHorizontal size={15} />
                 <span><strong>Game preferences</strong><small>Personal game settings</small></span>
               </button>
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/inbox')}>
-                <Inbox size={15} />
                 <span><strong>Inbox</strong><small>Manager messages</small></span>
               </button>
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/help')}>
-                <CircleHelp size={15} />
                 <span><strong>Help</strong><small>Guides and support</small></span>
               </button>
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/forum')}>
-                <MessageSquare size={15} />
                 <span><strong>Forum</strong><small>Community discussion</small></span>
               </button>
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/pro-packages')}>
-                <Sparkles size={15} />
                 <span><strong>Pro Packages</strong><small>Premium services & coins</small></span>
               </button>
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/contact')}>
-                <Mail size={15} />
                 <span><strong>Contact Us</strong><small>Contact Tennis Legacy</small></span>
               </button>
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/invite-friends')}>
-                <Gift size={15} />
                 <span><strong>Invite Friends</strong><small>Share Tennis Legacy</small></span>
               </button>
 
               <button type="button" className="tlg-v4-settings-row" onClick={handleLogout}>
-                <LogOut size={15} />
                 <span><strong>Logout</strong><small>Sign out of your account</small></span>
               </button>
             </div>
