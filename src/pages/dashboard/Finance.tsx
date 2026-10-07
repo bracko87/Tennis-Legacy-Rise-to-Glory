@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useSearchParams } from 'react-router'
 
 import GameLayout from '../../components/layout/GameLayout'
 import { supabase } from '../../lib/supabase'
@@ -168,7 +169,13 @@ function donutBackground(items: FinanceCategorySlice[]) {
 }
 
 export default function FinancePage() {
-  const [activeTab, setActiveTab] = useState<FinanceTab>('overview')
+  const [searchParams] = useSearchParams()
+  const requestedTab = searchParams.get('tab')
+  const [activeTab, setActiveTab] = useState<FinanceTab>(() => (
+    requestedTab === 'transactions' || requestedTab === 'tax' || requestedTab === 'sponsors'
+      ? requestedTab
+      : 'overview'
+  ))
   const [dashboard, setDashboard] = useState<FinanceDashboard | null>(null)
   const [analytics, setAnalytics] = useState<FinanceAnalytics | null>(null)
   const [granularity, setGranularity] = useState<AnalyticsGranularity>('monthly')
@@ -202,6 +209,12 @@ export default function FinancePage() {
     await Promise.all([loadDashboard(false), loadAnalytics(granularity)])
     setRefreshing(false)
   }
+
+  useEffect(() => {
+    if (requestedTab === 'overview' || requestedTab === 'transactions' || requestedTab === 'tax' || requestedTab === 'sponsors') {
+      setActiveTab(requestedTab)
+    }
+  }, [requestedTab])
 
   useEffect(() => {
     void loadDashboard()
