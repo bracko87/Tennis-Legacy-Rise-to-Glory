@@ -7,10 +7,11 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react'
 import { createPortal } from 'react-dom'
-import { ChevronLeft, ChevronRight, Coins, Crown, GraduationCap, LockKeyhole, Pause, Sparkles, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Coins, Crown, GraduationCap, GripHorizontal, LockKeyhole, Pause, Sparkles, X } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router'
 
 import { useAuth } from '../auth/AuthContext'
@@ -524,6 +525,10 @@ function TutorialOverlay({
   const access = step.accessKey ? resources.access[step.accessKey] : null
   const isLast = stepIndex === TUTORIAL_STEPS.length - 1
   const progress = Math.round(((stepIndex + 1) / TUTORIAL_STEPS.length) * 100)
+  const cardRef = useRef<HTMLElement | null>(null)
+  const dragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null)
+  const [manualPosition, setManualPosition] = useState<{ left: number; top: number; width: number } | null>(null)
+  const [dragging, setDragging] = useState(false)
 
   const highlightStyle: CSSProperties | undefined = targetRect && targetReady
     ? {
@@ -534,7 +539,87 @@ function TutorialOverlay({
       }
     : undefined
 
-  const tooltipStyle = getTooltipStyle(targetRect, targetReady)
+  const clampCardPosition = useCallback((left: number, top: number, width?: number) => {
+    const rect = cardRef.current?.getBoundingClientRect()
+    const safeWidth = Math.min(
+      width ?? rect?.width ?? Math.min(430, window.innerWidth - 24),
+      Math.max(240, window.innerWidth - 24),
+    )
+    const safeHeight = Math.min(
+      rect?.height ?? Math.min(560, window.innerHeight - 24),
+      Math.max(160, window.innerHeight - 24),
+    )
+    const maxLeft = Math.max(12, window.innerWidth - safeWidth - 12)
+    const maxTop = Math.max(12, window.innerHeight - safeHeight - 12)
+
+    return {
+      left: clamp(left, 12, maxLeft),
+      top: clamp(top, 12, maxTop),
+      width: safeWidth,
+    }
+  }, [])
+
+  const handleDragStart = (event: ReactPointerEvent<HTMLElement>) => {
+    if ((event.target as HTMLElement).closest('button')) return
+
+    const rect = cardRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    event.currentTarget.setPointerCapture(event.pointerId)
+    dragRef.current = {
+      pointerId: event.pointerId,
+      offsetX: event.clientX - rect.left,
+      offsetY: event.clientY - rect.top,
+    }
+    setManualPosition(clampCardPosition(rect.left, rect.top, rect.width))
+    setDragging(true)
+  }
+
+  const handleDragMove = (event: ReactPointerEvent<HTMLElement>) => {
+    const drag = dragRef.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+
+    event.preventDefault()
+    setManualPosition((current) => clampCardPosition(
+      event.clientX - drag.offsetX,
+      event.clientY - drag.offsetY,
+      current?.width,
+    ))
+  }
+
+  const handleDragEnd = (event: ReactPointerEvent<HTMLElement>) => {
+    if (dragRef.current?.pointerId !== event.pointerId) return
+
+    dragRef.current = null
+    setDragging(false)
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+  }
+
+  useEffect(() => {
+    const keepCardOnScreen = () => {
+      setManualPosition((current) => current
+        ? clampCardPosition(current.left, current.top, current.width)
+        : null)
+    }
+
+    window.addEventListener('resize', keepCardOnScreen)
+    return () => window.removeEventListener('resize', keepCardOnScreen)
+  }, [clampCardPosition])
+
+  const automaticStyle = getTooltipStyle(targetRect, targetReady)
+  const tooltipStyle: CSSProperties = manualPosition
+    ? {
+        ...automaticStyle,
+        left: manualPosition.left,
+        top: manualPosition.top,
+        right: 'auto',
+        bottom: 'auto',
+        width: manualPosition.width,
+        maxHeight: Math.max(160, window.innerHeight - manualPosition.top - 12),
+      }
+    : automaticStyle
 
   return (
     <div className="tlg-tutorial-layer" aria-live="polite">
@@ -544,12 +629,26 @@ function TutorialOverlay({
         <div className="tlg-tutorial-full-backdrop" aria-hidden="true" />
       )}
 
-      <section className="tlg-tutorial-card" style={tooltipStyle} role="dialog" aria-modal="false" aria-label={resources.ui.tutorial}>
-        <header className="tlg-tutorial-card-head">
+      <section
+        ref={cardRef}
+        className={`tlg-tutorial-card${dragging ? ' is-dragging' : ''}`}
+        style={tooltipStyle}
+        role="dialog"
+        aria-modal="false"
+        aria-label={resources.ui.tutorial}
+      >
+        <header
+          className="tlg-tutorial-card-head"
+          onPointerDown={handleDragStart}
+          onPointerMove={handleDragMove}
+          onPointerUp={handleDragEnd}
+          onPointerCancel={handleDragEnd}
+        >
           <div>
             <span>{resources.ui.tutorial}</span>
             <strong>{phaseCopy?.title ?? phase.id}</strong>
             {phaseCopy?.description && <small>{phaseCopy.description}</small>}
+            <span className="tlg-tutorial-drag-hint"><GripHorizontal size={13} /> Drag window to move it</span>
           </div>
           <button type="button" onClick={() => void onPause()} aria-label={resources.ui.closeLabel} title={resources.ui.pause}>
             <X size={17} />
@@ -634,31 +733,40 @@ function getTooltipStyle(rect: TargetRect | null, targetReady: boolean): CSSProp
       right: 10,
       bottom: 10,
       width: 'auto',
+      maxHeight: Math.max(220, viewportHeight - 20),
     }
   }
 
   const width = Math.min(430, viewportWidth - 32)
+  const estimatedHeight = Math.min(560, viewportHeight - 32)
+
   if (!rect || !targetReady) {
+    const top = Math.max(16, (viewportHeight - estimatedHeight) / 2)
     return {
       width,
       left: (viewportWidth - width) / 2,
-      top: Math.max(20, (viewportHeight - 420) / 2),
+      top,
+      maxHeight: Math.max(220, viewportHeight - top - 16),
     }
   }
 
-  const estimatedHeight = 390
   const below = rect.bottom + 16
   const above = rect.top - estimatedHeight - 16
-  const top = below + estimatedHeight <= viewportHeight
+  const top = below + estimatedHeight <= viewportHeight - 16
     ? below
     : above >= 16
       ? above
-      : clamp(viewportHeight - estimatedHeight - 16, 16, viewportHeight - 120)
+      : Math.max(16, viewportHeight - estimatedHeight - 16)
 
   const preferredLeft = rect.left + rect.width / 2 - width / 2
   const left = clamp(preferredLeft, 16, viewportWidth - width - 16)
 
-  return { width, left, top }
+  return {
+    width,
+    left,
+    top,
+    maxHeight: Math.max(220, viewportHeight - top - 16),
+  }
 }
 
 export function useTutorial() {
