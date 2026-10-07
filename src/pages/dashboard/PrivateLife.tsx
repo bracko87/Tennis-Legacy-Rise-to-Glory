@@ -461,35 +461,44 @@ export default function PrivateLifePage() {
     [dashboard?.property_locations],
   )
 
+  const selectablePropertyLocations = useMemo(() => {
+    if (filter === 'apartment') {
+      return standardPropertyLocations.filter((location) => (location.available_apartment_codes ?? []).length > 0)
+    }
+    if (filter === 'house_villa') {
+      return standardPropertyLocations.filter((location) => (location.available_house_codes ?? []).length > 0)
+    }
+    return standardPropertyLocations
+  }, [filter, standardPropertyLocations])
+
   useEffect(() => {
-    if (!dashboard || propertyCountry || propertyLocationCode) return
+    if (!dashboard || selectablePropertyLocations.length === 0) return
+
+    const currentLocation = selectablePropertyLocations.find((location) => location.code === propertyLocationCode)
+    if (currentLocation && currentLocation.country_code === propertyCountry) return
+
     const starter = dashboard.owned_assets.find((asset) => asset.acquisition_type === 'starter_home' && asset.location_code)
     const homeLocation = starter?.location_code ? dashboard.property_locations.find((location) => location.code === starter.location_code) : undefined
     const matchingMarketplaceLocation = homeLocation
-      ? standardPropertyLocations.find((location) =>
+      ? selectablePropertyLocations.find((location) =>
           location.country_code === homeLocation.country_code &&
           location.city.localeCompare(homeLocation.city, undefined, { sensitivity: 'base' }) === 0,
         )
       : undefined
-    const firstLocation =
-      (homeLocation?.is_standard_location !== false ? homeLocation : undefined) ??
-      matchingMarketplaceLocation ??
-      standardPropertyLocations[0]
-    if (firstLocation) {
-      setPropertyCountry(firstLocation.country_code)
-      setPropertyLocationCode(firstLocation.code)
-    }
-  }, [dashboard, propertyCountry, propertyLocationCode, standardPropertyLocations])
+    const firstLocation = matchingMarketplaceLocation ?? selectablePropertyLocations[0]
+    setPropertyCountry(firstLocation.country_code)
+    setPropertyLocationCode(firstLocation.code)
+  }, [dashboard, propertyCountry, propertyLocationCode, selectablePropertyLocations])
 
   const countries = useMemo(() => {
     const map = new Map<string, string>()
-    standardPropertyLocations.forEach((location) => map.set(location.country_code, location.country_name))
+    selectablePropertyLocations.forEach((location) => map.set(location.country_code, location.country_name))
     return [...map.entries()].map(([code, name]) => ({ code, name })).sort((a, b) => a.name.localeCompare(b.name))
-  }, [standardPropertyLocations])
+  }, [selectablePropertyLocations])
 
   const countryLocations = useMemo(
-    () => standardPropertyLocations.filter((location) => !propertyCountry || location.country_code === propertyCountry),
-    [standardPropertyLocations, propertyCountry],
+    () => selectablePropertyLocations.filter((location) => !propertyCountry || location.country_code === propertyCountry),
+    [selectablePropertyLocations, propertyCountry],
   )
 
   useEffect(() => {
@@ -498,8 +507,8 @@ export default function PrivateLifePage() {
   }, [countryLocations, propertyCountry, propertyLocationCode])
 
   const selectedPropertyLocation = useMemo(
-    () => dashboard?.property_locations.find((location) => location.code === propertyLocationCode),
-    [dashboard?.property_locations, propertyLocationCode],
+    () => selectablePropertyLocations.find((location) => location.code === propertyLocationCode),
+    [propertyLocationCode, selectablePropertyLocations],
   )
 
   const marketplaceListings = useMemo<MarketplaceListing[]>(() => {
@@ -886,7 +895,7 @@ export default function PrivateLifePage() {
               <div className="private-life-property-selector">
                 <div><span>Property country</span><select value={propertyCountry} onChange={(event) => {
                   const countryCode = event.target.value
-                  const firstLocation = standardPropertyLocations.find((location) => location.country_code === countryCode)
+                  const firstLocation = selectablePropertyLocations.find((location) => location.country_code === countryCode)
                   setPropertyCountry(countryCode)
                   setPropertyLocationCode(firstLocation?.code ?? '')
                 }}>{countries.map((country) => <option key={country.code} value={country.code}>{country.name}</option>)}</select></div>
@@ -902,7 +911,7 @@ export default function PrivateLifePage() {
               <label className="private-life-marketplace-affordable"><input type="checkbox" checked={marketAffordableOnly} onChange={(event) => setMarketAffordableOnly(event.target.checked)} /><span>Affordable only</span></label>
               <button type="button" className="private-life-marketplace-reset" onClick={() => { setMarketSearch(''); setMarketPrice('all'); setMarketRarity('all'); setMarketSort('default'); setMarketAffordableOnly(false); setFilter('all') }}>Reset</button>
             </div>
-            <div className="private-life-marketplace-results"><span>{visibleCatalog.length} listings</span><span>{dashboard.catalog.length} base asset types · {standardPropertyLocations.length} standard property destinations</span></div>
+            <div className="private-life-marketplace-results"><span>{visibleCatalog.length} listings</span><span>{dashboard.catalog.length} base asset types · {(filter === 'apartment' || filter === 'house_villa') ? selectablePropertyLocations.length : standardPropertyLocations.length} available property destinations</span></div>
             {visibleCatalog.length === 0 ? <div className="private-life-empty"><strong>No marketplace matches</strong><p>Change the category, destination, price or rarity filters to see more assets.</p></div> : (
               <div className="private-life-market-grid">
                 {visibleCatalog.map((listing) => {
