@@ -173,9 +173,9 @@
 .tlg-tutorial-access {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 10px;
-  margin: 0 0 15px;
-  padding: 11px 12px;
+  gap: 9px;
+  margin: 14px 0 0;
+  padding: 9px 10px;
   border: 1px solid #d9e6ef;
   border-radius: 10px;
   background: #f8fbfd;
@@ -213,10 +213,10 @@
 }
 
 .tlg-tutorial-access > div > p {
-  margin: 4px 0 0;
+  margin: 3px 0 0;
   color: #577187;
-  font-size: 11px;
-  line-height: 1.45;
+  font-size: 10.5px;
+  line-height: 1.4;
 }
 
 .tlg-tutorial-access-premium {
