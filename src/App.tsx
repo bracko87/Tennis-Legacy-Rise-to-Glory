@@ -23,6 +23,7 @@ import {
 } from 'react-router'
 
 import { AuthProvider } from './auth/AuthContext'
+import { TutorialProvider } from './tutorial/TutorialProvider'
 import {
   AnonymousOnly,
   RequireAdmin,
@@ -191,8 +192,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AnalyticsTracker />
-        <Routes>
+        <TutorialProvider>
+          <AnalyticsTracker />
+          <Routes>
           <Route path="/" element={<HomeRoute />} />
           <Route path="/r/:code" element={<ReferralLandingPage />} />
           <Route path="/reviews/add" element={<PublicReviewSubmissionPage />} />
@@ -239,7 +241,8 @@ export default function App() {
           <Route path="/game/admin/reviews" element={<RequireAdmin><AdminReviewsPage /></RequireAdmin>} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+          </Routes>
+        </TutorialProvider>
       </AuthProvider>
     </BrowserRouter>
   )
