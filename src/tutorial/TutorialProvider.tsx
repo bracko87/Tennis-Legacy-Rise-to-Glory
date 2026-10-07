@@ -668,7 +668,7 @@ function TutorialOverlay({
           <p>{copy.body}</p>
           {copy.action && (
             <div className="tlg-tutorial-action">
-              <span>{copy.actionLabel ?? resources.ui.tip}</span>
+              <span>{copy.actionLabel ?? (copy.tip ? resources.ui.doThis : resources.ui.tip)}</span>
               <p>{copy.action}</p>
             </div>
           )}
