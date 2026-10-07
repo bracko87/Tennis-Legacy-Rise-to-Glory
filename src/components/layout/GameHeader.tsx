@@ -233,7 +233,7 @@ export default function GameHeader({
               >
                 <GraduationCap size={15} />
                 <span>
-                  <strong>${tutorialStatus === 'completed' || tutorialStatus === 'skipped' ? 'Restart Tutorial' : 'Game Tutorial'}</strong>
+                  <strong>{tutorialStatus === 'completed' || tutorialStatus === 'skipped' ? 'Restart Tutorial' : 'Game Tutorial'}</strong>
                   <small>Guided tour of every game page</small>
                 </span>
               </button>
