@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from 'react'
 import { createPortal } from 'react-dom'
-import { ChevronLeft, ChevronRight, GraduationCap, Pause, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Coins, Crown, GraduationCap, LockKeyhole, Pause, Sparkles, X } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router'
 
 import { useAuth } from '../auth/AuthContext'
@@ -476,6 +476,7 @@ function TutorialOverlay({
   const copyKey = !hasTournament && step.noTournamentCopyKey ? step.noTournamentCopyKey : step.copyKey
   const copy = resources.steps[copyKey] ?? resources.steps[step.copyKey]
   const phaseCopy = resources.phases[phase.titleKey]
+  const access = step.accessKey ? resources.access[step.accessKey] : null
   const isLast = stepIndex === TUTORIAL_STEPS.length - 1
   const progress = Math.round(((stepIndex + 1) / TUTORIAL_STEPS.length) * 100)
 
@@ -520,6 +521,24 @@ function TutorialOverlay({
         </div>
 
         <div className="tlg-tutorial-copy">
+          {access && (
+            <div className={`tlg-tutorial-access tlg-tutorial-access-${access.tone}`}>
+              <span className="tlg-tutorial-access-icon" aria-hidden="true">
+                {access.tone === 'coins'
+                  ? <Coins size={18} />
+                  : access.tone === 'premium'
+                    ? <Crown size={18} />
+                    : access.tone === 'mixed'
+                      ? <LockKeyhole size={18} />
+                      : <Sparkles size={18} />}
+              </span>
+              <div>
+                <span>{access.label}</span>
+                <strong>{access.title}</strong>
+                <p>{access.body}</p>
+              </div>
+            </div>
+          )}
           <h2>{copy.title}</h2>
           <p>{copy.body}</p>
           <div className="tlg-tutorial-action">
