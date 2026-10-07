@@ -1,0 +1,347 @@
+.tlg-tutorial-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  pointer-events: none;
+  font-family: inherit;
+}
+
+.tlg-tutorial-full-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 25, 40, .68);
+  backdrop-filter: blur(1.5px);
+}
+
+.tlg-tutorial-highlight {
+  position: fixed;
+  border: 2px solid #1787d8;
+  border-radius: 13px;
+  box-shadow:
+    0 0 0 9999px rgba(7, 25, 40, .64),
+    0 0 0 4px rgba(23, 135, 216, .16),
+    0 14px 34px rgba(9, 32, 50, .16);
+  transition:
+    top .18s ease,
+    left .18s ease,
+    width .18s ease,
+    height .18s ease;
+  pointer-events: none;
+}
+
+.tlg-tutorial-card {
+  position: fixed;
+  max-height: min(620px, calc(100vh - 32px));
+  overflow: auto;
+  border: 1px solid #d6e3ec;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 22px 62px rgba(9, 32, 50, .28);
+  pointer-events: auto;
+  color: #173149;
+}
+
+.tlg-tutorial-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 17px 18px 12px;
+  border-bottom: 1px solid #e5edf3;
+}
+
+.tlg-tutorial-card-head > div {
+  display: grid;
+  gap: 3px;
+}
+
+.tlg-tutorial-card-head span,
+.tlg-tutorial-action > span,
+.tlg-tutorial-tip > span {
+  color: #1a72bb;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: .085em;
+  text-transform: uppercase;
+}
+
+.tlg-tutorial-card-head strong {
+  color: #173149;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tlg-tutorial-card-head button {
+  width: 31px;
+  height: 31px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid #d7e3ec;
+  border-radius: 8px;
+  background: #fff;
+  color: #58738a;
+  cursor: pointer;
+}
+
+.tlg-tutorial-card-head button:hover {
+  background: #f5f9fc;
+  color: #173149;
+}
+
+.tlg-tutorial-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px 7px;
+  color: #6c8498;
+  font-size: 10px;
+}
+
+.tlg-tutorial-progress-row span:last-child {
+  margin-left: auto;
+  color: #1a72bb;
+}
+
+.tlg-tutorial-progress-track {
+  height: 4px;
+  margin: 0 18px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #eaf1f6;
+}
+
+.tlg-tutorial-progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #0e77c7, #39a2e8);
+  transition: width .2s ease;
+}
+
+.tlg-tutorial-copy {
+  padding: 17px 18px 6px;
+}
+
+.tlg-tutorial-copy h2 {
+  margin: 0 0 9px;
+  color: #102d45;
+  font-size: 20px;
+  font-weight: 620;
+  line-height: 1.25;
+}
+
+.tlg-tutorial-copy > p {
+  margin: 0;
+  color: #4c687d;
+  font-size: 13px;
+  line-height: 1.62;
+}
+
+.tlg-tutorial-action,
+.tlg-tutorial-tip {
+  margin-top: 14px;
+  padding: 11px 12px;
+  border: 1px solid #d9e8f2;
+  border-radius: 10px;
+  background: #f6fafd;
+}
+
+.tlg-tutorial-tip {
+  border-color: #e5dfc8;
+  background: #fffdf5;
+}
+
+.tlg-tutorial-action p,
+.tlg-tutorial-tip p {
+  margin: 4px 0 0;
+  color: #37536a;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.tlg-tutorial-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px 17px;
+}
+
+.tlg-tutorial-card-footer > div {
+  display: flex;
+  gap: 8px;
+}
+
+.tlg-tutorial-card-footer button {
+  min-height: 36px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.tlg-tutorial-text-button {
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: #70879a;
+}
+
+.tlg-tutorial-text-button:hover {
+  color: #314e65;
+}
+
+.tlg-tutorial-secondary,
+.tlg-tutorial-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 13px;
+}
+
+.tlg-tutorial-secondary {
+  border: 1px solid #d3e0e9;
+  background: #fff;
+  color: #38566e;
+}
+
+.tlg-tutorial-secondary:disabled {
+  opacity: .42;
+  cursor: default;
+}
+
+.tlg-tutorial-primary {
+  border: 1px solid #0c76c8;
+  background: #0c76c8;
+  color: #fff;
+}
+
+.tlg-tutorial-primary:hover {
+  background: #0969b3;
+}
+
+.tlg-tutorial-pause-compact {
+  display: none;
+}
+
+.tlg-tutorial-resume {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 2147482990;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 15px;
+  border: 1px solid #0c76c8;
+  border-radius: 10px;
+  background: #fff;
+  color: #0c6db6;
+  box-shadow: 0 12px 30px rgba(9, 32, 50, .18);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tlg-tutorial-launcher {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid #0c76c8;
+  border-radius: 8px;
+  background: #0c76c8;
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tlg-tutorial-launcher:hover {
+  background: #0969b3;
+}
+
+.tlg-tutorial-preferences-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid #dce7ef;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.tlg-tutorial-preferences-card > div {
+  display: grid;
+  gap: 5px;
+}
+
+.tlg-tutorial-preferences-card strong {
+  color: #173149;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tlg-tutorial-preferences-card p {
+  margin: 0;
+  color: #627b8f;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .tlg-tutorial-highlight {
+    border-radius: 10px;
+  }
+
+  .tlg-tutorial-card {
+    max-height: min(70vh, 560px);
+    border-radius: 14px;
+  }
+
+  .tlg-tutorial-copy h2 {
+    font-size: 18px;
+  }
+
+  .tlg-tutorial-card-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tlg-tutorial-card-footer > div {
+    width: 100%;
+  }
+
+  .tlg-tutorial-secondary,
+  .tlg-tutorial-primary {
+    flex: 1 1 0;
+  }
+
+  .tlg-tutorial-text-button {
+    align-self: flex-start;
+  }
+
+  .tlg-tutorial-resume {
+    right: 10px;
+    bottom: 10px;
+  }
+
+  .tlg-tutorial-preferences-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tlg-tutorial-highlight,
+  .tlg-tutorial-progress-track span {
+    transition: none;
+  }
+}
