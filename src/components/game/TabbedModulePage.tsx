@@ -71,7 +71,9 @@ export default function TabbedModulePage({
     if (initialTabId && tabs.some((tab) => tab.id === initialTabId)) {
       setActiveTabId(initialTabId)
     }
-  }, [initialTabId, tabs])
+    // initialTabId is the external navigation signal; normal tab clicks must remain local.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialTabId])
 
   const activeTab = useMemo(
     () => tabs.find((tab) => tab.id === activeTabId) ?? tabs[0],
