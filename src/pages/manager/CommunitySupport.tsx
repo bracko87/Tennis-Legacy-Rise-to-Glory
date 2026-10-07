@@ -1,6 +1,7 @@
-import { CircleHelp, LifeBuoy, MessageSquare } from 'lucide-react'
+import { CircleHelp, GraduationCap, LifeBuoy, MessageSquare } from 'lucide-react'
 
 import GameLayout from '../../components/layout/GameLayout'
+import { useTutorial } from '../../tutorial/TutorialProvider'
 import '../../styles/community-support.css'
 
 const DISCORD_INVITE = 'https://discord.gg/RBBtXgZey2'
@@ -50,6 +51,8 @@ export function ForumPage() {
 }
 
 export function HelpPage() {
+  const { status: tutorialStatus, restartTutorial } = useTutorial()
+
   return (
     <GameLayout title="Help" subtitle="Guides, quick links and support">
       <div className="tlg-community-page">
@@ -63,7 +66,15 @@ export function HelpPage() {
             </p>
           </div>
           <div className="tlg-community-actions">
-            <a className="tlg-community-button tlg-community-button-primary" href="/game/manual">
+            <button
+              type="button"
+              className="tlg-community-button tlg-community-button-primary"
+              onClick={() => void restartTutorial()}
+            >
+              <GraduationCap size={15} aria-hidden="true" />
+              {tutorialStatus === 'completed' || tutorialStatus === 'skipped' ? 'Restart Game Tutorial' : 'Start Game Tutorial'}
+            </button>
+            <a className="tlg-community-button" href="/game/manual">
               Full Game Manual
             </a>
             <a className="tlg-community-button" href="/game/manual?download=pdf">
