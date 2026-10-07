@@ -31,8 +31,9 @@
 
 .tlg-tutorial-card {
   position: fixed;
-  max-height: min(620px, calc(100vh - 32px));
+  max-height: min(620px, calc(100dvh - 24px));
   overflow: auto;
+  overscroll-behavior: contain;
   border: 1px solid #d6e3ec;
   border-radius: 15px;
   background: #fff;
@@ -42,12 +43,23 @@
 }
 
 .tlg-tutorial-card-head {
+  position: sticky;
+  top: 0;
+  z-index: 3;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 18px;
   padding: 17px 18px 12px;
   border-bottom: 1px solid #e5edf3;
+  background: #fff;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.tlg-tutorial-card.is-dragging .tlg-tutorial-card-head {
+  cursor: grabbing;
 }
 
 .tlg-tutorial-card-head > div {
@@ -76,6 +88,19 @@
   color: #72899b;
   font-size: 10.5px;
   line-height: 1.4;
+}
+
+.tlg-tutorial-card-head .tlg-tutorial-drag-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  margin-top: 3px;
+  color: #7b91a3;
+  font-size: 9px;
+  font-weight: 550;
+  letter-spacing: .02em;
+  text-transform: none;
 }
 
 .tlg-tutorial-card-head button {
@@ -273,11 +298,16 @@
 }
 
 .tlg-tutorial-card-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 14px 18px 17px;
+  border-top: 1px solid #e8eef3;
+  background: #fff;
 }
 
 .tlg-tutorial-card-footer > div {
@@ -415,7 +445,7 @@
   }
 
   .tlg-tutorial-card {
-    max-height: min(70vh, 560px);
+    max-height: calc(100dvh - 20px);
     border-radius: 14px;
   }
 
