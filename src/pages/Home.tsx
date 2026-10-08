@@ -15,6 +15,7 @@ import {
   Check,
   CircleDollarSign,
   Clock3,
+  Crown,
   Dumbbell,
   Globe2,
   MapPin,
@@ -592,6 +593,53 @@ export default function HomePage() {
                 </p>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section className="tlg-home-pricing-section" id="premium">
+          <div className="tlg-section">
+            <div className="tlg-home-pricing-heading">
+              <span className="tlg-section-eyebrow">Optional Premium</span>
+              <h2>Play free. Upgrade only if you want more.</h2>
+              <p>
+                The core Tennis Legacy career remains free. Premium adds optional advanced tools,
+                Premium-only features and coin rewards. Choose the billing period that fits you.
+              </p>
+            </div>
+
+            <div className="tlg-home-pricing-grid">
+              <article className="tlg-home-price-card">
+                <span>Monthly</span>
+                <strong>€3.29</strong>
+                <small>every month</small>
+                <p>30 coins after each successful monthly payment.</p>
+                <Link to="/register" className="tlg-btn tlg-btn-secondary">Start Free</Link>
+              </article>
+
+              <article className="tlg-home-price-card tlg-home-price-card-featured">
+                <div className="tlg-home-price-badge">Most popular</div>
+                <Crown size={24} />
+                <span>3 Months</span>
+                <strong>€9.49</strong>
+                <small>every 3 months · €3.16/month</small>
+                <p>90 coins after each successful 3-month payment.</p>
+                <Link to="/register" className="tlg-btn tlg-btn-primary">Start Free</Link>
+              </article>
+
+              <article className="tlg-home-price-card">
+                <div className="tlg-home-price-badge tlg-home-price-badge-save">Save 15%</div>
+                <span>12 Months</span>
+                <strong>€33.49</strong>
+                <small>per year · €2.79/month</small>
+                <p>360 coins after each successful annual payment.</p>
+                <Link to="/register" className="tlg-btn tlg-btn-secondary">Start Free</Link>
+              </article>
+            </div>
+
+            <p className="tlg-home-pricing-note">
+              Premium and coin packs are optional. Buying coins does not activate Premium,
+              and Premium does not remove separate coin costs for optional coin actions.
+            </p>
           </div>
         </section>
 
