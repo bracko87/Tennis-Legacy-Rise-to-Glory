@@ -17,6 +17,7 @@ export interface GameConfirmDialogProps {
   cancelLabel?: string
   busy?: boolean
   tone?: 'danger' | 'warning' | 'success' | 'neutral'
+  showConfirm?: boolean
   onConfirm: () => void | Promise<void>
   onCancel: () => void
 }
@@ -33,6 +34,7 @@ export default function GameConfirmDialog({
   cancelLabel = 'Cancel',
   busy = false,
   tone = 'danger',
+  showConfirm = true,
   onConfirm,
   onCancel,
 }: GameConfirmDialogProps) {
@@ -109,14 +111,16 @@ export default function GameConfirmDialog({
           >
             {cancelLabel}
           </button>
-          <button
-            type="button"
-            className={tone === 'danger' ? 'danger' : 'primary'}
-            disabled={busy}
-            onClick={() => void onConfirm()}
-          >
-            {busy ? 'Processing…' : confirmLabel}
-          </button>
+          {showConfirm ? (
+            <button
+              type="button"
+              className={tone === 'danger' ? 'danger' : 'primary'}
+              disabled={busy}
+              onClick={() => void onConfirm()}
+            >
+              {busy ? 'Processing…' : confirmLabel}
+            </button>
+          ) : null}
         </footer>
       </section>
     </div>,
