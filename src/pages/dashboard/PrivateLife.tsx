@@ -450,7 +450,7 @@ export default function PrivateLifePage() {
     if (!isPremium) return
     setLoading(true)
     setError(null)
-    const { data, error: rpcError } = await supabase.rpc('get_private_life_dashboard_v3')
+    const { data, error: rpcError } = await supabase.rpc('get_private_life_dashboard_v1')
     if (rpcError) {
       setError(rpcError.message)
       setLoading(false)
