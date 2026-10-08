@@ -73,6 +73,12 @@ export function useCommerce() {
     void refresh()
   }, [refresh])
 
+  useEffect(() => {
+    const handleCoinChange = () => { void refresh() }
+    window.addEventListener('tlg-coin-balance-changed', handleCoinChange)
+    return () => window.removeEventListener('tlg-coin-balance-changed', handleCoinChange)
+  }, [refresh])
+
   const isPremium = useMemo(() => {
     if (!membership || membership.plan_code !== 'premium' || membership.status !== 'active') return false
     if (!membership.current_period_end) return true
