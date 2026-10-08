@@ -202,6 +202,102 @@
   color: #566d7f;
 }
 
+.tlg-commerce-premium-featured {
+  width: 100%;
+  margin-top: 16px;
+  padding: 20px;
+  border: 2px solid #0b6fc8;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 12px 26px rgba(11, 111, 200, .10);
+}
+
+.tlg-commerce-premium-featured > strong {
+  display: block;
+  margin-top: 9px;
+  color: #07182a;
+  font-size: 2rem;
+}
+
+.tlg-commerce-premium-featured > small {
+  display: block;
+  margin-top: 3px;
+  color: #61778a;
+  font-size: .75rem;
+}
+
+.tlg-commerce-plan-badge,
+.tlg-commerce-plan-saving {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: .64rem;
+  font-weight: 800;
+}
+
+.tlg-commerce-plan-badge {
+  color: #fff;
+  background: #0b6fc8;
+}
+
+.tlg-commerce-plan-saving {
+  color: #12683d;
+  background: #ddf5e7;
+}
+
+.tlg-commerce-premium-alternatives {
+  width: 100%;
+  display: grid;
+  gap: 9px;
+  margin-top: 10px;
+}
+
+.tlg-commerce-premium-option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px 12px;
+  align-items: center;
+  padding: 12px 13px;
+  border: 1px solid #cfe0ec;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .76);
+}
+
+.tlg-commerce-premium-option > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.tlg-commerce-premium-option > div > span {
+  color: #29465d;
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+.tlg-commerce-premium-option > strong {
+  color: #07182a;
+  font-size: 1rem;
+}
+
+.tlg-commerce-premium-option > small {
+  color: #718492;
+  font-size: .68rem;
+}
+
+.tlg-commerce-premium-option > button {
+  grid-column: 2;
+  grid-row: 2;
+  width: auto;
+  min-height: 30px;
+  margin: 0;
+  padding: 0 10px;
+  border-radius: 7px;
+  font-size: .68rem;
+}
+
 .tlg-commerce-premium-side button,
 .tlg-commerce-pack button {
   width: 100%;
@@ -215,6 +311,10 @@
 .tlg-commerce-premium-side button {
   color: #fff;
   background: #054e98;
+}
+
+.tlg-commerce-premium-featured > button {
+  margin-top: 14px;
 }
 
 .tlg-commerce-premium-side p {
@@ -539,6 +639,10 @@
   .tlg-commerce-premium-main,
   .tlg-commerce-premium-side {
     padding: 22px;
+  }
+
+  .tlg-commerce-premium-option {
+    grid-template-columns: 1fr auto;
   }
 
   .tlg-commerce-pack-grid,
