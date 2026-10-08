@@ -277,7 +277,9 @@ function metadataNumber(asset: CatalogAsset, key: string, fallback: number) {
 
 function metadataText(asset: CatalogAsset | undefined, key: string) {
   const value = asset?.metadata?.[key]
-  return typeof value === 'string' ? value.trim() : ''
+  if (typeof value === 'string') return value.trim()
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  return ''
 }
 
 function yachtBuilder(asset: CatalogAsset | undefined) {
