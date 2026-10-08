@@ -60,6 +60,15 @@ interface CoinPack {
   badge?: string
 }
 
+interface PremiumOffer {
+  code: 'premium_monthly' | 'premium_quarterly' | 'premium_yearly'
+  label: string
+  months: number
+  fallbackPriceCents: number
+  fallbackCoins: number
+  badge?: string
+}
+
 const fallbackCoinPacks: readonly CoinPack[] = [
   { code: 'coin_70', coins: 70, price: 2.99, paymentLinkUrl: '', helper: 'Starter boost' },
   { code: 'coin_130', coins: 130, price: 4.99, paymentLinkUrl: '', helper: 'Great for a new season' },
@@ -69,13 +78,19 @@ const fallbackCoinPacks: readonly CoinPack[] = [
   { code: 'coin_900', coins: 900, price: 29.99, paymentLinkUrl: '', helper: 'Best for long-term play', badge: 'Best value' },
 ]
 
+const premiumOffers: readonly PremiumOffer[] = [
+  { code: 'premium_quarterly', label: '3 Months', months: 3, fallbackPriceCents: 949, fallbackCoins: 90, badge: 'Most popular' },
+  { code: 'premium_monthly', label: 'Monthly', months: 1, fallbackPriceCents: 329, fallbackCoins: 30 },
+  { code: 'premium_yearly', label: '12 Months', months: 12, fallbackPriceCents: 3349, fallbackCoins: 360, badge: 'Save 15%' },
+] as const
+
 const comparisonRows = [
   ['Create and manage your professional player', true, true],
   ['Play ATP or WTA singles tournaments', true, true],
   ['Core training, equipment and finance systems', true, true],
   ['Account access without coins', true, true],
   ['Premium analysis and advanced tools', false, true],
-  ['Monthly Premium coin reward', '—', '30'],
+  ['Premium coin reward', '—', '30 coins per covered month'],
   ['Buy additional coin packages', true, true],
   ['Use optional coin features', true, true],
 ] as const
@@ -199,13 +214,19 @@ export default function ProPackagesPage() {
     window.location.assign(url.toString())
   }
 
-  const premiumCatalog = catalog.find((item) => item.code === 'premium_monthly')
   const membership = commerce.membership
   const planName = commerce.isPremium ? 'Tennis Legacy Premium' : 'Tennis Legacy Free'
-  const premiumPriceCents = premiumCatalog?.price_eur_cents ?? commerceSettings?.premium_monthly_price_eur_cents ?? 329
-  const premiumCoins = premiumCatalog?.coins ?? commerceSettings?.premium_monthly_coin_reward ?? 30
-  const monthlyPrice = commerce.isPremium ? premiumPriceCents : 0
-  const monthlyCoins = commerce.isPremium ? premiumCoins : 0
+  const resolvedPremiumOffers = premiumOffers.map((offer) => {
+    const item = catalog.find((candidate) => candidate.code === offer.code)
+    const priceCents = item?.price_eur_cents ?? offer.fallbackPriceCents
+    const coins = item?.coins ?? offer.fallbackCoins
+    return { ...offer, priceCents, coins, monthlyEquivalentCents: Math.round(priceCents / offer.months) }
+  })
+  const mainPremiumOffer = resolvedPremiumOffers.find((offer) => offer.code === 'premium_quarterly')!
+  const activeBillingMonths = membership?.billing_period_months ?? 1
+  const activeBillingAmount = membership?.billing_amount_eur_cents ?? (commerce.isPremium ? membership?.monthly_price_eur_cents ?? 329 : 0)
+  const activeMonthlyEquivalent = commerce.isPremium ? membership?.monthly_price_eur_cents ?? 329 : 0
+  const activeCoinsPerPayment = membership?.coins_per_payment ?? (commerce.isPremium ? membership?.monthly_coin_reward ?? 30 : 0)
   const coinPacks: readonly CoinPack[] = fallbackCoinPacks.map((fallback) => {
     const item = catalog.find((candidate) => candidate.code === fallback.code)
     return item ? {
@@ -246,13 +267,13 @@ export default function ProPackagesPage() {
               </span>
             </div>
             <h2>Tennis Legacy Premium</h2>
-            <div className="tlg-commerce-price"><strong>€3.29</strong><span>per real-life month</span></div>
+            <div className="tlg-commerce-price"><strong>{formatMoney(mainPremiumOffer.priceCents)}</strong><span>every 3 real-life months · {formatMoney(mainPremiumOffer.monthlyEquivalentCents)}/month</span></div>
             <ul className="tlg-commerce-benefits">
               <li><Check size={15} /> Advanced player analysis and deeper management tools.</li>
               <li><Check size={15} /> Additional scouting, preparation and career-planning insights as those systems launch.</li>
               <li><Check size={15} /> Premium convenience features without removing core gameplay from Free players.</li>
-              <li><Check size={15} /> Receive 30 coins after every successful monthly Premium payment.</li>
-              <li><Check size={15} /> Cancel at any time; normal gameplay remains free.</li>
+              <li><Check size={15} /> Receive 30 coins per covered month: 30 monthly, 90 every 3 months, or 360 yearly.</li>
+              <li><Check size={15} /> Choose monthly, 3-month or annual billing; normal gameplay remains free.</li>
             </ul>
             <div className="tlg-commerce-free-rule">
               <strong>{commerce.isPremium ? 'Premium is active.' : 'Free gameplay remains fully available.'}</strong>
@@ -263,23 +284,53 @@ export default function ProPackagesPage() {
           <aside className="tlg-commerce-premium-side">
             <Crown size={25} />
             <span>Premium membership</span>
-            <strong>€3.29</strong>
-            <small>per real-life month</small>
-            <button
-              type="button"
-              onClick={() => {
-                if (commerce.isPremium) {
-                  const portalUrl = commerceSettings?.stripe_customer_portal_url
-                  if (portalUrl) window.location.assign(portalUrl)
-                  else showStripeNotice('Subscription management is temporarily unavailable.')
-                } else {
-                  void openStripeCheckout('premium_monthly')
-                }
-              }}
-            >
-              {commerce.isPremium ? 'Manage subscription' : 'Get Premium'}
-            </button>
-            <p>Secure checkout, recurring billing and subscription management are provided by Stripe.</p>
+            <div className="tlg-commerce-premium-featured">
+              <span className="tlg-commerce-plan-badge">Most popular</span>
+              <strong>{formatMoney(mainPremiumOffer.priceCents)}</strong>
+              <small>every 3 months · {formatMoney(mainPremiumOffer.monthlyEquivalentCents)}/month</small>
+              <button
+                type="button"
+                onClick={() => {
+                  if (commerce.isPremium) {
+                    const portalUrl = commerceSettings?.stripe_customer_portal_url
+                    if (portalUrl) window.location.assign(portalUrl)
+                    else showStripeNotice('Subscription management is temporarily unavailable.')
+                  } else {
+                    void openStripeCheckout('premium_quarterly')
+                  }
+                }}
+              >
+                {commerce.isPremium ? 'Manage subscription' : 'Choose 3 months'}
+              </button>
+            </div>
+
+            <div className="tlg-commerce-premium-alternatives">
+              {resolvedPremiumOffers.filter((offer) => offer.code !== 'premium_quarterly').map((offer) => (
+                <div key={offer.code} className="tlg-commerce-premium-option">
+                  <div>
+                    <span>{offer.label}</span>
+                    {offer.badge && <small className="tlg-commerce-plan-saving">{offer.badge}</small>}
+                  </div>
+                  <strong>{formatMoney(offer.priceCents)}</strong>
+                  <small>{offer.months === 1 ? 'per month' : `per year · ${formatMoney(offer.monthlyEquivalentCents)}/month`}</small>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (commerce.isPremium) {
+                        const portalUrl = commerceSettings?.stripe_customer_portal_url
+                        if (portalUrl) window.location.assign(portalUrl)
+                        else showStripeNotice('Subscription management is temporarily unavailable.')
+                      } else {
+                        void openStripeCheckout(offer.code)
+                      }
+                    }}
+                  >
+                    {commerce.isPremium ? 'Manage' : offer.months === 1 ? 'Choose monthly' : 'Choose annual'}
+                  </button>
+                </div>
+              ))}
+            </div>
+            <p>Secure checkout and recurring billing are provided by Stripe. Existing subscribers keep their current plan unless they change it.</p>
           </aside>
         </section>
 
@@ -341,8 +392,10 @@ export default function ProPackagesPage() {
             <MembershipStat label="Started" value={formatDate(membership?.started_at)} />
             <MembershipStat label="Current period ends" value={formatDate(membership?.current_period_end)} />
             <MembershipStat label="Next renewal" value={commerce.isPremium && !membership?.cancel_at_period_end ? formatDate(membership?.current_period_end) : '—'} />
-            <MembershipStat label="Monthly price" value={formatMoney(monthlyPrice)} />
-            <MembershipStat label="Monthly coin reward" value={`${monthlyCoins} coins`} />
+            <MembershipStat label="Billing plan" value={commerce.isPremium ? activeBillingMonths === 12 ? '12 months' : activeBillingMonths === 3 ? '3 months' : 'Monthly' : 'Free'} />
+            <MembershipStat label="Price per billing period" value={formatMoney(activeBillingAmount)} />
+            <MembershipStat label="Monthly equivalent" value={formatMoney(activeMonthlyEquivalent)} />
+            <MembershipStat label="Coin reward per payment" value={`${activeCoinsPerPayment} coins`} />
             <MembershipStat label="Cancel at period end" value={membership?.cancel_at_period_end ? 'Yes' : 'No'} />
           </div>
         </section>
