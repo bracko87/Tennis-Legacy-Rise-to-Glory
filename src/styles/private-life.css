@@ -513,6 +513,15 @@
   gap: 10px;
 }
 
+.private-life-yacht-builder {
+  margin-top: 3px;
+  color: #6d8194;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .private-life-card h4,
 .private-life-owned-card h4 {
   color: #243148;
