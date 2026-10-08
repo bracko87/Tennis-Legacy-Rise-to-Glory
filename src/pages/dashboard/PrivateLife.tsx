@@ -972,7 +972,7 @@ export default function PrivateLifePage() {
                     <article className="private-life-owned-card" key={asset.id}>
                       <div className="private-life-card-image"><AssetImage src={ownedImageUrl} name={asset.name} /><div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(asset.rarity)}</span><span className="private-life-badge level">+{asset.prestige} prestige pts</span></div></div>
                       <div className="private-life-card-body">
-                        <div className="private-life-card-title-row"><div><h4>{asset.name}</h4>{catalogAsset && yachtBuilder(catalogAsset) ? <div className="private-life-yacht-builder">{yachtBuilder(catalogAsset)}</div> : null}</div><div className="private-life-price">{money(asset.current_market_value, currency)}</div></div>
+                        <div className="private-life-card-title-row"><div>{catalogAsset && yachtBuilder(catalogAsset) ? <div className="private-life-yacht-builder">{yachtBuilder(catalogAsset)}</div> : null}<h4>{asset.name}</h4></div><div className="private-life-price">{money(asset.current_market_value, currency)}</div></div>
                         {asset.acquisition_type === 'starter_home' ? <div className="private-life-starter-home-label">Starting home residence</div> : null}
                         <p className="private-life-description">{asset.description}</p>
                         <div className="private-life-owned-value-grid">
@@ -1053,7 +1053,7 @@ export default function PrivateLifePage() {
                     <article className="private-life-card" key={`${listing.code}:${listing.location?.code ?? 'global'}`}>
                       <div className="private-life-card-image"><AssetImage src={listing.image_url} name={listing.name} /><div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(listing.rarity)}</span><span className="private-life-badge new">New</span></div></div>
                       <div className="private-life-card-body">
-                        <div className="private-life-card-title-row"><div><h4>{listing.name}</h4>{yachtBuilder(listing) ? <div className="private-life-yacht-builder">{yachtBuilder(listing)}</div> : null}</div><div className="private-life-price">{money(listing.effective_price, currency)}</div></div>
+                        <div className="private-life-card-title-row"><div>{yachtBuilder(listing) ? <div className="private-life-yacht-builder">{yachtBuilder(listing)}</div> : null}<h4>{listing.name}</h4></div><div className="private-life-price">{money(listing.effective_price, currency)}</div></div>
                         {listing.location ? <div className="private-life-property-location">{listing.location.city}, {listing.location.country_name}</div> : null}
                         <p className="private-life-description">{listing.description}</p>
                         <div className="private-life-card-stats">
