@@ -590,7 +590,7 @@ const EN: TutorialResources = {
     },
     'communication.premium': {
       title: 'Premium & coin packages',
-      body: 'This page is where optional purchases are kept transparent. Tennis Legacy Free provides the core career. Premium membership unlocks Premium-only features and currently grants a monthly Coin reward after successful payment. Coin packs are separate one-time purchases for optional Coin actions.',
+      body: 'This page is where optional purchases are kept transparent. Tennis Legacy Free provides the core career. Premium membership unlocks Premium-only features and includes 30 Coins per covered month: 30 on monthly billing, 90 on 3-month billing or 360 on annual billing. Coin packs are separate one-time purchases.',
       action: 'Premium and Coins are separate: buying Coins does not activate Premium, and becoming Premium does not make every Coin action free. Review the exact benefit before purchasing.',
     },
 
