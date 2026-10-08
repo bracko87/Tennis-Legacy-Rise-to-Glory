@@ -381,6 +381,19 @@ export default function ProPackagesPage() {
           </div>
         </section>
 
+        <section className="tlg-commerce-section tlg-cpx-earn-section" aria-label="Earn Free Coins from surveys">
+          <div>
+            <h2>Earn Free Coins</h2>
+            <p>Prefer to earn Coins instead of buying a package? Complete optional surveys with
+              CPX Research. Every $1 of verified publisher rewards earns 15 Tennis Legacy Coins.
+              Surveys may not always be available.</p>
+          </div>
+          <button type="button" className="tlg-cpx-launch"
+            onClick={() => window.dispatchEvent(new Event('tlg:open-earn-coins'))}>
+            <Coins size={18} /> Browse Surveys
+          </button>
+        </section>
+
         <section className="tlg-commerce-section">
           <div className="tlg-commerce-section-title">
             <h2>Current membership</h2>
