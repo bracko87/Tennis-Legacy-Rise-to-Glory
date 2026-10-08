@@ -20,6 +20,11 @@ export interface PremiumMembershipRecord {
   cancel_at_period_end: boolean
   monthly_price_eur_cents: number
   monthly_coin_reward: number
+  billing_plan_code: 'premium_monthly' | 'premium_quarterly' | 'premium_yearly' | null
+  billing_period_months: number | null
+  billing_amount_eur_cents: number | null
+  coins_per_payment: number | null
+  stripe_price_id: string | null
 }
 
 export function useCommerce() {
@@ -49,7 +54,7 @@ export function useCommerce() {
         .maybeSingle(),
       supabase
         .from('premium_memberships')
-        .select('user_id, plan_code, status, started_at, current_period_start, current_period_end, cancel_at_period_end, monthly_price_eur_cents, monthly_coin_reward')
+        .select('user_id, plan_code, status, started_at, current_period_start, current_period_end, cancel_at_period_end, monthly_price_eur_cents, monthly_coin_reward, billing_plan_code, billing_period_months, billing_amount_eur_cents, coins_per_payment, stripe_price_id')
         .eq('user_id', user.id)
         .maybeSingle(),
     ])
