@@ -176,7 +176,7 @@ const CATEGORY_META: Record<AssetCategory, { label: string }> = {
   apartment: { label: 'Apartments' },
   house_villa: { label: 'Houses & Villas' },
   yacht: { label: 'Yachts' },
-  private_jet: { label: 'Private Jets' },
+  private_jet: { label: 'Private Airplanes' },
   art: { label: 'Art' },
   collectible: { label: 'Collectibles' },
 }
