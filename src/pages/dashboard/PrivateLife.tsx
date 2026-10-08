@@ -164,6 +164,11 @@ type PendingAction =
   | { type: 'sell'; asset: OwnedAsset; saleMode: SaleMode; quote: SaleQuote }
   | null
 
+type DetailTarget =
+  | { type: 'market'; listing: MarketplaceListing }
+  | { type: 'owned'; asset: OwnedAsset; imageUrl: string }
+  | null
+
 const CATEGORY_META: Record<AssetCategory, { label: string }> = {
   watch: { label: 'Watches' },
   jewelry: { label: 'Jewelry' },
@@ -433,6 +438,7 @@ export default function PrivateLifePage() {
   const [tab, setTab] = useState<MainTab>('overview')
   const [filter, setFilter] = useState<CategoryFilter>('all')
   const [pendingAction, setPendingAction] = useState<PendingAction>(null)
+  const [detailTarget, setDetailTarget] = useState<DetailTarget>(null)
   const [marketSearch, setMarketSearch] = useState('')
   const [marketPrice, setMarketPrice] = useState<MarketplacePrice>('all')
   const [marketRarity, setMarketRarity] = useState<MarketplaceRarity>('all')
@@ -744,6 +750,80 @@ export default function PrivateLifePage() {
         }
     : null
 
+  const detailDialog = detailTarget
+    ? detailTarget.type === 'market'
+      ? {
+          eyebrow: 'Private Life details',
+          title: `${detailTarget.listing.name}${detailTarget.listing.location ? ` in ${detailTarget.listing.location.city}` : ''}`,
+          hero: <AssetImage src={detailTarget.listing.image_url} name={detailTarget.listing.name} />,
+          size: 'wide' as const,
+          message: (
+            <div className="private-life-purchase-copy">
+              <p>{detailTarget.listing.description}</p>
+              {detailTarget.listing.location ? (
+                <div className="private-life-purchase-location">
+                  {detailTarget.listing.location.city}, {detailTarget.listing.location.country_name}
+                </div>
+              ) : null}
+            </div>
+          ),
+          detail: (
+            <div className="private-life-purchase-summary">
+              <div className="private-life-purchase-price-row">
+                <span>Purchase price</span>
+                <strong>{money(detailTarget.listing.effective_price, currency)}</strong>
+              </div>
+              <div className="private-life-purchase-info-grid">
+                <div><span>Category</span><strong>{categoryLabel(detailTarget.listing.category)}</strong></div>
+                <div><span>Rarity</span><strong>{rarityLabel(detailTarget.listing.rarity)}</strong></div>
+                <div><span>Prestige points</span><strong>+{detailTarget.listing.prestige}</strong></div>
+                <div><span>Monthly market move</span><strong className={Number(detailTarget.listing.effective_market_change_bps ?? 0) < 0 ? 'private-life-trend-negative' : Number(detailTarget.listing.effective_market_change_bps ?? 0) > 0 ? 'private-life-trend-positive' : ''}>{marketMoveText(detailTarget.listing.effective_market_change_bps)}</strong></div>
+                <div><span>{ownershipCostLabel(detailTarget.listing.category)}</span><strong>{detailTarget.listing.effective_annual_cost > 0 ? money(detailTarget.listing.effective_annual_cost / 12, currency) : 'None'}</strong></div>
+                <div><span>Annual ownership cost</span><strong>{detailTarget.listing.effective_annual_cost > 0 ? money(detailTarget.listing.effective_annual_cost, currency) : 'None'}</strong></div>
+                <div><span>Annual value trend</span><strong className={detailTarget.listing.effective_value_rate_bps < 0 ? 'private-life-trend-negative' : detailTarget.listing.effective_value_rate_bps > 0 ? 'private-life-trend-positive' : ''}>{trendText(detailTarget.listing.effective_value_rate_bps)}</strong></div>
+                <div><span>Finance balance after purchase</span><strong>{money(dashboard.cash_balance - detailTarget.listing.effective_price, currency)}</strong></div>
+              </div>
+            </div>
+          ),
+        }
+      : {
+          eyebrow: 'Owned private asset',
+          title: `${detailTarget.asset.name}${detailTarget.asset.city ? ` in ${detailTarget.asset.city}` : ''}`,
+          hero: <AssetImage src={detailTarget.imageUrl} name={detailTarget.asset.name} />,
+          size: 'wide' as const,
+          message: (
+            <div className="private-life-purchase-copy">
+              <p>{detailTarget.asset.description}</p>
+              {detailTarget.asset.city && detailTarget.asset.country_name ? (
+                <div className="private-life-purchase-location">
+                  {detailTarget.asset.city}, {detailTarget.asset.country_name}
+                </div>
+              ) : null}
+            </div>
+          ),
+          detail: (
+            <div className="private-life-purchase-summary">
+              <div className="private-life-purchase-price-row">
+                <span>Current market value</span>
+                <strong>{money(detailTarget.asset.current_market_value, currency)}</strong>
+              </div>
+              <div className="private-life-purchase-info-grid">
+                <div><span>Category</span><strong>{categoryLabel(detailTarget.asset.category)}</strong></div>
+                <div><span>Rarity</span><strong>{rarityLabel(detailTarget.asset.rarity)}</strong></div>
+                <div><span>Prestige points</span><strong>+{detailTarget.asset.prestige}</strong></div>
+                <div><span>Ownership</span><strong>{detailTarget.asset.ownership_days} game days</strong></div>
+                <div><span>Original value</span><strong>{money(detailTarget.asset.purchase_price, currency)}</strong></div>
+                <div><span>{ownershipCostLabel(detailTarget.asset.category)}</span><strong>{detailTarget.asset.annual_running_cost > 0 ? money(detailTarget.asset.annual_running_cost / 12, currency) : 'None'}</strong></div>
+                <div><span>Annual ownership cost</span><strong>{detailTarget.asset.annual_running_cost > 0 ? money(detailTarget.asset.annual_running_cost, currency) : 'None'}</strong></div>
+                <div><span>Market move</span><strong className={Number(detailTarget.asset.property_monthly_change_bps ?? detailTarget.asset.asset_monthly_change_bps ?? 0) < 0 ? 'private-life-trend-negative' : Number(detailTarget.asset.property_monthly_change_bps ?? detailTarget.asset.asset_monthly_change_bps ?? 0) > 0 ? 'private-life-trend-positive' : ''}>{marketMoveText(detailTarget.asset.property_monthly_change_bps ?? detailTarget.asset.asset_monthly_change_bps)}</strong></div>
+                <div><span>Annual value trend</span><strong className={detailTarget.asset.annual_value_rate_bps < 0 ? 'private-life-trend-negative' : detailTarget.asset.annual_value_rate_bps > 0 ? 'private-life-trend-positive' : ''}>{trendText(detailTarget.asset.annual_value_rate_bps)}</strong></div>
+                <div><span>Estimated sale value</span><strong>{money(detailTarget.asset.estimated_sale_price, currency)}</strong></div>
+              </div>
+            </div>
+          ),
+        }
+    : null
+
   return (
     <GameLayout title="Private Life" subtitle="Lifestyle, assets and personal wealth">
       <div className="private-life-page">
@@ -863,6 +943,13 @@ export default function PrivateLifePage() {
                           <div className="private-life-owned-value-row"><span>{ownershipCostLabel(asset.category)}</span><strong>{asset.annual_running_cost > 0 ? money(asset.annual_running_cost / 12, currency) : 'None'}</strong></div>
                           <div className="private-life-owned-value-row"><span>Market move</span><strong className={Number(asset.property_monthly_change_bps ?? asset.asset_monthly_change_bps ?? 0) < 0 ? 'private-life-trend-negative' : Number(asset.property_monthly_change_bps ?? asset.asset_monthly_change_bps ?? 0) > 0 ? 'private-life-trend-positive' : ''}>{marketMoveText(asset.property_monthly_change_bps ?? asset.asset_monthly_change_bps)}</strong></div>
                         </div>
+                        <button
+                          type="button"
+                          className="private-life-action details"
+                          onClick={() => setDetailTarget({ type: 'owned', asset, imageUrl: ownedImageUrl })}
+                        >
+                          Details
+                        </button>
                         {asset.pending_sale ? (
                           <div className="private-life-sale-pending"><div><span>Listed for sale</span><strong>{SALE_META[asset.pending_sale.sale_mode].label} · {money(asset.pending_sale.quoted_sale_price, currency)}</strong><small>Settlement game day {asset.pending_sale.settle_absolute_day}</small></div><button type="button" disabled={actionBusy} onClick={() => void cancelSale(asset.pending_sale!.id)}>Cancel sale</button></div>
                         ) : canSellResidence ? (
@@ -935,7 +1022,10 @@ export default function PrivateLifePage() {
                           <div className="private-life-card-stat"><span>Market move</span><strong className={Number(marketMove ?? 0) < 0 ? 'private-life-trend-negative' : isPositive ? 'private-life-trend-positive' : ''}>{Number(marketMove ?? 0) < 0 ? <TrendingDown size={12} /> : isPositive ? <TrendingUp size={12} /> : null} {marketMoveText(marketMove)}</strong></div>
                           <div className="private-life-card-stat"><span>Category</span><strong>{categoryLabel(listing.category)}</strong></div>
                         </div>
-                        <button type="button" className="private-life-action" disabled={!canBuy} onClick={() => setPendingAction({ type: 'buy', listing })}>{listing.effective_owned ? 'Already owned here' : !listing.effective_affordable ? 'Insufficient funds' : 'Purchase'}</button>
+                        <div className="private-life-card-actions">
+                          <button type="button" className="private-life-action details" onClick={() => setDetailTarget({ type: 'market', listing })}>Details</button>
+                          <button type="button" className="private-life-action" disabled={!canBuy} onClick={() => setPendingAction({ type: 'buy', listing })}>{listing.effective_owned ? 'Already owned here' : !listing.effective_affordable ? 'Insufficient funds' : 'Purchase'}</button>
+                        </div>
                       </div>
                     </article>
                   )
@@ -948,6 +1038,20 @@ export default function PrivateLifePage() {
         <div className="private-life-notice"><span>Private Life uses your existing career Finance account. Prestige is a point total from currently owned assets; there are no prestige levels and no direct tennis-skill bonuses.</span></div>
       </div>
 
+      <GameConfirmDialog
+        open={Boolean(detailDialog)}
+        eyebrow={detailDialog?.eyebrow}
+        title={detailDialog?.title ?? ''}
+        hero={detailDialog?.hero}
+        size={detailDialog?.size}
+        message={detailDialog?.message ?? ''}
+        detail={detailDialog?.detail}
+        cancelLabel="Close"
+        tone="neutral"
+        showConfirm={false}
+        onConfirm={() => undefined}
+        onCancel={() => setDetailTarget(null)}
+      />
       <GameConfirmDialog open={Boolean(confirmation)} eyebrow={confirmation?.eyebrow} title={confirmation?.title ?? ''} hero={confirmation?.hero} size={confirmation?.size} message={confirmation?.message ?? ''} detail={confirmation?.detail} confirmLabel={confirmation?.confirmLabel} cancelLabel="Cancel" busy={actionBusy} tone={confirmation?.tone} onConfirm={confirmAction} onCancel={() => { if (!actionBusy) setPendingAction(null) }} />
     </GameLayout>
   )
