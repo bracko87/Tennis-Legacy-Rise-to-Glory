@@ -275,6 +275,31 @@ function metadataNumber(asset: CatalogAsset, key: string, fallback: number) {
   return Number.isFinite(numeric) ? numeric : fallback
 }
 
+function metadataText(asset: CatalogAsset | undefined, key: string) {
+  const value = asset?.metadata?.[key]
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function yachtBuilder(asset: CatalogAsset | undefined) {
+  if (!asset || asset.category !== 'yacht') return ''
+  return metadataText(asset, 'yacht_builder') || metadataText(asset, 'manufacturer')
+}
+
+function yachtDisplayName(asset: CatalogAsset) {
+  const builder = yachtBuilder(asset)
+  return builder ? `${builder} · ${asset.name}` : asset.name
+}
+
+function ownedYachtCatalog(asset: OwnedAsset, catalog: CatalogAsset[]) {
+  if (asset.category !== 'yacht') return undefined
+  return catalog.find((item) => item.code === asset.catalog_code)
+}
+
+function ownedDisplayName(asset: OwnedAsset, catalog: CatalogAsset[]) {
+  const yachtCatalog = ownedYachtCatalog(asset, catalog)
+  return yachtCatalog ? yachtDisplayName(yachtCatalog) : asset.name
+}
+
 function metadataLocationNumber(asset: CatalogAsset, key: string, location: PropertyLocation) {
   const values = asset.metadata?.[key]
   if (!values || typeof values !== 'object' || Array.isArray(values)) return null
@@ -570,7 +595,8 @@ export default function PrivateLifePage() {
     const filtered = marketplaceListings.filter((listing) => {
       if (filter !== 'all' && listing.category !== filter) return false
       const locationText = listing.location ? `${listing.location.city} ${listing.location.country_name}` : ''
-      if (search && !`${listing.name} ${listing.description} ${categoryLabel(listing.category)} ${locationText}`.toLowerCase().includes(search)) return false
+      const builderText = yachtBuilder(listing)
+      if (search && !`${listing.name} ${builderText} ${listing.description} ${categoryLabel(listing.category)} ${locationText}`.toLowerCase().includes(search)) return false
       if (!matchesPriceBand(listing.effective_price, marketPrice)) return false
       if (marketRarity !== 'all' && listing.rarity !== marketRarity) return false
       if (marketAffordableOnly && (!listing.effective_affordable || listing.effective_owned)) return false
@@ -701,7 +727,7 @@ export default function PrivateLifePage() {
     ? pendingAction.type === 'buy'
       ? {
           eyebrow: 'Private Life purchase',
-          title: `Buy ${pendingAction.listing.name}${pendingAction.listing.location ? ` in ${pendingAction.listing.location.city}` : ''}?`,
+          title: `Buy ${yachtDisplayName(pendingAction.listing)}${pendingAction.listing.location ? ` in ${pendingAction.listing.location.city}` : ''}?`,
           hero: <AssetImage src={pendingAction.listing.image_url} name={pendingAction.listing.name} />,
           size: 'wide' as const,
           message: (
@@ -721,6 +747,10 @@ export default function PrivateLifePage() {
                 <strong>{money(pendingAction.listing.effective_price, currency)}</strong>
               </div>
               <div className="private-life-purchase-info-grid">
+                {pendingAction.listing.category === 'yacht' && yachtBuilder(pendingAction.listing) ? <div><span>Builder</span><strong>{yachtBuilder(pendingAction.listing)}</strong></div> : null}
+                {pendingAction.listing.category === 'yacht' ? <div><span>Model</span><strong>{pendingAction.listing.name}</strong></div> : null}
+                {pendingAction.listing.category === 'yacht' && metadataText(pendingAction.listing, 'yacht_length_m') ? <div><span>Length</span><strong>{metadataText(pendingAction.listing, 'yacht_length_m')} m</strong></div> : null}
+                {pendingAction.listing.category === 'yacht' && metadataText(pendingAction.listing, 'yacht_type') ? <div><span>Yacht type</span><strong>{metadataText(pendingAction.listing, 'yacht_type')}</strong></div> : null}
                 <div><span>Category</span><strong>{categoryLabel(pendingAction.listing.category)}</strong></div>
                 <div><span>Rarity</span><strong>{rarityLabel(pendingAction.listing.rarity)}</strong></div>
                 <div><span>Prestige points</span><strong>+{pendingAction.listing.prestige}</strong></div>
@@ -754,7 +784,7 @@ export default function PrivateLifePage() {
     ? detailTarget.type === 'market'
       ? {
           eyebrow: 'Private Life details',
-          title: `${detailTarget.listing.name}${detailTarget.listing.location ? ` in ${detailTarget.listing.location.city}` : ''}`,
+          title: `${yachtDisplayName(detailTarget.listing)}${detailTarget.listing.location ? ` in ${detailTarget.listing.location.city}` : ''}`,
           hero: <AssetImage src={detailTarget.listing.image_url} name={detailTarget.listing.name} />,
           size: 'wide' as const,
           message: (
@@ -774,6 +804,10 @@ export default function PrivateLifePage() {
                 <strong>{money(detailTarget.listing.effective_price, currency)}</strong>
               </div>
               <div className="private-life-purchase-info-grid">
+                {detailTarget.listing.category === 'yacht' && yachtBuilder(detailTarget.listing) ? <div><span>Builder</span><strong>{yachtBuilder(detailTarget.listing)}</strong></div> : null}
+                {detailTarget.listing.category === 'yacht' ? <div><span>Model</span><strong>{detailTarget.listing.name}</strong></div> : null}
+                {detailTarget.listing.category === 'yacht' && metadataText(detailTarget.listing, 'yacht_length_m') ? <div><span>Length</span><strong>{metadataText(detailTarget.listing, 'yacht_length_m')} m</strong></div> : null}
+                {detailTarget.listing.category === 'yacht' && metadataText(detailTarget.listing, 'yacht_type') ? <div><span>Yacht type</span><strong>{metadataText(detailTarget.listing, 'yacht_type')}</strong></div> : null}
                 <div><span>Category</span><strong>{categoryLabel(detailTarget.listing.category)}</strong></div>
                 <div><span>Rarity</span><strong>{rarityLabel(detailTarget.listing.rarity)}</strong></div>
                 <div><span>Prestige points</span><strong>+{detailTarget.listing.prestige}</strong></div>
@@ -788,7 +822,7 @@ export default function PrivateLifePage() {
         }
       : {
           eyebrow: 'Owned private asset',
-          title: `${detailTarget.asset.name}${detailTarget.asset.city ? ` in ${detailTarget.asset.city}` : ''}`,
+          title: `${ownedDisplayName(detailTarget.asset, dashboard.catalog)}${detailTarget.asset.city ? ` in ${detailTarget.asset.city}` : ''}`,
           hero: <AssetImage src={detailTarget.imageUrl} name={detailTarget.asset.name} />,
           size: 'wide' as const,
           message: (
@@ -808,6 +842,10 @@ export default function PrivateLifePage() {
                 <strong>{money(detailTarget.asset.current_market_value, currency)}</strong>
               </div>
               <div className="private-life-purchase-info-grid">
+                {ownedYachtCatalog(detailTarget.asset, dashboard.catalog) && yachtBuilder(ownedYachtCatalog(detailTarget.asset, dashboard.catalog)) ? <div><span>Builder</span><strong>{yachtBuilder(ownedYachtCatalog(detailTarget.asset, dashboard.catalog))}</strong></div> : null}
+                {detailTarget.asset.category === 'yacht' ? <div><span>Model</span><strong>{detailTarget.asset.name}</strong></div> : null}
+                {ownedYachtCatalog(detailTarget.asset, dashboard.catalog) && metadataText(ownedYachtCatalog(detailTarget.asset, dashboard.catalog), 'yacht_length_m') ? <div><span>Length</span><strong>{metadataText(ownedYachtCatalog(detailTarget.asset, dashboard.catalog), 'yacht_length_m')} m</strong></div> : null}
+                {ownedYachtCatalog(detailTarget.asset, dashboard.catalog) && metadataText(ownedYachtCatalog(detailTarget.asset, dashboard.catalog), 'yacht_type') ? <div><span>Yacht type</span><strong>{metadataText(ownedYachtCatalog(detailTarget.asset, dashboard.catalog), 'yacht_type')}</strong></div> : null}
                 <div><span>Category</span><strong>{categoryLabel(detailTarget.asset.category)}</strong></div>
                 <div><span>Rarity</span><strong>{rarityLabel(detailTarget.asset.rarity)}</strong></div>
                 <div><span>Prestige points</span><strong>+{detailTarget.asset.prestige}</strong></div>
@@ -932,7 +970,7 @@ export default function PrivateLifePage() {
                     <article className="private-life-owned-card" key={asset.id}>
                       <div className="private-life-card-image"><AssetImage src={ownedImageUrl} name={asset.name} /><div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(asset.rarity)}</span><span className="private-life-badge level">+{asset.prestige} prestige pts</span></div></div>
                       <div className="private-life-card-body">
-                        <div className="private-life-card-title-row"><h4>{asset.name}</h4><div className="private-life-price">{money(asset.current_market_value, currency)}</div></div>
+                        <div className="private-life-card-title-row"><div><h4>{asset.name}</h4>{catalogAsset && yachtBuilder(catalogAsset) ? <div className="private-life-yacht-builder">{yachtBuilder(catalogAsset)}</div> : null}</div><div className="private-life-price">{money(asset.current_market_value, currency)}</div></div>
                         {asset.acquisition_type === 'starter_home' ? <div className="private-life-starter-home-label">Starting home residence</div> : null}
                         <p className="private-life-description">{asset.description}</p>
                         <div className="private-life-owned-value-grid">
@@ -1013,7 +1051,7 @@ export default function PrivateLifePage() {
                     <article className="private-life-card" key={`${listing.code}:${listing.location?.code ?? 'global'}`}>
                       <div className="private-life-card-image"><AssetImage src={listing.image_url} name={listing.name} /><div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(listing.rarity)}</span><span className="private-life-badge new">New</span></div></div>
                       <div className="private-life-card-body">
-                        <div className="private-life-card-title-row"><h4>{listing.name}</h4><div className="private-life-price">{money(listing.effective_price, currency)}</div></div>
+                        <div className="private-life-card-title-row"><div><h4>{listing.name}</h4>{yachtBuilder(listing) ? <div className="private-life-yacht-builder">{yachtBuilder(listing)}</div> : null}</div><div className="private-life-price">{money(listing.effective_price, currency)}</div></div>
                         {listing.location ? <div className="private-life-property-location">{listing.location.city}, {listing.location.country_name}</div> : null}
                         <p className="private-life-description">{listing.description}</p>
                         <div className="private-life-card-stats">
