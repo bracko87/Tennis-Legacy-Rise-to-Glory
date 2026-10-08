@@ -328,6 +328,14 @@ function propertyImageUrl(asset: CatalogAsset, location?: PropertyLocation | nul
   return asset.image_url
 }
 
+function propertyAvailabilityCodes(location: PropertyLocation, category: 'apartment' | 'house_villa') {
+  const value = category === 'apartment'
+    ? location.available_apartment_codes
+    : location.available_house_codes
+  if (!Array.isArray(value)) return []
+  return value.filter((code): code is string => typeof code === 'string' && code.length > 0)
+}
+
 function monthlyOwnershipCost(category: AssetCategory, value: number) {
   const price = Math.max(0, Number(value || 0))
   if (category === 'car') return Math.max(150, Math.round(price * 0.006))
@@ -442,7 +450,7 @@ export default function PrivateLifePage() {
     if (!isPremium) return
     setLoading(true)
     setError(null)
-    const { data, error: rpcError } = await supabase.rpc('get_private_life_dashboard_v1')
+    const { data, error: rpcError } = await supabase.rpc('get_private_life_dashboard_v3')
     if (rpcError) {
       setError(rpcError.message)
       setLoading(false)
@@ -463,10 +471,10 @@ export default function PrivateLifePage() {
 
   const selectablePropertyLocations = useMemo(() => {
     if (filter === 'apartment') {
-      return standardPropertyLocations.filter((location) => (location.available_apartment_codes ?? []).length > 0)
+      return standardPropertyLocations.filter((location) => propertyAvailabilityCodes(location, 'apartment').length > 0)
     }
     if (filter === 'house_villa') {
-      return standardPropertyLocations.filter((location) => (location.available_house_codes ?? []).length > 0)
+      return standardPropertyLocations.filter((location) => propertyAvailabilityCodes(location, 'house_villa').length > 0)
     }
     return standardPropertyLocations
   }, [filter, standardPropertyLocations])
@@ -528,13 +536,9 @@ export default function PrivateLifePage() {
         }]
       }
       if (!selectedPropertyLocation) return []
-      if (asset.category === 'apartment') {
-        const availableApartments = selectedPropertyLocation.available_apartment_codes ?? []
-        if (!availableApartments.includes(asset.code)) return []
-      }
-      if (asset.category === 'house_villa' && asset.metadata?.location_availability_enforced === true) {
-        const availableHouses = selectedPropertyLocation.available_house_codes ?? []
-        if (!availableHouses.includes(asset.code)) return []
+      if (asset.category === 'apartment' || asset.category === 'house_villa') {
+        const availableCodes = propertyAvailabilityCodes(selectedPropertyLocation, asset.category)
+        if (!availableCodes.includes(asset.code)) return []
       }
       const valueAdjustment = metadataNumber(asset, 'value_rate_adjustment_bps', 0)
       const price = propertyEffectivePrice(asset, selectedPropertyLocation)
