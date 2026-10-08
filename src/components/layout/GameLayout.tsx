@@ -6,8 +6,10 @@ import '../../styles/dashboard-v4.css'
 import '../../styles/dashboard-v5.css'
 import '../../styles/dashboard-v6.css'
 import '../../styles/commerce.css'
+import '../../styles/cpx-rewards.css'
 import { getReferralBrowserHash } from '../../lib/referrals'
 import { supabase } from '../../lib/supabase'
+import EarnCoinsDialog from '../rewards/EarnCoinsDialog'
 import GameFooter from './GameFooter'
 import GameHeader from './GameHeader'
 import GameSidebar from './GameSidebar'
@@ -21,6 +23,13 @@ export interface GameLayoutProps {
 export default function GameLayout({ title, subtitle, children }: GameLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [sidebarMobileOpen, setSidebarMobileOpen] = useState(false)
+  const [earnCoinsOpen, setEarnCoinsOpen] = useState(false)
+
+  useEffect(() => {
+    const openCoins = () => setEarnCoinsOpen(true)
+    window.addEventListener('tlg:open-earn-coins', openCoins)
+    return () => window.removeEventListener('tlg:open-earn-coins', openCoins)
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -53,6 +62,7 @@ export default function GameLayout({ title, subtitle, children }: GameLayoutProp
           title={title}
           subtitle={subtitle}
           onToggleSidebarMobile={() => setSidebarMobileOpen((value) => !value)}
+          onOpenEarnCoins={() => setEarnCoinsOpen(true)}
         />
 
         <main
@@ -64,6 +74,7 @@ export default function GameLayout({ title, subtitle, children }: GameLayoutProp
         </main>
 
         <GameFooter />
+        <EarnCoinsDialog open={earnCoinsOpen} onClose={() => setEarnCoinsOpen(false)} />
       </div>
     </div>
   )
