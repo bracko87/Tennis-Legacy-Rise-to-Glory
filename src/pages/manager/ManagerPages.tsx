@@ -15,6 +15,7 @@ import {
   UsersRound,
 } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
@@ -93,10 +94,11 @@ export function NotificationsPage() {
 }
 
 export function PlayerAccountPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { player, user, refreshPlayer, signOut } = useAuth()
   const avatarUrl = usePlayerAvatarUrl(player?.image_path)
-  const playerName = player ? `${player.first_name} ${player.last_name}`.trim() : 'Player not available'
+  const playerName = player ? `${player.first_name} ${player.last_name}`.trim() : t('playerAccountPage.unavailable')
   const [passwordStatus, setPasswordStatus] = useState<string | null>(null)
   const [passwordBusy, setPasswordBusy] = useState(false)
   const [dangerAction, setDangerAction] = useState<'restart' | 'delete' | null>(null)
@@ -116,7 +118,7 @@ export function PlayerAccountPage() {
     if (error) {
       setPasswordStatus(error.message)
     } else {
-      setPasswordStatus('Password reset email sent. Check your inbox and spam folder.')
+      setPasswordStatus(t('playerAccountPage.passwordSent'))
     }
 
     setPasswordBusy(false)
@@ -140,7 +142,7 @@ export function PlayerAccountPage() {
 
     const requiredPhrase = dangerAction === 'restart' ? 'RESTART' : 'DELETE'
     if (dangerConfirmation.trim().toUpperCase() !== requiredPhrase) {
-      setDangerStatus(`Type ${requiredPhrase} exactly to confirm.`)
+      setDangerStatus(t('playerAccountPage.confirmPhrase', { phrase: requiredPhrase }))
       return
     }
 
@@ -177,22 +179,22 @@ export function PlayerAccountPage() {
   const dangerPhrase = dangerAction === 'restart' ? 'RESTART' : 'DELETE'
 
   return (
-    <GameLayout title="Player & account" subtitle="Identity and account information">
+    <GameLayout title={t('playerAccountPage.title')} subtitle={t('playerAccountPage.subtitle')}>
       <div className="tlg-account-page">
         <section className="tlg-account-section">
           <header className="tlg-account-section-head">
             <div>
-              <span>Player profile</span>
-              <h2>Player & account</h2>
-              <p>Review the identity connected to your Tennis Legacy account and professional career.</p>
+              <span>{t('playerAccountPage.profile')}</span>
+              <h2>{t('playerAccountPage.heading')}</h2>
+              <p>{t('playerAccountPage.intro')}</p>
             </div>
           </header>
 
           <div className="tlg-account-profile-layout">
-            <div className="tlg-account-avatar-card" aria-label="Current player avatar">
+            <div className="tlg-account-avatar-card" aria-label={t('playerAccountPage.avatarAria')}>
               <div className="tlg-account-avatar-frame">
                 {avatarUrl ? (
-                  <img src={avatarUrl} alt={`${playerName} avatar`} />
+                  <img src={avatarUrl} alt={t('playerAccountPage.avatarAlt', { name: playerName })} />
                 ) : (
                   <UserRound size={72} aria-hidden="true" />
                 )}
@@ -201,24 +203,24 @@ export function PlayerAccountPage() {
 
             <div className="tlg-account-fields">
               <label className="tlg-account-field">
-                <span>Player name</span>
+                <span>{t('playerAccountPage.playerName')}</span>
                 <input value={playerName} readOnly disabled />
-                <small>Player name is fixed when the career is created and cannot be changed.</small>
+                <small>{t('playerAccountPage.playerNameNote')}</small>
               </label>
 
               <label className="tlg-account-field">
-                <span>Account email</span>
+                <span>{t('playerAccountPage.email')}</span>
                 <input value={user?.email ?? ''} readOnly />
-                <small>This is the email connected to your Tennis Legacy account.</small>
+                <small>{t('playerAccountPage.emailNote')}</small>
               </label>
 
               <label className="tlg-account-field">
-                <span>Competition world</span>
-                <input value={player ? `${player.world} World` : '—'} readOnly />
+                <span>{t('playerAccountPage.world')}</span>
+                <input value={player ? t('playerAccountPage.worldValue', { world: player.world }) : '—'} readOnly />
               </label>
 
               <label className="tlg-account-field">
-                <span>Country</span>
+                <span>{t('playerAccountPage.country')}</span>
                 <input value={player?.country_code ?? '—'} readOnly />
               </label>
             </div>
@@ -233,34 +235,34 @@ export function PlayerAccountPage() {
         <section className="tlg-account-section">
           <header className="tlg-account-section-head tlg-account-section-head-icon">
             <div>
-              <span>Security</span>
-              <h3>Change password by email</h3>
-              <p>For security, password changes are completed through a verified reset link sent to your account email.</p>
+              <span>{t('playerAccountPage.security')}</span>
+              <h3>{t('playerAccountPage.changePassword')}</h3>
+              <p>{t('playerAccountPage.passwordIntro')}</p>
             </div>
             <LockKeyhole size={20} />
           </header>
 
           <div className="tlg-account-password-body">
-            <input value={user?.email ?? ''} readOnly aria-label="Account email for password change" />
+            <input value={user?.email ?? ''} readOnly aria-label={t('playerAccountPage.emailAria')} />
             <button
               type="button"
               className="tlg-account-secondary-button"
               onClick={sendPasswordChangeEmail}
               disabled={!user?.email || passwordBusy}
             >
-              {passwordBusy ? 'Sending…' : 'Send Password Reset Email'}
+              {passwordBusy ? t('playerAccountPage.sending') : t('playerAccountPage.sendReset')}
             </button>
             {passwordStatus && <p className="tlg-account-status">{passwordStatus}</p>}
-            <small>Open the secure link in the email and choose a new password on the Tennis Legacy reset-password page.</small>
+            <small>{t('playerAccountPage.resetNote')}</small>
           </div>
         </section>
 
         <section className="tlg-account-section tlg-account-danger-zone">
           <header className="tlg-account-section-head tlg-account-danger-head">
             <div>
-              <span>Danger zone</span>
-              <h3>Career and account removal</h3>
-              <p>These actions are destructive. Read each option carefully before continuing.</p>
+              <span>{t('playerAccountPage.danger')}</span>
+              <h3>{t('playerAccountPage.removal')}</h3>
+              <p>{t('playerAccountPage.dangerIntro')}</p>
             </div>
             <TriangleAlert size={21} />
           </header>
@@ -270,12 +272,12 @@ export function PlayerAccountPage() {
               <div className="tlg-account-danger-copy">
                 <span className="tlg-account-danger-icon"><RotateCcw size={18} /></span>
                 <div>
-                  <strong>Restart account</strong>
-                  <p>Reset current tournament/career activity while keeping the same player name, avatar, ATP/WTA world, country, login email, wallet and membership.</p>
+                  <strong>{t('playerAccountPage.restart')}</strong>
+                  <p>{t('playerAccountPage.restartBody')}</p>
                 </div>
               </div>
               <button type="button" className="tlg-account-danger-button" onClick={() => openDangerAction('restart')}>
-                Restart account
+                {t('playerAccountPage.restart')}
               </button>
             </article>
 
@@ -283,28 +285,28 @@ export function PlayerAccountPage() {
               <div className="tlg-account-danger-copy">
                 <span className="tlg-account-danger-icon"><Trash2 size={18} /></span>
                 <div>
-                  <strong>Delete player & account</strong>
-                  <p>Delete the player, profile, account data and authentication email. This permanently closes the Tennis Legacy account and cannot be undone.</p>
+                  <strong>{t('playerAccountPage.delete')}</strong>
+                  <p>{t('playerAccountPage.deleteBody')}</p>
                 </div>
               </div>
               <button type="button" className="tlg-account-danger-button tlg-account-danger-button-critical" onClick={() => openDangerAction('delete')}>
-                Delete player & account
+                {t('playerAccountPage.delete')}
               </button>
             </article>
           </div>
 
           {dangerAction && (
-            <div className="tlg-account-danger-confirm" role="group" aria-label="Confirm destructive account action">
+            <div className="tlg-account-danger-confirm" role="group" aria-label={t('playerAccountPage.confirmAria')}>
               <div>
-                <strong>{dangerAction === 'restart' ? 'Confirm account restart' : 'Confirm permanent player and account deletion'}</strong>
+                <strong>{dangerAction === 'restart' ? t('playerAccountPage.confirmRestart') : t('playerAccountPage.confirmDelete')}</strong>
                 <p>
                   {dangerAction === 'restart'
-                    ? 'This resets current tournament/career activity but keeps your player identity, avatar and login email.'
-                    : 'This removes your player, profile, account data and login email permanently.'}
+                    ? t('playerAccountPage.confirmRestartBody')
+                    : t('playerAccountPage.confirmDeleteBody')}
                 </p>
               </div>
               <label>
-                <span>Type {dangerPhrase} to confirm</span>
+                <span>{t('playerAccountPage.typePhrase', { phrase: dangerPhrase })}</span>
                 <input
                   value={dangerConfirmation}
                   onChange={(event) => {
@@ -318,7 +320,7 @@ export function PlayerAccountPage() {
               {dangerStatus && <p className="tlg-account-danger-status">{dangerStatus}</p>}
               <div className="tlg-account-danger-confirm-actions">
                 <button type="button" className="tlg-account-danger-cancel" onClick={closeDangerAction} disabled={dangerBusy}>
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -327,10 +329,10 @@ export function PlayerAccountPage() {
                   disabled={dangerBusy || dangerConfirmation.trim().toUpperCase() !== dangerPhrase}
                 >
                   {dangerBusy
-                    ? 'Processing…'
+                    ? t('playerAccountPage.processing')
                     : dangerAction === 'restart'
-                      ? 'Restart account now'
-                      : 'Delete player & account permanently'}
+                      ? t('playerAccountPage.restartNow')
+                      : t('playerAccountPage.deletePermanently')}
                 </button>
               </div>
             </div>
