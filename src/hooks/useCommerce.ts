@@ -32,18 +32,21 @@ export function useCommerce() {
   const [wallet, setWallet] = useState<UserWalletRecord | null>(null)
   const [membership, setMembership] = useState<PremiumMembershipRecord | null>(null)
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (background = true) => {
     if (!user) {
       setWallet(null)
       setMembership(null)
       setLoading(false)
+      setRefreshing(false)
       setError(null)
       return
     }
 
-    setLoading(true)
+    if (background) setRefreshing(true)
+    else setLoading(true)
     setError(null)
 
     const [walletResult, membershipResult] = await Promise.all([
@@ -66,11 +69,12 @@ export function useCommerce() {
 
     setWallet((walletResult.data ?? null) as UserWalletRecord | null)
     setMembership((membershipResult.data ?? null) as PremiumMembershipRecord | null)
-    setLoading(false)
+    if (background) setRefreshing(false)
+    else setLoading(false)
   }, [user])
 
   useEffect(() => {
-    void refresh()
+    void refresh(false)
   }, [refresh])
 
   useEffect(() => {
@@ -91,6 +95,7 @@ export function useCommerce() {
     coins: wallet?.coins_balance ?? 0,
     isPremium,
     loading,
+    refreshing,
     error,
     refresh,
   }
