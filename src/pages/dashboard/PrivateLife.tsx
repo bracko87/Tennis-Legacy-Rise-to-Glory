@@ -623,7 +623,7 @@ export default function PrivateLifePage() {
     setError(null)
     const { error: rpcError } = await supabase.rpc('cancel_private_life_asset_sale_v1', { p_listing_id: listingId })
     if (rpcError) setError(rpcError.message)
-    else setNotice('Sale listing cancelled. The asset remains in your collection.')
+    else setNotice(t('privateLifePage.notices.saleCancelled'))
     setActionBusy(false)
     await loadDashboard()
   }
@@ -646,7 +646,7 @@ export default function PrivateLifePage() {
         setPendingAction(null)
         return
       }
-      setNotice(`${listing.name}${listing.location ? ` in ${listing.location.city}` : ''} is now part of your private collection. The payment was posted to Finance.`)
+      setNotice(t('privateLifePage.notices.purchased', { name: listing.name, location: listing.location ? ` ${listing.location.city}` : '' }))
     } else {
       const { asset, saleMode } = pendingAction
       const { data, error: rpcError } = await supabase.rpc('list_private_life_asset_for_sale_v1', {
@@ -660,8 +660,8 @@ export default function PrivateLifePage() {
         return
       }
       const result = data as { status?: string; wait_days?: number; quoted_sale_price?: number; sale_price?: number } | null
-      if (result?.status === 'sold') setNotice(`${asset.name} was sold immediately. ${money(Number(result.sale_price ?? pendingAction.quote.price), dashboard?.currency ?? 'USD')} was posted to Finance.`)
-      else setNotice(`${asset.name} is listed for sale. Expected settlement in ${Number(result?.wait_days ?? pendingAction.quote.wait_days)} game days.`)
+      if (result?.status === 'sold') setNotice(t('privateLifePage.notices.sold', { name: asset.name, amount: money(Number(result.sale_price ?? pendingAction.quote.price), dashboard?.currency ?? 'USD') }))
+      else setNotice(t('privateLifePage.notices.listed', { name: asset.name, days: Number(result?.wait_days ?? pendingAction.quote.wait_days) }))
     }
 
     setPendingAction(null)
@@ -670,30 +670,30 @@ export default function PrivateLifePage() {
   }
 
   if (commerceLoading) {
-    return <GameLayout title="Private Life" subtitle="Lifestyle, assets and personal wealth"><div className="tlg-premium-lock"><span>Checking Premium membership…</span></div></GameLayout>
+    return <GameLayout title={t('privateLifePage.title')} subtitle={t('privateLifePage.subtitle')}><div className="tlg-premium-lock"><span>{t('privateLifePage.premium.checking')}</span></div></GameLayout>
   }
 
   if (!isPremium) {
     return (
-      <GameLayout title="Private Life" subtitle="Lifestyle, assets and personal wealth">
+      <GameLayout title={t('privateLifePage.title')} subtitle={t('privateLifePage.subtitle')}>
         <section className="tlg-premium-lock">
           <div className="tlg-premium-lock-icon"><LockKeyhole size={28} /></div>
-          <span>Premium feature</span><h2>Private Life</h2>
-          <p>Build an off-court lifestyle with the money earned in your tennis career. Purchases and investments use the same Finance balance — never Premium coins.</p>
-          <button type="button" onClick={() => navigate('/game/pro-packages')}><Crown size={16} /> View Premium</button>
+          <span>{t('privateLifePage.premium.feature')}</span><h2>{t('privateLifePage.title')}</h2>
+          <p>{t('privateLifePage.premium.body')}</p>
+          <button type="button" onClick={() => navigate('/game/pro-packages')}><Crown size={16} /> {t('privateLifePage.premium.view')}</button>
         </section>
       </GameLayout>
     )
   }
 
   if (loading && !dashboard) {
-    return <GameLayout title="Private Life" subtitle="Lifestyle, assets and personal wealth"><div className="private-life-loading"><RefreshCw size={20} /> Loading your private-life portfolio…</div></GameLayout>
+    return <GameLayout title={t('privateLifePage.title')} subtitle={t('privateLifePage.subtitle')}><div className="private-life-loading"><RefreshCw size={20} /> {t('privateLifePage.loading')}</div></GameLayout>
   }
 
   if (error && !dashboard) {
     return (
-      <GameLayout title="Private Life" subtitle="Lifestyle, assets and personal wealth">
-        <div className="private-life-error"><strong>Private Life could not be loaded</strong><p>{error}</p><button className="private-life-refresh" type="button" onClick={() => void loadDashboard()}><RefreshCw size={14} /> Try again</button></div>
+      <GameLayout title={t('privateLifePage.title')} subtitle={t('privateLifePage.subtitle')}>
+        <div className="private-life-error"><strong>{t('privateLifePage.loadError')}</strong><p>{error}</p><button className="private-life-refresh" type="button" onClick={() => void loadDashboard()}><RefreshCw size={14} /> {t('privateLifePage.tryAgain')}</button></div>
       </GameLayout>
     )
   }
@@ -706,8 +706,8 @@ export default function PrivateLifePage() {
   const confirmation = pendingAction
     ? pendingAction.type === 'buy'
       ? {
-          eyebrow: 'Private Life purchase',
-          title: `Buy ${yachtDisplayName(pendingAction.listing)}${pendingAction.listing.location ? ` in ${pendingAction.listing.location.city}` : ''}?`,
+          eyebrow: t('privateLifePage.purchase.eyebrow'),
+          title: t('privateLifePage.purchase.buyTitle', { name: yachtDisplayName(pendingAction.listing), location: pendingAction.listing.location ? ` ${pendingAction.listing.location.city}` : '' }),
           hero: <AssetImage src={pendingAction.listing.image_url} name={pendingAction.listing.name} />,
           size: 'wide' as const,
           message: (
@@ -723,39 +723,39 @@ export default function PrivateLifePage() {
           detail: (
             <div className="private-life-purchase-summary">
               <div className="private-life-purchase-price-row">
-                <span>Purchase price</span>
+                <span>{t('privateLifePage.purchase.purchasePrice')}</span>
                 <strong>{money(pendingAction.listing.effective_price, currency)}</strong>
               </div>
               <div className="private-life-purchase-info-grid">
-                {pendingAction.listing.category === 'yacht' && yachtBuilder(pendingAction.listing) ? <div><span>Builder</span><strong>{yachtBuilder(pendingAction.listing)}</strong></div> : null}
-                {pendingAction.listing.category === 'yacht' ? <div><span>Model</span><strong>{pendingAction.listing.name}</strong></div> : null}
-                {pendingAction.listing.category === 'yacht' && metadataText(pendingAction.listing, 'yacht_length_m') ? <div><span>Length</span><strong>{metadataText(pendingAction.listing, 'yacht_length_m')} m</strong></div> : null}
-                {pendingAction.listing.category === 'yacht' && metadataText(pendingAction.listing, 'yacht_type') ? <div><span>Yacht type</span><strong>{metadataText(pendingAction.listing, 'yacht_type')}</strong></div> : null}
-                <div><span>Category</span><strong>{categoryLabel(pendingAction.listing.category)}</strong></div>
-                <div><span>Rarity</span><strong>{rarityLabel(pendingAction.listing.rarity)}</strong></div>
-                <div><span>Prestige points</span><strong>+{pendingAction.listing.prestige}</strong></div>
-                <div><span>Monthly market move</span><strong className={Number(pendingAction.listing.effective_market_change_bps ?? 0) < 0 ? 'private-life-trend-negative' : Number(pendingAction.listing.effective_market_change_bps ?? 0) > 0 ? 'private-life-trend-positive' : ''}>{marketMoveText(pendingAction.listing.effective_market_change_bps)}</strong></div>
-                <div><span>{ownershipCostLabel(pendingAction.listing.category)}</span><strong>{pendingAction.listing.effective_annual_cost > 0 ? money(pendingAction.listing.effective_annual_cost / 12, currency) : 'None'}</strong></div>
-                <div><span>Annual ownership cost</span><strong>{pendingAction.listing.effective_annual_cost > 0 ? money(pendingAction.listing.effective_annual_cost, currency) : 'None'}</strong></div>
-                <div><span>Annual value trend</span><strong className={pendingAction.listing.effective_value_rate_bps < 0 ? 'private-life-trend-negative' : pendingAction.listing.effective_value_rate_bps > 0 ? 'private-life-trend-positive' : ''}>{trendText(pendingAction.listing.effective_value_rate_bps)}</strong></div>
-                <div><span>Finance balance after purchase</span><strong>{money(dashboard.cash_balance - pendingAction.listing.effective_price, currency)}</strong></div>
+                {pendingAction.listing.category === 'yacht' && yachtBuilder(pendingAction.listing) ? <div><span>{t('privateLifePage.purchase.builder')}</span><strong>{yachtBuilder(pendingAction.listing)}</strong></div> : null}
+                {pendingAction.listing.category === 'yacht' ? <div><span>{t('privateLifePage.purchase.model')}</span><strong>{pendingAction.listing.name}</strong></div> : null}
+                {pendingAction.listing.category === 'yacht' && metadataText(pendingAction.listing, 'yacht_length_m') ? <div><span>{t('privateLifePage.purchase.length')}</span><strong>{metadataText(pendingAction.listing, 'yacht_length_m')} m</strong></div> : null}
+                {pendingAction.listing.category === 'yacht' && metadataText(pendingAction.listing, 'yacht_type') ? <div><span>{t('privateLifePage.purchase.yachtType')}</span><strong>{metadataText(pendingAction.listing, 'yacht_type')}</strong></div> : null}
+                <div><span>{t('privateLifePage.purchase.category')}</span><strong>{categoryLabel(t, pendingAction.listing.category)}</strong></div>
+                <div><span>{t('privateLifePage.purchase.rarity')}</span><strong>{rarityLabel(t, pendingAction.listing.rarity)}</strong></div>
+                <div><span>{t('privateLifePage.purchase.prestige')}</span><strong>+{pendingAction.listing.prestige}</strong></div>
+                <div><span>{t('privateLifePage.purchase.monthlyMove')}</span><strong className={Number(pendingAction.listing.effective_market_change_bps ?? 0) < 0 ? 'private-life-trend-negative' : Number(pendingAction.listing.effective_market_change_bps ?? 0) > 0 ? 'private-life-trend-positive' : ''}>{marketMoveText(t, pendingAction.listing.effective_market_change_bps)}</strong></div>
+                <div><span>{ownershipCostLabel(t, pendingAction.listing.category)}</span><strong>{pendingAction.listing.effective_annual_cost > 0 ? money(pendingAction.listing.effective_annual_cost / 12, currency) : t('privateLifePage.costs.none')}</strong></div>
+                <div><span>{t('privateLifePage.costs.annualOwnership')}</span><strong>{pendingAction.listing.effective_annual_cost > 0 ? money(pendingAction.listing.effective_annual_cost, currency) : t('privateLifePage.costs.none')}</strong></div>
+                <div><span>{t('privateLifePage.purchase.annualTrend')}</span><strong className={pendingAction.listing.effective_value_rate_bps < 0 ? 'private-life-trend-negative' : pendingAction.listing.effective_value_rate_bps > 0 ? 'private-life-trend-positive' : ''}>{trendText(t, pendingAction.listing.effective_value_rate_bps)}</strong></div>
+                <div><span>{t('privateLifePage.purchase.financeAfter')}</span><strong>{money(dashboard.cash_balance - pendingAction.listing.effective_price, currency)}</strong></div>
               </div>
               <div className="private-life-purchase-finance-note">
-                {money(pendingAction.listing.effective_price, currency)} will be taken from your normal career Finance balance. Private Life purchases never use Premium coins.
+                {t('privateLifePage.purchase.financeNote', { amount: money(pendingAction.listing.effective_price, currency) })}
               </div>
             </div>
           ),
-          confirmLabel: `Buy for ${money(pendingAction.listing.effective_price, currency)}`,
+          confirmLabel: t('privateLifePage.purchase.buyFor', { amount: money(pendingAction.listing.effective_price, currency) }),
           tone: 'warning' as const,
         }
       : {
-          eyebrow: 'Sell private asset',
-          title: `${SALE_META[pendingAction.saleMode].label}: ${pendingAction.asset.name}?`,
+          eyebrow: t('privateLifePage.purchase.sellEyebrow'),
+          title: `${saleLabel(pendingAction.saleMode)}: ${pendingAction.asset.name}?`,
           hero: null,
           size: 'default' as const,
-          message: `${money(pendingAction.quote.price, currency)} is the current game sale quote.`,
-          detail: `${SALE_META[pendingAction.saleMode].detail} · Current market value ${money(pendingAction.asset.current_market_value, currency)} · Original value ${money(pendingAction.asset.purchase_price, currency)}.`,
-          confirmLabel: pendingAction.saleMode === 'urgent' ? `Sell now for ${money(pendingAction.quote.price, currency)}` : `List for ${money(pendingAction.quote.price, currency)}`,
+          message: t('privateLifePage.purchase.saleQuote', { amount: money(pendingAction.quote.price, currency) }),
+          detail: t('privateLifePage.purchase.saleDetail', { mode: saleDetail(pendingAction.saleMode), current: money(pendingAction.asset.current_market_value, currency), original: money(pendingAction.asset.purchase_price, currency) }),
+          confirmLabel: pendingAction.saleMode === 'urgent' ? t('privateLifePage.purchase.sellNow', { amount: money(pendingAction.quote.price, currency) }) : t('privateLifePage.purchase.listFor', { amount: money(pendingAction.quote.price, currency) }),
           tone: 'danger' as const,
         }
     : null
@@ -763,7 +763,7 @@ export default function PrivateLifePage() {
   const detailDialog = detailTarget
     ? detailTarget.type === 'market'
       ? {
-          eyebrow: 'Private Life details',
+          eyebrow: t('privateLifePage.purchase.detailsEyebrow'),
           title: `${yachtDisplayName(detailTarget.listing)}${detailTarget.listing.location ? ` in ${detailTarget.listing.location.city}` : ''}`,
           hero: <AssetImage src={detailTarget.listing.image_url} name={detailTarget.listing.name} />,
           size: 'wide' as const,
@@ -780,28 +780,28 @@ export default function PrivateLifePage() {
           detail: (
             <div className="private-life-purchase-summary">
               <div className="private-life-purchase-price-row">
-                <span>Purchase price</span>
+                <span>{t('privateLifePage.purchase.purchasePrice')}</span>
                 <strong>{money(detailTarget.listing.effective_price, currency)}</strong>
               </div>
               <div className="private-life-purchase-info-grid">
-                {detailTarget.listing.category === 'yacht' && yachtBuilder(detailTarget.listing) ? <div><span>Builder</span><strong>{yachtBuilder(detailTarget.listing)}</strong></div> : null}
-                {detailTarget.listing.category === 'yacht' ? <div><span>Model</span><strong>{detailTarget.listing.name}</strong></div> : null}
-                {detailTarget.listing.category === 'yacht' && metadataText(detailTarget.listing, 'yacht_length_m') ? <div><span>Length</span><strong>{metadataText(detailTarget.listing, 'yacht_length_m')} m</strong></div> : null}
-                {detailTarget.listing.category === 'yacht' && metadataText(detailTarget.listing, 'yacht_type') ? <div><span>Yacht type</span><strong>{metadataText(detailTarget.listing, 'yacht_type')}</strong></div> : null}
-                <div><span>Category</span><strong>{categoryLabel(detailTarget.listing.category)}</strong></div>
-                <div><span>Rarity</span><strong>{rarityLabel(detailTarget.listing.rarity)}</strong></div>
-                <div><span>Prestige points</span><strong>+{detailTarget.listing.prestige}</strong></div>
-                <div><span>Monthly market move</span><strong className={Number(detailTarget.listing.effective_market_change_bps ?? 0) < 0 ? 'private-life-trend-negative' : Number(detailTarget.listing.effective_market_change_bps ?? 0) > 0 ? 'private-life-trend-positive' : ''}>{marketMoveText(detailTarget.listing.effective_market_change_bps)}</strong></div>
-                <div><span>{ownershipCostLabel(detailTarget.listing.category)}</span><strong>{detailTarget.listing.effective_annual_cost > 0 ? money(detailTarget.listing.effective_annual_cost / 12, currency) : 'None'}</strong></div>
-                <div><span>Annual ownership cost</span><strong>{detailTarget.listing.effective_annual_cost > 0 ? money(detailTarget.listing.effective_annual_cost, currency) : 'None'}</strong></div>
-                <div><span>Annual value trend</span><strong className={detailTarget.listing.effective_value_rate_bps < 0 ? 'private-life-trend-negative' : detailTarget.listing.effective_value_rate_bps > 0 ? 'private-life-trend-positive' : ''}>{trendText(detailTarget.listing.effective_value_rate_bps)}</strong></div>
-                <div><span>Finance balance after purchase</span><strong>{money(dashboard.cash_balance - detailTarget.listing.effective_price, currency)}</strong></div>
+                {detailTarget.listing.category === 'yacht' && yachtBuilder(detailTarget.listing) ? <div><span>{t('privateLifePage.purchase.builder')}</span><strong>{yachtBuilder(detailTarget.listing)}</strong></div> : null}
+                {detailTarget.listing.category === 'yacht' ? <div><span>{t('privateLifePage.purchase.model')}</span><strong>{detailTarget.listing.name}</strong></div> : null}
+                {detailTarget.listing.category === 'yacht' && metadataText(detailTarget.listing, 'yacht_length_m') ? <div><span>{t('privateLifePage.purchase.length')}</span><strong>{metadataText(detailTarget.listing, 'yacht_length_m')} m</strong></div> : null}
+                {detailTarget.listing.category === 'yacht' && metadataText(detailTarget.listing, 'yacht_type') ? <div><span>{t('privateLifePage.purchase.yachtType')}</span><strong>{metadataText(detailTarget.listing, 'yacht_type')}</strong></div> : null}
+                <div><span>{t('privateLifePage.purchase.category')}</span><strong>{categoryLabel(t, detailTarget.listing.category)}</strong></div>
+                <div><span>{t('privateLifePage.purchase.rarity')}</span><strong>{rarityLabel(t, detailTarget.listing.rarity)}</strong></div>
+                <div><span>{t('privateLifePage.purchase.prestige')}</span><strong>+{detailTarget.listing.prestige}</strong></div>
+                <div><span>{t('privateLifePage.purchase.monthlyMove')}</span><strong className={Number(detailTarget.listing.effective_market_change_bps ?? 0) < 0 ? 'private-life-trend-negative' : Number(detailTarget.listing.effective_market_change_bps ?? 0) > 0 ? 'private-life-trend-positive' : ''}>{marketMoveText(t, detailTarget.listing.effective_market_change_bps)}</strong></div>
+                <div><span>{ownershipCostLabel(t, detailTarget.listing.category)}</span><strong>{detailTarget.listing.effective_annual_cost > 0 ? money(detailTarget.listing.effective_annual_cost / 12, currency) : t('privateLifePage.costs.none')}</strong></div>
+                <div><span>{t('privateLifePage.costs.annualOwnership')}</span><strong>{detailTarget.listing.effective_annual_cost > 0 ? money(detailTarget.listing.effective_annual_cost, currency) : t('privateLifePage.costs.none')}</strong></div>
+                <div><span>{t('privateLifePage.purchase.annualTrend')}</span><strong className={detailTarget.listing.effective_value_rate_bps < 0 ? 'private-life-trend-negative' : detailTarget.listing.effective_value_rate_bps > 0 ? 'private-life-trend-positive' : ''}>{trendText(t, detailTarget.listing.effective_value_rate_bps)}</strong></div>
+                <div><span>{t('privateLifePage.purchase.financeAfter')}</span><strong>{money(dashboard.cash_balance - detailTarget.listing.effective_price, currency)}</strong></div>
               </div>
             </div>
           ),
         }
       : {
-          eyebrow: 'Owned private asset',
+          eyebrow: t('privateLifePage.purchase.ownedEyebrow'),
           title: `${ownedDisplayName(detailTarget.asset, dashboard.catalog)}${detailTarget.asset.city ? ` in ${detailTarget.asset.city}` : ''}`,
           hero: <AssetImage src={detailTarget.imageUrl} name={detailTarget.asset.name} />,
           size: 'wide' as const,
@@ -818,24 +818,24 @@ export default function PrivateLifePage() {
           detail: (
             <div className="private-life-purchase-summary">
               <div className="private-life-purchase-price-row">
-                <span>Current market value</span>
+                <span>{t('privateLifePage.purchase.currentValue')}</span>
                 <strong>{money(detailTarget.asset.current_market_value, currency)}</strong>
               </div>
               <div className="private-life-purchase-info-grid">
-                {ownedYachtCatalog(detailTarget.asset, dashboard.catalog) && yachtBuilder(ownedYachtCatalog(detailTarget.asset, dashboard.catalog)) ? <div><span>Builder</span><strong>{yachtBuilder(ownedYachtCatalog(detailTarget.asset, dashboard.catalog))}</strong></div> : null}
-                {detailTarget.asset.category === 'yacht' ? <div><span>Model</span><strong>{detailTarget.asset.name}</strong></div> : null}
-                {ownedYachtCatalog(detailTarget.asset, dashboard.catalog) && metadataText(ownedYachtCatalog(detailTarget.asset, dashboard.catalog), 'yacht_length_m') ? <div><span>Length</span><strong>{metadataText(ownedYachtCatalog(detailTarget.asset, dashboard.catalog), 'yacht_length_m')} m</strong></div> : null}
-                {ownedYachtCatalog(detailTarget.asset, dashboard.catalog) && metadataText(ownedYachtCatalog(detailTarget.asset, dashboard.catalog), 'yacht_type') ? <div><span>Yacht type</span><strong>{metadataText(ownedYachtCatalog(detailTarget.asset, dashboard.catalog), 'yacht_type')}</strong></div> : null}
-                <div><span>Category</span><strong>{categoryLabel(detailTarget.asset.category)}</strong></div>
-                <div><span>Rarity</span><strong>{rarityLabel(detailTarget.asset.rarity)}</strong></div>
-                <div><span>Prestige points</span><strong>+{detailTarget.asset.prestige}</strong></div>
-                <div><span>Ownership</span><strong>{detailTarget.asset.ownership_days} game days</strong></div>
-                <div><span>Original value</span><strong>{money(detailTarget.asset.purchase_price, currency)}</strong></div>
-                <div><span>{ownershipCostLabel(detailTarget.asset.category)}</span><strong>{detailTarget.asset.annual_running_cost > 0 ? money(detailTarget.asset.annual_running_cost / 12, currency) : 'None'}</strong></div>
-                <div><span>Annual ownership cost</span><strong>{detailTarget.asset.annual_running_cost > 0 ? money(detailTarget.asset.annual_running_cost, currency) : 'None'}</strong></div>
-                <div><span>Market move</span><strong className={Number(detailTarget.asset.property_monthly_change_bps ?? detailTarget.asset.asset_monthly_change_bps ?? 0) < 0 ? 'private-life-trend-negative' : Number(detailTarget.asset.property_monthly_change_bps ?? detailTarget.asset.asset_monthly_change_bps ?? 0) > 0 ? 'private-life-trend-positive' : ''}>{marketMoveText(detailTarget.asset.property_monthly_change_bps ?? detailTarget.asset.asset_monthly_change_bps)}</strong></div>
-                <div><span>Annual value trend</span><strong className={detailTarget.asset.annual_value_rate_bps < 0 ? 'private-life-trend-negative' : detailTarget.asset.annual_value_rate_bps > 0 ? 'private-life-trend-positive' : ''}>{trendText(detailTarget.asset.annual_value_rate_bps)}</strong></div>
-                <div><span>Estimated sale value</span><strong>{money(detailTarget.asset.estimated_sale_price, currency)}</strong></div>
+                {ownedYachtCatalog(detailTarget.asset, dashboard.catalog) && yachtBuilder(ownedYachtCatalog(detailTarget.asset, dashboard.catalog)) ? <div><span>{t('privateLifePage.purchase.builder')}</span><strong>{yachtBuilder(ownedYachtCatalog(detailTarget.asset, dashboard.catalog))}</strong></div> : null}
+                {detailTarget.asset.category === 'yacht' ? <div><span>{t('privateLifePage.purchase.model')}</span><strong>{detailTarget.asset.name}</strong></div> : null}
+                {ownedYachtCatalog(detailTarget.asset, dashboard.catalog) && metadataText(ownedYachtCatalog(detailTarget.asset, dashboard.catalog), 'yacht_length_m') ? <div><span>{t('privateLifePage.purchase.length')}</span><strong>{metadataText(ownedYachtCatalog(detailTarget.asset, dashboard.catalog), 'yacht_length_m')} m</strong></div> : null}
+                {ownedYachtCatalog(detailTarget.asset, dashboard.catalog) && metadataText(ownedYachtCatalog(detailTarget.asset, dashboard.catalog), 'yacht_type') ? <div><span>{t('privateLifePage.purchase.yachtType')}</span><strong>{metadataText(ownedYachtCatalog(detailTarget.asset, dashboard.catalog), 'yacht_type')}</strong></div> : null}
+                <div><span>{t('privateLifePage.purchase.category')}</span><strong>{categoryLabel(t, detailTarget.asset.category)}</strong></div>
+                <div><span>{t('privateLifePage.purchase.rarity')}</span><strong>{rarityLabel(t, detailTarget.asset.rarity)}</strong></div>
+                <div><span>{t('privateLifePage.purchase.prestige')}</span><strong>+{detailTarget.asset.prestige}</strong></div>
+                <div><span>{t('privateLifePage.purchase.ownership')}</span><strong>{t('privateLifePage.dates.gameDays', { count: detailTarget.asset.ownership_days })}</strong></div>
+                <div><span>{t('privateLifePage.purchase.originalValue')}</span><strong>{money(detailTarget.asset.purchase_price, currency)}</strong></div>
+                <div><span>{ownershipCostLabel(t, detailTarget.asset.category)}</span><strong>{detailTarget.asset.annual_running_cost > 0 ? money(detailTarget.asset.annual_running_cost / 12, currency) : t('privateLifePage.costs.none')}</strong></div>
+                <div><span>{t('privateLifePage.costs.annualOwnership')}</span><strong>{detailTarget.asset.annual_running_cost > 0 ? money(detailTarget.asset.annual_running_cost, currency) : t('privateLifePage.costs.none')}</strong></div>
+                <div><span>{t('privateLifePage.marketplace.marketMove')}</span><strong className={Number(detailTarget.asset.property_monthly_change_bps ?? detailTarget.asset.asset_monthly_change_bps ?? 0) < 0 ? 'private-life-trend-negative' : Number(detailTarget.asset.property_monthly_change_bps ?? detailTarget.asset.asset_monthly_change_bps ?? 0) > 0 ? 'private-life-trend-positive' : ''}>{marketMoveText(t, detailTarget.asset.property_monthly_change_bps ?? detailTarget.asset.asset_monthly_change_bps)}</strong></div>
+                <div><span>{t('privateLifePage.purchase.annualTrend')}</span><strong className={detailTarget.asset.annual_value_rate_bps < 0 ? 'private-life-trend-negative' : detailTarget.asset.annual_value_rate_bps > 0 ? 'private-life-trend-positive' : ''}>{trendText(t, detailTarget.asset.annual_value_rate_bps)}</strong></div>
+                <div><span>{t('privateLifePage.purchase.estimatedSale')}</span><strong>{money(detailTarget.asset.estimated_sale_price, currency)}</strong></div>
               </div>
             </div>
           ),
@@ -843,7 +843,7 @@ export default function PrivateLifePage() {
     : null
 
   return (
-    <GameLayout title="Private Life" subtitle="Lifestyle, assets and personal wealth">
+    <GameLayout title={t('privateLifePage.title')} subtitle={t('privateLifePage.subtitle')}>
       <div className="private-life-page">
         <section className="private-life-hero private-life-hero-compact">
           <div className="private-life-hero-copy">
@@ -851,7 +851,7 @@ export default function PrivateLifePage() {
             <h2>Build wealth, collect assets and grow your prestige.</h2>
             <p>Every owned asset contributes prestige points. There are no prestige levels — your total is simply the sum of the prestige points attached to the things you currently own.</p>
           </div>
-          <div className="private-life-prestige-banner"><span>Prestige points</span><strong>{dashboard.prestige.toLocaleString()}</strong><small>From currently owned assets</small></div>
+          <div className="private-life-prestige-banner"><span>{t('privateLifePage.purchase.prestige')}</span><strong>{dashboard.prestige.toLocaleString()}</strong><small>From currently owned assets</small></div>
         </section>
 
         <section className="private-life-metrics" aria-label="Private wealth summary">
@@ -859,7 +859,7 @@ export default function PrivateLifePage() {
           <div className="private-life-metric"><span>Physical assets</span><strong>{money(dashboard.asset_value, currency)}</strong></div>
           <div className="private-life-metric"><span>Investments</span><strong>{money(dashboard.investment_value, currency)}</strong></div>
           <div className="private-life-metric"><span>Current net worth</span><strong>{money(dashboard.net_worth, currency)}</strong></div>
-          <div className="private-life-metric"><span>Prestige points</span><strong>{dashboard.prestige}</strong></div>
+          <div className="private-life-metric"><span>{t('privateLifePage.purchase.prestige')}</span><strong>{dashboard.prestige}</strong></div>
           <div className="private-life-metric"><span>Monthly ownership cost</span><strong>{money(dashboard.annual_running_cost / 12, currency)}</strong></div>
         </section>
 
@@ -954,12 +954,12 @@ export default function PrivateLifePage() {
                         {asset.acquisition_type === 'starter_home' ? <div className="private-life-starter-home-label">Starting home residence</div> : null}
                         <p className="private-life-description">{asset.description}</p>
                         <div className="private-life-owned-value-grid">
-                          <div className="private-life-owned-value-row"><span>Original value</span><strong>{money(asset.purchase_price, currency)}</strong></div>
-                          <div className="private-life-owned-value-row"><span>Current market value</span><strong>{money(asset.current_market_value, currency)}</strong></div>
-                          <div className="private-life-owned-value-row"><span>Prestige points</span><strong>+{asset.prestige}</strong></div>
-                          <div className="private-life-owned-value-row"><span>Ownership</span><strong>{asset.ownership_days} game days</strong></div>
-                          <div className="private-life-owned-value-row"><span>{ownershipCostLabel(asset.category)}</span><strong>{asset.annual_running_cost > 0 ? money(asset.annual_running_cost / 12, currency) : 'None'}</strong></div>
-                          <div className="private-life-owned-value-row"><span>Market move</span><strong className={Number(asset.property_monthly_change_bps ?? asset.asset_monthly_change_bps ?? 0) < 0 ? 'private-life-trend-negative' : Number(asset.property_monthly_change_bps ?? asset.asset_monthly_change_bps ?? 0) > 0 ? 'private-life-trend-positive' : ''}>{marketMoveText(asset.property_monthly_change_bps ?? asset.asset_monthly_change_bps)}</strong></div>
+                          <div className="private-life-owned-value-row"><span>{t('privateLifePage.purchase.originalValue')}</span><strong>{money(asset.purchase_price, currency)}</strong></div>
+                          <div className="private-life-owned-value-row"><span>{t('privateLifePage.purchase.currentValue')}</span><strong>{money(asset.current_market_value, currency)}</strong></div>
+                          <div className="private-life-owned-value-row"><span>{t('privateLifePage.purchase.prestige')}</span><strong>+{asset.prestige}</strong></div>
+                          <div className="private-life-owned-value-row"><span>{t('privateLifePage.purchase.ownership')}</span><strong>{asset.ownership_days} game days</strong></div>
+                          <div className="private-life-owned-value-row"><span>{ownershipCostLabel(asset.category)}</span><strong>{asset.annual_running_cost > 0 ? money(asset.annual_running_cost / 12, currency) : t('privateLifePage.costs.none')}</strong></div>
+                          <div className="private-life-owned-value-row"><span>{t('privateLifePage.marketplace.marketMove')}</span><strong className={Number(asset.property_monthly_change_bps ?? asset.asset_monthly_change_bps ?? 0) < 0 ? 'private-life-trend-negative' : Number(asset.property_monthly_change_bps ?? asset.asset_monthly_change_bps ?? 0) > 0 ? 'private-life-trend-positive' : ''}>{marketMoveText(asset.property_monthly_change_bps ?? asset.asset_monthly_change_bps)}</strong></div>
                         </div>
                         <button
                           type="button"
@@ -1035,10 +1035,10 @@ export default function PrivateLifePage() {
                         {listing.location ? <div className="private-life-property-location">{listing.location.city}, {listing.location.country_name}</div> : null}
                         <p className="private-life-description">{listing.description}</p>
                         <div className="private-life-card-stats">
-                          <div className="private-life-card-stat"><span>Prestige points</span><strong>+{listing.prestige}</strong></div>
-                          <div className="private-life-card-stat"><span>{ownershipCostLabel(listing.category)}</span><strong>{listing.effective_annual_cost > 0 ? money(listing.effective_annual_cost / 12, currency) : 'None'}</strong></div>
-                          <div className="private-life-card-stat"><span>Market move</span><strong className={Number(marketMove ?? 0) < 0 ? 'private-life-trend-negative' : isPositive ? 'private-life-trend-positive' : ''}>{Number(marketMove ?? 0) < 0 ? <TrendingDown size={12} /> : isPositive ? <TrendingUp size={12} /> : null} {marketMoveText(marketMove)}</strong></div>
-                          <div className="private-life-card-stat"><span>Category</span><strong>{categoryLabel(listing.category)}</strong></div>
+                          <div className="private-life-card-stat"><span>{t('privateLifePage.purchase.prestige')}</span><strong>+{listing.prestige}</strong></div>
+                          <div className="private-life-card-stat"><span>{ownershipCostLabel(listing.category)}</span><strong>{listing.effective_annual_cost > 0 ? money(listing.effective_annual_cost / 12, currency) : t('privateLifePage.costs.none')}</strong></div>
+                          <div className="private-life-card-stat"><span>{t('privateLifePage.marketplace.marketMove')}</span><strong className={Number(marketMove ?? 0) < 0 ? 'private-life-trend-negative' : isPositive ? 'private-life-trend-positive' : ''}>{Number(marketMove ?? 0) < 0 ? <TrendingDown size={12} /> : isPositive ? <TrendingUp size={12} /> : null} {marketMoveText(marketMove)}</strong></div>
+                          <div className="private-life-card-stat"><span>{t('privateLifePage.purchase.category')}</span><strong>{categoryLabel(listing.category)}</strong></div>
                         </div>
                         <div className="private-life-card-actions">
                           <button type="button" className="private-life-action details" onClick={() => setDetailTarget({ type: 'market', listing })}>Details</button>
