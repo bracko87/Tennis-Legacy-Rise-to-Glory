@@ -1111,26 +1111,25 @@ export default function NationalTeamCompetition() {
 
           <section className="tlg-v2-panel nt-standings-panel">
             <header className="nt-section-header">
-              <div><span>DIVISION</span><h3>{hub.season_mode === 'association_building' ? 'Official standings begin in Season 2' : 'National standings'}</h3></div>
+              <div><span>{t('nationalTeamPage.competition.division')}</span><h3>{hub.season_mode === 'association_building' ? t('nationalTeamPage.competition.standingsSeason2') : t('nationalTeamPage.competition.standings')}</h3></div>
             </header>
 
             {hub.season_mode === 'association_building' ? (
               <div className="nt-season-one-standings">
-                <span>SEASON 1</span>
-                <strong>No official table this season</strong>
+                <span>{t('nationalTeamPage.competition.season1')}</span>
+                <strong>{t('nationalTeamPage.competition.noTable')}</strong>
                 <p>
-                  Friendly results are recorded in national history but do not create standings points, promotion or relegation.
-                  Active associations are being collected now for the Season {hub.official_launch_season} pyramid.
+                  {t('nationalTeamPage.competition.noTableBody', { season: hub.official_launch_season })}
                 </p>
                 {hub.projected_entry?.label && (
-                  <small>Projected entry: {hub.projected_entry.label}</small>
+                  <small>{t('nationalTeamPage.competition.projected', { entry: hub.projected_entry.label })}</small>
                 )}
               </div>
             ) : standings.length === 0 ? (
-              <div className="nt-placeholder">Division standings will appear after official fixtures are played.</div>
+              <div className="nt-placeholder">{t('nationalTeamPage.competition.standingsEmpty')}</div>
             ) : (
               <div className="nt-standings-table">
-                <div className="head"><span>#</span><span>Country</span><span>Ties</span><span>W–L</span><span>Matches</span><span>Pts</span></div>
+                <div className="head"><span>#</span><span>{t('nationalTeamPage.competition.standingsHeaders.country')}</span><span>{t('nationalTeamPage.competition.standingsHeaders.ties')}</span><span>W–L</span><span>{t('nationalTeamPage.competition.standingsHeaders.matches')}</span><span>{t('nationalTeamPage.competition.standingsHeaders.points')}</span></div>
                 {standings.map((row) => (
                   <div key={row.association_id} className={row.is_my_association ? 'mine' : ''}>
                     <strong>{row.rank_position}</strong>
@@ -1149,19 +1148,18 @@ export default function NationalTeamCompetition() {
             <section className="tlg-v2-panel nt-friendly-market">
               <header className="nt-section-header">
                 <div>
-                  <span>CAPTAIN FRIENDLY MARKETPLACE</span>
-                  <h3>Arrange a national-team friendly</h3>
+                  <span>{t('nationalTeamPage.competition.friendliesKicker')}</span>
+                  <h3>{t('nationalTeamPage.competition.friendliesTitle')}</h3>
                 </div>
               </header>
 
               <p className="nt-section-copy">
-                Friendly pairings must be confirmed at least six game days before the national window.
-                Slot 1 is played Tuesday–Wednesday; Slot 2 is played Friday–Saturday. Only the active national captain can publish availability or accept a pairing.
+                {t('nationalTeamPage.competition.friendliesBody')}
               </p>
 
               {!friendlyHub?.is_captain && (
                 <div className="nt-placeholder">
-                  You can browse the friendly programme, but only the active national captain can publish a listing or arrange a match.
+                  {t('nationalTeamPage.competition.friendliesCaptainOnly')}
                 </div>
               )}
 
@@ -1170,13 +1168,13 @@ export default function NationalTeamCompetition() {
                   <article key={window.window_id} className="nt-friendly-window">
                     <header>
                       <div>
-                        <span>SEASON {window.season_number} · WEEK {window.season_week}</span>
+                        <span>{t('nationalTeamPage.competition.seasonLabel', { season: window.season_number })} · {t('nationalTeamPage.competition.week', { week: window.season_week })}</span>
                         <strong>{window.label}</strong>
                         <small>{formatAbsoluteDay(t, window.start_absolute_day)} – {formatAbsoluteDay(t, window.end_absolute_day)}</small>
                       </div>
                       <div className="nt-friendly-deadline">
-                        <span>PAIRING DEADLINE</span>
-                        <strong>{formatAbsoluteDay(window.pairing_deadline_absolute_day)}</strong>
+                        <span>{t('nationalTeamPage.competition.pairingDeadline')}</span>
+                        <strong>{formatAbsoluteDay(t, window.pairing_deadline_absolute_day)}</strong>
                       </div>
                     </header>
 
@@ -1187,10 +1185,10 @@ export default function NationalTeamCompetition() {
                             <CountryFlag countryCode={invitation.country_code} countryName={invitation.country_code} width={22} height={15} />
                             <span>
                               <strong>{nationalCountryName(invitation.country_code, invitation.inviter_association_name)}</strong>
-                              <small>invited you for Tie slot {invitation.tie_slot}</small>
+                              <small>{t('nationalTeamPage.competition.invitedSlot', { slot: invitation.tie_slot })}</small>
                             </span>
-                            <button type="button" className="accept" disabled={working} onClick={() => void respondFriendly(invitation.id, true)}>Accept</button>
-                            <button type="button" className="decline" disabled={working} onClick={() => void respondFriendly(invitation.id, false)}>Decline</button>
+                            <button type="button" className="accept" disabled={working} onClick={() => void respondFriendly(invitation.id, true)}>{t('nationalTeamPage.competition.accept')}</button>
+                            <button type="button" className="decline" disabled={working} onClick={() => void respondFriendly(invitation.id, false)}>{t('nationalTeamPage.competition.decline')}</button>
                           </div>
                         ))}
                       </div>
@@ -1203,28 +1201,28 @@ export default function NationalTeamCompetition() {
                           <section key={slot.slot}>
                             <div className="nt-friendly-slot-head">
                               <div>
-                                <span>TIE SLOT {slot.slot}</span>
+                                <span>{t('nationalTeamPage.competition.tieSlot', { slot: slot.slot })}</span>
                                 <strong>{slot.label}</strong>
                               </div>
-                              <span className={slot.available ? 'free' : 'occupied'}>{slot.available ? 'Available' : 'Occupied'}</span>
+                              <span className={slot.available ? 'free' : 'occupied'}>{slot.available ? t('nationalTeamPage.competition.available') : t('nationalTeamPage.competition.occupied')}</span>
                             </div>
 
                             {friendlyHub?.is_captain && slot.available && (
                               <div className="nt-friendly-listing-action">
-                                <span>{listingActive ? 'Your association is visible in the friendly market.' : 'Need an opponent? Publish your association as looking for a friendly.'}</span>
+                                <span>{listingActive ? t('nationalTeamPage.competition.visibleMarket') : t('nationalTeamPage.competition.needOpponent')}</span>
                                 <button
                                   type="button"
                                   disabled={working}
                                   onClick={() => void toggleFriendlyListing(window.window_id, slot.slot, !listingActive)}
                                 >
-                                  {listingActive ? 'Stop looking' : 'Arrange friendly'}
+                                  {listingActive ? t('nationalTeamPage.competition.stopLooking') : t('nationalTeamPage.competition.arrangeFriendly')}
                                 </button>
                               </div>
                             )}
 
                             <div className="nt-friendly-market-list">
                               {slot.market.length === 0 ? (
-                                <p>No other national association is currently looking in this slot.</p>
+                                <p>{t('nationalTeamPage.competition.noMarket')}</p>
                               ) : slot.market.map((association) => (
                                 <div key={association.listing_id}>
                                   <CountryFlag countryCode={association.country_code} countryName={association.country_code} width={23} height={16} />
@@ -1240,7 +1238,7 @@ export default function NationalTeamCompetition() {
 
                             {window.outgoing_invitations.filter((invite) => invite.tie_slot === slot.slot).map((invite) => (
                               <div key={invite.id} className="nt-friendly-outgoing">
-                                Invitation pending with {nationalCountryName(invite.country_code, invite.invitee_association_name)}.
+                                {t('nationalTeamPage.competition.invitationPending', { name: nationalCountryName(invite.country_code, invite.invitee_association_name) })}
                               </div>
                             ))}
                           </section>
@@ -1251,7 +1249,7 @@ export default function NationalTeamCompetition() {
                 ))}
 
                 {(friendlyHub?.windows ?? []).length === 0 && (
-                  <div className="nt-placeholder">There are no future national windows available for friendly arrangements.</div>
+                  <div className="nt-placeholder">{t('nationalTeamPage.competition.noFutureWindows')}</div>
                 )}
               </div>
             </section>
@@ -1261,56 +1259,56 @@ export default function NationalTeamCompetition() {
             <section className="tlg-v2-panel nt-competition-how">
               <header className="nt-section-header">
                 <div>
-                  <span>HOW THE NATIONAL COMPETITION WORKS</span>
-                  <h3>From association activation to the Final 8</h3>
+                  <span>{t('nationalTeamPage.competition.howKicker')}</span>
+                  <h3>{t('nationalTeamPage.competition.howTitle')}</h3>
                 </div>
               </header>
 
               <div className="nt-how-grid">
                 <article>
-                  <span>SEASON 1</span>
-                  <strong>Association-building season</strong>
-                  <p>No official standings. Active associations use the four national windows for captain-arranged friendlies while the Season 2 field is built.</p>
+                  <span>{t('nationalTeamPage.competition.howCards.season1K')}</span>
+                  <strong>{t('nationalTeamPage.competition.howCards.season1T')}</strong>
+                  <p>{t('nationalTeamPage.competition.howCards.season1B')}</p>
                 </article>
                 <article>
-                  <span>SEASON 2 BOOTSTRAP</span>
-                  <strong>Activation order is used once</strong>
-                  <p>Associations 1–32 enter Qualifier Round 1; 33–64 enter World Group I; 65–96 enter World Group II; later associations enter the regional system by geography.</p>
+                  <span>{t('nationalTeamPage.competition.howCards.bootstrapK')}</span>
+                  <strong>{t('nationalTeamPage.competition.howCards.bootstrapT')}</strong>
+                  <p>{t('nationalTeamPage.competition.howCards.bootstrapB')}</p>
                 </article>
                 <article>
-                  <span>AFTER THE BOOTSTRAP</span>
-                  <strong>Sporting results take over</strong>
-                  <p>Activation order no longer matters. Promotion and relegation determine every following season. A newly activated association joins the lowest active regional tier for the next season.</p>
+                  <span>{t('nationalTeamPage.competition.howCards.afterK')}</span>
+                  <strong>{t('nationalTeamPage.competition.howCards.afterT')}</strong>
+                  <p>{t('nationalTeamPage.competition.howCards.afterB')}</p>
                 </article>
                 <article>
-                  <span>QUALIFIER ROUND 1</span>
-                  <strong>32 teams → 16 winners</strong>
-                  <p>The winners reach Qualifier Round 2 later in the same season. The Q1 retention/relegation path decides which losing teams keep their Q1 place for the following season.</p>
+                  <span>{t('nationalTeamPage.competition.howCards.q1K')}</span>
+                  <strong>{t('nationalTeamPage.competition.howCards.q1T')}</strong>
+                  <p>{t('nationalTeamPage.competition.howCards.q1B')}</p>
                 </article>
                 <article>
-                  <span>WORLD GROUP I</span>
-                  <strong>Eight groups of four</strong>
-                  <p>Three official ties per association. Group winners move to Qualifier Round 1 next season; bottom teams drop to World Group II.</p>
+                  <span>{t('nationalTeamPage.competition.howCards.wg1K')}</span>
+                  <strong>{t('nationalTeamPage.competition.howCards.wg1T')}</strong>
+                  <p>{t('nationalTeamPage.competition.howCards.wg1B')}</p>
                 </article>
                 <article>
-                  <span>WORLD GROUP II</span>
-                  <strong>Eight groups of four</strong>
-                  <p>Group winners move to World Group I next season. Bottom teams drop into Regional Group I.</p>
+                  <span>{t('nationalTeamPage.competition.howCards.wg2K')}</span>
+                  <strong>{t('nationalTeamPage.competition.howCards.wg1T')}</strong>
+                  <p>{t('nationalTeamPage.competition.howCards.wg2B')}</p>
                 </article>
                 <article>
-                  <span>REGIONAL PYRAMID</span>
-                  <strong>Europe · Americas · Asia/Oceania · Africa</strong>
-                  <p>Regional I promotes into World Group II. Lower regional groups promote one level at a time; extra bottom tiers are created dynamically when more associations activate.</p>
+                  <span>{t('nationalTeamPage.competition.howCards.regionalK')}</span>
+                  <strong>{t('nationalTeamPage.competition.howCards.regionalT')}</strong>
+                  <p>{t('nationalTeamPage.competition.howCards.regionalB')}</p>
                 </article>
                 <article>
-                  <span>NORMAL NATIONAL WINDOW</span>
-                  <strong>Maximum two ties</strong>
-                  <p>Monday travel; Tuesday–Wednesday Tie 1; Thursday recovery/travel; Friday–Saturday Tie 2; Sunday recovery/departure. A team may play fewer than two ties.</p>
+                  <span>{t('nationalTeamPage.competition.howCards.windowK')}</span>
+                  <strong>{t('nationalTeamPage.competition.howCards.windowT')}</strong>
+                  <p>{t('nationalTeamPage.competition.howCards.windowB')}</p>
                 </article>
                 <article>
-                  <span>FINAL 8</span>
-                  <strong>Weeks 47–48</strong>
-                  <p>Centralized event. Week 47 contains travel and quarterfinals; Week 48 contains semifinals and the final in the second half of the week. A champion can play three ties at the Final 8.</p>
+                  <span>{t('nationalTeamPage.competition.howCards.final8K')}</span>
+                  <strong>{t('nationalTeamPage.competition.howCards.final8T')}</strong>
+                  <p>{t('nationalTeamPage.competition.howCards.final8B')}</p>
                 </article>
               </div>
             </section>
