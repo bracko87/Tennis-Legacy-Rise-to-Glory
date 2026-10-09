@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 import { Link } from 'react-router'
 
 import GameLayout from '../../components/layout/GameLayout'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 import '../../styles/tennis-club.css'
 
@@ -93,14 +95,10 @@ type ClubDashboard = {
   current_absolute_day: number
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
-function number(value: number) {
-  return Math.round(Number(value) || 0).toLocaleString()
-}
-
-function gameDate(message: ClubChatMessage) {
-  return `${MONTHS[Math.max(0, message.month - 1)] ?? `M${message.month}`} ${message.day} · S${message.season}`
+function gameDate(message: ClubChatMessage, t: TFunction) {
+  const months = t('staffPage.months', { returnObjects: true }) as string[]
+  const month = months[message.month] ?? `M${message.month}`
+  return t('tennisClubPage.chat.gameDate', { month, day: message.day, season: message.season })
 }
 
 function WorldBadge({ world }: { world?: string }) {
@@ -109,6 +107,9 @@ function WorldBadge({ world }: { world?: string }) {
 }
 
 export default function TennisClubPage() {
+  const { t } = useTranslation()
+  const { formatNumber } = useLocalization()
+  const number = (value: number) => formatNumber(Math.round(Number(value) || 0))
   const [tab, setTab] = useState<ClubTab>('members')
   const [dashboard, setDashboard] = useState<ClubDashboard | null>(null)
   const [loading, setLoading] = useState(true)
@@ -124,7 +125,7 @@ export default function TennisClubPage() {
     if (!background) setLoading(true)
     setError(null)
     const { data, error: dashboardError } = await supabase.rpc('get_tennis_club_dashboard_v1')
-    if (dashboardError || !data) setError(dashboardError?.message ?? 'Unable to load Tennis Club.')
+    if (dashboardError || !data) setError(dashboardError?.message ?? t('tennisClubPage.loadError'))
     else setDashboard(data as ClubDashboard)
     if (!background) setLoading(false)
   }
@@ -158,7 +159,7 @@ export default function TennisClubPage() {
     setError(null)
     setMessage(null)
     const result = await action()
-    if (result.error) setError(result.error.message ?? 'Unable to complete this club action.')
+    if (result.error) setError(result.error.message ?? t('tennisClubPage.actionError'))
     else {
       setMessage(success)
       await loadDashboard(true)
@@ -169,7 +170,7 @@ export default function TennisClubPage() {
   async function createClub() {
     const trimmed = clubName.trim()
     if (trimmed.length < 3) {
-      setError('Club name must contain at least 3 characters.')
+      setError(t('tennisClubPage.create.nameError'))
       return
     }
     await runAction(
@@ -178,7 +179,7 @@ export default function TennisClubPage() {
         const { error: createError } = await supabase.rpc('create_tennis_club_v1', { p_name: trimmed })
         return { error: createError }
       },
-      `${trimmed} created successfully.`,
+      t('tennisClubPage.create.success', { name: trimmed }),
     )
     setClubName('')
   }
@@ -190,7 +191,7 @@ export default function TennisClubPage() {
         const { error: applyError } = await supabase.rpc('apply_to_tennis_club_v1', { p_club_id: club.id })
         return { error: applyError }
       },
-      `Application sent to ${club.name}.`,
+      t('tennisClubPage.join.applicationSent', { name: club.name }),
     )
   }
 
@@ -221,7 +222,7 @@ export default function TennisClubPage() {
         const { error: inviteError } = await supabase.rpc('invite_to_tennis_club_v1', { p_player_id: candidate.player_id })
         return { error: inviteError }
       },
-      `Invitation sent to ${candidate.first_name} ${candidate.last_name}.`,
+      t('tennisClubPage.ownerTools.invitationSent', { name: `${candidate.first_name} ${candidate.last_name}` }),
     )
     setInviteCandidates((current) => current.filter((item) => item.player_id !== candidate.player_id))
   }
@@ -245,8 +246,8 @@ export default function TennisClubPage() {
 
   if (loading && !dashboard) {
     return (
-      <GameLayout title="Tennis Club" subtitle="Shared ATP and WTA social clubs">
-        <div className="tlg-club-state">Loading Tennis Club…</div>
+      <GameLayout title={t('tennisClubPage.title')} subtitle={t('tennisClubPage.subtitle')}>
+        <div className="tlg-club-state">{t('tennisClubPage.loading')}</div>
       </GameLayout>
     )
   }
@@ -256,16 +257,16 @@ export default function TennisClubPage() {
       <div className="tlg-club-page">
         <section className="tlg-club-hero">
           <div>
-            <span>SHARED TENNIS COMMUNITY</span>
-            <h1>Tennis Club</h1>
-            <p>ATP and WTA professionals meet in one shared club structure. Tour competition remains separate; club membership, club points and club chat are shared.</p>
+            <span>{t('tennisClubPage.kicker')}</span>
+            <h1>{t('tennisClubPage.title')}</h1>
+            <p>{t('tennisClubPage.intro')}</p>
           </div>
         </section>
 
-        <div className="tlg-club-tabs" role="tablist" aria-label="Tennis Club sections">
-          <button type="button" className={tab === 'members' ? 'active' : ''} onClick={() => setTab('members')}>Members</button>
-          <button type="button" className={tab === 'world' ? 'active' : ''} onClick={() => setTab('world')}>World Clubs</button>
-          <button type="button" className={tab === 'chat' ? 'active' : ''} onClick={() => setTab('chat')}>Club Chat</button>
+        <div className="tlg-club-tabs" role="tablist" aria-label={t('tennisClubPage.tabsAria')}>
+          <button type="button" className={tab === 'members' ? 'active' : ''} onClick={() => setTab('members')}>{t('tennisClubPage.tabs.members')}</button>
+          <button type="button" className={tab === 'world' ? 'active' : ''} onClick={() => setTab('world')}>{t('tennisClubPage.tabs.world')}</button>
+          <button type="button" className={tab === 'chat' ? 'active' : ''} onClick={() => setTab('chat')}>{t('tennisClubPage.tabs.chat')}</button>
         </div>
 
         {error && <div className="tlg-club-alert error">{error}</div>}
@@ -275,41 +276,41 @@ export default function TennisClubPage() {
           <div className="tlg-club-members-empty-view">
             <section className="tlg-club-create-grid">
               <article className="tlg-club-create-card">
-                <span>START YOUR OWN CLUB</span>
-                <h2>Create a Tennis Club</h2>
-                <p>Become the owner of a new shared ATP/WTA club. Creating a club is a Premium Coin action and costs exactly {dashboard.settings.creation_cost_coins} coins.</p>
+                <span>{t('tennisClubPage.create.kicker')}</span>
+                <h2>{t('tennisClubPage.create.title')}</h2>
+                <p>{t('tennisClubPage.create.body', { count: dashboard.settings.creation_cost_coins })}</p>
                 <div className="tlg-club-coin-row">
-                  <div><span>YOUR COINS</span><strong>{number(dashboard.coins_balance)}</strong></div>
-                  <div><span>CREATION COST</span><strong>{number(dashboard.settings.creation_cost_coins)}</strong></div>
+                  <div><span>{t('tennisClubPage.create.yourCoins')}</span><strong>{number(dashboard.coins_balance)}</strong></div>
+                  <div><span>{t('tennisClubPage.create.cost')}</span><strong>{number(dashboard.settings.creation_cost_coins)}</strong></div>
                 </div>
                 <label>
-                  <span>Club name</span>
-                  <input value={clubName} maxLength={40} placeholder="Enter a unique club name" onChange={(event) => setClubName(event.target.value)} />
+                  <span>{t('tennisClubPage.create.name')}</span>
+                  <input value={clubName} maxLength={40} placeholder={t('tennisClubPage.create.placeholder')} onChange={(event) => setClubName(event.target.value)} />
                 </label>
                 <button type="button" className="primary" disabled={busy === 'create' || dashboard.coins_balance < dashboard.settings.creation_cost_coins} onClick={() => void createClub()}>
-                  {busy === 'create' ? 'Creating…' : dashboard.coins_balance < dashboard.settings.creation_cost_coins ? `Need ${dashboard.settings.creation_cost_coins} coins` : `Create Club · ${dashboard.settings.creation_cost_coins} coins`}
+                  {busy === 'create' ? t('tennisClubPage.create.creating') : dashboard.coins_balance < dashboard.settings.creation_cost_coins ? t('tennisClubPage.create.needCoins', { count: dashboard.settings.creation_cost_coins }) : t('tennisClubPage.create.button', { count: dashboard.settings.creation_cost_coins })}
                 </button>
               </article>
 
               <article className="tlg-club-join-card">
-                <span>JOIN AN EXISTING CLUB</span>
-                <h2>Applications & invitations</h2>
-                <p>Apply to a club from the World Clubs list, or accept an invitation sent by a club owner.</p>
+                <span>{t('tennisClubPage.join.kicker')}</span>
+                <h2>{t('tennisClubPage.join.title')}</h2>
+                <p>{t('tennisClubPage.join.body')}</p>
                 <div className="tlg-club-request-stack">
-                  {dashboard.invitations.length === 0 && dashboard.applications.length === 0 && <div className="tlg-club-empty">No pending invitations or applications.</div>}
+                  {dashboard.invitations.length === 0 && dashboard.applications.length === 0 && <div className="tlg-club-empty">{t('tennisClubPage.join.none')}</div>}
                   {dashboard.invitations.map((invite) => (
                     <div className="tlg-club-request-row" key={invite.request_id}>
-                      <div><span>INVITATION</span><strong>{invite.club_name}</strong><small>From {invite.owner_name}</small></div>
+                      <div><span>{t('tennisClubPage.join.invitation')}</span><strong>{invite.club_name}</strong><small>{t('tennisClubPage.join.from', { name: invite.owner_name })}</small></div>
                       <div className="actions">
-                        <button type="button" className="accept" disabled={busy?.startsWith(`request:${invite.request_id}`)} onClick={() => void respondRequest(invite.request_id, true, `You joined ${invite.club_name}.`)}>Accept</button>
-                        <button type="button" disabled={busy?.startsWith(`request:${invite.request_id}`)} onClick={() => void respondRequest(invite.request_id, false, 'Invitation declined.')}>Decline</button>
+                        <button type="button" className="accept" disabled={busy?.startsWith(`request:${invite.request_id}`)} onClick={() => void respondRequest(invite.request_id, true, t('tennisClubPage.join.joined', { name: invite.club_name }))}>{t('tennisClubPage.join.accept')}</button>
+                        <button type="button" disabled={busy?.startsWith(`request:${invite.request_id}`)} onClick={() => void respondRequest(invite.request_id, false, t('tennisClubPage.join.declined'))}>{t('tennisClubPage.join.decline')}</button>
                       </div>
                     </div>
                   ))}
                   {dashboard.applications.map((application) => (
                     <div className="tlg-club-request-row pending" key={application.request_id}>
-                      <div><span>APPLICATION PENDING</span><strong>{application.club_name}</strong><small>Waiting for the club owner</small></div>
-                      <b>Pending</b>
+                      <div><span>{t('tennisClubPage.join.pending')}</span><strong>{application.club_name}</strong><small>{t('tennisClubPage.join.waiting')}</small></div>
+                      <b>{t('tennisClubPage.join.pendingLabel')}</b>
                     </div>
                   ))}
                 </div>
@@ -318,10 +319,10 @@ export default function TennisClubPage() {
 
             <section className="tlg-club-panel">
               <header className="tlg-club-panel-head">
-                <div><span>FIND A CLUB</span><h2>Leading world clubs</h2><p>Apply to any club directly. The full ranking contains the top 50 clubs worldwide.</p></div>
-                <button type="button" className="text-action" onClick={() => setTab('world')}>View Top 50</button>
+                <div><span>{t('tennisClubPage.find.kicker')}</span><h2>{t('tennisClubPage.find.title')}</h2><p>{t('tennisClubPage.find.body')}</p></div>
+                <button type="button" className="text-action" onClick={() => setTab('world')}>{t('tennisClubPage.find.top50')}</button>
               </header>
-              <WorldClubTable clubs={dashboard.world_clubs.slice(0, 12)} ownClubId={null} canApply pendingApplications={pendingApplications} pendingInvitations={pendingInvitations} busy={busy} onApply={applyToClub} />
+              <WorldClubTable t={t} number={number} clubs={dashboard.world_clubs.slice(0, 12)} ownClubId={null} canApply pendingApplications={pendingApplications} pendingInvitations={pendingInvitations} busy={busy} onApply={applyToClub} />
             </section>
           </div>
         )}
@@ -329,25 +330,25 @@ export default function TennisClubPage() {
         {dashboard && tab === 'members' && dashboard.club && (
           <div className="tlg-club-members-view">
             <section className="tlg-club-summary">
-              <div className="identity"><span>YOUR TENNIS CLUB</span><h2>{dashboard.club.name}</h2><small>{dashboard.club.role === 'owner' ? 'Club Owner' : 'Club Member'} · Shared ATP/WTA club</small></div>
-              <Metric label="World Rank" value={`#${dashboard.club.world_rank ?? '—'}`} />
-              <Metric label="Club Points" value={number(dashboard.club.points)} />
-              <Metric label="Members" value={number(dashboard.club.member_count)} detail={`${dashboard.club.atp_members} ATP · ${dashboard.club.wta_members} WTA`} />
+              <div className="identity"><span>{t('tennisClubPage.own.kicker')}</span><h2>{dashboard.club.name}</h2><small>{dashboard.club.role === 'owner' ? t('tennisClubPage.own.owner') : t('tennisClubPage.own.member')} · {t('tennisClubPage.own.shared')}</small></div>
+              <Metric label={t('tennisClubPage.own.worldRank')} value={`#${dashboard.club.world_rank ?? '—'}`} />
+              <Metric label={t('tennisClubPage.own.clubPoints')} value={number(dashboard.club.points)} />
+              <Metric label={t('tennisClubPage.own.members')} value={number(dashboard.club.member_count)} detail={`${dashboard.club.atp_members} ATP · ${dashboard.club.wta_members} WTA`} />
             </section>
 
             <section className="tlg-club-panel">
-              <header className="tlg-club-panel-head"><div><span>CLUB ROSTER</span><h2>Members</h2><p>Club points are the live sum of every member's official ranking points, regardless of ATP or WTA tour.</p></div></header>
+              <header className="tlg-club-panel-head"><div><span>{t('tennisClubPage.own.roster')}</span><h2>{t('tennisClubPage.own.members')}</h2><p>{t('tennisClubPage.own.rosterBody')}</p></div></header>
               <div className="tlg-club-member-table-wrap">
                 <table className="tlg-club-table">
-                  <thead><tr><th>Member</th><th>Tour</th><th>Role</th><th>Ranking Points</th><th>Contribution</th></tr></thead>
+                  <thead><tr><th>{t('tennisClubPage.own.columns.member')}</th><th>{t('tennisClubPage.own.columns.tour')}</th><th>{t('tennisClubPage.own.columns.role')}</th><th>{t('tennisClubPage.own.columns.points')}</th><th>{t('tennisClubPage.own.columns.contribution')}</th></tr></thead>
                   <tbody>
                     {dashboard.members.map((member) => (
                       <tr key={member.player_id}>
                         <td><Link to={`/game/players/${member.player_id}`}>{member.first_name} {member.last_name}</Link></td>
                         <td><WorldBadge world={member.world} /></td>
-                        <td>{member.role === 'owner' ? 'Owner' : 'Member'}</td>
+                        <td>{member.role === 'owner' ? t('tennisClubPage.own.roleOwner') : t('tennisClubPage.own.roleMember')}</td>
                         <td>{number(member.ranking_points)}</td>
-                        <td><strong>{number(member.ranking_points)} pts</strong></td>
+                        <td><strong>{t('tennisClubPage.own.pointsShort', { count: number(member.ranking_points) })}</strong></td>
                       </tr>
                     ))}
                   </tbody>
@@ -358,15 +359,15 @@ export default function TennisClubPage() {
             {dashboard.club.role === 'owner' && (
               <section className="tlg-club-owner-grid">
                 <article className="tlg-club-panel">
-                  <header className="tlg-club-panel-head compact"><div><span>MEMBERSHIP APPLICATIONS</span><h2>Pending requests</h2></div></header>
+                  <header className="tlg-club-panel-head compact"><div><span>{t('tennisClubPage.ownerTools.applications')}</span><h2>{t('tennisClubPage.ownerTools.pendingRequests')}</h2></div></header>
                   <div className="tlg-club-owner-list">
-                    {dashboard.incoming_applications.length === 0 && <div className="tlg-club-empty">No players are waiting for approval.</div>}
+                    {dashboard.incoming_applications.length === 0 && <div className="tlg-club-empty">{t('tennisClubPage.ownerTools.noRequests')}</div>}
                     {dashboard.incoming_applications.map((application) => (
                       <div className="tlg-club-owner-row" key={application.request_id}>
                         <div><strong>{application.first_name} {application.last_name}</strong><span><WorldBadge world={application.world} /> {number(application.ranking_points ?? 0)} ranking pts</span></div>
                         <div className="actions">
-                          <button type="button" className="accept" disabled={busy?.startsWith(`request:${application.request_id}`)} onClick={() => void respondRequest(application.request_id, true, `${application.first_name} ${application.last_name} joined the club.`)}>Accept</button>
-                          <button type="button" disabled={busy?.startsWith(`request:${application.request_id}`)} onClick={() => void respondRequest(application.request_id, false, 'Application declined.')}>Decline</button>
+                          <button type="button" className="accept" disabled={busy?.startsWith(`request:${application.request_id}`)} onClick={() => void respondRequest(application.request_id, true, t('tennisClubPage.ownerTools.joinedClub', { name: `${application.first_name} ${application.last_name}` }))}>Accept</button>
+                          <button type="button" disabled={busy?.startsWith(`request:${application.request_id}`)} onClick={() => void respondRequest(application.request_id, false, t('tennisClubPage.ownerTools.applicationDeclined'))}>Decline</button>
                         </div>
                       </div>
                     ))}
@@ -374,14 +375,14 @@ export default function TennisClubPage() {
                 </article>
 
                 <article className="tlg-club-panel">
-                  <header className="tlg-club-panel-head compact"><div><span>INVITE A PLAYER</span><h2>ATP + WTA search</h2><p>Search human players from either tour who do not currently belong to a club.</p></div></header>
+                  <header className="tlg-club-panel-head compact"><div><span>{t('tennisClubPage.ownerTools.invite')}</span><h2>{t('tennisClubPage.ownerTools.searchTitle')}</h2><p>{t('tennisClubPage.ownerTools.searchBody')}</p></div></header>
                   <div className="tlg-club-invite-search">
-                    <div><input value={inviteQuery} placeholder="Player name" onChange={(event) => setInviteQuery(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void searchInviteCandidates() }} /><button type="button" onClick={() => void searchInviteCandidates()} disabled={busy === 'search'}>{busy === 'search' ? 'Searching…' : 'Search'}</button></div>
+                    <div><input value={inviteQuery} placeholder={t('tennisClubPage.ownerTools.playerPlaceholder')} onChange={(event) => setInviteQuery(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void searchInviteCandidates() }} /><button type="button" onClick={() => void searchInviteCandidates()} disabled={busy === 'search'}>{busy === 'search' ? t('tennisClubPage.ownerTools.searching') : t('tennisClubPage.ownerTools.search')}</button></div>
                     <div className="tlg-club-candidate-list">
                       {inviteCandidates.map((candidate) => (
                         <div key={candidate.player_id}>
-                          <div><strong>{candidate.first_name} {candidate.last_name}</strong><span><WorldBadge world={candidate.world} /> {number(candidate.ranking_points)} pts</span></div>
-                          <button type="button" disabled={busy === `invite:${candidate.player_id}`} onClick={() => void invitePlayer(candidate)}>{busy === `invite:${candidate.player_id}` ? 'Sending…' : 'Invite'}</button>
+                          <div><strong>{candidate.first_name} {candidate.last_name}</strong><span><WorldBadge world={candidate.world} /> {t('tennisClubPage.own.pointsShort', { count: number(candidate.ranking_points) })}</span></div>
+                          <button type="button" disabled={busy === `invite:${candidate.player_id}`} onClick={() => void invitePlayer(candidate)}>{busy === `invite:${candidate.player_id}` ? t('tennisClubPage.ownerTools.sending') : t('tennisClubPage.ownerTools.inviteButton')}</button>
                         </div>
                       ))}
                     </div>
@@ -395,43 +396,43 @@ export default function TennisClubPage() {
         {dashboard && tab === 'world' && (
           <section className="tlg-club-panel tlg-club-world-panel">
             <header className="tlg-club-panel-head">
-              <div><span>WORLD CLUB RANKING</span><h2>Top 50 Tennis Clubs</h2><p>Ranking points are recalculated live from every ATP and WTA member's current official ranking points.</p></div>
-              <div className="tlg-club-ranking-note"><strong>{dashboard.world_clubs.length}</strong><span>clubs ranked</span></div>
+              <div><span>{t('tennisClubPage.world.kicker')}</span><h2>{t('tennisClubPage.world.title')}</h2><p>{t('tennisClubPage.world.body')}</p></div>
+              <div className="tlg-club-ranking-note"><strong>{dashboard.world_clubs.length}</strong><span>{t('tennisClubPage.world.ranked', { count: dashboard.world_clubs.length })}</span></div>
             </header>
-            <WorldClubTable clubs={dashboard.world_clubs} ownClubId={dashboard.club?.id ?? null} canApply={!dashboard.club} pendingApplications={pendingApplications} pendingInvitations={pendingInvitations} busy={busy} onApply={applyToClub} />
+            <WorldClubTable t={t} number={number} clubs={dashboard.world_clubs} ownClubId={dashboard.club?.id ?? null} canApply={!dashboard.club} pendingApplications={pendingApplications} pendingInvitations={pendingInvitations} busy={busy} onApply={applyToClub} />
           </section>
         )}
 
         {dashboard && tab === 'chat' && !dashboard.club && (
           <section className="tlg-club-chat-locked">
-            <span>MEMBERS ONLY</span>
-            <h2>Club Chat is locked</h2>
-            <p>Create a Tennis Club, join one through an application, or accept a club invitation to unlock the private member chat.</p>
-            <button type="button" onClick={() => setTab('members')}>Go to Members</button>
+            <span>{t('tennisClubPage.chat.membersOnly')}</span>
+            <h2>{t('tennisClubPage.chat.locked')}</h2>
+            <p>{t('tennisClubPage.chat.lockedBody')}</p>
+            <button type="button" onClick={() => setTab('members')}>{t('tennisClubPage.chat.goMembers')}</button>
           </section>
         )}
 
         {dashboard && tab === 'chat' && dashboard.club && (
           <section className="tlg-club-panel tlg-club-chat-panel">
             <header className="tlg-club-panel-head">
-              <div><span>PRIVATE CLUB CHAT</span><h2>{dashboard.club.name}</h2><p>Only current club members can read or post here. Chat history is retained for the last {dashboard.settings.chat_history_game_days} in-game days.</p></div>
-              <div className="tlg-club-chat-status"><strong>{dashboard.members.length}</strong><span>members</span></div>
+              <div><span>{t('tennisClubPage.chat.kicker')}</span><h2>{dashboard.club.name}</h2><p>{t('tennisClubPage.chat.body', { count: dashboard.settings.chat_history_game_days })}</p></div>
+              <div className="tlg-club-chat-status"><strong>{dashboard.members.length}</strong><span>{t('tennisClubPage.chat.members', { count: dashboard.members.length })}</span></div>
             </header>
             <div className="tlg-club-chat-messages">
-              {(dashboard.chat?.messages ?? []).length === 0 && <div className="tlg-club-empty chat">No club messages yet. Start the conversation.</div>}
+              {(dashboard.chat?.messages ?? []).length === 0 && <div className="tlg-club-empty chat">{t('tennisClubPage.chat.empty')}</div>}
               {(dashboard.chat?.messages ?? []).map((chatMessage) => {
                 const mine = chatMessage.player_id === dashboard.player.id
                 return (
                   <div className={`tlg-club-chat-message${mine ? ' mine' : ''}`} key={chatMessage.id}>
-                    <div className="meta"><strong>{chatMessage.first_name} {chatMessage.last_name}</strong><WorldBadge world={chatMessage.world} /><span>{gameDate(chatMessage)}</span></div>
+                    <div className="meta"><strong>{chatMessage.first_name} {chatMessage.last_name}</strong><WorldBadge world={chatMessage.world} /><span>{gameDate(chatMessage, t)}</span></div>
                     <p>{chatMessage.message}</p>
                   </div>
                 )
               })}
             </div>
             <div className="tlg-club-chat-compose">
-              <textarea maxLength={500} rows={3} value={chatText} placeholder="Write to your club…" onChange={(event) => setChatText(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendChatMessage() } }} />
-              <div><span>{chatText.length}/500 · Enter to send · Shift+Enter for new line</span><button type="button" disabled={!chatText.trim() || busy === 'chat'} onClick={() => void sendChatMessage()}>{busy === 'chat' ? 'Sending…' : 'Send message'}</button></div>
+              <textarea maxLength={500} rows={3} value={chatText} placeholder={t('tennisClubPage.chat.placeholder')} onChange={(event) => setChatText(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendChatMessage() } }} />
+              <div><span>{t('tennisClubPage.chat.composeHint', { count: chatText.length })}</span><button type="button" disabled={!chatText.trim() || busy === 'chat'} onClick={() => void sendChatMessage()}>{busy === 'chat' ? t('tennisClubPage.chat.sending') : t('tennisClubPage.chat.send')}</button></div>
             </div>
           </section>
         )}
@@ -444,7 +445,9 @@ function Metric({ label, value, detail }: { label: string; value: string; detail
   return <div className="tlg-club-metric"><span>{label}</span><strong>{value}</strong>{detail && <small>{detail}</small>}</div>
 }
 
-function WorldClubTable({ clubs, ownClubId, canApply, pendingApplications, pendingInvitations, busy, onApply }: {
+function WorldClubTable({ t, number, clubs, ownClubId, canApply, pendingApplications, pendingInvitations, busy, onApply }: {
+  t: TFunction
+  number: (value: number) => string
   clubs: ClubRanking[]
   ownClubId: string | null
   canApply: boolean
@@ -453,11 +456,11 @@ function WorldClubTable({ clubs, ownClubId, canApply, pendingApplications, pendi
   busy: string | null
   onApply: (club: ClubRanking) => Promise<void>
 }) {
-  if (clubs.length === 0) return <div className="tlg-club-empty table-empty">No Tennis Clubs have been created yet.</div>
+  if (clubs.length === 0) return <div className="tlg-club-empty table-empty">{t('tennisClubPage.world.empty')}</div>
   return (
     <div className="tlg-club-table-wrap">
       <table className="tlg-club-table world">
-        <thead><tr><th>#</th><th>Club</th><th>Members</th><th>ATP / WTA</th><th>Club Points</th><th>Status</th></tr></thead>
+        <thead><tr><th>#</th><th>{t('tennisClubPage.world.columns.club')}</th><th>{t('tennisClubPage.world.columns.members')}</th><th>{t('tennisClubPage.world.columns.split')}</th><th>{t('tennisClubPage.world.columns.points')}</th><th>{t('tennisClubPage.world.columns.status')}</th></tr></thead>
         <tbody>
           {clubs.map((club) => {
             const isOwn = ownClubId === club.id
@@ -469,9 +472,9 @@ function WorldClubTable({ clubs, ownClubId, canApply, pendingApplications, pendi
                 <td><strong className="club-name">{club.name}</strong></td>
                 <td>{number(club.member_count)}</td>
                 <td><span className="tour-split"><b>{club.atp_members} ATP</b><b>{club.wta_members} WTA</b></span></td>
-                <td><strong>{number(club.points)} pts</strong></td>
+                <td><strong>{t('tennisClubPage.own.pointsShort', { count: number(club.points) })}</strong></td>
                 <td>
-                  {isOwn ? <span className="tlg-club-status-text">Your club</span> : applied ? <span className="tlg-club-status-text">Application pending</span> : invited ? <span className="tlg-club-status-text">Invitation received</span> : canApply ? <button type="button" className="apply" disabled={busy === `apply:${club.id}`} onClick={() => void onApply(club)}>{busy === `apply:${club.id}` ? 'Applying…' : 'Apply'}</button> : <span className="tlg-club-status-text muted">—</span>}
+                  {isOwn ? <span className="tlg-club-status-text">{t('tennisClubPage.world.yourClub')}</span> : applied ? <span className="tlg-club-status-text">{t('tennisClubPage.world.applicationPending')}</span> : invited ? <span className="tlg-club-status-text">{t('tennisClubPage.world.invitationReceived')}</span> : canApply ? <button type="button" className="apply" disabled={busy === `apply:${club.id}`} onClick={() => void onApply(club)}>{busy === `apply:${club.id}` ? t('tennisClubPage.world.applying') : t('tennisClubPage.world.apply')}</button> : <span className="tlg-club-status-text muted">—</span>}
                 </td>
               </tr>
             )
