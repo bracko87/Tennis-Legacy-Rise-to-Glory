@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 
 import GameLayout from '../../components/layout/GameLayout'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import TrainingCampsPanel from '../../components/training/TrainingCampsPanel'
 import TrainingProgressOverview from '../../components/training/TrainingProgressOverview'
 import WeeklyTrainingPlanner from '../../components/training/WeeklyTrainingPlanner'
@@ -18,46 +20,37 @@ import '../../styles/training-history.css'
 
 type TrainingView = 'regular' | 'camps'
 
-const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-]
-
-const ATTRIBUTE_LABELS: Record<string, string> = {
-  serve: 'Serve',
-  forehand: 'Forehand',
-  backhand: 'Backhand',
-  return_skill: 'Return',
-  volley: 'Volley',
-  slice: 'Slice',
-  drop_shot: 'Drop Shot',
-  lob: 'Lob',
-  smash: 'Smash',
-  fitness: 'Fitness',
-  stamina: 'Stamina',
-  recovery: 'Recovery',
-  movement: 'Movement',
+function attributeLabel(key: string, t: TFunction) {
+  const known = ['serve','forehand','backhand','return_skill','volley','slice','drop_shot','lob','smash','fitness','stamina','recovery','movement','fatigue','sharpness','morale','focus']
+  return known.includes(key) ? t(`trainingPage.attributes.${key}`) : key.replace(/_/g, ' ')
 }
 
 function titleCase(value: string) {
   return value.split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ')
 }
 
-function activityLabel(value: string) {
-  if (value === 'training_camp') return 'Training Camp'
+function activityLabel(value: string, t: TFunction) {
+  const key = value.replaceAll('-', '_')
+  if (key === 'training_camp') return t('trainingPage.activity.trainingCamp')
+  if (key === 'home') return t('trainingPage.activity.home')
+  if (key === 'travel') return t('trainingPage.activity.travel')
+  if (key === 'tournament') return t('trainingPage.activity.tournament')
+  if (key === 'injury') return t('trainingPage.activity.injury')
+  if (key === 'training') return t('trainingPage.activity.training')
   return titleCase(value)
 }
 
-function trainingLabel(type: TrainingType, focus: string | null) {
-  if (type === 'day_off') return 'Day Off'
-  return focus ? `${ATTRIBUTE_LABELS[focus] ?? titleCase(focus)} focus` : type === 'technical' ? 'Technical training' : 'Physical training'
+function trainingLabel(type: TrainingType, focus: string | null, t: TFunction) {
+  if (type === 'day_off') return t('trainingPage.trainingLabels.dayOff')
+  if (focus) return t('trainingPage.trainingLabels.focus', { attribute: attributeLabel(focus, t) })
+  return type === 'technical' ? t('trainingPage.trainingLabels.technical') : t('trainingPage.trainingLabels.physical')
 }
 
-function sessionRoleLabel(role?: TrainingSessionRole | null) {
-  if (role === 'active_recovery') return 'Active Recovery'
-  if (role === 'full_rest') return 'Full Rest'
-  if (role === 'user_day_off') return 'Day Off'
-  return 'Development Day'
+function sessionRoleLabel(role: TrainingSessionRole | null | undefined, t: TFunction) {
+  if (role === 'active_recovery') return t('trainingPage.sessionRoles.activeRecovery')
+  if (role === 'full_rest') return t('trainingPage.sessionRoles.fullRest')
+  if (role === 'user_day_off') return t('trainingPage.sessionRoles.dayOff')
+  return t('trainingPage.sessionRoles.development')
 }
 
 function scoreReadiness(skills: NonNullable<ReturnType<typeof useTraining>['dashboard']>['skills']) {
@@ -66,10 +59,10 @@ function scoreReadiness(skills: NonNullable<ReturnType<typeof useTraining>['dash
   ) / 5
 }
 
-function levelUpText(levelUps: Record<string, number> | undefined) {
-  if (!levelUps || Object.keys(levelUps).length === 0) return 'No full skill point yet'
+function levelUpText(levelUps: Record<string, number> | undefined, t: TFunction) {
+  if (!levelUps || Object.keys(levelUps).length === 0) return t('trainingPage.noSkillPoint')
   return Object.entries(levelUps)
-    .map(([key, value]) => `${ATTRIBUTE_LABELS[key] ?? titleCase(key)} +${value}`)
+    .map(([key, value]) => t('trainingPage.levelUp', { attribute: attributeLabel(key, t), value }))
     .join(', ')
 }
 
@@ -80,8 +73,9 @@ function signedDelta(before?: number, after?: number) {
   return `${delta > 0 ? '+' : ''}${delta}`
 }
 
-function formatCampDate(month: number, day: number) {
-  return `${MONTH_NAMES[Math.max(0, month - 1)]} ${day}`
+function formatCampDate(month: number, day: number, localeTag: string) {
+  return new Intl.DateTimeFormat(localeTag, { month: 'short', day: 'numeric' })
+    .format(new Date(2020, Math.max(0, month - 1), Math.max(1, day)))
 }
 
 function progressGain(value: number) {
@@ -101,6 +95,8 @@ function sharedDevelopment(session: TrainingSession) {
 }
 
 export default function TrainingPage() {
+  const { t } = useTranslation()
+  const { localeTag, formatCurrency } = useLocalization()
   const [searchParams] = useSearchParams()
   const requestedView = searchParams.get('view')
   const {
@@ -125,66 +121,66 @@ export default function TrainingPage() {
     const result = await completeToday()
     if (!result) return
     if (result.status === 'blocked') {
-      setActionMessage(result.reason ?? 'Training is unavailable today.')
+      setActionMessage(result.reason ?? t('trainingPage.unavailableToday'))
     } else if (result.status === 'already_processed') {
-      setActionMessage('Today has already been processed.')
+      setActionMessage(t('trainingPage.alreadyProcessed'))
     } else if (result.session_role === 'active_recovery') {
-      setActionMessage('Scheduled Active Recovery completed. Fatigue recovery has been applied.')
+      setActionMessage(t('trainingPage.activeRecoveryDone'))
     } else if (result.session_role === 'full_rest') {
-      setActionMessage('Scheduled Full Rest completed. Recovery effects have been applied.')
+      setActionMessage(t('trainingPage.fullRestDone'))
     } else {
       setActionMessage(
         result.training_type === 'day_off'
-          ? 'Day Off completed. Recovery effects have been applied.'
-          : `Training completed. ${levelUpText(result.level_ups)}.`,
+          ? t('trainingPage.dayOffDone')
+          : t('trainingPage.trainingDone', { result: levelUpText(result.level_ups, t) }),
       )
     }
   }
 
   if (loading && !dashboard) {
     return (
-      <GameLayout title="Training" subtitle="Regular development and training camps">
-        <div className="tlg-training-loading">Loading Training Center…</div>
+      <GameLayout title={t('trainingPage.title')} subtitle={t('trainingPage.subtitle')}>
+        <div className="tlg-training-loading">{t('trainingPage.loading')}</div>
       </GameLayout>
     )
   }
 
   return (
-    <GameLayout title="Training" subtitle="Regular development and training camps">
+    <GameLayout title={t('trainingPage.title')} subtitle={t('trainingPage.subtitle')}>
       <div className="tlg-training-page">
         <section className="tlg-training-hero">
           <div className="tlg-training-hero-copy">
-            <span>PLAYER DEVELOPMENT CENTER</span>
-            <h1>Training Center</h1>
+            <span>{t('trainingPage.eyebrow')}</span>
+            <h1>{t('trainingPage.heading')}</h1>
             <p>
-              Build your weekly routine around tournaments, travel and recovery. Regular Training is available only when the calendar says your player is at home.
+              {t('trainingPage.intro')}
             </p>
           </div>
 
           {dashboard && (
             <div className="tlg-training-hero-metrics">
               <div>
-                <span>TODAY</span>
-                <strong>{activityLabel(dashboard.activity_type)}</strong>
-                <small>Season {dashboard.game_day.season} · {MONTH_NAMES[dashboard.game_day.month - 1]} {dashboard.game_day.day}</small>
+                <span>{t('trainingPage.today')}</span>
+                <strong>{activityLabel(dashboard.activity_type, t)}</strong>
+                <small>{t('trainingPage.seasonDate', { season: dashboard.game_day.season, date: formatCampDate(dashboard.game_day.month, dashboard.game_day.day, localeTag) })}</small>
               </div>
               <div>
-                <span>READINESS</span>
+                <span>{t('trainingPage.readiness')}</span>
                 <strong>{readiness.toFixed(0)}<em>/100</em></strong>
-                <small>{readiness >= 70 ? 'Strong' : readiness >= 50 ? 'Ready' : 'Recovery recommended'}</small>
+                <small>{readiness >= 70 ? t('trainingPage.readinessStrong') : readiness >= 50 ? t('trainingPage.readinessReady') : t('trainingPage.recoveryRecommended')}</small>
               </div>
               <div>
-                <span>FATIGUE</span>
+                <span>{t('trainingPage.fatigue')}</span>
                 <strong>{dashboard.skills.fatigue}<em>/100</em></strong>
-                <small>Lower is better</small>
+                <small>{t('trainingPage.lowerBetter')}</small>
               </div>
             </div>
           )}
         </section>
 
-        <div className="tlg-training-main-tabs tlg-standard-tabs" role="tablist" aria-label="Training areas">
-          <button type="button" className={view === 'regular' ? 'active' : ''} onClick={() => setView('regular')}>Regular Training</button>
-          <button type="button" className={view === 'camps' ? 'active' : ''} onClick={() => setView('camps')}>Training Camps</button>
+        <div className="tlg-training-main-tabs tlg-standard-tabs" role="tablist" aria-label={t('trainingPage.areasAria')}>
+          <button type="button" className={view === 'regular' ? 'active' : ''} onClick={() => setView('regular')}>{t('trainingPage.regularTraining')}</button>
+          <button type="button" className={view === 'camps' ? 'active' : ''} onClick={() => setView('camps')}>{t('trainingPage.trainingCamps')}</button>
         </div>
 
         {error && <div className="tlg-training-alert tlg-training-alert-error">{error}</div>}
@@ -195,23 +191,26 @@ export default function TrainingPage() {
             {dashboard.current_or_planned_camp && (
               <section className="tlg-training-camp-booking-banner">
                 <div>
-                  <span>TRAINING CAMP BOOKED</span>
+                  <span>{t('trainingPage.campBooked')}</span>
                   <h2>{dashboard.current_or_planned_camp.name}</h2>
                   <p>
-                    {dashboard.current_or_planned_camp.city}, {dashboard.current_or_planned_camp.country}
-                    {' · '}Season {dashboard.current_or_planned_camp.start_season}
-                    {' · '}Week {dashboard.current_or_planned_camp.start_season_week ?? '—'}
-                    {' · '}{formatCampDate(dashboard.current_or_planned_camp.start_month, dashboard.current_or_planned_camp.start_day)}
-                    {'–'}{formatCampDate(dashboard.current_or_planned_camp.end_month, dashboard.current_or_planned_camp.end_day)}
-                    {' · '}{dashboard.current_or_planned_camp.effective_training_days} camp training day{dashboard.current_or_planned_camp.effective_training_days === 1 ? '' : 's'}
-                    {dashboard.current_or_planned_camp.shortened_days > 0 ? ` · shortened by ${dashboard.current_or_planned_camp.shortened_days} travel day${dashboard.current_or_planned_camp.shortened_days === 1 ? '' : 's'}` : ''}
+                    {t('trainingPage.campMeta', {
+                      city: dashboard.current_or_planned_camp.city,
+                      country: dashboard.current_or_planned_camp.country,
+                      season: dashboard.current_or_planned_camp.start_season,
+                      week: dashboard.current_or_planned_camp.start_season_week ?? '—',
+                      start: formatCampDate(dashboard.current_or_planned_camp.start_month, dashboard.current_or_planned_camp.start_day, localeTag),
+                      end: formatCampDate(dashboard.current_or_planned_camp.end_month, dashboard.current_or_planned_camp.end_day, localeTag),
+                      days: dashboard.current_or_planned_camp.effective_training_days,
+                    })}
+                    {dashboard.current_or_planned_camp.shortened_days > 0 ? t('trainingPage.campShortened', { count: dashboard.current_or_planned_camp.shortened_days }) : ''}
                   </p>
-                  <small>Regular Training is automatically locked on Training Camp and camp-travel days. You do not need to remove your regular weekly plan manually.</small>
+                  <small>{t('trainingPage.regularLockedByCamp')}</small>
                 </div>
                 <div className="tlg-training-camp-booking-actions">
                   <span className={`status ${dashboard.current_or_planned_camp.status}`}>{dashboard.current_or_planned_camp.status}</span>
-                  <strong>${dashboard.current_or_planned_camp.total_cost.toLocaleString()}</strong>
-                  <button type="button" onClick={() => setView('camps')}>Open Training Camp</button>
+                  <strong>{formatCurrency(dashboard.current_or_planned_camp.total_cost, 'USD')}</strong>
+                  <button type="button" onClick={() => setView('camps')}>{t('trainingPage.openCamp')}</button>
                 </div>
               </section>
             )}
@@ -220,13 +219,13 @@ export default function TrainingPage() {
               <section className="tlg-training-plan-panel">
                 <header className="tlg-training-section-head">
                   <div>
-                    <span>WEEKLY TRAINING PLAN</span>
-                    <h2>Plan this week and next week</h2>
-                    <p>Choose a different skill and load for every Home day, use Day Off whenever you want recovery, or apply one plan across the whole available week. Tournament, travel, camp and injury days automatically take priority.</p>
+                    <span>{t('trainingPage.weeklyPlan')}</span>
+                    <h2>{t('trainingPage.planWeeks')}</h2>
+                    <p>{t('trainingPage.planWeeksBody')}</p>
                   </div>
                   <div className={`tlg-training-status ${dashboard.eligible ? 'available' : 'blocked'}`}>
-                    <span>{dashboard.eligible ? 'HOME DAY' : 'CALENDAR'}</span>
-                    <strong>{activityLabel(dashboard.activity_type)}</strong>
+                    <span>{dashboard.eligible ? t('trainingPage.homeDay') : t('trainingPage.calendar')}</span>
+                    <strong>{activityLabel(dashboard.activity_type, t)}</strong>
                   </div>
                 </header>
 
@@ -244,19 +243,19 @@ export default function TrainingPage() {
                     <div><strong>{readiness.toFixed(0)}</strong><span>/100</span></div>
                   </div>
                   <div>
-                    <span>CURRENT READINESS</span>
-                    <h3>{readiness >= 70 ? 'Strong training state' : readiness >= 50 ? 'Ready to work' : 'Recovery should be considered'}</h3>
-                    <p>Readiness combines Morale, Confidence, Sharpness, Focus and Freshness. It changes the efficiency of every training session.</p>
+                    <span>{t('trainingPage.currentReadiness')}</span>
+                    <h3>{readiness >= 70 ? t('trainingPage.strongTrainingState') : readiness >= 50 ? t('trainingPage.readyToWork') : t('trainingPage.considerRecovery')}</h3>
+                    <p>{t('trainingPage.readinessBody')}</p>
                   </div>
                 </section>
 
                 <section className="tlg-training-condition-card">
-                  <header><span>LIVE CONDITION</span><strong>Training impact</strong></header>
+                  <header><span>{t('trainingPage.liveCondition')}</span><strong>{t('trainingPage.trainingImpact')}</strong></header>
                   {[
-                    ['Fatigue', dashboard.skills.fatigue, true],
-                    ['Sharpness', dashboard.skills.sharpness, false],
-                    ['Morale', dashboard.skills.morale, false],
-                    ['Focus', dashboard.skills.focus, false],
+                    [t('trainingPage.attributes.fatigue'), dashboard.skills.fatigue, true],
+                    [t('trainingPage.attributes.sharpness'), dashboard.skills.sharpness, false],
+                    [t('trainingPage.attributes.morale'), dashboard.skills.morale, false],
+                    [t('trainingPage.attributes.focus'), dashboard.skills.focus, false],
                   ].map(([label, rawValue, inverse]) => {
                     const value = Number(rawValue)
                     const display = Boolean(inverse) ? 100 - value : value
@@ -274,23 +273,23 @@ export default function TrainingPage() {
             </div>
 
             <section className="tlg-training-engine-strip">
-              <div><span>FOCUS DISTRIBUTION</span><strong>85% / 15%</strong><small>Selected attribute / remaining category</small></div>
-              <div><span>WEEKLY PLANNER</span><strong>7 days</strong><small>User plan on Home days · calendar ownership always wins</small></div>
-              <div><span>DEVELOPMENT CURVE</span><strong>Skill based</strong><small>100% below 60, gradually falling to 20% at 95–99</small></div>
-              <div><span>CAMP RHYTHM</span><strong>6 + 1</strong><small>Six development days plus one recovery day</small></div>
+              <div><span>{t('trainingPage.focusDistribution')}</span><strong>{t('trainingPage.focusDistributionValue')}</strong><small>{t('trainingPage.focusDistributionBody')}</small></div>
+              <div><span>{t('trainingPage.weeklyPlanner')}</span><strong>{t('trainingPage.sevenDays')}</strong><small>{t('trainingPage.weeklyPlannerBody')}</small></div>
+              <div><span>{t('trainingPage.developmentCurve')}</span><strong>{t('trainingPage.skillBased')}</strong><small>{t('trainingPage.developmentCurveBody')}</small></div>
+              <div><span>{t('trainingPage.campRhythm')}</span><strong>{t('trainingPage.campRhythmValue')}</strong><small>{t('trainingPage.campRhythmBody')}</small></div>
             </section>
 
             <section className="tlg-training-history">
               <header className="tlg-training-section-head compact">
                 <div>
-                  <span>TRAINING HISTORY</span>
-                  <h2>Recent development days</h2>
-                  <p>The last three processed Regular Training or recovery days are shown here, including development and condition changes from each session.</p>
+                  <span>{t('trainingPage.history')}</span>
+                  <h2>{t('trainingPage.recentDays')}</h2>
+                  <p>{t('trainingPage.historyBody')}</p>
                 </div>
               </header>
 
               {dashboard.recent_sessions.length === 0 ? (
-                <div className="tlg-training-history-empty">No training days have been processed yet.</div>
+                <div className="tlg-training-history-empty">{t('trainingPage.noHistory')}</div>
               ) : (
                 <div className="tlg-training-history-list">
                   {dashboard.recent_sessions.slice(0, 3).map((session) => {
@@ -301,45 +300,51 @@ export default function TrainingPage() {
                     return (
                       <article className="tlg-training-history-row" key={session.id}>
                         <div className="date">
-                          <span>Season {session.season}</span>
-                          <strong>{MONTH_NAMES[(session.month ?? 1) - 1]} {session.day}</strong>
-                          <small>{session.session_role ? sessionRoleLabel(session.session_role) : 'Training day'}</small>
+                          <span>{t('overviewPage.season', { season: session.season })}</span>
+                          <strong>{formatCampDate(session.month ?? 1, session.day ?? 1, localeTag)}</strong>
+                          <small>{session.session_role ? sessionRoleLabel(session.session_role, t) : t('trainingPage.sessionRoles.trainingDay')}</small>
                         </div>
 
                         <div className="session">
-                          <span>{session.training_type === 'day_off' ? 'RECOVERY' : session.training_type.toUpperCase()}</span>
-                          <strong>{session.session_role && session.session_role !== 'planned_training' ? sessionRoleLabel(session.session_role) : trainingLabel(session.training_type, session.focus_attribute)}</strong>
-                          <small>{session.training_type === 'day_off' ? 'Recovery session' : `${titleCase(session.intensity)} load`}</small>
+                          <span>{session.training_type === 'day_off' ? t('trainingPage.recovery') : session.training_type === 'technical' ? t('trainingPage.trainingLabels.technical').toUpperCase() : t('trainingPage.trainingLabels.physical').toUpperCase()}</span>
+                          <strong>{session.session_role && session.session_role !== 'planned_training' ? sessionRoleLabel(session.session_role, t) : trainingLabel(session.training_type, session.focus_attribute, t)}</strong>
+                          <small>{session.training_type === 'day_off' ? t('trainingPage.recoverySession') : t('trainingPage.load', { intensity: t(`trainingPage.intensity.${session.intensity}`) })}</small>
                         </div>
 
                         <div className="metric development">
-                          <span>DEVELOPMENT</span>
+                          <span>{t('trainingPage.development')}</span>
                           {session.training_type === 'day_off' ? (
                             <>
-                              <strong>Recovery day</strong>
-                              <small>No permanent attribute development</small>
+                              <strong>{t('trainingPage.recoveryDay')}</strong>
+                              <small>{t('trainingPage.noPermanentDevelopment')}</small>
                             </>
                           ) : (
                             <>
-                              <strong>{focusGain !== null ? `${ATTRIBUTE_LABELS[session.focus_attribute ?? ''] ?? 'Focus'} ${progressGain(focusGain)}` : 'Development applied'}</strong>
-                              <small>Shared attributes {progressGain(sharedGain)}</small>
+                              <strong>{focusGain !== null ? `${attributeLabel(session.focus_attribute ?? '', t)} ${progressGain(focusGain)}` : t('trainingPage.developmentApplied')}</strong>
+                              <small>{t('trainingPage.sharedAttributes', { gain: progressGain(sharedGain) })}</small>
                             </>
                           )}
                         </div>
 
                         <div className="metric condition">
-                          <span>CONDITION</span>
+                          <span>{t('trainingPage.condition')}</span>
                           <strong className={fatigueDelta > 0 ? 'fatigue-up' : fatigueDelta < 0 ? 'fatigue-down' : ''}>
-                            Fatigue {signedDelta(session.fatigue_before, session.fatigue_after)} · {session.fatigue_before} → {session.fatigue_after}
+                            {t('trainingPage.fatigueChange', { change: signedDelta(session.fatigue_before, session.fatigue_after), before: session.fatigue_before, after: session.fatigue_after })}
                           </strong>
-                          <small>Sharpness {signedDelta(session.sharpness_before, session.sharpness_after)} · {session.sharpness_before} → {session.sharpness_after}{session.morale_before !== undefined && session.morale_after !== undefined ? ` · Morale ${signedDelta(session.morale_before, session.morale_after)}` : ''}{session.focus_before !== undefined && session.focus_after !== undefined ? ` · Focus ${signedDelta(session.focus_before, session.focus_after)}` : ''}</small>
+                          <small>{t('trainingPage.conditionDetail', {
+                            sharpness: signedDelta(session.sharpness_before, session.sharpness_after),
+                            sharpBefore: session.sharpness_before,
+                            sharpAfter: session.sharpness_after,
+                            morale: session.morale_before !== undefined && session.morale_after !== undefined ? t('trainingPage.moraleChange', { change: signedDelta(session.morale_before, session.morale_after) }) : '',
+                            focus: session.focus_before !== undefined && session.focus_after !== undefined ? t('trainingPage.focusChange', { change: signedDelta(session.focus_before, session.focus_after) }) : '',
+                          })}</small>
                         </div>
 
                         <div className="result">
-                          <span>SESSION RESULT</span>
-                          <strong>{levelUpText(session.level_ups)}</strong>
-                          <small>Sharpness {sharpnessDelta >= 0 ? '+' : ''}{sharpnessDelta}</small>
-                          <b className="history-efficiency">{Math.round(Number(session.efficiency) * 100)}% efficiency</b>
+                          <span>{t('trainingPage.sessionResult')}</span>
+                          <strong>{levelUpText(session.level_ups, t)}</strong>
+                          <small>{t('trainingPage.sharpnessChange', { change: `${sharpnessDelta >= 0 ? '+' : ''}${sharpnessDelta}` })}</small>
+                          <b className="history-efficiency">{t('trainingPage.efficiency', { value: Math.round(Number(session.efficiency) * 100) })}</b>
                         </div>
                       </article>
                     )
@@ -349,8 +354,8 @@ export default function TrainingPage() {
             </section>
 
             <div className="tlg-training-automation-note">
-              <strong>The weekly planner is already compatible with automatic daily processing.</strong>
-              <span>When the Match Engine starts assigning exact tournament days and tournament exits, those days will override training automatically; after elimination, the travel-home day remains blocked and the remaining Home days become trainable again.</span>
+              <strong>{t('trainingPage.automationTitle')}</strong>
+              <span>{t('trainingPage.automationBody')}</span>
             </div>
           </>
         )}
