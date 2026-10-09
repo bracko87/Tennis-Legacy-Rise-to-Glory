@@ -228,9 +228,9 @@ export default function FinancePage() {
       <div className="tlg-finance-v2-page">
         <section className="tlg-finance-v2-hero">
           <div>
-            <span className="eyebrow">CAREER ECONOMY</span>
-            <h1>Finance Center</h1>
-            <p>One USD career account for tennis income, staff, travel, accommodation, training and future Private Life spending. Premium coins remain completely separate.</p>
+            <span className="eyebrow">{t('financePage.kicker')}</span>
+            <h1>{t('financePage.heading')}</h1>
+            <p>{t('financePage.intro')}</p>
           </div>
           <button type="button" className="tlg-finance-v2-refresh" onClick={() => void refreshAll()} disabled={refreshing || loading}>
             {refreshing ? t('financePage.refreshing') : t('financePage.refresh')}
@@ -322,8 +322,8 @@ export default function FinancePage() {
             {activeTab === 'transactions' && (
               <section className="tlg-finance-v2-panel tlg-finance-v2-ledger-panel">
                 <div className="tlg-finance-v2-panel-head">
-                  <div><span>PERMANENT LEDGER</span><h2>Career transactions</h2><p>Every career-money movement is recorded with its game date, reason, source, amount and resulting balance.</p></div>
-                  <small>20 transactions per page</small>
+                  <div><span>{t('financePage.ledger.kicker')}</span><h2>{t('financePage.ledger.title')}</h2><p>{t('financePage.ledger.body')}</p></div>
+                  <small>{t('financePage.ledger.perPage')}</small>
                 </div>
                 <TransactionTable t={t} money={money} signedMoney={signedMoney} transactions={visibleTransactions} />
                 <div className="tlg-finance-v2-pagination">
@@ -366,9 +366,9 @@ export default function FinancePage() {
 
             {activeTab === 'sponsors' && (
               <section className="tlg-finance-v2-panel tlg-finance-v2-sponsors">
-                <span>SPONSORSHIPS</span>
-                <h2>Commercial income will use this same account</h2>
-                <p>Sponsor offers, weekly payments and performance bonuses are the next income layer. When implemented, every payment will enter this same USD ledger and taxable sponsor income will automatically feed the monthly 18% tax process.</p>
+                <span>{t('financePage.sponsorsPlaceholder.kicker')}</span>
+                <h2>{t('financePage.sponsorsPlaceholder.title')}</h2>
+                <p>{t('financePage.sponsorsPlaceholder.body')}</p>
               </section>
             )}
           </>
