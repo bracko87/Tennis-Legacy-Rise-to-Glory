@@ -418,6 +418,7 @@ function SidebarMetric({ label, value, detail }: { label: string; value: string;
 }
 
 function SkillCard({ item }: { item: AttributeItem }) {
+  const { t } = useTranslation()
   const normalized = Math.max(0, Math.min(100, item.value))
   const displayFill = item.inverse ? 100 - normalized : normalized
   const change = item.change ?? 0
@@ -442,16 +443,16 @@ function SkillCard({ item }: { item: AttributeItem }) {
           <strong>{item.value}</strong>
         )}
       </div>
-      <div className="tlg-skill-card-meter" aria-label={`${item.label}: ${item.value} out of 100`}>
+      <div className="tlg-skill-card-meter" aria-label={t('skillsPage.valueAria', { label: item.label, value: item.value })}>
         <span style={{ width: `${displayFill}%` }} />
       </div>
       <div className="tlg-skill-card-scale" aria-hidden="true">
-        <span>{item.inverse ? 'Fresh' : '0'}</span>
-        <span>{item.inverse ? 'Tired' : '100'}</span>
+        <span>{item.inverse ? t('skillsPage.fresh') : '0'}</span>
+        <span>{item.inverse ? t('skillsPage.tired') : '100'}</span>
       </div>
       {hasChange && (
         <div className="tlg-skill-change-note">
-          <strong>{improved ? 'Latest improvement' : 'Latest change'}</strong>
+          <strong>{improved ? t('skillsPage.latestImprovement') : t('skillsPage.latestChange')}</strong>
           <span>{previousValue} → {item.value}</span>
         </div>
       )}
@@ -469,7 +470,8 @@ function BuildCard({ label, value, description }: { label: string; value: string
   )
 }
 
-function PerformanceCentre({ skills, history, historyError }: { skills: PlayerSkillsRow; history: SkillHistoryRow[]; historyError: string | null }) {
+function PerformanceCentre({ skills, history, historyError, localeTag }: { skills: PlayerSkillsRow; history: SkillHistoryRow[]; historyError: string | null; localeTag: string }) {
+  const { t } = useTranslation()
   const technical = scoreCategory(skills, 'tennis')
   const physical = scoreCategory(skills, 'physical')
   const readiness = scoreCategory(skills, 'condition')
@@ -479,62 +481,62 @@ function PerformanceCentre({ skills, history, historyError }: { skills: PlayerSk
   const physicalChange = baseline ? physical - scoreCategory(baseline, 'physical') : 0
   const readinessChange = baseline ? readiness - scoreCategory(baseline, 'condition') : 0
   const updates = Math.max(0, history.length - 1)
-  const direction = developmentDirection(history)
+  const direction = developmentDirection(history, t)
 
   const tennisValues = [
-    { label: 'Serve', value: skills.serve },
-    { label: 'Forehand', value: skills.forehand },
-    { label: 'Backhand', value: skills.backhand },
-    { label: 'Return', value: skills.return_skill },
-    { label: 'Volley', value: skills.volley },
-    { label: 'Slice', value: skills.slice },
-    { label: 'Drop Shot', value: skills.drop_shot },
-    { label: 'Lob', value: skills.lob },
-    { label: 'Smash', value: skills.smash },
+    { label: t('skillsPage.attributes.serve.label'), value: skills.serve },
+    { label: t('skillsPage.attributes.forehand.label'), value: skills.forehand },
+    { label: t('skillsPage.attributes.backhand.label'), value: skills.backhand },
+    { label: t('skillsPage.attributes.return.label'), value: skills.return_skill },
+    { label: t('skillsPage.attributes.volley.label'), value: skills.volley },
+    { label: t('skillsPage.attributes.slice.label'), value: skills.slice },
+    { label: t('skillsPage.attributes.dropShot.label'), value: skills.drop_shot },
+    { label: t('skillsPage.attributes.lob.label'), value: skills.lob },
+    { label: t('skillsPage.attributes.smash.label'), value: skills.smash },
   ]
 
   const physicalValues = [
-    { label: 'Fitness', value: skills.fitness },
-    { label: 'Stamina', value: skills.stamina },
-    { label: 'Recovery', value: skills.recovery },
-    { label: 'Movement', value: skills.movement },
+    { label: t('skillsPage.attributes.fitness.label'), value: skills.fitness },
+    { label: t('skillsPage.attributes.stamina.label'), value: skills.stamina },
+    { label: t('skillsPage.attributes.recovery.label'), value: skills.recovery },
+    { label: t('skillsPage.attributes.movement.label'), value: skills.movement },
   ]
 
   const conditionValues = [
-    { label: 'Morale', value: skills.morale },
-    { label: 'Confidence', value: skills.confidence },
-    { label: 'Sharpness', value: skills.sharpness },
-    { label: 'Focus', value: skills.focus },
-    { label: 'Freshness', value: freshness },
+    { label: t('skillsPage.attributes.morale.label'), value: skills.morale },
+    { label: t('skillsPage.attributes.confidence.label'), value: skills.confidence },
+    { label: t('skillsPage.attributes.sharpness.label'), value: skills.sharpness },
+    { label: t('skillsPage.attributes.focus.label'), value: skills.focus },
+    { label: t('skillsPage.attributes.freshness.label'), value: freshness },
   ]
 
   const strongestTennis = tennisValues.reduce((best, item) => item.value > best.value ? item : best)
   const priorityTennis = tennisValues.reduce((lowest, item) => item.value < lowest.value ? item : lowest)
   const strongestPhysical = physicalValues.reduce((best, item) => item.value > best.value ? item : best)
   const heatmap = [
-    ...tennisValues.map((item) => ({ ...item, group: 'Tennis' })),
-    ...physicalValues.map((item) => ({ ...item, group: 'Physical' })),
-    ...conditionValues.map((item) => ({ ...item, group: 'Condition' })),
+    ...tennisValues.map((item) => ({ ...item, group: t('skillsPage.tennisGroup') })),
+    ...physicalValues.map((item) => ({ ...item, group: t('skillsPage.physicalGroup') })),
+    ...conditionValues.map((item) => ({ ...item, group: t('skillsPage.conditionGroup') })),
   ]
 
   return (
     <section className="tlg-performance-centre" style={{ marginTop: 14 }}>
       <div className="tlg-performance-top-grid">
-        <AnalysisPanel title="Technical radar" description="Nine-dimensional view of the player's current tennis profile.">
+        <AnalysisPanel title={t('skillsPage.technicalRadar')} description={t('skillsPage.technicalRadarBody')}>
           <TennisRadar values={tennisValues} />
         </AnalysisPanel>
 
-        <AnalysisPanel title="Performance gauges" description="High-level technical, athletic and readiness indicators.">
+        <AnalysisPanel title={t('skillsPage.performanceGauges')} description={t('skillsPage.performanceGaugesBody')}>
           <div className="tlg-gauge-grid">
-            <Gauge label="Technical profile" value={technical} detail="Average tennis skill" />
-            <Gauge label="Physical profile" value={physical} detail="Athletic base" />
-            <Gauge label="Current readiness" value={readiness} detail={readinessLabel(readiness)} />
-            <Gauge label="Freshness" value={freshness} detail={`${skills.fatigue}/100 fatigue`} />
+            <Gauge label={t('skillsPage.technicalProfile')} value={technical} detail={t('skillsPage.averageTennisSkill')} />
+            <Gauge label={t('skillsPage.physicalProfile')} value={physical} detail={t('skillsPage.athleticBase')} />
+            <Gauge label={t('skillsPage.currentReadiness')} value={readiness} detail={readinessLabel(readiness, t)} />
+            <Gauge label={t('skillsPage.attributes.freshness.label')} value={freshness} detail={t('skillsPage.fatigueDetail', { value: skills.fatigue })} />
           </div>
         </AnalysisPanel>
       </div>
 
-      <AnalysisPanel title="Attribute heatmap" description="Instant view of strong, balanced and developing areas across the complete player profile.">
+      <AnalysisPanel title={t('skillsPage.attributeHeatmap')} description={t('skillsPage.attributeHeatmapBody')}>
         <div className="tlg-attribute-heatmap">
           {heatmap.map((item) => (
             <div key={`${item.group}-${item.label}`} className={`tlg-heat-cell ${heatLevel(item.value)}`}>
@@ -547,40 +549,40 @@ function PerformanceCentre({ skills, history, historyError }: { skills: PlayerSk
       </AnalysisPanel>
 
       <div className="tlg-performance-bottom-grid">
-        <AnalysisPanel title="Development intelligence" description="Automatic coaching-style interpretation of the current profile.">
+        <AnalysisPanel title={t('skillsPage.developmentIntelligence')} description={t('skillsPage.developmentIntelligenceBody')}>
           <div className="tlg-intelligence-grid">
-            <InsightCard label="Primary technical strength" value={strongestTennis.label} detail={`${strongestTennis.value}/100`} />
-            <InsightCard label="Technical priority area" value={priorityTennis.label} detail={`${priorityTennis.value}/100`} />
-            <InsightCard label="Strongest physical area" value={strongestPhysical.label} detail={`${strongestPhysical.value}/100`} />
-            <InsightCard label="Current status" value={readinessLabel(readiness)} detail={`${readiness.toFixed(1)}/100 readiness`} />
-            <InsightCard label="Development direction" value={direction} detail={`${updates} recorded update${updates === 1 ? '' : 's'}`} />
-            <InsightCard label="Career identity" value={skills.playing_style} detail={`${skills.preferred_surface ?? 'Neutral'} surface`} />
+            <InsightCard label={t('skillsPage.primaryStrength')} value={strongestTennis.label} detail={`${strongestTennis.value}/100`} />
+            <InsightCard label={t('skillsPage.technicalPriority')} value={priorityTennis.label} detail={`${priorityTennis.value}/100`} />
+            <InsightCard label={t('skillsPage.strongestPhysical')} value={strongestPhysical.label} detail={`${strongestPhysical.value}/100`} />
+            <InsightCard label={t('skillsPage.currentStatus')} value={readinessLabel(readiness, t)} detail={t('skillsPage.readinessDetail', { value: readiness.toFixed(1) })} />
+            <InsightCard label={t('skillsPage.direction')} value={direction} detail={t('skillsPage.updates', { count: updates })} />
+            <InsightCard label={t('skillsPage.careerIdentity')} value={skills.playing_style} detail={t('skillsPage.surfaceDetail', { surface: skills.preferred_surface ?? t('skillsPage.neutral') })} />
           </div>
         </AnalysisPanel>
 
-        <AnalysisPanel title="Development matrix" description="Current category levels compared with the career starting baseline.">
+        <AnalysisPanel title={t('skillsPage.developmentMatrix')} description={t('skillsPage.developmentMatrixBody')}>
           <div className="tlg-development-matrix">
-            <MatrixRow label="Technical" value={technical} change={technicalChange} />
-            <MatrixRow label="Physical" value={physical} change={physicalChange} />
-            <MatrixRow label="Readiness" value={readiness} change={readinessChange} />
+            <MatrixRow label={t('skillsPage.technical')} value={technical} change={technicalChange} />
+            <MatrixRow label={t('skillsPage.physical')} value={physical} change={physicalChange} />
+            <MatrixRow label={t('skillsPage.readiness')} value={readiness} change={readinessChange} />
           </div>
         </AnalysisPanel>
       </div>
 
-      <AnalysisPanel title="Development history" description="Technical, physical and readiness history on one timeline. Every point comes from an automatically recorded database snapshot.">
+      <AnalysisPanel title={t('skillsPage.developmentHistory')} description={t('skillsPage.developmentHistoryBody')}>
         {historyError ? (
-          <div className="tlg-performance-empty">Development history could not be loaded: {historyError}</div>
+          <div className="tlg-performance-empty">{t('skillsPage.historyError', { error: historyError })}</div>
         ) : (
           <>
-            <MultiHistoryChart history={history} />
+            <MultiHistoryChart history={history} localeTag={localeTag} />
             {history.length <= 1 && (
               <div className="tlg-performance-empty">
-                Career baseline recorded. The three trend lines will begin moving after Training, matches or another career system changes real player values.
+                {t('skillsPage.baselineRecorded')}
               </div>
             )}
             <div className="tlg-history-meta">
-              <span>{history.length ? `First snapshot: ${formatHistoryDate(history[0].recorded_at)}` : 'No snapshots yet'}</span>
-              <span>{history.length ? `Latest snapshot: ${formatHistoryDate(history[history.length - 1].recorded_at)}` : 'Scale: 0–100'}</span>
+              <span>{history.length ? t('skillsPage.firstSnapshot', { date: formatHistoryDate(history[0].recorded_at, localeTag) }) : t('skillsPage.noSnapshots')}</span>
+              <span>{history.length ? t('skillsPage.latestSnapshot', { date: formatHistoryDate(history[history.length - 1].recorded_at, localeTag) }) : t('skillsPage.scale')}</span>
             </div>
           </>
         )}
@@ -618,6 +620,7 @@ function Gauge({ label, value, detail }: { label: string; value: number; detail:
 }
 
 function TennisRadar({ values }: { values: Array<{ label: string; value: number }> }) {
+  const { t } = useTranslation()
   const width = 470
   const height = 350
   const cx = 235
@@ -641,7 +644,7 @@ function TennisRadar({ values }: { values: Array<{ label: string; value: number 
   }).join(' ')
 
   return (
-    <svg className="tlg-tennis-radar" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Current nine-skill tennis radar">
+    <svg className="tlg-tennis-radar" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={t('skillsPage.radarAria')}>
       {[0.25, 0.5, 0.75, 1].map((scale) => <polygon key={scale} points={ringPoints(scale)} className="radar-ring" />)}
       {values.map((item, index) => {
         const outer = pointAt(index, 1)
@@ -674,11 +677,12 @@ function InsightCard({ label, value, detail }: { label: string; value: string; d
 }
 
 function MatrixRow({ label, value, change }: { label: string; value: number; change: number }) {
+  const { t } = useTranslation()
   return (
     <div className="tlg-matrix-row">
       <div className="tlg-matrix-copy">
         <strong>{label}</strong>
-        <span className={change > 0.05 ? 'positive' : change < -0.05 ? 'negative' : ''}>{signed(change)} since start</span>
+        <span className={change > 0.05 ? 'positive' : change < -0.05 ? 'negative' : ''}>{t('skillsPage.sinceStart', { change: signed(change) })}</span>
       </div>
       <div className="tlg-matrix-value"><strong>{value.toFixed(1)}</strong><span>/100</span></div>
       <div className="tlg-matrix-meter"><span style={{ width: `${Math.max(0, Math.min(100, value))}%` }} /></div>
@@ -686,7 +690,8 @@ function MatrixRow({ label, value, change }: { label: string; value: number; cha
   )
 }
 
-function MultiHistoryChart({ history }: { history: SkillHistoryRow[] }) {
+function MultiHistoryChart({ history, localeTag }: { history: SkillHistoryRow[]; localeTag: string }) {
+  const { t } = useTranslation()
   const width = 1040
   const height = 300
   const left = 48
@@ -719,11 +724,11 @@ function MultiHistoryChart({ history }: { history: SkillHistoryRow[] }) {
   return (
     <div className="tlg-multi-history-wrap">
       <div className="tlg-history-legend" aria-hidden="true">
-        <span className="technical">Technical</span>
-        <span className="physical">Physical</span>
-        <span className="readiness">Readiness</span>
+        <span className="technical">{t('skillsPage.technical')}</span>
+        <span className="physical">{t('skillsPage.physical')}</span>
+        <span className="readiness">{t('skillsPage.readiness')}</span>
       </div>
-      <svg className="tlg-multi-history" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Technical, physical and readiness development history">
+      <svg className="tlg-multi-history" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={t('skillsPage.historyAria')}>
         {[100, 75, 50, 25, 0].map((value) => {
           const y = top + ((100 - value) / 100) * plotHeight
           return (
@@ -755,16 +760,16 @@ function MultiHistoryChart({ history }: { history: SkillHistoryRow[] }) {
           const row = rows[index]
           if (!row) return null
           const point = coordinate(row.technical, index)
-          return <text key={`date-${index}`} x={point.x} y={height - 12} textAnchor="middle" className="date-label">{formatHistoryDate(row.date, true)}</text>
+          return <text key={`date-${index}`} x={point.x} y={height - 12} textAnchor="middle" className="date-label">{formatHistoryDate(row.date, localeTag, true)}</text>
         })}
       </svg>
     </div>
   )
 }
 
-function formatHistoryDate(value: string, short = false) {
+function formatHistoryDate(value: string, localeTag: string, short = false) {
   try {
-    return new Intl.DateTimeFormat('en', short
+    return new Intl.DateTimeFormat(localeTag, short
       ? { month: 'short', day: 'numeric' }
       : { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value))
   } catch {
