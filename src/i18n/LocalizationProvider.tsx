@@ -26,7 +26,7 @@ export function LocalizationProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const { i18n: reactI18n } = useTranslation()
   const [locale, setLocaleState] = useState<AppLocale>(() => normalizeAppLocale(
-    window.localStorage.getItem(STORAGE_KEY) || document.documentElement.lang || navigator.language,
+    window.localStorage.getItem(STORAGE_KEY) || 'en',
   ))
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
