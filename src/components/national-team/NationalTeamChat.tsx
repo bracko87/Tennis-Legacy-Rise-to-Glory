@@ -1,5 +1,6 @@
 import { Clock3, Send, Users } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { supabase } from '../../lib/supabase'
 
@@ -52,6 +53,7 @@ function formatChatTime(value?: string | null) {
 }
 
 export default function NationalTeamChat({ isMember, associationName }: NationalTeamChatProps) {
+  const { t } = useTranslation()
   const [rows, setRows] = useState<ChatRow[]>([])
   const [presence, setPresence] = useState<PresenceState>(EMPTY_PRESENCE)
   const [draft, setDraft] = useState('')
@@ -190,40 +192,40 @@ export default function NationalTeamChat({ isMember, associationName }: National
 
   const activeParticipants = presence.participants ?? []
   const recentHistory = rows.slice(0, 5)
-  const joinLabel = activeParticipants.length > 0 ? 'Join Chat' : 'Start Chat'
+  const joinLabel = activeParticipants.length > 0 ? t('nationalTeamPage.chat.joinChat') : t('nationalTeamPage.chat.startChat')
 
   return (
     <div className="nt-chat-layout" onPointerDown={markActivity} onKeyDown={markActivity}>
       <section className="tlg-v2-panel nt-team-chat nt-team-chat-page">
         <header className="nt-section-header">
           <div>
-            <span>PRIVATE TEAM CHAT</span>
-            <h3>{associationName} member room</h3>
+            <span>{t('nationalTeamPage.chat.kicker')}</span>
+            <h3>{t('nationalTeamPage.chat.memberRoom', { name: associationName })}</h3>
           </div>
         </header>
 
         {!isMember ? (
           <div className="nt-placeholder">
-            Join the association first to access its private national-team chat.
+            {t('nationalTeamPage.chat.joinFirst')}
           </div>
         ) : loading ? (
-          <div className="nt-chat-empty">Loading association messages…</div>
+          <div className="nt-chat-empty">{t('nationalTeamPage.chat.loading')}</div>
         ) : (
           <>
             <p>
-              All active association members can read the conversation. Join the live room to post messages and appear in the active-participant list.
+              {t('nationalTeamPage.chat.roomBody')}
             </p>
 
             {error && <div className="nt-alert nt-alert-error">{error}</div>}
 
             <div className="nt-chat-stream">
               {rows.length === 0 ? (
-                <div className="nt-chat-empty">No messages yet.</div>
+                <div className="nt-chat-empty">{t('nationalTeamPage.chat.empty')}</div>
               ) : [...rows].reverse().map((row) => (
                 <article key={row.message_id} className={row.is_mine ? 'mine' : ''}>
                   <header>
                     <strong>{row.player_name}</strong>
-                    <span>{formatChatTime(row.created_at)} · Game day {row.game_absolute_day}</span>
+                    <span>{formatChatTime(row.created_at)} · {t('nationalTeamPage.chat.gameDay', { day: row.game_absolute_day })}</span>
                   </header>
                   <p>{row.message}</p>
                 </article>
@@ -235,7 +237,7 @@ export default function NationalTeamChat({ isMember, associationName }: National
                 value={draft}
                 maxLength={1000}
                 disabled={!presence.joined}
-                placeholder={presence.joined ? 'Message your national association…' : 'Join the live chat to send a message…'}
+                placeholder={presence.joined ? t('nationalTeamPage.chat.placeholderActive') : t('nationalTeamPage.chat.placeholderInactive')}
                 onChange={(event) => {
                   markActivity()
                   setDraft(event.target.value)
@@ -246,13 +248,13 @@ export default function NationalTeamChat({ isMember, associationName }: National
                 disabled={working || !presence.joined || !draft.trim()}
                 onClick={() => void sendMessage()}
               >
-                <Send size={15} /> {working ? 'Sending…' : 'Send'}
+                <Send size={15} /> {working ? t('nationalTeamPage.chat.sending') : t('nationalTeamPage.chat.send')}
               </button>
             </div>
 
             {!presence.joined && (
               <div className="nt-chat-readonly-note">
-                You are currently reading in view-only mode. Join the live room to send messages.
+                {t('nationalTeamPage.chat.viewOnly')}
               </div>
             )}
           </>
@@ -262,13 +264,13 @@ export default function NationalTeamChat({ isMember, associationName }: National
       <aside className="tlg-v2-panel nt-chat-room-panel">
         <header className="nt-section-header">
           <div>
-            <span>LIVE CHAT ROOM</span>
-            <h3>{presence.joined ? 'You are in the room' : 'Join the conversation'}</h3>
+            <span>{t('nationalTeamPage.chat.liveRoom')}</span>
+            <h3>{presence.joined ? t('nationalTeamPage.chat.inRoom') : t('nationalTeamPage.chat.joinConversation')}</h3>
           </div>
         </header>
 
         {!isMember ? (
-          <div className="nt-placeholder">Association membership is required.</div>
+          <div className="nt-placeholder">{t('nationalTeamPage.chat.membershipRequired')}</div>
         ) : (
           <>
             {!presence.joined ? (
@@ -277,23 +279,23 @@ export default function NationalTeamChat({ isMember, associationName }: National
                 <strong>{joinLabel}</strong>
                 <span>
                   {activeParticipants.length > 0
-                    ? `${activeParticipants.length} member${activeParticipants.length === 1 ? '' : 's'} currently active. You can read the conversation before joining.`
-                    : 'Nobody is active in the live room right now. You can start the session.'}
+                    ? t('nationalTeamPage.chat.activeMembers', { count: activeParticipants.length })
+                    : t('nationalTeamPage.chat.nobodyActive')}
                 </span>
                 <button type="button" disabled={working} onClick={() => void joinChat()}>
-                  {working ? 'Joining…' : joinLabel}
+                  {working ? t('nationalTeamPage.chat.joining') : joinLabel}
                 </button>
-                <small>Live presence expires after 10 minutes without chat activity.</small>
+                <small>{t('nationalTeamPage.chat.presenceNote')}</small>
               </div>
             ) : (
               <div className="nt-chat-session-status">
                 <div>
-                  <span>SESSION ACTIVE</span>
-                  <strong>Joined at {formatChatTime(presence.joined_at)}</strong>
+                  <span>{t('nationalTeamPage.chat.sessionActive')}</span>
+                  <strong>{t('nationalTeamPage.chat.joinedAt', { time: formatChatTime(presence.joined_at) })}</strong>
                 </div>
                 <small>
                   <Clock3 size={13} />
-                  Expires after 10 minutes of inactivity
+                  {t('nationalTeamPage.chat.inactivityExpiry')}
                 </small>
               </div>
             )}
@@ -301,19 +303,19 @@ export default function NationalTeamChat({ isMember, associationName }: National
             {presence.joined && (
               <div className="nt-chat-side-section">
                 <div className="nt-chat-side-heading">
-                  <span>ACTIVE PARTICIPANTS</span>
+                  <span>{t('nationalTeamPage.chat.activeParticipants')}</span>
                   <strong>{activeParticipants.length}</strong>
                 </div>
 
                 <div className="nt-chat-participants">
                   {activeParticipants.length === 0 ? (
-                    <p>No active participants.</p>
+                    <p>{t('nationalTeamPage.chat.noParticipants')}</p>
                   ) : activeParticipants.map((participant) => (
                     <div key={participant.user_id}>
                       <span className="nt-chat-presence-dot" />
                       <div>
-                        <strong>{participant.player_name}{participant.is_me ? ' · You' : ''}</strong>
-                        <small>Active {formatChatTime(participant.last_active_at)}</small>
+                        <strong>{participant.player_name}{participant.is_me ? ` · ${t('nationalTeamPage.chat.you')}` : ''}</strong>
+                        <small>{t('nationalTeamPage.chat.activeAt', { time: formatChatTime(participant.last_active_at) })}</small>
                       </div>
                     </div>
                   ))}
@@ -323,13 +325,13 @@ export default function NationalTeamChat({ isMember, associationName }: National
 
             <div className="nt-chat-side-section">
               <div className="nt-chat-side-heading">
-                <span>RECENT CHAT HISTORY</span>
+                <span>{t('nationalTeamPage.chat.recentHistory')}</span>
                 <strong>{rows.length}</strong>
               </div>
 
               <div className="nt-chat-recent-history">
                 {recentHistory.length === 0 ? (
-                  <p>No chat history yet.</p>
+                  <p>{t('nationalTeamPage.chat.noHistory')}</p>
                 ) : recentHistory.map((row) => (
                   <article key={row.message_id}>
                     <header>
