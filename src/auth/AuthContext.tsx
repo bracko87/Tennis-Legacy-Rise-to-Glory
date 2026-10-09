@@ -153,14 +153,17 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
         window.localStorage.setItem(LAST_ACTIVITY_STORAGE_KEY, String(Date.now()))
       }
 
-      setUser(currentUser)
+      if (identityChanged || _event === 'USER_UPDATED') setUser(currentUser)
       setAuthLoading(false)
 
-      // Token refreshes and other background auth events must not remount the game UI.
-      // Reload player/admin state only when the authenticated identity actually changes.
+      // Keep token/session maintenance invisible to the UI. Identity changes use the
+      // initial loading state; token/user refreshes update data quietly in place.
       if (identityChanged) {
         void loadPlayerForUser(currentUser)
         void loadAdminForUser(currentUser)
+      } else if (currentUser && (_event === 'TOKEN_REFRESHED' || _event === 'USER_UPDATED')) {
+        void loadPlayerForUser(currentUser, true)
+        void loadAdminForUser(currentUser, true)
       }
     })
 
