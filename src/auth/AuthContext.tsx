@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
 
     if (error) {
       console.error('Unable to load Tennis Legacy player:', error.message)
-      setPlayer(null)
+      if (!background) setPlayer(null)
       return null
     }
 
@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
 
     if (error) {
       console.error('Unable to verify Tennis Legacy admin access:', error.message)
-      setIsAdmin(false)
+      if (!background) setIsAdmin(false)
       return false
     }
 
