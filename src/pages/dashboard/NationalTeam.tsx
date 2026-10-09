@@ -531,12 +531,12 @@ export default function NationalTeamPage() {
 
         <div className="nt-tabs tlg-standard-tabs" role="tablist" aria-label={t('nationalTeamPage.tabsAria')}>
           {([
-            ['overview', 'Overview'],
-            ['competition', 'Competition'],
-            ['members', `Members (${association.member_count})`],
-            ['elections', 'Elections'],
-            ['chat', 'Team Chat'],
-            ['history', 'History'],
+            ['overview', t('nationalTeamPage.common.tabs.overview')],
+            ['competition', t('nationalTeamPage.common.tabs.competition')],
+            ['members', `${t('nationalTeamPage.common.tabs.members')} (${association.member_count})`],
+            ['elections', t('nationalTeamPage.common.tabs.elections')],
+            ['chat', t('nationalTeamPage.common.tabs.chat')],
+            ['history', t('nationalTeamPage.common.tabs.history')],
           ] as const).map(([key, label]) => (
             <button key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? 'active' : ''} onClick={() => setTab(key)}>
               {label}
@@ -554,16 +554,16 @@ export default function NationalTeamPage() {
           <section className="tlg-v2-panel nt-hero-card">
             <header>
               <div>
-                <span>COMMUNITY GOVERNANCE</span>
-                <h3>Association status</h3>
+                <span>{t('nationalTeamPage.overview.governance')}</span>
+                <h3>{t('nationalTeamPage.overview.statusTitle')}</h3>
               </div>
             </header>
 
             <div className="nt-metric-grid">
-              <div><span>Eligible members</span><strong>{association.member_count}</strong><small>Minimum {association.minimum_activation_members} for activation</small></div>
-              <div><span>Current division</span><strong>{snapshot.division.label ?? 'Not assigned'}</strong><small>{snapshot.division.tier_level ? `Tier ${snapshot.division.tier_level}` : 'Competition structure ready for configuration'}</small></div>
-              <div><span>Captain</span><strong>{captainHeadline}</strong><small>{captainDetail}</small></div>
-              <div><span>Annual renewal</span><strong>{snapshot.rules.renewal_cost} coins every January</strong><small>Complete by 31 January · inactive from 1 February if unpaid</small></div>
+              <div><span>{t('nationalTeamPage.overview.eligibleMembers')}</span><strong>{association.member_count}</strong><small>{t('nationalTeamPage.overview.activationMinimum', { count: association.minimum_activation_members })}</small></div>
+              <div><span>{t('nationalTeamPage.overview.division')}</span><strong>{snapshot.division.label ?? t('nationalTeamPage.overview.notAssigned')}</strong><small>{snapshot.division.tier_level ? t('nationalTeamPage.overview.tier', { tier: snapshot.division.tier_level }) : t('nationalTeamPage.overview.structureReady')}</small></div>
+              <div><span>{t('nationalTeamPage.overview.captain')}</span><strong>{captainHeadline}</strong><small>{captainDetail}</small></div>
+              <div><span>{t('nationalTeamPage.overview.annualRenewal')}</span><strong>{t('nationalTeamPage.overview.annualRenewalValue', { coins: snapshot.rules.renewal_cost })}</strong><small>{t('nationalTeamPage.overview.annualRenewalNote')}</small></div>
             </div>
           </section>
 
@@ -571,8 +571,8 @@ export default function NationalTeamPage() {
             <section className="tlg-v2-panel nt-fund-card">
               <header>
                 <div>
-                  <span>ACTIVATION FUND</span>
-                  <h3>{Number(activationFund.contributed ?? 0)} / {Number(activationFund.target ?? snapshot.rules.activation_cost)} coins</h3>
+                  <span>{t('nationalTeamPage.overview.activationFund')}</span>
+                  <h3>{t('nationalTeamPage.overview.communityTotalValue', { current: Number(activationFund.contributed ?? 0), target: Number(activationFund.target ?? snapshot.rules.activation_cost) })}</h3>
                 </div>
               </header>
 
@@ -581,12 +581,12 @@ export default function NationalTeamPage() {
               <div className="nt-requirements">
                 <div className={activationReady ? 'done' : ''}>
                   <BadgeCheck size={16} />
-                  <span>Community funding</span>
-                  <strong>{activationReady ? 'Complete' : `${Number(activationFund.target ?? snapshot.rules.activation_cost) - Number(activationFund.contributed ?? 0)} coins remaining`}</strong>
+                  <span>{t('nationalTeamPage.overview.communityFunding')}</span>
+                  <strong>{activationReady ? t('nationalTeamPage.fundingExtra.complete') : t('nationalTeamPage.fundingExtra.remaining', { count: Number(activationFund.target ?? snapshot.rules.activation_cost) - Number(activationFund.contributed ?? 0) })}</strong>
                 </div>
                 <div className={membersReady ? 'done' : ''}>
                   <UsersRound size={16} />
-                  <span>Eligible members</span>
+                  <span>{t('nationalTeamPage.overview.eligibleMembers')}</span>
                   <strong>{association.member_count} / {association.minimum_activation_members}</strong>
                 </div>
               </div>
@@ -597,7 +597,7 @@ export default function NationalTeamPage() {
 
               {activationFund.status === 'open' && association.is_member && (
                 <div className="nt-contribution-box">
-                  <div className="nt-wallet"><span>Your balance</span><strong>{coins.toLocaleString()} coins</strong></div>
+                  <div className="nt-wallet"><span>{t('nationalTeamPage.overview.yourBalance')}</span><strong>{t('nationalTeamPage.overview.coins', { count: coins.toLocaleString() })}</strong></div>
                   <div className="nt-quick-coins">
                     {[1, 5, 10].map((amount) => (
                       <button key={amount} type="button" disabled={working || coins < amount} onClick={() => void contribute(amount)}>
@@ -612,13 +612,13 @@ export default function NationalTeamPage() {
                       max={Math.max(1, coins)}
                       value={customContribution}
                       onChange={(event) => setCustomContribution(event.target.value)}
-                      aria-label="Custom coin contribution"
+                      aria-label={t('nationalTeamPage.overview.contributionAria')}
                     />
                     <button type="button" disabled={working || Number(customContribution) <= 0 || coins <= 0} onClick={() => void contribute(Number(customContribution))}>
-                      {working ? 'Contributing…' : 'Contribute'}
+                      {working ? t('nationalTeamPage.fundingExtra.contributing') : t('nationalTeamPage.fundingExtra.contribute')}
                     </button>
                   </div>
-                  <small>The server automatically caps the charge to the amount still required.</small>
+                  <small>{t('nationalTeamPage.overview.capNote')}</small>
                 </div>
               )}
 
@@ -632,8 +632,8 @@ export default function NationalTeamPage() {
             <section className="tlg-v2-panel nt-fund-card">
               <header>
                 <div>
-                  <span>SEASON RENEWAL</span>
-                  <h3>{renewalFund.id ? `Season ${renewalFund.season_number}` : 'No renewal currently open'}</h3>
+                  <span>{t('nationalTeamPage.overview.seasonRenewal')}</span>
+                  <h3>{renewalFund.id ? t('nationalTeamPage.common.season', { season: renewalFund.season_number }) : t('nationalTeamPage.fundingExtra.noRenewal')}</h3>
                 </div>
               </header>
 
@@ -641,14 +641,14 @@ export default function NationalTeamPage() {
                 <>
                   <div className="nt-progress"><span style={{ width: `${progressPercent(renewalFund)}%` }} /></div>
                   <div className="nt-fund-summary">
-                    <div><span>Community total</span><strong>{Number(renewalFund.contributed ?? 0)} / {Number(renewalFund.target ?? snapshot.rules.renewal_cost)} coins</strong></div>
-                    <div><span>Deadline</span><strong>{formatGameDate(renewalFund.deadline_date)}</strong></div>
-                    <div><span>Status</span><strong>{renewalFund.status ?? '—'}</strong></div>
+                    <div><span>{t('nationalTeamPage.overview.communityTotal')}</span><strong>{t('nationalTeamPage.overview.communityTotalValue', { current: Number(renewalFund.contributed ?? 0), target: Number(renewalFund.target ?? snapshot.rules.renewal_cost) })}</strong></div>
+                    <div><span>{t('nationalTeamPage.overview.deadline')}</span><strong>{formatGameDate(t, renewalFund.deadline_date)}</strong></div>
+                    <div><span>{t('nationalTeamPage.overview.status')}</span><strong>{renewalFund.status ?? '—'}</strong></div>
                   </div>
 
                   {renewalFund.status === 'open' && association.is_member && (
                     <div className="nt-contribution-box">
-                      <div className="nt-wallet"><span>Your balance</span><strong>{coins.toLocaleString()} coins</strong></div>
+                      <div className="nt-wallet"><span>{t('nationalTeamPage.overview.yourBalance')}</span><strong>{t('nationalTeamPage.overview.coins', { count: coins.toLocaleString() })}</strong></div>
                       <div className="nt-quick-coins">
                         {[1, 5, 10].map((amount) => (
                           <button key={amount} type="button" disabled={working || coins < amount} onClick={() => void contribute(amount)}>
@@ -659,7 +659,7 @@ export default function NationalTeamPage() {
                       <div className="nt-custom-contribution">
                         <input type="number" min="1" max={Math.max(1, coins)} value={customContribution} onChange={(event) => setCustomContribution(event.target.value)} />
                         <button type="button" disabled={working || Number(customContribution) <= 0 || coins <= 0} onClick={() => void contribute(Number(customContribution))}>
-                          {working ? 'Contributing…' : 'Contribute'}
+                          {working ? t('nationalTeamPage.fundingExtra.contributing') : t('nationalTeamPage.fundingExtra.contribute')}
                         </button>
                       </div>
                     </div>
@@ -668,7 +668,7 @@ export default function NationalTeamPage() {
               ) : (
                 <div className="nt-placeholder">
                   <ShieldCheck size={20} />
-                  <div><strong>Association is currently covered</strong><span>The {snapshot.rules.renewal_cost}-coin community renewal opens on 1 January each season and must be completed by 31 January.</span></div>
+                  <div><strong>{t('nationalTeamPage.overview.covered')}</strong><span>{t('nationalTeamPage.overview.coveredBody', { coins: snapshot.rules.renewal_cost })}</span></div>
                 </div>
               )}
 
@@ -681,54 +681,52 @@ export default function NationalTeamPage() {
           <section className="tlg-v2-panel nt-membership-status-card">
             <header className="nt-section-header">
               <div>
-                <span>ASSOCIATION MEMBERSHIP</span>
-                <h3>{association.is_member ? 'You are already a member' : 'Join your national association'}</h3>
+                <span>{t('nationalTeamPage.overview.membership')}</span>
+                <h3>{association.is_member ? t('nationalTeamPage.fundingExtra.memberAlreadyTitle') : t('nationalTeamPage.fundingExtra.memberJoinTitle')}</h3>
               </div>
             </header>
 
             <div className="nt-membership-status-content">
               <div>
-                <strong>{association.is_member ? association.name + ' membership is active' : 'Eligible for ' + association.name}</strong>
+                <strong>{association.is_member ? t('nationalTeamPage.fundingExtra.membershipActive', { name: association.name }) : t('nationalTeamPage.fundingExtra.eligibleFor', { name: association.name })}</strong>
                 <p>
-                  {association.is_member
-                    ? 'Your player is already part of the association. You can be considered by the national captain for future call-ups, participate in captain elections and use the private Team Chat. Membership does not guarantee selection for a national fixture.'
-                    : 'Membership is voluntary. Join once and your player is immediately added to the association member pool, where the national captain can consider you for future call-ups. Members can also vote, stand for captain and use the private Team Chat.'}
+                  {association.is_member ? t('nationalTeamPage.fundingExtra.activeBody') : t('nationalTeamPage.fundingExtra.eligibleBody')}
                 </p>
               </div>
               {association.is_member ? (
-                <span className="nt-membership-confirmed">Member</span>
+                <span className="nt-membership-confirmed">{t('nationalTeamPage.fundingExtra.memberBadge')}</span>
               ) : association.can_join ? (
                 <button type="button" disabled={working} onClick={() => void joinAssociation()}>
                   {working ? 'Joining…' : 'Join association'}
                 </button>
               ) : (
-                <span className="nt-membership-unavailable">Not currently eligible</span>
+                <span className="nt-membership-unavailable">{t('nationalTeamPage.overview.notEligible')}</span>
               )}
             </div>
           </section>
 
           <section className="tlg-v2-panel nt-rules-card">
-            <header><div><span>GOVERNANCE RULES</span><h3>Community, not ownership</h3></div></header>
+            <header><div><span>{t('nationalTeamPage.overview.governanceRules')}</span><h3>{t('nationalTeamPage.overview.communityNotOwnership')}</h3></div></header>
             <div className="nt-rule-list">
-              <div><strong>1 member = 1 vote</strong><span>Donation amount never changes voting power.</span></div>
-              <div><strong>Founding status is cosmetic</strong><span>The activation initiator receives no permanent control.</span></div>
-              <div><strong>Annual captain process: 1–20 January</strong><span>Candidate registration runs first; voting opens on 10 January and closes on 20 January. Tied leaders then continue into seven-day runoffs.</span></div>
-              <div><strong>Playing captain uses a normal squad place</strong><span>Captaincy never guarantees selection or protects a player from fatigue/calendar rules.</span></div>
+              <div><strong>{t('nationalTeamPage.overview.oneVote')}</strong><span>{t('nationalTeamPage.overview.oneVoteBody')}</span></div>
+              <div><strong>{t('nationalTeamPage.overview.founding')}</strong><span>{t('nationalTeamPage.overview.foundingBody')}</span></div>
+              <div><strong>{t('nationalTeamPage.overview.annualProcess')}</strong><span>{t('nationalTeamPage.overview.annualProcessBody')}</span></div>
+              <div><strong>{t('nationalTeamPage.overview.captainSquad')}</strong><span>{t('nationalTeamPage.overview.captainSquadBody')}</span></div>
             </div>
           </section>
 
           <section className="tlg-v2-panel nt-contribution-history">
-            <header><div><span>YOUR SUPPORT</span><h3>Personal contribution history</h3></div></header>
+            <header><div><span>{t('nationalTeamPage.overview.yourSupport')}</span><h3>{t('nationalTeamPage.overview.contributionHistory')}</h3></div></header>
             <strong className="nt-big-number">{snapshot.my_total_contributions.toLocaleString()}</strong>
-            <span>coins contributed across activation and renewal funds</span>
-            <small>Recognition only — this total carries no governance weight.</small>
+            <span>{t('nationalTeamPage.overview.contributedAcross')}</span>
+            <small>{t('nationalTeamPage.overview.recognitionOnly')}</small>
           </section>
 
           <section className="tlg-v2-panel nt-governance-timeline">
             <header className="nt-section-header">
               <div>
-                <span>SEASON GOVERNANCE TIMELINE</span>
-                <h3>What happens every January</h3>
+                <span>{t('nationalTeamPage.overview.timeline')}</span>
+                <h3>{t('nationalTeamPage.overview.timelineTitle')}</h3>
               </div>
             </header>
 
@@ -738,68 +736,68 @@ export default function NationalTeamPage() {
 
             <div className="nt-governance-steps">
               <article>
-                <b>1 Jan</b>
+                <b>{t('nationalTeamPage.overview.jan1')}</b>
                 <div>
-                  <strong>Annual renewal + candidate registration open</strong>
-                  <span>Members collectively fund {snapshot.rules.renewal_cost} coins, while eligible members have until voting opens on 10 January to register a candidacy and manifesto.</span>
+                  <strong>{t('nationalTeamPage.overview.jan1Title')}</strong>
+                  <span>{t('nationalTeamPage.fundingExtra.jan1Body', { coins: snapshot.rules.renewal_cost })}</span>
                 </div>
               </article>
               <article>
-                <b>10 Jan</b>
+                <b>{t('nationalTeamPage.overview.jan10')}</b>
                 <div>
-                  <strong>Main captain vote opens</strong>
-                  <span>Candidate registration has closed. Every active association member can now cast exactly one vote in the main election round.</span>
+                  <strong>{t('nationalTeamPage.overview.jan10Title')}</strong>
+                  <span>{t('nationalTeamPage.overview.jan10Body')}</span>
                 </div>
               </article>
               <article>
-                <b>20 Jan</b>
+                <b>{t('nationalTeamPage.overview.jan20')}</b>
                 <div>
-                  <strong>First election round closes</strong>
-                  <span>A candidate is elected only when they have at least one vote and strictly more votes than every other candidate.</span>
+                  <strong>{t('nationalTeamPage.overview.jan20Title')}</strong>
+                  <span>{t('nationalTeamPage.overview.jan20Body')}</span>
                 </div>
               </article>
               <article>
-                <b>21–27 Jan</b>
+                <b>{t('nationalTeamPage.overview.jan21')}</b>
                 <div>
-                  <strong>First runoff when no unique winner exists</strong>
-                  <span>If leaders are tied, only the tied leaders continue. If nobody stood for election, a new seven-day round opens with candidate registration available again.</span>
+                  <strong>{t('nationalTeamPage.overview.jan21Title')}</strong>
+                  <span>{t('nationalTeamPage.overview.jan21Body')}</span>
                 </div>
               </article>
               <article>
-                <b>Every 7 days</b>
+                <b>{t('nationalTeamPage.overview.every7')}</b>
                 <div>
-                  <strong>Runoffs repeat until somebody wins</strong>
-                  <span>If the runoff is tied again, another seven-day round begins. There is no random winner and no fixed maximum number of runoff rounds.</span>
+                  <strong>{t('nationalTeamPage.overview.every7Title')}</strong>
+                  <span>{t('nationalTeamPage.overview.every7Body')}</span>
                 </div>
               </article>
               <article>
-                <b>31 Jan</b>
+                <b>{t('nationalTeamPage.overview.jan31')}</b>
                 <div>
-                  <strong>Renewal deadline</strong>
-                  <span>The association must have completed the full {snapshot.rules.renewal_cost}-coin community renewal before February begins.</span>
+                  <strong>{t('nationalTeamPage.overview.jan31Title')}</strong>
+                  <span>{t('nationalTeamPage.fundingExtra.jan31Body', { coins: snapshot.rules.renewal_cost })}</span>
                 </div>
               </article>
               <article>
-                <b>1 Feb</b>
+                <b>{t('nationalTeamPage.overview.feb1')}</b>
                 <div>
-                  <strong>Unpaid association becomes inactive</strong>
-                  <span>If renewal is incomplete, the association loses its sporting place. History remains, but a later return follows the lower-tier re-entry rules rather than restoring the old division.</span>
+                  <strong>{t('nationalTeamPage.overview.feb1Title')}</strong>
+                  <span>{t('nationalTeamPage.overview.feb1Body')}</span>
                 </div>
               </article>
             </div>
 
             <div className="nt-governance-continuity">
               <div>
-                <strong>Captain continuity</strong>
-                <span>The previous elected captain remains acting captain while the annual election or runoffs are unresolved. As soon as a new candidate wins with a unique lead, the new captain takes office.</span>
+                <strong>{t('nationalTeamPage.overview.continuity')}</strong>
+                <span>{t('nationalTeamPage.overview.continuityBody')}</span>
               </div>
               <div>
-                <strong>Resignation or inactivity</strong>
-                <span>If the captain resigns or is no longer an eligible active member, the position is vacated and a new 10-game-day replacement election begins immediately. Seven-day runoffs repeat if needed.</span>
+                <strong>{t('nationalTeamPage.overview.resignation')}</strong>
+                <span>{t('nationalTeamPage.overview.resignationBody')}</span>
               </div>
               <div>
-                <strong>Inbox notifications</strong>
-                <span>Association members are informed in-game when renewal opens, an election starts, a runoff is required, a captain resigns or becomes inactive, and when a new captain is elected.</span>
+                <strong>{t('nationalTeamPage.overview.inbox')}</strong>
+                <span>{t('nationalTeamPage.overview.inboxBody')}</span>
               </div>
             </div>
           </section>
@@ -814,7 +812,7 @@ export default function NationalTeamPage() {
       {tab === 'members' && (
         <section className="tlg-v2-panel nt-members-panel">
           <header className="nt-section-header">
-            <div><span>ASSOCIATION MEMBERSHIP</span><h3>{association.member_count} eligible player{association.member_count === 1 ? '' : 's'}</h3></div>
+            <div><span>{t('nationalTeamPage.overview.membership')}</span><h3>{association.member_count} eligible player{association.member_count === 1 ? '' : 's'}</h3></div>
           </header>
 
           <p className="nt-section-copy">
@@ -827,7 +825,7 @@ export default function NationalTeamPage() {
                 <strong>You are already an association member</strong>
                 <span>Your player is in the captain's eligible call-up pool and can participate in association elections and Team Chat.</span>
               </div>
-              <span className="nt-membership-confirmed">Member</span>
+              <span className="nt-membership-confirmed">{t('nationalTeamPage.fundingExtra.memberBadge')}</span>
             </div>
           ) : association.can_join ? (
             <div className="nt-membership-join-card">
