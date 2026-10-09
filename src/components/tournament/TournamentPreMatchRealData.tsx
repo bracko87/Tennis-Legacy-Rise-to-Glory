@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom'
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 
 import CountryFlag from '../common/CountryFlag'
@@ -118,10 +119,11 @@ function opponentForPlayer(match: DrawMatch, playerId: string) {
 }
 
 function RoadSide({ match, playerId, align }: { match: DrawMatch | null; playerId: string | null; align: 'left' | 'right' }) {
+  const { t } = useTranslation()
   if (!match || !playerId) return <div className={`tlg-real-road-side ${align} empty`}>—</div>
   const opponent = opponentForPlayer(match, playerId)
   if (!opponent) {
-    return <div className={`tlg-real-road-side ${align}`}><span className="tlg-real-road-bye">BYE</span><strong>{resultForPlayer(match, playerId)}</strong></div>
+    return <div className={`tlg-real-road-side ${align}`}><span className="tlg-real-road-bye">{t('tournamentPage.enhancements.road.bye')}</span><strong>{resultForPlayer(match, playerId)}</strong></div>
   }
   return (
     <div className={`tlg-real-road-side ${align}`}>
@@ -156,6 +158,7 @@ function parseModalMatch(modal: HTMLElement, matches: DrawMatch[]) {
 }
 
 export default function TournamentPreMatchRealData() {
+  const { t } = useTranslation()
   const { competitionId } = useParams()
   const [matches, setMatches] = useState<DrawMatch[]>([])
   const [host, setHost] = useState<HTMLElement | null>(null)
@@ -281,14 +284,14 @@ export default function TournamentPreMatchRealData() {
   return createPortal(
     <section className="tlg-real-prematch-insights">
       <div className="tlg-real-prematch-panel road-panel">
-        <header><div><span>This tournament</span><h3>Road to this match</h3></div></header>
+        <header><div><span>{t('tournamentPage.enhancements.road.tournament')}</span><h3>{t('tournamentPage.enhancements.road.title')}</h3></div></header>
         <div className="tlg-real-road-head">
           <div><CountryFlag countryCode={selected.player1_country_code ?? ''} countryName={selected.player1_country_code ?? ''} width={21} height={14} /><strong>{p1Name}</strong></div>
-          <span>ROUND</span>
+          <span>{t('tournamentPage.enhancements.road.round')}</span>
           <div><strong>{p2Name}</strong><CountryFlag countryCode={selected.player2_country_code ?? ''} countryName={selected.player2_country_code ?? ''} width={21} height={14} /></div>
         </div>
         {roadRounds.length === 0 ? (
-          <div className="tlg-real-road-empty">No previous-round matches at this tournament.</div>
+          <div className="tlg-real-road-empty">{t('tournamentPage.enhancements.road.noPrevious')}</div>
         ) : (
           <div className="tlg-real-road-list">
             {roadRounds.map(({ round, left, right }) => (
@@ -303,16 +306,16 @@ export default function TournamentPreMatchRealData() {
       </div>
 
       <div className="tlg-real-prematch-panel h2h-panel">
-        <header><div><span>Head to head</span><h3>Previous meetings</h3></div></header>
+        <header><div><span>{t('tournamentPage.enhancements.road.h2h')}</span><h3>{t('tournamentPage.enhancements.road.meetings')}</h3></div></header>
         {h2hLoading ? (
-          <div className="tlg-real-h2h-empty">Loading real match history…</div>
+          <div className="tlg-real-h2h-empty">{t('tournamentPage.enhancements.road.loading')}</div>
         ) : !h2h || h2h.meeting_count === 0 ? (
-          <div className="tlg-real-h2h-empty"><strong>No previous meetings</strong><span>These players have no completed match against each other in the game database.</span></div>
+          <div className="tlg-real-h2h-empty"><strong>{t('tournamentPage.enhancements.road.none')}</strong><span>{t('tournamentPage.enhancements.road.noneBody')}</span></div>
         ) : (
           <div className="tlg-real-h2h-wrap">
             <div className="tlg-real-h2h-score">
               <div><CountryFlag countryCode={selected.player1_country_code ?? ''} countryName={selected.player1_country_code ?? ''} width={21} height={14} /><strong>{p1Name}</strong><b>{h2h.player1_wins}</b></div>
-              <span>H2H</span>
+              <span>{t('tournamentPage.enhancements.road.h2h')}</span>
               <div><b>{h2h.player2_wins}</b><strong>{p2Name}</strong><CountryFlag countryCode={selected.player2_country_code ?? ''} countryName={selected.player2_country_code ?? ''} width={21} height={14} /></div>
             </div>
             <div className="tlg-real-h2h-list">
