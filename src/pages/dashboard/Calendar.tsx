@@ -1,5 +1,6 @@
 import { CalendarDays, ChevronLeft, ChevronRight, Plane, Star } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
@@ -14,9 +15,8 @@ import {
   competitionWeeksForMonth,
   dayOfSeason,
   firstWeekdayIndex,
-  formatAbsoluteGameDay,
-  formatCompetitionWeekRange,
   isSeasonOpeningDay,
+  monthDayFromDayOfSeason,
   weekdayForDate,
 } from '../../lib/competitionCalendar'
 import { supabase } from '../../lib/supabase'
@@ -126,19 +126,49 @@ function titleCase(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1)
 }
 
-function phaseLabel(phase: TournamentCalendarRow['phase']) {
-  if (phase === 'qualification') return 'Qualification'
-  if (phase === 'main_draw') return 'Main draw'
+function phaseLabel(phase: TournamentCalendarRow['phase'], t: TFunction) {
+  if (phase === 'qualification') return t('calendarPage.tournament.phaseQualification')
+  if (phase === 'main_draw') return t('calendarPage.tournament.phaseMainDraw')
   return null
 }
 
-function playerActivityLabel(activity: PlayerCalendarActivityRow['activity_type']) {
-  if (activity === 'training_camp') return 'Training Camp'
-  if (activity === 'tournament') return 'Tournament'
-  if (activity === 'national_team') return 'National Team'
-  if (activity === 'travel') return 'Travel'
-  if (activity === 'injured') return 'Health / Recovery'
-  return 'Home'
+function playerActivityLabel(activity: PlayerCalendarActivityRow['activity_type'], t: TFunction) {
+  return t(`calendarPage.activities.${activity}`)
+}
+
+function monthNames(t: TFunction) {
+  return t('calendarPage.months', { returnObjects: true }) as string[]
+}
+
+function weekdayNames(t: TFunction) {
+  return t('calendarPage.weekdays', { returnObjects: true }) as string[]
+}
+
+function localizedMonthDay(monthIndex: number, day: number, t: TFunction) {
+  const months = monthNames(t)
+  return `${months[monthIndex] ?? MONTHS[monthIndex]?.name ?? ''} ${day}`
+}
+
+function localizedAbsoluteGameDay(absoluteDay: number, season: number, t: TFunction) {
+  const seasonStart = (season - 1) * 366
+  const value = monthDayFromDayOfSeason(absoluteDay - seasonStart + 1)
+  return localizedMonthDay(value.monthIndex, value.day, t)
+}
+
+function localizedCompetitionWeekRange(seasonWeek: number, t: TFunction) {
+  const range = competitionWeekRange(seasonWeek)
+  if (range.start.monthIndex === range.end.monthIndex) {
+    return `${monthNames(t)[range.start.monthIndex]} ${range.start.day}–${range.end.day}`
+  }
+  return `${localizedMonthDay(range.start.monthIndex, range.start.day, t)} – ${localizedMonthDay(range.end.monthIndex, range.end.day, t)}`
+}
+
+function surfaceLabel(value: TournamentCalendarRow['surface'], t: TFunction) {
+  return t(`calendarPage.tournament.surface${value.charAt(0).toUpperCase()}${value.slice(1)}`)
+}
+
+function environmentLabel(value: TournamentCalendarRow['environment'], t: TFunction) {
+  return t(`calendarPage.tournament.${value}`)
 }
 
 function playerActivityPriority(activity: PlayerCalendarActivityRow) {
@@ -160,16 +190,17 @@ function activeTournamentWeekForDate(monthIndex: number, day: number) {
   return competitionWeekRange(seasonWeek)
 }
 
-function tournamentTimingLabel(event: TournamentCalendarRow) {
-  if (event.tournament_status === 'applications_not_open') return `Opens ${formatAbsoluteGameDay(event.application_open_day, event.season_number)}`
-  if (event.tournament_status === 'applications_open') return `Closes ${formatAbsoluteGameDay(event.application_close_day, event.season_number)}`
-  if (event.tournament_status === 'applications_closed' || event.tournament_status === 'draw_published') return `Starts ${formatAbsoluteGameDay(event.tournament_start_day, event.season_number)}`
-  if (event.tournament_status === 'in_progress') return `Ends ${formatAbsoluteGameDay(event.tournament_end_day, event.season_number)}`
-  if (event.tournament_status === 'completed') return `Finished ${formatAbsoluteGameDay(event.tournament_end_day, event.season_number)}`
+function tournamentTimingLabel(event: TournamentCalendarRow, t: TFunction) {
+  if (event.tournament_status === 'applications_not_open') return t('calendarPage.tournament.timingOpens', { date: localizedAbsoluteGameDay(event.application_open_day, event.season_number, t) })
+  if (event.tournament_status === 'applications_open') return t('calendarPage.tournament.timingCloses', { date: localizedAbsoluteGameDay(event.application_close_day, event.season_number, t) })
+  if (event.tournament_status === 'applications_closed' || event.tournament_status === 'draw_published') return t('calendarPage.tournament.timingStarts', { date: localizedAbsoluteGameDay(event.tournament_start_day, event.season_number, t) })
+  if (event.tournament_status === 'in_progress') return t('calendarPage.tournament.timingEnds', { date: localizedAbsoluteGameDay(event.tournament_end_day, event.season_number, t) })
+  if (event.tournament_status === 'completed') return t('calendarPage.tournament.timingFinished', { date: localizedAbsoluteGameDay(event.tournament_end_day, event.season_number, t) })
   return ''
 }
 
 function SeasonCalendarView() {
+  const { t } = useTranslation()
   const { player } = useAuth()
   const clock = useGameClock()
   const [monthIndex, setMonthIndex] = useState(0)
@@ -243,14 +274,18 @@ function SeasonCalendarView() {
     }
     return grouped
   }, [activities])
-  const todayWeekday = weekdayForDate(clock.monthIndex, clock.day)
+  const rawTodayWeekday = weekdayForDate(clock.monthIndex, clock.day)
+  const todayWeekday = weekdayNames(t)[WEEKDAYS.indexOf(rawTodayWeekday)] ?? rawTodayWeekday
+  const localizedMonths = monthNames(t)
+  const monthName = localizedMonths[monthIndex] ?? month.name
+  const currentMonthName = localizedMonths[clock.monthIndex] ?? clock.month
   const todayAbsoluteDay = absoluteGameDay(clock.season, clock.monthIndex, clock.day)
 
   const monthNavigation = (label: string) => (
     <div className="tlg-season-calendar-nav" aria-label={label}>
-      <button type="button" disabled={monthIndex === 0} onClick={() => setMonthIndex((value) => Math.max(0, value - 1))}><ChevronLeft size={14} /> Previous</button>
-      <strong>{month.name}</strong>
-      <button type="button" disabled={monthIndex === MONTHS.length - 1} onClick={() => setMonthIndex((value) => Math.min(MONTHS.length - 1, value + 1))}>Next <ChevronRight size={14} /></button>
+      <button type="button" disabled={monthIndex === 0} onClick={() => setMonthIndex((value) => Math.max(0, value - 1))}><ChevronLeft size={14} /> {t('calendarPage.previous')}</button>
+      <strong>{monthName}</strong>
+      <button type="button" disabled={monthIndex === MONTHS.length - 1} onClick={() => setMonthIndex((value) => Math.min(MONTHS.length - 1, value + 1))}>{t('calendarPage.next')} <ChevronRight size={14} /></button>
     </div>
   )
 
@@ -258,14 +293,14 @@ function SeasonCalendarView() {
     <div className="tlg-season-calendar">
       <div className="tlg-season-calendar-toolbar">
         <div className="tlg-season-calendar-copy">
-          <h4>Season {clock.season} · {month.name}</h4>
-          <p>Today: Season {clock.season} · {todayWeekday} · {clock.month} {clock.day}. Accepted main-draw weeks are reserved with a light overlay until your first match schedule is known. Confirmed match days are secured; predicted tournament days remain planning days until progression makes them certain.</p>
+          <h4>{t('calendarPage.seasonMonth', { season: clock.season, month: monthName })}</h4>
+          <p>{t('calendarPage.todaySummary', { season: clock.season, weekday: todayWeekday, month: currentMonthName, day: clock.day })}</p>
         </div>
-        {monthNavigation('Calendar month navigation')}
+        {monthNavigation(t('calendarPage.calendarNav'))}
       </div>
 
-      {activityError && <div className="tlg-calendar-player-activity-error">Unable to load your player schedule: {activityError}</div>}
-      <div className="tlg-calendar-weekdays" aria-hidden="true">{WEEKDAYS.map((weekday) => <span key={weekday}>{weekday}</span>)}</div>
+      {activityError && <div className="tlg-calendar-player-activity-error">{t('calendarPage.scheduleLoadError', { error: activityError })}</div>}
+      <div className="tlg-calendar-weekdays" aria-hidden="true">{weekdayNames(t).map((weekday) => <span key={weekday}>{weekday}</span>)}</div>
       <div className="tlg-calendar-grid">
         {cells.map((day, index) => {
           if (day === null) return <div key={`empty-${index}`} className="tlg-calendar-day-empty" aria-hidden="true" />
@@ -310,9 +345,9 @@ function SeasonCalendarView() {
 
           return (
             <div key={`${month.name}-${day}`} className={classes.join(' ')}>
-              <span className="tlg-calendar-day-number">{month.name} {day}</span>
-              {current && <span className="tlg-calendar-today-badge">Today</span>}
-              {openingDay && !current && <span className="tlg-calendar-today-badge">Season opening</span>}
+              <span className="tlg-calendar-day-number">{monthName} {day}</span>
+              {current && <span className="tlg-calendar-today-badge">{t('calendarPage.today')}</span>}
+              {openingDay && !current && <span className="tlg-calendar-today-badge">{t('calendarPage.seasonOpening')}</span>}
               {dayActivities.length > 0 && (
                 <div className="tlg-calendar-player-activities">
                   {dayActivities.slice(0, 4).map((activity, activityIndex) => {
@@ -353,13 +388,16 @@ function SeasonCalendarView() {
                       >
                         {activity.activity_type === 'travel' && <Plane size={13} className="tlg-calendar-travel-icon" aria-hidden="true" />}
                         <span>{activity.activity_type === 'tournament'
-                          ? `Tournament ${isDoubles ? '(D)' : '(S)'} · ${tournamentCompleted ? 'Played' : tournamentAccepted ? 'Accepted' : tournamentPredicted ? 'Predicted' : 'Confirmed'}`
+                          ? t('calendarPage.activities.tournamentState', {
+                              discipline: t(`calendarPage.activities.${isDoubles ? 'doublesShort' : 'singlesShort'}`),
+                              state: t(`calendarPage.activities.${tournamentCompleted ? 'played' : tournamentAccepted ? 'accepted' : tournamentPredicted ? 'predicted' : 'confirmed'}`),
+                            })
                           : activity.activity_type === 'national_team'
-                            ? `National Team · ${nationalTeamCompleted ? 'Played' : 'Confirmed'}`
-                            : playerActivityLabel(activity.activity_type)}</span>
+                            ? t('calendarPage.activities.nationalState', { state: t(`calendarPage.activities.${nationalTeamCompleted ? 'played' : 'confirmed'}`) })
+                            : playerActivityLabel(activity.activity_type, t)}</span>
                         <strong>{activity.activity_type === 'national_team'
-                          ? 'National Team'
-                          : activity.note || playerActivityLabel(activity.activity_type)}</strong>
+                          ? t('calendarPage.activities.national_team')
+                          : activity.note || playerActivityLabel(activity.activity_type, t)}</strong>
                       </div>
                     )
                   })}
@@ -371,13 +409,14 @@ function SeasonCalendarView() {
       </div>
 
       <div className="tlg-season-calendar-bottom-nav">
-        {monthNavigation('Calendar month navigation bottom')}
+        {monthNavigation(t('calendarPage.calendarNavBottom'))}
       </div>
     </div>
   )
 }
 
 function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: number; initialWeek?: number }) {
+  const { t } = useTranslation()
   const { player } = useAuth()
   const clock = useGameClock()
   const [, setSearchParams] = useSearchParams()
@@ -401,6 +440,8 @@ function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: 
   }, [clock.loading, clock.monthIndex, clock.day, initialMonth])
 
   const month = MONTHS[monthIndex]
+  const localizedMonths = monthNames(t)
+  const monthName = localizedMonths[monthIndex] ?? month.name
   const world = player?.world ?? 'ATP'
   const monthCompetitionWeeks = useMemo(() => competitionWeeksForMonth(monthIndex), [monthIndex])
 
@@ -499,9 +540,9 @@ function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: 
 
   const weekNavigation = (label: string) => (
     <div className="tlg-tournament-week-nav" aria-label={label}>
-      <button type="button" disabled={(focusedSeasonWeek ?? 1) <= 1} onClick={() => navigateWeek(-1)}><ChevronLeft size={14} /> Previous week</button>
-      <strong>{focusedSeasonWeek ? `Season Week ${focusedSeasonWeek}` : month.name}</strong>
-      <button type="button" disabled={(focusedSeasonWeek ?? 52) >= 52} onClick={() => navigateWeek(1)}>Next week <ChevronRight size={14} /></button>
+      <button type="button" disabled={(focusedSeasonWeek ?? 1) <= 1} onClick={() => navigateWeek(-1)}><ChevronLeft size={14} /> {t('calendarPage.previousWeek')}</button>
+      <strong>{focusedSeasonWeek ? t('calendarPage.seasonWeek', { week: focusedSeasonWeek }) : monthName}</strong>
+      <button type="button" disabled={(focusedSeasonWeek ?? 52) >= 52} onClick={() => navigateWeek(1)}>{t('calendarPage.nextWeek')} <ChevronRight size={14} /></button>
     </div>
   )
 
@@ -509,33 +550,33 @@ function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: 
     <div className="tlg-tournament-calendar">
       <div className="tlg-tournament-calendar-head">
         <div>
-          <h4>Season {clock.season} Tournament Calendar</h4>
-          <p>Competition weeks run Monday to Sunday. Opening this tab now focuses the active in-game week automatically; you can still browse any previous or future week.</p>
+          <h4>{t('calendarPage.tournament.heading', { season: clock.season })}</h4>
+          <p>{t('calendarPage.tournament.intro')}</p>
         </div>
-        <span className="tlg-tournament-world-chip">{world} singles</span>
+        <span className="tlg-tournament-world-chip">{t('calendarPage.tournament.singles', { world })}</span>
       </div>
 
-      {weekNavigation('Tournament calendar week navigation top')}
+      {weekNavigation(t('calendarPage.tournament.weekNavTop'))}
 
-      <div className="tlg-tournament-month-tabs" role="tablist" aria-label="Tournament calendar months">
+      <div className="tlg-tournament-month-tabs" role="tablist" aria-label={t('calendarPage.tournament.monthsAria')}>
         {MONTHS.map((item, index) => (
-          <button key={item.name} type="button" role="tab" aria-selected={index === monthIndex} className={index === monthIndex ? 'tlg-tournament-month-tab tlg-tournament-month-tab-active' : 'tlg-tournament-month-tab'} onClick={() => selectMonth(index)}>{item.name}</button>
+          <button key={item.name} type="button" role="tab" aria-selected={index === monthIndex} className={index === monthIndex ? 'tlg-tournament-month-tab tlg-tournament-month-tab-active' : 'tlg-tournament-month-tab'} onClick={() => selectMonth(index)}>{localizedMonths[index] ?? item.name}</button>
         ))}
       </div>
 
       <div className="tlg-tournament-month-summary">
-        <div><span>{month.name}</span><strong>{loading ? 'Loading tournaments…' : `${uniqueTournamentCount} tournaments`}</strong></div>
-        <p>{monthCompetitionWeeks.length} Monday–Sunday competition weeks are assigned to {month.name}. A cross-month week belongs to the month containing at least four of its seven days.</p>
+        <div><span>{monthName}</span><strong>{loading ? t('calendarPage.tournament.loadingTournaments') : t('calendarPage.tournament.tournamentCount', { count: uniqueTournamentCount })}</strong></div>
+        <p>{t('calendarPage.tournament.monthSummary', { count: monthCompetitionWeeks.length, month: monthName })}</p>
       </div>
 
       {monthIndex === 0 && (
         <div className="tlg-tournament-month-summary">
-          <div><span>Season opening</span><strong>January 1–2</strong></div>
-          <p>No tournament week runs on these opening days. They are reserved for applications, travel, training and preparation before Week 1 begins Monday, January 3.</p>
+          <div><span>{t('calendarPage.seasonOpening')}</span><strong>{t('calendarPage.tournament.openingDates')}</strong></div>
+          <p>{t('calendarPage.tournament.openingBody')}</p>
         </div>
       )}
 
-      {error && <div className="tlg-tournament-load-error">Unable to load the tournament calendar: {error}</div>}
+      {error && <div className="tlg-tournament-load-error">{t('calendarPage.tournament.loadError', { error })}</div>}
 
       <div className="tlg-tournament-weeks">
         {monthCompetitionWeeks.map((weekInfo) => {
@@ -545,25 +586,25 @@ function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: 
           return (
             <section key={weekInfo.seasonWeek} id={`tournament-week-${week}`} className={`tlg-tournament-week${focused ? ' tlg-tournament-week-active' : ''}`}>
               <header className="tlg-tournament-week-head">
-                <div><span>{month.name} · Season Week {weekInfo.seasonWeek}</span><h5>Week {week} · {formatCompetitionWeekRange(weekInfo.seasonWeek)}</h5></div>
-                <strong>{loading ? '—' : `${weekEvents.length} calendar ${weekEvents.length === 1 ? 'entry' : 'entries'}`}</strong>
+                <div><span>{t('calendarPage.tournament.weekHeading', { month: monthName, week: weekInfo.seasonWeek })}</span><h5>{t('calendarPage.tournament.weekRange', { monthWeek: week, range: localizedCompetitionWeekRange(weekInfo.seasonWeek, t) })}</h5></div>
+                <strong>{loading ? '—' : t('calendarPage.tournament.entries', { count: weekEvents.length })}</strong>
               </header>
 
               {loading ? (
-                <div className="tlg-tournament-week-empty">Loading {month.name} Week {week}…</div>
+                <div className="tlg-tournament-week-empty">{t('calendarPage.tournament.loadingWeek', { month: monthName, week })}</div>
               ) : weekEvents.length === 0 ? (
-                <div className="tlg-tournament-week-empty">No {world} tournaments published for {month.name} Week {week} yet.</div>
+                <div className="tlg-tournament-week-empty">{t('calendarPage.tournament.noEvents', { world, month: monthName, week })}</div>
               ) : (
                 <div className="tlg-tournament-week-list">
                   <div className="tlg-tournament-row tlg-tournament-row-head" aria-hidden="true">
-                    <span>Tournament</span><span>Location</span><span>Category</span><span>Surface</span><span>Draw / Points</span><span>Status</span>
+                    <span>{t('calendarPage.tournament.columns.tournament')}</span><span>{t('calendarPage.tournament.columns.location')}</span><span>{t('calendarPage.tournament.columns.category')}</span><span>{t('calendarPage.tournament.columns.surface')}</span><span>{t('calendarPage.tournament.columns.drawPoints')}</span><span>{t('calendarPage.tournament.columns.status')}</span>
                   </div>
 
                   {weekEvents.map((event) => {
-                    const currentPhaseLabel = phaseLabel(event.phase)
+                    const currentPhaseLabel = phaseLabel(event.phase, t)
                     const sponsorObjectiveList = sponsorObjectivesByCompetition.get(event.competition_id) ?? []
                     const sponsorObjectiveTitle = sponsorObjectiveList
-                      .map((objective) => `${objective.requirement_label ?? 'Sponsor objective'} · ${Math.max(0, Number(objective.reward_amount) || 0).toLocaleString()}`)
+                      .map((objective) => `${objective.requirement_label ?? t('calendarPage.tournament.sponsorObjective')} · ${Math.max(0, Number(objective.reward_amount) || 0).toLocaleString()}`)
                       .join(' | ')
                     const returnQuery = `tab=tournament-calendar&month=${monthIndex + 1}&week=${week}`
                     return (
@@ -572,7 +613,7 @@ function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: 
                         to={`/game/tournaments/${event.competition_id}?fromMonth=${monthIndex + 1}&fromWeek=${week}`}
                         onClick={() => saveTournamentReturnPosition(monthIndex + 1, week)}
                         className="tlg-tournament-row tlg-tournament-row-link"
-                        aria-label={`Open ${event.tournament_name}`}
+                        aria-label={t('calendarPage.tournament.openAria', { name: event.tournament_name })}
                         state={{ tournamentCalendarReturn: `/game/calendar?${returnQuery}#tournament-week-${week}` }}
                       >
                         <div className="tlg-tournament-name-cell">
@@ -582,10 +623,10 @@ function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: 
                             <span
                               className="tlg-tournament-sponsor-objective-chip"
                               title={sponsorObjectiveTitle || 'Sponsor objective'}
-                              aria-label={sponsorObjectiveTitle || 'Sponsor objective'}
+                              aria-label={sponsorObjectiveTitle || t('calendarPage.tournament.sponsorObjective')}
                             >
                               <Star size={11} aria-hidden="true" />
-                              Sponsor objective
+                              {t('calendarPage.tournament.sponsorObjective')}
                             </span>
                           )}
                         </div>
@@ -594,12 +635,12 @@ function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: 
                           <div><strong>{event.city}</strong><small>{event.country_name}</small></div>
                         </div>
                         <div><span className="tlg-tournament-category-chip">{event.category_label}</span></div>
-                        <div className="tlg-tournament-surface-cell"><strong>{titleCase(event.surface)}</strong><small>{titleCase(event.environment)}</small></div>
-                        <div className="tlg-tournament-draw-cell"><strong>Main {event.main_draw_capacity}</strong><small>Qual. max {event.qualifying_capacity_max} · Winner {event.winner_points} pts</small></div>
+                        <div className="tlg-tournament-surface-cell"><strong>{surfaceLabel(event.surface, t)}</strong><small>{environmentLabel(event.environment, t)}</small></div>
+                        <div className="tlg-tournament-draw-cell"><strong>{t('calendarPage.tournament.mainDraw', { count: event.main_draw_capacity })}</strong><small>{t('calendarPage.tournament.qualifying', { count: event.qualifying_capacity_max, points: event.winner_points })}</small></div>
                         <div className="tlg-tournament-status-cell">
-                          <span className={`tlg-status-chip tournament ${event.tournament_status}`}>{event.tournament_status_label}</span>
-                          <small>{tournamentTimingLabel(event)}</small>
-                          <span className={`tlg-status-chip player ${event.user_status}`}>{event.user_status_label}</span>
+                          <span className={`tlg-status-chip tournament ${event.tournament_status}`}>{t(`calendarPage.tournament.status.${event.tournament_status}`, { defaultValue: event.tournament_status_label })}</span>
+                          <small>{tournamentTimingLabel(event, t)}</small>
+                          <span className={`tlg-status-chip player ${event.user_status}`}>{t(`calendarPage.tournament.userStatus.${event.user_status}`, { defaultValue: event.user_status_label })}</span>
                         </div>
                       </Link>
                     )
@@ -611,12 +652,13 @@ function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: 
         })}
       </div>
 
-      {weekNavigation('Tournament calendar week navigation bottom')}
+      {weekNavigation(t('calendarPage.tournament.weekNavBottom'))}
     </div>
   )
 }
 
 export default function CalendarPage() {
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const requestedMonth = parsePositiveInteger(searchParams.get('month'), 1, 12)
   const requestedWeek = parsePositiveInteger(searchParams.get('week'), 1, 5)
@@ -627,18 +669,18 @@ export default function CalendarPage() {
 
   return (
     <TabbedModulePage
-      title="Calendar"
-      subtitle="Season calendar and tournament calendar"
-      eyebrow="Competition planning"
-      intro="Use the Calendar for the complete Tennis Legacy season timeline. Confirmed tournament match days, predicted progression days and travel are synchronized with the real draw and schedule."
+      title={t('calendarPage.title')}
+      subtitle={t('calendarPage.subtitle')}
+      eyebrow={t('calendarPage.eyebrow')}
+      intro={t('calendarPage.intro')}
       icon={<CalendarDays size={18} />}
-      sideTitle="Player calendar synchronization"
-      sideDescription="Only secured match days and actual travel block planning. Predicted tournament progression remains visible without unnecessarily locking free days."
+      sideTitle={t('calendarPage.sideTitle')}
+      sideDescription={t('calendarPage.sideDescription')}
       wide
       initialTabId={initialTabId}
       tabs={[
-        { id: 'season-calendar', label: 'Calendar', content: <SeasonCalendarView /> },
-        { id: 'tournament-calendar', label: 'Tournament Calendar', content: <TournamentCalendarView initialMonth={initialMonth} initialWeek={initialWeek} /> },
+        { id: 'season-calendar', label: t('calendarPage.tabs.calendar'), content: <SeasonCalendarView /> },
+        { id: 'tournament-calendar', label: t('calendarPage.tabs.tournamentCalendar'), content: <TournamentCalendarView initialMonth={initialMonth} initialWeek={initialWeek} /> },
       ]}
     />
   )
