@@ -6,12 +6,14 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
 import GameConfirmDialog from '../../components/common/GameConfirmDialog'
 import GameLayout from '../../components/layout/GameLayout'
 import PrivateLifeInvestments from '../../components/private-life/PrivateLifeInvestments'
 import { useCommerce } from '../../hooks/useCommerce'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 import '../../styles/private-life.css'
 import '../../styles/private-life-marketplace.css'
@@ -169,18 +171,6 @@ type DetailTarget =
   | { type: 'owned'; asset: OwnedAsset; imageUrl: string }
   | null
 
-const CATEGORY_META: Record<AssetCategory, { label: string }> = {
-  watch: { label: 'Watches' },
-  jewelry: { label: 'Jewelry' },
-  car: { label: 'Cars' },
-  apartment: { label: 'Apartments' },
-  house_villa: { label: 'Houses & Villas' },
-  yacht: { label: 'Yachts' },
-  private_jet: { label: 'Private Airplanes' },
-  art: { label: 'Art' },
-  collectible: { label: 'Collectibles' },
-}
-
 const GAME_MONTHS = [
   ['January', 31], ['February', 29], ['March', 31], ['April', 30],
   ['May', 31], ['June', 30], ['July', 31], ['August', 31],
@@ -189,45 +179,33 @@ const GAME_MONTHS = [
 
 const ASSET_HISTORY_PAGE_SIZE = 10
 
-const SALE_META: Record<SaleMode, { label: string; detail: string }> = {
-  urgent: { label: 'Sell now', detail: 'Immediate sale · lowest payout' },
-  standard: { label: 'Standard sale', detail: '7 game days · normal payout' },
-  patient: { label: 'Best-price sale', detail: '21 game days · highest payout' },
+function categoryLabel(t: TFunction, category: AssetCategory) {
+  return t(`privateLifePage.categories.${category}`, { defaultValue: category })
 }
 
-function money(value: number, currency = 'USD') {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(Number(value || 0))
+function rarityLabel(t: TFunction, rarity: string) {
+  return t(`privateLifePage.rarities.${rarity}`, { defaultValue: rarity.replaceAll('_', ' ') })
 }
 
-function categoryLabel(category: AssetCategory) {
-  return CATEGORY_META[category]?.label ?? category
-}
-
-function rarityLabel(rarity: string) {
-  return rarity.replaceAll('_', ' ')
-}
-
-function trendText(rateBps: number) {
-  if (rateBps === 0) return 'Stable'
+function trendText(t: TFunction, rateBps: number) {
+  if (rateBps === 0) return t('privateLifePage.trends.stable')
   const percent = Math.abs(rateBps) / 100
-  return `${rateBps > 0 ? '+' : '-'}${percent.toFixed(percent % 1 === 0 ? 0 : 1)}% / year`
+  const value = `${rateBps > 0 ? '+' : '-'}${percent.toFixed(percent % 1 === 0 ? 0 : 1)}`
+  return t('privateLifePage.trends.annual', { value })
 }
 
-function marketMoveText(rateBps: number | null | undefined) {
-  if (rateBps === null || rateBps === undefined || !Number.isFinite(Number(rateBps))) return 'No monthly move yet'
+function marketMoveText(t: TFunction, rateBps: number | null | undefined) {
+  if (rateBps === null || rateBps === undefined || !Number.isFinite(Number(rateBps))) return t('privateLifePage.trends.noMonthly')
   const numeric = Number(rateBps)
-  if (numeric === 0) return 'Stable this month'
+  if (numeric === 0) return t('privateLifePage.trends.stableMonth')
   const percent = Math.abs(numeric) / 100
-  return `${numeric > 0 ? '+' : '-'}${percent.toFixed(percent % 1 === 0 ? 0 : 1)}% this month`
+  const value = `${numeric > 0 ? '+' : '-'}${percent.toFixed(percent % 1 === 0 ? 0 : 1)}`
+  return t('privateLifePage.trends.monthly', { value })
 }
 
-function gameDayLabel(absoluteDay: number | null | undefined) {
+function gameDayLabel(t: TFunction, absoluteDay: number | null | undefined) {
   const raw = Number(absoluteDay)
-  if (!Number.isFinite(raw) || raw < 0) return 'Game date unavailable'
+  if (!Number.isFinite(raw) || raw < 0) return t('privateLifePage.dates.unavailable')
   const totalDays = Math.floor(raw)
   const season = Math.floor(totalDays / 366) + 1
   let dayIndex = totalDays % 366
@@ -241,23 +219,18 @@ function gameDayLabel(absoluteDay: number | null | undefined) {
     }
     dayIndex -= days
   }
-  return `Season ${season} · ${monthName} ${day}`
+  return t('privateLifePage.dates.seasonDate', { season, month: monthName, day })
 }
 
-
-function assetTransactionLabel(type: string) {
-  if (type === 'starter_home') return 'Starting residence'
-  if (type === 'purchase') return 'Purchase'
-  if (type === 'sale') return 'Sale'
-  if (type === 'running_cost') return 'Ownership cost'
-  return type.replaceAll('_', ' ')
+function assetTransactionLabel(t: TFunction, type: string) {
+  return t(`privateLifePage.transactionTypes.${type}`, { defaultValue: type.replaceAll('_', ' ') })
 }
 
-function assetTransactionAmount(row: AssetHistoryRow, currency: string) {
+function assetTransactionAmount(row: AssetHistoryRow, currency: string, formatCurrency: (value: number, currency?: string) => string) {
   const amount = Number(row.amount || 0)
-  if (row.transaction_type === 'starter_home') return `Value ${money(Math.abs(amount), currency)}`
+  if (row.transaction_type === 'starter_home') return formatCurrency(Math.abs(amount), currency)
   const prefix = amount > 0 ? '+' : amount < 0 ? '−' : ''
-  return `${prefix}${money(Math.abs(amount), currency)}`
+  return `${prefix}${formatCurrency(Math.abs(amount), currency)}`
 }
 
 function matchesPriceBand(price: number, band: MarketplacePrice) {
@@ -378,10 +351,10 @@ function monthlyOwnershipCost(category: AssetCategory, value: number) {
   return 0
 }
 
-function ownershipCostLabel(category: AssetCategory) {
-  if (category === 'apartment' || category === 'house_villa') return 'Monthly living cost'
-  if (category === 'car' || category === 'yacht' || category === 'private_jet') return 'Monthly maintenance'
-  return 'Maintenance'
+function ownershipCostLabel(t: TFunction, category: AssetCategory) {
+  if (category === 'apartment' || category === 'house_villa') return t('privateLifePage.costs.living')
+  if (category === 'car' || category === 'yacht' || category === 'private_jet') return t('privateLifePage.costs.maintenanceMonthly')
+  return t('privateLifePage.costs.maintenance')
 }
 
 const privateLifeImageUrlCache = new Map<string, string>()
@@ -455,6 +428,11 @@ function AssetImage({ src, name }: { src: string; name: string }) {
 }
 
 export default function PrivateLifePage() {
+  const { t } = useTranslation()
+  const { formatCurrency } = useLocalization()
+  const money = (value: number, currency = 'USD') => formatCurrency(Number(value || 0), currency)
+  const saleLabel = (mode: SaleMode) => t(`privateLifePage.saleModes.${mode}.label`)
+  const saleDetail = (mode: SaleMode) => t(`privateLifePage.saleModes.${mode}.detail`)
   const navigate = useNavigate()
   const { isPremium, loading: commerceLoading } = useCommerce()
   const [dashboard, setDashboard] = useState<PrivateLifeDashboard | null>(null)
