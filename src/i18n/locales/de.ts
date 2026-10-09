@@ -1147,6 +1147,7 @@ export default {
       roundTrip: '{{amount}} Hin und zurück',
       fatigueArrival: '+{{fatigue}} Ermüdung bei Ankunft',
       fatigueTraveller: '+{{fatigue}} Ermüdung pro Reisendem · {{count}} Teammitglieder',
+      travelClasses: { Economy: 'Economy', 'Premium Economy': 'Premium Economy', Business: 'Business Class', 'First Class': 'First Class' },
       travelInfo: {
         Economy: 'Standard-Reiseermüdung',
         'Premium Economy': 'Etwa 15 % weniger Reiseermüdung',
