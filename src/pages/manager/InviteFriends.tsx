@@ -1,8 +1,10 @@
 import { CheckCircle2, Coins, Copy, Link2, Share2, ShieldCheck, Trophy, UsersRound } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 import { Link } from 'react-router'
 
 import GameLayout from '../../components/layout/GameLayout'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 import '../../styles/invite-friends.css'
 
@@ -62,37 +64,39 @@ interface ReferralDashboard {
   contests?: ReferralContest[]
 }
 
-function formatDate(value: string) {
+function formatDate(value: string, localeTag: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return '—'
-  return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(date)
+  return new Intl.DateTimeFormat(localeTag, { month: 'short', day: 'numeric', year: 'numeric' }).format(date)
 }
 
-function statusLabel(item: ReferralActivityItem) {
-  if (item.review_required) return 'Under review'
-  if (item.status === 'registered') return 'Registered'
-  if (item.status === 'pending_activation') return 'Pending activation'
-  if (item.status === 'active') return item.reward_slot ? 'Active referral' : 'Active · reward cap reached'
-  if (item.status === 'rewarded') return 'Rewarded referral'
-  if (item.status === 'rejected') return 'Rejected'
-  return 'Invalid'
+function statusLabel(item: ReferralActivityItem, t: TFunction) {
+  if (item.review_required) return t('referrals.status.underReview')
+  if (item.status === 'registered') return t('referrals.status.registered')
+  if (item.status === 'pending_activation') return t('referrals.status.pendingActivation')
+  if (item.status === 'active') return item.reward_slot ? t('referrals.status.activeReferral') : t('referrals.status.rewardCapReached')
+  if (item.status === 'rewarded') return t('referrals.status.rewarded')
+  if (item.status === 'rejected') return t('referrals.status.rejected')
+  return t('referrals.status.invalid')
 }
 
-function contestStatusLabel(status: ReferralContest['status']) {
-  if (status === 'active') return 'Live contest'
-  if (status === 'validation') return 'Validation period'
-  return 'Finalized'
+function contestStatusLabel(status: ReferralContest['status'], t: TFunction) {
+  if (status === 'active') return t('referrals.contestStatus.active')
+  if (status === 'validation') return t('referrals.contestStatus.validation')
+  return t('referrals.contestStatus.finalized')
 }
 
-function prizeLabel(prize: ContestPrize) {
+function prizeLabel(prize: ContestPrize, t: TFunction) {
   const parts: string[] = []
-  if (prize.coins) parts.push(`${prize.coins} Coins`)
-  if (prize.premium_days) parts.push(`${prize.premium_days} Premium days`)
+  if (prize.coins) parts.push(t('referrals.prizeCoins', { count: prize.coins }))
+  if (prize.premium_days) parts.push(t('referrals.premiumDays', { count: prize.premium_days }))
   if (prize.badge_code) parts.push(prize.badge_code.replace(/_/g, ' '))
   return parts.join(' + ')
 }
 
 export default function InviteFriendsPage() {
+  const { t } = useTranslation()
+  const { localeTag } = useLocalization()
   const [dashboard, setDashboard] = useState<ReferralDashboard | null>(null)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
@@ -107,7 +111,7 @@ export default function InviteFriendsPage() {
       const { data, error: rpcError } = await supabase.rpc('get_referral_dashboard_v1')
       if (!active) return
       if (rpcError || !data) {
-        setError('Referral information could not be loaded right now.')
+        setError(t('referrals.loadError'))
         setLoading(false)
         return
       }
@@ -137,7 +141,7 @@ export default function InviteFriendsPage() {
       try {
         await navigator.share({
           title: 'Tennis Legacy: Rise to Glory',
-          text: 'Join me in Tennis Legacy: Rise to Glory.',
+          text: t('referrals.shareText'),
           url: inviteLink,
         })
         return
@@ -152,58 +156,58 @@ export default function InviteFriendsPage() {
   const rules = dashboard?.rules
   const contests = dashboard?.contests ?? []
   const overviewItems = [
-    ['Total referrals', stats?.total ?? 0],
-    ['Pending', stats?.pending ?? 0],
-    ['Active players', stats?.active ?? 0],
-    ['Rewarded referrals', stats?.rewarded ?? 0],
-    ['Referral Coins', stats?.coins ?? 0],
+    [t('referrals.totalReferrals'), stats?.total ?? 0],
+    [t('referrals.pending'), stats?.pending ?? 0],
+    [t('referrals.activePlayers'), stats?.active ?? 0],
+    [t('referrals.rewardedReferrals'), stats?.rewarded ?? 0],
+    [t('referrals.referralCoins'), stats?.coins ?? 0],
   ] as const
 
   return (
-    <GameLayout title="Invite Friends" subtitle="Invite other players to Tennis Legacy">
+    <GameLayout title={t('referrals.title')} subtitle={t('referrals.subtitle')}>
       <div className="tlg-invite-page">
         <section className="tlg-invite-intro">
           <div>
-            <span>REFERRALS</span>
-            <h2>Invite Friends</h2>
+            <span>{t('referrals.eyebrow')}</span>
+            <h2>{t('referrals.title')}</h2>
             <p>
-              Share your personal Tennis Legacy invite. Genuine new players can earn you one-time Coin rewards after they verify their account, create a career and complete the activation requirements.
+              {t('referrals.intro')}
             </p>
           </div>
           <div className="tlg-invite-intro-actions">
-            <span className="tlg-invite-status tlg-invite-status-live">Referral tracking live</span>
-            {dashboard?.is_admin && <Link className="tlg-invite-admin-link" to="/game/referral-admin"><ShieldCheck size={15} /> Admin controls</Link>}
+            <span className="tlg-invite-status tlg-invite-status-live">{t('referrals.trackingLive')}</span>
+            {dashboard?.is_admin && <Link className="tlg-invite-admin-link" to="/game/referral-admin"><ShieldCheck size={15} /> {t('referrals.adminControls')}</Link>}
           </div>
         </section>
 
         <section className="tlg-invite-panel">
           <header>
             <div>
-              <h3>Your invite link</h3>
-              <p>This link belongs only to your manager account. One new account can belong to only one referrer.</p>
+              <h3>{t('referrals.linkTitle')}</h3>
+              <p>{t('referrals.linkBody')}</p>
             </div>
           </header>
 
           <div className="tlg-invite-link-row">
-            <div className="tlg-invite-link-placeholder tlg-invite-link-live" aria-label="Your referral link">
+            <div className="tlg-invite-link-placeholder tlg-invite-link-live" aria-label={t('referrals.linkAria')}>
               <Link2 size={17} />
-              <span>{loading ? 'Loading your personal invite link…' : inviteLink || 'Invite link unavailable'}</span>
+              <span>{loading ? t('referrals.loadingLink') : inviteLink || t('referrals.unavailableLink')}</span>
             </div>
             <button type="button" disabled={!inviteLink} onClick={() => void copyInviteLink()}>
-              <Copy size={15} /> {copied ? 'Copied' : 'Copy'}
+              <Copy size={15} /> {copied ? t('referrals.copied') : t('referrals.copy')}
             </button>
             <button type="button" className="tlg-invite-secondary-button" disabled={!inviteLink} onClick={() => void shareInviteLink()}>
-              <Share2 size={15} /> Share
+              <Share2 size={15} /> {t('referrals.share')}
             </button>
           </div>
-          <small className="tlg-invite-note">New public registrations remain closed during the current beta phase, but referral links and attribution are ready for when registration reopens.</small>
+          <small className="tlg-invite-note">{t('referrals.betaNote')}</small>
         </section>
 
         <section className="tlg-invite-panel">
           <header>
             <div>
-              <h3>Referral overview</h3>
-              <p>Your live referral totals and all Coin rewards earned through the program.</p>
+              <h3>{t('referrals.overviewTitle')}</h3>
+              <p>{t('referrals.overviewBody')}</p>
             </div>
           </header>
 
@@ -221,31 +225,31 @@ export default function InviteFriendsPage() {
           <section className="tlg-invite-panel">
             <header>
               <div>
-                <h3>Referral contests</h3>
-                <p>Limited-time competitions count only valid referrals. Suspicious or rejected referrals never count toward rankings.</p>
+                <h3>{t('referrals.contestsTitle')}</h3>
+                <p>{t('referrals.contestsBody')}</p>
               </div>
             </header>
             <div className="tlg-invite-contest-grid">
               {contests.map((contest) => (
                 <article key={contest.id}>
                   <div className="tlg-invite-contest-head">
-                    <span><Trophy size={15} /> {contestStatusLabel(contest.status)}</span>
+                    <span><Trophy size={15} /> {contestStatusLabel(contest.status, t)}</span>
                     <strong>{contest.name}</strong>
-                    <p>{contest.description || 'Referral competition'}</p>
+                    <p>{contest.description || t('referrals.fallbackContestName')}</p>
                   </div>
                   <div className="tlg-invite-contest-dates">
-                    <span>{formatDate(contest.starts_at)} – {formatDate(contest.ends_at)}</span>
-                    <small>Validation until {formatDate(contest.validation_deadline)}</small>
+                    <span>{formatDate(contest.starts_at, localeTag)} – {formatDate(contest.ends_at, localeTag)}</span>
+                    <small>{t('referrals.validationUntil', { date: formatDate(contest.validation_deadline, localeTag) })}</small>
                   </div>
                   <div className="tlg-invite-contest-you">
-                    <div><span>Your rank</span><strong>{contest.your_rank ? `#${contest.your_rank}` : '—'}</strong></div>
-                    <div><span>Your valid referrals</span><strong>{contest.your_valid_referrals ?? 0}</strong></div>
+                    <div><span>{t('referrals.yourRank')}</span><strong>{contest.your_rank ? `#${contest.your_rank}` : '—'}</strong></div>
+                    <div><span>{t('referrals.yourValidReferrals')}</span><strong>{contest.your_valid_referrals ?? 0}</strong></div>
                   </div>
                   <div className="tlg-invite-contest-prizes">
                     {contest.prizes.map((prize, index) => (
                       <div key={`${contest.id}-${index}`}>
                         <span>#{prize.rank_from}{prize.rank_to !== prize.rank_from ? `–${prize.rank_to}` : ''}</span>
-                        <strong>{prizeLabel(prize)}</strong>
+                        <strong>{prizeLabel(prize, t)}</strong>
                       </div>
                     ))}
                   </div>
@@ -258,28 +262,28 @@ export default function InviteFriendsPage() {
         <section className="tlg-invite-panel">
           <header>
             <div>
-              <h3>One-time rewards</h3>
-              <p>Only the first {rules?.max_rewardable_referrals ?? 10} valid referrals are reward-eligible. Referrals after that remain visible for statistics but do not generate standard referral gifts.</p>
+              <h3>{t('referrals.rewardsTitle')}</h3>
+              <p>{t('referrals.rewardsBody', { count: rules?.max_rewardable_referrals ?? 10 })}</p>
             </div>
           </header>
 
           <div className="tlg-invite-reward-grid">
-            <article><Coins size={20} /><div><strong>{rules?.base_reward_coins ?? 3} Coins</strong><span>When a referred player becomes a valid active referral.</span></div></article>
-            <article><Coins size={20} /><div><strong>+{rules?.coin_purchase_reward_coins ?? 15} Coins</strong><span>Once, if that reward-eligible referral makes their first paid Coin purchase.</span></div></article>
-            <article><Coins size={20} /><div><strong>+{rules?.premium_purchase_reward_coins ?? 30} Coins</strong><span>Once, if that reward-eligible referral makes their first paid Premium monthly purchase.</span></div></article>
+            <article><Coins size={20} /><div><strong>{t('referrals.prizeCoins', { count: rules?.base_reward_coins ?? 3 })}</strong><span>{t('referrals.validReward')}</span></div></article>
+            <article><Coins size={20} /><div><strong>+{t('referrals.prizeCoins', { count: rules?.coin_purchase_reward_coins ?? 15 })}</strong><span>{t('referrals.coinPurchaseReward')}</span></div></article>
+            <article><Coins size={20} /><div><strong>+{t('referrals.prizeCoins', { count: rules?.premium_purchase_reward_coins ?? 30 })}</strong><span>{t('referrals.premiumPurchaseReward')}</span></div></article>
           </div>
 
           <div className="tlg-invite-info-box">
-            <strong>Maximum standard reward pool: {rules?.max_rewardable_referrals ?? 10} valid referrals.</strong>
-            <p>Each of the three gifts can be paid only once per reward-eligible referred account. Purchase rewards are issued only from successful backend billing transactions.</p>
+            <strong>{t('referrals.maximumPool', { count: rules?.max_rewardable_referrals ?? 10 })}</strong>
+            <p>{t('referrals.rewardRules')}</p>
           </div>
         </section>
 
         <section className="tlg-invite-panel">
           <header>
             <div>
-              <h3>Referral activity</h3>
-              <p>Privacy-safe status history. Other users' email addresses and private account information are never shown here.</p>
+              <h3>{t('referrals.activityTitle')}</h3>
+              <p>{t('referrals.activityBody')}</p>
             </div>
           </header>
 
@@ -292,16 +296,16 @@ export default function InviteFriendsPage() {
                   <div className="tlg-invite-activity-main">
                     <span className="tlg-invite-activity-icon"><UsersRound size={16} /></span>
                     <div>
-                      <strong>Invited player #{dashboard!.activity.length - index}</strong>
-                      <span>{formatDate(item.registered_at)} · {statusLabel(item)}</span>
+                      <strong>{t('referrals.invitedPlayer', { number: dashboard!.activity.length - index })}</strong>
+                      <span>{formatDate(item.registered_at, localeTag)} · {statusLabel(item, t)}</span>
                     </div>
                   </div>
                   <div className="tlg-invite-activity-rewards">
-                    {item.base_rewarded && <span>+{rules?.base_reward_coins ?? 3} valid referral</span>}
-                    {item.coin_purchase_rewarded && <span>+{rules?.coin_purchase_reward_coins ?? 15} Coin purchase</span>}
-                    {item.premium_purchase_rewarded && <span>+{rules?.premium_purchase_reward_coins ?? 30} Premium</span>}
-                    {!item.reward_coins && <span>No reward paid yet</span>}
-                    {item.reward_coins > 0 && <strong>+{item.reward_coins} Coins total</strong>}
+                    {item.base_rewarded && <span>{t('referrals.validReferralReward', { count: rules?.base_reward_coins ?? 3 })}</span>}
+                    {item.coin_purchase_rewarded && <span>{t('referrals.coinPurchase', { count: rules?.coin_purchase_reward_coins ?? 15 })}</span>}
+                    {item.premium_purchase_rewarded && <span>{t('referrals.premiumReward', { count: rules?.premium_purchase_reward_coins ?? 30 })}</span>}
+                    {!item.reward_coins && <span>{t('referrals.noRewardYet')}</span>}
+                    {item.reward_coins > 0 && <strong>{t('referrals.totalCoinsReward', { count: item.reward_coins })}</strong>}
                   </div>
                 </article>
               ))}
@@ -309,8 +313,8 @@ export default function InviteFriendsPage() {
           ) : (
             <div className="tlg-invite-empty">
               <UsersRound size={30} />
-              <strong>{loading ? 'Loading referral activity…' : 'No referral activity yet'}</strong>
-              <p>Your invited accounts will appear here after they register through your personal referral link.</p>
+              <strong>{loading ? t('referrals.loadingActivity') : t('referrals.noActivity')}</strong>
+              <p>{t('referrals.noActivityBody')}</p>
             </div>
           )}
         </section>
@@ -318,22 +322,22 @@ export default function InviteFriendsPage() {
         <section className="tlg-invite-panel tlg-invite-how-it-works">
           <header>
             <div>
-              <h3>How a referral becomes valid</h3>
-              <p>The activation checks happen on the secure backend, never in the browser.</p>
+              <h3>{t('referrals.validityTitle')}</h3>
+              <p>{t('referrals.validityBody')}</p>
             </div>
           </header>
 
           <ol>
-            <li>The new manager opens your personal referral link before creating their account.</li>
-            <li>The new account verifies its email address and creates a human ATP or WTA career.</li>
-            <li>The account must be at least {rules?.minimum_account_age_hours ?? 72} real-world hours old and active on at least {rules?.minimum_active_days ?? 2} separate real-world days.</li>
-            <li>Self-referrals, repeated browser installations and suspicious duplicates are blocked or held for review.</li>
-            <li>Once valid, the backend grants the referral reward exactly once and records it in the Coin ledger.</li>
+            <li>{t('referrals.validityStep1')}</li>
+            <li>{t('referrals.validityStep2')}</li>
+            <li>{t('referrals.validityStep3', { hours: rules?.minimum_account_age_hours ?? 72, days: rules?.minimum_active_days ?? 2 })}</li>
+            <li>{t('referrals.validityStep4')}</li>
+            <li>{t('referrals.validityStep5')}</li>
           </ol>
 
           <div className="tlg-invite-success-box">
             <CheckCircle2 size={18} />
-            <div><strong>Rewards are idempotent.</strong><p>Reloading pages or repeating backend processing cannot pay the same referral gift twice.</p></div>
+            <div><strong>{t('referrals.idempotentTitle')}</strong><p>{t('referrals.idempotentBody')}</p></div>
           </div>
         </section>
       </div>
