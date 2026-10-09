@@ -9,9 +9,11 @@ import {
   XCircle,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import CountryFlag from '../../components/common/CountryFlag'
 import DoublesMatchTacticPanel from '../../components/tournament/DoublesMatchTacticPanel'
 import GameLayout from '../../components/layout/GameLayout'
@@ -253,13 +255,11 @@ function tournamentInitials(name: string) {
     .join('')
 }
 
-function phaseLabel(phase: TournamentScheduleSlot['phase']) {
-  if (phase === 'qualification') return 'Qualification'
-  if (phase === 'main_draw') return 'Main Draw'
-  return 'Tournament Week'
+function phaseLabel(phase: TournamentScheduleSlot['phase'], t: TFunction) {
+  return t(`tournamentDoublesPage.phases.${phase}`)
 }
 
-function buildDoublesDayPlan(slot: TournamentScheduleSlot, draw: DoublesDrawMatch[]): DoublesDayPlan[] {
+function buildDoublesDayPlan(slot: TournamentScheduleSlot, draw: DoublesDrawMatch[], t: TFunction): DoublesDayPlan[] {
   return Array.from({ length: 7 }, (_, index) => {
     const day = index + 1
     const matches = draw.filter((match) =>
@@ -271,8 +271,8 @@ function buildDoublesDayPlan(slot: TournamentScheduleSlot, draw: DoublesDrawMatc
     const activity = rounds.length > 0
       ? rounds.join(' / ')
       : slot.phase === 'qualification'
-        ? 'Partner marketplace / tournament qualifying'
-        : 'Doubles match window / recovery'
+        ? t('tournamentDoublesPage.activities.marketplaceQualifying')
+        : t('tournamentDoublesPage.activities.matchRecovery')
 
     return {
       day,
@@ -283,16 +283,18 @@ function buildDoublesDayPlan(slot: TournamentScheduleSlot, draw: DoublesDrawMatc
   })
 }
 
-function formatMoney(value: number | null | undefined) {
-  return `$${Math.round(Number(value) || 0).toLocaleString()}`
-}
-
-function formatMoment(moment: GameMoment | null | undefined, includeTime = true) {
-  if (!moment) return 'TBD'
-  const month = MONTHS[moment.month - 1]?.name ?? `Month ${moment.month}`
-  const date = `Season ${moment.season} · ${moment.day} ${month}`
-  if (!includeTime) return date
-  return `${date} · ${String(moment.hour).padStart(2, '0')}:${String(moment.minute).padStart(2, '0')}`
+function formatMoment(moment: GameMoment | null | undefined, t: TFunction, localeTag: string, includeTime = true) {
+  if (!moment) return t('tournamentDoublesPage.bracket.tbd')
+  const date = new Intl.DateTimeFormat(localeTag, { month: 'long', day: 'numeric' }).format(new Date(2026, Math.max(0, moment.month - 1), moment.day))
+  const seasonDate = t('notifications.context.seasonMoment', {
+    season: moment.season,
+    day: String(moment.day).padStart(2, '0'),
+    month: String(moment.month).padStart(2, '0'),
+    time: `${String(moment.hour).padStart(2, '0')}:${String(moment.minute).padStart(2, '0')}`,
+    defaultValue: `Season ${moment.season} · ${date} · ${String(moment.hour).padStart(2, '0')}:${String(moment.minute).padStart(2, '0')}`,
+  })
+  if (!includeTime) return seasonDate.replace(/\s·\s\d{2}:\d{2}$/, '')
+  return seasonDate
 }
 
 function playerName(first: string | null, last: string | null) {
@@ -319,36 +321,20 @@ function doublesPhaseIndex(phase: DoublesTimeline['phase']) {
   return order[phase] ?? 0
 }
 
-function statusLabel(status: string) {
-  const labels: Record<string, string> = {
-    available: 'Available for doubles',
-    not_open: 'Registration not open',
-    looking_for_partner: 'Looking for a partner',
-    invitation_received: 'Invitation received',
-    partnership_confirmed: 'Partnership confirmed',
-    entry_accepted: 'Entry accepted',
-    waitlisted: 'Waitlisted / alternate',
-    entry_locked: 'Entries locked',
-    unavailable: 'Unavailable',
-    champion: 'Doubles champion',
-    eliminated: 'Eliminated',
-    withdrawn: 'Withdrawn',
-    confirmed: 'Partnership confirmed',
-    active: 'Entry accepted',
-    alternate: 'Waitlisted',
-  }
-  return labels[status] ?? status.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
+function statusLabel(status: string, t: TFunction) {
+  return t(`tournamentDoublesPage.statuses.${status}`, {
+    defaultValue: status.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()),
+  })
 }
 
-function singlesParticipationLabel(value: string) {
-  if (value === 'main_draw') return 'Singles Main Draw'
-  if (value === 'qualification') return 'Singles Qualifying'
-  if (value === 'applied') return 'Singles application'
-  return 'Doubles only / no singles entry'
+function singlesParticipationLabel(value: string, t: TFunction) {
+  return t(`tournamentDoublesPage.participation.${value === 'main_draw' || value === 'qualification' || value === 'applied' ? value : 'none'}`)
 }
 
-function rankLabel(rank: number | null, points: number) {
-  return rank ? `#${rank} · ${points.toLocaleString()} pts` : `Unranked · ${points.toLocaleString()} pts`
+function rankLabel(rank: number | null, points: number, t: TFunction, formatNumber: (value: number) => string) {
+  return rank
+    ? t('tournamentDoublesPage.rank.ranked', { rank: formatNumber(rank), points: formatNumber(points) })
+    : t('tournamentDoublesPage.rank.unranked', { points: formatNumber(points) })
 }
 
 
@@ -362,14 +348,21 @@ function isPlayerInDoublesMatch(match: DoublesDrawMatch, playerId: string | null
   ].includes(playerId)
 }
 
-function doublesScheduleLabel(match: DoublesDrawMatch) {
+function doublesScheduleLabel(match: DoublesDrawMatch, t: TFunction) {
   if (match.scheduled_start_minute == null) {
-    return match.match_status === 'bye' ? 'Bye' : 'Time TBD'
+    return match.match_status === 'bye'
+      ? t('tournamentDoublesPage.scheduleStatus.bye')
+      : t('tournamentDoublesPage.scheduleStatus.timeTbd')
   }
   const hour = String(Math.floor(match.scheduled_start_minute / 60)).padStart(2, '0')
   const minute = String(match.scheduled_start_minute % 60).padStart(2, '0')
-  const court = match.court_number ? ' · Court ' + match.court_number : ''
-  return 'Week ' + match.scheduled_season_week + ' · Day ' + match.scheduled_day + ' · ' + hour + ':' + minute + court
+  const court = match.court_number ? ` · ${t('tournamentDoublesPage.scheduleStatus.court', { court: match.court_number })}` : ''
+  return t('tournamentDoublesPage.scheduleStatus.line', {
+    week: match.scheduled_season_week,
+    day: match.scheduled_day,
+    time: `${hour}:${minute}`,
+    court,
+  })
 }
 
 interface DoublesBracketRound {
@@ -384,12 +377,18 @@ const DOUBLES_BRACKET_COLUMN_GAP = 80
 const DOUBLES_BRACKET_FIRST_ROUND_GAP = 14
 const DOUBLES_BRACKET_STEP = DOUBLES_BRACKET_MATCH_HEIGHT + DOUBLES_BRACKET_FIRST_ROUND_GAP
 
-function doublesBracketRounds(capacity: number): DoublesBracketRound[] {
+function doublesBracketRounds(capacity: number, t: TFunction): DoublesBracketRound[] {
   const rounds: DoublesBracketRound[] = []
   let teams = capacity
   let roundNumber = 1
   while (teams >= 2) {
-    const label = teams === 2 ? 'Final' : teams === 4 ? 'Semifinal' : teams === 8 ? 'Quarterfinal' : `Round of ${teams}`
+    const label = teams === 2
+      ? t('tournamentDoublesPage.bracket.final')
+      : teams === 4
+        ? t('tournamentDoublesPage.bracket.semifinal')
+        : teams === 8
+          ? t('tournamentDoublesPage.bracket.quarterfinal')
+          : t('tournamentDoublesPage.bracket.roundOf', { count: teams })
     rounds.push({ label, matches: teams / 2, roundNumber })
     teams /= 2
     roundNumber += 1
@@ -403,30 +402,31 @@ function doublesBracketMatchCenter(roundIndex: number, matchIndex: number) {
   return DOUBLES_BRACKET_MATCH_HEIGHT / 2 + representedFirstMatchCenter * DOUBLES_BRACKET_STEP
 }
 
-function doublesTeamLabel(match: DoublesDrawMatch | undefined, side: 1 | 2) {
-  if (!match) return 'TBD'
+function doublesTeamLabel(match: DoublesDrawMatch | undefined, side: 1 | 2, t: TFunction) {
+  if (!match) return t('tournamentDoublesPage.bracket.tbd')
   const teamId = side === 1 ? match.team1_id : match.team2_id
-  if (!teamId) return match.match_status === 'bye' ? 'BYE' : 'TBD'
+  if (!teamId) return match.match_status === 'bye' ? t('tournamentDoublesPage.bracket.bye') : t('tournamentDoublesPage.bracket.tbd')
   return side === 1
     ? teamName(match.team1_player1_first_name,match.team1_player1_last_name,match.team1_player2_first_name,match.team1_player2_last_name)
     : teamName(match.team2_player1_first_name,match.team2_player1_last_name,match.team2_player2_first_name,match.team2_player2_last_name)
 }
 
-function doublesBracketStatus(match: DoublesDrawMatch | undefined, side: 1 | 2) {
+function doublesBracketStatus(match: DoublesDrawMatch | undefined, side: 1 | 2, t: TFunction) {
   if (!match) return '—'
   const teamId = side === 1 ? match.team1_id : match.team2_id
-  if (!teamId) return match.match_status === 'bye' ? 'BYE' : '—'
-  if (match.winner_team_id === teamId) return 'WIN'
-  if (match.match_status === 'completed') return 'OUT'
-  if (match.match_status === 'in_progress') return 'LIVE'
-  return match.match_status === 'bye' ? 'BYE' : '—'
+  if (!teamId) return match.match_status === 'bye' ? t('tournamentDoublesPage.bracket.bye') : '—'
+  if (match.winner_team_id === teamId) return t('tournamentDoublesPage.bracket.win')
+  if (match.match_status === 'completed') return t('tournamentDoublesPage.bracket.out')
+  if (match.match_status === 'in_progress') return t('tournamentDoublesPage.bracket.live')
+  return match.match_status === 'bye' ? t('tournamentDoublesPage.bracket.bye') : '—'
 }
 
 function DoublesPublishedDrawTree({ matches, teams, currentPlayerId }: { matches: DoublesDrawMatch[]; teams: TeamRow[]; currentPlayerId: string | null }) {
+  const { t } = useTranslation()
   const firstRound = matches.filter((match) => match.round_number === 1)
   const first = firstRound[0]
   const bracketSize = first?.bracket_size ?? 0
-  const rounds = doublesBracketRounds(bracketSize)
+  const rounds = doublesBracketRounds(bracketSize, t)
   const matchByRound = new Map(matches.map((match) => [`${match.round_number}:${match.match_number}`, match]))
   const teamById = new Map(teams.map((team) => [team.id, team]))
 
@@ -442,11 +442,11 @@ function DoublesPublishedDrawTree({ matches, teams, currentPlayerId }: { matches
     <section className="tlg-detail-panel tlg-doubles-bracket-panel">
       <header className="tlg-detail-panel-head tlg-doubles-bracket-head">
         <div>
-          <span>Official doubles draw</span>
-          <h2>Tournament tree</h2>
-          <p>{firstRound.length} first-round matches · {bracketSize} team draw · Season Week {first?.scheduled_season_week}</p>
+          <span>{t('tournamentDoublesPage.bracket.official')}</span>
+          <h2>{t('tournamentDoublesPage.bracket.tree')}</h2>
+          <p>{t('tournamentDoublesPage.bracket.summary', { matches: firstRound.length, teams: bracketSize, week: first?.scheduled_season_week })}</p>
         </div>
-        <span className="tlg-doubles-draw-published">Draw published</span>
+        <span className="tlg-doubles-draw-published">{t('tournamentDoublesPage.bracket.drawPublished')}</span>
       </header>
 
       <div className="tlg-detail-bracket-scroll tlg-doubles-bracket-scroll">
@@ -457,7 +457,7 @@ function DoublesPublishedDrawTree({ matches, teams, currentPlayerId }: { matches
               style={{ left: roundIndex * (DOUBLES_BRACKET_MATCH_WIDTH + DOUBLES_BRACKET_COLUMN_GAP), width: DOUBLES_BRACKET_MATCH_WIDTH }}
             >
               <strong>{round.label}</strong>
-              <span>{round.matches} {round.matches === 1 ? 'match' : 'matches'}</span>
+              <span>{t('tournamentDoublesPage.bracket.match', { count: round.matches })}</span>
             </header>
           ))}
         </div>
@@ -503,15 +503,15 @@ function DoublesPublishedDrawTree({ matches, teams, currentPlayerId }: { matches
                     style={{ top, width: DOUBLES_BRACKET_MATCH_WIDTH, height: DOUBLES_BRACKET_MATCH_HEIGHT }}
                   >
                     <DoublesBracketTeam
-                      label={doublesTeamLabel(match, 1)}
+                      label={doublesTeamLabel(match, 1, t)}
                       team={match?.team1_id ? teamById.get(match.team1_id) : undefined}
-                      status={doublesBracketStatus(match, 1)}
+                      status={doublesBracketStatus(match, 1, t)}
                       winner={Boolean(match?.team1_id && match.winner_team_id === match.team1_id)}
                     />
                     <DoublesBracketTeam
-                      label={doublesTeamLabel(match, 2)}
+                      label={doublesTeamLabel(match, 2, t)}
                       team={match?.team2_id ? teamById.get(match.team2_id) : undefined}
-                      status={doublesBracketStatus(match, 2)}
+                      status={doublesBracketStatus(match, 2, t)}
                       winner={Boolean(match?.team2_id && match.winner_team_id === match.team2_id)}
                     />
                   </div>
@@ -544,6 +544,8 @@ function DoublesBracketTeam({ label, team, status, winner }: { label: string; te
 }
 
 export default function TournamentDoublesPage() {
+  const { t } = useTranslation()
+  const { formatCurrency, formatNumber, localeTag } = useLocalization()
   const { competitionId } = useParams()
   const { player } = useAuth()
   const [hub, setHub] = useState<DoublesHub | null>(null)
@@ -661,19 +663,19 @@ export default function TournamentDoublesPage() {
 
   if (loading) {
     return (
-      <GameLayout title="Doubles" subtitle="Loading tournament doubles">
-        <div className="tlg-detail-loading">Loading doubles competition…</div>
+      <GameLayout title={t('tournamentDoublesPage.title')} subtitle={t('tournamentDoublesPage.loadingSubtitle')}>
+        <div className="tlg-detail-loading">{t('tournamentDoublesPage.loading')}</div>
       </GameLayout>
     )
   }
 
   if (!hub?.core?.enabled || !hub.tournament) {
     return (
-      <GameLayout title="Doubles" subtitle="Tournament doubles">
+      <GameLayout title={t('tournamentDoublesPage.title')} subtitle={t('tournamentDoublesPage.subtitle')}>
         <div className="tlg-detail-error">
-          <strong>Doubles is not available for this tournament</strong>
-          <p>{error ?? 'This tournament does not currently support a doubles draw.'}</p>
-          <Link to={competitionId ? `/game/tournaments/${competitionId}` : '/game/calendar?tab=tournament-calendar'}>Back to tournament</Link>
+          <strong>{t('tournamentDoublesPage.unavailableTitle')}</strong>
+          <p>{error ?? t('tournamentDoublesPage.unavailableBody')}</p>
+          <Link to={competitionId ? `/game/tournaments/${competitionId}` : '/game/calendar?tab=tournament-calendar'}>{t('tournamentDoublesPage.backTournament')}</Link>
         </div>
       </GameLayout>
     )
