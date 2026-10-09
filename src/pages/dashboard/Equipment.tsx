@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 
 import GameConfirmDialog from '../../components/common/GameConfirmDialog'
 import TechnicalSponsorsPanel from '../../components/equipment/TechnicalSponsorsPanel'
 import GameLayout from '../../components/layout/GameLayout'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import { lockBodyScroll } from '../../lib/bodyScrollLock'
 import { supabase } from '../../lib/supabase'
 import '../../styles/equipment.css'
@@ -157,46 +159,49 @@ interface PendingPurchase {
   requestKey: string
 }
 
-const TYPE_LABELS: Record<EquipmentType, string> = {
-  racket: 'Racquets',
-  shoes: 'Shoes',
-  apparel: 'Clothing',
-  accessory: 'Accessories',
-}
-
 const TYPE_ORDER: EquipmentType[] = ['racket', 'shoes', 'apparel', 'accessory']
 const ACCESSORY_ORDER: AccessoryKind[] = ['bag', 'bottle', 'cap', 'towel', 'wristband']
 
-const TIER_LABELS: Record<number, string> = {
-  1: 'Starter',
-  2: 'Advanced',
-  3: 'Tour',
-  4: 'Elite',
-  5: 'Legend',
+const TIER_KEYS: Record<number, string> = {
+  1: 'starter',
+  2: 'advanced',
+  3: 'tour',
+  4: 'elite',
+  5: 'legend',
 }
 
-const EFFECT_LABELS: Record<string, string> = {
-  power_pct: 'Power',
-  control_pct: 'Control',
-  spin_pct: 'Spin',
-  movement_pct: 'Movement',
-  comfort_pct: 'Comfort',
-  serve_pct: 'Serve',
-  return_pct: 'Return',
-  rally_pct: 'Rally',
-  net_pct: 'Net play',
-  stamina_pct: 'Stamina',
-  focus_pct: 'Focus',
-  heat_resistance_pct: 'Heat resistance',
-  cold_resistance_pct: 'Cold resistance',
-  racket_wear_reduction_pct: 'Racquet protection',
-  forehand_pct: 'Forehand',
-  backhand_pct: 'Backhand',
-  stability_pct: 'Stability',
+const EFFECT_KEYS: Record<string, string> = {
+  power_pct: 'power',
+  control_pct: 'control',
+  spin_pct: 'spin',
+  movement_pct: 'movement',
+  comfort_pct: 'comfort',
+  serve_pct: 'serve',
+  return_pct: 'return',
+  rally_pct: 'rally',
+  net_pct: 'net',
+  stamina_pct: 'stamina',
+  focus_pct: 'focus',
+  heat_resistance_pct: 'heatResistance',
+  cold_resistance_pct: 'coldResistance',
+  racket_wear_reduction_pct: 'racketProtection',
+  forehand_pct: 'forehand',
+  backhand_pct: 'backhand',
+  stability_pct: 'stability',
 }
 
-function money(value: number) {
-  return `$${Math.round(Number(value) || 0).toLocaleString()}`
+function typeLabel(t: TFunction, type: EquipmentType) {
+  return t(`equipmentPage.ui.types.${type}`)
+}
+
+function tierLabel(t: TFunction, tier: number) {
+  const key = TIER_KEYS[tier]
+  return key ? t(`equipmentPage.ui.tiers.${key}`) : t('equipmentPage.ui.tiers.tier')
+}
+
+function effectLabel(t: TFunction, key: string) {
+  const mapped = EFFECT_KEYS[key]
+  return mapped ? t(`equipmentPage.ui.stats.${mapped}`) : titleCase(key.replace('_pct', ''))
 }
 
 function pct(value: number) {
@@ -210,36 +215,32 @@ function conditionText(value: number) {
   return Number.isInteger(numeric) ? `${numeric}%` : `${numeric.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}%`
 }
 
-function conditionLabel(value: number) {
-  if (value >= 80) return 'Excellent'
-  if (value >= 60) return 'Used'
-  if (value >= 40) return 'Worn'
-  return 'Replace soon'
+function conditionLabel(t: TFunction, value: number) {
+  if (value >= 80) return t('equipmentPage.ui.conditions.excellent')
+  if (value >= 60) return t('equipmentPage.ui.conditions.used')
+  if (value >= 40) return t('equipmentPage.ui.conditions.worn')
+  return t('equipmentPage.ui.conditions.replaceSoon')
 }
 
-function surfaceLabel(surface?: string | null) {
-  if (!surface || surface === 'all') return 'All Court'
-  return `${surface.charAt(0).toUpperCase()}${surface.slice(1)} Court`
+function surfaceLabel(t: TFunction, surface?: string | null) {
+  const key = !surface || surface === 'all' ? 'all' : surface
+  return t(`equipmentPage.ui.surfaces.${key}`, { defaultValue: titleCase(key) })
 }
 
-function availabilityLabel(status: CatalogItem['availability_status']) {
-  if (status === 'sponsor_only') return 'Sponsor only'
-  return `${status.charAt(0).toUpperCase()}${status.slice(1)}`
+function availabilityLabel(t: TFunction, status: CatalogItem['availability_status']) {
+  return t(`equipmentPage.ui.availability.${status}`, { defaultValue: titleCase(status) })
 }
 
-function effectScopeLabel(scope: CatalogItem['effect_scope']) {
-  if (scope === 'match') return 'Match performance'
-  if (scope === 'cosmetic') return 'Identity / cosmetic'
-  return 'No gameplay effect'
+function effectScopeLabel(t: TFunction, scope: CatalogItem['effect_scope']) {
+  return t(`equipmentPage.ui.scopes.${scope}`)
 }
 
 function titleCase(value: string) {
   return value.replaceAll('-', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
 }
 
-function sponsorTierLabel(tier: SponsorTier) {
-  if (tier === 'elite') return 'Elite / Global'
-  return titleCase(tier)
+function sponsorTierLabel(t: TFunction, tier: SponsorTier) {
+  return t(`equipmentPage.ui.sponsorTiers.${tier}`, { defaultValue: titleCase(tier) })
 }
 
 function playerPrice(item: CatalogItem) {
@@ -251,10 +252,10 @@ function sponsorDiscount(item: CatalogItem) {
   return Math.max(0, Number(item.technical_sponsor_discount_pct) || 0)
 }
 
-function mainStats(item: CatalogItem) {
-  if (item.item_type === 'shoes') return [['Traction', item.traction], ['Stability', item.stability], ['Comfort', item.comfort], ['Durability', item.durability]] as const
-  if (item.item_type === 'racket') return [['Power', item.power], ['Control', item.control], ['Spin', item.spin], ['Comfort', item.comfort]] as const
-  return [['Comfort', item.comfort], ['Durability', item.durability]] as const
+function mainStats(t: TFunction, item: CatalogItem) {
+  if (item.item_type === 'shoes') return [[t('equipmentPage.ui.stats.traction'), item.traction], [t('equipmentPage.ui.stats.stability'), item.stability], [t('equipmentPage.ui.stats.comfort'), item.comfort], [t('equipmentPage.ui.stats.durability'), item.durability]] as const
+  if (item.item_type === 'racket') return [[t('equipmentPage.ui.stats.power'), item.power], [t('equipmentPage.ui.stats.control'), item.control], [t('equipmentPage.ui.stats.spin'), item.spin], [t('equipmentPage.ui.stats.comfort'), item.comfort]] as const
+  return [[t('equipmentPage.ui.stats.comfort'), item.comfort], [t('equipmentPage.ui.stats.durability'), item.durability]] as const
 }
 
 function activeEffects(item: CatalogItem, owned = false) {
@@ -272,11 +273,11 @@ function getComparableSlot(loadout: EquipmentLoadout, item: CatalogItem) {
   return null
 }
 
-function acquisitionLabel(item: InventoryItem) {
-  if (item.acquired_source === 'starter') return 'Starter equipment'
-  if (item.acquired_source === 'sponsor') return 'Sponsor supplied'
-  if (item.acquired_source === 'reward') return 'Reward equipment'
-  return `Purchased · Career day ${item.acquired_absolute_day}`
+function acquisitionLabel(t: TFunction, item: InventoryItem) {
+  if (item.acquired_source === 'starter') return t('equipmentPage.ui.acquisition.starter')
+  if (item.acquired_source === 'sponsor') return t('equipmentPage.ui.acquisition.sponsor')
+  if (item.acquired_source === 'reward') return t('equipmentPage.ui.acquisition.reward')
+  return t('equipmentPage.ui.acquisition.purchased', { day: item.acquired_absolute_day })
 }
 
 function makeRequestKey() {
@@ -285,6 +286,9 @@ function makeRequestKey() {
 }
 
 export default function EquipmentPage() {
+  const { t } = useTranslation()
+  const { formatCurrency } = useLocalization()
+  const money = (value: number) => formatCurrency(Number(value) || 0, 'USD')
   const [searchParams] = useSearchParams()
   const requestedTab = searchParams.get('tab')
   const [tab, setTab] = useState<EquipmentTab>(() => (
