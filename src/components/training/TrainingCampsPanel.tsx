@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 
 import CountryFlag from '../common/CountryFlag'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import { useStaff } from '../../hooks/useStaff'
 import {
   useTrainingCamps,
@@ -12,16 +14,8 @@ import '../../styles/training-camps.css'
 import '../../styles/training-camp-staff.css'
 import '../../styles/training-camp-route-flags.css'
 
-const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-]
 const MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 const PAGE_SIZE = 10
-
-type GameDay = { season: number; month: number; day: number }
-type CampFilter = 'all' | 'hard' | 'clay' | 'grass' | 'physical' | 'recovery'
-type WeekOption = { season: number; week: number; start: GameDay; end: GameDay }
 
 function absoluteDay(day: GameDay) {
   const prior = MONTH_LENGTHS.slice(0, day.month - 1).reduce((sum, value) => sum + value, 0)
@@ -46,14 +40,16 @@ function weekStartAbsolute(season: number, week: number) {
   return (season - 1) * 366 + 2 + (week - 1) * 7
 }
 
-function formatDay(day: GameDay, includeSeason = false) {
-  return `${MONTH_NAMES[day.month - 1]} ${day.day}${includeSeason ? ` · Season ${day.season}` : ''}`
+function formatDay(day: GameDay, localeTag: string, includeSeason = false, t?: TFunction) {
+  const date = new Intl.DateTimeFormat(localeTag, { month: 'short', day: 'numeric' })
+    .format(new Date(2020, Math.max(0, day.month - 1), Math.max(1, day.day)))
+  return includeSeason && t ? `${date} · ${t('overviewPage.season', { season: day.season })}` : date
 }
 
-function formatWeek(option: WeekOption) {
+function formatWeek(option: WeekOption, localeTag: string, t: TFunction) {
   const endNeedsMonth = option.start.month !== option.end.month
-  const endText = endNeedsMonth ? formatDay(option.end) : `${option.end.day}`
-  return `Season ${option.season} · Week ${option.week} · ${formatDay(option.start)}–${endText}`
+  const endText = endNeedsMonth ? formatDay(option.end, localeTag) : `${option.end.day}`
+  return `${t('overviewPage.season', { season: option.season })} · ${t('overviewPage.week', { week: option.week })} · ${formatDay(option.start, localeTag)}–${endText}`
 }
 
 function buildWeekOptions(currentAbsolute: number, count = 52): WeekOption[] {
@@ -69,23 +65,64 @@ function buildWeekOptions(currentAbsolute: number, count = 52): WeekOption[] {
   return options
 }
 
-function categoryLabel(program: TrainingCampProgram) {
-  if (program.category === 'physical') return 'Physical Development'
-  if (program.category === 'recovery_mindset') return 'Recovery & Mindset'
-  return `${program.surface ? program.surface.charAt(0).toUpperCase() + program.surface.slice(1) : ''} Tennis Skills`
+function categoryLabel(program: TrainingCampProgram, t: TFunction) {
+  if (program.category === 'physical') return t('trainingPage.camps.categoryPhysical')
+  if (program.category === 'recovery_mindset') return t('trainingPage.camps.categoryRecovery')
+  return t('trainingPage.camps.categoryTennis', { surface: t(`trainingPage.camps.surfaces.${program.surface ?? 'hard'}`) })
 }
 
-function qualityLabel(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1)
+function qualityLabel(value: string, t: TFunction) {
+  return t(`trainingPage.camps.quality.${value}`, { defaultValue: value })
 }
 
-function attributeLabel(value: string) {
-  const labels: Record<string, string> = {
-    return_skill: 'Return', drop_shot: 'Drop Shot', serve: 'Serve', forehand: 'Forehand', backhand: 'Backhand', volley: 'Volley',
-    slice: 'Slice', lob: 'Lob', smash: 'Smash', fitness: 'Fitness', stamina: 'Stamina', recovery: 'Recovery', movement: 'Movement',
-    fatigue: 'Fatigue', morale: 'Morale', confidence: 'Confidence', sharpness: 'Sharpness', focus: 'Focus',
+function attributeLabel(value: string, t: TFunction) {
+  return t(`trainingPage.attributes.${value}`, { defaultValue: value.replace(/_/g, ' ') })
+}
+
+function continentLabel(value: string, t: TFunction) {
+  const key = value.replaceAll(' ', '_')
+  return t(`trainingPage.camps.continents.${key}`, { defaultValue: value })
+}
+
+function countryLabel(code: string, fallback: string, localeTag: string) {
+  try {
+    return new Intl.DisplayNames([localeTag], { type: 'region' }).of(code) ?? fallback
+  } catch {
+    return fallback
   }
-  return labels[value] ?? value
+}
+
+function localizedLocationDescription(program: TrainingCampProgram, t: TFunction, localeTag: string) {
+  return t('trainingPage.camps.genericLocation', {
+    city: program.location.city,
+    country: countryLabel(program.location.country_code, program.location.country, localeTag),
+    continent: continentLabel(program.location.continent, t),
+  })
+}
+
+function localizedBenefit(program: TrainingCampProgram, t: TFunction) {
+  if (program.category === 'physical') return t('trainingPage.camps.benefitPhysical')
+  if (program.category === 'recovery_mindset') return t('trainingPage.camps.benefitRecovery')
+  return t('trainingPage.camps.benefitTennis', { surface: t(`trainingPage.camps.surfaces.${program.surface ?? 'hard'}`) })
+}
+
+function localizedProgramDescription(program: TrainingCampProgram, t: TFunction) {
+  const quality = qualityLabel(program.quality_tier, t)
+  if (program.category === 'physical') return t('trainingPage.camps.descriptionPhysical', { quality, city: program.location.city })
+  if (program.category === 'recovery_mindset') return t('trainingPage.camps.descriptionRecovery', { quality, city: program.location.city })
+  return t('trainingPage.camps.descriptionTennis', {
+    quality,
+    surface: t(`trainingPage.camps.surfaces.${program.surface ?? 'hard'}`),
+    city: program.location.city,
+  })
+}
+
+function hotelName(tier: TrainingCampAccommodationTier, t: TFunction) {
+  return t(`trainingPage.camps.hotelNames.${tier.slug.replaceAll('-', '_')}`, { defaultValue: tier.name })
+}
+
+function hotelDescription(tier: TrainingCampAccommodationTier, t: TFunction) {
+  return t(`trainingPage.camps.hotelDescriptions.${tier.slug.replaceAll('-', '_')}`, { defaultValue: tier.description })
 }
 
 function filterMatches(program: TrainingCampProgram, filter: CampFilter) {
@@ -99,26 +136,29 @@ function hotelWeeklyEstimate(tier: TrainingCampAccommodationTier, program: Train
   return Math.round((tier.base_weekly_cost * program.location.cost_index) / 10) * 10
 }
 
-function campRoleBenefit(role: string, program: TrainingCampProgram) {
-  if (role === 'head_coach') return program.category === 'tennis_skills' ? 'Boosts tennis-skill camp development.' : 'No direct development bonus at this camp.'
-  if (role === 'fitness_coach') return program.category === 'physical' ? 'Boosts physical camp development and manages workload.' : 'Can reduce training fatigue when travelling.'
-  if (role === 'physiotherapist') return 'Improves recovery on the camp recovery day.'
-  if (role === 'sports_psychologist') return 'Improves mental recovery during the camp.'
-  if (role === 'performance_analyst') return 'Travels with the team; match-analysis benefits apply later in competition.'
-  return 'Travels with the team; no direct camp sporting bonus.'
+function campRoleBenefit(role: string, program: TrainingCampProgram, t: TFunction) {
+  if (role === 'head_coach') return program.category === 'tennis_skills' ? t('trainingPage.camps.roleBenefits.headTennis') : t('trainingPage.camps.roleBenefits.noDirect')
+  if (role === 'fitness_coach') return program.category === 'physical' ? t('trainingPage.camps.roleBenefits.fitnessPhysical') : t('trainingPage.camps.roleBenefits.fitnessOther')
+  if (role === 'physiotherapist') return t('trainingPage.camps.roleBenefits.physio')
+  if (role === 'sports_psychologist') return t('trainingPage.camps.roleBenefits.psychologist')
+  if (role === 'performance_analyst') return t('trainingPage.camps.roleBenefits.analyst')
+  return t('trainingPage.camps.roleBenefits.other')
 }
 
 function CampArtwork({ program, large = false }: { program: TrainingCampProgram; large?: boolean }) {
+  const { t } = useTranslation()
   const image = large ? (program.location.image_url ?? program.location.thumbnail_url) : (program.location.thumbnail_url ?? program.location.image_url)
   if (image) return <img src={image} alt="" />
   return (
     <div className={`tlg-camp-art-placeholder ${program.category} ${program.surface ?? ''}`}>
-      <span>{program.location.country_code}</span><strong>{program.location.city}</strong><small>{categoryLabel(program)}</small>
+      <span>{program.location.country_code}</span><strong>{program.location.city}</strong><small>{categoryLabel(program, t)}</small>
     </div>
   )
 }
 
 export default function TrainingCampsPanel({ gameDay }: { gameDay: GameDay }) {
+  const { t } = useTranslation()
+  const { localeTag, formatCurrency, formatNumber } = useLocalization()
   const {
     programs, accommodations, bookings, loading, saving, processing, error,
     quoteCamp, bookCamp, cancelCamp, processToday,
