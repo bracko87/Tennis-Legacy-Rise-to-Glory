@@ -938,7 +938,7 @@ export default {
     upgrade: 'Upgrade to Premium to see the next five ranking-point expirations.',
     defendingPoints: 'Defending points',
     scheduledExpiration: 'Scheduled expiration',
-    pointsShort: '{{count}} pts',
+    pointsShort: '{{formatted}} pts',
     gameDaysRemaining_one: '{{count}} game day remaining',
     gameDaysRemaining_other: '{{count}} game days remaining',
     expires: 'Expires',
