@@ -10,10 +10,12 @@ import {
   WalletCards,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import GameLayout from '../../components/layout/GameLayout'
 import { useAuth } from '../../auth/AuthContext'
 import { useCommerce } from '../../hooks/useCommerce'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 
 interface BillingTransaction {
@@ -56,61 +58,37 @@ interface CoinPack {
   coins: number
   price: number
   paymentLinkUrl: string
-  helper: string
-  badge?: string
+  helperKey: string
+  badgeKey?: string
 }
 
 interface PremiumOffer {
   code: 'premium_monthly' | 'premium_quarterly' | 'premium_yearly'
-  label: string
+  labelKey: string
   months: number
   fallbackPriceCents: number
   fallbackCoins: number
-  badge?: string
+  badgeKey?: string
 }
 
 const fallbackCoinPacks: readonly CoinPack[] = [
-  { code: 'coin_70', coins: 70, price: 2.99, paymentLinkUrl: '', helper: 'Starter boost' },
-  { code: 'coin_130', coins: 130, price: 4.99, paymentLinkUrl: '', helper: 'Great for a new season' },
-  { code: 'coin_270', coins: 270, price: 9.99, paymentLinkUrl: '', helper: 'Most balanced pick' },
-  { code: 'coin_390', coins: 390, price: 13.99, paymentLinkUrl: '', helper: 'Most popular', badge: 'Most popular' },
-  { code: 'coin_570', coins: 570, price: 19.99, paymentLinkUrl: '', helper: 'Serious manager mode' },
-  { code: 'coin_900', coins: 900, price: 29.99, paymentLinkUrl: '', helper: 'Best for long-term play', badge: 'Best value' },
+  { code: 'coin_70', coins: 70, price: 2.99, paymentLinkUrl: '', helperKey: 'commercePage.packStarter' },
+  { code: 'coin_130', coins: 130, price: 4.99, paymentLinkUrl: '', helperKey: 'commercePage.packSeason' },
+  { code: 'coin_270', coins: 270, price: 9.99, paymentLinkUrl: '', helperKey: 'commercePage.packBalanced' },
+  { code: 'coin_390', coins: 390, price: 13.99, paymentLinkUrl: '', helperKey: 'commercePage.packPopular', badgeKey: 'commercePage.mostPopular' },
+  { code: 'coin_570', coins: 570, price: 19.99, paymentLinkUrl: '', helperKey: 'commercePage.packSerious' },
+  { code: 'coin_900', coins: 900, price: 29.99, paymentLinkUrl: '', helperKey: 'commercePage.packLongTerm', badgeKey: 'commercePage.bestValue' },
 ]
 
 const premiumOffers: readonly PremiumOffer[] = [
-  { code: 'premium_quarterly', label: '3 Months', months: 3, fallbackPriceCents: 949, fallbackCoins: 90, badge: 'Most popular' },
-  { code: 'premium_monthly', label: 'Monthly', months: 1, fallbackPriceCents: 329, fallbackCoins: 30 },
-  { code: 'premium_yearly', label: '12 Months', months: 12, fallbackPriceCents: 3349, fallbackCoins: 360, badge: 'Save 15%' },
+  { code: 'premium_quarterly', labelKey: 'commercePage.threeMonths', months: 3, fallbackPriceCents: 949, fallbackCoins: 90, badgeKey: 'commercePage.mostPopular' },
+  { code: 'premium_monthly', labelKey: 'commercePage.monthly', months: 1, fallbackPriceCents: 329, fallbackCoins: 30 },
+  { code: 'premium_yearly', labelKey: 'commercePage.twelveMonths', months: 12, fallbackPriceCents: 3349, fallbackCoins: 360, badgeKey: 'commercePage.save15' },
 ] as const
-
-const comparisonRows = [
-  ['Create and manage your professional player', true, true],
-  ['Play ATP or WTA singles tournaments', true, true],
-  ['Core training, equipment and finance systems', true, true],
-  ['Account access without coins', true, true],
-  ['Premium analysis and advanced tools', false, true],
-  ['Premium coin reward', '—', '30 coins per covered month'],
-  ['Buy additional coin packages', true, true],
-  ['Use optional coin features', true, true],
-] as const
-
-function formatMoney(cents: number) {
-  return `€${(cents / 100).toFixed(2)}`
-}
-
-function formatDate(value: string | null | undefined) {
-  if (!value) return '—'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return '—'
-  return new Intl.DateTimeFormat('en', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(date)
-}
 
 export default function ProPackagesPage() {
+  const { t } = useTranslation()
+  const { formatCurrency, formatDate } = useLocalization()
   const { user } = useAuth()
   const commerce = useCommerce()
   const [billing, setBilling] = useState<BillingTransaction[]>([])
@@ -177,7 +155,7 @@ export default function ProPackagesPage() {
 
   async function openStripeCheckout(catalogCode: string) {
     if (!user) {
-      showStripeNotice('Please sign in again before starting checkout.')
+      showStripeNotice(t('commercePage.signInAgain'))
       return
     }
 
@@ -186,7 +164,7 @@ export default function ProPackagesPage() {
     })
 
     if (intentError || !data) {
-      showStripeNotice(intentError?.message ?? 'Secure checkout is temporarily unavailable. Please try again.')
+      showStripeNotice(intentError?.message ?? t('commercePage.checkoutUnavailable'))
       return
     }
 
@@ -204,7 +182,7 @@ export default function ProPackagesPage() {
     }
 
     if (checkout.status !== 'ready' || !checkout.intent_id || !checkout.payment_link_url) {
-      showStripeNotice('Secure checkout is temporarily unavailable. Please refresh and try again.')
+      showStripeNotice(t('commercePage.checkoutRefresh'))
       return
     }
 
@@ -215,7 +193,7 @@ export default function ProPackagesPage() {
   }
 
   const membership = commerce.membership
-  const planName = commerce.isPremium ? 'Tennis Legacy Premium' : 'Tennis Legacy Free'
+  const planName = commerce.isPremium ? t('commercePage.premiumName') : t('commercePage.freeName')
   const resolvedPremiumOffers = premiumOffers.map((offer) => {
     const item = catalog.find((candidate) => candidate.code === offer.code)
     const priceCents = item?.price_eur_cents ?? offer.fallbackPriceCents
@@ -236,18 +214,32 @@ export default function ProPackagesPage() {
     } : fallback
   })
 
+  const comparisonRows = [
+    [t('commercePage.comparePlayer'), true, true],
+    [t('commercePage.compareTournaments'), true, true],
+    [t('commercePage.compareCore'), true, true],
+    [t('commercePage.compareAccount'), true, true],
+    [t('commercePage.compareAnalysis'), false, true],
+    [t('commercePage.compareReward'), '—', t('commercePage.compareRewardValue')],
+    [t('commercePage.compareBuyCoins'), true, true],
+    [t('commercePage.compareCoinFeatures'), true, true],
+  ] as const
+
+  const money = (cents: number) => formatCurrency(cents / 100, 'EUR')
+  const date = (value: string | null | undefined) => value ? formatDate(value, { year: 'numeric', month: 'long', day: 'numeric' }) : '—'
+
   return (
-    <GameLayout title="Pro Packages" subtitle="Premium membership, coins and billing">
+    <GameLayout title={t('commercePage.title')} subtitle={t('commercePage.subtitle')}>
       <div className="tlg-commerce-page">
         <section className="tlg-commerce-heading">
           <div>
-            <span>Optional services</span>
-            <h1>Premium & Billing</h1>
-            <p>Normal gameplay is free. Premium membership and coin packages are optional.</p>
+            <span>{t('commercePage.eyebrow')}</span>
+            <h1>{t('commercePage.heading')}</h1>
+            <p>{t('commercePage.intro')}</p>
           </div>
           <button type="button" className="tlg-commerce-refresh" onClick={() => void commerce.refresh()}>
             <RefreshCw size={15} />
-            Refresh
+            {t('commercePage.refresh')}
           </button>
         </section>
 
@@ -261,46 +253,46 @@ export default function ProPackagesPage() {
         <section className="tlg-commerce-premium-card">
           <div className="tlg-commerce-premium-main">
             <div className="tlg-commerce-badges">
-              <span className="tlg-commerce-badge-premium">PREMIUM</span>
+              <span className="tlg-commerce-badge-premium">{t('commercePage.premium')}</span>
               <span className={commerce.isPremium ? 'tlg-commerce-badge-active' : 'tlg-commerce-badge-free'}>
-                {commerce.isPremium ? 'Active' : 'Optional'}
+                {commerce.isPremium ? t('commercePage.active') : t('commercePage.optional')}
               </span>
             </div>
-            <h2>Tennis Legacy Premium</h2>
-            <div className="tlg-commerce-price"><strong>{formatMoney(mainPremiumOffer.priceCents)}</strong><span>every 3 real-life months · {formatMoney(mainPremiumOffer.monthlyEquivalentCents)}/month</span></div>
+            <h2>{t('commercePage.premiumName')}</h2>
+            <div className="tlg-commerce-price"><strong>{money(mainPremiumOffer.priceCents)}</strong><span>{t('commercePage.everyThreeMonths', { monthly: money(mainPremiumOffer.monthlyEquivalentCents) })}</span></div>
             <ul className="tlg-commerce-benefits">
-              <li><Check size={15} /> Advanced player analysis and deeper management tools.</li>
-              <li><Check size={15} /> Additional scouting, preparation and career-planning insights as those systems launch.</li>
-              <li><Check size={15} /> Premium convenience features without removing core gameplay from Free players.</li>
-              <li><Check size={15} /> Receive 30 coins per covered month: 30 monthly, 90 every 3 months, or 360 yearly.</li>
-              <li><Check size={15} /> Choose monthly, 3-month or annual billing; normal gameplay remains free.</li>
+              <li><Check size={15} /> {t('commercePage.benefit1')}</li>
+              <li><Check size={15} /> {t('commercePage.benefit2')}</li>
+              <li><Check size={15} /> {t('commercePage.benefit3')}</li>
+              <li><Check size={15} /> {t('commercePage.benefit4')}</li>
+              <li><Check size={15} /> {t('commercePage.benefit5')}</li>
             </ul>
             <div className="tlg-commerce-free-rule">
-              <strong>{commerce.isPremium ? 'Premium is active.' : 'Free gameplay remains fully available.'}</strong>
-              <span>{commerce.isPremium ? `Current period ends ${formatDate(membership?.current_period_end)}.` : 'Premium adds optional tools and rewards; it is not required to play Tennis Legacy.'}</span>
+              <strong>{commerce.isPremium ? t('commercePage.premiumActive') : t('commercePage.freeAvailable')}</strong>
+              <span>{commerce.isPremium ? t('commercePage.currentPeriodEnds', { date: date(membership?.current_period_end) }) : t('commercePage.premiumOptionalBody')}</span>
             </div>
           </div>
 
           <aside className="tlg-commerce-premium-side">
             <Crown size={25} />
-            <span>Premium membership</span>
+            <span>{t('commercePage.premiumMembership')}</span>
             <div className="tlg-commerce-premium-featured">
-              <span className="tlg-commerce-plan-badge">Most popular</span>
-              <strong>{formatMoney(mainPremiumOffer.priceCents)}</strong>
-              <small>every 3 months · {formatMoney(mainPremiumOffer.monthlyEquivalentCents)}/month</small>
+              <span className="tlg-commerce-plan-badge">{t('commercePage.mostPopular')}</span>
+              <strong>{money(mainPremiumOffer.priceCents)}</strong>
+              <small>{t('commercePage.everyThreeMonths', { monthly: money(mainPremiumOffer.monthlyEquivalentCents) })}</small>
               <button
                 type="button"
                 onClick={() => {
                   if (commerce.isPremium) {
                     const portalUrl = commerceSettings?.stripe_customer_portal_url
                     if (portalUrl) window.location.assign(portalUrl)
-                    else showStripeNotice('Subscription management is temporarily unavailable.')
+                    else showStripeNotice(t('commercePage.subscriptionUnavailable'))
                   } else {
                     void openStripeCheckout('premium_quarterly')
                   }
                 }}
               >
-                {commerce.isPremium ? 'Manage subscription' : 'Choose 3 months'}
+                {commerce.isPremium ? t('commercePage.manageSubscription') : t('commercePage.chooseThree')}
               </button>
             </div>
 
@@ -308,40 +300,40 @@ export default function ProPackagesPage() {
               {resolvedPremiumOffers.filter((offer) => offer.code !== 'premium_quarterly').map((offer) => (
                 <div key={offer.code} className="tlg-commerce-premium-option">
                   <div>
-                    <span>{offer.label}</span>
-                    {offer.badge && <small className="tlg-commerce-plan-saving">{offer.badge}</small>}
+                    <span>{t(offer.labelKey)}</span>
+                    {offer.badgeKey && <small className="tlg-commerce-plan-saving">{t(offer.badgeKey)}</small>}
                   </div>
-                  <strong>{formatMoney(offer.priceCents)}</strong>
-                  <small>{offer.months === 1 ? 'per month' : `per year · ${formatMoney(offer.monthlyEquivalentCents)}/month`}</small>
+                  <strong>{money(offer.priceCents)}</strong>
+                  <small>{offer.months === 1 ? t('commercePage.perMonth') : t('commercePage.perYearMonthly', { monthly: money(offer.monthlyEquivalentCents) })}</small>
                   <button
                     type="button"
                     onClick={() => {
                       if (commerce.isPremium) {
                         const portalUrl = commerceSettings?.stripe_customer_portal_url
                         if (portalUrl) window.location.assign(portalUrl)
-                        else showStripeNotice('Subscription management is temporarily unavailable.')
+                        else showStripeNotice(t('commercePage.subscriptionUnavailable'))
                       } else {
                         void openStripeCheckout(offer.code)
                       }
                     }}
                   >
-                    {commerce.isPremium ? 'Manage' : offer.months === 1 ? 'Choose monthly' : 'Choose annual'}
+                    {commerce.isPremium ? t('commercePage.manage') : offer.months === 1 ? t('commercePage.chooseMonthly') : t('commercePage.chooseAnnual')}
                   </button>
                 </div>
               ))}
             </div>
-            <p>Secure checkout and recurring billing are provided by Stripe. Existing subscribers keep their current plan unless they change it.</p>
+            <p>{t('commercePage.stripeNote')}</p>
           </aside>
         </section>
 
         <section className="tlg-commerce-section">
           <div className="tlg-commerce-section-title">
-            <h2>Free vs Premium</h2>
-            <p>Premium adds optional analysis and tools without removing core access from Free players.</p>
+            <h2>{t('commercePage.comparisonTitle')}</h2>
+            <p>{t('commercePage.comparisonBody')}</p>
           </div>
           <div className="tlg-commerce-table-wrap">
             <table className="tlg-commerce-table">
-              <thead><tr><th>Benefit</th><th>Free</th><th>Premium</th></tr></thead>
+              <thead><tr><th>{t('commercePage.benefit')}</th><th>{t('commercePage.free')}</th><th>{t('commercePage.premiumColumn')}</th></tr></thead>
               <tbody>
                 {comparisonRows.map(([label, free, premium]) => (
                   <tr key={label}>
@@ -357,105 +349,103 @@ export default function ProPackagesPage() {
 
         <section className="tlg-commerce-section">
           <div className="tlg-commerce-section-title">
-            <h2>Need additional coins?</h2>
-            <p>Free and Premium players can purchase coins for optional features. Buying coins does not activate Premium membership.</p>
+            <h2>{t('commercePage.coinsTitle')}</h2>
+            <p>{t('commercePage.coinsBody')}</p>
           </div>
           <div className="tlg-commerce-pack-grid">
             {coinPacks.map((pack) => (
-              <article key={pack.code} className={`tlg-commerce-pack ${pack.badge === 'Best value' ? 'tlg-commerce-pack-best' : ''}`}>
-                {pack.badge && <span className="tlg-commerce-pack-badge">{pack.badge}</span>}
-                <span>Coin Pack</span>
+              <article key={pack.code} className={`tlg-commerce-pack ${pack.badgeKey === 'commercePage.bestValue' ? 'tlg-commerce-pack-best' : ''}`}>
+                {pack.badgeKey && <span className="tlg-commerce-pack-badge">{t(pack.badgeKey)}</span>}
+                <span>{t('commercePage.coinPack')}</span>
                 <h3><Coins size={28} /> {pack.coins}</h3>
-                <p>{pack.helper}</p>
-                <strong>€{pack.price.toFixed(2)}</strong>
-                <small>≈ €{(pack.price / pack.coins).toFixed(2)} per coin</small>
+                <p>{t(pack.helperKey)}</p>
+                <strong>{formatCurrency(pack.price, 'EUR')}</strong>
+                <small>{t('commercePage.perCoin', { price: formatCurrency(pack.price / pack.coins, 'EUR') })}</small>
                 <button
                   type="button"
                   onClick={() => void openStripeCheckout(pack.code)}
                 >
-                  Buy now
+                  {t('commercePage.buyNow')}
                 </button>
-                <p className="tlg-commerce-pack-footnote">One-time coin purchase. This does not start a Premium subscription.</p>
+                <p className="tlg-commerce-pack-footnote">{t('commercePage.coinFootnote')}</p>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="tlg-commerce-section tlg-cpx-earn-section" aria-label="Earn Free Coins from surveys">
+        <section className="tlg-commerce-section tlg-cpx-earn-section" aria-label={t('commercePage.earnAria')}>
           <div>
-            <h2>Earn Free Coins</h2>
-            <p>Prefer to earn Coins instead of buying a package? Complete optional surveys with
-              CPX Research. Every $1 of verified publisher rewards earns 15 Tennis Legacy Coins.
-              Surveys may not always be available.</p>
+            <h2>{t('commercePage.earnTitle')}</h2>
+            <p>{t('commercePage.earnBody')}</p>
           </div>
           <button type="button" className="tlg-cpx-launch"
             onClick={() => window.dispatchEvent(new Event('tlg:open-earn-coins'))}>
-            <Coins size={18} /> Browse Surveys
+            <Coins size={18} /> {t('commercePage.browseSurveys')}
           </button>
         </section>
 
         <section className="tlg-commerce-section">
           <div className="tlg-commerce-section-title">
-            <h2>Current membership</h2>
-            <p>Your current plan, billing period and renewal status.</p>
+            <h2>{t('commercePage.currentMembership')}</h2>
+            <p>{t('commercePage.currentMembershipBody')}</p>
           </div>
           <div className="tlg-commerce-membership-card">
-            <MembershipStat label="Plan" value={planName} />
-            <MembershipStat label="Status" value={membership?.status === 'active' ? 'Active' : membership?.status ?? 'Active'} />
-            <MembershipStat label="Started" value={formatDate(membership?.started_at)} />
-            <MembershipStat label="Current period ends" value={formatDate(membership?.current_period_end)} />
-            <MembershipStat label="Next renewal" value={commerce.isPremium && !membership?.cancel_at_period_end ? formatDate(membership?.current_period_end) : '—'} />
-            <MembershipStat label="Billing plan" value={commerce.isPremium ? activeBillingMonths === 12 ? '12 months' : activeBillingMonths === 3 ? '3 months' : 'Monthly' : 'Free'} />
-            <MembershipStat label="Price per billing period" value={formatMoney(activeBillingAmount)} />
-            <MembershipStat label="Monthly equivalent" value={formatMoney(activeMonthlyEquivalent)} />
-            <MembershipStat label="Coin reward per payment" value={`${activeCoinsPerPayment} coins`} />
-            <MembershipStat label="Cancel at period end" value={membership?.cancel_at_period_end ? 'Yes' : 'No'} />
+            <MembershipStat label={t('commercePage.plan')} value={planName} />
+            <MembershipStat label={t('commercePage.status')} value={membership?.status === 'active' ? t('commercePage.active') : membership?.status ?? t('commercePage.active')} />
+            <MembershipStat label={t('commercePage.started')} value={date(membership?.started_at)} />
+            <MembershipStat label={t('commercePage.currentPeriodEndsLabel')} value={date(membership?.current_period_end)} />
+            <MembershipStat label={t('commercePage.nextRenewal')} value={commerce.isPremium && !membership?.cancel_at_period_end ? date(membership?.current_period_end) : '—'} />
+            <MembershipStat label={t('commercePage.billingPlan')} value={commerce.isPremium ? activeBillingMonths === 12 ? t('commercePage.months12') : activeBillingMonths === 3 ? t('commercePage.months3') : t('commercePage.monthly') : t('commercePage.free')} />
+            <MembershipStat label={t('commercePage.pricePerPeriod')} value={money(activeBillingAmount)} />
+            <MembershipStat label={t('commercePage.monthlyEquivalent')} value={money(activeMonthlyEquivalent)} />
+            <MembershipStat label={t('commercePage.coinRewardPerPayment')} value={t('commercePage.coinsCount', { count: activeCoinsPerPayment })} />
+            <MembershipStat label={t('commercePage.cancelAtEnd')} value={membership?.cancel_at_period_end ? t('commercePage.yes') : t('commercePage.no')} />
           </div>
         </section>
 
         <section className="tlg-commerce-section">
           <div className="tlg-commerce-section-title">
-            <h2>Billing and purchase history</h2>
-            <p>Premium invoices, coin-package purchases and wallet activity are kept separate.</p>
+            <h2>{t('commercePage.historyTitle')}</h2>
+            <p>{t('commercePage.historyBody')}</p>
           </div>
 
           <HistoryBlock
             icon={<ReceiptText size={19} />}
-            title="Premium invoices"
-            subtitle="Successful Premium payments and monthly coin grants"
+            title={t('commercePage.premiumInvoices')}
+            subtitle={t('commercePage.premiumInvoicesBody')}
             open={!!historyOpen.premium}
             onToggle={() => setHistoryOpen((current) => ({ ...current, premium: !current.premium }))}
           >
-            <BillingRows rows={premiumInvoices} loading={historyLoading} empty="No Premium invoices yet." />
+            <BillingRows rows={premiumInvoices} loading={historyLoading} empty={t('commercePage.noPremiumInvoices')} t={t} formatDateValue={date} formatMoneyValue={money} />
           </HistoryBlock>
 
           <HistoryBlock
             icon={<WalletCards size={19} />}
-            title="Coin-package purchases"
-            subtitle="One-time purchases of optional coin packages"
+            title={t('commercePage.coinPurchases')}
+            subtitle={t('commercePage.coinPurchasesBody')}
             open={!!historyOpen.packs}
             onToggle={() => setHistoryOpen((current) => ({ ...current, packs: !current.packs }))}
           >
-            <BillingRows rows={coinPurchases} loading={historyLoading} empty="No coin-package purchases yet." />
+            <BillingRows rows={coinPurchases} loading={historyLoading} empty={t('commercePage.noCoinPurchases')} t={t} formatDateValue={date} formatMoneyValue={money} />
           </HistoryBlock>
 
           <HistoryBlock
             icon={<History size={19} />}
-            title="Coin ledger / history"
-            subtitle="All coin grants, purchases, rewards and optional-feature spending"
+            title={t('commercePage.ledger')}
+            subtitle={t('commercePage.ledgerBody')}
             open={!!historyOpen.ledger}
             onToggle={() => setHistoryOpen((current) => ({ ...current, ledger: !current.ledger }))}
           >
-            {historyLoading ? <div className="tlg-commerce-history-empty">Loading history…</div> : ledger.length === 0 ? (
-              <div className="tlg-commerce-history-empty">No coin transactions yet. Current balance: {commerce.coins} coins.</div>
+            {historyLoading ? <div className="tlg-commerce-history-empty">{t('commercePage.loadingHistory')}</div> : ledger.length === 0 ? (
+              <div className="tlg-commerce-history-empty">{t('commercePage.noCoinTransactions', { count: commerce.coins })}</div>
             ) : (
               <div className="tlg-commerce-history-list">
                 {ledger.map((entry) => (
                   <div key={entry.id} className="tlg-commerce-history-row">
                     <span>{entry.description ?? entry.entry_type.replaceAll('_', ' ')}</span>
-                    <span>{formatDate(entry.created_at)}</span>
+                    <span>{date(entry.created_at)}</span>
                     <strong className={entry.amount > 0 ? 'tlg-commerce-positive' : ''}>{entry.amount > 0 ? '+' : ''}{entry.amount}</strong>
-                    <strong>{entry.balance_after} coins</strong>
+                    <strong>{t('commercePage.balanceCoins', { count: entry.balance_after })}</strong>
                   </div>
                 ))}
               </div>
@@ -486,20 +476,21 @@ function HistoryBlock({
   onToggle: () => void
   children: JSX.Element
 }) {
+  const { t } = useTranslation()
   return (
     <article className="tlg-commerce-history-card">
       <div className="tlg-commerce-history-summary">
         <div className="tlg-commerce-history-icon">{icon}</div>
         <div><strong>{title}</strong><span>{subtitle}</span></div>
-        <button type="button" onClick={onToggle}>{open ? 'Hide history' : 'Show history'}</button>
+        <button type="button" onClick={onToggle}>{open ? t('commercePage.hideHistory') : t('commercePage.showHistory')}</button>
       </div>
       {open && <div className="tlg-commerce-history-detail">{children}</div>}
     </article>
   )
 }
 
-function BillingRows({ rows, loading, empty }: { rows: BillingTransaction[]; loading: boolean; empty: string }) {
-  if (loading) return <div className="tlg-commerce-history-empty">Loading history…</div>
+function BillingRows({ rows, loading, empty, t, formatDateValue, formatMoneyValue }: { rows: BillingTransaction[]; loading: boolean; empty: string; t: ReturnType<typeof useTranslation>['t']; formatDateValue: (value: string | null | undefined) => string; formatMoneyValue: (cents: number) => string }) {
+  if (loading) return <div className="tlg-commerce-history-empty">{t('commercePage.loadingHistory')}</div>
   if (!rows.length) return <div className="tlg-commerce-history-empty">{empty}</div>
 
   return (
@@ -507,9 +498,9 @@ function BillingRows({ rows, loading, empty }: { rows: BillingTransaction[]; loa
       {rows.map((entry) => (
         <div key={entry.id} className="tlg-commerce-history-row">
           <span>{entry.description ?? entry.kind.replaceAll('_', ' ')}</span>
-          <span>{formatDate(entry.created_at)}</span>
-          <strong>{entry.coins_amount ? `${entry.coins_amount} coins` : '—'}</strong>
-          <strong>{formatMoney(entry.amount_eur_cents)}</strong>
+          <span>{formatDateValue(entry.created_at)}</span>
+          <strong>{entry.coins_amount ? t('commercePage.coinsCount', { count: entry.coins_amount }) : '—'}</strong>
+          <strong>{formatMoneyValue(entry.amount_eur_cents)}</strong>
         </div>
       ))}
     </div>
