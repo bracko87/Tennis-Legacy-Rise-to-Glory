@@ -1,10 +1,12 @@
 import { ArrowDown, ArrowUp, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, LockKeyhole } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 import { Link, useLocation, useSearchParams } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 import '../../styles/rankings-live.css'
 import '../../styles/shared-segmented-tabs.css'
@@ -73,26 +75,27 @@ function rankingScrollKey(world: string, discipline: RankingDiscipline, page: nu
 }
 
 function RankingPagination({ page, rowCount, loading, placement = 'bottom', onPrevious, onNext }: RankingPaginationProps) {
+  const { t } = useTranslation()
   return (
     <div className={`tlg-ranking-pagination${placement === 'top' ? ' tlg-ranking-pagination-top' : ''}`}>
-      <button type="button" disabled={page === 0 || loading} onClick={onPrevious}><ChevronLeft size={15} /> Previous 50</button>
-      {placement !== 'top' && <span>Positions {page * PAGE_SIZE + 1}–{page * PAGE_SIZE + Math.max(rowCount, 1)}</span>}
-      <button type="button" disabled={rowCount < PAGE_SIZE || loading} onClick={onNext}>Next 50 <ChevronRight size={15} /></button>
+      <button type="button" disabled={page === 0 || loading} onClick={onPrevious}><ChevronLeft size={15} /> {t('rankingsPage.previous50')}</button>
+      {placement !== 'top' && <span>{t('rankingsPage.positions', { from: page * PAGE_SIZE + 1, to: page * PAGE_SIZE + Math.max(rowCount, 1) })}</span>}
+      <button type="button" disabled={rowCount < PAGE_SIZE || loading} onClick={onNext}>{t('rankingsPage.next50')} <ChevronRight size={15} /></button>
     </div>
   )
 }
 
-function WeeklyRankChange({ row }: { row: RankingRow }) {
+function WeeklyRankChange({ row, t }: { row: RankingRow; t: TFunction }) {
   if (row.previous_week_position === null || row.rank_change === null) {
-    return <span className="tlg-live-rank-change tlg-live-rank-change-new" title="No previous weekly ranking">NEW</span>
+    return <span className="tlg-live-rank-change tlg-live-rank-change-new" title={t('rankingsPage.noPreviousRanking')}>{t('rankingsPage.new')}</span>
   }
 
   if (row.rank_change > 0) {
     return (
       <span
         className="tlg-live-rank-change tlg-live-rank-change-up"
-        title={`Last week: #${row.previous_week_position}`}
-        aria-label={`Up ${row.rank_change} positions from number ${row.previous_week_position} last week`}
+        title={t('rankingsPage.lastWeekRank', { rank: row.previous_week_position })}
+        aria-label={t('rankingsPage.rankUpAria', { count: row.rank_change, rank: row.previous_week_position })}
       >
         <ArrowUp size={14} strokeWidth={2.4} />
         <strong>+{row.rank_change}</strong>
@@ -105,7 +108,7 @@ function WeeklyRankChange({ row }: { row: RankingRow }) {
       <span
         className="tlg-live-rank-change tlg-live-rank-change-down"
         title={`Last week: #${row.previous_week_position}`}
-        aria-label={`Down ${Math.abs(row.rank_change)} positions from number ${row.previous_week_position} last week`}
+        aria-label={t('rankingsPage.rankDownAria', { count: Math.abs(row.rank_change), rank: row.previous_week_position })}
       >
         <ArrowDown size={14} strokeWidth={2.4} />
         <strong>{row.rank_change}</strong>
@@ -117,30 +120,34 @@ function WeeklyRankChange({ row }: { row: RankingRow }) {
     <span
       className="tlg-live-rank-change tlg-live-rank-change-same"
       title={`Last week: #${row.previous_week_position}`}
-      aria-label={`No ranking change from number ${row.previous_week_position} last week`}
+      aria-label={t('rankingsPage.rankSameAria', { rank: row.previous_week_position })}
     >
       —
     </span>
   )
 }
 
-function WeeklyPointsChange({ row }: { row: RankingRow }) {
+function WeeklyPointsChange({ row, t, formatNumber }: { row: RankingRow; t: TFunction; formatNumber: (value: number) => string }) {
   if (row.previous_week_points === null || row.points_change === null) {
     return <span className="tlg-live-points-change tlg-live-points-change-same">—</span>
   }
 
+  const title = t('rankingsPage.lastWeekPoints', { points: formatNumber(row.previous_week_points) })
+
   if (row.points_change > 0) {
-    return <strong className="tlg-live-points-change tlg-live-points-change-up" title={`Last week: ${row.previous_week_points.toLocaleString()} points`}>+{row.points_change.toLocaleString()}</strong>
+    return <strong className="tlg-live-points-change tlg-live-points-change-up" title={title}>+{formatNumber(row.points_change)}</strong>
   }
 
   if (row.points_change < 0) {
-    return <strong className="tlg-live-points-change tlg-live-points-change-down" title={`Last week: ${row.previous_week_points.toLocaleString()} points`}>{row.points_change.toLocaleString()}</strong>
+    return <strong className="tlg-live-points-change tlg-live-points-change-down" title={title}>{formatNumber(row.points_change)}</strong>
   }
 
-  return <span className="tlg-live-points-change tlg-live-points-change-same" title={`Last week: ${row.previous_week_points.toLocaleString()} points`}>0</span>
+  return <span className="tlg-live-points-change tlg-live-points-change-same" title={title}>0</span>
 }
 
 export default function RankingsPage() {
+  const { t } = useTranslation()
+  const { formatNumber } = useLocalization()
   const { player } = useAuth()
   const world = player?.world ?? 'ATP'
   const location = useLocation()
@@ -266,19 +273,19 @@ export default function RankingsPage() {
   }, [loading, returnPlayerId, returnScrollKey, rows])
 
   return (
-    <GameLayout title="Rankings" subtitle={`${world} ${discipline} world ranking`}>
+    <GameLayout title={t('rankingsPage.title')} subtitle={t('rankingsPage.subtitle', { world, discipline: discipline === 'doubles' ? t('rankingsPage.doubles').toLowerCase() : t('rankingsPage.singles').toLowerCase() })}>
       <header className="tlg-v2-page-head tlg-page-head-with-tabs">
         <div className="tlg-v2-page-head-copy">
-          <div className="tlg-v2-page-eyebrow">World competition</div>
-          <h2 className="tlg-v2-page-title">{world} Ranking</h2>
+          <div className="tlg-v2-page-eyebrow">{t('rankingsPage.eyebrow')}</div>
+          <h2 className="tlg-v2-page-title">{t('rankingsPage.heading', { world })}</h2>
           <p className="tlg-v2-page-description">
-            Singles and doubles have completely separate ATP/WTA rankings. Doubles points belong to the individual player and stay with them when partners change.
+            {t('rankingsPage.description')}
           </p>
         </div>
 
-        <div className="tlg-ranking-discipline-tabs tlg-standard-tabs" role="tablist" aria-label="Ranking discipline">
-          <button type="button" role="tab" aria-selected={discipline === 'singles'} className={discipline === 'singles' ? 'active' : ''} onClick={() => setDiscipline('singles')}>Singles</button>
-          <button type="button" role="tab" aria-selected={discipline === 'doubles'} className={discipline === 'doubles' ? 'active' : ''} onClick={() => setDiscipline('doubles')}>Doubles</button>
+        <div className="tlg-ranking-discipline-tabs tlg-standard-tabs" role="tablist" aria-label={t('rankingsPage.disciplineAria')}>
+          <button type="button" role="tab" aria-selected={discipline === 'singles'} className={discipline === 'singles' ? 'active' : ''} onClick={() => setDiscipline('singles')}>{t('rankingsPage.singles')}</button>
+          <button type="button" role="tab" aria-selected={discipline === 'doubles'} className={discipline === 'doubles' ? 'active' : ''} onClick={() => setDiscipline('doubles')}>{t('rankingsPage.doubles')}</button>
         </div>
       </header>
 
@@ -292,17 +299,17 @@ export default function RankingsPage() {
           }}
         >
           <div>
-            <span>PREMIUM · RANKING PROTECTION</span>
-            <h3>Upcoming Point Expirations</h3>
+            <span>{t('rankingsPage.premiumProtection')}</span>
+            <h3>{t('rankingsPage.upcomingExpirations')}</h3>
             <p>
               {discipline === 'doubles'
-                ? 'Your next doubles ranking results due to expire.'
-                : 'Your next singles ranking results due to expire.'}
+                ? t('rankingsPage.doublesExpiryIntro')
+                : t('rankingsPage.singlesExpiryIntro')}
             </p>
           </div>
           {rankingProtection?.premium ? (
             <strong>
-              {rankingProtectionOpen ? 'Minimize' : 'Expand'}
+              {rankingProtectionOpen ? t('rankingsPage.minimize') : t('rankingsPage.expand')}
               {rankingProtectionOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
             </strong>
           ) : (
@@ -313,7 +320,7 @@ export default function RankingsPage() {
         {!rankingProtection?.premium ? (
           <div className="tlg-ranking-protection-locked">
             <LockKeyhole size={16} />
-            <span>Upgrade to Premium to see the next five ranking-point expirations.</span>
+            <span>{t('rankingsPage.upgrade')}</span>
           </div>
         ) : rankingProtectionOpen ? (
           rankingProtection.contributions.length > 0 ? (
@@ -321,25 +328,25 @@ export default function RankingsPage() {
               {rankingProtection.contributions.slice(0, 5).map((item) => (
                 <article key={item.contribution_id}>
                   <div>
-                    <span>{item.next_edition_scheduled ? 'Defending points' : 'Scheduled expiration'}</span>
+                    <span>{item.next_edition_scheduled ? t('rankingsPage.defendingPoints') : t('rankingsPage.scheduledExpiration')}</span>
                     <strong>{item.tournament_name}</strong>
                     <small>{item.source_result_label}</small>
                   </div>
                   <div className="points">
-                    <strong>{item.ranking_points.toLocaleString()} pts</strong>
-                    <small>{item.days_remaining.toLocaleString()} game days remaining</small>
+                    <strong>{t('rankingsPage.pointsShort', { count: formatNumber(item.ranking_points) })}</strong>
+                    <small>{t('rankingsPage.gameDaysRemaining', { count: item.days_remaining })}</small>
                   </div>
                   <div className="expires">
-                    <span>Expires</span>
-                    <strong>Season {item.expiration_season} · Week {item.expiration_week}</strong>
-                    <small>Month {item.expiration_month}, Day {item.expiration_day}</small>
+                    <span>{t('rankingsPage.expires')}</span>
+                    <strong>{t('rankingsPage.seasonWeek', { season: item.expiration_season, week: item.expiration_week })}</strong>
+                    <small>{t('rankingsPage.monthDay', { month: item.expiration_month, day: item.expiration_day })}</small>
                   </div>
                 </article>
               ))}
             </div>
           ) : (
             <div className="tlg-ranking-protection-empty">
-              No {discipline} ranking results are currently waiting to expire.
+              {t('rankingsPage.noExpirations', { discipline: discipline === 'doubles' ? t('rankingsPage.doubles').toLowerCase() : t('rankingsPage.singles').toLowerCase() })}
             </div>
           )
         ) : null}
@@ -349,7 +356,7 @@ export default function RankingsPage() {
         <header className="tlg-v2-panel-header tlg-ranking-panel-header">
           <div>
             <span>{world} {discipline}</span>
-            <h3>{discipline === 'doubles' ? 'Doubles World Ranking' : 'Singles World Ranking'}</h3>
+            <h3>{discipline === 'doubles' ? t('rankingsPage.worldRankingDoubles') : t('rankingsPage.worldRankingSingles')}</h3>
           </div>
           <RankingPagination
             page={page}
@@ -362,22 +369,22 @@ export default function RankingsPage() {
         </header>
 
         <div className="tlg-ranking-table-head">
-          <span>Rank</span>
-          <span>Rank change</span>
-          <span>Player</span>
-          <span>Country</span>
-          <span>Points</span>
-          <span>Points change</span>
+          <span>{t('rankingsPage.rank')}</span>
+          <span>{t('rankingsPage.rankChange')}</span>
+          <span>{t('rankingsPage.player')}</span>
+          <span>{t('rankingsPage.country')}</span>
+          <span>{t('rankingsPage.points')}</span>
+          <span>{t('rankingsPage.pointsChange')}</span>
         </div>
 
         {loading ? (
-          <div className="tlg-ranking-empty"><strong>Loading ranking…</strong></div>
+          <div className="tlg-ranking-empty"><strong>{t('rankingsPage.loading')}</strong></div>
         ) : error ? (
-          <div className="tlg-ranking-empty"><strong>Unable to load ranking</strong><p>{error}</p></div>
+          <div className="tlg-ranking-empty"><strong>{t('rankingsPage.loadError')}</strong><p>{error}</p></div>
         ) : rows.length === 0 ? (
           <div className="tlg-ranking-empty">
-            <strong>No ranked players yet</strong>
-            <p>Created players will appear here automatically.</p>
+            <strong>{t('rankingsPage.noPlayers')}</strong>
+            <p>{t('rankingsPage.noPlayersBody')}</p>
           </div>
         ) : (
           <div className="tlg-live-ranking-rows">
@@ -390,7 +397,7 @@ export default function RankingsPage() {
                   to={`/game/players/${row.player_id}`}
                   state={{
                     playerProfileReturn: returnPath,
-                    playerProfileReturnLabel: 'Back to Rankings',
+                    playerProfileReturnLabel: t('rankingsPage.back'),
                     playerProfileReturnState: {
                       rankingReturnPlayerId: row.player_id,
                       rankingReturnScrollKey: scrollKey,
@@ -406,11 +413,11 @@ export default function RankingsPage() {
                   className={`tlg-live-ranking-row ${row.player_id === player?.id ? 'tlg-live-ranking-row-own' : ''}`}
                 >
                   <strong className="tlg-live-rank-number">{row.rank_position}</strong>
-                  <WeeklyRankChange row={row} />
+                  <WeeklyRankChange row={row} t={t} />
                   <span className="tlg-live-player-name">{row.first_name} {row.last_name}</span>
                   <span className="tlg-live-country"><CountryFlag countryCode={row.country_code} countryName={row.country_code} width={22} height={15} /> {row.country_code}</span>
-                  <strong className="tlg-live-points">{row.ranking_points.toLocaleString()}</strong>
-                  <WeeklyPointsChange row={row} />
+                  <strong className="tlg-live-points">{formatNumber(row.ranking_points)}</strong>
+                  <WeeklyPointsChange row={row} t={t} formatNumber={formatNumber} />
                 </Link>
               )
             })}
