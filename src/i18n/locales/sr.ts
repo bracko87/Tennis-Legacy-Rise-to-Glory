@@ -1195,6 +1195,11 @@ export default {
       sessionProcessed: 'Današnja sesija kampa je već obrađena.',
       campDayCompleted: 'Dan kampa {{day}} je završen. Razvoj je sačuvan u bazi.',
       sessionFailed: 'Sesiju kampa nije moguće obraditi.',
+      booking: 'Rezervacija…',
+      anotherBooked: 'Drugi kamp je već planiran',
+      insufficientCash: 'Nema dovoljno sredstava karijere',
+      bookWithPrice: 'Rezerviši trening kamp · {{amount}}',
+      bookCamp: 'Rezerviši trening kamp',
       status: { booked: 'Rezervisano', active: 'Aktivno', completed: 'Završeno', cancelled: 'Otkazano' },
       continents: {
         Europe: 'Evropa', Asia: 'Azija', Africa: 'Afrika', North_America: 'Severna Amerika',
