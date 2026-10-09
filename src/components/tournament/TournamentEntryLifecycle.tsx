@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 
 import { supabase } from '../../lib/supabase'
@@ -136,6 +137,7 @@ function milestoneIndex(phase: string) {
 }
 
 export default function TournamentEntryLifecycle() {
+  const { t } = useTranslation()
   const { competitionId } = useParams()
   const [target, setTarget] = useState<HTMLElement | null>(null)
   const [data, setData] = useState<TournamentEntryLifecycleData | null>(null)
@@ -257,14 +259,14 @@ export default function TournamentEntryLifecycle() {
     <section className="tlg-detail-panel tlg-entry-lifecycle-panel">
       <header className="tlg-detail-panel-head tlg-entry-lifecycle-head">
         <div>
-          <span>Tournament entry</span>
-          <h2>Application & entry timeline</h2>
-          <p>One active application is allowed per target week. Higher tournament levels resolve first; if you miss the field, lower entry waves remain available. Acceptance uses the latest published Monday ranking.</p>
+          <span>{t('tournamentPage.enhancements.entry.kicker')}</span>
+          <h2>{t('tournamentPage.enhancements.entry.title')}</h2>
+          <p>{t('tournamentPage.enhancements.entry.body')}</p>
         </div>
         {data && <strong className={`tlg-entry-phase phase-${data.phase}`}>{phaseLabel(data.phase)}</strong>}
       </header>
 
-      {loading ? <div className="tlg-entry-loading">Loading tournament entry timeline…</div> : error && !data ? <div className="tlg-entry-error">{error}</div> : data ? (
+      {loading ? <div className="tlg-entry-loading">{t('tournamentPage.enhancements.entry.loading')}</div> : error && !data ? <div className="tlg-entry-error">{error}</div> : data ? (
         <>
           <div className="tlg-entry-milestones">
             {milestones.map((item, index) => (
@@ -278,7 +280,7 @@ export default function TournamentEntryLifecycle() {
           <div className="tlg-entry-content-grid">
             <div className="tlg-entry-personal-card">
               <div className="tlg-entry-personal-head">
-                <div><span>Your status</span><strong>{personalStatus(data)}</strong></div>
+                <div><span>{t('tournamentPage.enhancements.entry.yourStatus')}</span><strong>{personalStatus(data)}</strong></div>
                 <div className="tlg-entry-vacancy-mini"><span>Main vacancies {data.vacancies.main_draw}</span><span>Qualifying vacancies {data.vacancies.qualification}</span></div>
               </div>
 
@@ -303,47 +305,47 @@ export default function TournamentEntryLifecycle() {
                   </div>
                   <label className="tlg-entry-qual-toggle">
                     <input type="checkbox" checked={acceptQualification} onChange={(event) => setAcceptQualification(event.target.checked)} disabled={busy} />
-                    <span><strong>Accept Qualification</strong><small>If Main Draw is unavailable, keep this tournament as an option through qualifying.</small></span>
+                    <span><strong>{t('tournamentPage.enhancements.entry.acceptQualification')}</strong><small>{t('tournamentPage.enhancements.entry.acceptQualificationBody')}</small></span>
                   </label>
                   <div className="tlg-entry-actions">
                     <button type="button" className="primary" disabled={busy} onClick={() => void applyNormal()}>
                       {currentApplicationIsPending ? 'Update application' : hasOtherPending ? 'Switch application' : 'Apply to tournament'}
                     </button>
-                    {currentApplicationIsPending && <button type="button" disabled={busy} onClick={() => void withdraw()}>Withdraw</button>}
+                    {currentApplicationIsPending && <button type="button" disabled={busy} onClick={() => void withdraw()}>{t('tournamentPage.enhancements.entry.withdraw')}</button>}
                   </div>
                 </div>
               )}
 
               {data.user.can_apply_late && (
                 <div className="tlg-entry-late-box">
-                  <div><strong>Final Vacancy is open</strong><span>You have no commitment for this tournament week. Only genuine remaining Main Draw or Qualification vacancies can be taken.</span></div>
+                  <div><strong>{t('tournamentPage.enhancements.entry.vacancyOpen')}</strong><span>{t('tournamentPage.enhancements.entry.vacancyBody')}</span></div>
                   <label><input type="checkbox" checked={acceptQualification} onChange={(event) => setAcceptQualification(event.target.checked)} disabled={busy} /> Accept Qualification</label>
-                  <button type="button" disabled={busy} onClick={() => void applyLate()}>Take available vacancy</button>
+                  <button type="button" disabled={busy} onClick={() => void applyLate()}>{t('tournamentPage.enhancements.entry.takeVacancy')}</button>
                 </div>
               )}
 
               {(data.user.can_apply_normal || data.user.can_apply_late) && (
-                <div className="tlg-entry-cost-warning" role="note" aria-label="Travel and accommodation cost notice">
+                <div className="tlg-entry-cost-warning" role="note" aria-label={t('tournamentPage.enhancements.entry.costsAria')}>
                   <span className="tlg-entry-cost-warning-icon" aria-hidden="true">!</span>
                   <div>
-                    <strong>Travel & accommodation costs</strong>
-                    <small>Applying means you accept the travel and accommodation costs from your home city to the tournament host city if your entry is confirmed. Long-distance tournaments can be expensive. Your full trip cost will be shown in Schedule → Prepare Tournament.</small>
+                    <strong>{t('tournamentPage.enhancements.entry.costsTitle')}</strong>
+                    <small>{t('tournamentPage.enhancements.entry.costsBody')}</small>
                   </div>
                 </div>
               )}
 
               {!data.user.can_apply_normal && !data.user.can_apply_late && data.user.entry_status == null && !currentApplicationIsPending && (
-                <p className="tlg-entry-passive-note">No entry action is available for this tournament at this stage. Follow the selection timeline above or choose another tournament whose entry wave is still open.</p>
+                <p className="tlg-entry-passive-note">{t('tournamentPage.enhancements.entry.passive')}</p>
               )}
 
               {error && <div className="tlg-entry-error inline">{error}</div>}
             </div>
 
             <aside className="tlg-entry-deadlines-card">
-              <span>Personal deadlines</span>
-              <div><strong>Tournament preparation</strong><small>{data.user.preparation_deadline ? `${formatMoment(data.user.preparation_deadline)} · locks 24h before planned departure` : 'Calculated once your tournament trip is scheduled · locks 24h before departure'}</small></div>
-              <div><strong>Match-specific tactic</strong><small>Locks 60 minutes before the scheduled match start. If a match time changes, this deadline moves with it.</small></div>
-              <div><strong>Ranking basis</strong><small>Entry decisions use the official published Monday ranking. Pending weekly ranking points do not reseed an already decided field.</small></div>
+              <span>{t('tournamentPage.enhancements.entry.deadlines')}</span>
+              <div><strong>{t('tournamentPage.enhancements.entry.preparation')}</strong><small>{data.user.preparation_deadline ? t('tournamentPage.enhancements.entry.preparationKnown', { date: formatMoment(data.user.preparation_deadline) }) : t('tournamentPage.enhancements.entry.preparationUnknown')}</small></div>
+              <div><strong>{t('tournamentPage.enhancements.entry.tactic')}</strong><small>{t('tournamentPage.enhancements.entry.tacticBody')}</small></div>
+              <div><strong>{t('tournamentPage.enhancements.entry.rankingBasis')}</strong><small>{t('tournamentPage.enhancements.entry.rankingBody')}</small></div>
             </aside>
           </div>
         </>
