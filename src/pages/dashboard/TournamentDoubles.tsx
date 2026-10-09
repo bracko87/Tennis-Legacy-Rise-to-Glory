@@ -705,29 +705,29 @@ export default function TournamentDoublesPage() {
     <GameLayout title={`${tournament.name} Doubles`} subtitle={`${tournament.world} · ${tournament.city} · ${tournament.surface} doubles`}>
       <div className="tlg-detail-page tlg-doubles-page">
         <Link to="/game/calendar?tab=tournament-calendar" className="tlg-detail-back-link">
-          <ArrowLeft size={15} /> Back to Tournament Calendar
+          <ArrowLeft size={15} /> {t('tournamentDoublesPage.backCalendar')}
         </Link>
 
-        <nav className="tlg-tournament-discipline-tabs tlg-standard-tabs" aria-label="Tournament competition">
-          <Link to={`/game/tournaments/${competitionId}`}>Singles</Link>
-          <Link to={`/game/tournaments/${competitionId}/doubles`} className="active" aria-current="page">Doubles</Link>
+        <nav className="tlg-tournament-discipline-tabs tlg-standard-tabs" aria-label={t('tournamentDoublesPage.competitionAria')}>
+          <Link to={`/game/tournaments/${competitionId}`}>{t('tournamentDoublesPage.singles')}</Link>
+          <Link to={`/game/tournaments/${competitionId}/doubles`} className="active" aria-current="page">{t('tournamentDoublesPage.doubles')}</Link>
         </nav>
 
         <section className="tlg-detail-hero">
           <div className="tlg-detail-surface-card">
             <img
               src={SURFACE_IMAGES[surface]}
-              alt={titleCase(surface) + ' tennis court surface'}
+              alt={t('tournamentDoublesPage.surfaceAlt', { surface: titleCase(surface) })}
               className="tlg-detail-surface-image"
             />
             <div className="tlg-detail-surface-copy">
               <strong>{titleCase(surface)}</strong>
-              <span>{titleCase(environment)} court</span>
+              <span>{t('tournamentDoublesPage.court', { environment: titleCase(environment) })}</span>
             </div>
           </div>
 
           <div className="tlg-detail-hero-copy">
-            <div className="tlg-detail-eyebrow">Season {seasonNumber} · {tournament.world} doubles</div>
+            <div className="tlg-detail-eyebrow">{t('tournamentDoublesPage.seasonEyebrow', { season: seasonNumber, world: tournament.world })}</div>
             <h1>{tournament.name}</h1>
 
             <div className="tlg-detail-location-line">
@@ -739,30 +739,28 @@ export default function TournamentDoublesPage() {
               />
               <div>
                 <strong>{tournament.city}, {countryName}</strong>
-                <span><MapPin size={13} /> Official tournament location</span>
+                <span><MapPin size={13} /> {t('tournamentDoublesPage.officialLocation')}</span>
               </div>
             </div>
 
             <p>
-              A {categoryLabel} doubles event played on {titleCase(surface)} courts in {tournament.city}.
-              It uses the same location, surface and tournament dates as singles, while the doubles draw,
-              partner marketplace, ranking points and prize money remain separate.
+              {t('tournamentDoublesPage.description', { category: categoryLabel, surface: titleCase(surface), city: tournament.city })}
             </p>
 
             <div className="tlg-detail-tags">
               <span>{categoryLabel}</span>
               <span>{titleCase(surface)}</span>
               <span>{titleCase(environment)}</span>
-              <span>Doubles</span>
+              <span>{t('tournamentDoublesPage.doubles')}</span>
             </div>
           </div>
 
-          <div className={'tlg-detail-logo-slot' + (detail?.logo_url ? ' tlg-detail-logo-slot-recovered' : '')} aria-label="Tournament logo">
+          <div className={'tlg-detail-logo-slot' + (detail?.logo_url ? ' tlg-detail-logo-slot-recovered' : '')} aria-label={t('tournamentDoublesPage.logoAria')}>
             {detail?.logo_url ? (
               <img
                 className="tlg-tournament-logo-image tlg-tournament-logo-image-ready"
                 src={detail.logo_url}
-                alt={tournament.name + ' tournament logo'}
+                alt={t('tournamentDoublesPage.logoAlt', { name: tournament.name })}
                 decoding="async"
               />
             ) : (
@@ -775,68 +773,65 @@ export default function TournamentDoublesPage() {
         </section>
 
         <section className="tlg-detail-stats-grid">
-          <article><span>Draw capacity</span><strong>{core.draw_size} teams</strong></article>
-          <article><span>Team prize pool</span><strong>{formatMoney(core.announced_team_prize_pool_usd)}</strong></article>
-          <article><span>Winner ranking points</span><strong>{core.winner_points.toLocaleString()} pts each</strong></article>
-          <article><span>Your doubles status</span><strong>{statusLabel(hub.player_status)}</strong></article>
+          <article><span>{t('tournamentDoublesPage.drawCapacity')}</span><strong>{t('tournamentDoublesPage.teamsCount', { count: core.draw_size })}</strong></article>
+          <article><span>{t('tournamentDoublesPage.teamPrizePool')}</span><strong>{formatCurrency(core.announced_team_prize_pool_usd, 'USD')}</strong></article>
+          <article><span>{t('tournamentDoublesPage.winnerPoints')}</span><strong>{t('tournamentDoublesPage.pointsEach', { count: formatNumber(core.winner_points) })}</strong></article>
+          <article><span>{t('tournamentDoublesPage.yourStatus')}</span><strong>{statusLabel(hub.player_status, t)}</strong></article>
         </section>
 
         <section className="tlg-detail-panel tlg-entry-lifecycle-panel tlg-doubles-entry-timeline-panel">
           <header className="tlg-detail-panel-head tlg-entry-lifecycle-head">
             <div>
-              <span>Tournament entry</span>
-              <h2>Application & entry timeline</h2>
+              <span>{t('tournamentDoublesPage.entryKicker')}</span>
+              <h2>{t('tournamentDoublesPage.entryTitle')}</h2>
               <p>
-                Doubles follows the same six-step tournament-entry presentation as singles. Partner registration,
-                partnership resolution, field locking and draw publication use the deadlines below.
+                {t('tournamentDoublesPage.entryBody')}
               </p>
             </div>
-            <strong className={'tlg-entry-phase phase-' + timeline.phase}>{statusLabel(timeline.phase)}</strong>
+            <strong className={'tlg-entry-phase phase-' + timeline.phase}>{statusLabel(timeline.phase, t)}</strong>
           </header>
 
           <div className="tlg-entry-milestones">
             <article className={entryPhaseIndex > 0 ? 'done' : entryPhaseIndex === 0 ? 'current' : ''}>
               <span>1</span>
-              <div><strong>Registration opens</strong><small>{formatMoment(timeline.registration_open)}</small></div>
+              <div><strong>{t('tournamentDoublesPage.milestones.registration')}</strong><small>{formatMoment(timeline.registration_open, t, localeTag)}</small></div>
             </article>
             <article className={entryPhaseIndex > 1 ? 'done' : entryPhaseIndex === 1 ? 'current' : ''}>
               <span>2</span>
-              <div><strong>Marketplace deadline</strong><small>{formatMoment(timeline.registration_deadline)}</small></div>
+              <div><strong>{t('tournamentDoublesPage.milestones.marketplace')}</strong><small>{formatMoment(timeline.registration_deadline, t, localeTag)}</small></div>
             </article>
             <article className={entryPhaseIndex > 2 ? 'done' : entryPhaseIndex === 2 ? 'current' : ''}>
               <span>3</span>
-              <div><strong>Partnership deadline</strong><small>{formatMoment(timeline.partnership_deadline)}</small></div>
+              <div><strong>{t('tournamentDoublesPage.milestones.partnership')}</strong><small>{formatMoment(timeline.partnership_deadline, t, localeTag)}</small></div>
             </article>
             <article className={entryPhaseIndex > 3 ? 'done' : entryPhaseIndex === 3 ? 'current' : ''}>
               <span>4</span>
-              <div><strong>Final field locked</strong><small>{formatMoment(timeline.draw_lock)}</small></div>
+              <div><strong>{t('tournamentDoublesPage.milestones.field')}</strong><small>{formatMoment(timeline.draw_lock, t, localeTag)}</small></div>
             </article>
             <article className={core.draw_published ? 'done' : entryPhaseIndex === 4 ? 'current' : ''}>
               <span>5</span>
-              <div><strong>Draw published</strong><small>{core.draw_published ? 'Published' : 'After final field lock'}</small></div>
+              <div><strong>{t('tournamentDoublesPage.milestones.draw')}</strong><small>{core.draw_published ? t('tournamentDoublesPage.milestones.published') : t('tournamentDoublesPage.milestones.afterLock')}</small></div>
             </article>
             <article className={core.draw_published ? 'current' : ''}>
               <span>6</span>
-              <div><strong>Tournament begins</strong><small>{formatMoment(timeline.tournament_start,false)}</small></div>
+              <div><strong>{t('tournamentDoublesPage.milestones.begins')}</strong><small>{formatMoment(timeline.tournament_start, t, localeTag, false)}</small></div>
             </article>
           </div>
 
           <div className="tlg-entry-personal-card tlg-doubles-entry-summary">
             <div className="tlg-entry-personal-head">
               <div>
-                <span>Your status</span>
-                <strong>{statusLabel(hub.player_status)}</strong>
+                <span>{t('tournamentDoublesPage.yourStatus')}</span>
+                <strong>{statusLabel(hub.player_status, t)}</strong>
               </div>
               <div className="tlg-entry-vacancy-mini">
-                <span>Confirmed teams {core.confirmed_teams}</span>
-                <span>Maximum draw {core.draw_size} teams</span>
-                <span>Looking for partner {hub.marketplace.length}</span>
+                <span>{t('tournamentDoublesPage.confirmedTeams', { count: core.confirmed_teams })}</span>
+                <span>{t('tournamentDoublesPage.maximumDraw', { count: core.draw_size })}</span>
+                <span>{t('tournamentDoublesPage.looking', { count: hub.marketplace.length })}</span>
               </div>
             </div>
             <p className="tlg-entry-passive-note">
-              AI doubles interest is sampled only from AI players already entered in this exact singles tournament:
-              about 40% of qualification players and 15% of main-draw players. High-tier events may use a limited
-              last-minute fill when genuine doubles places remain.
+              {t('tournamentDoublesPage.aiNote')}
             </p>
           </div>
         </section>
@@ -844,33 +839,33 @@ export default function TournamentDoublesPage() {
         <section className="tlg-detail-panel">
           <header className="tlg-detail-panel-head tlg-entry-lifecycle-head">
             <div>
-              <span>Tournament schedule</span>
-              <h2>Competition window</h2>
+              <span>{t('tournamentDoublesPage.scheduleKicker')}</span>
+              <h2>{t('tournamentDoublesPage.scheduleTitle')}</h2>
             </div>
           </header>
 
           {detail?.schedule_slots?.length ? (
             <div className="tlg-detail-schedule-list tlg-detail-schedule-list-expanded">
               {detail.schedule_slots.map((slot) => {
-                const dayPlan = buildDoublesDayPlan(slot, draw)
+                const dayPlan = buildDoublesDayPlan(slot, draw, t)
                 return (
                   <article key={slot.season_week + '-' + slot.phase} className="tlg-detail-schedule-card">
                     <div className="tlg-detail-schedule-card-head">
                       <div>
-                        <span>{phaseLabel(slot.phase)}</span>
-                        <strong>{MONTHS[slot.calendar_month - 1]?.name ?? 'Month ' + slot.calendar_month} · Week {slot.month_week} · Season Week {slot.season_week}</strong>
+                        <span>{phaseLabel(slot.phase, t)}</span>
+                        <strong>{t('tournamentDoublesPage.monthWeek', { month: MONTHS[slot.calendar_month - 1]?.name ?? slot.calendar_month, week: slot.month_week, seasonWeek: slot.season_week })}</strong>
                       </div>
-                      <p>{formatCompetitionWeekRange(slot.season_week)} · Monday–Sunday</p>
+                      <p>{t('tournamentDoublesPage.weekRange', { range: formatCompetitionWeekRange(slot.season_week) })}</p>
                     </div>
 
-                    <div className="tlg-detail-day-strip" role="table" aria-label={phaseLabel(slot.phase) + ' doubles day schedule'}>
+                    <div className="tlg-detail-day-strip" role="table" aria-label={t('tournamentDoublesPage.scheduleAria', { phase: phaseLabel(slot.phase, t) })}>
                       {dayPlan.map((item) => (
                         <div
                           key={item.day}
                           className={'tlg-detail-day-tile tlg-detail-day-tile-' + item.kind}
                           role="row"
                         >
-                          <span role="cell">Day {item.day}</span>
+                          <span role="cell">{t('tournamentDoublesPage.day', { day: item.day })}</span>
                           <strong role="cell">{item.date}</strong>
                           <p role="cell">{item.activity}</p>
                         </div>
@@ -882,43 +877,41 @@ export default function TournamentDoublesPage() {
             </div>
           ) : (
             <div className="tlg-doubles-empty">
-              <strong>Tournament schedule is loading</strong>
-              <p>Doubles uses the same official competition weeks and venue as singles.</p>
+              <strong>{t('tournamentDoublesPage.scheduleLoading')}</strong>
+              <p>{t('tournamentDoublesPage.scheduleLoadingBody')}</p>
             </div>
           )}
 
           <p className="tlg-detail-schedule-note">
-            Doubles shares the tournament venue and calendar with singles. Match times are assigned through the unified
-            scheduling engine so a player cannot be scheduled for singles and doubles at the same time, and the required
-            recovery interval is preserved.
+            {t('tournamentDoublesPage.scheduleNote')}
           </p>
         </section>
 
         <section className="tlg-detail-panel">
           <header className="tlg-detail-panel-head">
-            <div><span>Your doubles entry</span><h2>Partner & entry status</h2></div>
+            <div><span>{t('tournamentDoublesPage.entrySection')}</span><h2>{t('tournamentDoublesPage.partnerStatus')}</h2></div>
           </header>
 
           <div className="tlg-doubles-my-status">
             <div>
-              <span className={`tlg-doubles-status-chip status-${hub.player_status}`}>{statusLabel(hub.player_status)}</span>
+              <span className={`tlg-doubles-status-chip status-${hub.player_status}`}>{statusLabel(hub.player_status, t)}</span>
               {hub.my_team ? (
                 <>
                   <h3>{hub.my_team.partner_name}</h3>
                   <p>
-                    Partner · {hub.my_team.partner_doubles_points.toLocaleString()} doubles points
-                    {hub.my_team.seed_number ? ` · Seed #${hub.my_team.seed_number}` : ''}
+                    {t('tournamentDoublesPage.partner')} · {t('tournamentDoublesPage.doublesPoints', { count: formatNumber(hub.my_team.partner_doubles_points) })}
+                    {hub.my_team.seed_number ? ` · ${t('tournamentDoublesPage.seed', { seed: hub.my_team.seed_number })}` : ''}
                   </p>
                 </>
               ) : listingActive ? (
                 <>
-                  <h3>Your player is visible in this tournament's partner marketplace</h3>
-                  <p>Only managers looking for a partner for {tournament.name} can see and invite you here.</p>
+                  <h3>{t('tournamentDoublesPage.listedTitle')}</h3>
+                  <p>{t('tournamentDoublesPage.listedBody', { name: tournament.name })}</p>
                 </>
               ) : (
                 <>
-                  <h3>No doubles partnership yet</h3>
-                  <p>You can advertise for this tournament or directly invite a player who is already looking.</p>
+                  <h3>{t('tournamentDoublesPage.noPartnership')}</h3>
+                  <p>{t('tournamentDoublesPage.noPartnershipBody')}</p>
                 </>
               )}
               {!hub.availability.available && (
@@ -934,22 +927,22 @@ export default function TournamentDoublesPage() {
             <div className="tlg-doubles-my-actions">
               {!hasLiveTeam && !listingActive && (
                 <button type="button" className="tlg-detail-primary-button" disabled={!canList || busyKey !== null} onClick={() => void setLooking(true)}>
-                  <UserPlus size={15} /> {busyKey === 'listing-on' ? 'Adding…' : 'Look for a Partner'}
+                  <UserPlus size={15} /> {busyKey === 'listing-on' ? t('tournamentDoublesPage.adding') : t('tournamentDoublesPage.lookPartner')}
                 </button>
               )}
               {!hasLiveTeam && listingActive && (
                 <button type="button" className="tlg-detail-secondary-button" disabled={!timeline.can_cancel_listing || busyKey !== null} onClick={() => void setLooking(false)}>
-                  <UserMinus size={15} /> {busyKey === 'listing-off' ? 'Removing…' : 'Stop Looking'}
+                  <UserMinus size={15} /> {busyKey === 'listing-off' ? t('tournamentDoublesPage.removing') : t('tournamentDoublesPage.stopLooking')}
                 </button>
               )}
               {hasLiveTeam && (
                 <button type="button" className="tlg-detail-secondary-button" disabled={busyKey !== null} onClick={() => void withdrawTeam()}>
                   <UserMinus size={15} />
                   {busyKey === 'withdraw-team'
-                    ? 'Processing…'
+                    ? t('tournamentDoublesPage.processing')
                     : core.draw_published || timeline.draw_locked
-                      ? 'Withdraw Doubles Team'
-                      : 'Leave Partnership'}
+                      ? t('tournamentDoublesPage.withdrawTeam')
+                      : t('tournamentDoublesPage.leavePartnership')}
                 </button>
               )}
             </div>
@@ -961,7 +954,7 @@ export default function TournamentDoublesPage() {
         {hub.incoming_invitations.length > 0 && (
           <section className="tlg-detail-panel">
             <header className="tlg-detail-panel-head">
-              <div><span>Action required</span><h2>Doubles invitations</h2></div>
+              <div><span>{t('tournamentDoublesPage.actionRequired')}</span><h2>{t('tournamentDoublesPage.invitations')}</h2></div>
             </header>
             <div className="tlg-doubles-invitations">
               {hub.incoming_invitations.map((invitation) => (
@@ -970,15 +963,15 @@ export default function TournamentDoublesPage() {
                     <CountryFlag countryCode={invitation.country_code} width={24} height={16} />
                     <div>
                       <strong>{invitation.partner_name}</strong>
-                      <span>{invitation.doubles_points.toLocaleString()} doubles points · expires {formatMoment(invitation.expires_at_game)}</span>
+                      <span>{t('tournamentDoublesPage.expires', { count: formatNumber(invitation.doubles_points), time: formatMoment(invitation.expires_at_game, t, localeTag) })}</span>
                     </div>
                   </div>
                   <div className="tlg-doubles-invite-actions">
                     <button type="button" className="tlg-detail-primary-button" disabled={!timeline.can_respond_invitation || busyKey !== null} onClick={() => void respond(invitation.id,true)}>
-                      <CheckCircle2 size={14} /> Accept
+                      <CheckCircle2 size={14} /> {t('tournamentDoublesPage.accept')}
                     </button>
                     <button type="button" className="tlg-detail-secondary-button" disabled={!timeline.can_respond_invitation || busyKey !== null} onClick={() => void respond(invitation.id,false)}>
-                      Decline
+                      {t('tournamentDoublesPage.decline')}
                     </button>
                   </div>
                 </article>
@@ -990,7 +983,7 @@ export default function TournamentDoublesPage() {
         {hub.outgoing_invitations.length > 0 && (
           <section className="tlg-detail-panel">
             <header className="tlg-detail-panel-head">
-              <div><span>Pending</span><h2>Invitations you sent</h2></div>
+              <div><span>{t('tournamentDoublesPage.pending')}</span><h2>{t('tournamentDoublesPage.sentInvitations')}</h2></div>
             </header>
             <div className="tlg-doubles-outgoing">
               {hub.outgoing_invitations.map((invitation) => (
@@ -998,10 +991,10 @@ export default function TournamentDoublesPage() {
                   <CountryFlag countryCode={invitation.country_code} width={24} height={16} />
                   <div>
                     <strong>{invitation.partner_name}</strong>
-                    <span>Waiting for response · deadline {formatMoment(invitation.expires_at_game)}</span>
+                    <span>{t('tournamentDoublesPage.waitingResponse', { time: formatMoment(invitation.expires_at_game, t, localeTag) })}</span>
                   </div>
                   <button type="button" className="tlg-detail-secondary-button" disabled={busyKey !== null} onClick={() => void cancelInvitation(invitation.id)}>
-                    Cancel
+                    {t('tournamentDoublesPage.cancel')}
                   </button>
                 </article>
               ))}
@@ -1011,19 +1004,17 @@ export default function TournamentDoublesPage() {
 
         <section className="tlg-detail-panel">
           <header className="tlg-detail-panel-head">
-            <div><span>Tournament-specific marketplace</span><h2>Players looking for a partner</h2></div>
+            <div><span>{t('tournamentDoublesPage.marketplaceKicker')}</span><h2>{t('tournamentDoublesPage.marketplaceTitle')}</h2></div>
           </header>
 
           <p className="tlg-doubles-market-note">
-            Human managers appear here only after choosing “Look for a Partner” for {tournament.name}.
-            AI candidates are selected only from players already applied to or entered in this same singles tournament,
-            with qualifying and lower-ranked entrants receiving priority. Listings never carry over to another event.
+            {t('tournamentDoublesPage.marketplaceBody', { name: tournament.name })}
           </p>
 
           {hub.marketplace.length === 0 ? (
             <div className="tlg-doubles-empty">
-              <strong>No available partner listings right now</strong>
-              <p>Managers can join this marketplace until {formatMoment(timeline.registration_deadline)}.</p>
+              <strong>{t('tournamentDoublesPage.noListings')}</strong>
+              <p>{t('tournamentDoublesPage.listingsUntil', { time: formatMoment(timeline.registration_deadline, t, localeTag) })}</p>
             </div>
           ) : (
             <div className="tlg-doubles-market-list">
@@ -1034,24 +1025,24 @@ export default function TournamentDoublesPage() {
                     <div className="tlg-doubles-market-player">
                       <CountryFlag countryCode={partner.country_code} width={26} height={18} />
                       <div>
-                        <strong>{partner.first_name} {partner.last_name}{partner.is_me ? ' · You' : ''}</strong>
-                        <span>{partner.playing_style}{partner.surface_match ? ` · Prefers ${tournament.surface}` : partner.preferred_surface ? ` · Prefers ${partner.preferred_surface}` : ''}</span>
+                        <strong>{partner.first_name} {partner.last_name}{partner.is_me ? ` · ${t('tournamentDoublesPage.you')}` : ''}</strong>
+                        <span>{partner.playing_style}{partner.surface_match ? ` · ${t('tournamentDoublesPage.prefers', { surface: tournament.surface })}` : partner.preferred_surface ? ` · ${t('tournamentDoublesPage.prefers', { surface: partner.preferred_surface })}` : ''}</span>
                       </div>
                     </div>
                     <div className="tlg-doubles-market-metrics">
-                      <span><small>Doubles</small><b>{rankLabel(partner.doubles_rank,partner.doubles_points)}</b></span>
-                      <span><small>Singles</small><b>{rankLabel(partner.singles_rank,partner.singles_points)}</b></span>
-                      <span><small>At this event</small><b>{singlesParticipationLabel(partner.singles_participation)}</b></span>
-                      <span><small>Doubles history</small><b>{partner.doubles_events} events · {partner.doubles_titles} titles</b></span>
+                      <span><small>{t('tournamentDoublesPage.doublesLabel')}</small><b>{rankLabel(partner.doubles_rank, partner.doubles_points, t, formatNumber)}</b></span>
+                      <span><small>{t('tournamentDoublesPage.singlesLabel')}</small><b>{rankLabel(partner.singles_rank, partner.singles_points, t, formatNumber)}</b></span>
+                      <span><small>{t('tournamentDoublesPage.atEvent')}</small><b>{singlesParticipationLabel(partner.singles_participation, t)}</b></span>
+                      <span><small>{t('tournamentDoublesPage.history')}</small><b>{t('tournamentDoublesPage.eventsTitles', { events: formatNumber(partner.doubles_events), titles: formatNumber(partner.doubles_titles) })}</b></span>
                     </div>
                     <div className="tlg-doubles-market-action">
                       {partner.is_me ? (
-                        <span className="tlg-doubles-you-chip">Your listing</span>
+                        <span className="tlg-doubles-you-chip">{t('tournamentDoublesPage.yourListing')}</span>
                       ) : pending ? (
-                        <button type="button" className="tlg-detail-secondary-button" disabled onClick={() => undefined}>Invitation pending</button>
+                        <button type="button" className="tlg-detail-secondary-button" disabled onClick={() => undefined}>{t('tournamentDoublesPage.invitationPending')}</button>
                       ) : (
                         <button type="button" className="tlg-detail-primary-button" disabled={!canInvite || busyKey !== null} onClick={() => void invite(partner.player_id)}>
-                          <Send size={14} /> {busyKey === `invite-${partner.player_id}` ? 'Sending…' : 'Invite'}
+                          <Send size={14} /> {busyKey === `invite-${partner.player_id}` ? t('tournamentDoublesPage.sending') : t('tournamentDoublesPage.invite')}
                         </button>
                       )}
                     </div>
@@ -1065,13 +1056,13 @@ export default function TournamentDoublesPage() {
         {!core.draw_published && (
           <section className="tlg-detail-panel">
             <header className="tlg-detail-panel-head">
-              <div><span>Entry field</span><h2>Confirmed teams & alternates</h2></div>
+              <div><span>{t('tournamentDoublesPage.fieldKicker')}</span><h2>{t('tournamentDoublesPage.fieldTitle')}</h2></div>
             </header>
 
             {hub.teams.length === 0 ? (
             <div className="tlg-doubles-empty">
-              <strong>No partnerships confirmed yet</strong>
-              <p>Teams appear here immediately after an invitation is accepted.</p>
+              <strong>{t('tournamentDoublesPage.noTeams')}</strong>
+              <p>{t('tournamentDoublesPage.noTeamsBody')}</p>
             </div>
           ) : (
             <div className="tlg-doubles-team-list">
@@ -1080,9 +1071,9 @@ export default function TournamentDoublesPage() {
                   <span className="tlg-doubles-team-order">{team.seed_number ? `#${team.seed_number}` : index + 1}</span>
                   <div>
                     <strong>{team.player1_name} / {team.player2_name}</strong>
-                    <span>{team.combined_doubles_points.toLocaleString()} established doubles points · entry strength {team.entry_strength.toLocaleString()}</span>
+                    <span>{t('tournamentDoublesPage.establishedPoints', { points: formatNumber(team.combined_doubles_points), strength: formatNumber(team.entry_strength) })}</span>
                   </div>
-                  <span className={`tlg-doubles-entry-chip status-${team.status}`}>{statusLabel(team.status)}</span>
+                  <span className={`tlg-doubles-entry-chip status-${team.status}`}>{statusLabel(team.status, t)}</span>
                 </article>
               ))}
             </div>
@@ -1098,9 +1089,9 @@ export default function TournamentDoublesPage() {
           <section className="tlg-detail-panel tlg-doubles-own-tactic-panel">
             <header className="tlg-detail-panel-head">
               <div>
-                <span>Your doubles match</span>
-                <h2>{activeOwnDrawMatch.round_label} · Match #{activeOwnDrawMatch.match_number}</h2>
-                <p>{doublesScheduleLabel(activeOwnDrawMatch)}</p>
+                <span>{t('tournamentDoublesPage.yourMatch')}</span>
+                <h2>{t('tournamentDoublesPage.matchNumber', { round: activeOwnDrawMatch.round_label, match: activeOwnDrawMatch.match_number })}</h2>
+                <p>{doublesScheduleLabel(activeOwnDrawMatch, t)}</p>
               </div>
             </header>
             <DoublesMatchTacticPanel matchId={activeOwnDrawMatch.match_id} currentPlayerId={player.id} />
@@ -1109,24 +1100,24 @@ export default function TournamentDoublesPage() {
 
         <section className="tlg-detail-panel tlg-doubles-rewards-panel">
           <header className="tlg-detail-panel-head">
-            <div><span>Doubles rewards</span><h2>Ranking points & prize money</h2></div>
+            <div><span>{t('tournamentDoublesPage.rewardsKicker')}</span><h2>{t('tournamentDoublesPage.rewardsTitle')}</h2></div>
           </header>
           <div className="tlg-doubles-rules-strip">
-            <span>Team prize is split 50/50.</span>
-            <span>Doubles fatigue ≈ {Math.round(core.fatigue_multiplier * 100)}% of singles.</span>
-            <span>Equipment wear ≈ {Math.round(core.equipment_wear_multiplier * 100)}% of singles.</span>
-            <span>Minimum recovery: {Math.round(core.minimum_recovery_minutes / 60)} hours.</span>
+            <span>{t('tournamentDoublesPage.splitRule')}</span>
+            <span>{t('tournamentDoublesPage.fatigueRule', { percent: formatNumber(Math.round(core.fatigue_multiplier * 100)) })}</span>
+            <span>{t('tournamentDoublesPage.wearRule', { percent: formatNumber(Math.round(core.equipment_wear_multiplier * 100)) })}</span>
+            <span>{t('tournamentDoublesPage.recoveryRule', { hours: formatNumber(Math.round(core.minimum_recovery_minutes / 60)) })}</span>
           </div>
           <div className="tlg-detail-rewards-table tlg-doubles-rewards-table">
             <div className="tlg-detail-rewards-row tlg-detail-rewards-head">
-              <span>Finishing stage</span><span>Points each</span><span>Team prize</span><span>Per player</span>
+              <span>{t('tournamentDoublesPage.finishingStage')}</span><span>{t('tournamentDoublesPage.pointsColumn')}</span><span>{t('tournamentDoublesPage.teamPrize')}</span><span>{t('tournamentDoublesPage.perPlayer')}</span>
             </div>
             {(core.reward_rows ?? []).map((row) => (
               <div key={row.stage_code} className="tlg-detail-rewards-row">
                 <strong>{row.stage_label}</strong>
-                <span>{row.ranking_points.toLocaleString()} pts</span>
-                <span>{formatMoney(row.team_prize_usd)}</span>
-                <span>{formatMoney(row.player_prize_usd)}</span>
+                <span>{formatNumber(row.ranking_points)}</span>
+                <span>{formatCurrency(row.team_prize_usd, 'USD')}</span>
+                <span>{formatCurrency(row.player_prize_usd, 'USD')}</span>
               </div>
             ))}
           </div>
