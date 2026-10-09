@@ -732,4 +732,5 @@ export default function NotificationsPage() {
         )}
       </section>
     </GameLayout>
-  )}
+  )
+}
