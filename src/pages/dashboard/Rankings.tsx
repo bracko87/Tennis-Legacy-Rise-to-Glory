@@ -107,7 +107,7 @@ function WeeklyRankChange({ row, t }: { row: RankingRow; t: TFunction }) {
     return (
       <span
         className="tlg-live-rank-change tlg-live-rank-change-down"
-        title={`Last week: #${row.previous_week_position}`}
+        title={t('rankingsPage.lastWeekRank', { rank: row.previous_week_position })}
         aria-label={t('rankingsPage.rankDownAria', { count: Math.abs(row.rank_change), rank: row.previous_week_position })}
       >
         <ArrowDown size={14} strokeWidth={2.4} />
@@ -119,7 +119,7 @@ function WeeklyRankChange({ row, t }: { row: RankingRow; t: TFunction }) {
   return (
     <span
       className="tlg-live-rank-change tlg-live-rank-change-same"
-      title={`Last week: #${row.previous_week_position}`}
+      title={t('rankingsPage.lastWeekRank', { rank: row.previous_week_position })}
       aria-label={t('rankingsPage.rankSameAria', { rank: row.previous_week_position })}
     >
       —
@@ -333,7 +333,7 @@ export default function RankingsPage() {
                     <small>{item.source_result_label}</small>
                   </div>
                   <div className="points">
-                    <strong>{t('rankingsPage.pointsShort', { count: formatNumber(item.ranking_points) })}</strong>
+                    <strong>{t('rankingsPage.pointsShort', { count: item.ranking_points, formatted: formatNumber(item.ranking_points) })}</strong>
                     <small>{t('rankingsPage.gameDaysRemaining', { count: item.days_remaining })}</small>
                   </div>
                   <div className="expires">
@@ -355,7 +355,7 @@ export default function RankingsPage() {
       <section className="tlg-v2-panel">
         <header className="tlg-v2-panel-header tlg-ranking-panel-header">
           <div>
-            <span>{world} {discipline}</span>
+            <span>{world} {discipline === 'doubles' ? t('rankingsPage.doubles') : t('rankingsPage.singles')}</span>
             <h3>{discipline === 'doubles' ? t('rankingsPage.worldRankingDoubles') : t('rankingsPage.worldRankingSingles')}</h3>
           </div>
           <RankingPagination
