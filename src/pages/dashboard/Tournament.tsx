@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom'
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 import { Link, useLocation, useParams } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
@@ -180,13 +181,13 @@ function bracketMatchCenter(roundIndex: number, matchIndex: number) {
   return BRACKET_MATCH_HEIGHT / 2 + representedFirstMatchCenter * BRACKET_STEP
 }
 
-function statusLabel(status: MatchDetail['status']) {
-  if (status === 'in_progress') return 'LIVE'
-  if (status === 'completed') return 'FINAL'
-  if (status === 'walkover') return 'W/O'
-  if (status === 'bye') return 'BYE'
-  if (status === 'cancelled') return 'CANCELLED'
-  return 'SCHEDULED'
+function statusLabel(status: MatchDetail['status'], t: TFunction) {
+  if (status === 'in_progress') return t('tournamentPage.match.live')
+  if (status === 'completed') return t('tournamentPage.match.final')
+  if (status === 'walkover') return t('tournamentPage.match.walkover')
+  if (status === 'bye') return t('tournamentPage.match.bye')
+  if (status === 'cancelled') return t('tournamentPage.match.cancelled')
+  return t('tournamentPage.match.scheduled')
 }
 
 function playerName(player: MatchPlayerDetail | null) {
@@ -199,16 +200,17 @@ function drawPlayerName(match: TournamentDrawMatch, side: 1 | 2) {
   return `${first ?? ''} ${last ?? ''}`.trim() || 'BYE'
 }
 
-function formatDrawScore(match: TournamentDrawMatch, perspectivePlayerId: string) {
+function formatDrawScore(match: TournamentDrawMatch, perspectivePlayerId: string, t?: TFunction) {
   const playerIsOne = match.player1_id === perspectivePlayerId
   const own = playerIsOne ? match.player1_set_scores : match.player2_set_scores
   const opponent = playerIsOne ? match.player2_set_scores : match.player1_set_scores
   if (match.match_status === 'walkover') return 'W/O'
-  if (!own.length || own.length !== opponent.length) return 'Result recorded'
+  if (!own.length || own.length !== opponent.length) return t ? t('tournamentPage.draw.resultRecorded') : 'Result recorded'
   return own.map((games, index) => `${games}–${opponent[index]}`).join(', ')
 }
 
 export default function TournamentPage() {
+  const { t } = useTranslation()
   const { competitionId } = useParams()
   const location = useLocation()
   const { player } = useAuth()
@@ -216,7 +218,7 @@ export default function TournamentPage() {
   const [logoStatus, setLogoStatus] = useState<LogoStatus>('none')
   const [logoTarget, setLogoTarget] = useState<HTMLElement | null>(null)
   const [pageTarget, setPageTarget] = useState<HTMLElement | null>(null)
-  const [tournamentName, setTournamentName] = useState('Tournament')
+  const [tournamentName, setTournamentName] = useState(t('tournamentPage.fallbackName'))
   const [tournamentWorld, setTournamentWorld] = useState<'ATP' | 'WTA' | null>(null)
   const [drawMatches, setDrawMatches] = useState<TournamentDrawMatch[]>([])
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null)
@@ -236,7 +238,7 @@ export default function TournamentPage() {
       const row = (Array.isArray(logoResponse.data) ? logoResponse.data[0] : logoResponse.data) as TournamentLogoRow | null
       const nextLogoUrl = row?.logo_url ?? null
       setLogoUrl(nextLogoUrl)
-      setTournamentName(row?.tournament_name ?? 'Tournament')
+      setTournamentName(row?.tournament_name ?? t('tournamentPage.fallbackName'))
       setTournamentWorld(row?.world === 'WTA' ? 'WTA' : row?.world === 'ATP' ? 'ATP' : null)
       setLogoStatus(nextLogoUrl ? 'loading' : 'none')
     }
@@ -281,7 +283,7 @@ export default function TournamentPage() {
     const { data, error } = await supabase.rpc('get_tournament_match_detail_v1', { p_match_id: matchId })
     if (error || !data) {
       setMatchDetail(null)
-      setMatchError(error?.message ?? 'Match details are unavailable.')
+      setMatchError(error?.message ?? t('tournamentPage.match.unavailable'))
     } else {
       setMatchDetail(data as MatchDetail)
     }
@@ -326,7 +328,7 @@ export default function TournamentPage() {
       <TournamentPageV3 />
 
       {showRealLogo && logoTarget && logoUrl && createPortal(
-        <img className={`tlg-tournament-logo-image ${logoStatus === 'ready' ? 'tlg-tournament-logo-image-ready' : ''}`} src={logoUrl} alt={`${tournamentName} tournament logo`} decoding="async" fetchPriority="high" onLoad={() => setLogoStatus('ready')} onError={() => setLogoStatus('error')} />,
+        <img className={`tlg-tournament-logo-image ${logoStatus === 'ready' ? 'tlg-tournament-logo-image-ready' : ''}`} src={logoUrl} alt={t('tournamentPage.logoAlt', { name: tournamentName })} decoding="async" fetchPriority="high" onLoad={() => setLogoStatus('ready')} onError={() => setLogoStatus('error')} />,
         logoTarget,
       )}
 
@@ -343,6 +345,7 @@ export default function TournamentPage() {
 }
 
 function PublishedDrawTree({ matches, currentPlayerId, returnPath, tournamentName, onOpenMatch }: { matches: TournamentDrawMatch[]; currentPlayerId: string | null; returnPath: string; tournamentName: string; onOpenMatch: (matchId: string) => void }) {
+  const { t } = useTranslation()
   const firstRound = matches.filter((match) => match.round_number === 1)
   const first = firstRound[0]
   const bracketSize = first?.bracket_size ?? 0
@@ -361,13 +364,13 @@ function PublishedDrawTree({ matches, currentPlayerId, returnPath, tournamentNam
   return (
     <section className="tlg-detail-panel tlg-live-draw-panel">
       <header className="tlg-detail-panel-head tlg-live-draw-head">
-        <div><span>Tournament draw</span><h2>Knockout bracket</h2><p>{entrantIds.size} entered players · Season Week {first?.scheduled_season_week} · First-round match day {first?.scheduled_day}</p></div>
-        <strong className="tlg-live-draw-status">Draw published</strong>
+        <div><span>{t('tournamentPage.draw.kicker')}</span><h2>{t('tournamentPage.draw.title')}</h2><p>{t('tournamentPage.draw.meta', { players: entrantIds.size, week: first?.scheduled_season_week, day: first?.scheduled_day })}</p></div>
+        <strong className="tlg-live-draw-status">{t('tournamentPage.draw.published')}</strong>
       </header>
 
       <div className="tlg-detail-bracket-scroll tlg-live-bracket-scroll">
         <div className="tlg-detail-bracket-headings" style={{ width }}>
-          {rounds.map((round, roundIndex) => <header key={`${round.label}-${round.matches}`} style={{ left: roundIndex * (BRACKET_MATCH_WIDTH + BRACKET_COLUMN_GAP), width: BRACKET_MATCH_WIDTH }}><strong>{round.label}</strong><span>{round.matches} {round.matches === 1 ? 'match' : 'matches'}</span></header>)}
+          {rounds.map((round, roundIndex) => <header key={`${round.label}-${round.matches}`} style={{ left: roundIndex * (BRACKET_MATCH_WIDTH + BRACKET_COLUMN_GAP), width: BRACKET_MATCH_WIDTH }}><strong>{round.label === 'Final' ? t('tournamentPage.draw.final') : round.label === 'Semifinal' ? t('tournamentPage.draw.semifinal') : round.label === 'Quarterfinal' ? t('tournamentPage.draw.quarterfinal') : t('tournamentPage.draw.roundOf', { count: Number(round.label.replace('Round of ', '')) || round.label })}</strong><span>{t('tournamentPage.draw.matches', { count: round.matches })}</span></header>)}
         </div>
 
         <div className="tlg-detail-bracket-tree" style={{ width, height }}>
@@ -412,8 +415,9 @@ function PublishedDrawTree({ matches, currentPlayerId, returnPath, tournamentNam
 }
 
 function BracketPlayer({ matchExists, matchStatus, playerId, firstName, lastName, countryCode, seed, scores, winner, returnPath, tournamentName }: { matchExists: boolean; matchStatus: TournamentDrawMatch['match_status'] | null; playerId: string | null; firstName: string | null; lastName: string | null; countryCode: string | null; seed: number | null; scores: number[]; winner: boolean; returnPath: string; tournamentName: string }) {
-  if (!matchExists) return <div className="tlg-live-tree-player"><span className="flag-slot" /><strong className="player-name">TBD</strong><span className="seed-slot" /><span className="score-slot">—</span></div>
-  if (!playerId) return <div className="tlg-live-tree-player tlg-live-tree-bye"><span className="flag-slot" /><strong className="player-name">BYE</strong><span className="seed-slot" /><span className="score-slot">—</span></div>
+  const { t } = useTranslation()
+  if (!matchExists) return <div className="tlg-live-tree-player"><span className="flag-slot" /><strong className="player-name">{t('tournamentPage.draw.tbd')}</strong><span className="seed-slot" /><span className="score-slot">—</span></div>
+  if (!playerId) return <div className="tlg-live-tree-player tlg-live-tree-bye"><span className="flag-slot" /><strong className="player-name">{t('tournamentPage.draw.bye')}</strong><span className="seed-slot" /><span className="score-slot">—</span></div>
   const name = `${firstName ?? ''} ${lastName ?? ''}`.trim() || 'Player'
   const scoreLabel = scores.length > 0 ? scores.join(' ') : matchStatus === 'walkover' && winner ? 'W/O' : '—'
   return (
@@ -429,9 +433,9 @@ function BracketPlayer({ matchExists, matchStatus, playerId, firstName, lastName
 function MatchDetailModal({ detail, drawMatches, loading, error, currentPlayerId, returnPath, tournamentName, tournamentWorld, onClose }: { detail: MatchDetail | null; drawMatches: TournamentDrawMatch[]; loading: boolean; error: string | null; currentPlayerId: string | null; returnPath: string; tournamentName: string; tournamentWorld: 'ATP' | 'WTA' | null; onClose: () => void }) {
   return createPortal(
     <div className="tlg-match-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose() }}>
-      <section className="tlg-match-modal" role="dialog" aria-modal="true" aria-label="Tournament match details">
-        <button type="button" className="tlg-match-modal-close" onClick={onClose} aria-label="Close match details">×</button>
-        {loading ? <div className="tlg-match-modal-state">Loading match…</div> : error || !detail ? <div className="tlg-match-modal-state">{error ?? 'Match details are unavailable.'}</div> : <MatchDetailContent detail={detail} drawMatches={drawMatches} currentPlayerId={currentPlayerId} returnPath={returnPath} tournamentName={tournamentName} tournamentWorld={tournamentWorld} />}
+      <section className="tlg-match-modal" role="dialog" aria-modal="true" aria-label={t('tournamentPage.match.dialogAria')}>
+        <button type="button" className="tlg-match-modal-close" onClick={onClose} aria-label={t('tournamentPage.match.close')}>×</button>
+        {loading ? <div className="tlg-match-modal-state">{t('tournamentPage.match.loading')}</div> : error || !detail ? <div className="tlg-match-modal-state">{error ?? t('tournamentPage.match.unavailable')}</div> : <MatchDetailContent detail={detail} drawMatches={drawMatches} currentPlayerId={currentPlayerId} returnPath={returnPath} tournamentName={tournamentName} tournamentWorld={tournamentWorld} />}
       </section>
     </div>,
     document.body,
@@ -626,6 +630,7 @@ function buildWtaPortraitTransform(
 }
 
 function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, tournamentName, tournamentWorld }: { detail: MatchDetail; drawMatches: TournamentDrawMatch[]; currentPlayerId: string | null; returnPath: string; tournamentName: string; tournamentWorld: 'ATP' | 'WTA' | null }) {
+  const { t } = useTranslation()
   const p1Avatar = usePlayerAvatarUrl(detail.player1?.image_path)
   const p2Avatar = usePlayerAvatarUrl(detail.player2?.image_path)
   const [wtaPortraitMetrics, setWtaPortraitMetrics] = useState<[WtaPortraitMetrics | null, WtaPortraitMetrics | null]>([null, null])
@@ -650,7 +655,7 @@ function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, 
 
   return (
     <>
-      <header className="tlg-match-modal-head"><div><span>{detail.tournament_name} · Season Week {detail.scheduled_season_week}</span><h2>{detail.round_label} · Match {detail.match_number}</h2><p>{detail.city}, {detail.country_code} · Day {detail.scheduled_day}</p></div><strong className={`match-status status-${detail.status}`}>{statusLabel(detail.status)}</strong></header>
+      <header className="tlg-match-modal-head"><div><span>{detail.tournament_name} · Season Week {detail.scheduled_season_week}</span><h2>{detail.round_label} · Match {detail.match_number}</h2><p>{detail.city}, {detail.country_code} · Day {detail.scheduled_day}</p></div><strong className={`match-status status-${detail.status}`}>{statusLabel(detail.status, t)}</strong></header>
 
       <div className={`tlg-match-versus${tournamentWorld === 'WTA' ? ' tlg-match-versus-wta' : ''}`}>
         <MatchPlayerCard
@@ -663,7 +668,7 @@ function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, 
           portraitTransform={wtaPortraitTransform[0]}
           onPortraitMeasure={(metrics) => setWtaPortraitMetrics((current) => current[0] === metrics ? current : [metrics, current[1]] as [WtaPortraitMetrics | null, WtaPortraitMetrics | null])}
         />
-        <div className="tlg-match-versus-center"><strong>VS</strong><span>{detail.status === 'completed' || detail.status === 'walkover' ? 'Final result' : detail.status === 'in_progress' ? 'Match in progress' : 'Upcoming match'}</span></div>
+        <div className="tlg-match-versus-center"><strong>VS</strong><span>{detail.status === 'completed' || detail.status === 'walkover' ? t('tournamentPage.match.finalResult') : detail.status === 'in_progress' ? t('tournamentPage.match.inProgress') : t('tournamentPage.match.upcoming')}</span></div>
         <MatchPlayerCard
           player={detail.player2}
           avatarUrl={p2Avatar}
@@ -680,9 +685,9 @@ function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, 
         <PreMatchInsights detail={detail} drawMatches={drawMatches} />
       ) : (
         <>
-          <section className="tlg-match-score-section"><header><span>Score</span><h3>{detail.status === 'walkover' ? 'Walkover result' : 'Set-by-set result'}</h3></header>{detail.status === 'walkover' && detail.winner_id ? <div className="tlg-match-empty">Match awarded by walkover to <strong>{playerName(detail.winner_id === detail.player1?.id ? detail.player1 : detail.player2)}</strong>. No sets were played.</div> : detail.sets.length === 0 ? <div className="tlg-match-empty">{detail.status === 'completed' ? 'Result recorded without set-by-set scoring.' : 'Set scores will appear here as play begins.'}</div> : <div className="tlg-match-score-table"><div className="head"><span>Player</span>{detail.sets.map((set) => <strong key={set.set_number}>Set {set.set_number}</strong>)}</div><ScoreRow player={detail.player1} sets={detail.sets.map((set) => set.player1_games)} winner={detail.winner_id === detail.player1?.id} /><ScoreRow player={detail.player2} sets={detail.sets.map((set) => set.player2_games)} winner={detail.winner_id === detail.player2?.id} /></div>}</section>
+          <section className="tlg-match-score-section"><header><span>{t('tournamentPage.match.score')}</span><h3>{detail.status === 'walkover' ? t('tournamentPage.match.walkoverResult') : t('tournamentPage.match.setBySet')}</h3></header>{detail.status === 'walkover' && detail.winner_id ? <div className="tlg-match-empty">{t('tournamentPage.match.walkoverAwarded', { winner: playerName(detail.winner_id === detail.player1?.id ? detail.player1 : detail.player2) })}</div> : detail.sets.length === 0 ? <div className="tlg-match-empty">{detail.status === 'completed' ? t('tournamentPage.match.resultWithoutSets') : t('tournamentPage.match.setsPending')}</div> : <div className="tlg-match-score-table"><div className="head"><span>{t('tournamentPage.match.player')}</span>{detail.sets.map((set) => <strong key={set.set_number}>{t('tournamentPage.match.set', { number: set.set_number })}</strong>)}</div><ScoreRow player={detail.player1} sets={detail.sets.map((set) => set.player1_games)} winner={detail.winner_id === detail.player1?.id} /><ScoreRow player={detail.player2} sets={detail.sets.map((set) => set.player2_games)} winner={detail.winner_id === detail.player2?.id} /></div>}</section>
 
-          <section className="tlg-match-stats-section"><header><span>Match statistics</span><h3>{detail.status === 'in_progress' ? 'Live statistics' : 'Match statistics'}</h3></header>{!hasStats ? <div className="tlg-match-empty">{detail.status === 'walkover' ? 'No match statistics are recorded for a walkover.' : detail.status === 'completed' ? 'No point-by-point statistics were recorded for this completed match.' : 'Statistics will appear here when the match engine begins recording points.'}</div> : <div className="tlg-match-stats-table"><StatRow label="Aces" left={detail.player1_stats.aces ?? 0} right={detail.player2_stats.aces ?? 0} /><StatRow label="Double faults" left={detail.player1_stats.double_faults ?? 0} right={detail.player2_stats.double_faults ?? 0} /><StatRow label="First serve %" left={percent(detail.player1_stats.first_serves_in, detail.player1_stats.first_serves_total)} right={percent(detail.player2_stats.first_serves_in, detail.player2_stats.first_serves_total)} /><StatRow label="1st serve points won" left={ratio(detail.player1_stats.first_serve_points_won, detail.player1_stats.first_serve_points_played)} right={ratio(detail.player2_stats.first_serve_points_won, detail.player2_stats.first_serve_points_played)} /><StatRow label="2nd serve points won" left={ratio(detail.player1_stats.second_serve_points_won, detail.player1_stats.second_serve_points_played)} right={ratio(detail.player2_stats.second_serve_points_won, detail.player2_stats.second_serve_points_played)} /><StatRow label="Break points won" left={ratio(detail.player1_stats.break_points_won, detail.player1_stats.break_points_total)} right={ratio(detail.player2_stats.break_points_won, detail.player2_stats.break_points_total)} /><StatRow label="Winners" left={detail.player1_stats.winners ?? 0} right={detail.player2_stats.winners ?? 0} /><StatRow label="Unforced errors" left={detail.player1_stats.unforced_errors ?? 0} right={detail.player2_stats.unforced_errors ?? 0} /><StatRow label="Total points won" left={detail.player1_stats.total_points_won ?? 0} right={detail.player2_stats.total_points_won ?? 0} /></div>}</section>
+          <section className="tlg-match-stats-section"><header><span>{t('tournamentPage.match.statistics')}</span><h3>{detail.status === 'in_progress' ? t('tournamentPage.match.liveStatistics') : t('tournamentPage.match.statistics')}</h3></header>{!hasStats ? <div className="tlg-match-empty">{detail.status === 'walkover' ? t('tournamentPage.match.noWalkoverStats') : detail.status === 'completed' ? t('tournamentPage.match.noCompletedStats') : t('tournamentPage.match.statsPending')}</div> : <div className="tlg-match-stats-table"><StatRow label={t('tournamentPage.match.stats.aces')} left={detail.player1_stats.aces ?? 0} right={detail.player2_stats.aces ?? 0} /><StatRow label={t('tournamentPage.match.stats.doubleFaults')} left={detail.player1_stats.double_faults ?? 0} right={detail.player2_stats.double_faults ?? 0} /><StatRow label={t('tournamentPage.match.stats.firstServe')} left={percent(detail.player1_stats.first_serves_in, detail.player1_stats.first_serves_total)} right={percent(detail.player2_stats.first_serves_in, detail.player2_stats.first_serves_total)} /><StatRow label={t('tournamentPage.match.stats.firstServeWon')} left={ratio(detail.player1_stats.first_serve_points_won, detail.player1_stats.first_serve_points_played)} right={ratio(detail.player2_stats.first_serve_points_won, detail.player2_stats.first_serve_points_played)} /><StatRow label={t('tournamentPage.match.stats.secondServeWon')} left={ratio(detail.player1_stats.second_serve_points_won, detail.player1_stats.second_serve_points_played)} right={ratio(detail.player2_stats.second_serve_points_won, detail.player2_stats.second_serve_points_played)} /><StatRow label={t('tournamentPage.match.stats.breakPointsWon')} left={ratio(detail.player1_stats.break_points_won, detail.player1_stats.break_points_total)} right={ratio(detail.player2_stats.break_points_won, detail.player2_stats.break_points_total)} /><StatRow label={t('tournamentPage.match.stats.winners')} left={detail.player1_stats.winners ?? 0} right={detail.player2_stats.winners ?? 0} /><StatRow label={t('tournamentPage.match.stats.unforcedErrors')} left={detail.player1_stats.unforced_errors ?? 0} right={detail.player2_stats.unforced_errors ?? 0} /><StatRow label={t('tournamentPage.match.stats.totalPointsWon')} left={detail.player1_stats.total_points_won ?? 0} right={detail.player2_stats.total_points_won ?? 0} /></div>}</section>
         </>
       )}
 
@@ -697,7 +702,7 @@ function PreMatchInsights({ detail, drawMatches }: { detail: MatchDetail; drawMa
   return (
     <section className="tlg-prematch-insights">
       <div className="tlg-prematch-panel">
-        <header><div><span>This tournament</span><h3>Road to this match</h3></div><small>Actual Palm Springs results</small></header>
+        <header><div><span>{t('tournamentPage.match.tournament')}</span><h3>{t('tournamentPage.match.road')}</h3></div><small>{t('tournamentPage.match.actualResults')}</small></header>
         <div className="tlg-prematch-form-grid">
           <TournamentPlayerForm player={detail.player1} drawMatches={drawMatches} beforeRound={currentRound} />
           <TournamentPlayerForm player={detail.player2} drawMatches={drawMatches} beforeRound={currentRound} />
@@ -705,7 +710,7 @@ function PreMatchInsights({ detail, drawMatches }: { detail: MatchDetail; drawMa
       </div>
 
       <div className="tlg-prematch-panel">
-        <header><div><span>Head to head</span><h3>Previous meetings</h3></div><small className="mock-badge">Preview / test history</small></header>
+        <header><div><span>{t('tournamentPage.match.headToHead')}</span><h3>{t('tournamentPage.match.meetings')}</h3></div><small className="mock-badge">{t('tournamentPage.match.previewHistory')}</small></header>
         <MockHeadToHead player1={detail.player1} player2={detail.player2} />
       </div>
     </section>
