@@ -220,6 +220,11 @@ export default {
     dismiss: 'Dismiss',
     openDetails: 'Open notification details',
     collapse: 'Collapse notification',
+    summaryAria: 'Notification summary',
+    filtersAria: 'Notification filters',
+    priority: 'Priority',
+    read: 'Read',
+    noActiveDestination: 'This update no longer has an active game destination.',
     filters: {
       all: 'All',
       unread: 'Unread',
