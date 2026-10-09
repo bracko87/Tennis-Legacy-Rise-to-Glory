@@ -5,6 +5,7 @@ import {
   Send,
   Star,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
 import { useAuth } from '../auth/AuthContext'
@@ -13,6 +14,7 @@ import { supabase } from '../lib/supabase'
 const LOGO_URL = 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/logo%20333.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9sb2dvIDMzMy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg3OTQ1MDc5LCJleHAiOjQ5MTAwMDkwNzl9.Q7Ocay_B1kouWo_XmmgtVcGOCh0xtzhzaIm713AhU-ci-xJPY3JanaT3xhdkptAuKV5kUJGHov34fSM2TGjmcQ'
 
 export default function PublicReviewSubmissionPage() {
+  const { t } = useTranslation()
   const { user, player } = useAuth()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -41,17 +43,17 @@ export default function PublicReviewSubmissionPage() {
     const cleanText = reviewText.trim()
 
     if (cleanName.length < 2) {
-      setError('Please enter your name.')
+      setError(t('publicReview.errors.name'))
       return
     }
 
     if (!/^\S+@\S+\.\S+$/.test(cleanEmail)) {
-      setError('Please enter a valid email address.')
+      setError(t('publicReview.errors.email'))
       return
     }
 
     if (cleanText.length < 20) {
-      setError('Please write at least 20 characters.')
+      setError(t('publicReview.errors.review'))
       return
     }
 
@@ -78,12 +80,12 @@ export default function PublicReviewSubmissionPage() {
       <div className="tlg-public-review-glow tlg-public-review-glow-two" />
 
       <header className="tlg-public-review-header">
-        <Link to="/" className="tlg-public-review-logo-link" aria-label="Back to Tennis Legacy homepage">
+        <Link to="/" className="tlg-public-review-logo-link" aria-label={t('publicReview.backAria')}>
           <img src={LOGO_URL} alt="Tennis Legacy: Rise to Glory" />
         </Link>
         <Link to="/" className="tlg-public-review-back">
           <ArrowLeft size={16} />
-          Back to homepage
+          {t('publicReview.back')}
         </Link>
       </header>
 
@@ -91,24 +93,24 @@ export default function PublicReviewSubmissionPage() {
         {submitted ? (
           <div className="tlg-public-review-success">
             <span className="tlg-public-review-success-icon"><CheckCircle2 size={30} /></span>
-            <span className="tlg-section-eyebrow">Review received</span>
-            <h1>Thank you for sharing your opinion.</h1>
+            <span className="tlg-section-eyebrow">{t('publicReview.received')}</span>
+            <h1>{t('publicReview.thankYou')}</h1>
             <p>
-              Your review is now waiting for administrator approval. It will appear on the Tennis Legacy homepage only after it has been approved.
+              {t('publicReview.approvalNote')}
             </p>
-            <Link to="/">Return to homepage</Link>
+            <Link to="/">{t('publicReview.returnHome')}</Link>
           </div>
         ) : (
           <>
             <div className="tlg-public-review-intro">
-              <span className="tlg-section-eyebrow">Share your experience</span>
-              <h1>Leave a Tennis Legacy review</h1>
+              <span className="tlg-section-eyebrow">{t('publicReview.eyebrow')}</span>
+              <h1>{t('publicReview.title')}</h1>
               <p>
-                You do not need a Tennis Legacy account to leave a review. Your email is used only for moderation and is never shown publicly.
+                {t('publicReview.intro')}
               </p>
               {player && (
                 <small>
-                  You are signed in as {player.first_name} {player.last_name}. Your review will be linked to your player profile automatically.
+                  {t('publicReview.signedInAs', { name: `${player.first_name} ${player.last_name}` })}
                 </small>
               )}
             </div>
@@ -116,20 +118,20 @@ export default function PublicReviewSubmissionPage() {
             <form className="tlg-public-review-form" onSubmit={submitReview}>
               <div className="tlg-public-review-fields">
                 <label>
-                  <span>Your name</span>
+                  <span>{t('publicReview.name')}</span>
                   <input
                     type="text"
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     maxLength={80}
                     autoComplete="name"
-                    placeholder="Your name"
+                    placeholder={t('publicReview.namePlaceholder')}
                     required
                   />
                 </label>
 
                 <label>
-                  <span>Email</span>
+                  <span>{t('publicReview.email')}</span>
                   <input
                     type="email"
                     value={email}
@@ -143,7 +145,7 @@ export default function PublicReviewSubmissionPage() {
               </div>
 
               <fieldset className="tlg-public-review-rating-fieldset">
-                <legend>Rating</legend>
+                <legend>{t('publicReview.rating')}</legend>
                 <div className="tlg-public-review-rating">
                   {Array.from({ length: 5 }, (_, index) => {
                     const value = index + 1
@@ -153,7 +155,7 @@ export default function PublicReviewSubmissionPage() {
                         type="button"
                         className={value <= rating ? 'is-active' : undefined}
                         onClick={() => setRating(value)}
-                        aria-label={'Rate ' + value + ' out of 5'}
+                        aria-label={t('publicReview.rateAria', { value })}
                       >
                         <Star size={28} fill={value <= rating ? 'currentColor' : 'none'} />
                       </button>
@@ -164,28 +166,28 @@ export default function PublicReviewSubmissionPage() {
               </fieldset>
 
               <label className="tlg-public-review-textarea-label">
-                <span>Your review</span>
+                <span>{t('publicReview.review')}</span>
                 <textarea
                   value={reviewText}
                   onChange={(event) => setReviewText(event.target.value)}
                   minLength={20}
                   maxLength={700}
                   rows={8}
-                  placeholder="Tell us what you think about Tennis Legacy..."
+                  placeholder={t('publicReview.reviewPlaceholder')}
                   required
                 />
-                <small>{reviewText.trim().length}/700 characters</small>
+                <small>{t('publicReview.characters', { count: reviewText.trim().length })}</small>
               </label>
 
               <div className="tlg-public-review-moderation-note">
-                Reviews are not published automatically. An administrator will review every submission first.
+                {t('publicReview.moderation')}
               </div>
 
               {error && <div className="tlg-public-review-error">{error}</div>}
 
               <button className="tlg-public-review-submit" type="submit" disabled={submitting}>
                 <Send size={17} />
-                {submitting ? 'Sending review…' : 'Send Review for Approval'}
+                {submitting ? t('publicReview.sending') : t('publicReview.send')}
               </button>
             </form>
           </>
