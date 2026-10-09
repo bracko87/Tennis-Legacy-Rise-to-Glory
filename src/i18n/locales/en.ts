@@ -1636,6 +1636,17 @@ export default {
       heroKicker: 'EQUIPMENT', heroBody: 'Build your match setup, manage owned gear, shop the professional market and negotiate technical sponsorships.',
       tabs: { market: 'Market' },
       summary: { cash: 'CAREER CASH', cashNote: 'Equipment purchases use Career Finance', racket: 'RACQUET', shoes: 'SHOES', clothing: 'CLOTHING', notEquipped: 'Not equipped', chooseInventory: 'Choose from Inventory' },
+      wearSummary: {
+        racket: 'RACQUET WEAR',
+        racketValue: 'about −{{value}}% / match',
+        shoes: 'SHOE WEAR',
+        shoesValue: '−{{min}}% to −{{max}}%',
+        clothing: 'CLOTHING WEAR',
+        clothingValue: 'about −{{value}}% / match',
+        accessories: 'ACCESSORIES',
+        accessoriesValue: '−{{min}}% to −{{max}}%',
+        note: 'Condition is stored to {{precision}}% precision. Bonuses automatically weaken as condition falls.',
+      },
       gear: {
         kicker: 'CURRENT MATCH SETUP', title: 'Your gear room', body: 'Racquet, shoes and clothing use one active slot each. Accessories use one active slot per accessory kind.',
         openInventory: 'Open Inventory', racketDetail: 'Power · control · spin · style profile', shoeFallback: 'Surface-specific footwear', clothingFallback: 'Unified match clothing',
