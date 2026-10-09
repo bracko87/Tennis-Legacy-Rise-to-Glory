@@ -1,13 +1,17 @@
 import { Clock3, Coins } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
 import { useCommerce } from '../../hooks/useCommerce'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import { useGameClock } from '../../hooks/useGameClock'
 import { weekdayForDate } from '../../lib/competitionCalendar'
 import { supabase } from '../../lib/supabase'
 
 const PROPELOTON_URL = 'https://propelotonmanager.com/?source=tennis_legacy'
 export default function GameFooter() {
+  const { t } = useTranslation()
+  const { localeTag, formatNumber } = useLocalization()
   const clock = useGameClock()
   const commerce = useCommerce()
   const weekday = weekdayForDate(clock.monthIndex, clock.day)
@@ -26,12 +30,12 @@ export default function GameFooter() {
       <div className="tlg-v4-game-clock" aria-live="polite">
         <Clock3 size={15} />
         {clock.loading ? (
-          <span>Synchronizing game clock…</span>
+          <span>{t('footer.synchronizingClock')}</span>
         ) : clock.error ? (
-          <span>Game clock unavailable</span>
+          <span>{t('footer.clockUnavailable')}</span>
         ) : (
           <>
-            <strong>Season {clock.season}</strong>
+            <strong>{t('footer.season', { season: clock.season })}</strong>
             <span>·</span>
             <span>{weekday}, {clock.month} {clock.day}</span>
             <span>·</span>
@@ -45,7 +49,7 @@ export default function GameFooter() {
         target="_blank"
         rel="noreferrer"
         onClick={recordCrossGameClick}
-        aria-label="Play ProPeloton Manager, another game from Next Quest Studio"
+        aria-label={t('footer.proPelotonAria')}
         style={{
           marginLeft: 'auto',
           color: '#1377ad',
@@ -55,18 +59,18 @@ export default function GameFooter() {
           whiteSpace: 'nowrap',
         }}
       >
-        Also from our studio: ProPeloton Manager ↗
+        {t('footer.alsoFromStudio')}
       </a>
 
       <Link
         to="/game/pro-packages"
         className="tlg-commerce-coin-balance"
-        aria-label={`${commerce.coins} coins. Open Pro Packages.`}
-        title="Open Pro Packages and coin store"
+        aria-label={t('footer.coinBalanceAria', { count: commerce.coins })}
+        title={t('footer.coinStoreTitle')}
       >
         <Coins size={16} />
-        <strong>{commerce.loading ? '—' : commerce.coins.toLocaleString()}</strong>
-        <span>Coins</span>
+        <strong>{commerce.loading ? '—' : formatNumber(commerce.coins)}</strong>
+        <span>{t('common.coins')}</span>
       </Link>
     </footer>
   )
