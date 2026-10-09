@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router'
 
 import { supabase } from '../lib/supabase'
 import { getReferralBrowserHash, storeReferralCode } from '../lib/referrals'
 
 export default function ReferralLandingPage() {
+  const { t } = useTranslation()
   const { code } = useParams()
   const navigate = useNavigate()
-  const [message, setMessage] = useState('Saving your Tennis Legacy invite…')
+  const [message, setMessage] = useState(() => t('referralLanding.saving'))
 
   useEffect(() => {
     let active = true
@@ -29,18 +31,18 @@ export default function ReferralLandingPage() {
 
       if (!error && data === true) {
         storeReferralCode(normalizedCode)
-        setMessage('Invite saved. Taking you to registration…')
+        setMessage(t('referralLanding.saved'))
         window.setTimeout(() => navigate('/register', { replace: true }), 650)
         return
       }
 
-      setMessage('This invite link is not available. Taking you to Tennis Legacy…')
+      setMessage(t('referralLanding.invalid'))
       window.setTimeout(() => navigate('/', { replace: true }), 650)
     }
 
     void captureReferral()
     return () => { active = false }
-  }, [code, navigate])
+  }, [code, navigate, t])
 
   return (
     <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#07192a', color: '#fff', padding: 24 }}>
