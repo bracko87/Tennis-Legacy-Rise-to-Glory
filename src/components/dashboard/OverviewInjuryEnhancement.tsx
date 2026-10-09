@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom'
 import { Activity, ChevronRight, HeartPulse, ShieldCheck, Thermometer } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
 import { supabase } from '../../lib/supabase'
@@ -35,12 +36,13 @@ function titleCase(value: string) {
   return value.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
 }
 
-function daysUntil(target: number, current: number) {
+function daysUntil(target: number, current: number, t: ReturnType<typeof useTranslation>['t']) {
   const days = Math.max(0, target - current)
-  return days === 0 ? 'Now' : `${days}d`
+  return days === 0 ? t('overviewPage.healthCard.now') : t('overviewPage.healthCard.inDays', { count: days })
 }
 
 export default function OverviewInjuryEnhancement() {
+  const { t } = useTranslation()
   const [target, setTarget] = useState<HTMLElement | null>(null)
   const [data, setData] = useState<HealthDashboard | null>(null)
 
@@ -93,34 +95,34 @@ export default function OverviewInjuryEnhancement() {
   const healthy = data.current_conditions.length === 0 && ['healthy', 'fully_recovered'].includes(data.summary.state)
   const riskOnly = data.current_conditions.length === 0 && data.summary.state === 'at_risk'
   const cardClass = healthy ? 'healthy' : 'injured'
-  const stateText = data.summary.label
+  const stateText = t(`healthPage.state.${data.summary.state}`, { defaultValue: data.summary.label })
 
   return createPortal(
     <section className={`tlg-overview-injury-card ${cardClass}`}>
       <div className="tlg-overview-injury-icon">{healthy ? <ShieldCheck size={22} /> : <HeartPulse size={22} />}</div>
       <div className="tlg-overview-injury-main">
-        <span>Injury & health</span>
+        <span>{t('overviewPage.healthCard.title')}</span>
         <strong>{active?.name ?? stateText}</strong>
-        <small>{active ? `${titleCase(active.kind)} · ${titleCase(active.severity)}${active.body_area ? ` · ${active.body_area}` : ''} · ${active.progress_percent}% recovered` : riskOnly ? 'No active condition, but current workload/condition has raised health risk.' : 'Training and tournament availability are clear.'}</small>
+        <small>{active ? `${active.kind === 'injury' ? t('healthPage.injury') : t('healthPage.illness')} · ${t(`healthPage.severity.${active.severity}`, { defaultValue: titleCase(active.severity) })}${active.body_area ? ` · ${active.body_area}` : ''} · ${t('overviewPage.healthCard.recovered', { value: active.progress_percent })}` : riskOnly ? t('overviewPage.healthCard.riskOnly') : t('overviewPage.healthCard.clear')}</small>
       </div>
       <div className={`tlg-overview-injury-risk risk-${data.summary.injury_risk.risk_level}`}>
         <Activity size={15} />
-        <span>Injury risk</span>
-        <strong>{titleCase(data.summary.injury_risk.risk_level)} · {Number(data.summary.injury_risk.risk_percent).toFixed(2)}%</strong>
+        <span>{t('overviewPage.healthCard.injuryRisk')}</span>
+        <strong>{t(`healthPage.risk.${data.summary.injury_risk.risk_level}`, { defaultValue: titleCase(data.summary.injury_risk.risk_level) })} · {Number(data.summary.injury_risk.risk_percent).toFixed(2)}%</strong>
       </div>
       <div className={`tlg-overview-injury-risk risk-${data.summary.illness_risk.risk_level}`}>
         <Thermometer size={15} />
-        <span>Illness risk</span>
-        <strong>{titleCase(data.summary.illness_risk.risk_level)} · {Number(data.summary.illness_risk.risk_percent).toFixed(2)}%</strong>
+        <span>{t('overviewPage.healthCard.illnessRisk')}</span>
+        <strong>{t(`healthPage.risk.${data.summary.illness_risk.risk_level}`, { defaultValue: titleCase(data.summary.illness_risk.risk_level) })} · {Number(data.summary.illness_risk.risk_percent).toFixed(2)}%</strong>
       </div>
       {active ? (
         <div className="tlg-overview-injury-availability">
-          <div><span>Training</span><strong>{active.can_train ? 'Available' : `In ${daysUntil(active.training_return_absolute_day, data.absolute_day)}`}</strong></div>
-          <div><span>Tournaments</span><strong>{active.can_compete ? 'Available' : `In ${daysUntil(active.tournament_return_absolute_day, data.absolute_day)}`}</strong></div>
-          <div><span>Full recovery</span><strong>{daysUntil(active.expected_full_recovery_absolute_day, data.absolute_day)}</strong></div>
+          <div><span>{t('overviewPage.healthCard.training')}</span><strong>{active.can_train ? t('overviewPage.healthCard.available') : daysUntil(active.training_return_absolute_day, data.absolute_day, t)}</strong></div>
+          <div><span>{t('overviewPage.healthCard.tournaments')}</span><strong>{active.can_compete ? t('overviewPage.healthCard.available') : daysUntil(active.tournament_return_absolute_day, data.absolute_day, t)}</strong></div>
+          <div><span>{t('overviewPage.healthCard.fullRecovery')}</span><strong>{daysUntil(active.expected_full_recovery_absolute_day, data.absolute_day, t)}</strong></div>
         </div>
       ) : null}
-      <Link to="/game/injuries">Open Injury & Health <ChevronRight size={15} /></Link>
+      <Link to="/game/injuries">{t('overviewPage.healthCard.open')} <ChevronRight size={15} /></Link>
     </section>,
     target,
   )
