@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom'
 import { AlertTriangle, CheckCircle2, HeartPulse } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
 import { supabase } from '../../lib/supabase'
@@ -21,6 +22,7 @@ type HealthDashboard = {
 }
 
 export default function TrainingHealthStatus() {
+  const { t } = useTranslation()
   const [host, setHost] = useState<HTMLElement | null>(null)
   const [data, setData] = useState<HealthDashboard | null>(null)
 
@@ -73,13 +75,13 @@ export default function TrainingHealthStatus() {
     <section className={`tlg-training-health-status ${danger ? 'blocked' : caution ? 'caution' : 'clear'}`}>
       <div className="icon">{danger ? <HeartPulse size={20} /> : caution ? <AlertTriangle size={20} /> : <CheckCircle2 size={20} />}</div>
       <div>
-        <span>Health clearance</span>
-        <strong>{danger ? 'Training medically blocked' : caution ? `${summary.label} — train carefully` : `${summary.label} — training cleared`}</strong>
+        <span>{t('trainingPage.health.clearance')}</span>
+        <strong>{danger ? t('trainingPage.health.blocked') : caution ? t('trainingPage.health.careful', { label: summary.label }) : t('trainingPage.health.cleared', { label: summary.label })}</strong>
         <small>{condition
-          ? `${condition.kind === 'illness' ? 'Illness' : 'Injury'} · ${condition.name} · ${condition.progress_percent}% recovered`
-          : `Fatigue ${summary.fatigue}/100 · injury risk ${Number(summary.injury_risk.risk_percent).toFixed(2)}% · illness risk ${Number(summary.illness_risk.risk_percent).toFixed(2)}%`}</small>
+          ? t('trainingPage.health.recovered', { kind: condition.kind === 'illness' ? t('trainingPage.health.illness') : t('trainingPage.health.injury'), name: condition.name, percent: condition.progress_percent })
+          : t('trainingPage.health.risks', { fatigue: summary.fatigue, injury: Number(summary.injury_risk.risk_percent).toFixed(2), illness: Number(summary.illness_risk.risk_percent).toFixed(2) })}</small>
       </div>
-      <Link to="/game/injuries">Open Health</Link>
+      <Link to="/game/injuries">{t('trainingPage.health.openHealth')}</Link>
     </section>,
     host,
   )
