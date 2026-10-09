@@ -2354,6 +2354,11 @@ export default {
         lockNote: 'Changes lock one game hour before the scheduled match.',
         saving: 'Saving…',
         saveTactic: 'Save Tactic',
+        partnerFallback: 'Partner',
+        partnerAutomatic: '{{name}} uses their own automatic tactic.',
+        partnerAi: '{{name}} uses an automatic AI tactic based on playing style.',
+        partnerOverride: '{{name}} controls their own saved tactic.',
+        lockedBody: 'This match tactic is locked because the match has started, finished, or reached the one-hour pre-match lock.',
       },
       replay: {
         winner: 'Winner',
