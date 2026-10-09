@@ -702,6 +702,335 @@ const EN: TutorialResources = {
   },
 }
 
+
+const DE: TutorialResources = {
+  phases: {
+    welcome: {
+      title: 'Willkommen in deiner Karriere',
+      description: 'Lerne die Manager-Zentrale, deine Weltranglistenposition und die Navigation kennen, die du an jedem Spieltag nutzt.',
+    },
+    player: {
+      title: 'Dein Spieler',
+      description: 'Verstehe Identität, Attribute und die Informationen, die deine Tenniskarriere bestimmen.',
+    },
+    development: {
+      title: 'Entwicklung & Gesundheit',
+      description: 'Lerne, wie Training, Team und Gesundheitsentscheidungen deinen Spieler im Laufe der Zeit verändern.',
+    },
+    season: {
+      title: 'Saisonplanung & Turniere',
+      description: 'Plane den Kalender, verwalte Verpflichtungen und bereite dich richtig auf Wettkämpfe vor.',
+    },
+    competition: {
+      title: 'Wettkampfsysteme',
+      description: 'Verstehe Ranglisten, Nationalwettbewerbe und die Ausrüstung, die du mit auf den Platz nimmst.',
+    },
+    career: {
+      title: 'Karrieremanagement',
+      description: 'Kontrolliere Geld, optionale Lifestyle-Systeme, Clubfunktionen und langfristige Statistiken.',
+    },
+    communication: {
+      title: 'Kommunikation & Einstellungen',
+      description: 'Bleibe informiert, verwalte Nachrichten und verstehe optionale Premium-Dienste.',
+    },
+    support: {
+      title: 'Hilfe & Community',
+      description: 'Wisse, wo du ausführliche Regeln, Support und die Tennis-Legacy-Community findest.',
+    },
+  },
+  steps: {
+    'welcome.overview': {
+      title: 'Willkommen bei Tennis Legacy',
+      body: 'Übersicht ist dein Karriere-Kontrollzentrum. Hier findest du aktuellen Zustand, nächstes Turnier, letzte Ergebnisse, Ranglistenkontext, Finanzen und die wichtigsten Aktionen, die deine Aufmerksamkeit brauchen. Die Seite selbst gehört zum kostenlosen Kernspiel; nur Ranglistenschutz ist ein Premium-Zusatz.',
+      action: 'Nutze Übersicht als erste Seite, die du zu Beginn eines neuen Spieltags prüfst.',
+      tip: 'Das Tutorial führt dich Seite für Seite. Du kannst es jederzeit pausieren und später fortsetzen.',
+    },
+    'welcome.rank': {
+      title: 'Deine aktuelle Weltranglistenposition',
+      body: 'Die Zahl im Kopfbereich ist deine aktuelle ATP- oder WTA-Einzelranglistenposition. Turnierergebnisse bringen Ranglistenpunkte, und ältere Beiträge verfallen irgendwann, sodass sich deine Position auch ohne eigenes Match ändern kann.',
+      action: 'Behalte diese Zahl im Blick, triff Saisonentscheidungen aber über Ranglisten und Kalender statt nur dem Rang hinterherzujagen.',
+    },
+    'welcome.navigation': {
+      title: 'Die Manager-Zentrale',
+      body: 'Die linke Navigation ist die Hauptkarte deiner Karriere. Jede Seite besitzt ein bestimmtes System, daher sollten wichtige Änderungen auf der dafür vorgesehenen Seite statt direkt aus der Übersicht vorgenommen werden.',
+      action: 'Auf Mobilgeräten öffnest du über die Menüschaltfläche im Kopfbereich dieselbe Navigation.',
+    },
+
+    'player.profile': {
+      title: 'Spielerprofil',
+      body: 'Dein Profil ist die öffentliche Tennisidentität, die andere Manager ansehen können. Es zeigt Nationalität, Ranglistenkontext, Spielidentität und karriererelevante Informationen, ohne private Managementkontrollen offenzulegen.',
+      action: 'Nutze Profile, um Gegner und andere Spieler zu verstehen; für eigene Kontoaktionen nutzt du Spieler & Konto.',
+    },
+    'player.account': {
+      title: 'Spieler & Konto',
+      body: 'Diese Seite enthält Identitäts- und Kontokontrollen wie Spielername, Wettbewerbswelt, Land, Avatarverwaltung, Passwortwiederherstellung und destruktive Kontoaktionen.',
+      action: 'Gehe mit Neustart- und Löschaktionen vorsichtig um. Dein professioneller Spielername bleibt nach der Karriereerstellung absichtlich dauerhaft.',
+    },
+    'player.skills': {
+      title: 'Fähigkeiten & Attribute',
+      body: 'Fähigkeiten bilden die Grundlage der Matchleistung. Technische Fähigkeiten, körperliche Qualitäten und Spielerzustand wirken zusammen; ein hoher Wert in einem Bereich kann Schwächen an anderer Stelle nicht vollständig ausgleichen.',
+      action: 'Nutze diese Seite, um vor der Wahl deiner Trainingsprioritäten zu erkennen, was dein Spieler verbessern muss.',
+      tip: 'Bevorzugter Belag und Spielstil sind wichtig, wenn du dieselben Attributwerte interpretierst.',
+    },
+
+    'development.training': {
+      title: 'Reguläres Training',
+      body: 'Plane die wöchentliche Entwicklung an Tagen zu Hause. Turnier-, Reise-, Camp- und Gesundheitstage haben automatisch Vorrang.',
+      action: 'Nutze härtere Einheiten, wenn dein Spieler frisch ist; wähle Erholung oder einen Ruhetag, wenn die Ermüdung steigt.',
+    },
+    'development.training-camps': {
+      title: 'Trainingscamps',
+      body: 'Camps sind fokussierte Entwicklungsblöcke mit Zielort, Woche, Dauer, Unterkunft, Team, Reise und Gesamtkosten.',
+      action: 'Wähle ein Camp, das zu deinem Entwicklungsziel und Kalender passt. Ein Camp kann sich nicht mit einem Turnier oder blockierten Reisezeitraum überschneiden.',
+      actionLabel: 'Was du prüfen solltest',
+      tip: 'Mitreisende Teammitglieder können campspezifische Vorteile bringen, erhöhen aber auch Reise- und Unterkunftskosten.',
+    },
+    'development.staff': {
+      title: 'Dein Team',
+      body: 'Du kannst pro Rolle einen Spezialisten beschäftigen. Jede Rolle beeinflusst einen anderen Teil von Entwicklung, Erholung, Analyse oder Karrieremanagement.',
+      action: 'Prüfe den echten Effekt, das Wochengehalt und die verbleibende Vertragslaufzeit, bevor du dein Team änderst.',
+    },
+    'development.staff-market': {
+      title: 'Teammarkt',
+      body: 'Im Teammarkt suchst du weltweit Kandidaten nach Rolle, Qualität, Land und Gehalt.',
+      action: 'Wähle einen Kandidaten, vergleiche Attribute und gesamte Vertragsverpflichtung und verhandle anschließend, bevor du die Einstellung bestätigst.',
+      actionLabel: 'Was zu tun ist',
+      tip: 'Höher bewertete Teammitglieder sind nützlich, aber Gehalt und Rollenpassung sind wichtiger als einfach die teuerste Person einzustellen.',
+    },
+    'development.health': {
+      title: 'Gesundheit, Verletzungen & Erkrankungen',
+      body: 'Diese Seite erklärt aktuellen Gesundheitszustand, Ermüdung, Verletzungsrisiko, Krankheitsrisiko, Einschränkungen und Erholungszeit. Gesundheitsregeln basieren auf Spieltagen und können Training oder Wettkampf bei Bedarf blockieren.',
+      action: 'Wenn das Risiko steigt, reduziere die Belastung und priorisiere Erholung, statt auf eine Verletzung zu warten.',
+    },
+
+    'season.calendar': {
+      title: 'Dein Karrierekalender',
+      body: 'Der Kalender-Tab zeigt deine eigene Saison: Matches, Turnierverpflichtungen, Reisen, Trainingscamps, Erholung und andere blockierte Tage.',
+      action: 'Prüfe diese Ansicht, bevor du ein Camp buchst oder ein weiteres Turnier hinzufügst, um vermeidbare Konflikte zu verhindern.',
+    },
+    'season.tournament-calendar': {
+      title: 'Turnierkalender',
+      body: 'Der Turnierkalender listet offizielle ATP- oder WTA-Events nach Wettkampfwoche, Kategorie, Belag, Ort und Anmeldestatus.',
+      action: 'Öffne ein Turnier, prüfe das Anmeldefenster und deinen Status und reiche die Anmeldung auf der Turnierseite ein, wenn Anmeldungen geöffnet sind.',
+      actionLabel: 'So nimmst du an einem Turnier teil',
+      tip: 'Plane mindestens einige Wochen voraus. Aufeinanderfolgende Events können zusätzliche Reisen verursachen und Erholungszeit reduzieren.',
+    },
+    'season.schedule': {
+      title: 'Zeitplan & Verpflichtungen',
+      body: 'Der Zeitplan verwandelt Anmeldungen und angenommene Events in deinen persönlichen Plan. Er zeigt, was als Nächstes kommt, Reisezeit, Vorbereitungsstatus und andere Verpflichtungen, die miteinander kollidieren können.',
+      action: 'Prüfe diese Seite nach jeder Turnieranmeldung oder Änderung deines Zeitplans.',
+    },
+    'season.tournament': {
+      title: 'Turnierseite',
+      body: 'Eine Turnierseite enthält die eventspezifischen Informationen, die du brauchst: Auslosung und Teilnahmestatus, Matchplan, Gegner, Ergebnisse und Turnieraktionen. Hier wird aus dem allgemeinen Kalender ein echter Wettbewerb.',
+      action: 'Bestätige vor Turnierbeginn deinen Teilnahmestatus und achte auf das erste angesetzte Match.',
+    },
+    'season.tournament.empty': {
+      title: 'Turnierseite',
+      body: 'Du hast derzeit kein nächstes Turnier, das das Tutorial öffnen kann. Turnierseiten werden über Kalender oder Zeitplan verfügbar, sobald du ein Event zum Prüfen hast.',
+      action: 'Nutze den Kalender, um ein Event zu wählen, und kehre zum Zeitplan zurück, sobald Anmeldung oder Teilnahme relevant wird.',
+    },
+    'season.preparation': {
+      title: 'Turnier vorbereiten',
+      body: 'Die Turniervorbereitung steuert Reiseklasse, Hotel, mitreisendes Team und deine Standardtaktik. Kosten und Effekte werden vor dem Speichern berechnet, und nicht gespeicherte Änderungen werden nicht aktiv.',
+      action: 'Prüfe Zusammenfassung & Effekte vor dem Speichern. Mitreisende Teammitglieder kosten Geld, bieten aber ihren rollenspezifischen Turniervorteil, solange sie dich begleiten.',
+      tip: 'Die Vorbereitung wird entsprechend dem realen Reise- und Matchplan gesperrt, also warte nicht bis zum letzten Moment.',
+    },
+    'season.preparation.empty': {
+      title: 'Turniervorbereitung',
+      body: 'Derzeit gibt es kein geeignetes kommendes Turnier, das im Vorbereitungsmodus geöffnet werden kann. Die Aktion Turnier vorbereiten erscheint im Zeitplan, wenn ein Event verfügbar und die Vorbereitung noch offen ist.',
+      action: 'Merke dir den Ablauf: Zeitplan → Turnier vorbereiten → Kosten/Effekte prüfen → Turnierplan speichern.',
+    },
+    'season.doubles': {
+      title: 'Turnier-Doppel',
+      body: 'Wenn Doppel verfügbar ist, hält die Doppelansicht Partner-, Teilnahme- und Auslosungsinformationen getrennt von deinem Einzelwettbewerb. Eine Doppelverpflichtung kann trotzdem deinen gesamten Zeitplan beeinflussen.',
+      action: 'Behandle Doppel als zusätzliche Verpflichtung, wenn du Ermüdung, Reisen und Matchzeiten planst.',
+    },
+    'season.doubles.empty': {
+      title: 'Turnier-Doppel',
+      body: 'Kein kommendes Turnier ist verfügbar, das das Tutorial im Doppelmodus öffnen kann. Wenn du ein Event hast, bietet die Turnierseite – sofern unterstützt – den Ablauf für Doppelanmeldung und Partner.',
+      action: 'Denke daran, dass Einzel- und Doppelmeldungen getrennt sind, auch wenn sie beim selben Turnier stattfinden.',
+    },
+
+    'competition.rankings': {
+      title: 'ATP-/WTA-Ranglisten',
+      body: 'Ranglisten zeigen die aktuelle Wettbewerbsreihenfolge deiner Tenniswelt. ATP und WTA bleiben getrennt, und offizielle Ergebnisse erzeugen Ranglistenpunkt-Beiträge, die Spieler im Laufe der Zeit bewegen. Die Ranglistentabellen sind kostenlos; die detaillierte Ranglistenschutz-Ansicht mit kommendem Punkteverfall ist Premium-only.',
+      action: 'Nutze Ranglisten, um deine Position zu vergleichen, Spielerprofile zu öffnen und zu verstehen, welches Turnierniveau für deine aktuelle Karriere realistisch ist.',
+    },
+    'competition.national-team': {
+      title: 'Nationalteam',
+      body: 'Nationalwettbewerbe ergänzen deine individuelle Karriere um länderbasierte Auswahl- und Verbandssysteme. Die Seite ist nicht Premium-only, aber Verbandsaktivierung und saisonale Verlängerung werden gemeinschaftlich mit Coins finanziert. Das aktuelle Aktivierungsziel beträgt 50 Coins plus mindestens 5 Mitglieder, das Verlängerungsziel 30 Coins.',
+      action: 'Beitritt und Teilnahme sind vom Premium-Kauf getrennt. Trage nur Coins bei, wenn du eine Aktivierung oder Verlängerung unterstützen möchtest; Beiträge kommen aus deiner Coin-Wallet.',
+    },
+    'competition.equipment': {
+      title: 'Ausrüstung',
+      body: 'Dein ausgerüsteter Schläger, Schuhe, Kleidung und Zubehör beeinflussen Matches, Zustand und Verschleiß.',
+      action: 'Prüfe aktives Setup und Ausrüstungszustand vor wichtigen Turnieren.',
+    },
+    'competition.technical-sponsors': {
+      title: 'Technische Sponsoren',
+      body: 'Technische Sponsoren sind Ausrüstungspartnerschaften für Schläger, Schuhe oder Kleidung. Sie sind von deinem Haupt-Finanzsponsor getrennt.',
+      action: 'Vergleiche Marke, Vertragsplatz, Ausrüstungsrabatt, Handgeld und Saisonexklusivität vor der Unterschrift.',
+      tip: 'Ein technischer Sponsor kann Ausrüstungskosten reduzieren, aber gesponserte Ausrüstung wird weiterhin über Ausrüstung und Inventar verwaltet.',
+    },
+
+    'career.finance': {
+      title: 'Finanzen',
+      body: 'Finanzen verfolgt Karriereguthaben, Einnahmen, Ausgaben, Steuern, Team, Reisen, Unterkunft und das permanente Transaktions-Ledger.',
+      action: 'Prüfe verfügbares Geld und kommende Verpflichtungen vor einer teuren Entscheidung.',
+    },
+    'career.financial-sponsors': {
+      title: 'Haupt-Finanzsponsor',
+      body: 'Dein Hauptsponsor zahlt garantierte Karriereeinnahmen und kann separate Leistungsziele mit Geldboni hinzufügen.',
+      action: 'Vergleiche garantierten Wert, wöchentliche Zahlungen, Ziele, Fristen und maximalen Bonuswert vor der Unterschrift.',
+      actionLabel: 'Was du vergleichen solltest',
+      tip: 'Dies ist von technischen Sponsoren getrennt: Der Hauptsponsor ist vor allem eine finanzielle Vereinbarung, kein Ausrüstungsvertrag.',
+    },
+    'career.private-life': {
+      title: 'Privatleben',
+      body: 'Privatleben ist ein Premium-only-Lifestyle-System. Kostenlose Spieler können die komplette Kern-Tenniskarriere ohne dieses System fortsetzen. Premium-Mitglieder können die Seite für Immobilien, Fahrzeuge und andere persönliche Vermögenswerte nutzen; Käufe im Privatleben verwenden das normale Karrierefinanz-Guthaben, nicht Coins.',
+      action: 'Wenn du kostenlos spielst, kannst du dieses System einfach überspringen. Premium schaltet die Seite frei, ist aber nicht für die Kern-Tenniskarriere erforderlich.',
+    },
+    'career.tennis-club': {
+      title: 'Tennisclub',
+      body: 'Tennisclub ist die gemeinsame Club-Ebene für Community und clubbezogenes Gameplay. Clubs ansehen, Beitritt beantragen und eine Einladung annehmen sind etwas anderes als einen eigenen Club zu gründen. Einen neuen Tennisclub zu erstellen kostet derzeit 50 Coins.',
+      action: 'Du brauchst keine Premium-Mitgliedschaft für das Clubsystem. Gib Coins nur aus, wenn du einen neuen Club erstellen möchtest; einem bestehenden Club beizutreten kostet diese Gründungsgebühr nicht.',
+    },
+    'career.statistics': {
+      title: 'Statistiken & Karrierehistorie',
+      body: 'Statistiken verwandelt abgeschlossene Matches und Turnierergebnisse in Datensätze. Du kannst Spielerstatistiken, Turnierstatistiken und eigene Karriererekorde über Beläge, Kategorien und Saisons hinweg vergleichen.',
+      action: 'Nutze diese Seite, um langfristige Leistung zu bewerten, statt deinen Spieler anhand eines einzigen guten oder schlechten Matches zu beurteilen.',
+    },
+
+    'communication.notifications': {
+      title: 'Benachrichtigungen',
+      body: 'Benachrichtigungen zeigen wichtige Spielereignisse wie Turnieränderungen, Ergebnisse, Gesundheitsinformationen und andere Karriere-Updates. Das Ungelesen-Badge im Kopfbereich zeigt, wenn noch etwas deine Aufmerksamkeit braucht.',
+      action: 'Öffne Benachrichtigungen regelmäßig und arbeite wichtige Meldungen ab, nachdem du verstanden hast, was sich geändert hat.',
+    },
+    'communication.inbox': {
+      title: 'Manager-Postfach',
+      body: 'Das Postfach ist für direkte Managerkommunikation und Nachrichten gedacht, die zu einer Unterhaltung statt zu einer Systemwarnung gehören. Es ist absichtlich von Benachrichtigungen getrennt.',
+      action: 'Nutze Benachrichtigungen für automatische Spielereignisse und das Postfach für direkte Kommunikation.',
+    },
+    'communication.preferences': {
+      title: 'Spieleinstellungen',
+      body: 'Einstellungen ist die zentrale Seite für persönliche Kontrollen deines Spielerlebnisses. Es sollten nur Einstellungen erscheinen, die tatsächlich mit einem aktiven System verbunden sind.',
+      action: 'Der Neustart des Tutorials bleibt im Hilfe-Center, damit Spieleinstellungen auf echte persönliche Einstellungen fokussiert bleibt.',
+    },
+    'communication.premium': {
+      title: 'Premium & Coin-Pakete',
+      body: 'Auf dieser Seite werden optionale Käufe transparent dargestellt. Tennis Legacy Kostenlos bietet die Kernkarriere. Premium-Mitgliedschaft schaltet Premium-only-Funktionen frei und enthält 30 Coins pro abgedecktem Monat: 30 bei monatlicher Abrechnung, 90 bei 3-monatiger oder 360 bei jährlicher Abrechnung. Coin-Pakete sind separate Einmalkäufe.',
+      action: 'Premium und Coins sind getrennt: Coins zu kaufen aktiviert kein Premium, und Premium macht nicht jede Coin-Aktion kostenlos. Prüfe den genauen Vorteil vor dem Kauf.',
+    },
+
+    'support.help': {
+      title: 'Hilfe-Center',
+      body: 'Das Hilfe-Center ist der schnelle Ausgangspunkt, wenn etwas unklar ist. Es verlinkt häufig genutzte Seiten, Support und das vollständige Spielhandbuch, ohne dass du außerhalb des Spiels suchen musst.',
+      action: 'Nutze Hilfe für schnelle Orientierung. Nutze das Handbuch, wenn du vollständige Regeln oder Berechnungen brauchst.',
+    },
+    'support.manual': {
+      title: 'Vollständiges Spielhandbuch',
+      body: 'Das Handbuch ist die ausführliche Referenz für implementiertes Gameplay. Anders als dieses Tutorial ist es zum Suchen und wiederholten Nachschlagen gedacht, wenn du genaue Regeln, Seitenbeschreibungen oder Systemgrenzen brauchst.',
+      action: 'Suche nach Seite oder System, wenn du mehr Details brauchst, als ein Tutorial-Schritt sinnvoll liefern sollte.',
+    },
+    'support.forum': {
+      title: 'Forum / Discord',
+      body: 'Im offiziellen Community-Bereich können Spieler Karrieren, Strategien, Turniere, Bugs und Vorschläge diskutieren. Community-Ratschläge können hilfreich sein, aber das Handbuch im Spiel bleibt die maßgebliche Gameplay-Referenz.',
+      action: 'Nutze die Community, um Erfahrungen zu vergleichen und reproduzierbare Probleme zu melden.',
+    },
+    'support.contact': {
+      title: 'Support kontaktieren',
+      body: 'Kontakt ist für Kontofragen, technische Probleme oder Supportfälle gedacht, die direkte Aufmerksamkeit des Tennis-Legacy-Teams benötigen.',
+      action: 'Gib bei einer Problemmeldung Seite, Erwartung, tatsächliches Verhalten und wenn möglich einen Screenshot an.',
+    },
+    'support.bug-report': {
+      title: 'Bug melden',
+      body: 'Wenn etwas im Spiel falsch aussieht, nutze die Schaltfläche Bug melden. Der Bericht kennt automatisch die Seite, auf der du dich befindest.',
+      action: 'Beschreibe, was passiert ist, was du erwartet hast und welche Schritte das Problem reproduzieren. Füge einen Screenshot hinzu, wenn er hilft.',
+      actionLabel: 'Gute Bug-Meldung',
+      tip: 'Bitte melde Probleme, statt sie still zu umgehen — reproduzierbare Berichte helfen uns, das Spiel schneller zu verbessern.',
+    },
+    'support.invite': {
+      title: 'Freunde einladen',
+      body: 'Freunde einladen bietet den Empfehlungsablauf, um einen weiteren Manager zu Tennis Legacy zu bringen. Dessen Karriere bleibt vollständig von deiner getrennt.',
+      action: 'Verwende den offiziellen Einladungslink, damit die Empfehlungsverfolgung korrekt funktionieren kann.',
+    },
+    'support.access-model': {
+      title: 'Kostenlos, Coins und Premium',
+      body: 'Du kannst die Kernkarriere von Tennis Legacy kostenlos spielen. Optionale Coins werden nur für bestimmte Coin-Aktionen verwendet, zum Beispiel Beiträge zur Finanzierung eines Nationalverbands oder die Gründung deines eigenen Tennisclubs. Premium-Mitgliedschaft schaltet Premium-only-Funktionen wie Privatleben und Ranglistenschutz frei. Coin-Pakete und Premium-Mitgliedschaft sind optionale Käufe.',
+      action: 'Spiele die Kernkarriere kostenlos. Kaufe Coins nur für eine gewünschte optionale Coin-Aktion oder wähle Premium nur, wenn seine Zusatzfunktionen für dich wertvoll sind.',
+      tip: 'Coins und Premium sind getrennte Produkte: Coins zu kaufen aktiviert kein Premium, und Premium entfernt nicht jede Coin-Kostenstelle.',
+    },
+    'support.complete': {
+      title: 'Du bist bereit, deine Karriere zu managen',
+      body: 'Du weißt jetzt, wo jede Startseite hingehört und wie die Kernsysteme zusammenwirken: Spieler entwickeln, Saison planen, Turniere vorbereiten, Gesundheit schützen, Geld verwalten und Ergebnisse prüfen. Die Kernkarriere bleibt im kostenlosen Plan spielbar; optionale Coins und Premium-Funktionen sind klar markiert.',
+      action: 'Kehre zur Übersicht zurück, prüfe deine nächste Verpflichtung und entscheide die wichtigste einzelne Aktion für den aktuellen Spieltag.',
+      tip: 'Du kannst dieses Tutorial später nur im Hilfe-Center neu starten. Bezahlte oder gesperrte Funktionen sind im jeweiligen Tutorial-Schritt klar markiert.',
+    },
+  },
+  access: {
+    'overview-premium-extra': {
+      tone: 'mixed',
+      label: 'KOSTENLOSE SEITE · PREMIUM-ZUSATZ',
+      title: 'Übersicht: kostenlos · Ranglistenschutz: Premium',
+      body: 'Die Kern-Übersicht bleibt kostenlos. Nur Ranglistenschutz benötigt Premium.',
+    },
+    'rankings-premium-extra': {
+      tone: 'mixed',
+      label: 'KOSTENLOSE SEITE · PREMIUM-ZUSATZ',
+      title: 'Ranglisten: kostenlos · Schutz: Premium',
+      body: 'ATP-/WTA-Ranglisten bleiben kostenlos. Werkzeuge zum bevorstehenden Punkteverfall benötigen Premium.',
+    },
+    'national-team-coins': {
+      tone: 'coins',
+      label: 'DURCH COINS FINANZIERTE FUNKTION',
+      title: 'Nationalverbands-Finanzierung verwendet Coins',
+      body: 'Nicht Premium-only. Aktivierungsziel: 50 Coins + 5 Mitglieder. Verlängerungsziel: 30 Coins. Beiträge sind optional.',
+    },
+    'private-life-premium': {
+      tone: 'premium',
+      label: 'PREMIUM ERFORDERLICH',
+      title: 'Privatleben benötigt Premium',
+      body: 'Premium schaltet die Seite frei. Vermögenskäufe verwenden anschließend normales Karrierefinanz-Geld, nicht Coins.',
+    },
+    'tennis-club-coins': {
+      tone: 'coins',
+      label: 'OPTIONALE COIN-AKTION',
+      title: 'Einen Tennisclub zu erstellen kostet 50 Coins',
+      body: 'Clubs anzusehen oder ihnen beizutreten verwendet die Gründungsgebühr nicht. Nur die Erstellung eines neuen Clubs kostet 50 Coins.',
+    },
+    'premium-store-optional': {
+      tone: 'optional',
+      label: 'OPTIONALE KÄUFE',
+      title: 'Premium und Coins sind optional',
+      body: 'Die Kernkarriere ist kostenlos spielbar. Premium und Coin-Pakete sind getrennte optionale Käufe.',
+    },
+    'free-coins-premium': {
+      tone: 'optional',
+      label: 'KERNSPIEL IST KOSTENLOS',
+      title: 'Kostenlose Karriere · Optionale Coins · Optionales Premium',
+      body: 'Kostenlos deckt die Kernkarriere ab. Coins bezahlen bestimmte optionale Aktionen; Premium schaltet klar markierte Extras frei.',
+    },
+  },
+  ui: {
+    tutorial: 'Spiel-Tutorial',
+    phase: 'Phase',
+    step: 'Schritt',
+    back: 'Zurück',
+    next: 'Weiter',
+    finish: 'Tutorial beenden',
+    pause: 'Pausieren',
+    skip: 'Tutorial überspringen',
+    resume: 'Tutorial fortsetzen',
+    start: 'Tutorial starten',
+    restart: 'Tutorial neu starten',
+    completed: 'Tutorial abgeschlossen',
+    doThis: 'Was zu tun ist',
+    tip: 'Tipp',
+    closeLabel: 'Tutorial pausieren',
+  },
+}
+
 const SR: TutorialResources = {
   phases: {
     welcome: {
@@ -1026,6 +1355,7 @@ const SR: TutorialResources = {
 const RESOURCES: Record<string, TutorialResources> = {
   en: EN,
   sr: SR,
+  de: DE,
 }
 
 export function normalizeTutorialLocale(locale?: string | null) {
