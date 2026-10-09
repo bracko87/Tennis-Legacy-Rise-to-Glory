@@ -1935,7 +1935,7 @@ export default {
     actionError: 'Action could not be completed',
     overview: {
       eyebrow: 'Private Life dashboard', title: 'Your off-court world', body: 'Prestige, physical assets and investments all live here, while Finance remains the source of truth for money.',
-      refreshing: 'Refreshing…', refresh: 'Refresh', physical: 'Physical collection',
+      refreshing: 'Refreshing…', refresh: 'Refresh', physical: 'Physical collection', ownedCount_one: '{{count}} owned', ownedCount_other: '{{count}} owned',
       investmentTitle: 'Investments', active: 'Active', investmentBody: 'Trade simulated stocks and cryptocurrencies with your career cash. External market quotes provide the game reference price.', openInvestments: 'Open investments',
       residenceTitle: 'Residence rule', residenceBody: 'You must always keep at least one apartment, house or villa. A residence cannot be sold until another residence is available.', residenceNote: 'Property living costs are charged monthly through the career Finance ledger.',
       costsTitle: 'Ownership costs', costsBody: 'Vehicles, homes, yachts and private jets carry recurring monthly costs. Watches, jewelry, art and collectibles do not.', costsNote: 'Higher-value assets have higher maintenance or living costs.',
