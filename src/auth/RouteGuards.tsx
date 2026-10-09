@@ -17,7 +17,7 @@ function LoadingScreen() {
 export function AnonymousOnly({ children }: { readonly children: ReactNode }) {
   const { user, player, isAdmin, authLoading, playerLoading, adminLoading } = useAuth()
 
-  if (authLoading || (user && (playerLoading || adminLoading))) return <LoadingScreen />
+  if (authLoading || (user && !player && playerLoading) || (user && !player && !isAdmin && adminLoading)) return <LoadingScreen />
 
   if (user) {
     if (isAdmin && !player) return <Navigate to="/game/admin/analytics" replace />
@@ -39,7 +39,7 @@ export function RequireAuth({ children }: { readonly children: ReactNode }) {
 export function RequirePlayer({ children }: { readonly children: ReactNode }) {
   const { user, player, authLoading, playerLoading } = useAuth()
 
-  if (authLoading || (user && playerLoading)) return <LoadingScreen />
+  if (authLoading || (user && !player && playerLoading)) return <LoadingScreen />
   if (!user) return <Navigate to="/login" replace />
   if (!player) return <Navigate to="/create-player" replace />
 
@@ -49,7 +49,7 @@ export function RequirePlayer({ children }: { readonly children: ReactNode }) {
 export function RequireAdmin({ children }: { readonly children: ReactNode }) {
   const { user, isAdmin, authLoading, adminLoading } = useAuth()
 
-  if (authLoading || (user && adminLoading)) return <LoadingScreen />
+  if (authLoading || (user && !isAdmin && adminLoading)) return <LoadingScreen />
   if (!user) return <Navigate to="/login" replace />
   if (!isAdmin) return <Navigate to="/game/overview" replace />
 
