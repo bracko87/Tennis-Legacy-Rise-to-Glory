@@ -423,7 +423,7 @@ function BracketPlayer({ matchExists, matchStatus, playerId, firstName, lastName
   return (
     <div className={`tlg-live-tree-player${winner ? ' tlg-live-tree-winner' : ''}`}>
       <span className="flag-slot"><CountryFlag countryCode={countryCode ?? ''} countryName={countryCode ?? ''} width={19} height={13} /></span>
-      <Link className="player-name" to={`/game/players/${playerId}`} state={{ playerProfileReturn: returnPath, playerProfileReturnLabel: `Back to ${tournamentName}` }} onClick={(event) => event.stopPropagation()}>{name}</Link>
+      <Link className="player-name" to={`/game/players/${playerId}`} state={{ playerProfileReturn: returnPath, playerProfileReturnLabel: t('tournamentPage.match.backToTournament', { name: tournamentName }) }} onClick={(event) => event.stopPropagation()}>{name}</Link>
       <span className="seed-slot">{seed ? <strong>{seed}</strong> : null}</span>
       <span className="score-slot">{scoreLabel}</span>
     </div>
@@ -917,21 +917,23 @@ function OpponentAnalysis({ opponent, scouting }: { opponent: MatchPlayerDetail;
 }
 
 function TacticHelp({ tactic }: { tactic: TournamentTactic }) {
+  const { t } = useTranslation()
+  const option = (value: string) => t(`tournamentPage.tactic.options.${value}`, { defaultValue: value })
   const rows = [
-    ['Overall approach', tactic.approach, tactic.approach === 'Aggressive' ? 'Pushes the player to take initiative earlier and attempt more attacking shots, with more error exposure.' : tactic.approach === 'Defensive' ? 'Prioritises court coverage, patience and safer shot selection over early winners.' : 'Keeps attacking and defensive decisions close to the player’s normal tendencies.'],
-    ['Rally strategy', tactic.rally, tactic.rally === 'Shorten points' ? 'Looks to end rallies earlier; useful for first-strike tennis but raises shot-selection pressure.' : tactic.rally === 'Extend rallies' ? 'Accepts longer exchanges to test movement, consistency and stamina.' : 'No deliberate change to normal rally length.'],
-    ['Serve strategy', tactic.serve, tactic.serve === 'Power serving' ? 'Adds first-serve pressure and ace potential, but increases serve risk.' : tactic.serve === 'Serve + 1' ? 'Builds points around a strong serve followed by an immediate attacking first groundstroke.' : tactic.serve === 'Safe first serve' ? 'Reduces serve risk and double-fault pressure at the expense of free points.' : 'Uses the player’s normal serve balance.'],
-    ['Serve placement', tactic.servePlacement, tactic.servePlacement === 'Wide' ? 'Uses angle to pull the returner away from the court; especially relevant to movement and opposite-handed geometry.' : tactic.servePlacement === 'Body' ? 'Crowds the returner and reduces clean swings.' : tactic.servePlacement === 'T' ? 'Prioritises the center-line target and direct first-strike patterns.' : 'Lets the player choose placement naturally.'],
-    ['Return strategy', tactic.returnGame, tactic.returnGame === 'Aggressive return' ? 'Takes more risk on returns to seize control immediately.' : tactic.returnGame === 'Attack second serve' ? 'Keeps normal first-serve returns but steps in hard against second serves.' : tactic.returnGame === 'Safe return' ? 'Prioritises putting the ball in play and starting neutral rallies.' : 'Uses the player’s normal return balance.'],
-    ['Return position', tactic.returnPosition, tactic.returnPosition === 'Closer' ? 'Steps forward to pressure weaker serves, but reduces reaction time against pace.' : tactic.returnPosition === 'Deeper' ? 'Creates more reaction time against strong serving, while conceding court position.' : 'Uses the normal return position.'],
-    ['Court position', tactic.courtPosition, tactic.courtPosition === 'Net attack' ? 'Looks for frequent forward movement and finishing opportunities at net.' : tactic.courtPosition === 'Inside baseline' ? 'Takes time away from the opponent but leaves less reaction time.' : tactic.courtPosition === 'Deep baseline' ? 'Creates more reaction time and defensive coverage while conceding court position.' : 'Uses a normal baseline position.'],
-    ['Opponent target', tactic.target, tactic.target === 'Automatic' ? 'No specific weakness is forced; the player reacts naturally to the match.' : `Directs a larger share of tactical pressure toward the opponent’s ${tactic.target.toLowerCase()}.`],
-    ['Risk level', tactic.risk, tactic.risk === 'Aggressive' ? 'Raises winner attempts and attacking intent, but also raises unforced-error and fatigue risk.' : tactic.risk === 'Safe' ? 'Reduces low-percentage choices and errors, while limiting peak attacking pressure.' : 'Keeps risk close to the player’s normal level.'],
+    [t('tournamentPage.tactic.overall'), option(tactic.approach), tactic.approach === 'Aggressive' ? t('tournamentPage.tactic.help.approachAggressive') : tactic.approach === 'Defensive' ? t('tournamentPage.tactic.help.approachDefensive') : t('tournamentPage.tactic.help.approachBalanced')],
+    [t('tournamentPage.tactic.rally'), option(tactic.rally), tactic.rally === 'Shorten points' ? t('tournamentPage.tactic.help.rallyShort') : tactic.rally === 'Extend rallies' ? t('tournamentPage.tactic.help.rallyLong') : t('tournamentPage.tactic.help.rallyBalanced')],
+    [t('tournamentPage.tactic.serve'), option(tactic.serve), tactic.serve === 'Power serving' ? t('tournamentPage.tactic.help.servePower') : tactic.serve === 'Serve + 1' ? t('tournamentPage.tactic.help.servePlusOne') : tactic.serve === 'Safe first serve' ? t('tournamentPage.tactic.help.serveSafe') : t('tournamentPage.tactic.help.serveBalanced')],
+    [t('tournamentPage.tactic.servePlacement'), option(tactic.servePlacement), tactic.servePlacement === 'Wide' ? t('tournamentPage.tactic.help.placementWide') : tactic.servePlacement === 'Body' ? t('tournamentPage.tactic.help.placementBody') : tactic.servePlacement === 'T' ? t('tournamentPage.tactic.help.placementT') : t('tournamentPage.tactic.help.placementAuto')],
+    [t('tournamentPage.tactic.return'), option(tactic.returnGame), tactic.returnGame === 'Aggressive return' ? t('tournamentPage.tactic.help.returnAggressive') : tactic.returnGame === 'Attack second serve' ? t('tournamentPage.tactic.help.returnSecond') : tactic.returnGame === 'Safe return' ? t('tournamentPage.tactic.help.returnSafe') : t('tournamentPage.tactic.help.returnBalanced')],
+    [t('tournamentPage.tactic.returnPosition'), option(tactic.returnPosition), tactic.returnPosition === 'Closer' ? t('tournamentPage.tactic.help.positionCloser') : tactic.returnPosition === 'Deeper' ? t('tournamentPage.tactic.help.positionDeeper') : t('tournamentPage.tactic.help.positionNormal')],
+    [t('tournamentPage.tactic.courtPosition'), option(tactic.courtPosition), tactic.courtPosition === 'Net attack' ? t('tournamentPage.tactic.help.courtNet') : tactic.courtPosition === 'Inside baseline' ? t('tournamentPage.tactic.help.courtInside') : tactic.courtPosition === 'Deep baseline' ? t('tournamentPage.tactic.help.courtDeep') : t('tournamentPage.tactic.help.courtNormal')],
+    [t('tournamentPage.tactic.target'), option(tactic.target), tactic.target === 'Automatic' ? t('tournamentPage.tactic.help.targetAuto') : t('tournamentPage.tactic.help.targetSpecific', { target: option(tactic.target).toLowerCase() })],
+    [t('tournamentPage.tactic.risk'), option(tactic.risk), tactic.risk === 'Aggressive' ? t('tournamentPage.tactic.help.riskAggressive') : tactic.risk === 'Safe' ? t('tournamentPage.tactic.help.riskSafe') : t('tournamentPage.tactic.help.riskBalanced')],
   ] as const
-  return <div className="tlg-tactic-help"><header><strong>How these settings change the match plan</strong><span>Planning guide</span></header><div>{rows.map(([label, value, copy]) => <article key={label}><span>{label}</span><strong>{value}</strong><p>{copy}</p></article>)}</div></div>
+  return <div className="tlg-tactic-help"><header><strong>{t('tournamentPage.tactic.helpTitle')}</strong><span>{t('tournamentPage.tactic.planningGuide')}</span></header><div>{rows.map(([label, value, copy]) => <article key={label}><span>{label}</span><strong>{value}</strong><p>{copy}</p></article>)}</div></div>
 }
 
-function calculateTacticEffects(tactic: TournamentTactic): TacticEffect[] {
+function calculateTacticEffects(tactic: TournamentTactic, t: TFunction): TacticEffect[] {
   let attack = 0
   let winnerPressure = 0
   let errorRisk = 0
@@ -963,34 +965,38 @@ function calculateTacticEffects(tactic: TournamentTactic): TacticEffect[] {
 
   const effect = (label: string, value: number, positiveMeaning: boolean, copy: string): TacticEffect => ({ label, value, text: copy, tone: value === 0 ? 'neutral' : positiveMeaning ? (value > 0 ? 'positive' : 'neutral') : (value > 0 ? 'warning' : 'positive') })
   return [
-    effect('Attack intent', attack, true, attack > 7 ? 'Player will look to take control earlier in points.' : attack < -4 ? 'Player will wait longer before committing to attack.' : 'Close to the player’s normal attacking level.'),
-    effect('Winner pressure', winnerPressure, true, winnerPressure > 6 ? 'More attempts to finish points with decisive shots.' : winnerPressure < -3 ? 'Fewer low-percentage finishing attempts.' : 'Normal winner-selection pressure.'),
-    effect('Unforced-error risk', errorRisk, false, errorRisk > 5 ? 'Higher tactical error exposure from more demanding choices.' : errorRisk < -4 ? 'Safer shot selection should reduce tactical errors.' : 'No major tactical change to error exposure.'),
-    effect('Rally length', rallyLength, false, rallyLength > 6 ? 'Plan favours longer exchanges and physical pressure.' : rallyLength < -6 ? 'Plan actively tries to shorten exchanges.' : 'Normal rally-length profile.'),
-    effect('Serve pressure', servePressure, true, servePressure > 5 ? 'Serve is used more aggressively to create free points or first-strike chances.' : servePressure < -4 ? 'Serve reliability is prioritised over pressure.' : 'Normal serve balance.'),
-    effect('Return pressure', returnPressure, true, returnPressure > 5 ? 'Returns are used to attack the opponent’s service games earlier.' : returnPressure < -4 ? 'Return consistency is prioritised.' : 'Normal return pressure.'),
-    effect('Fatigue load', fatigue, false, fatigue > 5 ? 'This plan is likely to demand more physical effort.' : fatigue < -3 ? 'The plan should reduce tactical energy demand.' : 'No major tactical fatigue change.'),
-    { label: 'Opponent focus', value: null, text: tactic.target === 'Automatic' ? 'No forced target — adapt naturally during the match.' : `Extra tactical attention on the opponent’s ${tactic.target.toLowerCase()}.`, tone: 'neutral' },
+    effect(t('tournamentPage.tactic.effects.attack'), attack, true, attack > 7 ? t('tournamentPage.tactic.effects.attackHigh') : attack < -4 ? t('tournamentPage.tactic.effects.attackLow') : t('tournamentPage.tactic.effects.attackNormal')),
+    effect(t('tournamentPage.tactic.effects.winner'), winnerPressure, true, winnerPressure > 6 ? t('tournamentPage.tactic.effects.winnerHigh') : winnerPressure < -3 ? t('tournamentPage.tactic.effects.winnerLow') : t('tournamentPage.tactic.effects.winnerNormal')),
+    effect(t('tournamentPage.tactic.effects.error'), errorRisk, false, errorRisk > 5 ? t('tournamentPage.tactic.effects.errorHigh') : errorRisk < -4 ? t('tournamentPage.tactic.effects.errorLow') : t('tournamentPage.tactic.effects.errorNormal')),
+    effect(t('tournamentPage.tactic.effects.rally'), rallyLength, false, rallyLength > 6 ? t('tournamentPage.tactic.effects.rallyHigh') : rallyLength < -6 ? t('tournamentPage.tactic.effects.rallyLow') : t('tournamentPage.tactic.effects.rallyNormal')),
+    effect(t('tournamentPage.tactic.effects.serve'), servePressure, true, servePressure > 5 ? t('tournamentPage.tactic.effects.serveHigh') : servePressure < -4 ? t('tournamentPage.tactic.effects.serveLow') : t('tournamentPage.tactic.effects.serveNormal')),
+    effect(t('tournamentPage.tactic.effects.return'), returnPressure, true, returnPressure > 5 ? t('tournamentPage.tactic.effects.returnHigh') : returnPressure < -4 ? t('tournamentPage.tactic.effects.returnLow') : t('tournamentPage.tactic.effects.returnNormal')),
+    effect(t('tournamentPage.tactic.effects.fatigue'), fatigue, false, fatigue > 5 ? t('tournamentPage.tactic.effects.fatigueHigh') : fatigue < -3 ? t('tournamentPage.tactic.effects.fatigueLow') : t('tournamentPage.tactic.effects.fatigueNormal')),
+    { label: t('tournamentPage.tactic.effects.opponent'), value: null, text: tactic.target === 'Automatic' ? t('tournamentPage.tactic.effects.opponentAuto') : t('tournamentPage.tactic.effects.opponentTarget', { target: t(`tournamentPage.tactic.options.${tactic.target}`, { defaultValue: tactic.target }).toLowerCase() }), tone: 'neutral' },
   ]
 }
 
 function TacticEffects({ tactic, locked = false }: { tactic: TournamentTactic; locked?: boolean }) {
-  const effects = calculateTacticEffects(tactic)
+  const { t } = useTranslation()
+  const effects = calculateTacticEffects(tactic, t)
   return (
     <div className="tlg-tactic-effects">
-      <header><div><span>{locked ? 'Tactical outcome' : 'Projected match effects'}</span><h4>{locked ? 'Effective plan for this match' : 'What your selections are asking the player to do'}</h4></div><small>Planning preview</small></header>
+      <header><div><span>{locked ? t('tournamentPage.tactic.effects.outcome') : t('tournamentPage.tactic.effects.projected')}</span><h4>{locked ? t('tournamentPage.tactic.effects.effective') : t('tournamentPage.tactic.effects.selections')}</h4></div><small>{t('tournamentPage.tactic.effects.preview')}</small></header>
       <div className="tlg-tactic-effects-grid">{effects.map((item) => <article key={item.label} className={item.tone}><div><span>{item.label}</span>{item.value !== null && <strong>{item.value > 0 ? '+' : ''}{item.value}%</strong>}</div><p>{item.text}</p></article>)}</div>
-      <p className="tlg-tactic-effects-note">These numbers are a tactical preview of the intended modifiers. Final match performance also depends on player skills, surface, fatigue, opponent quality and the match engine.</p>
+      <p className="tlg-tactic-effects-note">{t('tournamentPage.tactic.effects.note')}</p>
     </div>
   )
 }
 
 function TacticSummary({ tactic }: { tactic: TournamentTactic }) {
-  return <div className="tlg-match-tactic-effective"><div><span>Preset</span><strong>{tactic.preset}</strong></div><div><span>Approach</span><strong>{tactic.approach}</strong></div><div><span>Serve</span><strong>{tactic.serve}</strong></div><div><span>Serve placement</span><strong>{tactic.servePlacement}</strong></div><div><span>Return</span><strong>{tactic.returnGame}</strong></div><div><span>Return position</span><strong>{tactic.returnPosition}</strong></div><div><span>Rallies</span><strong>{tactic.rally}</strong></div><div><span>Position</span><strong>{tactic.courtPosition}</strong></div><div><span>Target</span><strong>{tactic.target}</strong></div><div><span>Risk</span><strong>{tactic.risk}</strong></div></div>
+  const { t } = useTranslation()
+  const option = (value: string) => t(`tournamentPage.tactic.options.${value}`, { defaultValue: value })
+  return <div className="tlg-match-tactic-effective"><div><span>{t('tournamentPage.tactic.summary.preset')}</span><strong>{option(tactic.preset)}</strong></div><div><span>{t('tournamentPage.tactic.summary.approach')}</span><strong>{option(tactic.approach)}</strong></div><div><span>{t('tournamentPage.tactic.summary.serve')}</span><strong>{option(tactic.serve)}</strong></div><div><span>{t('tournamentPage.tactic.summary.servePlacement')}</span><strong>{option(tactic.servePlacement)}</strong></div><div><span>{t('tournamentPage.tactic.summary.return')}</span><strong>{option(tactic.returnGame)}</strong></div><div><span>{t('tournamentPage.tactic.summary.returnPosition')}</span><strong>{option(tactic.returnPosition)}</strong></div><div><span>{t('tournamentPage.tactic.summary.rallies')}</span><strong>{option(tactic.rally)}</strong></div><div><span>{t('tournamentPage.tactic.summary.position')}</span><strong>{option(tactic.courtPosition)}</strong></div><div><span>{t('tournamentPage.tactic.summary.target')}</span><strong>{option(tactic.target)}</strong></div><div><span>{t('tournamentPage.tactic.summary.risk')}</span><strong>{option(tactic.risk)}</strong></div></div>
 }
 
 function TacticSelect({ label, value, values, onChange }: { label: string; value: string; values: readonly string[]; onChange: (value: string) => void }) {
-  return <label className="tlg-match-tactic-field"><span>{label}</span><select value={value} onChange={(event) => onChange(event.target.value)}>{values.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
+  const { t } = useTranslation()
+  return <label className="tlg-match-tactic-field"><span>{label}</span><select value={value} onChange={(event) => onChange(event.target.value)}>{values.map((option) => <option key={option} value={option}>{t(`tournamentPage.tactic.options.${option}`, { defaultValue: option })}</option>)}</select></label>
 }
 
 function MatchPlayerCard({
@@ -1012,7 +1018,8 @@ function MatchPlayerCard({
   portraitTransform?: WtaPortraitTransform
   onPortraitMeasure?: (metrics: WtaPortraitMetrics | null) => void
 }) {
-  if (!player) return <div className="tlg-match-player-card empty"><strong>BYE</strong></div>
+  const { t } = useTranslation()
+  if (!player) return <div className="tlg-match-player-card empty"><strong>{t('tournamentPage.draw.bye')}</strong></div>
   const name = playerName(player)
   const portraitStyle = wtaAutoAlign
     ? ({
@@ -1027,7 +1034,7 @@ function MatchPlayerCard({
         {avatarUrl ? (
           <img
             src={avatarUrl}
-            alt={`${name} portrait`}
+            alt={t('tournamentPage.match.portraitAlt', { name })}
             crossOrigin={wtaAutoAlign ? 'anonymous' : undefined}
             style={portraitStyle}
             onLoad={wtaAutoAlign ? (event) => onPortraitMeasure?.(measureWtaPortraitMetrics(event.currentTarget)) : undefined}
@@ -1039,7 +1046,7 @@ function MatchPlayerCard({
       </div>
       <div className="tlg-match-player-summary">
         <div className="identity"><CountryFlag countryCode={player.country_code} countryName={player.country_code} width={29} height={19} /><Link to={`/game/players/${player.id}`} state={{ playerProfileReturn: returnPath, playerProfileReturnLabel: `Back to ${tournamentName}` }}>{name}</Link></div>
-        <div className="meta"><span>{player.ranking_position ? `World #${player.ranking_position}` : 'Unranked'}</span><strong className="handedness">{player.playing_hand === 'left' ? 'L · Left' : 'R · Right'}</strong>{player.seed ? <strong>Seed #{player.seed}</strong> : <strong className="unseeded">Unseeded</strong>}</div>
+        <div className="meta"><span>{player.ranking_position ? t('tournamentPage.match.worldRank', { rank: player.ranking_position }) : t('tournamentPage.match.unranked')}</span><strong className="handedness">{player.playing_hand === 'left' ? t('tournamentPage.match.left') : t('tournamentPage.match.right')}</strong>{player.seed ? <strong>{t('tournamentPage.match.seed', { seed: player.seed })}</strong> : <strong className="unseeded">{t('tournamentPage.match.unseeded')}</strong>}</div>
       </div>
     </article>
   )
