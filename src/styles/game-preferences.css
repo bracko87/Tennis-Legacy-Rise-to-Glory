@@ -114,3 +114,118 @@
     padding: 20px 16px;
   }
 }
+
+.tlg-language-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 20px 22px 12px;
+}
+
+.tlg-language-option {
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 13px;
+  border: 1px solid #d7e4ec;
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tlg-language-option:hover:not(:disabled) {
+  border-color: #9fc9e6;
+  background: #f8fcff;
+}
+
+.tlg-language-option.active {
+  border-color: #0b6fc8;
+  background: #f2f9fe;
+  box-shadow: inset 0 0 0 1px #0b6fc8;
+}
+
+.tlg-language-option.disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.tlg-language-option span {
+  min-width: 0;
+}
+
+.tlg-language-option strong,
+.tlg-language-option small {
+  display: block;
+}
+
+.tlg-language-option strong {
+  color: #18344b;
+  font-size: .78rem;
+}
+
+.tlg-language-option small {
+  margin-top: 4px;
+  color: #7a8e9d;
+  font-size: .63rem;
+}
+
+.tlg-language-option em {
+  flex: 0 0 auto;
+  color: #0b6fc8;
+  font-size: .62rem;
+  font-style: normal;
+  font-weight: 850;
+  letter-spacing: .08em;
+}
+
+.tlg-language-note {
+  margin: 0;
+  padding: 0 22px 18px;
+  color: #718593;
+  font-size: .66rem;
+  line-height: 1.5;
+}
+
+.tlg-language-message {
+  margin: 0 22px 18px;
+  padding: 9px 11px;
+  border-radius: 8px;
+  font-size: .68rem;
+  font-weight: 650;
+}
+
+.tlg-language-message.success {
+  color: #17613c;
+  border: 1px solid #c7e8d6;
+  background: #f2fbf6;
+}
+
+.tlg-language-message.error {
+  color: #9a2e2e;
+  border: 1px solid #efcccc;
+  background: #fff7f7;
+}
+
+@media (max-width: 900px) {
+  .tlg-language-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .tlg-language-grid {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .tlg-language-note {
+    padding: 0 16px 16px;
+  }
+
+  .tlg-language-message {
+    margin: 0 16px 16px;
+  }
+}
