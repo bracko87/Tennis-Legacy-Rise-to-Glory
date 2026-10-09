@@ -206,7 +206,7 @@ export default function FinancePage() {
 
   async function refreshAll() {
     setRefreshing(true)
-    await Promise.all([loadDashboard(false), loadAnalytics(granularity)])
+    await Promise.all([loadDashboard(true), loadAnalytics(granularity)])
     setRefreshing(false)
   }
 
