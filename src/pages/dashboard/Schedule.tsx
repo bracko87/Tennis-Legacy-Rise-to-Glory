@@ -10,12 +10,14 @@ import {
   X,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
 import { useStaff } from '../../hooks/useStaff'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 import {
   BALANCED_TACTIC,
@@ -162,49 +164,54 @@ interface PreparationPlanResponse {
 }
 
 const TRAVEL_CLASSES: TravelClass[] = ['Economy', 'Premium Economy', 'Business', 'First Class']
-const TRAVEL_CLASS_INFO: Record<TravelClass, { effect: string }> = {
-  Economy: { effect: 'Standard travel fatigue' },
-  'Premium Economy': { effect: 'About 15% less travel fatigue' },
-  Business: { effect: 'About 35% less travel fatigue' },
-  'First Class': { effect: 'About 50% less travel fatigue' },
-}
-
-const HOTEL_TIERS: Array<{ value: HotelTier; label: string; detail: string; nightly: number; effect: string }> = [
-  { value: 'Budget', label: 'Budget Hotel ★★', detail: 'Lowest cost', nightly: 90, effect: 'Standard recovery' },
-  { value: 'Standard', label: 'Standard Hotel ★★★', detail: 'Balanced option', nightly: 150, effect: '+5% recovery support' },
-  { value: 'Premium', label: 'Premium Hotel ★★★★', detail: 'Higher comfort', nightly: 240, effect: '+10% recovery support' },
-  { value: 'Luxury', label: 'Luxury Hotel ★★★★★', detail: 'Maximum comfort', nightly: 420, effect: '+15% recovery support' },
+const HOTEL_TIERS: Array<{ value: HotelTier; nightly: number }> = [
+  { value: 'Budget', nightly: 90 },
+  { value: 'Standard', nightly: 150 },
+  { value: 'Premium', nightly: 240 },
+  { value: 'Luxury', nightly: 420 },
 ]
 
-function tournamentWeekLabel(item: Pick<TournamentSummaryItem, 'season' | 'start_week' | 'end_week'>) {
-  if (item.start_week === item.end_week) return `Season ${item.season} · Week ${item.start_week}`
-  return `Season ${item.season} · Weeks ${item.start_week}–${item.end_week}`
+function tournamentWeekLabel(item: Pick<TournamentSummaryItem, 'season' | 'start_week' | 'end_week'>, t: TFunction) {
+  if (item.start_week === item.end_week) return t('schedulePage.weekSingle', { season: item.season, week: item.start_week })
+  return t('schedulePage.weekRange', { season: item.season, start: item.start_week, end: item.end_week })
 }
 
-function titleCase(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1)
+function surfaceLabel(value: string, t: TFunction) {
+  return t(`schedulePage.surface.${value.toLowerCase()}`, { defaultValue: value.charAt(0).toUpperCase() + value.slice(1) })
 }
 
-function money(value: number) {
-  return `$${Math.round(value).toLocaleString()}`
+function tacticLabel(value: string, t: TFunction) {
+  return t(`schedulePage.tacticValues.${value}`, { defaultValue: value })
 }
 
-function formatPlanSummary(playerClass: TravelClass, selectedHotelTier: HotelTier, staffCount: number, tacticPreset: string) {
-  const selectedHotel = HOTEL_TIERS.find((tier) => tier.value === selectedHotelTier) ?? HOTEL_TIERS[1]
-  return `${playerClass} · ${selectedHotel.label} · ${staffCount === 0 ? 'Player only' : `${staffCount} staff`} · ${tacticPreset} tactic`
+function travelClassEffect(value: TravelClass, t: TFunction) {
+  return t(`schedulePage.preparation.travelInfo.${value}`)
 }
 
-function distance(value: number | null | undefined) {
-  return value == null ? 'Distance estimate unavailable' : `${Math.round(value).toLocaleString()} km`
+function hotelInfo(value: HotelTier, t: TFunction) {
+  return {
+    label: t(`schedulePage.preparation.hotelInfo.${value}.label`),
+    detail: t(`schedulePage.preparation.hotelInfo.${value}.detail`),
+    effect: t(`schedulePage.preparation.hotelInfo.${value}.effect`),
+  }
 }
 
-function tournamentStaffEffectsSummary(effects: TournamentStaffEffects) {
+function formatPlanSummary(playerClass: TravelClass, selectedHotelTier: HotelTier, staffCount: number, tacticPreset: string, t: TFunction) {
+  const selectedHotel = hotelInfo(selectedHotelTier, t)
+  return `${playerClass} · ${selectedHotel.label} · ${staffCount === 0 ? t('schedulePage.preparation.playerOnly') : t('schedulePage.preparation.staffCount', { count: staffCount })} · ${tacticLabel(tacticPreset, t)}`
+}
+
+function distance(value: number | null | undefined, t: TFunction, formatNumber: (value: number) => string) {
+  return value == null ? t('schedulePage.preparation.distanceUnavailable') : `${formatNumber(Math.round(value))} km`
+}
+
+function tournamentStaffEffectsSummary(effects: TournamentStaffEffects, t: TFunction) {
   const values: string[] = []
-  if (effects.match_execution_bonus_pct > 0) values.push(`Match execution +${effects.match_execution_bonus_pct}%`)
-  if (effects.match_fatigue_reduction_pct > 0) values.push(`Match fatigue gain -${effects.match_fatigue_reduction_pct}%`)
-  if (effects.injury_risk_reduction_pct > 0) values.push(`Match injury risk -${effects.injury_risk_reduction_pct}%`)
-  if (effects.commercial_bonus_pct > 0) values.push(`Sponsor objective payout +${effects.commercial_bonus_pct}%`)
-  return values.length > 0 ? values.join(' · ') : 'No measurable tournament bonus'
+  if (effects.match_execution_bonus_pct > 0) values.push(t('schedulePage.preparation.staffEffect.match', { value: effects.match_execution_bonus_pct }))
+  if (effects.match_fatigue_reduction_pct > 0) values.push(t('schedulePage.preparation.staffEffect.fatigue', { value: effects.match_fatigue_reduction_pct }))
+  if (effects.injury_risk_reduction_pct > 0) values.push(t('schedulePage.preparation.staffEffect.injury', { value: effects.injury_risk_reduction_pct }))
+  if (effects.commercial_bonus_pct > 0) values.push(t('schedulePage.preparation.staffEffect.sponsor', { value: effects.commercial_bonus_pct }))
+  return values.length > 0 ? values.join(' · ') : t('schedulePage.preparation.staffEffect.none')
 }
 
 function applicationStatusTone(status: string) {
@@ -225,28 +232,29 @@ function TournamentApplicationList({
   items: TournamentApplicationItem[]
   doubles?: boolean
 }) {
+  const { t } = useTranslation()
   return (
     <section className="tlg-schedule-application-group">
       <header>
-        <div><span>{doubles ? 'Doubles' : 'Singles'}</span><h3>{title}</h3><p>{subtitle}</p></div>
-        <strong>{items.length} {items.length === 1 ? 'tournament' : 'tournaments'}</strong>
+        <div><span>{doubles ? t('schedulePage.doubles') : t('schedulePage.singles')}</span><h3>{title}</h3><p>{subtitle}</p></div>
+        <strong>{t('schedulePage.tournamentCount', { count: items.length })}</strong>
       </header>
 
       {items.length === 0 ? (
-        <div className="tlg-schedule-application-empty">No {doubles ? 'doubles' : 'singles'} applications yet.</div>
+        <div className="tlg-schedule-application-empty">{t('schedulePage.noApplications', { discipline: doubles ? t('schedulePage.doubles').toLowerCase() : t('schedulePage.singles').toLowerCase() })}</div>
       ) : (
         <div className="tlg-schedule-application-table">
           <div className="tlg-schedule-application-row head" aria-hidden="true">
-            <span>Tournament</span><span>Schedule</span><span>Category / Surface</span><span>{doubles ? 'Partner' : 'Entry'}</span><span>Status</span>
+            <span>{t('schedulePage.columns.tournament')}</span><span>{t('schedulePage.columns.schedule')}</span><span>{t('schedulePage.columns.categorySurface')}</span><span>{doubles ? t('schedulePage.columns.partner') : t('schedulePage.columns.entry')}</span><span>{t('schedulePage.columns.status')}</span>
           </div>
           {items.map((item) => {
             const entryDetail = doubles
-              ? (item.partner_name ? `With ${item.partner_name}` : 'Partner not confirmed')
+              ? (item.partner_name ? t('schedulePage.withPartner', { name: item.partner_name }) : t('schedulePage.partnerNotConfirmed'))
               : item.draw_type === 'main_draw'
-                ? 'Main Draw'
+                ? t('schedulePage.mainDraw')
                 : item.draw_type === 'qualification'
-                  ? 'Qualification'
-                  : 'Application'
+                  ? t('schedulePage.qualification')
+                  : t('schedulePage.application')
             const href = doubles
               ? `/game/tournaments/${item.competition_id}/doubles`
               : `/game/tournaments/${item.competition_id}`
@@ -257,10 +265,10 @@ function TournamentApplicationList({
                   <CountryFlag countryCode={item.country_code} countryName={item.country_code} width={24} height={16} />
                   <div><strong>{item.tournament_name}</strong><small>{item.city}, {item.country_code}</small></div>
                 </div>
-                <span>{tournamentWeekLabel(item)}</span>
-                <span>{item.category_label} · {titleCase(item.surface)}</span>
+                <span>{tournamentWeekLabel(item, t)}</span>
+                <span>{item.category_label} · {surfaceLabel(item.surface, t)}</span>
                 <span>{entryDetail}</span>
-                <strong className={`tlg-schedule-application-status ${applicationStatusTone(item.status_code)}`}>{item.status_label}</strong>
+                <strong className={`tlg-schedule-application-status ${applicationStatusTone(item.status_code)}`}>{t(`calendarPage.tournament.userStatus.${item.status_code}`, { defaultValue: item.status_label })}</strong>
               </Link>
             )
           })}
@@ -271,6 +279,9 @@ function TournamentApplicationList({
 }
 
 export default function SchedulePage() {
+  const { t } = useTranslation()
+  const { formatCurrency, formatNumber } = useLocalization()
+  const money = (value: number) => formatCurrency(Math.round(value), 'USD')
   const { player, playerLoading } = useAuth()
   const { dashboard: staffDashboard, loading: staffLoading } = useStaff()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -385,7 +396,7 @@ export default function SchedulePage() {
       if (cancelled) return
       setPlanLoading(false)
       if (planError || !data) {
-        setPlanMessage(planError?.message ?? 'Unable to load tournament preparation.')
+        setPlanMessage(planError?.message ?? t('schedulePage.preparation.loadError'))
         return
       }
       const plan = data as PreparationPlanResponse
@@ -401,7 +412,7 @@ export default function SchedulePage() {
       setTactics(loadedTactic)
       setPlanSaved(Boolean(plan.saved))
       setHasUnsavedChanges(false)
-      setSavedPlanSummary(plan.saved ? formatPlanSummary(loadedPlayerTravelClass, loadedHotelTier, loadedStaff.length, loadedTactic.preset) : null)
+      setSavedPlanSummary(plan.saved ? formatPlanSummary(loadedPlayerTravelClass, loadedHotelTier, loadedStaff.length, loadedTactic.preset, t) : null)
       setEngineQuote(plan.quote ?? null)
     }
     void loadPreparation()
@@ -448,7 +459,7 @@ export default function SchedulePage() {
       if (cancelled) return
       setQuoteLoading(false)
       if (quoteError || !data) {
-        setPlanMessage(quoteError?.message ?? 'Unable to calculate travel quote.')
+        setPlanMessage(quoteError?.message ?? t('schedulePage.preparation.quoteError'))
         return
       }
       setEngineQuote(data as TournamentPreparationQuote)
@@ -465,6 +476,7 @@ export default function SchedulePage() {
   )
 
   const hotel = HOTEL_TIERS.find((tier) => tier.value === hotelTier) ?? HOTEL_TIERS[1]
+  const hotelCopy = hotelInfo(hotelTier, t)
   const estimate = engineQuote
 
   function openPreparation() {
@@ -512,7 +524,7 @@ export default function SchedulePage() {
     })
     setPlanSaving(false)
     if (saveError || !data) {
-      setPlanMessage(saveError?.message ?? 'Unable to save tournament preparation.')
+      setPlanMessage(saveError?.message ?? t('schedulePage.preparation.saveError'))
       return
     }
     const saved = data as PreparationPlanResponse
@@ -520,36 +532,36 @@ export default function SchedulePage() {
     const savedTactic = saved.tactic ?? tactics
     setPlanSaved(true)
     setHasUnsavedChanges(false)
-    setPlanMessage('Tournament preparation saved. Your travel, stay, staff and tactic choices are active for this tournament.')
+    setPlanMessage(t('schedulePage.preparation.savedMessage'))
     setPlayerTravelClass(saved.player_travel_class)
     setStaffTravelClass(saved.staff_travel_class)
     setHotelTier(saved.hotel_tier)
     setSelectedStaff(savedStaff)
     setTactics(savedTactic)
-    setSavedPlanSummary(formatPlanSummary(saved.player_travel_class, saved.hotel_tier, savedStaff.length, savedTactic.preset))
+    setSavedPlanSummary(formatPlanSummary(saved.player_travel_class, saved.hotel_tier, savedStaff.length, savedTactic.preset, t))
     setEngineQuote(saved.quote ?? engineQuote)
   }
 
-  const planSummary = savedPlanSummary ?? 'Economy · Standard Hotel ★★★ · Player only · Balanced tactic'
+  const planSummary = savedPlanSummary ?? t('schedulePage.defaultPlan')
 
   return (
-    <GameLayout title="Schedule" subtitle="Tournament operations and player commitments">
+    <GameLayout title={t('schedulePage.title')} subtitle={t('schedulePage.subtitle')}>
       <div className="tlg-schedule-page">
         <section className="tlg-schedule-hero">
           <div className="tlg-schedule-section-head">
             <div>
-              <span>Next tournament</span>
-              <h2>Your next tournament</h2>
-              <p>Prepare travel, staff, accommodation and your default match plan in advance. If you do nothing, the automatic defaults are used.</p>
+              <span>{t('schedulePage.nextTournament')}</span>
+              <h2>{t('schedulePage.nextHeading')}</h2>
+              <p>{t('schedulePage.nextIntro')}</p>
             </div>
           </div>
 
-          {loading || playerLoading ? <div className="tlg-schedule-empty">Loading your tournament schedule…</div> : error ? <div className="tlg-schedule-error">Unable to load schedule: {error}</div> : !nextTournament ? (
+          {loading || playerLoading ? <div className="tlg-schedule-empty">{t('schedulePage.loadingSchedule')}</div> : error ? <div className="tlg-schedule-error">{t('schedulePage.loadError', { error })}</div> : !nextTournament ? (
             <div className="tlg-schedule-empty tlg-schedule-empty-large">
               <CalendarDays size={28} />
-              <strong>No tournament is on your schedule yet</strong>
-              <p>Apply for or register in a tournament from the Tournament Calendar. Once an entry is confirmed, the next event and its preparation controls will appear here automatically.</p>
-              <Link to="/game/calendar?tab=tournament-calendar">Open Tournament Calendar</Link>
+              <strong>{t('schedulePage.noTournament')}</strong>
+              <p>{t('schedulePage.noTournamentBody')}</p>
+              <Link to="/game/calendar?tab=tournament-calendar">{t('schedulePage.openCalendar')}</Link>
             </div>
           ) : (
             <div className="tlg-next-tournament-card">
@@ -564,20 +576,20 @@ export default function SchedulePage() {
                 </div>
 
                 <div className="tlg-next-tournament-actions">
-                  <button type="button" className="primary" onClick={openPreparation}>Prepare Tournament</button>
-                  <Link to={`/game/tournaments/${nextTournament.competition_id}`}>Open Tournament <ChevronRight size={15} /></Link>
+                  <button type="button" className="primary" onClick={openPreparation}>{t('schedulePage.prepareTournament')}</button>
+                  <Link to={`/game/tournaments/${nextTournament.competition_id}`}>{t('schedulePage.openTournament')} <ChevronRight size={15} /></Link>
                 </div>
 
                 <div className={`tlg-default-plan-strip${planSaved ? ' saved' : ''}`}>
-                  <div><span>{planSaved ? 'Saved preparation' : 'Automatic default'}</span><strong>{planSaved ? planSummary : 'Economy · Standard Hotel ★★★ · Player only · Balanced tactic'}</strong></div>
-                  <p>{planSaved ? `This saved plan will be used for ${nextTournament.tournament_name} unless you change and save it again.` : 'Used automatically if you make no changes. Travel is the day before your first required draw and return is the day after elimination.'}</p>
+                  <div><span>{planSaved ? t('schedulePage.savedPreparation') : t('schedulePage.automaticDefault')}</span><strong>{planSaved ? planSummary : t('schedulePage.defaultPlan')}</strong></div>
+                  <p>{planSaved ? t('schedulePage.savedPlanBody', { name: nextTournament.tournament_name }) : t('schedulePage.defaultPlanBody')}</p>
                 </div>
 
                 <div className="tlg-next-tournament-meta">
-                  <div><span>Schedule</span><strong>{tournamentWeekLabel(nextTournament)}</strong></div>
-                  <div><span>Surface</span><strong>{titleCase(nextTournament.surface)}</strong></div>
-                  <div><span>Entry</span><strong>Registered</strong></div>
-                  <div><span>Preparation</span><strong>{planLoading ? 'Loading…' : planSaved ? 'Saved plan' : 'Defaults active'}</strong></div>
+                  <div><span>{t('schedulePage.meta.schedule')}</span><strong>{tournamentWeekLabel(nextTournament, t)}</strong></div>
+                  <div><span>{t('schedulePage.meta.surface')}</span><strong>{surfaceLabel(nextTournament.surface, t)}</strong></div>
+                  <div><span>{t('schedulePage.meta.entry')}</span><strong>{t('schedulePage.meta.registered')}</strong></div>
+                  <div><span>{t('schedulePage.meta.preparation')}</span><strong>{planLoading ? t('schedulePage.meta.loading') : planSaved ? t('schedulePage.meta.savedPlan') : t('schedulePage.meta.defaultsActive')}</strong></div>
                 </div>
               </div>
             </div>
@@ -585,13 +597,13 @@ export default function SchedulePage() {
         </section>
 
         <section className="tlg-schedule-list-card">
-          <div className="tlg-schedule-section-head compact"><div><span>Tournament schedule</span><h2>Other upcoming tournaments</h2><p>Only tournaments that belong to your player appear on this page.</p></div></div>
-          {!loading && upcoming.length === 0 ? <div className="tlg-schedule-empty">No additional tournament commitments.</div> : laterTournaments.length === 0 ? <div className="tlg-schedule-empty">No tournaments scheduled after your next event.</div> : (
+          <div className="tlg-schedule-section-head compact"><div><span>{t('schedulePage.otherKicker')}</span><h2>{t('schedulePage.otherHeading')}</h2><p>{t('schedulePage.otherIntro')}</p></div></div>
+          {!loading && upcoming.length === 0 ? <div className="tlg-schedule-empty">{t('schedulePage.noAdditional')}</div> : laterTournaments.length === 0 ? <div className="tlg-schedule-empty">{t('schedulePage.noLater')}</div> : (
             <div className="tlg-schedule-tournament-list">
               {laterTournaments.map((item) => (
                 <Link key={item.competition_id} to={`/game/tournaments/${item.competition_id}`} className="tlg-schedule-tournament-row">
                   <div className="tlg-schedule-row-name"><CountryFlag countryCode={item.country_code} countryName={item.country_code} width={24} height={16} /><div><strong>{item.tournament_name}</strong><span>{item.city}, {item.country_code}</span></div></div>
-                  <span>{item.category_code}</span><span>{titleCase(item.surface)}</span><span>{tournamentWeekLabel(item)}</span><ChevronRight size={16} />
+                  <span>{item.category_code}</span><span>{surfaceLabel(item.surface, t)}</span><span>{tournamentWeekLabel(item, t)}</span><ChevronRight size={16} />
                 </Link>
               ))}
             </div>
@@ -601,26 +613,26 @@ export default function SchedulePage() {
         <section className="tlg-schedule-applications-card">
           <div className="tlg-schedule-section-head compact">
             <div>
-              <span>Tournament applications</span>
-              <h2>Your application history</h2>
-              <p>Every tournament you entered is listed here separately for singles and doubles, with its current server-backed entry status.</p>
+              <span>{t('schedulePage.applicationsKicker')}</span>
+              <h2>{t('schedulePage.applicationsHeading')}</h2>
+              <p>{t('schedulePage.applicationsIntro')}</p>
             </div>
           </div>
 
           {applicationsLoading ? (
-            <div className="tlg-schedule-empty">Loading tournament applications…</div>
+            <div className="tlg-schedule-empty">{t('schedulePage.loadingApplications')}</div>
           ) : applicationsError ? (
-            <div className="tlg-schedule-error">Unable to load tournament applications: {applicationsError}</div>
+            <div className="tlg-schedule-error">{t('schedulePage.applicationsError', { error: applicationsError })}</div>
           ) : (
             <div className="tlg-schedule-application-groups">
               <TournamentApplicationList
-                title="Singles applications"
-                subtitle="Applications, accepted entries and completed entry outcomes."
+                title={t('schedulePage.singlesApplications')}
+                subtitle={t('schedulePage.singlesApplicationsBody')}
                 items={applicationHistory.singles}
               />
               <TournamentApplicationList
-                title="Doubles applications"
-                subtitle="Partner searches and confirmed doubles teams are tracked separately."
+                title={t('schedulePage.doublesApplications')}
+                subtitle={t('schedulePage.doublesApplicationsBody')}
                 items={applicationHistory.doubles}
                 doubles
               />
@@ -631,89 +643,89 @@ export default function SchedulePage() {
 
       {prepareOpen && nextTournament && (
         <div className="tlg-tournament-prep-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) setPrepareOpen(false) }}>
-          <section className="tlg-tournament-prep-dialog" role="dialog" aria-modal="true" aria-label={`Prepare ${nextTournament.tournament_name}`}>
+          <section className="tlg-tournament-prep-dialog" role="dialog" aria-modal="true" aria-label={t('schedulePage.preparation.aria', { name: nextTournament.tournament_name })}>
             <header className="tlg-tournament-prep-header">
-              <div><span>Tournament preparation</span><h2>{nextTournament.tournament_name}</h2><p>{nextTournament.city}, {nextTournament.country_code} · {titleCase(nextTournament.surface)} · {tournamentWeekLabel(nextTournament)}</p></div>
-              <button type="button" className="icon" onClick={() => setPrepareOpen(false)} aria-label="Close tournament preparation"><X size={19} /></button>
+              <div><span>{t('schedulePage.preparation.kicker')}</span><h2>{nextTournament.tournament_name}</h2><p>{nextTournament.city}, {nextTournament.country_code} · {surfaceLabel(nextTournament.surface, t)} · {tournamentWeekLabel(nextTournament, t)}</p></div>
+              <button type="button" className="icon" onClick={() => setPrepareOpen(false)} aria-label={t('schedulePage.preparation.close')}><X size={19} /></button>
             </header>
 
-            <nav className="tlg-tournament-prep-tabs" aria-label="Tournament preparation sections">
-              <PrepTab active={activeTab === 'travel'} icon={<Plane size={15} />} label="Travel & Stay" onClick={() => setActiveTab('travel')} />
-              <PrepTab active={activeTab === 'staff'} icon={<Users size={15} />} label="Travelling Staff" onClick={() => setActiveTab('staff')} />
-              <PrepTab active={activeTab === 'tactics'} icon={<SlidersHorizontal size={15} />} label="Default Tactic" onClick={() => setActiveTab('tactics')} />
-              <PrepTab active={activeTab === 'summary'} icon={<ShieldCheck size={15} />} label="Summary & Effects" onClick={() => setActiveTab('summary')} />
+            <nav className="tlg-tournament-prep-tabs" aria-label={t('schedulePage.preparation.sectionsAria')}>
+              <PrepTab active={activeTab === 'travel'} icon={<Plane size={15} />} label={t('schedulePage.preparation.tabs.travel')} onClick={() => setActiveTab('travel')} />
+              <PrepTab active={activeTab === 'staff'} icon={<Users size={15} />} label={t('schedulePage.preparation.tabs.staff')} onClick={() => setActiveTab('staff')} />
+              <PrepTab active={activeTab === 'tactics'} icon={<SlidersHorizontal size={15} />} label={t('schedulePage.preparation.tabs.tactics')} onClick={() => setActiveTab('tactics')} />
+              <PrepTab active={activeTab === 'summary'} icon={<ShieldCheck size={15} />} label={t('schedulePage.preparation.tabs.summary')} onClick={() => setActiveTab('summary')} />
             </nav>
 
             <div className="tlg-tournament-prep-body">
               {activeTab === 'travel' && (
                 <div className="tlg-prep-stack">
-                  <div className="tlg-prep-rule"><Plane size={18} /><div><strong>Automatic travel timing</strong><p>Arrive one day before qualification if you are qualifying, otherwise one day before the main draw. Return home the day after elimination.</p></div></div>
-                  {estimate && <div className="tlg-prep-copy"><h3>{estimate.origin.city ?? 'Current location'} → {estimate.destination.city}</h3><p>{distance(estimate.player_travel.distance_km)} · about {estimate.player_travel.estimated_hours_one_way}h one way.</p></div>}
-                  <ChoiceSection title="Player travel class" subtitle="Changing class changes both your fare and arrival fatigue."><ChoiceGrid values={TRAVEL_CLASSES} selected={playerTravelClass} onSelect={(value) => { markPlanDirty(); setPlayerTravelClass(value as TravelClass) }} /></ChoiceSection>
-                  <PlanImpact label="Player travel effect" value={estimate ? `${TRAVEL_CLASS_INFO[playerTravelClass].effect} · +${estimate.player_travel.arrival_fatigue} fatigue on arrival` : TRAVEL_CLASS_INFO[playerTravelClass].effect} cost={estimate ? `${money(estimate.player_travel_cost)} round trip` : '—'} />
-                  <ChoiceSection title="Staff travel class" subtitle="Applied to every staff member you select on the Staff tab."><ChoiceGrid values={TRAVEL_CLASSES} selected={staffTravelClass} onSelect={(value) => { markPlanDirty(); setStaffTravelClass(value as TravelClass) }} /></ChoiceSection>
-                  <PlanImpact label="Staff travel effect" value={selectedStaff.length > 0 && estimate ? `${TRAVEL_CLASS_INFO[staffTravelClass].effect} · +${estimate.staff_travel.arrival_fatigue} fatigue per traveller · ${selectedStaff.length} staff` : 'No travelling staff selected'} cost={estimate ? money(estimate.staff_travel_cost) : '—'} />
-                  <ChoiceSection title="Hotel" subtitle="The hotel stays booked automatically only while you remain in the tournament.">
-                    <div className="tlg-prep-hotel-grid">{HOTEL_TIERS.map((tier) => <button key={tier.value} type="button" className={hotelTier === tier.value ? 'selected' : ''} onClick={() => { markPlanDirty(); setHotelTier(tier.value) }}><Hotel size={17} /><strong>{tier.label}</strong><span>{tier.detail} · {tier.effect}</span><small>{money(tier.nightly)} base / person / night</small></button>)}</div>
+                  <div className="tlg-prep-rule"><Plane size={18} /><div><strong>{t('schedulePage.preparation.automaticTiming')}</strong><p>{t('schedulePage.preparation.automaticTimingBody')}</p></div></div>
+                  {estimate && <div className="tlg-prep-copy"><h3>{estimate.origin.city ?? t('schedulePage.preparation.currentLocation')} → {estimate.destination.city}</h3><p>{t('schedulePage.preparation.oneWay', { distance: distance(estimate.player_travel.distance_km, t, formatNumber), hours: estimate.player_travel.estimated_hours_one_way })}</p></div>}
+                  <ChoiceSection title={t('schedulePage.preparation.playerClass')} subtitle={t('schedulePage.preparation.playerClassBody')}><ChoiceGrid values={TRAVEL_CLASSES} selected={playerTravelClass} onSelect={(value) => { markPlanDirty(); setPlayerTravelClass(value as TravelClass) }} /></ChoiceSection>
+                  <PlanImpact label={t('schedulePage.preparation.playerTravelEffect')} value={estimate ? `${travelClassEffect(playerTravelClass, t)} · ${t('schedulePage.preparation.fatigueArrival', { fatigue: estimate.player_travel.arrival_fatigue })}` : travelClassEffect(playerTravelClass, t)} cost={estimate ? t('schedulePage.preparation.roundTrip', { amount: money(estimate.player_travel_cost) }) : '—'} />
+                  <ChoiceSection title={t('schedulePage.preparation.staffClass')} subtitle={t('schedulePage.preparation.staffClassBody')}><ChoiceGrid values={TRAVEL_CLASSES} selected={staffTravelClass} onSelect={(value) => { markPlanDirty(); setStaffTravelClass(value as TravelClass) }} /></ChoiceSection>
+                  <PlanImpact label={t('schedulePage.preparation.staffTravelEffect')} value={selectedStaff.length > 0 && estimate ? `${travelClassEffect(staffTravelClass, t)} · ${t('schedulePage.preparation.fatigueTraveller', { fatigue: estimate.staff_travel.arrival_fatigue, count: selectedStaff.length })}` : t('schedulePage.preparation.noStaffSelected')} cost={estimate ? money(estimate.staff_travel_cost) : '—'} />
+                  <ChoiceSection title={t('schedulePage.preparation.hotel')} subtitle={t('schedulePage.preparation.hotelBody')}>
+                    <div className="tlg-prep-hotel-grid">{HOTEL_TIERS.map((tier) => { const info = hotelInfo(tier.value, t); return <button key={tier.value} type="button" className={hotelTier === tier.value ? 'selected' : ''} onClick={() => { markPlanDirty(); setHotelTier(tier.value) }}><Hotel size={17} /><strong>{info.label}</strong><span>{info.detail} · {info.effect}</span><small>{t('schedulePage.preparation.basePerNight', { amount: money(tier.nightly) })}</small></button> })}</div>
                   </ChoiceSection>
-                  <PlanImpact label="Selected hotel effect" value={hotel.effect} cost={estimate ? `${money(estimate.hotel.minimum.adjusted_unit_cost)} per person/night` : `${money(hotel.nightly)} per person/night`} />
+                  <PlanImpact label={t('schedulePage.preparation.selectedHotelEffect')} value={hotelCopy.effect} cost={t('schedulePage.preparation.perPersonNight', { amount: estimate ? money(estimate.hotel.minimum.adjusted_unit_cost) : money(hotel.nightly) })} />
                 </div>
               )}
 
               {activeTab === 'staff' && (
                 <div className="tlg-prep-stack">
-                  <div className="tlg-prep-copy"><h3>Choose who travels with the player</h3><p>Travelling staff provide their role-specific tournament support while they are with you. Every selected staff member also adds travel and hotel cost.</p></div>
-                  {staffLoading ? <div className="tlg-schedule-empty">Loading contracted staff…</div> : activeStaff.length === 0 ? <div className="tlg-schedule-empty">You do not currently employ any staff.</div> : (
-                    <div className="tlg-prep-staff-list">{activeStaff.map((contract) => { const checked = selectedStaff.includes(contract.contract_id); const effect = estimate?.staff_effects?.staff.find((item) => item.contract_id === contract.contract_id); return <button key={contract.contract_id} type="button" className={checked ? 'selected' : ''} onClick={() => toggleStaff(contract.contract_id)}><span className="checkbox">{checked ? '✓' : ''}</span><div><strong>{contract.staff.first_name} {contract.staff.last_name}</strong><span>{contract.role_label} · Rating {contract.staff.overall_rating}</span>{checked && effect && <span>Tournament effect: {effect.benefit_label} {effect.benefit_value}</span>}</div><small>{checked ? 'Travelling' : 'Stays home'}</small></button> })}</div>
+                  <div className="tlg-prep-copy"><h3>{t('schedulePage.preparation.chooseStaff')}</h3><p>{t('schedulePage.preparation.chooseStaffBody')}</p></div>
+                  {staffLoading ? <div className="tlg-schedule-empty">{t('schedulePage.preparation.loadingStaff')}</div> : activeStaff.length === 0 ? <div className="tlg-schedule-empty">{t('schedulePage.preparation.noStaff')}</div> : (
+                    <div className="tlg-prep-staff-list">{activeStaff.map((contract) => { const checked = selectedStaff.includes(contract.contract_id); const effect = estimate?.staff_effects?.staff.find((item) => item.contract_id === contract.contract_id); return <button key={contract.contract_id} type="button" className={checked ? 'selected' : ''} onClick={() => toggleStaff(contract.contract_id)}><span className="checkbox">{checked ? '✓' : ''}</span><div><strong>{contract.staff.first_name} {contract.staff.last_name}</strong><span>{contract.role_label} · {t('schedulePage.preparation.rating', { rating: contract.staff.overall_rating })}</span>{checked && effect && <span>{t('schedulePage.preparation.tournamentEffect', { label: effect.benefit_label, value: effect.benefit_value })}</span>}</div><small>{checked ? t('schedulePage.preparation.travelling') : t('schedulePage.preparation.staysHome')}</small></button> })}</div>
                   )}
-                  {estimate && <PlanImpact label="Current travelling party" value={`${estimate.party_size} total traveller${estimate.party_size === 1 ? '' : 's'}`} cost={`${money(estimate.staff_travel_cost)} staff travel`} />}
-                  {estimate?.staff_effects && selectedStaff.length > 0 && <PlanImpact label="Tournament staff effects" value={tournamentStaffEffectsSummary(estimate.staff_effects)} cost="Active while travelling" />}
+                  {estimate && <PlanImpact label={t('schedulePage.preparation.currentParty')} value={t('schedulePage.preparation.travellers', { count: estimate.party_size })} cost={t('schedulePage.preparation.staffTravelCost', { amount: money(estimate.staff_travel_cost) })} />}
+                  {estimate?.staff_effects && selectedStaff.length > 0 && <PlanImpact label={t('schedulePage.preparation.staffEffects')} value={tournamentStaffEffectsSummary(estimate.staff_effects, t)} cost={t('schedulePage.preparation.activeWhileTravelling')} />}
                 </div>
               )}
 
               {activeTab === 'tactics' && (
                 <div className="tlg-prep-stack">
-                  <div className="tlg-prep-copy"><h3>Tournament default tactic</h3><p>This saved plan is used in every match unless you create a specific override from an upcoming match window.</p></div>
-                  <div className="tlg-tactic-presets">{TACTIC_PRESETS.map((preset) => <button key={preset} type="button" className={tactics.preset === preset ? 'selected' : ''} onClick={() => applyPreset(preset)}>{preset}</button>)}</div>
+                  <div className="tlg-prep-copy"><h3>{t('schedulePage.preparation.defaultTactic')}</h3><p>{t('schedulePage.preparation.defaultTacticBody')}</p></div>
+                  <div className="tlg-tactic-presets">{TACTIC_PRESETS.map((preset) => <button key={preset} type="button" className={tactics.preset === preset ? 'selected' : ''} onClick={() => applyPreset(preset)}>{tacticLabel(preset, t)}</button>)}</div>
                   <div className="tlg-tactic-grid">
-                    <SelectField label="Overall approach" value={tactics.approach} values={TACTIC_OPTIONS.approach} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', approach: value })) }} />
-                    <SelectField label="Rally strategy" value={tactics.rally} values={TACTIC_OPTIONS.rally} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', rally: value })) }} />
-                    <SelectField label="Serve strategy" value={tactics.serve} values={TACTIC_OPTIONS.serve} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', serve: value })) }} />
-                    <SelectField label="Serve placement" value={tactics.servePlacement} values={TACTIC_OPTIONS.servePlacement} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', servePlacement: value })) }} />
-                    <SelectField label="Return strategy" value={tactics.returnGame} values={TACTIC_OPTIONS.returnGame} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', returnGame: value })) }} />
-                    <SelectField label="Return position" value={tactics.returnPosition} values={TACTIC_OPTIONS.returnPosition} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', returnPosition: value })) }} />
-                    <SelectField label="Court position" value={tactics.courtPosition} values={TACTIC_OPTIONS.courtPosition} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', courtPosition: value })) }} />
-                    <SelectField label="Opponent target" value={tactics.target} values={TACTIC_OPTIONS.target} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', target: value })) }} />
-                    <SelectField label="Risk level" value={tactics.risk} values={TACTIC_OPTIONS.risk} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', risk: value })) }} />
+                    <SelectField t={t} label={t('schedulePage.preparation.fields.approach')} value={tactics.approach} values={TACTIC_OPTIONS.approach} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', approach: value })) }} />
+                    <SelectField t={t} label={t('schedulePage.preparation.fields.rally')} value={tactics.rally} values={TACTIC_OPTIONS.rally} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', rally: value })) }} />
+                    <SelectField t={t} label={t('schedulePage.preparation.fields.serve')} value={tactics.serve} values={TACTIC_OPTIONS.serve} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', serve: value })) }} />
+                    <SelectField t={t} label={t('schedulePage.preparation.fields.servePlacement')} value={tactics.servePlacement} values={TACTIC_OPTIONS.servePlacement} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', servePlacement: value })) }} />
+                    <SelectField t={t} label={t('schedulePage.preparation.fields.returnGame')} value={tactics.returnGame} values={TACTIC_OPTIONS.returnGame} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', returnGame: value })) }} />
+                    <SelectField t={t} label={t('schedulePage.preparation.fields.returnPosition')} value={tactics.returnPosition} values={TACTIC_OPTIONS.returnPosition} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', returnPosition: value })) }} />
+                    <SelectField t={t} label={t('schedulePage.preparation.fields.courtPosition')} value={tactics.courtPosition} values={TACTIC_OPTIONS.courtPosition} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', courtPosition: value })) }} />
+                    <SelectField t={t} label={t('schedulePage.preparation.fields.target')} value={tactics.target} values={TACTIC_OPTIONS.target} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', target: value })) }} />
+                    <SelectField t={t} label={t('schedulePage.preparation.fields.risk')} value={tactics.risk} values={TACTIC_OPTIONS.risk} onChange={(value) => { markPlanDirty(); setTactics((current) => ({ ...current, preset: 'Custom', risk: value })) }} />
                   </div>
-                  <div className="tlg-prep-rule soft"><SlidersHorizontal size={18} /><div><strong>Match-specific override</strong><p>When the opponent is known, open your scheduled match on the Tournament page. You can keep this default or save a one-match tactic specifically for that opponent.</p></div></div>
+                  <div className="tlg-prep-rule soft"><SlidersHorizontal size={18} /><div><strong>{t('schedulePage.preparation.specificOverride')}</strong><p>{t('schedulePage.preparation.specificOverrideBody')}</p></div></div>
                 </div>
               )}
 
               {activeTab === 'summary' && estimate && (
                 <div className="tlg-prep-stack">
                   <div className="tlg-prep-summary-grid">
-                    <SummaryItem label="Route" value={`${estimate.origin.city ?? 'Current location'} → ${estimate.destination.city} · ${distance(estimate.player_travel.distance_km)}`} />
-                    <SummaryItem label="Player flight" value={`${playerTravelClass} · ${money(estimate.player_travel_cost)} · +${estimate.player_travel.arrival_fatigue} fatigue`} />
-                    <SummaryItem label="Staff flight" value={selectedStaff.length === 0 ? 'No staff travel' : `${staffTravelClass} · ${money(estimate.staff_travel_cost)}`} />
-                    <SummaryItem label="Hotel" value={`${estimate.hotel.label} · ${money(estimate.hotel.minimum.adjusted_unit_cost)}/night · ${hotel.effect}`} />
-                    <SummaryItem label="Travelling staff" value={selectedStaff.length === 0 ? 'Player only' : `${selectedStaff.length} staff`} />
-                    {estimate.staff_effects && estimate.staff_effects.match_execution_bonus_pct > 0 && <SummaryItem label="Staff match execution" value={`+${estimate.staff_effects.match_execution_bonus_pct}%`} />}
-                    {estimate.staff_effects && estimate.staff_effects.match_fatigue_reduction_pct > 0 && <SummaryItem label="Staff fatigue support" value={`-${estimate.staff_effects.match_fatigue_reduction_pct}% match fatigue gain`} />}
-                    {estimate.staff_effects && estimate.staff_effects.injury_risk_reduction_pct > 0 && <SummaryItem label="Staff injury prevention" value={`-${estimate.staff_effects.injury_risk_reduction_pct}% relative match injury risk`} />}
-                    {estimate.staff_effects && estimate.staff_effects.commercial_bonus_pct > 0 && <SummaryItem label="Career Manager commercial support" value={`+${estimate.staff_effects.commercial_bonus_pct}% tournament sponsor objective payout`} />}
-                    <SummaryItem label="Default tactic" value={tactics.preset} />
-                    <SummaryItem label="Return travel" value="Day after elimination" />
+                    <SummaryItem label={t('schedulePage.preparation.route')} value={`${estimate.origin.city ?? t('schedulePage.preparation.currentLocation')} → ${estimate.destination.city} · ${distance(estimate.player_travel.distance_km, t, formatNumber)}`} />
+                    <SummaryItem label={t('schedulePage.preparation.playerFlight')} value={`${playerTravelClass} · ${money(estimate.player_travel_cost)} · ${t('schedulePage.preparation.summaryFatigue', { value: estimate.player_travel.arrival_fatigue })}`} />
+                    <SummaryItem label={t('schedulePage.preparation.staffFlight')} value={selectedStaff.length === 0 ? t('schedulePage.preparation.noStaffTravel') : `${staffTravelClass} · ${money(estimate.staff_travel_cost)}`} />
+                    <SummaryItem label={t('schedulePage.preparation.hotelLabel')} value={`${hotelCopy.label} · ${t('schedulePage.preparation.perPersonNight', { amount: money(estimate.hotel.minimum.adjusted_unit_cost) })} · ${hotelCopy.effect}`} />
+                    <SummaryItem label={t('schedulePage.preparation.travellingStaff')} value={selectedStaff.length === 0 ? t('schedulePage.preparation.playerOnly') : t('schedulePage.preparation.staffCount', { count: selectedStaff.length })} />
+                    {estimate.staff_effects && estimate.staff_effects.match_execution_bonus_pct > 0 && <SummaryItem label={t('schedulePage.preparation.matchExecution')} value={`+${estimate.staff_effects.match_execution_bonus_pct}%`} />}
+                    {estimate.staff_effects && estimate.staff_effects.match_fatigue_reduction_pct > 0 && <SummaryItem label={t('schedulePage.preparation.fatigueSupport')} value={t('schedulePage.preparation.summaryMatchFatigue', { value: estimate.staff_effects.match_fatigue_reduction_pct })} />}
+                    {estimate.staff_effects && estimate.staff_effects.injury_risk_reduction_pct > 0 && <SummaryItem label={t('schedulePage.preparation.injuryPrevention')} value={t('schedulePage.preparation.summaryInjury', { value: estimate.staff_effects.injury_risk_reduction_pct })} />}
+                    {estimate.staff_effects && estimate.staff_effects.commercial_bonus_pct > 0 && <SummaryItem label={t('schedulePage.preparation.commercialSupport')} value={t('schedulePage.preparation.summaryCommercial', { value: estimate.staff_effects.commercial_bonus_pct })} />}
+                    <SummaryItem label={t('schedulePage.preparation.defaultTacticLabel')} value={tacticLabel(tactics.preset, t)} />
+                    <SummaryItem label={t('schedulePage.preparation.returnTravel')} value={t('schedulePage.preparation.dayAfterElimination')} />
                   </div>
-                  {selectedStaffNames.length > 0 && <div className="tlg-prep-selected-staff"><span>Travelling party</span><strong>{selectedStaffNames.join(', ')}</strong></div>}
-                  <div className="tlg-prep-cost-placeholder tlg-prep-cost-live"><span>Estimated tournament trip cost {quoteLoading ? '· recalculating…' : ''}</span><strong>{money(estimate.minimum_total)} – {money(estimate.maximum_total)}</strong><div className="tlg-prep-cost-breakdown"><small>Travel: {money(estimate.player_travel_cost + estimate.staff_travel_cost)} round trip</small><small>Hotel: {money(estimate.hotel.minimum.adjusted_unit_cost * estimate.party_size)} / night for the party</small><small>Automatic stay range: {estimate.minimum_nights}–{estimate.maximum_nights} nights</small><small>Arrival fatigue: +{estimate.player_travel.arrival_fatigue}</small></div><p>Your hotel stay ends automatically after elimination, so the final cost depends on how long you remain in the tournament.</p></div>
+                  {selectedStaffNames.length > 0 && <div className="tlg-prep-selected-staff"><span>{t('schedulePage.preparation.party')}</span><strong>{selectedStaffNames.join(', ')}</strong></div>}
+                  <div className="tlg-prep-cost-placeholder tlg-prep-cost-live"><span>{t('schedulePage.preparation.estimatedCost')} {quoteLoading ? t('schedulePage.preparation.recalculatingShort') : ''}</span><strong>{money(estimate.minimum_total)} – {money(estimate.maximum_total)}</strong><div className="tlg-prep-cost-breakdown"><small>{t('schedulePage.preparation.travelCost', { amount: money(estimate.player_travel_cost + estimate.staff_travel_cost) })}</small><small>{t('schedulePage.preparation.hotelCost', { amount: money(estimate.hotel.minimum.adjusted_unit_cost * estimate.party_size) })}</small><small>{t('schedulePage.preparation.stayRange', { min: estimate.minimum_nights, max: estimate.maximum_nights })}</small><small>{t('schedulePage.preparation.arrivalFatigue', { value: estimate.player_travel.arrival_fatigue })}</small></div><p>{t('schedulePage.preparation.stayBody')}</p></div>
                 </div>
               )}
             </div>
 
             <footer className="tlg-tournament-prep-footer">
-              <span>{planMessage ?? (quoteLoading ? 'Recalculating route and stay…' : hasUnsavedChanges ? 'You have unsaved changes. Save the tournament plan to activate them.' : planSaved ? 'Saved plan is active for this tournament.' : 'Automatic defaults remain active until you save a plan.')}</span>
-              <button type="button" onClick={savePreparation} disabled={planSaving || planLoading || quoteLoading}>{planSaving ? 'Saving…' : hasUnsavedChanges && planSaved ? 'Save Changes' : 'Save Tournament Plan'}</button>
+              <span>{planMessage ?? (quoteLoading ? t('schedulePage.preparation.recalculating') : hasUnsavedChanges ? t('schedulePage.preparation.unsaved') : planSaved ? t('schedulePage.preparation.active') : t('schedulePage.preparation.defaults'))}</span>
+              <button type="button" onClick={savePreparation} disabled={planSaving || planLoading || quoteLoading}>{planSaving ? t('schedulePage.preparation.saving') : hasUnsavedChanges && planSaved ? t('schedulePage.preparation.saveChanges') : t('schedulePage.preparation.savePlan')}</button>
             </footer>
           </section>
         </div>
@@ -734,8 +746,8 @@ function ChoiceGrid({ values, selected, onSelect }: { values: readonly string[];
   return <div className="tlg-prep-choice-grid">{values.map((value) => <button key={value} type="button" className={selected === value ? 'selected' : ''} onClick={() => onSelect(value)}>{value}</button>)}</div>
 }
 
-function SelectField({ label, value, values, onChange }: { label: string; value: string; values: readonly string[]; onChange: (value: string) => void }) {
-  return <label className="tlg-tactic-field"><span>{label}</span><select value={value} onChange={(event) => onChange(event.target.value)}>{values.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
+function SelectField({ t, label, value, values, onChange }: { t: TFunction; label: string; value: string; values: readonly string[]; onChange: (value: string) => void }) {
+  return <label className="tlg-tactic-field"><span>{label}</span><select value={value} onChange={(event) => onChange(event.target.value)}>{values.map((option) => <option key={option} value={option}>{tacticLabel(option, t)}</option>)}</select></label>
 }
 
 function SummaryItem({ label, value }: { label: string; value: string }) {
