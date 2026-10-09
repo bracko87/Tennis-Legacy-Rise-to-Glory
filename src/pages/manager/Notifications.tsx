@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router'
 import { useAuth } from '../../auth/AuthContext'
 import GameLayout from '../../components/layout/GameLayout'
 import { useLocalization } from '../../i18n/LocalizationProvider'
+import { localizeNotification } from '../../i18n/notificationLocalization'
 import { supabase } from '../../lib/supabase'
 import '../../styles/notification-center.css'
 
@@ -40,19 +41,6 @@ interface ContextRow {
 }
 
 const FILTERS: NotificationFilter[] = ['all', 'unread', 'important', 'tournament', 'health', 'equipment', 'account']
-
-function notificationTemplateKey(code: string) {
-  return code.replaceAll('.', '_')
-}
-
-function localizedNotification(notification: NotificationRow, t: TFunction) {
-  const key = notificationTemplateKey(notification.notification_code)
-  const values = { ...notification.payload }
-  return {
-    title: t(`notifications.templates.${key}.title`, { ...values, defaultValue: notification.title }),
-    message: t(`notifications.templates.${key}.message`, { ...values, defaultValue: notification.message }),
-  }
-}
 
 const SEVERITY_ORDER: Record<NotificationSeverity, number> = {
   info: 1,
@@ -645,7 +633,7 @@ export default function NotificationsPage() {
           <div className="tlg-notification-list">
             {visibleNotifications.map((notification) => {
               const expanded = expandedId === notification.id
-              const display = localizedNotification(notification, t)
+              const display = localizeNotification(notification, t)
               const rows = contextRows(notification, t, localeTag)
               const actions = notificationActions(notification, t)
 
