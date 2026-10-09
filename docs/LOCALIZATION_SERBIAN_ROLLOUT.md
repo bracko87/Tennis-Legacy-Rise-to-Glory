@@ -12,18 +12,19 @@ English remains the source language. Serbian uses Latin script (`sr-Latn-RS`) an
 - Help Center, Forum / Discord and Contact
 - Full Game Manual (Serbian edition)
 - Complete first-login tutorial
-- Rankings
-- Manager Inbox
-- Invite Friends / referral program
-
-## Core gameplay still to migrate from hardcoded English
-
 - Overview
 - Skills
 - Training
 - Training Camps
 - Staff
 - Staff Market
+- Rankings
+- Premium & Billing
+- Manager Inbox
+- Invite Friends / referral program
+
+## Core gameplay still to migrate from hardcoded English
+
 - Calendar
 - Tournament Calendar
 - Schedule / Tournament Preparation
@@ -39,7 +40,6 @@ English remains the source language. Serbian uses Latin script (`sr-Latn-RS`) an
 - National Team / National Association
 - Private Life
 - Tennis Club
-- Premium & Billing
 
 ## System / dynamic text review
 
