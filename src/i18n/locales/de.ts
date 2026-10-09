@@ -1636,6 +1636,17 @@ export default {
       heroKicker: 'AUSRÜSTUNG', heroBody: 'Stelle deine Match-Ausrüstung zusammen, verwalte dein Inventar, kaufe auf dem professionellen Markt und verhandle mit technischen Sponsoren.',
       tabs: { market: 'Markt' },
       summary: { cash: 'KARRIEREGELD', cashNote: 'Ausrüstungskäufe werden über die Karrierefinanzen bezahlt', racket: 'SCHLÄGER', shoes: 'SCHUHE', clothing: 'BEKLEIDUNG', notEquipped: 'Nicht ausgerüstet', chooseInventory: 'Aus Inventar wählen' },
+      wearSummary: {
+        racket: 'SCHLÄGERVERSCHLEISS',
+        racketValue: 'ca. −{{value}} % / Match',
+        shoes: 'SCHUHVERSCHLEISS',
+        shoesValue: '−{{min}} % bis −{{max}} %',
+        clothing: 'BEKLEIDUNGSVERSCHLEISS',
+        clothingValue: 'ca. −{{value}} % / Match',
+        accessories: 'ZUBEHÖR',
+        accessoriesValue: '−{{min}} % bis −{{max}} %',
+        note: 'Der Zustand wird mit einer Genauigkeit von {{precision}} % gespeichert. Boni werden automatisch schwächer, wenn der Zustand sinkt.',
+      },
       gear: {
         kicker: 'AKTUELLES MATCH-SETUP', title: 'Dein Ausrüstungsraum', body: 'Schläger, Schuhe und Bekleidung haben jeweils einen aktiven Platz. Jeder Zubehörtyp hat einen eigenen aktiven Platz.',
         openInventory: 'Inventar öffnen', racketDetail: 'Power · Kontrolle · Spin · Stilprofil', shoeFallback: 'Belagspezifische Schuhe', clothingFallback: 'Universelle Matchbekleidung',
