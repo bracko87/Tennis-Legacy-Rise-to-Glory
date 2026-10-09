@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom'
 import { AlertTriangle, HeartPulse, ShieldCheck } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
@@ -65,6 +66,7 @@ function titleCase(value: string) {
 }
 
 export default function TournamentMatchHealthControl() {
+  const { t } = useTranslation()
   const { competitionId } = useParams()
   const { player } = useAuth()
   const [matches, setMatches] = useState<DrawMatch[]>([])
@@ -177,22 +179,22 @@ export default function TournamentMatchHealthControl() {
           <div className="tlg-match-health-heading">
             <div className="icon">{health?.health_concern ? <HeartPulse size={20} /> : <ShieldCheck size={20} />}</div>
             <div>
-              <span>Match health check</span>
+              <span>{t('tournamentPage.enhancements.health.kicker')}</span>
               <strong>{health?.health_concern ? 'Health concern detected' : 'No elevated health concern'}</strong>
               <small>{condition ? `${condition.name} · ${titleCase(condition.severity)} · ${condition.progress_percent}% recovered` : health?.health.label ?? 'Health status unavailable'}</small>
             </div>
           </div>
           {health ? <div className="tlg-match-health-metrics">
-            <div><span>Fatigue</span><strong>{health.fatigue}/100</strong></div>
-            <div><span>Match injury risk</span><strong>{titleCase(health.match_injury_risk.risk_level)} · {Number(health.match_injury_risk.risk_percent).toFixed(2)}%</strong></div>
-            <div><span>Illness risk</span><strong>{titleCase(health.illness_risk.risk_level)} · {Number(health.illness_risk.risk_percent).toFixed(2)}%</strong></div>
-            <div><span>Performance penalty</span><strong>{Math.round(Number(health.health.performance_penalty ?? 0) * 100)}%</strong></div>
+            <div><span>{t('tournamentPage.enhancements.health.fatigue')}</span><strong>{health.fatigue}/100</strong></div>
+            <div><span>{t('tournamentPage.enhancements.health.injuryRisk')}</span><strong>{t(`healthPage.risk.${health.match_injury_risk.risk_level}`, { defaultValue: titleCase(health.match_injury_risk.risk_level) })} · {Number(health.match_injury_risk.risk_percent).toFixed(2)}%</strong></div>
+            <div><span>{t('tournamentPage.enhancements.health.illnessRisk')}</span><strong>{t(`healthPage.risk.${health.illness_risk.risk_level}`, { defaultValue: titleCase(health.illness_risk.risk_level) })} · {Number(health.illness_risk.risk_percent).toFixed(2)}%</strong></div>
+            <div><span>{t('tournamentPage.enhancements.health.performancePenalty')}</span><strong>{Math.round(Number(health.health.performance_penalty ?? 0) * 100)}%</strong></div>
           </div> : null}
           {health?.health_concern ? <div className="tlg-match-health-action">
             <AlertTriangle size={18} />
             <div className="tlg-match-health-choice-copy">
-              <p>There is a health risk, but the decision is yours. You can play the match anyway or surrender before the match simulation is prepared.</p>
-              {playAnywaySelected ? <small>You chose to continue playing. The health risk still applies, and surrender remains available until the simulation is prepared.</small> : null}
+              <p>{t('tournamentPage.enhancements.health.warning')}</p>
+              {playAnywaySelected ? <small>{t('tournamentPage.enhancements.health.continueSelected')}</small> : null}
             </div>
             <div className="tlg-match-health-choice-buttons">
               <button type="button" className="continue" onClick={() => setPlayAnywaySelected(true)} disabled={busy || playAnywaySelected}>
@@ -212,8 +214,8 @@ export default function TournamentMatchHealthControl() {
       <GameConfirmDialog
         open={confirmSurrenderOpen}
         eyebrow="Match health decision"
-        title="Surrender this match?"
-        message="If you confirm, you forfeit this match and your opponent advances."
+        title={t('tournamentPage.enhancements.health.surrenderTitle')}
+        message={t('tournamentPage.enhancements.health.surrenderMessage')}
         detail={`Current concern: ${concernLabel}. Choose Cancel to keep the match scheduled and continue playing. This action cannot be undone.`}
         cancelLabel="Cancel"
         confirmLabel="Confirm surrender"
