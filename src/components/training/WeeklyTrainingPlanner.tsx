@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 
 import type { TrainingIntensity, TrainingPlan, TrainingType } from '../../hooks/useTraining'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import {
   useTrainingWeekPlanner,
   type TrainingDaySaveDraft,
@@ -8,45 +10,45 @@ import {
   type TrainingWeekPlanner,
 } from '../../hooks/useTrainingWeekPlanner'
 
-const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-]
-
-const TECHNICAL_SKILLS = [
-  ['serve', 'Serve'], ['forehand', 'Forehand'], ['backhand', 'Backhand'], ['return_skill', 'Return'],
-  ['volley', 'Volley'], ['slice', 'Slice'], ['drop_shot', 'Drop Shot'], ['lob', 'Lob'], ['smash', 'Smash'],
-] as const
-
-const PHYSICAL_SKILLS = [
-  ['fitness', 'Fitness'], ['stamina', 'Stamina'], ['recovery', 'Recovery'], ['movement', 'Movement'],
-] as const
-
-const ATTRIBUTE_LABELS: Record<string, string> = Object.fromEntries([...TECHNICAL_SKILLS, ...PHYSICAL_SKILLS])
+const TECHNICAL_SKILLS = ['serve','forehand','backhand','return_skill','volley','slice','drop_shot','lob','smash'] as const
+const PHYSICAL_SKILLS = ['fitness','stamina','recovery','movement'] as const
 
 type DayDraft = Pick<TrainingWeekDay, 'training_type' | 'focus_attribute' | 'intensity'>
 
-function activityLabel(value: TrainingWeekDay['activity_type']) {
-  if (value === 'training_camp') return 'Training Camp'
+function attributeLabel(key: string, t: TFunction) {
+  return t(`trainingPage.attributes.${key}`, { defaultValue: key.replace(/_/g, ' ') })
+}
+
+function activityLabel(value: TrainingWeekDay['activity_type'], t: TFunction) {
+  if (value === 'training_camp') return t('trainingPage.activity.trainingCamp')
+  if (value === 'home') return t('trainingPage.activity.home')
+  if (value === 'travel') return t('trainingPage.activity.travel')
+  if (value === 'tournament') return t('trainingPage.activity.tournament')
+  if (value === 'injury') return t('trainingPage.activity.injury')
+  if (value === 'training') return t('trainingPage.activity.training')
   return value.charAt(0).toUpperCase() + value.slice(1)
 }
 
-function planLabel(day: TrainingWeekDay) {
+function planLabel(day: TrainingWeekDay, t: TFunction) {
   if (day.training_type === 'day_off') {
-    if (day.plan_source === 'automatic_recovery' && day.session_role === 'active_recovery') return 'Active Recovery'
-    if (day.plan_source === 'automatic_recovery' && day.session_role === 'full_rest') return 'Full Rest'
-    return 'Day Off'
+    if (day.plan_source === 'automatic_recovery' && day.session_role === 'active_recovery') return t('trainingPage.sessionRoles.activeRecovery')
+    if (day.plan_source === 'automatic_recovery' && day.session_role === 'full_rest') return t('trainingPage.sessionRoles.fullRest')
+    return t('trainingPage.planner.dayOff')
   }
-  return `${ATTRIBUTE_LABELS[day.focus_attribute ?? ''] ?? 'Training'} · ${day.intensity}`
+  return `${attributeLabel(day.focus_attribute ?? '', t)} · ${t(`trainingPage.planner.${day.intensity}`)}`
 }
 
-function weekSummary(week: TrainingWeekPlanner | null, drafts: Record<number, DayDraft>) {
+function weekSummary(week: TrainingWeekPlanner | null, drafts: Record<number, DayDraft>, t: TFunction) {
   if (!week) return ''
   const days = week.days.map((day) => ({ ...day, ...(drafts[day.absolute_day] ?? {}) }))
   const blocked = days.filter((day) => day.activity_type !== 'home').length
   const planned = days.filter((day) => day.activity_type === 'home' && day.training_type !== 'day_off').length
   const rest = days.filter((day) => day.activity_type === 'home' && day.training_type === 'day_off').length
-  return `${planned} training · ${rest} recovery${blocked ? ` · ${blocked} calendar` : ''}`
+  return t('trainingPage.planner.summary', {
+    training: planned,
+    recovery: rest,
+    calendar: blocked ? t('trainingPage.planner.calendarSummary', { count: blocked }) : '',
+  })
 }
 
 interface WeeklyTrainingPlannerProps {
@@ -62,6 +64,8 @@ export default function WeeklyTrainingPlanner({
   todayProcessed,
   onCompleteToday,
 }: WeeklyTrainingPlannerProps) {
+  const { t } = useTranslation()
+  const { localeTag } = useLocalization()
   const { currentWeek, nextWeek, loading, saving, error, saveDays } = useTrainingWeekPlanner()
   const [expanded, setExpanded] = useState<'current' | 'next'>('current')
   const [templateType, setTemplateType] = useState<TrainingType>(defaultPlan.training_type)
@@ -111,7 +115,7 @@ export default function WeeklyTrainingPlanner({
   function normalizeFocus(type: TrainingType, focus: string | null) {
     if (type === 'day_off') return null
     const options = focusOptions(type)
-    return options.some(([key]) => key === focus) ? focus : options[0][0]
+    return options.some((key) => key === focus) ? focus : options[0]
   }
 
   function dayWithDraft(day: TrainingWeekDay) {
@@ -155,7 +159,7 @@ export default function WeeklyTrainingPlanner({
       })
       return updated
     })
-    setMessage(`Plan prepared for ${applied} available day${applied === 1 ? '' : 's'}. Click Save Training Plan to confirm the changes.`)
+    setMessage(t('trainingPage.planner.planPrepared', { count: applied }))
   }
 
   function changeDay(day: TrainingWeekDay, patch: Partial<DayDraft>) {
@@ -183,7 +187,7 @@ export default function WeeklyTrainingPlanner({
     const result = await saveDays(changes)
     if (!result) return
     setDrafts({})
-    setMessage(`${result.saved_days} training day${result.saved_days === 1 ? '' : 's'} saved successfully.`)
+    setMessage(t('trainingPage.planner.saved', { count: result.saved_days }))
   }
 
   function renderDay(baseDay: TrainingWeekDay) {
@@ -194,51 +198,51 @@ export default function WeeklyTrainingPlanner({
     return (
       <article className={`tlg-week-plan-day ${calendarOwned ? 'calendar-owned' : ''} ${day.processed ? 'processed' : ''} ${isToday ? 'today' : ''} ${changed ? 'unsaved' : ''}`} key={day.absolute_day}>
         <div className="tlg-week-plan-date">
-          <span>{day.weekday_name.slice(0, 3).toUpperCase()}</span>
-          <strong>{MONTH_NAMES[day.month - 1]} {day.day}</strong>
-          {isToday && <small>Today</small>}
-          {changed && <small className="draft-label">Unsaved</small>}
+          <span>{new Intl.DateTimeFormat(localeTag, { weekday: 'short' }).format(new Date(2020, Math.max(0, day.month - 1), Math.max(1, day.day))).toUpperCase()}</span>
+          <strong>{new Intl.DateTimeFormat(localeTag, { month: 'short', day: 'numeric' }).format(new Date(2020, Math.max(0, day.month - 1), Math.max(1, day.day)))}</strong>
+          {isToday && <small>{t('trainingPage.planner.today')}</small>}
+          {changed && <small className="draft-label">{t('trainingPage.planner.unsaved')}</small>}
         </div>
 
         {calendarOwned ? (
           <div className="tlg-week-plan-calendar-event">
-            <span>{activityLabel(day.activity_type).toUpperCase()}</span>
-            <strong>{day.activity_note || activityLabel(day.activity_type)}</strong>
-            <small>Calendar ownership overrides Regular Training.</small>
+            <span>{activityLabel(day.activity_type, t).toUpperCase()}</span>
+            <strong>{day.activity_note || activityLabel(day.activity_type, t)}</strong>
+            <small>{t('trainingPage.planner.calendarOverride')}</small>
           </div>
         ) : day.processed || !day.editable ? (
           <div className="tlg-week-plan-locked-home">
-            <span>{day.processed ? 'COMPLETED' : 'LOCKED'}</span>
-            <strong>{planLabel(day)}</strong>
-            <small>{day.lock_reason || 'This day can no longer be changed.'}</small>
+            <span>{day.processed ? t('trainingPage.planner.completed') : t('trainingPage.planner.locked')}</span>
+            <strong>{planLabel(day, t)}</strong>
+            <small>{day.lock_reason || t('trainingPage.planner.cannotChange')}</small>
           </div>
         ) : (
           <div className="tlg-week-plan-controls">
             <label>
-              <span>Activity</span>
+              <span>{t('trainingPage.planner.activity')}</span>
               <select value={day.training_type} onChange={(event) => changeDay(baseDay, { training_type: event.target.value as TrainingType })} disabled={saving}>
-                <option value="technical">Tennis Skills</option>
-                <option value="physical">Physical</option>
-                <option value="day_off">Day Off</option>
+                <option value="technical">{t('trainingPage.planner.tennisSkills')}</option>
+                <option value="physical">{t('trainingPage.planner.physical')}</option>
+                <option value="day_off">{t('trainingPage.planner.dayOff')}</option>
               </select>
             </label>
             <label>
-              <span>Focus</span>
+              <span>{t('trainingPage.planner.focus')}</span>
               <select
                 value={day.focus_attribute ?? ''}
                 onChange={(event) => changeDay(baseDay, { focus_attribute: event.target.value || null })}
                 disabled={saving || day.training_type === 'day_off'}
               >
-                {day.training_type !== 'day_off' && focusOptions(day.training_type).map(([key, label]) => <option value={key} key={key}>{label}</option>)}
-                {day.training_type === 'day_off' && <option value="">Recovery</option>}
+                {day.training_type !== 'day_off' && focusOptions(day.training_type).map((key) => <option value={key} key={key}>{attributeLabel(key, t)}</option>)}
+                {day.training_type === 'day_off' && <option value="">{t('trainingPage.planner.recovery')}</option>}
               </select>
             </label>
             <label>
-              <span>Load</span>
+              <span>{t('trainingPage.planner.load')}</span>
               <select value={day.intensity} onChange={(event) => changeDay(baseDay, { intensity: event.target.value as TrainingIntensity })} disabled={saving || day.training_type === 'day_off'}>
-                <option value="light">Light</option>
-                <option value="standard">Standard</option>
-                <option value="hard">Hard</option>
+                <option value="light">{t('trainingPage.planner.light')}</option>
+                <option value="standard">{t('trainingPage.planner.standard')}</option>
+                <option value="hard">{t('trainingPage.planner.hard')}</option>
               </select>
             </label>
           </div>
@@ -247,23 +251,23 @@ export default function WeeklyTrainingPlanner({
     )
   }
 
-  if (loading && !currentWeek) return <div className="tlg-week-plan-loading">Loading weekly training plan…</div>
+  if (loading && !currentWeek) return <div className="tlg-week-plan-loading">{t('trainingPage.planner.loading')}</div>
 
   return (
     <div className="tlg-week-planner">
       {error && <div className="tlg-week-plan-error">{error}</div>}
       {message && <div className="tlg-week-plan-message">{message}</div>}
 
-      <div className="tlg-week-planner-tabs" role="tablist" aria-label="Training weeks">
+      <div className="tlg-week-planner-tabs" role="tablist" aria-label={t('trainingPage.planner.weeksAria')}>
         <button type="button" className={expanded === 'current' ? 'active' : ''} onClick={() => setExpanded('current')}>
-          <span>THIS WEEK</span>
-          <strong>{currentWeek ? `Week ${currentWeek.season_week}` : '—'}</strong>
-          <small>{weekSummary(currentWeek, drafts)}</small>
+          <span>{t('trainingPage.planner.thisWeek')}</span>
+          <strong>{currentWeek ? t('trainingPage.planner.week', { week: currentWeek.season_week }) : '—'}</strong>
+          <small>{weekSummary(currentWeek, drafts, t)}</small>
         </button>
         <button type="button" className={expanded === 'next' ? 'active' : ''} onClick={() => setExpanded('next')}>
-          <span>NEXT WEEK</span>
-          <strong>{nextWeek ? `Week ${nextWeek.season_week}` : '—'}</strong>
-          <small>{weekSummary(nextWeek, drafts)}</small>
+          <span>{t('trainingPage.planner.nextWeek')}</span>
+          <strong>{nextWeek ? t('trainingPage.planner.week', { week: nextWeek.season_week }) : '—'}</strong>
+          <small>{weekSummary(nextWeek, drafts, t)}</small>
         </button>
       </div>
 
@@ -272,37 +276,37 @@ export default function WeeklyTrainingPlanner({
           <section className="tlg-week-template">
             <header>
               <div>
-                <span>QUICK WEEK PLAN</span>
-                <strong>Use one plan for every available day</strong>
+                <span>{t('trainingPage.planner.quickPlan')}</span>
+                <strong>{t('trainingPage.planner.quickPlanHeading')}</strong>
               </div>
-              <small>Travel, tournaments, camps, injuries and already processed days are never overwritten. Changes are saved only when you click Save Training Plan.</small>
+              <small>{t('trainingPage.planner.quickPlanBody')}</small>
             </header>
             <div className="tlg-week-template-controls">
               <label>
-                <span>Training</span>
+                <span>{t('trainingPage.planner.training')}</span>
                 <select value={templateType} onChange={(event) => changeTemplateType(event.target.value as TrainingType)}>
-                  <option value="technical">Tennis Skills</option>
-                  <option value="physical">Physical</option>
-                  <option value="day_off">Day Off</option>
+                  <option value="technical">{t('trainingPage.planner.tennisSkills')}</option>
+                  <option value="physical">{t('trainingPage.planner.physical')}</option>
+                  <option value="day_off">{t('trainingPage.planner.dayOff')}</option>
                 </select>
               </label>
               <label>
-                <span>Focus</span>
+                <span>{t('trainingPage.planner.focus')}</span>
                 <select value={templateFocus ?? ''} onChange={(event) => setTemplateFocus(event.target.value || null)} disabled={templateType === 'day_off'}>
-                  {templateType !== 'day_off' && focusOptions(templateType).map(([key, label]) => <option value={key} key={key}>{label}</option>)}
-                  {templateType === 'day_off' && <option value="">Recovery</option>}
+                  {templateType !== 'day_off' && focusOptions(templateType).map((key) => <option value={key} key={key}>{attributeLabel(key, t)}</option>)}
+                  {templateType === 'day_off' && <option value="">{t('trainingPage.planner.recovery')}</option>}
                 </select>
               </label>
               <label>
-                <span>Load</span>
+                <span>{t('trainingPage.planner.load')}</span>
                 <select value={templateIntensity} onChange={(event) => setTemplateIntensity(event.target.value as TrainingIntensity)} disabled={templateType === 'day_off'}>
-                  <option value="light">Light</option>
-                  <option value="standard">Standard</option>
-                  <option value="hard">Hard</option>
+                  <option value="light">{t('trainingPage.planner.light')}</option>
+                  <option value="standard">{t('trainingPage.planner.standard')}</option>
+                  <option value="hard">{t('trainingPage.planner.hard')}</option>
                 </select>
               </label>
               <button type="button" onClick={handleApplyWeek} disabled={saving}>
-                Apply to available days
+                {t('trainingPage.planner.applyAvailable')}
               </button>
             </div>
           </section>
@@ -313,12 +317,12 @@ export default function WeeklyTrainingPlanner({
 
           <footer className="tlg-week-plan-footer">
             <div>
-              <strong>{unsavedCount > 0 ? `${unsavedCount} unsaved training change${unsavedCount === 1 ? '' : 's'}` : 'Calendar-aware training'}</strong>
-              <span>{unsavedCount > 0 ? 'Review the changed days above, then save the plan. Tournament, travel, camp and injury ownership will still override Regular Training automatically.' : 'When Match Engine updates a tournament exit, the planner automatically follows the new Tournament → Travel → Home sequence and training becomes available again on the remaining Home days.'}</span>
+              <strong>{unsavedCount > 0 ? t('trainingPage.planner.unsavedChanges', { count: unsavedCount }) : t('trainingPage.planner.calendarAware')}</strong>
+              <span>{unsavedCount > 0 ? t('trainingPage.planner.reviewChanges') : t('trainingPage.planner.automaticSequence')}</span>
             </div>
             <div className="tlg-week-plan-footer-actions">
               <button type="button" className="save-plan" onClick={() => void handleSavePlan()} disabled={saving || unsavedCount === 0}>
-                {saving ? 'Saving…' : unsavedCount > 0 ? `Save Training Plan (${unsavedCount})` : 'Save Training Plan'}
+                {saving ? t('trainingPage.planner.saving') : unsavedCount > 0 ? t('trainingPage.planner.savePlanCount', { count: unsavedCount }) : t('trainingPage.planner.savePlan')}
               </button>
               {expanded === 'current' && currentDay?.activity_type === 'home' && (
                 <button
@@ -326,9 +330,9 @@ export default function WeeklyTrainingPlanner({
                   className="complete-today"
                   onClick={() => void onCompleteToday()}
                   disabled={processing || todayProcessed || !currentDay || !currentDay.editable || currentDayHasUnsavedChanges}
-                  title={currentDayHasUnsavedChanges ? "Save today's training plan before completing it." : undefined}
+                  title={currentDayHasUnsavedChanges ? t('trainingPage.planner.saveTodayFirst') : undefined}
                 >
-                  {processing ? 'Processing…' : todayProcessed ? 'Today Completed' : currentDayHasUnsavedChanges ? 'Save Plan First' : 'Complete Today'}
+                  {processing ? t('trainingPage.planner.processing') : todayProcessed ? t('trainingPage.planner.todayCompleted') : currentDayHasUnsavedChanges ? t('trainingPage.planner.savePlanFirst') : t('trainingPage.planner.completeToday')}
                 </button>
               )}
             </div>
