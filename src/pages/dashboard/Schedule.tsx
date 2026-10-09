@@ -16,8 +16,9 @@ import { Link, useSearchParams } from 'react-router'
 import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
-import { useStaff } from '../../hooks/useStaff'
+import { useStaff, type StaffRole } from '../../hooks/useStaff'
 import { useLocalization } from '../../i18n/LocalizationProvider'
+import { staffEffectLabel, staffRoleLabel } from '../../i18n/staffLocalization'
 import { supabase } from '../../lib/supabase'
 import {
   BALANCED_TACTIC,
@@ -676,7 +677,7 @@ export default function SchedulePage() {
                 <div className="tlg-prep-stack">
                   <div className="tlg-prep-copy"><h3>{t('schedulePage.preparation.chooseStaff')}</h3><p>{t('schedulePage.preparation.chooseStaffBody')}</p></div>
                   {staffLoading ? <div className="tlg-schedule-empty">{t('schedulePage.preparation.loadingStaff')}</div> : activeStaff.length === 0 ? <div className="tlg-schedule-empty">{t('schedulePage.preparation.noStaff')}</div> : (
-                    <div className="tlg-prep-staff-list">{activeStaff.map((contract) => { const checked = selectedStaff.includes(contract.contract_id); const effect = estimate?.staff_effects?.staff.find((item) => item.contract_id === contract.contract_id); return <button key={contract.contract_id} type="button" className={checked ? 'selected' : ''} onClick={() => toggleStaff(contract.contract_id)}><span className="checkbox">{checked ? '✓' : ''}</span><div><strong>{contract.staff.first_name} {contract.staff.last_name}</strong><span>{contract.role_label} · {t('schedulePage.preparation.rating', { rating: contract.staff.overall_rating })}</span>{checked && effect && <span>{t('schedulePage.preparation.tournamentEffect', { label: effect.benefit_label, value: effect.benefit_value })}</span>}</div><small>{checked ? t('schedulePage.preparation.travelling') : t('schedulePage.preparation.staysHome')}</small></button> })}</div>
+                    <div className="tlg-prep-staff-list">{activeStaff.map((contract) => { const checked = selectedStaff.includes(contract.contract_id); const effect = estimate?.staff_effects?.staff.find((item) => item.contract_id === contract.contract_id); return <button key={contract.contract_id} type="button" className={checked ? 'selected' : ''} onClick={() => toggleStaff(contract.contract_id)}><span className="checkbox">{checked ? '✓' : ''}</span><div><strong>{contract.staff.first_name} {contract.staff.last_name}</strong><span>{staffRoleLabel(t, contract.role as StaffRole, contract.role_label)} · {t('schedulePage.preparation.rating', { rating: contract.staff.overall_rating })}</span>{checked && effect && <span>{t('schedulePage.preparation.tournamentEffect', { label: staffEffectLabel(t, effect.benefit_label), value: effect.benefit_value })}</span>}</div><small>{checked ? t('schedulePage.preparation.travelling') : t('schedulePage.preparation.staysHome')}</small></button> })}</div>
                   )}
                   {estimate && <PlanImpact label={t('schedulePage.preparation.currentParty')} value={t('schedulePage.preparation.travellers', { count: estimate.party_size })} cost={t('schedulePage.preparation.staffTravelCost', { amount: money(estimate.staff_travel_cost) })} />}
                   {estimate?.staff_effects && selectedStaff.length > 0 && <PlanImpact label={t('schedulePage.preparation.staffEffects')} value={tournamentStaffEffectsSummary(estimate.staff_effects, t)} cost={t('schedulePage.preparation.activeWhileTravelling')} />}
@@ -706,8 +707,8 @@ export default function SchedulePage() {
                 <div className="tlg-prep-stack">
                   <div className="tlg-prep-summary-grid">
                     <SummaryItem label={t('schedulePage.preparation.route')} value={`${estimate.origin.city ?? t('schedulePage.preparation.currentLocation')} → ${estimate.destination.city} · ${distance(estimate.player_travel.distance_km, t, formatNumber)}`} />
-                    <SummaryItem label={t('schedulePage.preparation.playerFlight')} value={`${playerTravelClass} · ${money(estimate.player_travel_cost)} · ${t('schedulePage.preparation.summaryFatigue', { value: estimate.player_travel.arrival_fatigue })}`} />
-                    <SummaryItem label={t('schedulePage.preparation.staffFlight')} value={selectedStaff.length === 0 ? t('schedulePage.preparation.noStaffTravel') : `${staffTravelClass} · ${money(estimate.staff_travel_cost)}`} />
+                    <SummaryItem label={t('schedulePage.preparation.playerFlight')} value={`${travelClassLabel(playerTravelClass, t)} · ${money(estimate.player_travel_cost)} · ${t('schedulePage.preparation.summaryFatigue', { value: estimate.player_travel.arrival_fatigue })}`} />
+                    <SummaryItem label={t('schedulePage.preparation.staffFlight')} value={selectedStaff.length === 0 ? t('schedulePage.preparation.noStaffTravel') : `${travelClassLabel(staffTravelClass, t)} · ${money(estimate.staff_travel_cost)}`} />
                     <SummaryItem label={t('schedulePage.preparation.hotelLabel')} value={`${hotelCopy.label} · ${t('schedulePage.preparation.perPersonNight', { amount: money(estimate.hotel.minimum.adjusted_unit_cost) })} · ${hotelCopy.effect}`} />
                     <SummaryItem label={t('schedulePage.preparation.travellingStaff')} value={selectedStaff.length === 0 ? t('schedulePage.preparation.playerOnly') : t('schedulePage.preparation.staffCount', { count: selectedStaff.length })} />
                     {estimate.staff_effects && estimate.staff_effects.match_execution_bonus_pct > 0 && <SummaryItem label={t('schedulePage.preparation.matchExecution')} value={`+${estimate.staff_effects.match_execution_bonus_pct}%`} />}
@@ -742,8 +743,13 @@ function ChoiceSection({ title, subtitle, children }: { title: string; subtitle:
   return <section className="tlg-prep-choice-section"><div><h3>{title}</h3><p>{subtitle}</p></div>{children}</section>
 }
 
+function travelClassLabel(value: string, t: TFunction) {
+  return t(`schedulePage.preparation.travelClasses.${value}`, { defaultValue: value })
+}
+
 function ChoiceGrid({ values, selected, onSelect }: { values: readonly string[]; selected: string; onSelect: (value: string) => void }) {
-  return <div className="tlg-prep-choice-grid">{values.map((value) => <button key={value} type="button" className={selected === value ? 'selected' : ''} onClick={() => onSelect(value)}>{value}</button>)}</div>
+  const { t } = useTranslation()
+  return <div className="tlg-prep-choice-grid">{values.map((value) => <button key={value} type="button" className={selected === value ? 'selected' : ''} onClick={() => onSelect(value)}>{travelClassLabel(value, t)}</button>)}</div>
 }
 
 function SelectField({ t, label, value, values, onChange }: { t: TFunction; label: string; value: string; values: readonly string[]; onChange: (value: string) => void }) {
