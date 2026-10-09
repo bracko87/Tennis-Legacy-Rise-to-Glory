@@ -309,7 +309,7 @@ function contextRows(notification: NotificationRow, t: TFunction, localeTag: str
     add(t('notifications.context.opponents'), payloadText(payload, 'opponents'))
     add(t('notifications.context.round'), payloadText(payload, 'round_label'))
     add(t('notifications.context.entryStatus'), payloadText(payload, 'entry_status')?.replaceAll('_', ' '))
-    add(t('notifications.context.result'), payloadText(payload, 'result')?.replace(/w/g, (letter) => letter.toUpperCase()))
+    add(t('notifications.context.result'), payloadText(payload, 'result')?.replace(/\\b\\w/g, (letter) => letter.toUpperCase()))
     add(t('notifications.context.partnershipDeadline'), gameMomentLabel(payloadObject(payload, 'partnership_deadline'), t))
     add(t('notifications.context.tournamentStart'), gameMomentLabel(payloadObject(payload, 'tournament_start'), t))
     add(t('notifications.context.tournamentEnd'), gameMomentLabel(payloadObject(payload, 'tournament_end'), t))
@@ -445,6 +445,8 @@ function matchesFilter(notification: NotificationRow, filter: NotificationFilter
 }
 
 export default function NotificationsPage() {
+  const { t } = useTranslation()
+  const { localeTag } = useLocalization()
   const navigate = useNavigate()
   const { user } = useAuth()
   const [notifications, setNotifications] = useState<NotificationRow[]>([])
@@ -593,64 +595,59 @@ export default function NotificationsPage() {
   }
 
   return (
-    <GameLayout title="Notifications" subtitle="Career alerts, decisions and game updates">
+    <GameLayout title={t('notifications.pageTitle')} subtitle={t('notifications.pageSubtitle')}>
       <section className="tlg-v2-command tlg-notification-command">
         <div className="tlg-v2-command-inner tlg-notification-command-inner">
           <div>
-            <span className="tlg-v2-command-kicker">Notification center</span>
-            <h2>Career notifications</h2>
-            <p>
-              Tournament decisions, travel, player condition, training, equipment, account events and other career updates are collected here. Open a notification to see its full context and continue directly to the affected game area.
-            </p>
+            <span className="tlg-v2-command-kicker">{t('notifications.center')}</span>
+            <h2>{t('notifications.careerNotifications')}</h2>
+            <p>{t('notifications.intro')}</p>
           </div>
-          <div className="tlg-notification-summary" aria-label="Notification summary">
-            <div><span>Unread</span><strong>{unreadCount}</strong></div>
-            <div><span>Important</span><strong>{importantCount}</strong></div>
-            <div><span>Total</span><strong>{normalizedNotifications.length}</strong></div>
+          <div className="tlg-notification-summary" aria-label={t('notifications.summaryAria')}>
+            <div><span>{t('notifications.unread')}</span><strong>{unreadCount}</strong></div>
+            <div><span>{t('notifications.important')}</span><strong>{importantCount}</strong></div>
+            <div><span>{t('notifications.total')}</span><strong>{normalizedNotifications.length}</strong></div>
           </div>
         </div>
       </section>
 
       <section className="tlg-notification-panel">
         <header className="tlg-notification-toolbar">
-          <div className="tlg-notification-filters" role="tablist" aria-label="Notification filters">
+          <div className="tlg-notification-filters" role="tablist" aria-label={t('notifications.filtersAria')}>
             {FILTERS.map((item) => (
               <button
                 type="button"
-                key={item.key}
-                className={filter === item.key ? 'active' : ''}
-                onClick={() => setFilter(item.key)}
+                key={item}
+                className={filter === item ? 'active' : ''}
+                onClick={() => setFilter(item)}
               >
-                {item.label}
-                {item.key === 'unread' && unreadCount > 0 ? ` (${unreadCount})` : ''}
-                {item.key === 'important' && importantCount > 0 ? ` (${importantCount})` : ''}
+                {t(`notifications.filters.${item}`)}
+                {item === 'unread' && unreadCount > 0 ? ` (${unreadCount})` : ''}
+                {item === 'important' && importantCount > 0 ? ` (${importantCount})` : ''}
               </button>
             ))}
           </div>
           <button type="button" className="tlg-notification-mark-all" disabled={unreadCount === 0 || busy} onClick={markAllRead}>
-            {busy ? 'Updating…' : 'Mark all as read'}
+            {busy ? t('notifications.updating') : t('notifications.markAllRead')}
           </button>
         </header>
 
-        {error && <div className="tlg-notification-error">Unable to update notifications: {error}</div>}
+        {error && <div className="tlg-notification-error">{t('notifications.updateError', { error })}</div>}
 
         {loading ? (
-          <div className="tlg-notification-empty">Loading notifications…</div>
+          <div className="tlg-notification-empty">{t('notifications.loading')}</div>
         ) : visibleNotifications.length === 0 ? (
           <div className="tlg-notification-empty">
-            <strong>{filter === 'unread' ? 'No unread notifications' : 'No notifications in this category'}</strong>
-            <p>
-              {filter === 'unread'
-                ? 'Everything in your notification center has been read.'
-                : 'Tournament entries and draws, travel, player health, training, equipment, account rewards and other career events will appear here when they occur.'}
-            </p>
+            <strong>{filter === 'unread' ? t('notifications.noUnread') : t('notifications.noCategory')}</strong>
+            <p>{filter === 'unread' ? t('notifications.allRead') : t('notifications.emptyCategory')}</p>
           </div>
         ) : (
           <div className="tlg-notification-list">
             {visibleNotifications.map((notification) => {
               const expanded = expandedId === notification.id
-              const rows = contextRows(notification)
-              const actions = notificationActions(notification)
+              const display = localizedNotification(notification, t)
+              const rows = contextRows(notification, t, localeTag)
+              const actions = notificationActions(notification, t)
 
               return (
                 <article
@@ -671,43 +668,43 @@ export default function NotificationsPage() {
                   <div className="tlg-notification-status" aria-hidden="true" />
                   <div className="tlg-notification-copy">
                     <div className="tlg-notification-meta">
-                      <span>{categoryLabel(notification)}</span>
-                      <time dateTime={notification.created_at}>{relativeTime(notification.created_at)}</time>
-                      {!notification.read_at && <b>Unread</b>}
+                      <span>{categoryLabel(notification, t)}</span>
+                      <time dateTime={notification.created_at}>{relativeTime(notification.created_at, t, localeTag)}</time>
+                      {!notification.read_at && <b>{t('notifications.unread')}</b>}
                     </div>
-                    <h3>{notification.title}</h3>
-                    <p className="tlg-notification-summary-message">{notification.message}</p>
+                    <h3>{display.title}</h3>
+                    <p className="tlg-notification-summary-message">{display.message}</p>
                     <div className="tlg-notification-card-badges">
-                      <span className={`severity-chip severity-${notification.severity}`}>{severityLabel(notification.severity)}</span>
-                      <span>{notificationTypeLabel(notification)}</span>
+                      <span className={`severity-chip severity-${notification.severity}`}>{severityLabel(notification.severity, t)}</span>
+                      <span>{notificationTypeLabel(notification, t)}</span>
                     </div>
                   </div>
                   <button
                     type="button"
                     className="tlg-notification-expand"
-                    aria-label={expanded ? 'Collapse notification' : 'Open notification details'}
+                    aria-label={expanded ? t('notifications.collapse') : t('notifications.openDetails')}
                     onClick={(event) => {
                       event.stopPropagation()
                       void toggleNotification(notification)
                     }}
                   >
-                    <span>{expanded ? 'Hide' : 'Details'}</span>
+                    <span>{expanded ? t('common.hide') : t('common.details')}</span>
                     {expanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
                   </button>
 
                   {expanded && (
                     <div className="tlg-notification-detail" onClick={(event) => event.stopPropagation()}>
                       <div className="tlg-notification-detail-copy">
-                        <span>Full description</span>
-                        <p>{notification.message}</p>
+                        <span>{t('notifications.fullDescription')}</span>
+                        <p>{display.message}</p>
                       </div>
 
                       <dl className="tlg-notification-detail-grid">
-                        <div><dt>Created</dt><dd>{fullDateTime(notification.created_at)}</dd></div>
-                        <div><dt>Category</dt><dd>{categoryLabel(notification)}</dd></div>
-                        <div><dt>Type</dt><dd>{notificationTypeLabel(notification)}</dd></div>
-                        <div><dt>Priority</dt><dd>{severityLabel(notification.severity)}</dd></div>
-                        <div><dt>Status</dt><dd>{notification.read_at ? 'Read' : 'Unread'}</dd></div>
+                        <div><dt>{t('notifications.created')}</dt><dd>{fullDateTime(notification.created_at, localeTag)}</dd></div>
+                        <div><dt>{t('notifications.category')}</dt><dd>{categoryLabel(notification, t)}</dd></div>
+                        <div><dt>{t('notifications.type')}</dt><dd>{notificationTypeLabel(notification, t)}</dd></div>
+                        <div><dt>{t('notifications.priority')}</dt><dd>{severityLabel(notification.severity, t)}</dd></div>
+                        <div><dt>{t('notifications.status')}</dt><dd>{notification.read_at ? t('notifications.read') : t('notifications.unread')}</dd></div>
                         {rows.map((row) => <div key={`${row.label}:${row.value}`}><dt>{row.label}</dt><dd>{row.value}</dd></div>)}
                       </dl>
 
@@ -722,9 +719,9 @@ export default function NotificationsPage() {
                             {action.label}
                           </button>
                         )) : (
-                          <span className="tlg-notification-no-action">This update no longer has an active game destination.</span>
+                          <span className="tlg-notification-no-action">{t('notifications.noActiveDestination')}</span>
                         )}
-                        <button type="button" className="subtle" onClick={() => void dismiss(notification)}>Dismiss</button>
+                        <button type="button" className="subtle" onClick={() => void dismiss(notification)}>{t('notifications.dismiss')}</button>
                       </div>
                     </div>
                   )}
@@ -735,5 +732,4 @@ export default function NotificationsPage() {
         )}
       </section>
     </GameLayout>
-  )
-}
+  )}
