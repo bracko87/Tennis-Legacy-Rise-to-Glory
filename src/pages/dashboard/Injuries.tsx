@@ -9,6 +9,7 @@ import {
   Thermometer,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 
 import GameLayout from '../../components/layout/GameLayout'
 import { supabase } from '../../lib/supabase'
@@ -156,20 +157,20 @@ type HealthDashboard = {
   }
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
 function titleCase(value: string) {
   return value.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
 }
 
-function gameDate(value?: GameDate | null) {
+function gameDate(value: GameDate | null | undefined, t: TFunction) {
   if (!value) return '—'
-  return `Season ${value.season} · ${MONTHS[value.month - 1] ?? `M${value.month}`} ${value.day}`
+  const months = t('staffPage.months', { returnObjects: true }) as string[]
+  const month = months[value.month] ?? `M${value.month}`
+  return t('staffPage.profile.seasonDate', { season: value.season, month, day: value.day })
 }
 
-function rangeLabel(range: [number, number]) {
-  if (range[0] === range[1]) return `${range[0]} day${range[0] === 1 ? '' : 's'}`
-  return `${range[0]}–${range[1]} days`
+function rangeLabel(range: [number, number], t: TFunction) {
+  if (range[0] === range[1]) return t('healthPage.day', { count: range[0] })
+  return t('healthPage.dayRange', { from: range[0], to: range[1] })
 }
 
 function percentage(value: number) {
@@ -180,14 +181,24 @@ function riskPercent(value: number) {
   return `${Number(value ?? 0).toFixed(2)}%`
 }
 
-function skillName(value: string) {
-  return value === 'return_skill' ? 'Return' : titleCase(value)
+function skillName(value: string, t: TFunction) {
+  return t(`healthPage.skill.${value}`, { defaultValue: value === 'return_skill' ? 'Return' : titleCase(value) })
 }
 
-function phaseLabel(value: HealthCondition['phase']) {
-  if (value === 'treatment') return 'Treatment / protected recovery'
-  if (value === 'returning_to_training') return 'Returning to training'
-  return 'Not fully fit'
+function phaseLabel(value: HealthCondition['phase'], t: TFunction) {
+  return t(`healthPage.phase.${value}`)
+}
+
+function severityLabel(value: Severity, t: TFunction) {
+  return t(`healthPage.severity.${value}`, { defaultValue: titleCase(value) })
+}
+
+function stateLabel(value: HealthState, fallback: string, t: TFunction) {
+  return t(`healthPage.state.${value}`, { defaultValue: fallback })
+}
+
+function riskLabel(value: string, t: TFunction) {
+  return t(`healthPage.risk.${value.toLowerCase()}`, { defaultValue: titleCase(value) })
 }
 
 function conditionTone(value: number, lowerIsBetter = false) {
@@ -200,17 +211,18 @@ function conditionTone(value: number, lowerIsBetter = false) {
   return 'metric-danger'
 }
 
-function nextStep(summary: HealthSummary, condition: HealthCondition | null) {
-  if (summary.state === 'healthy') return 'Normal training and competition are available. Keep fatigue controlled to preserve the low-risk state.'
-  if (summary.state === 'fully_recovered') return 'You are fully cleared again. Normal training and tournament participation are restored.'
-  if (summary.state === 'at_risk') return 'No injury or illness is active, but current risk is elevated. Reduce workload and prioritize recovery before the next hard session or match.'
-  if (!condition) return 'Monitor your health status and avoid unnecessary load until the restriction clears.'
-  if (!condition.can_train) return `Follow ${condition.treatment.label}. Normal training remains blocked until ${gameDate(condition.training_return_game_date)}.`
-  if (!condition.can_compete) return `Controlled training is available, but tournament competition remains blocked until ${gameDate(condition.tournament_return_game_date)}.`
-  return `You may train and compete, but you are not fully fit. Full recovery is expected ${gameDate(condition.expected_full_recovery_game_date)} and excessive load can cause a setback.`
+function nextStep(summary: HealthSummary, condition: HealthCondition | null, t: TFunction) {
+  if (summary.state === 'healthy') return t('healthPage.nextStep.healthy')
+  if (summary.state === 'fully_recovered') return t('healthPage.nextStep.fully_recovered')
+  if (summary.state === 'at_risk') return t('healthPage.nextStep.at_risk')
+  if (!condition) return t('healthPage.nextStep.fallback')
+  if (!condition.can_train) return t('healthPage.nextStep.trainingBlocked', { treatment: condition.treatment.label, date: gameDate(condition.training_return_game_date, t) })
+  if (!condition.can_compete) return t('healthPage.nextStep.competitionBlocked', { date: gameDate(condition.tournament_return_game_date, t) })
+  return t('healthPage.nextStep.notFullyFit', { date: gameDate(condition.expected_full_recovery_game_date, t) })
 }
 
 export default function InjuriesPage() {
+  const { t } = useTranslation()
   const [data, setData] = useState<HealthDashboard | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -243,119 +255,119 @@ export default function InjuriesPage() {
 
   const primary = useMemo(() => data?.current_conditions[0] ?? null, [data])
   const medicalStaffText = useMemo(() => {
-    if (!data) return 'No active medical-staff modifier'
+    if (!data) return t('healthPage.noMedicalModifier')
     const prevention = Number(data.staff_effects.injury_prevention_reduction ?? 0)
     const rehab = Number(data.staff_effects.rehabilitation_duration_reduction ?? 0)
     const returnReduction = Number(data.staff_effects.return_to_play_duration_reduction ?? 0)
-    if (prevention <= 0 && rehab <= 0 && returnReduction <= 0) return 'No active medical-staff modifier'
-    return `Prevention −${Math.round(prevention * 100)}% · rehab −${Math.round(rehab * 100)}% · return time −${Math.round(returnReduction * 100)}%`
-  }, [data])
+    if (prevention <= 0 && rehab <= 0 && returnReduction <= 0) return t('healthPage.noMedicalModifier')
+    return t('healthPage.medicalModifier', { prevention: Math.round(prevention * 100), rehab: Math.round(rehab * 100), return: Math.round(returnReduction * 100) })
+  }, [data, t])
 
   return (
-    <GameLayout title="Injury & Health" subtitle="Health risk, illness, injury, treatment and return to competition">
+    <GameLayout title={t('healthPage.title')} subtitle={t('healthPage.subtitle')}>
       <main className="tlg-health-page">
         <header className="tlg-health-head">
           <div>
-            <span>PLAYER HEALTH CENTER</span>
-            <h1>Injury & Health</h1>
-            <p>One synchronized view of your current health state, risk, treatment, training clearance, tournament availability and recovery history.</p>
+            <span>{t('healthPage.kicker')}</span>
+            <h1>{t('healthPage.title')}</h1>
+            <p>{t('healthPage.intro')}</p>
           </div>
-          {data ? <div className={`tlg-health-state-pill state-${data.summary.state}`}><HeartPulse size={18} /><span>{data.summary.label}</span></div> : null}
+          {data ? <div className={`tlg-health-state-pill state-${data.summary.state}`}><HeartPulse size={18} /><span>{stateLabel(data.summary.state, data.summary.label, t)}</span></div> : null}
         </header>
 
-        {loading ? <section className="tlg-health-loading">Loading player health…</section> : error ? <section className="tlg-health-loading error">{error}</section> : data ? (
+        {loading ? <section className="tlg-health-loading">{t('healthPage.loading')}</section> : error ? <section className="tlg-health-loading error">{error}</section> : data ? (
           <>
             <section className="tlg-health-summary-grid">
               <article className={`tlg-health-summary-card main state-${data.summary.state}`}>
-                <span>Current health status</span>
+                <span>{t('healthPage.currentStatus')}</span>
                 <div className="icon">{data.summary.state === 'healthy' || data.summary.state === 'fully_recovered' ? <CheckCircle2 size={25} /> : <HeartPulse size={25} />}</div>
-                <strong>{data.summary.label}</strong>
-                <small>{primary ? `${primary.kind === 'illness' ? 'Illness' : 'Injury'} · ${primary.name} · ${titleCase(primary.severity)}` : 'No active injury or illness.'}</small>
+                <strong>{stateLabel(data.summary.state, data.summary.label, t)}</strong>
+                <small>{primary ? `${t(primary.kind === 'illness' ? 'healthPage.illness' : 'healthPage.injury')} · ${primary.name} · ${severityLabel(primary.severity, t)}` : t('healthPage.noActive')}</small>
               </article>
               <article className={`tlg-health-summary-card risk risk-${data.summary.injury_risk.risk_level}`}>
-                <span>Injury risk</span><Activity size={23} /><strong>{titleCase(data.summary.injury_risk.risk_level)} · {riskPercent(data.summary.injury_risk.risk_percent)}</strong><small>Activity-specific; increases with fatigue, load, match duration, heat and reduced physical condition.</small>
+                <span>{t('healthPage.injuryRisk')}</span><Activity size={23} /><strong>{riskLabel(data.summary.injury_risk.risk_level, t)} · {riskPercent(data.summary.injury_risk.risk_percent)}</strong><small>{t('healthPage.injuryRiskBody')}</small>
               </article>
               <article className={`tlg-health-summary-card risk risk-${data.summary.illness_risk.risk_level}`}>
-                <span>Daily illness risk</span><Thermometer size={23} /><strong>{titleCase(data.summary.illness_risk.risk_level)} · {riskPercent(data.summary.illness_risk.risk_percent)}</strong><small>Rolled once per game day and influenced by fatigue, recovery condition, travel exposure and current injury recovery.</small>
+                <span>{t('healthPage.illnessRisk')}</span><Thermometer size={23} /><strong>{riskLabel(data.summary.illness_risk.risk_level, t)} · {riskPercent(data.summary.illness_risk.risk_percent)}</strong><small>{t('healthPage.illnessRiskBody')}</small>
               </article>
-              <article className="tlg-health-summary-card"><span>Training</span><Clock3 size={23} /><strong>{data.summary.can_train ? 'Available' : 'Medically blocked'}</strong><small>{primary && !primary.can_train ? `Return target: ${gameDate(primary.training_return_game_date)}` : 'Normal training is currently permitted.'}</small></article>
-              <article className="tlg-health-summary-card"><span>Tournaments</span><ShieldCheck size={23} /><strong>{data.summary.can_compete ? 'Available' : 'Medically unavailable'}</strong><small>{primary && !primary.can_compete ? `Competition target: ${gameDate(primary.tournament_return_game_date)}` : 'Tournament competition is currently permitted.'}</small></article>
+              <article className="tlg-health-summary-card"><span>{t('healthPage.training')}</span><Clock3 size={23} /><strong>{data.summary.can_train ? t('healthPage.available') : t('healthPage.medicallyBlocked')}</strong><small>{primary && !primary.can_train ? t('healthPage.returnTarget', { date: gameDate(primary.training_return_game_date, t) }) : t('healthPage.trainingPermitted')}</small></article>
+              <article className="tlg-health-summary-card"><span>{t('healthPage.tournaments')}</span><ShieldCheck size={23} /><strong>{data.summary.can_compete ? t('healthPage.available') : t('healthPage.medicallyUnavailable')}</strong><small>{primary && !primary.can_compete ? t('healthPage.competitionTarget', { date: gameDate(primary.tournament_return_game_date, t) }) : t('healthPage.competitionPermitted')}</small></article>
             </section>
 
             <section className="tlg-health-guidance">
               <AlertTriangle size={21} />
-              <div><span>What should I do next?</span><strong>{nextStep(data.summary, primary)}</strong></div>
+              <div><span>{t('healthPage.next')}</span><strong>{nextStep(data.summary, primary, t)}</strong></div>
             </section>
 
             <section className="tlg-health-condition-strip">
-              <article className={conditionTone(data.condition.fatigue, true)}><span>Fatigue</span><strong>{data.condition.fatigue}/100</strong></article>
-              <article className={conditionTone(data.condition.sharpness)}><span>Sharpness</span><strong>{data.condition.sharpness}/100</strong></article>
-              <article className={conditionTone(data.condition.fitness)}><span>Fitness</span><strong>{data.condition.fitness}/100</strong></article>
-              <article className={conditionTone(data.condition.recovery)}><span>Recovery</span><strong>{data.condition.recovery}/100</strong></article>
-              <article className="metric-neutral"><span>Medical staff effect</span><strong>{medicalStaffText}</strong></article>
+              <article className={conditionTone(data.condition.fatigue, true)}><span>{t('healthPage.fatigue')}</span><strong>{data.condition.fatigue}/100</strong></article>
+              <article className={conditionTone(data.condition.sharpness)}><span>{t('healthPage.sharpness')}</span><strong>{data.condition.sharpness}/100</strong></article>
+              <article className={conditionTone(data.condition.fitness)}><span>{t('healthPage.fitness')}</span><strong>{data.condition.fitness}/100</strong></article>
+              <article className={conditionTone(data.condition.recovery)}><span>{t('healthPage.recovery')}</span><strong>{data.condition.recovery}/100</strong></article>
+              <article className="metric-neutral"><span>{t('healthPage.medicalStaffEffect')}</span><strong>{medicalStaffText}</strong></article>
             </section>
 
             <section className="tlg-health-risk-grid">
               <article>
-                <header><Activity size={18} /><div><span>Injury risk drivers</span><strong>{riskPercent(data.summary.injury_risk.risk_percent)}</strong></div></header>
+                <header><Activity size={18} /><div><span>{t('healthPage.injuryDrivers')}</span><strong>{riskPercent(data.summary.injury_risk.risk_percent)}</strong></div></header>
                 <div className="tlg-health-risk-meter"><span style={{ width: `${Math.min(100, Number(data.summary.injury_risk.risk_percent) * 14)}%` }} /></div>
                 <div className="reasons">{data.summary.injury_risk.reasons.map((reason) => <span key={reason}>{reason}</span>)}</div>
               </article>
               <article>
-                <header><Thermometer size={18} /><div><span>Illness risk drivers</span><strong>{riskPercent(data.summary.illness_risk.risk_percent)}</strong></div></header>
+                <header><Thermometer size={18} /><div><span>{t('healthPage.illnessDrivers')}</span><strong>{riskPercent(data.summary.illness_risk.risk_percent)}</strong></div></header>
                 <div className="tlg-health-risk-meter"><span style={{ width: `${Math.min(100, Number(data.summary.illness_risk.risk_percent) * 80)}%` }} /></div>
                 <div className="reasons">{data.summary.illness_risk.reasons.map((reason) => <span key={reason}>{reason}</span>)}</div>
               </article>
             </section>
 
             <section className="tlg-health-current">
-              <div className="tlg-health-section-head"><div><span>CURRENT MEDICAL STATUS</span><h2>{data.current_conditions.length ? `${data.current_conditions.length} active health condition${data.current_conditions.length === 1 ? '' : 's'}` : data.summary.label}</h2></div><small>{gameDate(data.game_date)}</small></div>
+              <div className="tlg-health-section-head"><div><span>{t('healthPage.currentMedical')}</span><h2>{data.current_conditions.length ? t('healthPage.activeConditions', { count: data.current_conditions.length }) : stateLabel(data.summary.state, data.summary.label, t)}</h2></div><small>{gameDate(data.game_date, t)}</small></div>
               {data.current_conditions.length === 0 ? (
-                <div className="tlg-health-clear-state"><CheckCircle2 size={34} /><div><strong>{data.summary.state === 'fully_recovered' ? 'Full recovery reached today' : 'No active injury or illness'}</strong><p>{data.summary.state === 'at_risk' ? 'You are currently available, but risk is elevated. Reduce fatigue and avoid unnecessary high-load work.' : 'Your player has no medical restrictions. Risk monitoring remains active during training, camps and matches.'}</p></div></div>
+                <div className="tlg-health-clear-state"><CheckCircle2 size={34} /><div><strong>{data.summary.state === 'fully_recovered' ? t('healthPage.fullRecoveryToday') : t('healthPage.noActiveHeading')}</strong><p>{data.summary.state === 'at_risk' ? t('healthPage.elevatedBody') : t('healthPage.clearBody')}</p></div></div>
               ) : data.current_conditions.map((condition) => (
                 <article key={condition.id} className={`tlg-health-condition severity-${condition.severity} kind-${condition.kind}`}>
                   <header>
-                    <div><span>{condition.kind === 'illness' ? 'Illness' : condition.body_area ?? 'Injury'} · {titleCase(condition.severity)}</span><h3>{condition.name}</h3><p>{condition.description}</p></div>
-                    <div className="progress-number"><strong>{condition.progress_percent}%</strong><span>recovered</span></div>
+                    <div><span>{condition.kind === 'illness' ? t('healthPage.illness') : condition.body_area ?? t('healthPage.injury')} · {severityLabel(condition.severity, t)}</span><h3>{condition.name}</h3><p>{condition.description}</p></div>
+                    <div className="progress-number"><strong>{condition.progress_percent}%</strong><span>{t('healthPage.recovered')}</span></div>
                   </header>
                   <div className="tlg-health-progress"><span style={{ width: `${condition.progress_percent}%` }} /></div>
-                  <div className="tlg-health-phase-row"><span>{phaseLabel(condition.phase)}</span><strong>{condition.days_remaining === 0 ? 'Recovery date reached' : `${condition.days_remaining} day${condition.days_remaining === 1 ? '' : 's'} to full recovery`}</strong></div>
+                  <div className="tlg-health-phase-row"><span>{phaseLabel(condition.phase, t)}</span><strong>{condition.days_remaining === 0 ? t('healthPage.recoveryReached') : t('healthPage.daysToRecovery', { count: condition.days_remaining })}</strong></div>
                   <div className="tlg-health-detail-grid">
-                    <div><span>Started</span><strong>{gameDate(condition.onset_game_date)}</strong></div>
-                    <div><span>Treatment status</span><strong>{titleCase(condition.treatment_status)}</strong></div>
-                    <div><span>Training return</span><strong>{gameDate(condition.training_return_game_date)}</strong><small>{condition.can_train ? 'Cleared' : 'Blocked'}</small></div>
-                    <div><span>Tournament return</span><strong>{gameDate(condition.tournament_return_game_date)}</strong><small>{condition.can_compete ? 'Cleared' : 'Blocked'}</small></div>
-                    <div><span>Expected full recovery</span><strong>{gameDate(condition.expected_full_recovery_game_date)}</strong></div>
-                    <div><span>Current performance penalty</span><strong>{percentage(condition.performance_penalty)}</strong></div>
-                    {condition.kind === 'injury' ? <div><span>Base aggravation risk</span><strong>{percentage(condition.aggravation_risk)}</strong><small>Actual setback risk also depends on activity, fatigue, match length and heat.</small></div> : null}
+                    <div><span>{t('healthPage.started')}</span><strong>{gameDate(condition.onset_game_date, t)}</strong></div>
+                    <div><span>{t('healthPage.treatmentStatus')}</span><strong>{titleCase(condition.treatment_status)}</strong></div>
+                    <div><span>{t('healthPage.trainingReturn')}</span><strong>{gameDate(condition.training_return_game_date, t)}</strong><small>{condition.can_train ? t('healthPage.cleared') : t('healthPage.blocked')}</small></div>
+                    <div><span>{t('healthPage.tournamentReturn')}</span><strong>{gameDate(condition.tournament_return_game_date, t)}</strong><small>{condition.can_compete ? t('healthPage.cleared') : t('healthPage.blocked')}</small></div>
+                    <div><span>{t('healthPage.expectedRecovery')}</span><strong>{gameDate(condition.expected_full_recovery_game_date, t)}</strong></div>
+                    <div><span>{t('healthPage.performancePenalty')}</span><strong>{percentage(condition.performance_penalty)}</strong></div>
+                    {condition.kind === 'injury' ? <div><span>{t('healthPage.aggravationRisk')}</span><strong>{percentage(condition.aggravation_risk)}</strong><small>{t('healthPage.aggravationNote')}</small></div> : null}
                   </div>
                   <div className="tlg-health-two-column">
-                    <div><span>Typical causes</span><ul>{condition.causes.map((cause) => <li key={cause}>{cause}</li>)}</ul></div>
-                    <div><span>Affected performance</span><ul>{Object.entries(condition.skill_effects).map(([skill, modifier]) => <li key={skill}>{skillName(skill)} <b>{Math.round(Number(modifier) * 100)}%</b></li>)}</ul></div>
+                    <div><span>{t('healthPage.typicalCauses')}</span><ul>{condition.causes.map((cause) => <li key={cause}>{cause}</li>)}</ul></div>
+                    <div><span>{t('healthPage.affectedPerformance')}</span><ul>{Object.entries(condition.skill_effects).map(([skill, modifier]) => <li key={skill}>{skillName(skill, t)} <b>{Math.round(Number(modifier) * 100)}%</b></li>)}</ul></div>
                   </div>
-                  <div className="tlg-health-treatment"><Stethoscope size={20} /><div><span>Current treatment</span><strong>{condition.treatment.label}</strong><p>{condition.treatment.description}</p>{condition.treatment.notes ? <small>{condition.treatment.notes}</small> : null}</div></div>
+                  <div className="tlg-health-treatment"><Stethoscope size={20} /><div><span>{t('healthPage.currentTreatment')}</span><strong>{condition.treatment.label}</strong><p>{condition.treatment.description}</p>{condition.treatment.notes ? <small>{condition.treatment.notes}</small> : null}</div></div>
                 </article>
               ))}
             </section>
 
             <section className="tlg-health-history">
-              <div className="tlg-health-section-head"><div><span>CAREER HEALTH RECORD</span><h2>Previous injuries & illnesses</h2></div><strong>{data.health_history.length} recorded</strong></div>
-              {data.health_history.length === 0 ? <div className="tlg-health-empty">No recovered injury or illness has been recorded in this career.</div> : (
+              <div className="tlg-health-section-head"><div><span>{t('healthPage.recordKicker')}</span><h2>{t('healthPage.historyHeading')}</h2></div><strong>{t('healthPage.recorded', { count: data.health_history.length })}</strong></div>
+              {data.health_history.length === 0 ? <div className="tlg-health-empty">{t('healthPage.noHistory')}</div> : (
                 <div className="tlg-health-history-table">
-                  <div className="head"><span>Condition</span><span>Type</span><span>Severity</span><span>Started</span><span>Recovered</span><span>Duration</span><span>Treatment</span></div>
-                  {data.health_history.map((item) => <div key={`${item.kind}-${item.id}`}><strong>{item.name}<small>{item.body_area ?? ''}</small></strong><span>{titleCase(item.kind)}</span><span>{titleCase(item.severity)}</span><span>{gameDate(item.onset_game_date)}</span><span>{gameDate(item.recovered_game_date)}</span><span>{item.recovery_days} days</span><span>{item.treatment_label}</span></div>)}
+                  <div className="head"><span>Condition</span><span>Type</span><span>Severity</span><span>{t('healthPage.started')}</span><span>Recovered</span><span>Duration</span><span>Treatment</span></div>
+                  {data.health_history.map((item) => <div key={`${item.kind}-${item.id}`}><strong>{item.name}<small>{item.body_area ?? ''}</small></strong><span>{t(item.kind === 'illness' ? 'healthPage.illness' : 'healthPage.injury')}</span><span>{severityLabel(item.severity, t)}</span><span>{gameDate(item.onset_game_date, t)}</span><span>{gameDate(item.recovered_game_date, t)}</span><span>{t('healthPage.durationDays', { count: item.recovery_days })}</span><span>{item.treatment_label}</span></div>)}
                 </div>
               )}
             </section>
 
             <section className="tlg-health-reference">
-              <button type="button" onClick={() => setInjuryReferenceOpen((open) => !open)} aria-expanded={injuryReferenceOpen}><div><AlertTriangle size={18} /><span><strong>Injury reference</strong><small>All currently supported injury types, availability windows and treatment.</small></span></div><b>{injuryReferenceOpen ? 'Hide' : 'Open'}</b></button>
-              {injuryReferenceOpen ? <div className="tlg-health-reference-table"><div className="head"><span>Injury</span><span>Severity</span><span>Training out</span><span>Tournament out</span><span>Full recovery</span><span>Treatment</span></div>{data.injury_catalog.map((item) => <div key={item.code}><strong>{item.name}<small>{item.body_area ?? ''}</small></strong><span>{titleCase(item.severity)}</span><span>{rangeLabel(item.training_out_days)}</span><span>{rangeLabel(item.tournament_out_days)}</span><span>{rangeLabel(item.recovery_days)}</span><span>{item.treatment_label}</span></div>)}</div> : null}
+              <button type="button" onClick={() => setInjuryReferenceOpen((open) => !open)} aria-expanded={injuryReferenceOpen}><div><AlertTriangle size={18} /><span><strong>{t('healthPage.injuryReference')}</strong><small>{t('healthPage.injuryReferenceBody')}</small></span></div><b>{injuryReferenceOpen ? t('healthPage.hide') : t('healthPage.open')}</b></button>
+              {injuryReferenceOpen ? <div className="tlg-health-reference-table"><div className="head"><span>{t('healthPage.referenceColumns.injury')}</span><span>{t('healthPage.referenceColumns.severity')}</span><span>{t('healthPage.referenceColumns.trainingOut')}</span><span>{t('healthPage.referenceColumns.tournamentOut')}</span><span>{t('healthPage.referenceColumns.fullRecovery')}</span><span>{t('healthPage.referenceColumns.treatment')}</span></div>{data.injury_catalog.map((item) => <div key={item.code}><strong>{item.name}<small>{item.body_area ?? ''}</small></strong><span>{severityLabel(item.severity, t)}</span><span>{rangeLabel(item.training_out_days, t)}</span><span>{rangeLabel(item.tournament_out_days, t)}</span><span>{rangeLabel(item.recovery_days, t)}</span><span>{item.treatment_label}</span></div>)}</div> : null}
 
-              <button type="button" onClick={() => setIllnessReferenceOpen((open) => !open)} aria-expanded={illnessReferenceOpen}><div><Thermometer size={18} /><span><strong>Illness reference</strong><small>Illness is rolled separately from physical injury and has its own availability and recovery windows.</small></span></div><b>{illnessReferenceOpen ? 'Hide' : 'Open'}</b></button>
-              {illnessReferenceOpen ? <div className="tlg-health-reference-table illness"><div className="head"><span>Illness</span><span>Severity</span><span>Training out</span><span>Tournament out</span><span>Full recovery</span><span>Treatment</span></div>{data.illness_catalog.map((item) => <div key={item.code}><strong>{item.name}</strong><span>{titleCase(item.severity)}</span><span>{rangeLabel(item.training_out_days)}</span><span>{rangeLabel(item.tournament_out_days)}</span><span>{rangeLabel(item.recovery_days)}</span><span>{item.treatment_label}</span></div>)}</div> : null}
+              <button type="button" onClick={() => setIllnessReferenceOpen((open) => !open)} aria-expanded={illnessReferenceOpen}><div><Thermometer size={18} /><span><strong>{t('healthPage.illnessReference')}</strong><small>{t('healthPage.illnessReferenceBody')}</small></span></div><b>{illnessReferenceOpen ? t('healthPage.hide') : t('healthPage.open')}</b></button>
+              {illnessReferenceOpen ? <div className="tlg-health-reference-table illness"><div className="head"><span>{t('healthPage.referenceColumns.illness')}</span><span>{t('healthPage.referenceColumns.severity')}</span><span>{t('healthPage.referenceColumns.trainingOut')}</span><span>{t('healthPage.referenceColumns.tournamentOut')}</span><span>{t('healthPage.referenceColumns.fullRecovery')}</span><span>{t('healthPage.referenceColumns.treatment')}</span></div>{data.illness_catalog.map((item) => <div key={item.code}><strong>{item.name}</strong><span>{severityLabel(item.severity, t)}</span><span>{rangeLabel(item.training_out_days, t)}</span><span>{rangeLabel(item.tournament_out_days, t)}</span><span>{rangeLabel(item.recovery_days, t)}</span><span>{item.treatment_label}</span></div>)}</div> : null}
 
-              <button type="button" onClick={() => setTreatmentsOpen((open) => !open)} aria-expanded={treatmentsOpen}><div><Stethoscope size={18} /><span><strong>Treatment & rehabilitation reference</strong><small>What each care level means in the current game.</small></span></div><b>{treatmentsOpen ? 'Hide' : 'Open'}</b></button>
+              <button type="button" onClick={() => setTreatmentsOpen((open) => !open)} aria-expanded={treatmentsOpen}><div><Stethoscope size={18} /><span><strong>{t('healthPage.treatmentReference')}</strong><small>{t('healthPage.treatmentReferenceBody')}</small></span></div><b>{treatmentsOpen ? t('healthPage.hide') : t('healthPage.open')}</b></button>
               {treatmentsOpen ? <div className="tlg-health-treatment-list">{data.treatments.map((item) => <article key={item.code}><span>{titleCase(item.care_level)}</span><strong>{item.label}</strong><p>{item.description}</p>{item.notes ? <small>{item.notes}</small> : null}</article>)}</div> : null}
             </section>
           </>
