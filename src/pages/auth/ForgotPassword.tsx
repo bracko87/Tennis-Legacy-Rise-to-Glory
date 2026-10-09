@@ -1,6 +1,7 @@
 import type { FormEvent } from 'react'
 import { useState } from 'react'
 import { ArrowLeft, Mail, Send } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
 import AppButton from '../../components/common/AppButton'
@@ -8,6 +9,7 @@ import FormField from '../../components/common/FormField'
 import { supabase } from '../../lib/supabase'
 
 export default function ForgotPasswordPage() {
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -29,7 +31,7 @@ export default function ForgotPasswordPage() {
 
     // Always use the same response so this form does not reveal whether an account exists.
     setMessage(
-      'If an account exists for that email address, a password reset link has been sent. Check your inbox and spam folder.',
+      t('authPages.forgot.sent'),
     )
   }
 
@@ -46,25 +48,24 @@ export default function ForgotPasswordPage() {
         <Link to="/" className="tlg-auth-brand">
           <span className="tlg-auth-brand-copy">
             <strong>Tennis Legacy</strong>
-            <small>Rise to Glory</small>
+            <small>{t('authPages.brandSubtitle')}</small>
           </span>
         </Link>
         <Link to="/login" className="tlg-auth-home-link">
           <ArrowLeft size={16} />
-          Back to Sign In
+          {t('authPages.forgot.back')}
         </Link>
       </header>
 
       <main className="tlg-auth-main">
         <section className="tlg-auth-showcase">
           <div className="tlg-auth-showcase-content">
-            <span className="tlg-auth-eyebrow">Account Recovery</span>
+            <span className="tlg-auth-eyebrow">{t('authPages.forgot.eyebrow')}</span>
             <h1>
-              Reset access to
-              <strong> your tennis career.</strong>
+              {t('authPages.forgot.heading')}<strong>{t('authPages.forgot.headingAccent')}</strong>
             </h1>
             <p>
-              Enter the email address used for your Tennis Legacy manager account. We will send a secure recovery link when the account is eligible for password recovery.
+              {t('authPages.forgot.intro')}
             </p>
           </div>
         </section>
@@ -74,21 +75,21 @@ export default function ForgotPasswordPage() {
             <div className="tlg-auth-card-heading">
               <span className="tlg-auth-card-icon"><Mail size={21} /></span>
               <div>
-                <span>Secure recovery</span>
-                <h2>Forgot password</h2>
+                <span>{t('authPages.forgot.secureRecovery')}</span>
+                <h2>{t('authPages.forgot.title')}</h2>
               </div>
             </div>
 
             <p className="tlg-auth-card-description">
-              We will send the reset link to your registered email address.
+              {t('authPages.forgot.cardBody')}
             </p>
 
             <form className="tlg-auth-form" onSubmit={handleSubmit} noValidate>
               <FormField
                 id="forgot-email"
-                label="Email address"
+                label={t('auth.email')}
                 required
-                error={submitted && !emailValid ? 'Enter a valid email address.' : undefined}
+                error={submitted && !emailValid ? t('authPages.forgot.emailError') : undefined}
               >
                 <div className="tlg-input-shell">
                   <Mail className="tlg-input-leading-icon" size={18} aria-hidden="true" />
@@ -121,7 +122,7 @@ export default function ForgotPasswordPage() {
                 disabled={loading}
                 rightIcon={<Send size={18} />}
               >
-                {loading ? 'Sending…' : 'Send Reset Link'}
+                {loading ? t('auth.sending') : t('auth.sendResetLink')}
               </AppButton>
             </form>
           </div>
@@ -130,7 +131,7 @@ export default function ForgotPasswordPage() {
 
       <footer className="tlg-auth-footer">
         <span>Tennis Legacy: Rise to Glory</span>
-        <span>Secure account recovery</span>
+        <span>{t('authPages.forgot.footer')}</span>
       </footer>
     </div>
   )
