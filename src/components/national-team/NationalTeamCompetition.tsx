@@ -10,9 +10,11 @@ import {
   XCircle,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 import { Link } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import CountryFlag from '../common/CountryFlag'
 import NationalCompetitionDivisions from './NationalCompetitionDivisions'
 import { nationalCountryName } from '../../lib/nationalCountryName'
@@ -318,19 +320,11 @@ interface StandingRow {
 
 type SlotCode = LineupSlot['slot_code']
 
-const SLOT_LABELS: Array<{ code: SlotCode; label: string; discipline: string }> = [
-  { code: 'S1', label: 'Singles Slot 1', discipline: 'Singles' },
-  { code: 'S2', label: 'Singles Slot 2', discipline: 'Singles' },
-  { code: 'D1A', label: 'Doubles Player A', discipline: 'Doubles' },
-  { code: 'D1B', label: 'Doubles Player B', discipline: 'Doubles' },
-  { code: 'S3', label: 'Singles Slot 3', discipline: 'Singles' },
-  { code: 'S4', label: 'Singles Slot 4', discipline: 'Singles' },
-]
+const SLOT_CODES: SlotCode[] = ['S1', 'S2', 'D1A', 'D1B', 'S3', 'S4']
 
 const MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-function formatAbsoluteDay(absoluteDay?: number | null) {
+function formatAbsoluteDay(t: TFunction, absoluteDay?: number | null) {
   if (absoluteDay === null || absoluteDay === undefined || absoluteDay < 0) return '—'
   const season = Math.floor(absoluteDay / 366) + 1
   let remaining = absoluteDay % 366
@@ -339,11 +333,8 @@ function formatAbsoluteDay(absoluteDay?: number | null) {
     remaining -= MONTH_LENGTHS[month]
     month += 1
   }
-  return `Season ${season} · ${remaining + 1} ${MONTH_NAMES[month]}`
-}
-
-function money(value?: number | null) {
-  return `$${Number(value ?? 0).toLocaleString()}`
+  const months = t('nationalTeamPage.monthsShort', { returnObjects: true }) as string[]
+  return `${t('nationalTeamPage.common.season', { season })} · ${remaining + 1} ${months[month]}`
 }
 
 function titleCase(value: string) {
@@ -358,30 +349,23 @@ function playerNames(players: MatchPlayers) {
   return [players.player1_name, players.player2_name].filter(Boolean).join(' + ') || 'TBD'
 }
 
-function callupStatusLabel(status: string | null) {
-  if (!status) return 'Not invited'
-  if (status === 'accepted') return 'Accepted'
-  if (status === 'declined') return 'Declined'
-  if (status === 'pending') return 'Awaiting response'
-  if (status === 'withdrawn') return 'Withdrawn'
-  if (status === 'expired') return 'Expired'
-  return titleCase(status)
+function callupStatusLabel(t: TFunction, status: string | null) {
+  if (!status) return t('nationalTeamPage.competition.callupStatus.none')
+  return t(`nationalTeamPage.competition.callupStatus.${status}`, { defaultValue: titleCase(status) })
 }
 
-function regionLabel(code: string) {
-  if (code === 'EUROPE') return 'Europe'
-  if (code === 'AMERICAS') return 'Americas'
-  if (code === 'ASIA_OCEANIA') return 'Asia / Oceania'
-  if (code === 'AFRICA') return 'Africa'
-  return code
+function regionLabel(t: TFunction, code: string) {
+  return t(`nationalTeamPage.competition.regions.${code}`, { defaultValue: code })
 }
 
-function windowModeLabel(window: NationalWindow) {
-  if (window.window_mode === 'friendly_only') return 'Friendly only'
-  return 'Official + friendlies'
+function windowModeLabel(t: TFunction, window: NationalWindow) {
+  return t(`nationalTeamPage.competition.windowModes.${window.window_mode}`)
 }
 
 export default function NationalTeamCompetition() {
+  const { t } = useTranslation()
+  const { formatCurrency } = useLocalization()
+  const money = (value?: number | null) => formatCurrency(Number(value ?? 0), 'USD')
   const { player } = useAuth()
   const [hub, setHub] = useState<CompetitionHub | null>(null)
   const [standings, setStandings] = useState<StandingRow[]>([])
@@ -491,7 +475,7 @@ export default function NationalTeamCompetition() {
       const result = data as { status?: string; availability?: { reason?: string; blocking_tournament?: string } } | null
       if (result?.status === 'blocked') {
         const blocking = result.availability?.blocking_tournament ?? result.availability?.reason ?? 'calendar conflict'
-        setError(`This call-up cannot be accepted until the conflicting commitment is resolved: ${blocking}.`)
+        setError(t('nationalTeamPage.competition.callupConflict', { blocking }))
       } else {
         setMessage(accept
           ? 'Call-up accepted. The national window is now locked in your calendar and normal overlapping tournament commitments will be blocked.'
@@ -641,7 +625,7 @@ export default function NationalTeamCompetition() {
 
     if (rpcError) setError(rpcError.message)
     else {
-      setMessage(accept ? 'Friendly confirmed. The tie has been added to the national calendar.' : 'Friendly invitation declined.')
+      setMessage(accept ? t('nationalTeamPage.competition.friendlyConfirmed') : t('nationalTeamPage.competition.friendlyDeclined'))
       await refreshAll()
     }
     setWorking(false)
@@ -653,13 +637,13 @@ export default function NationalTeamCompetition() {
   )
 
   if (loading) {
-    return <section className="tlg-v2-panel nt-competition-loading">Loading national competition data…</section>
+    return <section className="tlg-v2-panel nt-competition-loading">{t('nationalTeamPage.competition.loading')}</section>
   }
 
   if (!hub?.available) {
     return (
       <section className="tlg-v2-panel nt-placeholder">
-        National competition data becomes available after your national association membership is created.
+        {t('nationalTeamPage.competition.unavailable')}
       </section>
     )
   }
@@ -676,22 +660,22 @@ export default function NationalTeamCompetition() {
           <span>{hub.competition_label}</span>
           <h3>
             {hub.season_mode === 'association_building'
-              ? 'Season 1 · Association-building & friendly season'
-              : `Season ${hub.season_number} · Official national competition`}
+              ? t('nationalTeamPage.competition.seasonBuilding')
+              : t('nationalTeamPage.competition.seasonOfficial', { season: hub.season_number })}
           </h3>
           <p>{hub.season_notice}</p>
         </div>
         <div className="nt-competition-launch-meta">
           <div>
-            <span>Official launch</span>
-            <strong>Season {hub.official_launch_season}</strong>
+            <span>{t('nationalTeamPage.competition.officialLaunch')}</span>
+            <strong>{t('nationalTeamPage.common.season', { season: hub.official_launch_season })}</strong>
           </div>
           <div>
-            <span>Annual windows</span>
+            <span>{t('nationalTeamPage.competition.annualWindows')}</span>
             <strong>4</strong>
           </div>
           <div>
-            <span>Current association</span>
+            <span>{t('nationalTeamPage.competition.currentAssociation')}</span>
             <strong>{hub.association_name}</strong>
           </div>
         </div>
@@ -700,22 +684,22 @@ export default function NationalTeamCompetition() {
       {pendingFixture?.my_callup && (
         <section className="tlg-v2-panel nt-callup-alert">
           <div className="nt-callup-alert-copy">
-            <span>NATIONAL-TEAM CALL-UP</span>
+            <span>{t('nationalTeamPage.competition.callup')}</span>
             <h3>
               {nationalCountryName(hub.country_code, hub.association_name)} vs {nationalCountryName(pendingFixture.opponent_country_code, pendingFixture.opponent_name)}
             </h3>
             <p>
-              {formatAbsoluteDay(pendingFixture.tie_start_absolute_day)} · {pendingFixture.host_city}, {pendingFixture.host_country_code}
-              {' · '}Expected appearance payment {money(pendingFixture.expected_appearance_fee_usd)}
+              {formatAbsoluteDay(t, pendingFixture.tie_start_absolute_day)} · {pendingFixture.host_city}, {pendingFixture.host_country_code}
+              {' · '}{t('nationalTeamPage.competition.appearancePayment', { amount: money(pendingFixture.expected_appearance_fee_usd) })}
             </p>
-            <small>Response deadline: {formatAbsoluteDay(pendingFixture.response_deadline_absolute_day)}</small>
+            <small>{t('nationalTeamPage.competition.responseDeadline', { date: formatAbsoluteDay(t, pendingFixture.response_deadline_absolute_day) })}</small>
           </div>
           <div className="nt-callup-actions">
             <button type="button" className="accept" disabled={working} onClick={() => void respondCallup(pendingFixture.my_callup!.id, true)}>
-              <CheckCircle2 size={15} /> Accept
+              <CheckCircle2 size={15} /> {t('nationalTeamPage.competition.accept')}
             </button>
             <button type="button" className="decline" disabled={working} onClick={() => void respondCallup(pendingFixture.my_callup!.id, false)}>
-              <XCircle size={15} /> Decline
+              <XCircle size={15} /> {t('nationalTeamPage.competition.decline')}
             </button>
           </div>
         </section>
@@ -724,13 +708,13 @@ export default function NationalTeamCompetition() {
       {error && <div className="nt-alert nt-alert-error">{error}</div>}
       {message && <div className="nt-alert nt-alert-success">{message}</div>}
 
-      <nav className="nt-competition-subtabs" aria-label="National competition sections">
+      <nav className="nt-competition-subtabs" aria-label={t('nationalTeamPage.competition.tabsAria')}>
         {([
-          ['divisions', 'Divisions'],
-          ['ties', 'National Ties'],
-          ['calendar', 'Calendar'],
-          ['friendlies', 'Friendlies'],
-          ['how', 'How It Works'],
+          ['divisions', t('nationalTeamPage.competition.tabs.divisions')],
+          ['ties', t('nationalTeamPage.competition.tabs.ties')],
+          ['calendar', t('nationalTeamPage.competition.tabs.calendar')],
+          ['friendlies', t('nationalTeamPage.competition.tabs.friendlies')],
+          ['how', t('nationalTeamPage.competition.tabs.how')],
         ] as Array<[CompetitionView, string]>).map(([key, label]) => (
           <button
             key={key}
@@ -750,20 +734,20 @@ export default function NationalTeamCompetition() {
           <section className="tlg-v2-panel nt-pyramid-panel">
             <header className="nt-section-header">
               <div>
-                <span>COMPETITION PYRAMID</span>
-                <h3>Season {hub.pyramid_display_season} national-team structure</h3>
+                <span>{t('nationalTeamPage.competition.pyramid')}</span>
+                <h3>{t('nationalTeamPage.competition.pyramidTitle', { season: hub.pyramid_display_season })}</h3>
               </div>
             </header>
 
             <p className="nt-section-copy">
-              Only active national associations appear below. For the one-time Season 2 bootstrap, activation order fills Qualifier Round 1, then World Group I, then World Group II, then the regional structure. After that first official build, new associations enter the lowest active regional level and sporting promotion/relegation controls every move.
+              {t('nationalTeamPage.competition.pyramidBody')}
             </p>
 
             {hub.projected_entry?.label && (
               <div className="nt-pyramid-entry">
                 <CountryFlag countryCode={hub.country_code} countryName={hub.country_code} width={24} height={16} />
                 <div>
-                  <span>{hub.projected_entry.placement_state === 'official' ? 'CURRENT ENTRY' : 'PROJECTED SEASON 2 ENTRY'}</span>
+                  <span>{hub.projected_entry.placement_state === 'official' ? t('nationalTeamPage.competition.currentEntry') : t('nationalTeamPage.competition.projectedEntry')}</span>
                   <strong>{nationalCountryName(hub.country_code, hub.association_name)} → {hub.projected_entry.label}</strong>
                 </div>
               </div>
@@ -775,14 +759,14 @@ export default function NationalTeamCompetition() {
                   <div className="nt-pyramid-division-head">
                     <Globe2 size={14} />
                     <div>
-                      <span>Tier {division.tier_level}</span>
+                      <span>{t('nationalTeamPage.competition.tier', { tier: division.tier_level })}</span>
                       <strong>{division.label}</strong>
                     </div>
                     <small>{division.associations.length}/{division.capacity}</small>
                   </div>
                   <div className="nt-pyramid-associations">
                     {division.associations.length === 0 ? (
-                      <span className="empty">No active associations placed here yet</span>
+                      <span className="empty">{t('nationalTeamPage.competition.noActivePlaced')}</span>
                     ) : division.associations.map((association) => (
                       <span key={association.association_id} className="nt-pyramid-team">
                         <CountryFlag countryCode={association.country_code} countryName={association.country_code} width={20} height={14} />
@@ -796,7 +780,7 @@ export default function NationalTeamCompetition() {
 
             <div className="nt-pyramid-flow">
               <ArrowDown size={17} />
-              <span>Regional champions and promoted teams move toward the global tiers</span>
+              <span>{t('nationalTeamPage.competition.promotionFlow')}</span>
             </div>
 
             <div className="nt-pyramid-regions">
@@ -807,19 +791,19 @@ export default function NationalTeamCompetition() {
 
                 return (
                   <div key={region} className="nt-pyramid-region">
-                    <h4>{regionLabel(region)}</h4>
+                    <h4>{regionLabel(t, region)}</h4>
                     {divisions.map((division) => (
                       <article key={division.division_id}>
                         <div className="nt-pyramid-division-head">
                           <div>
-                            <span>Tier {division.tier_level}</span>
-                            <strong>{division.label.replace(`${regionLabel(region)} `, '')}</strong>
+                            <span>{t('nationalTeamPage.competition.tier', { tier: division.tier_level })}</span>
+                            <strong>{division.label.replace(`${regionLabel(t, region)} `, '')}</strong>
                           </div>
                           <small>{division.associations.length}/{division.capacity}</small>
                         </div>
                         <div className="nt-pyramid-associations">
                           {division.associations.length === 0 ? (
-                            <span className="empty">No active associations</span>
+                            <span className="empty">{t('nationalTeamPage.competition.noActiveAssociations')}</span>
                           ) : division.associations.map((association) => (
                             <span key={association.association_id} className="nt-pyramid-team">
                               <CountryFlag countryCode={association.country_code} countryName={association.country_code} width={20} height={14} />
