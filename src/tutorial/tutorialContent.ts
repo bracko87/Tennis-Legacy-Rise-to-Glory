@@ -702,8 +702,330 @@ const EN: TutorialResources = {
   },
 }
 
+const SR: TutorialResources = {
+  phases: {
+    welcome: {
+      title: 'Dobro došao u svoju karijeru',
+      description: 'Upoznaj menadžerski centar, svetski plasman i navigaciju koju koristiš svakog dana u igri.',
+    },
+    player: {
+      title: 'Tvoj igrač',
+      description: 'Razumi identitet, atribute i podatke koji određuju tvoju tenisku karijeru.',
+    },
+    development: {
+      title: 'Razvoj i zdravlje',
+      description: 'Nauči kako trening, stručni tim i zdravstvene odluke vremenom menjaju igrača.',
+    },
+    season: {
+      title: 'Planiranje sezone i turniri',
+      description: 'Planiraj kalendar, upravljaj obavezama i pravilno se pripremi za takmičenje.',
+    },
+    competition: {
+      title: 'Takmičarski sistemi',
+      description: 'Razumi rang-liste, nacionalna takmičenja i opremu koju nosiš na teren.',
+    },
+    career: {
+      title: 'Upravljanje karijerom',
+      description: 'Upravljaj novcem, opcionim životnim sistemima, klubom i dugoročnom statistikom.',
+    },
+    communication: {
+      title: 'Komunikacija i podešavanja',
+      description: 'Prati važne informacije, poruke i opcione Premium usluge.',
+    },
+    support: {
+      title: 'Pomoć i zajednica',
+      description: 'Saznaj gde se nalaze detaljna pravila, podrška i Tennis Legacy zajednica.',
+    },
+  },
+  steps: {
+    'welcome.overview': {
+      title: 'Dobro došao u Tennis Legacy',
+      body: 'Pregled je kontrolni centar tvoje karijere. Na jednom mestu prikazuje trenutno stanje, sledeći turnir, poslednje rezultate, rang-listu, finansije i najvažnije akcije. Osnovna stranica je besplatna; samo Ranking Protection je Premium dodatak.',
+      action: 'Pregled neka bude prva stranica koju proveravaš kada počne novi dan u igri.',
+      tip: 'Tutorial ide stranicu po stranicu. Možeš ga pauzirati i nastaviti kasnije.',
+    },
+    'welcome.rank': {
+      title: 'Trenutni svetski plasman',
+      body: 'Broj u zaglavlju je tvoj trenutni ATP ili WTA plasman u singlu. Rezultati sa turnira dodaju poene, a stariji rezultati vremenom ističu, pa se plasman može promeniti i kada ne igraš.',
+      action: 'Prati plasman, ali odluke o sezoni donosi preko Rang-lista i Kalendara, a ne samo jureći broj na listi.',
+    },
+    'welcome.navigation': {
+      title: 'Menadžerski centar',
+      body: 'Leva navigacija je glavna mapa tvoje karijere. Svaka stranica pripada određenom sistemu, zato važne promene radi na odgovarajućoj stranici, a ne iz Pregleda.',
+      action: 'Na mobilnom telefonu istu navigaciju otvaraš dugmetom menija u zaglavlju.',
+    },
+    'player.profile': {
+      title: 'Profil igrača',
+      body: 'Profil je javni teniski identitet koji drugi menadžeri mogu da pregledaju. Prikazuje državu, rang, stil igre i podatke o karijeri bez privatnih menadžerskih kontrola.',
+      action: 'Profile koristi za pregled protivnika i drugih igrača; svoje nalog-kontrole koristi na stranici Igrač i nalog.',
+    },
+    'player.account': {
+      title: 'Igrač i nalog',
+      body: 'Ovde se nalaze podaci i kontrole naloga: ime igrača, ATP/WTA svet, država, avatar, oporavak lozinke i trajne akcije nad nalogom.',
+      action: 'Restart i brisanje koristi pažljivo. Profesionalno ime igrača je namerno trajno nakon početka karijere.',
+    },
+    'player.skills': {
+      title: 'Veštine i atributi',
+      body: 'Veštine su osnova učinka u meču. Tehničke, fizičke i kondicione vrednosti rade zajedno; visoka vrednost u jednoj oblasti ne može potpuno da prikrije slabost u drugoj.',
+      action: 'Na ovoj stranici utvrdi šta igrač treba da popravi pre nego što odrediš prioritete treninga.',
+      tip: 'Podloga i stil igre utiču na to kako treba tumačiti iste vrednosti atributa.',
+    },
+    'development.training': {
+      title: 'Redovni trening',
+      body: 'Planiraj razvoj tokom dana kod kuće. Turniri, putovanja, kampovi i zdravstvena ograničenja automatski imaju prednost.',
+      action: 'Jače treninge koristi kada je igrač svež; oporavak ili slobodan dan koristi kada raste umor.',
+    },
+    'development.training-camps': {
+      title: 'Trening kampovi',
+      body: 'Kampovi su fokusirani razvojni blokovi sa destinacijom, nedeljom, trajanjem, smeštajem, stručnim timom, putovanjem i ukupnom cenom.',
+      action: 'Izaberi kamp koji odgovara razvojnom cilju i kalendaru. Kamp ne može da se preklapa sa turnirom ili blokiranim putovanjem.',
+      actionLabel: 'Šta proveriti',
+      tip: 'Osoblje koje putuje može dati dodatne koristi, ali povećava troškove puta i smeštaja.',
+    },
+    'development.staff': {
+      title: 'Tvoj stručni tim',
+      body: 'Možeš imati po jednog stručnjaka za svaku ulogu. Svaka uloga utiče na drugi deo razvoja, oporavka, analize ili vođenja karijere.',
+      action: 'Pre promene tima proveri stvarni efekat, nedeljnu platu i preostalo trajanje ugovora.',
+    },
+    'development.staff-market': {
+      title: 'Tržište osoblja',
+      body: 'Na tržištu osoblja tražiš kandidate iz celog sveta prema ulozi, kvalitetu, državi i plati.',
+      action: 'Izaberi kandidata, uporedi atribute i ukupnu vrednost ugovora, zatim pregovaraj pre potvrde angažmana.',
+      actionLabel: 'Šta uraditi',
+      tip: 'Bolje ocenjen stručnjak nije uvek najbolji izbor ako su plata i uklapanje u ulogu loši.',
+    },
+    'development.health': {
+      title: 'Zdravlje, povrede i bolest',
+      body: 'Ovde vidiš zdravstveno stanje, umor, rizik od povrede i bolesti, ograničenja i tok oporavka. Zdravstvena pravila rade po danima igre i mogu blokirati trening ili nastup.',
+      action: 'Kada rizik raste, smanji opterećenje i daj prednost oporavku umesto da čekaš povredu.',
+    },
+    'season.calendar': {
+      title: 'Kalendar karijere',
+      body: 'Kalendar prikazuje tvoju sezonu: mečeve, turnirske obaveze, putovanja, kampove, oporavak i druge blokirane dane.',
+      action: 'Proveri ga pre rezervacije kampa ili dodavanja novog turnira kako ne bi napravio nepotreban konflikt.',
+    },
+    'season.tournament-calendar': {
+      title: 'Kalendar turnira',
+      body: 'Kalendar turnira prikazuje zvanične ATP ili WTA događaje po nedelji, kategoriji, podlozi, lokaciji i statusu prijave.',
+      action: 'Otvori turnir, proveri period prijave i svoj status, pa pošalji prijavu sa stranice turnira dok su prijave otvorene.',
+      actionLabel: 'Kako se prijaviti',
+      tip: 'Planiraj nekoliko nedelja unapred. Uzastopni turniri povećavaju putovanja i smanjuju vreme za oporavak.',
+    },
+    'season.schedule': {
+      title: 'Raspored i obaveze',
+      body: 'Raspored pretvara prijave i prihvaćene turnire u tvoj lični plan. Prikazuje šta sledi, vreme putovanja, status pripreme i moguće konflikte.',
+      action: 'Proveri ovu stranicu posle svake prijave na turnir ili promene rasporeda.',
+    },
+    'season.tournament': {
+      title: 'Stranica turnira',
+      body: 'Stranica turnira sadrži žreb, status prijave, raspored mečeva, protivnike, rezultate i turnirske akcije. Tu opšti kalendar postaje stvarno takmičenje.',
+      action: 'Pre početka turnira proveri status ulaska i prati kada je zakazan prvi meč.',
+    },
+    'season.tournament.empty': {
+      title: 'Stranica turnira',
+      body: 'Trenutno nema sledećeg turnira koji tutorial može da otvori. Turnire možeš otvoriti iz Kalendara ili Rasporeda kada postoji događaj za pregled.',
+      action: 'Izaberi turnir u Kalendaru, pa se vrati u Raspored kada prijava ili ulazak postanu aktuelni.',
+    },
+    'season.preparation': {
+      title: 'Priprema turnira',
+      body: 'Priprema turnira određuje klasu putovanja, hotel, osoblje koje putuje i podrazumevanu taktiku. Troškovi i efekti se računaju pre čuvanja, a nesačuvane promene nisu aktivne.',
+      action: 'Pre čuvanja proveri pregled efekata. Osoblje koje putuje košta više, ali daje specifične koristi svoje uloge.',
+      tip: 'Priprema se zaključava prema stvarnom putovanju i rasporedu mečeva, zato ne čekaj poslednji trenutak.',
+    },
+    'season.preparation.empty': {
+      title: 'Priprema turnira',
+      body: 'Trenutno nema odgovarajućeg predstojećeg turnira koji može da se otvori u režimu pripreme. Akcija Pripremi turnir pojavljuje se u Rasporedu dok je priprema dostupna.',
+      action: 'Zapamti tok: Raspored → Pripremi turnir → proveri troškove i efekte → Sačuvaj plan turnira.',
+    },
+    'season.doubles': {
+      title: 'Dubl na turniru',
+      body: 'Kada je dubl dostupan, partner, prijava i žreb vode se odvojeno od singla. Dubl ipak utiče na ukupan raspored.',
+      action: 'Dubl računaj kao dodatnu obavezu kada planiraš umor, putovanje i vreme mečeva.',
+    },
+    'season.doubles.empty': {
+      title: 'Dubl na turniru',
+      body: 'Nema predstojećeg turnira koji tutorial može da otvori u dubl režimu. Kada postoji događaj, stranica turnira prikazuje prijavu i izbor partnera gde je dubl podržan.',
+      action: 'Singl i dubl prijave su odvojene čak i kada se igraju na istom turniru.',
+    },
+    'competition.rankings': {
+      title: 'ATP / WTA rang-liste',
+      body: 'Rang-liste prikazuju trenutni poredak u tvom teniskom svetu. ATP i WTA su odvojeni, a zvanični rezultati dodaju poene koji vremenom menjaju plasman. Rang-liste su besplatne; detaljni Ranking Protection sa predstojećim istekom poena je Premium.',
+      action: 'Koristi rang-liste za poređenje plasmana, otvaranje profila i procenu koji nivo turnira odgovara tvojoj karijeri.',
+    },
+    'competition.national-team': {
+      title: 'Nacionalni tim',
+      body: 'Nacionalna takmičenja dodaju selekciju po državama i sistem saveza. Stranica nije samo za Premium, ali aktivacija i sezonska obnova saveza koriste zajedničko Coin finansiranje. Aktivacija trenutno traži 50 Coina i najmanje 5 članova, a obnova 30 Coina.',
+      action: 'Učešće nije isto što i kupovina Premiuma. Coine doniraš samo ako želiš da podržiš fond za aktivaciju ili obnovu.',
+    },
+    'competition.equipment': {
+      title: 'Oprema',
+      body: 'Reket, obuća, odeća i dodaci koje koristiš utiču na mečeve, stanje i habanje.',
+      action: 'Pre važnih turnira proveri aktivnu postavku i stanje opreme.',
+    },
+    'competition.technical-sponsors': {
+      title: 'Tehnički sponzori',
+      body: 'Tehnički sponzori su partnerstva za rekete, obuću ili odeću i odvojeni su od glavnog finansijskog sponzora.',
+      action: 'Pre potpisa uporedi brend, slot ugovora, popust na opremu, početnu isplatu i sezonsku ekskluzivnost.',
+      tip: 'Tehnički sponzor može smanjiti troškove opreme, ali opremom i dalje upravljaš kroz Oprema i Inventar.',
+    },
+    'career.finance': {
+      title: 'Finansije',
+      body: 'Finansije prate stanje karijere, prihode, troškove, porez, osoblje, putovanja, smeštaj i trajnu evidenciju transakcija.',
+      action: 'Pre skupe odluke proveri raspoloživ novac i predstojeće obaveze.',
+    },
+    'career.financial-sponsors': {
+      title: 'Glavni finansijski sponzor',
+      body: 'Glavni sponzor daje zagarantovan prihod i može dodati ciljeve učinka sa novčanim bonusima.',
+      action: 'Pre potpisa uporedi garantovanu vrednost, nedeljne isplate, ciljeve, rokove i maksimalni bonus.',
+      actionLabel: 'Šta uporediti',
+      tip: 'Ovo je odvojeno od tehničkih sponzora: glavni sponzor je prvenstveno finansijski ugovor.',
+    },
+    'career.private-life': {
+      title: 'Privatni život',
+      body: 'Privatni život je Premium sistem životnog stila. Besplatni igrači mogu igrati kompletnu osnovnu tenisku karijeru bez njega. Premium otključava nekretnine, vozila i drugu imovinu, a kupovine koriste novac iz Finansija, ne Coine.',
+      action: 'Ako igraš besplatno, ovaj sistem možeš preskočiti. Premium ga otključava, ali nije potreban za osnovnu karijeru.',
+    },
+    'career.tennis-club': {
+      title: 'Teniski klub',
+      body: 'Teniski klub je zajednički sistem za klupsku igru i zajednicu. Pregled klubova, prijava i prihvatanje poziva nisu isto što i kreiranje sopstvenog kluba. Kreiranje novog kluba trenutno košta 50 Coina.',
+      action: 'Premium nije potreban za klub. Coine trošiš samo ako želiš da napraviš novi klub; pridruživanje postojećem ne koristi naknadu za kreiranje.',
+    },
+    'career.statistics': {
+      title: 'Statistika i istorija karijere',
+      body: 'Statistika pretvara završene mečeve i turnirske rezultate u evidenciju. Možeš uporediti statistiku igrača, turnira i sopstvene karijere po podlozi, kategoriji i sezoni.',
+      action: 'Koristi ovu stranicu za dugoročnu procenu, a ne za zaključke na osnovu jednog dobrog ili lošeg meča.',
+    },
+    'communication.notifications': {
+      title: 'Obaveštenja',
+      body: 'Obaveštenja prikazuju važne događaje: promene na turnirima, rezultate, zdravstvene informacije i druge novosti. Broj u zaglavlju pokazuje da li nešto još zahteva pažnju.',
+      action: 'Redovno otvaraj obaveštenja i označi važne stavke kao pročitane kada razumeš šta se promenilo.',
+    },
+    'communication.inbox': {
+      title: 'Menadžersko sanduče',
+      body: 'Sanduče je za direktnu komunikaciju i poruke koje pripadaju razgovoru, a ne automatskom sistemskom upozorenju. Namerno je odvojeno od Obaveštenja.',
+      action: 'Obaveštenja koristi za automatske događaje igre, a Sanduče za direktnu prepisku.',
+    },
+    'communication.preferences': {
+      title: 'Podešavanja igre',
+      body: 'Podešavanja sadrže lične kontrole iskustva u igri. Ovde treba da se pojavljuju samo opcije koje su stvarno povezane sa aktivnim sistemima.',
+      action: 'Ponovno pokretanje tutoriala ostaje u Centru za pomoć, kako bi Podešavanja igre ostala fokusirana na stvarna podešavanja.',
+    },
+    'communication.premium': {
+      title: 'Premium i Coin paketi',
+      body: 'Ovde su jasno prikazane opcione kupovine. Tennis Legacy Free omogućava osnovnu karijeru. Premium otključava dodatne funkcije i daje 30 Coina po pokrivenom mesecu: 30 mesečno, 90 na tri meseca ili 360 godišnje. Coin paketi su odvojene jednokratne kupovine.',
+      action: 'Premium i Coini su odvojeni: kupovina Coina ne aktivira Premium, a Premium ne čini svaku Coin akciju besplatnom. Pre kupovine proveri tačnu korist.',
+    },
+    'support.help': {
+      title: 'Centar za pomoć',
+      body: 'Centar za pomoć je početno mesto kada nešto nije jasno. Vodi do važnih stranica, podrške i kompletnog priručnika bez potrebe da tražiš informacije van igre.',
+      action: 'Za brzi smer koristi Pomoć; za detaljna pravila i izračunavanja koristi Priručnik.',
+    },
+    'support.manual': {
+      title: 'Kompletan priručnik igre',
+      body: 'Priručnik je detaljna referenca za implementirane sisteme. Za razliku od tutoriala, namenjen je pretrazi i ponovnom čitanju kada su ti potrebna precizna pravila, objašnjenja stranica ili ograničenja.',
+      action: 'Pretraži po stranici ili sistemu kada ti treba više detalja nego što tutorial treba da sadrži.',
+    },
+    'support.forum': {
+      title: 'Forum / Discord',
+      body: 'Zvanična zajednica je mesto za razgovor o karijerama, strategiji, turnirima, greškama i predlozima. Saveti zajednice mogu pomoći, ali Priručnik u igri ostaje zvanična referenca.',
+      action: 'Zajednicu koristi za poređenje iskustava i prijavu grešaka koje se mogu ponoviti.',
+    },
+    'support.contact': {
+      title: 'Kontakt podrške',
+      body: 'Kontakt služi za pitanja o nalogu, tehničke probleme ili slučajeve kojima je potrebna direktna pažnja Tennis Legacy tima.',
+      action: 'Kod prijave problema navedi stranicu, očekivano ponašanje, šta se zapravo dogodilo i po mogućnosti dodaj screenshot.',
+    },
+    'support.bug-report': {
+      title: 'Prijavi grešku',
+      body: 'Ako nešto u igri izgleda pogrešno, koristi dugme Prijavi grešku. Sistem automatski zna na kojoj si stranici.',
+      action: 'Opiši šta se dogodilo, šta si očekivao i korake za ponavljanje problema. Dodaj screenshot kada pomaže.',
+      actionLabel: 'Dobra prijava greške',
+      tip: 'Prijavi problem umesto da ga zaobilaziš — greške koje se mogu ponoviti mnogo brže popravljamo.',
+    },
+    'support.invite': {
+      title: 'Pozovi prijatelje',
+      body: 'Pozovi prijatelje daje zvaničan referral tok za dovođenje drugog menadžera u Tennis Legacy. Njegova karijera ostaje potpuno odvojena od tvoje.',
+      action: 'Koristi zvanični pozivni link kako bi praćenje preporuke radilo kada je primenljivo.',
+    },
+    'support.access-model': {
+      title: 'Besplatno, Coini i Premium',
+      body: 'Osnovnu Tennis Legacy karijeru možeš igrati besplatno. Coini se koriste samo za određene opcione akcije, kao što su finansiranje nacionalnog saveza ili kreiranje sopstvenog kluba. Premium otključava dodatne funkcije poput Privatnog života i Ranking Protection. Coin paketi i Premium su opcioni.',
+      action: 'Igraj besplatno za osnovnu karijeru. Coine kupuj samo kada želiš opcionu Coin akciju, a Premium samo ako su ti njegove dodatne funkcije korisne.',
+      tip: 'Coini i Premium su odvojeni proizvodi: Coini ne aktiviraju Premium, a Premium ne uklanja svaki Coin trošak.',
+    },
+    'support.complete': {
+      title: 'Spreman si da vodiš karijeru',
+      body: 'Sada znaš gde se nalazi svaka glavna stranica i kako su sistemi povezani: razvijaj igrača, planiraj sezonu, pripremaj turnire, čuvaj zdravlje, upravljaj novcem i analiziraj rezultate. Osnovna karijera ostaje dostupna besplatno; opcioni Coini i Premium funkcije su jasno označeni.',
+      action: 'Vrati se na Pregled, proveri sledeću obavezu i izaberi jednu najvažniju akciju za trenutni dan u igri.',
+      tip: 'Tutorial kasnije možeš ponovo pokrenuti samo iz Centra za pomoć. Plaćene ili zaključane funkcije jasno su označene u odgovarajućem koraku.',
+    },
+  },
+  access: {
+    'overview-premium-extra': {
+      tone: 'mixed',
+      label: 'BESPLATNA STRANICA · PREMIUM DODATAK',
+      title: 'Pregled: besplatno · Ranking Protection: Premium',
+      body: 'Osnovni Pregled ostaje besplatan. Samo Ranking Protection zahteva Premium.',
+    },
+    'rankings-premium-extra': {
+      tone: 'mixed',
+      label: 'BESPLATNA STRANICA · PREMIUM DODATAK',
+      title: 'Rang-liste: besplatno · Protection: Premium',
+      body: 'ATP/WTA rang-liste su besplatne. Alati za zaštitu poena koji uskoro ističu zahtevaju Premium.',
+    },
+    'national-team-coins': {
+      tone: 'coins',
+      label: 'FUNKCIJA KOJA KORISTI COINE',
+      title: 'Finansiranje nacionalnog saveza koristi Coine',
+      body: 'Nije samo za Premium. Aktivacija: 50 Coina + 5 članova. Obnova: 30 Coina. Donacije su opcione.',
+    },
+    'private-life-premium': {
+      tone: 'premium',
+      label: 'POTREBAN JE PREMIUM',
+      title: 'Privatni život zahteva Premium',
+      body: 'Premium otključava stranicu. Kupovine imovine zatim koriste običan novac iz Finansija, ne Coine.',
+    },
+    'tennis-club-coins': {
+      tone: 'coins',
+      label: 'OPCIONA COIN AKCIJA',
+      title: 'Kreiranje Teniskog kluba košta 50 Coina',
+      body: 'Pregled i pridruživanje klubu ne koriste ovu naknadu. Samo kreiranje novog kluba košta 50 Coina.',
+    },
+    'premium-store-optional': {
+      tone: 'optional',
+      label: 'OPCIONE KUPOVINE',
+      title: 'Premium i Coini su opcioni',
+      body: 'Osnovna karijera može da se igra besplatno. Premium i Coin paketi su odvojene opcione kupovine.',
+    },
+    'free-coins-premium': {
+      tone: 'optional',
+      label: 'OSNOVNA IGRA JE BESPLATNA',
+      title: 'Besplatna karijera · Opcioni Coini · Opcioni Premium',
+      body: 'Besplatna verzija pokriva osnovnu karijeru. Coini plaćaju određene opcione akcije, a Premium jasno označene dodatke.',
+    },
+  },
+  ui: {
+    tutorial: 'Tutorial igre',
+    phase: 'Faza',
+    step: 'Korak',
+    back: 'Nazad',
+    next: 'Dalje',
+    finish: 'Završi tutorial',
+    pause: 'Pauziraj',
+    skip: 'Preskoči tutorial',
+    resume: 'Nastavi tutorial',
+    start: 'Pokreni tutorial',
+    restart: 'Pokreni tutorial ponovo',
+    completed: 'Tutorial je završen',
+    doThis: 'Šta uraditi',
+    tip: 'Savet',
+    closeLabel: 'Pauziraj tutorial',
+  },
+}
+
 const RESOURCES: Record<string, TutorialResources> = {
   en: EN,
+  sr: SR,
 }
 
 export function normalizeTutorialLocale(locale?: string | null) {
