@@ -847,41 +847,41 @@ export default function PrivateLifePage() {
       <div className="private-life-page">
         <section className="private-life-hero private-life-hero-compact">
           <div className="private-life-hero-copy">
-            <div className="private-life-eyebrow">Your life outside tennis</div>
-            <h2>Build wealth, collect assets and grow your prestige.</h2>
-            <p>Every owned asset contributes prestige points. There are no prestige levels — your total is simply the sum of the prestige points attached to the things you currently own.</p>
+            <div className="private-life-eyebrow">{t('privateLifePage.hero.eyebrow')}</div>
+            <h2>{t('privateLifePage.hero.title')}</h2>
+            <p>{t('privateLifePage.hero.body')}</p>
           </div>
           <div className="private-life-prestige-banner"><span>{t('privateLifePage.purchase.prestige')}</span><strong>{dashboard.prestige.toLocaleString()}</strong><small>From currently owned assets</small></div>
         </section>
 
-        <section className="private-life-metrics" aria-label="Private wealth summary">
-          <div className="private-life-metric"><span>Cash balance</span><strong>{money(dashboard.cash_balance, currency)}</strong></div>
-          <div className="private-life-metric"><span>Physical assets</span><strong>{money(dashboard.asset_value, currency)}</strong></div>
-          <div className="private-life-metric"><span>Investments</span><strong>{money(dashboard.investment_value, currency)}</strong></div>
-          <div className="private-life-metric"><span>Current net worth</span><strong>{money(dashboard.net_worth, currency)}</strong></div>
+        <section className="private-life-metrics" aria-label={t('privateLifePage.metrics.aria')}>
+          <div className="private-life-metric"><span>{t('privateLifePage.metrics.cash')}</span><strong>{money(dashboard.cash_balance, currency)}</strong></div>
+          <div className="private-life-metric"><span>{t('privateLifePage.metrics.assets')}</span><strong>{money(dashboard.asset_value, currency)}</strong></div>
+          <div className="private-life-metric"><span>{t('privateLifePage.metrics.investments')}</span><strong>{money(dashboard.investment_value, currency)}</strong></div>
+          <div className="private-life-metric"><span>{t('privateLifePage.metrics.netWorth')}</span><strong>{money(dashboard.net_worth, currency)}</strong></div>
           <div className="private-life-metric"><span>{t('privateLifePage.purchase.prestige')}</span><strong>{dashboard.prestige}</strong></div>
-          <div className="private-life-metric"><span>Monthly ownership cost</span><strong>{money(dashboard.annual_running_cost / 12, currency)}</strong></div>
+          <div className="private-life-metric"><span>{t('privateLifePage.metrics.monthlyCost')}</span><strong>{money(dashboard.annual_running_cost / 12, currency)}</strong></div>
         </section>
 
-        <nav className="private-life-tabs" aria-label="Private Life sections">
-          <button className={tab === 'overview' ? 'active' : ''} type="button" onClick={() => setTab('overview')}>Overview</button>
+        <nav className="private-life-tabs" aria-label={t('privateLifePage.tabs.aria')}>
+          <button className={tab === 'overview' ? 'active' : ''} type="button" onClick={() => setTab('overview')}>{t('privateLifePage.tabs.overview')}</button>
           <button className={tab === 'assets' ? 'active' : ''} type="button" onClick={() => setTab('assets')}>Collection ({dashboard.owned_assets.length})</button>
-          <button className={tab === 'investments' ? 'active' : ''} type="button" onClick={() => setTab('investments')}>Investments</button>
-          <button className={tab === 'marketplace' ? 'active' : ''} type="button" onClick={() => setTab('marketplace')}>Marketplace</button>
+          <button className={tab === 'investments' ? 'active' : ''} type="button" onClick={() => setTab('investments')}>{t('privateLifePage.tabs.investments')}</button>
+          <button className={tab === 'marketplace' ? 'active' : ''} type="button" onClick={() => setTab('marketplace')}>{t('privateLifePage.tabs.marketplace')}</button>
         </nav>
 
         {notice ? <div className="private-life-notice"><span>{notice}</span></div> : null}
-        {error ? <div className="private-life-error"><strong>Action could not be completed</strong><p>{error}</p></div> : null}
+        {error ? <div className="private-life-error"><strong>{t('privateLifePage.actionError')}</strong><p>{error}</p></div> : null}
 
         {tab === 'overview' ? (
           <section className="private-life-section">
             <div className="private-life-section-head">
-              <div><div className="private-life-section-eyebrow">Private Life dashboard</div><h3>Your off-court world</h3><p>Prestige, physical assets and investments all live here, while Finance remains the source of truth for money.</p></div>
-              <button type="button" className="private-life-refresh" disabled={loading} onClick={() => void loadDashboard()}><RefreshCw size={14} /> {loading ? 'Refreshing…' : 'Refresh'}</button>
+              <div><div className="private-life-section-eyebrow">{t('privateLifePage.overview.eyebrow')}</div><h3>{t('privateLifePage.overview.title')}</h3><p>{t('privateLifePage.overview.body')}</p></div>
+              <button type="button" className="private-life-refresh" disabled={loading} onClick={() => void loadDashboard()}><RefreshCw size={14} /> {loading ? t('privateLifePage.overview.refreshing') : t('privateLifePage.overview.refresh')}</button>
             </div>
             <div className="private-life-overview-grid">
               <div className="private-life-panel">
-                <h4>Physical collection</h4>
+                <h4>{t('privateLifePage.overview.physical')}</h4>
                 <div className="private-life-category-list">
                   {(Object.keys(CATEGORY_META) as AssetCategory[]).map((category) => {
                     const total = categoryTotals.get(category)
@@ -890,9 +890,9 @@ export default function PrivateLifePage() {
                 </div>
               </div>
               <div className="private-life-future-stack">
-                <article className="private-life-future-card private-life-investment-preview"><div className="private-life-future-card-head"><h4>Investments</h4><span className="private-life-status-pill active">Active</span></div><p>Trade simulated stocks and cryptocurrencies with your career cash. External market quotes provide the game reference price.</p><button type="button" className="private-life-inline-action" onClick={() => setTab('investments')}>Open investments</button></article>
-                <article className="private-life-future-card"><div className="private-life-future-card-head"><h4>Residence rule</h4></div><p>You must always keep at least one apartment, house or villa. A residence cannot be sold until another residence is available.</p><small>Property living costs are charged monthly through the career Finance ledger.</small></article>
-                <article className="private-life-future-card"><div className="private-life-future-card-head"><h4>Ownership costs</h4></div><p>Vehicles, homes, yachts and private jets carry recurring monthly costs. Watches, jewelry, art and collectibles do not.</p><small>Higher-value assets have higher maintenance or living costs.</small></article>
+                <article className="private-life-future-card private-life-investment-preview"><div className="private-life-future-card-head"><h4>{t('privateLifePage.overview.investmentTitle')}</h4><span className="private-life-status-pill active">{t('privateLifePage.overview.active')}</span></div><p>{t('privateLifePage.overview.investmentBody')}</p><button type="button" className="private-life-inline-action" onClick={() => setTab('investments')}>{t('privateLifePage.overview.openInvestments')}</button></article>
+                <article className="private-life-future-card"><div className="private-life-future-card-head"><h4>{t('privateLifePage.overview.residenceTitle')}</h4></div><p>{t('privateLifePage.overview.residenceBody')}</p><small>{t('privateLifePage.overview.residenceNote')}</small></article>
+                <article className="private-life-future-card"><div className="private-life-future-card-head"><h4>{t('privateLifePage.overview.costsTitle')}</h4></div><p>{t('privateLifePage.overview.costsBody')}</p><small>{t('privateLifePage.overview.costsNote')}</small></article>
               </div>
             </div>
           </section>
@@ -900,28 +900,28 @@ export default function PrivateLifePage() {
 
         {tab === 'assets' ? (
           <section className="private-life-section">
-            <div className="private-life-section-head"><div><div className="private-life-section-eyebrow">Collection</div><h3>My physical assets</h3><p>Track current value, prestige points, monthly ownership costs and choose how quickly you want to sell each possession.</p></div><button type="button" className="private-life-refresh" onClick={() => void toggleAssetHistory()}>Transaction history</button></div>
+            <div className="private-life-section-head"><div><div className="private-life-section-eyebrow">{t('privateLifePage.assets.eyebrow')}</div><h3>{t('privateLifePage.assets.title')}</h3><p>{t('privateLifePage.assets.body')}</p></div><button type="button" className="private-life-refresh" onClick={() => void toggleAssetHistory()}>{t('privateLifePage.assets.history')}</button></div>
             <CategoryFilters value={filter} onChange={setFilter} />
 
             {showAssetHistory ? (
               <div className="private-life-asset-history" role="dialog" aria-modal="true" aria-labelledby="private-life-transaction-history-title">
                 <div className="private-life-asset-history-head">
-                  <div><strong id="private-life-transaction-history-title">Transaction history</strong><span>Every physical-asset purchase, sale and ownership charge in game-date order.</span></div>
-                  <button type="button" className="private-life-asset-history-close" aria-label="Close transaction history" onClick={() => setShowAssetHistory(false)}>×</button>
+                  <div><strong id="private-life-transaction-history-title">{t('privateLifePage.assets.history')}</strong><span>{t('privateLifePage.assets.historyBody')}</span></div>
+                  <button type="button" className="private-life-asset-history-close" aria-label={t('privateLifePage.assets.closeHistory')} onClick={() => setShowAssetHistory(false)}>×</button>
                 </div>
-                {assetHistoryLoading ? <div className="private-life-asset-history-state">Loading transaction history…</div> : assetHistoryError ? <div className="private-life-asset-history-state error">{assetHistoryError}</div> : assetHistory.length === 0 ? <div className="private-life-asset-history-state">No asset transactions yet.</div> : (
+                {assetHistoryLoading ? <div className="private-life-asset-history-state">{t('privateLifePage.assets.loadingHistory')}</div> : assetHistoryError ? <div className="private-life-asset-history-state error">{assetHistoryError}</div> : assetHistory.length === 0 ? <div className="private-life-asset-history-state">{t('privateLifePage.assets.noTransactions')}</div> : (
                   <div className="private-life-asset-history-table-wrap">
                     <table className="private-life-asset-history-table">
-                      <thead><tr><th>Game date</th><th>Transaction</th><th>Asset</th><th>Amount</th><th>Details</th></tr></thead>
+                      <thead><tr><th>{t('privateLifePage.assets.headers.date')}</th><th>{t('privateLifePage.assets.headers.transaction')}</th><th>{t('privateLifePage.assets.headers.asset')}</th><th>{t('privateLifePage.assets.headers.amount')}</th><th>{t('privateLifePage.assets.headers.details')}</th></tr></thead>
                       <tbody>{assetHistory.slice((assetHistoryPage - 1) * ASSET_HISTORY_PAGE_SIZE, assetHistoryPage * ASSET_HISTORY_PAGE_SIZE).map((row) => {
                         const amount = Number(row.amount || 0)
                         const amountTone = row.transaction_type === 'starter_home' ? 'neutral' : amount > 0 ? 'positive' : amount < 0 ? 'negative' : 'neutral'
                         return (
                           <tr key={row.id}>
-                            <td><strong>{gameDayLabel(row.event_absolute_day)}</strong></td>
-                            <td><span className={`private-life-asset-history-type ${row.transaction_type}`}>{assetTransactionLabel(row.transaction_type)}</span></td>
+                            <td><strong>{gameDayLabel(t, row.event_absolute_day)}</strong></td>
+                            <td><span className={`private-life-asset-history-type ${row.transaction_type}`}>{assetTransactionLabel(t, row.transaction_type)}</span></td>
                             <td><strong>{row.name}</strong><span>{categoryLabel(row.category)}{row.city && row.country_name ? ` · ${row.city}, ${row.country_name}` : ''}</span></td>
-                            <td><strong className={`private-life-asset-history-amount ${amountTone}`}>{assetTransactionAmount(row, currency)}</strong></td>
+                            <td><strong className={`private-life-asset-history-amount ${amountTone}`}>{assetTransactionAmount(row, currency, formatCurrency)}</strong></td>
                             <td><strong>{row.transaction_type === 'starter_home' ? 'Starting residence assigned' : row.title}</strong><span>{row.transaction_type === 'starter_home' ? 'Initial home value; not a marketplace purchase.' : row.description}</span></td>
                           </tr>
                         )
@@ -931,14 +931,14 @@ export default function PrivateLifePage() {
                 )}
                 {assetHistory.length > ASSET_HISTORY_PAGE_SIZE ? (
                   <div className="private-life-asset-history-pagination">
-                    <button type="button" disabled={assetHistoryPage <= 1} onClick={() => setAssetHistoryPage((page) => Math.max(1, page - 1))}>Previous</button>
-                    <span>Page <strong>{assetHistoryPage}</strong> of {Math.ceil(assetHistory.length / ASSET_HISTORY_PAGE_SIZE)} · 10 transactions per page</span>
-                    <button type="button" disabled={assetHistoryPage >= Math.ceil(assetHistory.length / ASSET_HISTORY_PAGE_SIZE)} onClick={() => setAssetHistoryPage((page) => Math.min(Math.ceil(assetHistory.length / ASSET_HISTORY_PAGE_SIZE), page + 1))}>Next</button>
+                    <button type="button" disabled={assetHistoryPage <= 1} onClick={() => setAssetHistoryPage((page) => Math.max(1, page - 1))}>{t('privateLifePage.assets.previous')}</button>
+                    <span>{t('privateLifePage.assets.page', { page: assetHistoryPage, pages: Math.ceil(assetHistory.length / ASSET_HISTORY_PAGE_SIZE) })}</span>
+                    <button type="button" disabled={assetHistoryPage >= Math.ceil(assetHistory.length / ASSET_HISTORY_PAGE_SIZE)} onClick={() => setAssetHistoryPage((page) => Math.min(Math.ceil(assetHistory.length / ASSET_HISTORY_PAGE_SIZE), page + 1))}>{t('privateLifePage.assets.next')}</button>
                   </div>
                 ) : null}
               </div>
             ) : null}
-            {visibleOwned.length === 0 ? <div className="private-life-empty"><strong>No assets in this category yet</strong><p>Visit the Marketplace to start building your private collection.</p></div> : (
+            {visibleOwned.length === 0 ? <div className="private-life-empty"><strong>{t('privateLifePage.assets.emptyTitle')}</strong><p>{t('privateLifePage.assets.emptyBody')}</p></div> : (
               <div className="private-life-owned-grid">
                 {visibleOwned.map((asset) => {
                   const isResidence = asset.category === 'apartment' || asset.category === 'house_villa'
@@ -948,18 +948,18 @@ export default function PrivateLifePage() {
                   const ownedImageUrl = catalogAsset ? propertyImageUrl(catalogAsset, ownedLocation) : asset.image_url
                   return (
                     <article className="private-life-owned-card" key={asset.id}>
-                      <div className="private-life-card-image"><AssetImage src={ownedImageUrl} name={asset.name} /><div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(asset.rarity)}</span><span className="private-life-badge level">+{asset.prestige} prestige pts</span></div></div>
+                      <div className="private-life-card-image"><AssetImage src={ownedImageUrl} name={asset.name} /><div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(t, asset.rarity)}</span><span className="private-life-badge level">+{asset.prestige} prestige pts</span></div></div>
                       <div className="private-life-card-body">
                         <div className="private-life-card-title-row"><div>{catalogAsset && yachtBuilder(catalogAsset) ? <div className="private-life-yacht-builder">{yachtBuilder(catalogAsset)}</div> : null}<h4>{asset.name}</h4></div><div className="private-life-price">{money(asset.current_market_value, currency)}</div></div>
-                        {asset.acquisition_type === 'starter_home' ? <div className="private-life-starter-home-label">Starting home residence</div> : null}
+                        {asset.acquisition_type === 'starter_home' ? <div className="private-life-starter-home-label">{t('privateLifePage.assets.startingHome')}</div> : null}
                         <p className="private-life-description">{asset.description}</p>
                         <div className="private-life-owned-value-grid">
                           <div className="private-life-owned-value-row"><span>{t('privateLifePage.purchase.originalValue')}</span><strong>{money(asset.purchase_price, currency)}</strong></div>
                           <div className="private-life-owned-value-row"><span>{t('privateLifePage.purchase.currentValue')}</span><strong>{money(asset.current_market_value, currency)}</strong></div>
                           <div className="private-life-owned-value-row"><span>{t('privateLifePage.purchase.prestige')}</span><strong>+{asset.prestige}</strong></div>
-                          <div className="private-life-owned-value-row"><span>{t('privateLifePage.purchase.ownership')}</span><strong>{asset.ownership_days} game days</strong></div>
-                          <div className="private-life-owned-value-row"><span>{ownershipCostLabel(asset.category)}</span><strong>{asset.annual_running_cost > 0 ? money(asset.annual_running_cost / 12, currency) : t('privateLifePage.costs.none')}</strong></div>
-                          <div className="private-life-owned-value-row"><span>{t('privateLifePage.marketplace.marketMove')}</span><strong className={Number(asset.property_monthly_change_bps ?? asset.asset_monthly_change_bps ?? 0) < 0 ? 'private-life-trend-negative' : Number(asset.property_monthly_change_bps ?? asset.asset_monthly_change_bps ?? 0) > 0 ? 'private-life-trend-positive' : ''}>{marketMoveText(asset.property_monthly_change_bps ?? asset.asset_monthly_change_bps)}</strong></div>
+                          <div className="private-life-owned-value-row"><span>{t('privateLifePage.purchase.ownership')}</span><strong>{t('privateLifePage.dates.gameDays', { count: asset.ownership_days })}</strong></div>
+                          <div className="private-life-owned-value-row"><span>{ownershipCostLabel(t, asset.category)}</span><strong>{asset.annual_running_cost > 0 ? money(asset.annual_running_cost / 12, currency) : t('privateLifePage.costs.none')}</strong></div>
+                          <div className="private-life-owned-value-row"><span>{t('privateLifePage.marketplace.marketMove')}</span><strong className={Number(asset.property_monthly_change_bps ?? asset.asset_monthly_change_bps ?? 0) < 0 ? 'private-life-trend-negative' : Number(asset.property_monthly_change_bps ?? asset.asset_monthly_change_bps ?? 0) > 0 ? 'private-life-trend-positive' : ''}>{marketMoveText(t, asset.property_monthly_change_bps ?? asset.asset_monthly_change_bps)}</strong></div>
                         </div>
                         <button
                           type="button"
@@ -969,7 +969,7 @@ export default function PrivateLifePage() {
                           Details
                         </button>
                         {asset.pending_sale ? (
-                          <div className="private-life-sale-pending"><div><span>Listed for sale</span><strong>{SALE_META[asset.pending_sale.sale_mode].label} · {money(asset.pending_sale.quoted_sale_price, currency)}</strong><small>Settlement game day {asset.pending_sale.settle_absolute_day}</small></div><button type="button" disabled={actionBusy} onClick={() => void cancelSale(asset.pending_sale!.id)}>Cancel sale</button></div>
+                          <div className="private-life-sale-pending"><div><span>{t('privateLifePage.assets.listed')}</span><strong>{saleLabel(asset.pending_sale.sale_mode)} · {money(asset.pending_sale.quoted_sale_price, currency)}</strong><small>{t('privateLifePage.dates.settlementDay', { day: asset.pending_sale.settle_absolute_day })}</small></div><button type="button" disabled={actionBusy} onClick={() => void cancelSale(asset.pending_sale!.id)}>{t('privateLifePage.assets.cancelSale')}</button></div>
                         ) : canSellResidence ? (
                           <div className="private-life-sale-options">
                             {(Object.keys(SALE_META) as SaleMode[]).map((mode) => {
@@ -979,7 +979,7 @@ export default function PrivateLifePage() {
                             })}
                           </div>
                         ) : (
-                          <div className="private-life-residence-lock"><strong>Primary residence</strong><span>Buy another apartment, house or villa before selling this residence.</span></div>
+                          <div className="private-life-residence-lock"><strong>{t('privateLifePage.assets.primary')}</strong><span>{t('privateLifePage.assets.primaryBody')}</span></div>
                         )}
                       </div>
                     </article>
@@ -1041,7 +1041,7 @@ export default function PrivateLifePage() {
                           <div className="private-life-card-stat"><span>{t('privateLifePage.purchase.category')}</span><strong>{categoryLabel(listing.category)}</strong></div>
                         </div>
                         <div className="private-life-card-actions">
-                          <button type="button" className="private-life-action details" onClick={() => setDetailTarget({ type: 'market', listing })}>Details</button>
+                          <button type="button" className="private-life-action details" onClick={() => setDetailTarget({ type: 'market', listing })}>{t('privateLifePage.assets.details')}</button>
                           <button type="button" className="private-life-action" disabled={!canBuy} onClick={() => setPendingAction({ type: 'buy', listing })}>{listing.effective_owned ? 'Already owned here' : !listing.effective_affordable ? 'Insufficient funds' : 'Purchase'}</button>
                         </div>
                       </div>
