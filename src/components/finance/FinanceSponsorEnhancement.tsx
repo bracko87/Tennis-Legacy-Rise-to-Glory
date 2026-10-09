@@ -260,7 +260,7 @@ function ObjectiveDetailModal({
         <button type="button" className="tlg-finance-sponsor-objective-modal-close" onClick={onClose} aria-label={t('financeSponsorPage.objective.close')}>×</button>
         <div className="tlg-finance-sponsor-objective-modal-head">
           <div>
-            <span className="tlg-finance-sponsor-kicker">SPONSOR PERFORMANCE OBJECTIVE</span>
+            <span className="tlg-finance-sponsor-kicker">{t('financeSponsorPage.objective.kicker')}</span>
             <h2>{objective.title}</h2>
           </div>
           <span className={`tlg-finance-sponsor-objective-status ${objective.status ?? 'preview'}`}>{statusLabel(objective.status, t)}</span>
@@ -270,7 +270,7 @@ function ObjectiveDetailModal({
 
         <div className="tlg-finance-sponsor-objective-modal-grid">
           {objective.tournament_name && (
-            <div><span>Tournament</span><strong>{objective.tournament_name}</strong></div>
+            <div><span>{t('terminology.tournament')}</span><strong>{objective.tournament_name}</strong></div>
           )}
           <div><span>{t('financeSponsorPage.objective.requirement')}</span><strong>{copy?.requirement}</strong></div>
           {objective.start_absolute_day != null && (
@@ -579,9 +579,9 @@ function SponsorContent({
 
       <section className="tlg-finance-sponsor-intro">
         <div>
-          <span className="tlg-finance-sponsor-kicker">COMMERCIAL PARTNERSHIPS</span>
-          <h2>Sponsor agreements</h2>
-          <p>Choose one main sponsor for the current season. Guaranteed income is paid weekly; the separate Performance Bonus Pool is earned through clearly defined objectives.</p>
+          <span className="tlg-finance-sponsor-kicker">{t('financeSponsorPage.market.kicker')}</span>
+          <h2>{t('financeSponsorPage.market.title')}</h2>
+          <p>{t('financeSponsorPage.market.body')}</p>
         </div>
         <button type="button" className="tlg-finance-sponsor-refresh" onClick={onRetry} disabled={loading}>{loading ? t('financeSponsorPage.market.refreshing') : t('financeSponsorPage.market.refresh')}</button>
       </section>
@@ -591,7 +591,7 @@ function SponsorContent({
       ) : (
         <>
           <section className="tlg-finance-sponsor-market-summary compact">
-            <span className="tlg-finance-sponsor-kicker">AVAILABLE SPONSORS</span>
+            <span className="tlg-finance-sponsor-kicker">{t('financeSponsorPage.market.available')}</span>
             <h2>{offers.length} sponsor offers</h2>
           </section>
 
