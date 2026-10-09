@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom'
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 
 import { supabase } from '../../lib/supabase'
 import '../../styles/equipment-refinement-v2.css'
@@ -9,32 +10,20 @@ type Json = Record<string, any>
 type EffectEntry = [string, number]
 
 const ACCESSORIES = ['bag', 'cap', 'towel', 'bottle', 'dampener', 'overgrip', 'wristband'] as const
-const EFFECT_LABELS: Record<string, string> = {
-  power_pct: 'Power',
-  control_pct: 'Control',
-  spin_pct: 'Spin',
-  movement_pct: 'Movement',
-  comfort_pct: 'Comfort',
-  serve_pct: 'Serve',
-  return_pct: 'Return',
-  rally_pct: 'Rally',
-  net_pct: 'Net play',
-  stamina_pct: 'Stamina',
-  focus_pct: 'Focus',
-  heat_resistance_pct: 'Heat resistance',
-  cold_resistance_pct: 'Cold resistance',
-  racket_wear_reduction_pct: 'Racquet protection',
-  forehand_pct: 'Forehand',
-  backhand_pct: 'Backhand',
-  stability_pct: 'Stability',
+const EFFECT_KEYS: Record<string, string> = {
+  power_pct: 'power', control_pct: 'control', spin_pct: 'spin', movement_pct: 'movement',
+  comfort_pct: 'comfort', serve_pct: 'serve', return_pct: 'return', rally_pct: 'rally',
+  net_pct: 'net', stamina_pct: 'stamina', focus_pct: 'focus', heat_resistance_pct: 'heat',
+  cold_resistance_pct: 'cold', racket_wear_reduction_pct: 'protection', forehand_pct: 'forehand',
+  backhand_pct: 'backhand', stability_pct: 'stability',
 }
 
 function titleCase(value: string) {
   return value.replaceAll('-', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
 }
 
-function itemLabel(entry: Json) {
-  return `${entry.item?.brand ?? 'Item'} ${entry.item?.model ?? ''} · ${Number(entry.condition ?? 0).toFixed(0)}%`
+function itemLabel(entry: Json, t: TFunction) {
+  return `${entry.item?.brand ?? t('equipmentPage.matchSetups.itemFallback')} ${entry.item?.model ?? ''} · ${Number(entry.condition ?? 0).toFixed(0)}%`
 }
 
 function formatEffect(value: number) {
@@ -72,32 +61,35 @@ function aggregateEffects(entries: Json[]): EffectEntry[] {
     .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
 }
 
-function SetupBonusRow({ entries, title = 'Setup bonuses' }: { entries: Json[]; title?: string }) {
+function SetupBonusRow({ entries, title }: { entries: Json[]; title?: string }) {
+  const { t } = useTranslation()
   const effects = aggregateEffects(entries)
+  const displayTitle = title ?? t('equipmentPage.matchSetups.setupBonuses')
   const bonusCount = effects.filter(([, value]) => value > 0).length
   const tradeoffCount = effects.filter(([, value]) => value < 0).length
 
   return (
     <div className="tlg-match-setup-bonus-row">
       <div className="tlg-match-setup-bonus-head">
-        <span>{title.toUpperCase()}</span>
+        <span>{displayTitle.toUpperCase()}</span>
         <b>
-          {bonusCount} {bonusCount === 1 ? 'bonus' : 'bonuses'}
-          {tradeoffCount > 0 ? ` · ${tradeoffCount} ${tradeoffCount === 1 ? 'trade-off' : 'trade-offs'}` : ''}
+          {t('equipmentPage.matchSetups.bonus', { count: bonusCount })}
+          {tradeoffCount > 0 ? ` · ${t('equipmentPage.matchSetups.tradeoff', { count: tradeoffCount })}` : ''}
         </b>
       </div>
       <div className="tlg-match-setup-bonus-chips">
         {effects.length > 0 ? effects.map(([key, value]) => (
           <span key={key} className={value < 0 ? 'negative' : 'positive'}>
-            {EFFECT_LABELS[key] ?? titleCase(key.replace('_pct', ''))} {formatEffect(value)}
+            {EFFECT_KEYS[key] ? t(`equipmentPage.matchSetups.stats.${EFFECT_KEYS[key]}`) : titleCase(key.replace('_pct', ''))} {formatEffect(value)}
           </span>
-        )) : <span className="neutral">No direct gameplay modifiers</span>}
+        )) : <span className="neutral">{t('equipmentPage.matchSetups.noModifiers')}</span>}
       </div>
     </div>
   )
 }
 
 export default function EquipmentMatchSetupsEnhancement() {
+  const { t } = useTranslation()
   const [customHost, setCustomHost] = useState<HTMLElement | null>(null)
   const [defaultHost, setDefaultHost] = useState<HTMLElement | null>(null)
   const [dashboard, setDashboard] = useState<Json | null>(null)
@@ -130,7 +122,7 @@ export default function EquipmentMatchSetupsEnhancement() {
     }
   }
 
-  useEffect(() => { void load() }, [])
+  useEffect(() => { void load() }, [t])
 
   useEffect(() => {
     let currentCustomHost: HTMLElement | null = null
@@ -142,7 +134,7 @@ export default function EquipmentMatchSetupsEnhancement() {
 
       if (defaultPanel) {
         const label = defaultPanel.querySelector<HTMLElement>('.tlg-equipment-panel-head span')
-        if (label?.textContent?.trim() === 'CURRENT MATCH SETUP') label.textContent = 'DEFAULT MATCH SETUP'
+        if (label?.textContent?.trim()) label.textContent = t('equipmentPage.matchSetups.defaultLabel')
 
         if (!currentDefaultHost || !document.body.contains(currentDefaultHost)) {
           currentDefaultHost = document.createElement('div')
@@ -214,7 +206,7 @@ export default function EquipmentMatchSetupsEnhancement() {
   async function save(slot: number) {
     const d = drafts[slot]
     if (!d?.racket_inventory_id || !d?.shoes_inventory_id || !d?.apparel_inventory_id) {
-      setMessage(`Match Setup ${slot}: choose a racquet, shoes and clothing first.`)
+      setMessage(t('equipmentPage.matchSetups.incomplete', { slot }))
       return
     }
 
@@ -242,16 +234,16 @@ export default function EquipmentMatchSetupsEnhancement() {
       next[row.slot_index] = { ...row, accessories: { ...(row.accessories ?? {}) } }
     })
     setDrafts(next)
-    setMessage(`${d.name || `Match Setup ${slot}`} saved.`)
+    setMessage(t('equipmentPage.matchSetups.saved', { name: d.name || `Match Setup ${slot}` }))
   }
 
   const select = (label: string, value: string, options: Json[], onChange: (value: string) => void) => (
     <label key={label} className="tlg-match-setup-field">
       <span>{label}</span>
       <select value={value ?? ''} onChange={(event) => onChange(event.target.value)}>
-        <option value="">Choose…</option>
+        <option value="">{t('equipmentPage.matchSetups.choose')}</option>
         {options.map((entry) => (
-          <option key={entry.inventory_id} value={entry.inventory_id}>{itemLabel(entry)}</option>
+          <option key={entry.inventory_id} value={entry.inventory_id}>{itemLabel(entry, t)}</option>
         ))}
       </select>
     </label>
@@ -261,7 +253,7 @@ export default function EquipmentMatchSetupsEnhancement() {
     <>
       {defaultHost && createPortal(
         <div className="tlg-default-match-setup-extras">
-          <SetupBonusRow entries={defaultEntries} title="Default Match Setup bonuses" />
+          <SetupBonusRow entries={defaultEntries} title={t('equipmentPage.matchSetups.defaultBonuses')} />
         </div>,
         defaultHost,
       )}
@@ -270,9 +262,9 @@ export default function EquipmentMatchSetupsEnhancement() {
         <section className="tlg-equipment-panel tlg-custom-match-setups-panel">
           <header className="tlg-equipment-panel-head">
             <div>
-              <span>CUSTOM MATCH SETUPS</span>
-              <h2>Four reusable equipment configurations</h2>
-              <p>Save alternative gear combinations and choose one on a match tactic screen. The same owned item may appear in several saved setups because only one setup is used in a match.</p>
+              <span>{t('equipmentPage.matchSetups.kicker')}</span>
+              <h2>{t('equipmentPage.matchSetups.title')}</h2>
+              <p>{t('equipmentPage.matchSetups.body')}</p>
             </div>
           </header>
 
@@ -286,18 +278,18 @@ export default function EquipmentMatchSetupsEnhancement() {
               return (
                 <article className="tlg-custom-match-setup-card" key={setup.slot_index}>
                   <div className="tlg-custom-match-setup-head">
-                    <span>SETUP {setup.slot_index}</span>
+                    <span>{t('equipmentPage.matchSetups.setupNumber', { slot: setup.slot_index })}</span>
                     <input value={d.name ?? ''} maxLength={40} onChange={(event) => updateDraft(setup.slot_index, { name: event.target.value })} />
                   </div>
 
                   <div className="tlg-custom-match-setup-main">
-                    {select('Racquet', d.racket_inventory_id, byType.racket, (value) => updateDraft(setup.slot_index, { racket_inventory_id: value || null }))}
-                    {select('Shoes', d.shoes_inventory_id, byType.shoes, (value) => updateDraft(setup.slot_index, { shoes_inventory_id: value || null }))}
-                    {select('Clothing', d.apparel_inventory_id, byType.apparel, (value) => updateDraft(setup.slot_index, { apparel_inventory_id: value || null }))}
+                    {select(t('equipmentPage.matchSetups.racquet'), d.racket_inventory_id, byType.racket, (value) => updateDraft(setup.slot_index, { racket_inventory_id: value || null }))}
+                    {select(t('equipmentPage.matchSetups.shoes'), d.shoes_inventory_id, byType.shoes, (value) => updateDraft(setup.slot_index, { shoes_inventory_id: value || null }))}
+                    {select(t('equipmentPage.matchSetups.clothing'), d.apparel_inventory_id, byType.apparel, (value) => updateDraft(setup.slot_index, { apparel_inventory_id: value || null }))}
                   </div>
 
                   <details>
-                    <summary>Accessories</summary>
+                    <summary>{t('equipmentPage.matchSetups.accessories')}</summary>
                     <div className="tlg-custom-match-setup-accessories">
                       {ACCESSORIES.map((kind) => select(
                         titleCase(kind),
@@ -309,7 +301,7 @@ export default function EquipmentMatchSetupsEnhancement() {
                   </details>
 
                   <button type="button" onClick={() => void save(setup.slot_index)} disabled={busy === setup.slot_index}>
-                    {busy === setup.slot_index ? 'Saving…' : 'Save setup'}
+                    {busy === setup.slot_index ? t('equipmentPage.matchSetups.saving') : t('equipmentPage.matchSetups.save')}
                   </button>
 
                   <SetupBonusRow entries={setupEntries} />
