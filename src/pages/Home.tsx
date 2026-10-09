@@ -557,12 +557,13 @@ export default function HomePage() {
 }
 
 function HeroCourtVisual() {
+  const { t } = useTranslation()
   return (
     <div className="tlg-hero-court">
       <div className="tlg-hero-court-header">
         <div>
-          <span>Live Career Preview</span>
-          <strong>Rising Prospect</strong>
+          <span>{t('home.preview.live')}</span>
+          <strong>{t('home.preview.prospect')}</strong>
         </div>
 
         <div className="tlg-hero-world-badges">
@@ -574,7 +575,7 @@ function HeroCourtVisual() {
       <svg
         viewBox="0 0 720 470"
         role="img"
-        aria-label="Stylized professional tennis court"
+        aria-label={t('home.preview.courtAria')}
         className="tlg-hero-court-svg"
       >
         <defs>
@@ -779,12 +780,12 @@ function HeroCourtVisual() {
       <div className="tlg-hero-court-footer">
         <div>
           <MapPin size={16} />
-          Global Tour
+          {t('home.preview.globalTour')}
         </div>
 
         <div>
           <Activity size={16} />
-          Career simulation
+          {t('home.preview.simulation')}
         </div>
       </div>
     </div>
@@ -792,17 +793,18 @@ function HeroCourtVisual() {
 }
 
 function CareerControlPanel() {
+  const { t } = useTranslation()
   return (
     <div className="tlg-career-control-panel">
       <div className="tlg-career-control-header">
         <div>
-          <span>Player Overview</span>
-          <strong>Career Control Center</strong>
+          <span>{t('home.preview.playerOverview')}</span>
+          <strong>{t('home.preview.controlCenter')}</strong>
         </div>
 
         <span className="tlg-career-control-status">
           <span />
-          Template
+          {t('home.preview.template')}
         </span>
       </div>
 
@@ -812,34 +814,34 @@ function CareerControlPanel() {
         </div>
 
         <div>
-          <span>Future Professional</span>
-          <strong>Your Player Name</strong>
-          <small>ATP or WTA · Country</small>
+          <span>{t('home.preview.futureProfessional')}</span>
+          <strong>{t('home.preview.playerName')}</strong>
+          <small>{t('home.preview.worldCountry')}</small>
         </div>
 
         <div className="tlg-career-rank">
-          <span>Rank</span>
+          <span>{t('home.preview.rank')}</span>
           <strong>—</strong>
         </div>
       </div>
 
       <div className="tlg-career-metrics">
         <CareerMetric
-          label="Condition"
+          label={t('home.preview.condition')}
           value="—"
           icon={<Activity size={16} />}
           width="72%"
         />
 
         <CareerMetric
-          label="Development"
+          label={t('home.preview.development')}
           value="—"
           icon={<Dumbbell size={16} />}
           width="55%"
         />
 
         <CareerMetric
-          label="Confidence"
+          label={t('home.preview.confidence')}
           value="—"
           icon={<Zap size={16} />}
           width="64%"
@@ -852,9 +854,9 @@ function CareerControlPanel() {
         </div>
 
         <div>
-          <span>Next scheduled activity</span>
+          <span>{t('home.preview.next')}</span>
           <strong>
-            Waiting for Supabase data
+            {t('home.preview.waiting')}
           </strong>
         </div>
 
@@ -910,6 +912,7 @@ function WorldCard({
   description,
   imagePosition,
 }: WorldCardProps) {
+  const { t } = useTranslation()
   return (
     <article
       className={`tlg-world-card tlg-world-card-${imagePosition}`}
@@ -930,11 +933,11 @@ function WorldCard({
         <div className="tlg-world-card-footer">
           <span>
             <ShieldCheck size={16} />
-            Permanent player choice
+            {t('home.worlds.permanent')}
           </span>
 
           <Link to="/create-player">
-            Create Player
+            {t('home.worlds.create')}
             <ArrowRight size={16} />
           </Link>
         </div>
