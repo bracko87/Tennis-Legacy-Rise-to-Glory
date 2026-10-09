@@ -1183,6 +1183,11 @@ export default {
       sessionProcessed: 'Today’s camp session has already been processed.',
       campDayCompleted: 'Camp day {{day}} completed. Development has been stored in the database.',
       sessionFailed: 'The camp session could not be processed.',
+      booking: 'Booking…',
+      anotherBooked: 'Another camp is already planned',
+      insufficientCash: 'Insufficient Career Cash',
+      bookWithPrice: 'Book Training Camp · {{amount}}',
+      bookCamp: 'Book Training Camp',
       status: { booked: 'Booked', active: 'Active', completed: 'Completed', cancelled: 'Cancelled' },
       continents: {
         Europe: 'Europe', Asia: 'Asia', Africa: 'Africa', North_America: 'North America',
