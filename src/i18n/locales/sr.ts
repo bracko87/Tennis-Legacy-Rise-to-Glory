@@ -227,6 +227,11 @@ export default {
     dismiss: 'Ukloni',
     openDetails: 'Otvori detalje obaveštenja',
     collapse: 'Sakrij obaveštenje',
+    summaryAria: 'Pregled obaveštenja',
+    filtersAria: 'Filteri obaveštenja',
+    priority: 'Prioritet',
+    read: 'Pročitano',
+    noActiveDestination: 'Ovo obaveštenje više nema aktivno odredište u igri.',
     filters: {
       all: 'Sve',
       unread: 'Nepročitano',
