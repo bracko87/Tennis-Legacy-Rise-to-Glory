@@ -2,7 +2,6 @@ import {
   Bell,
   ChevronDown,
   Crown,
-  Coins,
   Menu,
   Settings,
 } from 'lucide-react'
@@ -21,7 +20,6 @@ export interface GameHeaderProps {
   title: string
   subtitle?: string
   onToggleSidebarMobile?: () => void
-  onOpenEarnCoins?: () => void
 }
 
 function getCountryName(code: string | undefined, localeTag: string, fallback: string) {
@@ -35,7 +33,6 @@ function getCountryName(code: string | undefined, localeTag: string, fallback: s
 
 export default function GameHeader({
   onToggleSidebarMobile,
-  onOpenEarnCoins,
 }: GameHeaderProps) {
   const { t } = useTranslation()
   const { localeTag, formatNumber } = useLocalization()
@@ -150,12 +147,6 @@ export default function GameHeader({
       </div>
 
       <div className="tlg-v4-header-actions">
-        <button type="button" className="tlg-cpx-launch"
-          aria-label={t('header.earnFreeCoinsAria')}
-          onClick={() => onOpenEarnCoins?.()}>
-          <Coins size={16} />
-          <span>{t('header.earnFreeCoins')}</span>
-        </button>
         <button
           type="button"
           className="tlg-v4-header-action tlg-v4-notification-button"
