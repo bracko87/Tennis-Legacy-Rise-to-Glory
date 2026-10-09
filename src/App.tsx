@@ -23,6 +23,7 @@ import {
 } from 'react-router'
 
 import { AuthProvider } from './auth/AuthContext'
+import { LocalizationProvider } from './i18n/LocalizationProvider'
 import { TutorialProvider } from './tutorial/TutorialProvider'
 import {
   AnonymousOnly,
@@ -192,7 +193,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <TutorialProvider>
+        <LocalizationProvider>
+          <TutorialProvider>
           <AnalyticsTracker />
           <Routes>
           <Route path="/" element={<HomeRoute />} />
@@ -242,7 +244,8 @@ export default function App() {
 
           <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </TutorialProvider>
+          </TutorialProvider>
+        </LocalizationProvider>
       </AuthProvider>
     </BrowserRouter>
   )
