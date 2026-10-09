@@ -2,6 +2,9 @@ import type { GameManualDocument, ManualChapter } from './types'
 import { manualCoreChapters } from './manual.en.core'
 import { manualCompetitionChapters } from './manual.en.competition'
 import { manualCareerChapters } from './manual.en.career'
+import { manualCoreChaptersSr } from './manual.sr.core'
+import { manualCompetitionChaptersSr } from './manual.sr.competition'
+import { manualCareerChaptersSr } from './manual.sr.career'
 
 const englishManual: GameManualDocument = {
   meta: {
@@ -10,7 +13,7 @@ const englishManual: GameManualDocument = {
     language: 'English',
     locale: 'en',
     version: '1.0',
-    updated: '2026-10-04',
+    updated: '2026-10-09',
     sourceNotice: 'English is the source edition. Future locale files can reuse the same chapter and section identifiers.',
   },
   chapters: [
@@ -20,8 +23,26 @@ const englishManual: GameManualDocument = {
   ],
 }
 
+const serbianManual: GameManualDocument = {
+  meta: {
+    title: 'Tennis Legacy: Rise to Glory - Kompletan priručnik igre',
+    shortTitle: 'Kompletan priručnik',
+    language: 'Srpski (latinica)',
+    locale: 'sr',
+    version: '1.0',
+    updated: '2026-10-09',
+    sourceNotice: 'Srpsko izdanje prati iste identifikatore poglavlja i odeljaka kao engleski izvor i koristi srpsku latinicu.',
+  },
+  chapters: [
+    ...manualCoreChaptersSr,
+    ...manualCompetitionChaptersSr,
+    ...manualCareerChaptersSr,
+  ],
+}
+
 const MANUALS: Record<string, GameManualDocument> = {
   en: englishManual,
+  sr: serbianManual,
 }
 
 export function getGameManual(locale = 'en'): GameManualDocument {
