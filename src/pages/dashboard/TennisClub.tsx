@@ -253,7 +253,7 @@ export default function TennisClubPage() {
   }
 
   return (
-    <GameLayout title="Tennis Club" subtitle="Shared ATP and WTA social clubs">
+    <GameLayout title={t('tennisClubPage.title')} subtitle={t('tennisClubPage.subtitle')}>
       <div className="tlg-club-page">
         <section className="tlg-club-hero">
           <div>
@@ -364,10 +364,10 @@ export default function TennisClubPage() {
                     {dashboard.incoming_applications.length === 0 && <div className="tlg-club-empty">{t('tennisClubPage.ownerTools.noRequests')}</div>}
                     {dashboard.incoming_applications.map((application) => (
                       <div className="tlg-club-owner-row" key={application.request_id}>
-                        <div><strong>{application.first_name} {application.last_name}</strong><span><WorldBadge world={application.world} /> {number(application.ranking_points ?? 0)} ranking pts</span></div>
+                        <div><strong>{application.first_name} {application.last_name}</strong><span><WorldBadge world={application.world} /> {t('tennisClubPage.own.pointsShort', { count: number(application.ranking_points ?? 0) })}</span></div>
                         <div className="actions">
-                          <button type="button" className="accept" disabled={busy?.startsWith(`request:${application.request_id}`)} onClick={() => void respondRequest(application.request_id, true, t('tennisClubPage.ownerTools.joinedClub', { name: `${application.first_name} ${application.last_name}` }))}>Accept</button>
-                          <button type="button" disabled={busy?.startsWith(`request:${application.request_id}`)} onClick={() => void respondRequest(application.request_id, false, t('tennisClubPage.ownerTools.applicationDeclined'))}>Decline</button>
+                          <button type="button" className="accept" disabled={busy?.startsWith(`request:${application.request_id}`)} onClick={() => void respondRequest(application.request_id, true, t('tennisClubPage.ownerTools.joinedClub', { name: `${application.first_name} ${application.last_name}` }))}>{t('tennisClubPage.join.accept')}</button>
+                          <button type="button" disabled={busy?.startsWith(`request:${application.request_id}`)} onClick={() => void respondRequest(application.request_id, false, t('tennisClubPage.ownerTools.applicationDeclined'))}>{t('tennisClubPage.join.decline')}</button>
                         </div>
                       </div>
                     ))}
