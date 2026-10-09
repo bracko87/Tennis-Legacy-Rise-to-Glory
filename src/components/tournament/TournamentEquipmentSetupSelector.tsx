@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom'
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 
 import { supabase } from '../../lib/supabase'
@@ -9,6 +10,7 @@ import '../../styles/equipment-match-setups-polish.css'
 type Json = Record<string, any>
 
 export default function TournamentEquipmentSetupSelector() {
+  const { t } = useTranslation()
   const { competitionId } = useParams()
   const [matches, setMatches] = useState<Json[]>([])
   const [host, setHost] = useState<HTMLElement | null>(null)
@@ -70,7 +72,7 @@ export default function TournamentEquipmentSetupSelector() {
     setMessage(null)
     void supabase.rpc('get_player_tournament_match_equipment_setup_v1', { p_match_id: matchId }).then(({ data, error }) => {
       if (error || !data) {
-        setMessage(error?.message ?? 'Unable to load match equipment setup.')
+        setMessage(error?.message ?? t('equipmentPage.loadError'))
         return
       }
       const row = data as Json
@@ -94,10 +96,10 @@ export default function TournamentEquipmentSetupSelector() {
   if (!host || !matchId) return null
   return createPortal(
     <section className="tlg-match-equipment-selector">
-      <div><span>MATCH EQUIPMENT</span><strong>Choose equipment setup</strong><small>Default Match Setup is used automatically when no custom setup is selected.</small></div>
+      <div><span>{t('tournamentPage.enhancements.matchEquipment.kicker')}</span><strong>{t('tournamentPage.enhancements.matchEquipment.title')}</strong><small>{t('tournamentPage.enhancements.matchEquipment.body')}</small></div>
       <div className="tlg-match-equipment-selector-controls">
         <select value={selected} disabled={!editable || busy} onChange={(event) => setSelected(Number(event.target.value))}>
-          <option value={0}>Default Match Setup</option>
+          <option value={0}>{t('tournamentPage.enhancements.matchEquipment.defaultSetup')}</option>
           {options.map((setup) => <option key={setup.slot_index} value={setup.slot_index} disabled={!setup.racket_inventory_id || !setup.shoes_inventory_id || !setup.apparel_inventory_id}>{setup.name}{!setup.racket_inventory_id || !setup.shoes_inventory_id || !setup.apparel_inventory_id ? ' · not configured' : ''}</option>)}
         </select>
         <button type="button" disabled={!editable || busy} onClick={() => void save()}>{busy ? 'Saving…' : 'Save equipment'}</button>
