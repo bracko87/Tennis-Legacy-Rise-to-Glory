@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
+import { useTranslation, type TFunction } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import GameLayout from '../../components/layout/GameLayout'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 import '../../styles/notification-center.css'
 
@@ -37,30 +39,20 @@ interface ContextRow {
   value: string
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  account: 'Account',
-  equipment: 'Equipment',
-  finance: 'Finance',
-  player_condition: 'Player condition',
-  player_development: 'Player development',
-  player_health: 'Health & injuries',
-  private_life: 'Private life',
-  staff: 'Staff',
-  national_team: 'National Team',
-  tournament: 'Tournament',
-  training: 'Training',
-  travel: 'Travel',
+const FILTERS: NotificationFilter[] = ['all', 'unread', 'important', 'tournament', 'health', 'equipment', 'account']
+
+function notificationTemplateKey(code: string) {
+  return code.replaceAll('.', '_')
 }
 
-const FILTERS: Array<{ key: NotificationFilter; label: string }> = [
-  { key: 'all', label: 'All' },
-  { key: 'unread', label: 'Unread' },
-  { key: 'important', label: 'Important' },
-  { key: 'tournament', label: 'Tournaments & travel' },
-  { key: 'health', label: 'Player & training' },
-  { key: 'equipment', label: 'Equipment' },
-  { key: 'account', label: 'Account & finance' },
-]
+function localizedNotification(notification: NotificationRow, t: TFunction) {
+  const key = notificationTemplateKey(notification.notification_code)
+  const values = { ...notification.payload }
+  return {
+    title: t(`notifications.templates.${key}.title`, { ...values, defaultValue: notification.title }),
+    message: t(`notifications.templates.${key}.message`, { ...values, defaultValue: notification.message }),
+  }
+}
 
 const SEVERITY_ORDER: Record<NotificationSeverity, number> = {
   info: 1,
@@ -69,27 +61,27 @@ const SEVERITY_ORDER: Record<NotificationSeverity, number> = {
   error: 4,
 }
 
-function relativeTime(value: string) {
+function relativeTime(value: string, t: TFunction, localeTag: string) {
   const created = new Date(value).getTime()
   const seconds = Math.max(0, Math.floor((Date.now() - created) / 1000))
 
-  if (seconds < 60) return 'Just now'
+  if (seconds < 60) return t('notifications.time.justNow')
   const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes} min ago`
+  if (minutes < 60) return t('notifications.time.minutesAgo', { count: minutes })
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours} h ago`
+  if (hours < 24) return t('notifications.time.hoursAgo', { count: hours })
   const days = Math.floor(hours / 24)
-  if (days < 7) return `${days} d ago`
+  if (days < 7) return t('notifications.time.daysAgo', { count: days })
 
-  return new Intl.DateTimeFormat('en', {
+  return new Intl.DateTimeFormat(localeTag, {
     month: 'short',
     day: 'numeric',
     year: created < new Date().setFullYear(new Date().getFullYear() - 1) ? 'numeric' : undefined,
   }).format(new Date(value))
 }
 
-function fullDateTime(value: string) {
-  return new Intl.DateTimeFormat('en', {
+function fullDateTime(value: string, localeTag: string) {
+  return new Intl.DateTimeFormat(localeTag, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -140,12 +132,21 @@ function categoryKey(notification: NotificationRow) {
   return 'account'
 }
 
-function categoryLabel(notification: NotificationRow) {
+function categoryLabel(notification: NotificationRow, t: TFunction) {
   const key = categoryKey(notification)
-  return CATEGORY_LABELS[key] ?? key.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
+  return t(`notifications.categories.${key}`, {
+    defaultValue: key.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()),
+  })
 }
 
-function notificationTypeLabel(notification: NotificationRow) {
+function notificationTypeLabel(notification: NotificationRow, t: TFunction) {
+  const templateKey = notificationTemplateKey(notification.notification_code)
+  const translated = t(`notifications.templates.${templateKey}.title`, {
+    ...notification.payload,
+    defaultValue: '',
+  })
+  if (translated) return translated
+
   return payloadText(notification.payload, 'notification_label')
     ?? notification.notification_code
       .split('.')
@@ -155,11 +156,8 @@ function notificationTypeLabel(notification: NotificationRow) {
       .replace(/\b\w/g, (letter) => letter.toUpperCase())
 }
 
-function severityLabel(severity: NotificationSeverity) {
-  if (severity === 'error') return 'Critical'
-  if (severity === 'warning') return 'Important'
-  if (severity === 'success') return 'Success'
-  return 'Information'
+function severityLabel(severity: NotificationSeverity, t: TFunction) {
+  return t(`notifications.severity.${severity}`)
 }
 
 function tournamentRoute(competitionId: string | null) {
@@ -170,37 +168,37 @@ function preparationRoute(competitionId: string | null) {
   return competitionId ? `/game/schedule?competition=${encodeURIComponent(competitionId)}&prepare=1` : '/game/schedule'
 }
 
-function primaryActionLabel(code: string) {
-  if (code === 'doubles.partner.invitation') return 'Review invitation'
-  if (code === 'doubles.draw.published') return 'View doubles draw'
-  if (code === 'doubles.match.scheduled') return 'Prepare doubles match'
-  if (code === 'doubles.match.result') return 'View doubles result'
-  if (code.startsWith('doubles.')) return 'Open doubles'
-  if (code === 'tournament.draw.published') return 'View draw'
-  if (code === 'tournament.preparation.available') return 'Open preparation'
-  if (code.startsWith('tournament.application.')) return 'View tournament'
-  if (code.startsWith('tournament.entry.')) return 'View tournament'
-  if (code === 'tournament.canceled') return 'View tournament'
-  if (code === 'account.birthday_gift') return 'View coins'
-  if (code.startsWith('equipment.technical_sponsor.offer')) return 'Open sponsor offers'
-  if (code.startsWith('equipment.technical_sponsor.')) return 'Open sponsorship'
-  if (code.startsWith('equipment.')) return 'View equipment'
-  if (code.startsWith('travel.')) return 'Open schedule'
-  if (code.startsWith('player.fatigue.') || code.startsWith('training.')) return 'Open training'
-  if (code.startsWith('player.health.') || code.startsWith('player.injury.') || code.startsWith('player.illness.')) return 'Open health'
-  if (code.startsWith('player.skill.')) return 'View skills'
-  if (code.startsWith('player.private_life.')) return 'Open private life'
-  if (code.startsWith('avatar.')) return 'Open account'
-  if (code.startsWith('finance.')) return 'Open finance'
-  if (code.startsWith('staff.')) return 'Open staff'
-  if (code === 'national_team.callup') return 'Review call-up'
-  if (code === 'national.captain.election' || code === 'national.captain.runoff') return 'Vote now'
-  if (code === 'national.captain.elected') return 'Open election'
-  if (code.startsWith('national.')) return 'Open National Team'
-  return 'Open'
+function primaryActionLabel(code: string, t: TFunction) {
+  if (code === 'doubles.partner.invitation') return t('notifications.actions.reviewInvitation')
+  if (code === 'doubles.draw.published') return t('notifications.actions.viewDoublesDraw')
+  if (code === 'doubles.match.scheduled') return t('notifications.actions.prepareDoublesMatch')
+  if (code === 'doubles.match.result') return t('notifications.actions.viewDoublesResult')
+  if (code.startsWith('doubles.')) return t('notifications.actions.openDoubles')
+  if (code === 'tournament.draw.published') return t('notifications.actions.viewDraw')
+  if (code === 'tournament.preparation.available') return t('notifications.actions.openPreparation')
+  if (code.startsWith('tournament.application.')) return t('notifications.actions.viewTournament')
+  if (code.startsWith('tournament.entry.')) return t('notifications.actions.viewTournament')
+  if (code === 'tournament.canceled') return t('notifications.actions.viewTournament')
+  if (code === 'account.birthday_gift') return t('notifications.actions.viewCoins')
+  if (code.startsWith('equipment.technical_sponsor.offer')) return t('notifications.actions.openSponsorOffers')
+  if (code.startsWith('equipment.technical_sponsor.')) return t('notifications.actions.openSponsorship')
+  if (code.startsWith('equipment.')) return t('notifications.actions.viewEquipment')
+  if (code.startsWith('travel.')) return t('notifications.actions.openSchedule')
+  if (code.startsWith('player.fatigue.') || code.startsWith('training.')) return t('notifications.actions.openTraining')
+  if (code.startsWith('player.health.') || code.startsWith('player.injury.') || code.startsWith('player.illness.')) return t('notifications.actions.openHealth')
+  if (code.startsWith('player.skill.')) return t('notifications.actions.viewSkills')
+  if (code.startsWith('player.private_life.')) return t('notifications.actions.openPrivateLife')
+  if (code.startsWith('avatar.')) return t('notifications.actions.openAccount')
+  if (code.startsWith('finance.')) return t('notifications.actions.openFinance')
+  if (code.startsWith('staff.')) return t('notifications.actions.openStaff')
+  if (code === 'national_team.callup') return t('notifications.actions.reviewCallup')
+  if (code === 'national.captain.election' || code === 'national.captain.runoff') return t('notifications.actions.voteNow')
+  if (code === 'national.captain.elected') return t('notifications.actions.openElection')
+  if (code.startsWith('national.')) return t('notifications.actions.openNationalTeam')
+  return t('notifications.actions.open')
 }
 
-function notificationActions(notification: NotificationRow) {
+function notificationActions(notification: NotificationRow, t: TFunction) {
   const payload = notification.payload
   const code = notification.notification_code
   const competitionId = payloadText(payload, 'competition_id')
@@ -237,19 +235,19 @@ function notificationActions(notification: NotificationRow) {
   }
 
   const actions: NotificationAction[] = []
-  if (primaryRoute) actions.push({ label: primaryActionLabel(code), to: primaryRoute, primary: true })
+  if (primaryRoute) actions.push({ label: primaryActionLabel(code, t), to: primaryRoute, primary: true })
 
   if (code === 'tournament.preparation.available' && competitionId) {
-    actions.push({ label: 'View tournament', to: tournamentRoute(competitionId)! })
+    actions.push({ label: t('notifications.actions.viewTournament'), to: tournamentRoute(competitionId)! })
   }
 
   const finance = payloadObject(payload, 'finance')
   if ((finance || code.startsWith('player.private_life.')) && primaryRoute !== '/game/finance') {
-    actions.push({ label: 'Open finance', to: '/game/finance' })
+    actions.push({ label: t('notifications.actions.openFinance'), to: '/game/finance' })
   }
 
   const relatedPlayerId = payloadText(payload, 'related_player_id') ?? payloadText(payload, 'rider_id')
-  if (relatedPlayerId) actions.push({ label: 'View player', to: `/game/players/${relatedPlayerId}` })
+  if (relatedPlayerId) actions.push({ label: t('notifications.actions.viewPlayer'), to: `/game/players/${relatedPlayerId}` })
 
   const unique = new Map<string, NotificationAction>()
   actions.forEach((action) => {
@@ -258,7 +256,7 @@ function notificationActions(notification: NotificationRow) {
   return Array.from(unique.values())
 }
 
-function gameMomentLabel(value: Record<string, unknown> | null) {
+function gameMomentLabel(value: Record<string, unknown> | null, t: TFunction) {
   if (!value) return null
   const season = typeof value.season === 'number' ? value.season : null
   const month = typeof value.month === 'number' ? value.month : null
@@ -266,14 +264,19 @@ function gameMomentLabel(value: Record<string, unknown> | null) {
   if (season === null || month === null || day === null) return null
   const hour = typeof value.hour === 'number' ? value.hour : 0
   const minute = typeof value.minute === 'number' ? value.minute : 0
-  return `Season ${season} · ${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')} · ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+  return t('notifications.context.seasonMoment', { season, day: String(day).padStart(2, '0'), month: String(month).padStart(2, '0'), time: `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}` })
 }
 
-function money(value: number) {
-  return `${value < 0 ? '−' : ''}$${Math.abs(Math.round(value)).toLocaleString()}`
+function money(value: number, localeTag: string) {
+  const formatted = new Intl.NumberFormat(localeTag, {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(Math.abs(Math.round(value)))
+  return `${value < 0 ? '−' : ''}${formatted}`
 }
 
-function contextRows(notification: NotificationRow) {
+function contextRows(notification: NotificationRow, t: TFunction, localeTag: string) {
   const payload = notification.payload
   const rows: ContextRow[] = []
   const add = (label: string, value: string | number | null | undefined) => {
@@ -287,125 +290,125 @@ function contextRows(notification: NotificationRow) {
     : null
 
   if (notification.notification_code.startsWith('tournament.')) {
-    add('Tournament', titleTournament)
-    add('Entry wave', payloadText(payload, 'entry_wave'))
-    add('Draw', payloadText(payload, 'draw_type')?.replaceAll('_', ' '))
-    add('Priority', payloadNumber(payload, 'priority'))
-    add('Next entry wave', payloadText(payload, 'next_entry_wave'))
-    add('Tournament start', gameMomentLabel(payloadObject(payload, 'tournament_start')))
-    add('Accepted players', payloadNumber(payload, 'accepted_players'))
-    add('Minimum players', payloadNumber(payload, 'minimum_players'))
+    add(t('notifications.context.tournament'), titleTournament)
+    add(t('notifications.context.entryWave'), payloadText(payload, 'entry_wave'))
+    add(t('notifications.context.draw'), payloadText(payload, 'draw_type')?.replaceAll('_', ' '))
+    add(t('notifications.context.priority'), payloadNumber(payload, 'priority'))
+    add(t('notifications.context.nextEntryWave'), payloadText(payload, 'next_entry_wave'))
+    add(t('notifications.context.tournamentStart'), gameMomentLabel(payloadObject(payload, 'tournament_start'), t))
+    add(t('notifications.context.acceptedPlayers'), payloadNumber(payload, 'accepted_players'))
+    add(t('notifications.context.minimumPlayers'), payloadNumber(payload, 'minimum_players'))
     const refunded = payloadNumber(payload, 'refunded_amount')
-    if (refunded !== null) add('Refunded', money(refunded))
+    if (refunded !== null) add(t('notifications.context.refunded'), money(refunded, localeTag))
   }
 
   if (notification.notification_code.startsWith('doubles.')) {
-    add('Tournament', payloadText(payload, 'tournament_name') ?? titleTournament)
-    add('City', payloadText(payload, 'city'))
-    add('Partner', payloadText(payload, 'partner_name') ?? payloadText(payload, 'proposed_partner_name'))
-    add('Opponents', payloadText(payload, 'opponents'))
-    add('Round', payloadText(payload, 'round_label'))
-    add('Entry status', payloadText(payload, 'entry_status')?.replaceAll('_', ' '))
-    add('Result', payloadText(payload, 'result')?.replace(/w/g, (letter) => letter.toUpperCase()))
-    add('Partnership deadline', gameMomentLabel(payloadObject(payload, 'partnership_deadline')))
-    add('Tournament start', gameMomentLabel(payloadObject(payload, 'tournament_start')))
-    add('Tournament end', gameMomentLabel(payloadObject(payload, 'tournament_end')))
+    add(t('notifications.context.tournament'), payloadText(payload, 'tournament_name') ?? titleTournament)
+    add(t('notifications.context.city'), payloadText(payload, 'city'))
+    add(t('notifications.context.partner'), payloadText(payload, 'partner_name') ?? payloadText(payload, 'proposed_partner_name'))
+    add(t('notifications.context.opponents'), payloadText(payload, 'opponents'))
+    add(t('notifications.context.round'), payloadText(payload, 'round_label'))
+    add(t('notifications.context.entryStatus'), payloadText(payload, 'entry_status')?.replaceAll('_', ' '))
+    add(t('notifications.context.result'), payloadText(payload, 'result')?.replace(/w/g, (letter) => letter.toUpperCase()))
+    add(t('notifications.context.partnershipDeadline'), gameMomentLabel(payloadObject(payload, 'partnership_deadline'), t))
+    add(t('notifications.context.tournamentStart'), gameMomentLabel(payloadObject(payload, 'tournament_start'), t))
+    add(t('notifications.context.tournamentEnd'), gameMomentLabel(payloadObject(payload, 'tournament_end'), t))
 
     const seasonWeek = payloadNumber(payload, 'season_week')
     const matchDay = payloadNumber(payload, 'day')
     const startMinute = payloadNumber(payload, 'start_minute')
-    if (seasonWeek !== null && matchDay !== null) add('Match day', `Season Week ${seasonWeek} · Day ${matchDay}`)
+    if (seasonWeek !== null && matchDay !== null) add(t('notifications.context.matchDay'), t('notifications.context.seasonWeekDay', { week: seasonWeek, day: matchDay }))
     if (startMinute !== null) {
       const hour = Math.floor(startMinute / 60)
       const minute = startMinute % 60
-      add('Match time', `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`)
+      add(t('notifications.context.matchTime'), `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`)
     }
     const court = payloadNumber(payload, 'court_number')
-    if (court !== null) add('Court', `Court ${court}`)
+    if (court !== null) add(t('notifications.context.court'), t('notifications.context.courtNumber', { court }))
     const sets = payloadNumber(payload, 'sets_played')
     const games = payloadNumber(payload, 'games_played')
-    if (sets !== null) add('Sets played', sets)
-    if (games !== null) add('Games played', games)
+    if (sets !== null) add(t('notifications.context.setsPlayed'), sets)
+    if (games !== null) add(t('notifications.context.gamesPlayed'), games)
 
     const bracketSize = payloadNumber(payload, 'bracket_size')
-    if (bracketSize !== null) add('Draw size', `${bracketSize} teams`)
+    if (bracketSize !== null) add(t('notifications.context.drawSize'), t('notifications.context.teamsCount', { count: bracketSize }))
   }
 
   if (notification.notification_code.startsWith('national.') || notification.notification_code.startsWith('national_team.')) {
-    add('Association', payloadText(payload, 'association_name'))
-    add('Captain', payloadText(payload, 'captain_name'))
-    add('Opponent', payloadText(payload, 'opponent_name'))
-    add('Host city', payloadText(payload, 'host_city'))
-    add('Voting deadline', payloadText(payload, 'voting_deadline_label'))
+    add(t('notifications.context.association'), payloadText(payload, 'association_name'))
+    add(t('notifications.context.captain'), payloadText(payload, 'captain_name'))
+    add(t('notifications.context.opponent'), payloadText(payload, 'opponent_name'))
+    add(t('notifications.context.hostCity'), payloadText(payload, 'host_city'))
+    add(t('notifications.context.votingDeadline'), payloadText(payload, 'voting_deadline_label'))
     const round = payloadNumber(payload, 'round')
-    if (round !== null) add('Election round', round)
+    if (round !== null) add(t('notifications.context.electionRound'), round)
     const responseDeadline = payloadNumber(payload, 'response_deadline_absolute_day')
-    if (responseDeadline !== null) add('Response deadline', `Game day ${responseDeadline}`)
+    if (responseDeadline !== null) add(t('notifications.context.responseDeadline'), t('notifications.context.gameDay', { day: responseDeadline }))
     const compensation = payloadNumber(payload, 'expected_compensation_usd')
-    if (compensation !== null) add('Appearance payment', money(compensation))
+    if (compensation !== null) add(t('notifications.context.appearancePayment'), money(compensation, localeTag))
   }
 
   if (notification.notification_code.startsWith('travel.')) {
     const city = payloadText(payload, 'destination_city')
     const country = payloadText(payload, 'destination_country_code')
-    add('Destination', [city, country].filter(Boolean).join(' · '))
+    add(t('notifications.context.destination'), [city, country].filter(Boolean).join(' · '))
     const km = payloadNumber(payload, 'distance_km')
-    if (km !== null) add('Distance', `${Math.round(km).toLocaleString()} km`)
+    if (km !== null) add(t('notifications.context.distance'), `${new Intl.NumberFormat(localeTag).format(Math.round(km))} km`)
     const gross = payloadNumber(payload, 'gross_travel_fatigue')
-    if (gross !== null) add('Gross fatigue', `+${gross}`)
+    if (gross !== null) add(t('notifications.context.grossFatigue'), `+${gross}`)
     const recovery = payloadNumber(payload, 'travel_day_recovery')
-    if (recovery !== null) add('Travel-day recovery', `−${recovery}`)
+    if (recovery !== null) add(t('notifications.context.travelDayRecovery'), `−${recovery}`)
     const net = payloadNumber(payload, 'fatigue_change')
-    if (net !== null) add('Net fatigue', `${net >= 0 ? '+' : ''}${net}`)
+    if (net !== null) add(t('notifications.context.netFatigue'), `${net >= 0 ? '+' : ''}${net}`)
     const finance = payloadObject(payload, 'finance')
     const amount = finance && typeof finance.amount === 'number' ? finance.amount : null
-    if (amount !== null) add('Travel cost', money(amount))
+    if (amount !== null) add(t('notifications.context.travelCost'), money(amount, localeTag))
   }
 
   const before = payloadNumber(payload, 'fatigue_before')
   const after = payloadNumber(payload, 'fatigue_after')
-  if (before !== null && after !== null) add('Fatigue', `${before}/100 → ${after}/100`)
+  if (before !== null && after !== null) add(t('notifications.context.fatigue'), `${before}/100 → ${after}/100`)
 
   const skill = payloadText(payload, 'skill')
   const oldValue = payloadNumber(payload, 'old_value')
   const newValue = payloadNumber(payload, 'new_value')
-  if (skill) add('Skill', skill)
-  if (oldValue !== null && newValue !== null) add('Skill change', `${oldValue} → ${newValue}`)
+  if (skill) add(t('notifications.context.skill'), skill)
+  if (oldValue !== null && newValue !== null) add(t('notifications.context.skillChange'), `${oldValue} → ${newValue}`)
 
   const risk = payloadObject(payload, 'risk')
   if (risk) {
-    if (typeof risk.risk_level === 'string') add('Risk level', risk.risk_level)
-    if (typeof risk.risk_percent === 'number') add('Risk', `${risk.risk_percent.toFixed(2)}%`)
-    if (Array.isArray(risk.reasons)) add('Risk factors', risk.reasons.filter((item) => typeof item === 'string').join(' · '))
+    if (typeof risk.risk_level === 'string') add(t('notifications.context.riskLevel'), risk.risk_level)
+    if (typeof risk.risk_percent === 'number') add(t('notifications.context.risk'), `${risk.risk_percent.toFixed(2)}%`)
+    if (Array.isArray(risk.reasons)) add(t('notifications.context.riskFactors'), risk.reasons.filter((item) => typeof item === 'string').join(' · '))
   }
 
   const sponsorCategory = payloadText(payload, 'category')
   if (notification.notification_code.startsWith('equipment.') && sponsorCategory) {
-    add('Equipment category', sponsorCategory === 'apparel' ? 'Clothing' : sponsorCategory === 'racket' ? 'Racquet' : sponsorCategory === 'shoes' ? 'Shoes' : sponsorCategory)
+    add(t('notifications.context.equipmentCategory'), sponsorCategory === 'apparel' ? t('notifications.context.apparel') : sponsorCategory === 'racket' ? t('notifications.context.racket') : sponsorCategory === 'shoes' ? t('notifications.context.shoes') : sponsorCategory)
   }
-  add('Days remaining', payloadNumber(payload, 'days_remaining'))
+  add(t('notifications.context.daysRemaining'), payloadNumber(payload, 'days_remaining'))
 
   if (notification.notification_code === 'account.birthday_gift') {
     const reward = payloadNumber(payload, 'reward_amount')
-    if (reward !== null) add('Birthday reward', `${reward} Coins`)
-    add('Reward year', payloadNumber(payload, 'reward_year'))
+    if (reward !== null) add(t('notifications.context.birthdayReward'), t('common.coinsCount', { count: reward }))
+    add(t('notifications.context.rewardYear'), payloadNumber(payload, 'reward_year'))
   }
 
   if (notification.notification_code.startsWith('avatar.')) {
-    add('Request status', payloadText(payload, 'status')?.replaceAll('_', ' '))
+    add(t('notifications.context.requestStatus'), payloadText(payload, 'status')?.replaceAll('_', ' '))
   }
 
   if (notification.notification_code.startsWith('player.private_life.')) {
-    add('Billing month', payloadText(payload, 'month_name'))
+    add(t('notifications.context.billingMonth'), payloadText(payload, 'month_name'))
     const total = payloadNumber(payload, 'total_cost')
-    if (total !== null) add('Total cost', money(-Math.abs(total)))
+    if (total !== null) add(t('notifications.context.totalCost'), money(-Math.abs(total), localeTag))
   }
 
   const progress = payloadNumber(payload, 'progress_percent')
-  if (progress !== null) add('Recovery progress', `${progress}%`)
+  if (progress !== null) add(t('notifications.context.recoveryProgress'), `${progress}%`)
 
   const conditionCode = payloadText(payload, 'condition_code') ?? payloadText(payload, 'injury_code') ?? payloadText(payload, 'illness_code')
-  if (conditionCode) add('Condition', conditionCode.replaceAll('_', ' '))
+  if (conditionCode) add(t('notifications.context.condition'), conditionCode.replaceAll('_', ' '))
 
   return rows
 }
