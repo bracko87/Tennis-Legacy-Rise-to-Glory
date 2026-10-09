@@ -510,23 +510,23 @@ export default function CreatePlayerPage(): JSX.Element {
   return (
     <div className="tlg-onboarding-page tlg-onboarding-page-v2">
       <header className="tlg-onboarding-topbar">
-        <Link to="/" className="tlg-brand" aria-label="Tennis Legacy homepage">
+        <Link to="/" className="tlg-brand" aria-label={t('createPlayer.top.homepageAria')}>
           <span className="tlg-brand-mark" aria-hidden="true" />
           <span className="tlg-brand-copy">
             <strong className="tlg-brand-name">Tennis Legacy</strong>
-            <span className="tlg-brand-subtitle">Rise to Glory</span>
+            <span className="tlg-brand-subtitle">{t('authPages.brandSubtitle')}</span>
           </span>
         </Link>
 
         <div className="tlg-onboarding-topbar-actions">
           <div className="tlg-onboarding-account-state">
-            <span>Account verified</span>
-            <strong>{user?.email ?? 'Authenticated account'}</strong>
+            <span>{t('createPlayer.top.accountVerified')}</span>
+            <strong>{user?.email ?? t('createPlayer.top.authenticated')}</strong>
           </div>
 
           <Link to="/" className="tlg-onboarding-home-link">
             <ArrowLeft size={15} />
-            <span>Back to Home</span>
+            <span>{t('createPlayer.top.backHome')}</span>
           </Link>
         </div>
       </header>
@@ -534,15 +534,15 @@ export default function CreatePlayerPage(): JSX.Element {
       <main className="tlg-onboarding-main tlg-onboarding-main-v2">
         <div className="tlg-onboarding-hero tlg-onboarding-hero-v2">
           <div>
-            <p className="tlg-page-heading-eyebrow">Create Your Player</p>
-            <h1>Build the player who starts your career.</h1>
+            <p className="tlg-page-heading-eyebrow">{t('createPlayer.top.eyebrow')}</p>
+            <h1>{t('createPlayer.top.title')}</h1>
             <p>
-              Your account is already created. These steps define only your fictional tennis player and starting career identity.
+              {t('createPlayer.top.description')}
             </p>
           </div>
         </div>
 
-        <nav className="tlg-onboarding-stepper" aria-label="Player creation progress">
+        <nav className="tlg-onboarding-stepper" aria-label={t('createPlayer.top.progressAria')}>
           {ONBOARDING_STEPS.map((item) => {
             const active = item.id === step
             const complete = item.id < step
@@ -555,8 +555,8 @@ export default function CreatePlayerPage(): JSX.Element {
               >
                 <span className="tlg-onboarding-step-number">{complete ? <Check size={14} /> : item.id}</span>
                 <span className="tlg-onboarding-step-copy">
-                  <strong>{item.label}</strong>
-                  <small>{item.short}</small>
+                  <strong>{t(item.labelKey)}</strong>
+                  <small>{t(item.shortKey)}</small>
                 </span>
               </div>
             )
@@ -567,13 +567,13 @@ export default function CreatePlayerPage(): JSX.Element {
           <section className="tlg-onboarding-stage-card">
             <header className="tlg-onboarding-stage-header">
               <div>
-                <span>Step {step} of 5 · {currentStep.label}</span>
+                <span>{t('createPlayer.top.step', { step, label: t(currentStep.labelKey) })}</span>
                 <h2>
-                  {step === 1 && 'Choose your professional tour'}
-                  {step === 2 && 'Create your player identity'}
-                  {step === 3 && 'Choose your appearance'}
-                  {step === 4 && 'Set your playing profile'}
-                  {step === 5 && 'Review and start your career'}
+                  {step === 1 && t('createPlayer.top.step1')}
+                  {step === 2 && t('createPlayer.top.step2')}
+                  {step === 3 && t('createPlayer.top.step3')}
+                  {step === 4 && t('createPlayer.top.step4')}
+                  {step === 5 && t('createPlayer.top.step5')}
                 </h2>
               </div>
               <strong>{Math.round((step / 5) * 100)}%</strong>
@@ -583,7 +583,7 @@ export default function CreatePlayerPage(): JSX.Element {
               {step === 1 && (
                 <div className="tlg-onboarding-stage-content">
                   <p className="tlg-onboarding-stage-intro">
-                    Choose the professional world your player will join. This defines the competitive ecosystem for the career.
+                    {t('createPlayer.tour.intro')}
                   </p>
 
                   <div className="tlg-world-grid tlg-world-grid-v2">
@@ -599,12 +599,12 @@ export default function CreatePlayerPage(): JSX.Element {
                         }}
                         aria-pressed={world === option}
                       >
-                        <span className="tlg-world-option-badge">{world === option ? 'SELECTED' : 'CHOOSE TOUR'}</span>
+                        <span className="tlg-world-option-badge">{world === option ? t('createPlayer.tour.selected') : t('createPlayer.tour.choose')}</span>
                         <strong>{option}</strong>
                         <p>
                           {option === 'ATP'
-                            ? 'Join the men’s professional multiplayer world.'
-                            : 'Join the women’s professional multiplayer world.'}
+                            ? t('createPlayer.tour.atp')
+                            : t('createPlayer.tour.wta')}
                         </p>
                         {world === option && <Check size={18} className="absolute right-4 top-4 text-[color:var(--tlg-cyan)]" />}
                       </button>
@@ -616,22 +616,22 @@ export default function CreatePlayerPage(): JSX.Element {
               {step === 2 && (
                 <div className="tlg-onboarding-stage-content">
                   <p className="tlg-onboarding-stage-intro">
-                    This is your in-game player, not your login account. Use a realistic first and last name and choose the country and permanent home city for the career.
+                    {t('createPlayer.identity.intro')}
                   </p>
 
                   <div className="tlg-onboarding-form-grid">
                     <FormField
                       id="first-name"
-                      label="Player first name"
+                      label={t('createPlayer.identity.firstName')}"
                       required
-                      error={(attemptedStep === 2 || submitted) && !firstNameValid ? 'Use a valid first name with letters only.' : undefined}
+                      error={(attemptedStep === 2 || submitted) && !firstNameValid ? t('createPlayer.errors.firstName') : undefined}
                     >
                       <input
                         id="first-name"
                         value={firstName}
                         onChange={(event) => { setFirstName(event.target.value); setSaveError(null) }}
                         className={`tlg-input ${(attemptedStep === 2 || submitted) && !firstNameValid ? 'tlg-input-error' : ''}`}
-                        placeholder="First name"
+                        placeholder={t('createPlayer.identity.firstPlaceholder')}
                         maxLength={40}
                         autoComplete="off"
                       />
@@ -639,16 +639,16 @@ export default function CreatePlayerPage(): JSX.Element {
 
                     <FormField
                       id="last-name"
-                      label="Player last name"
+                      label={t('createPlayer.identity.lastName')}"
                       required
-                      error={(attemptedStep === 2 || submitted) && !lastNameValid ? 'Use a valid last name with letters only.' : undefined}
+                      error={(attemptedStep === 2 || submitted) && !lastNameValid ? t('createPlayer.errors.lastName') : undefined}
                     >
                       <input
                         id="last-name"
                         value={lastName}
                         onChange={(event) => { setLastName(event.target.value); setSaveError(null) }}
                         className={`tlg-input ${(attemptedStep === 2 || submitted) && !lastNameValid ? 'tlg-input-error' : ''}`}
-                        placeholder="Last name"
+                        placeholder={t('createPlayer.identity.lastPlaceholder')}
                         maxLength={40}
                         autoComplete="off"
                       />
@@ -657,9 +657,9 @@ export default function CreatePlayerPage(): JSX.Element {
 
                   <FormField
                     id="country"
-                    label="Nationality"
+                    label={t('createPlayer.identity.nationality')}
                     required
-                    error={(attemptedStep === 2 || submitted) && !countryValid ? 'Choose the country your player represents.' : undefined}
+                    error={(attemptedStep === 2 || submitted) && !countryValid ? t('createPlayer.errors.nationality') : undefined}
                   >
                     <div className="tlg-country-picker" ref={countryPickerRef}>
                       <button
@@ -678,8 +678,8 @@ export default function CreatePlayerPage(): JSX.Element {
                       >
                         <span className="tlg-country-trigger-main">
                           {selectedCountry
-                            ? <><CountryFlag code={selectedCountry.code} name={selectedCountry.name} /><span>{selectedCountry.name}</span></>
-                            : <span className="tlg-country-trigger-placeholder">{countriesLoading ? 'Loading countries…' : 'Choose a country'}</span>}
+                            ? <><CountryFlag code={selectedCountry.code} name={selectedCountry.displayName} /><span>{selectedCountry.displayName}</span></>
+                            : <span className="tlg-country-trigger-placeholder">{countriesLoading ? t('createPlayer.identity.loadingCountries') : t('createPlayer.identity.chooseCountry')}</span>}
                         </span>
                         <ChevronDown size={18} />
                       </button>
@@ -692,13 +692,13 @@ export default function CreatePlayerPage(): JSX.Element {
                               autoFocus
                               value={countryQuery}
                               onChange={(event) => setCountryQuery(event.target.value)}
-                              placeholder="Search country…"
-                              aria-label="Search countries"
+                              placeholder={t('createPlayer.identity.searchCountry')}
+                              aria-label={t('createPlayer.identity.searchCountriesAria')}
                               onKeyDown={(event) => { if (event.key === 'Escape') setCountryOpen(false) }}
                             />
                           </div>
 
-                          <div className="tlg-country-options" role="listbox" aria-label="Countries">
+                          <div className="tlg-country-options" role="listbox" aria-label={t('createPlayer.identity.countriesAria')}>
                             {filteredCountries.map((item) => (
                               <button
                                 key={item.code}
@@ -714,12 +714,12 @@ export default function CreatePlayerPage(): JSX.Element {
                                   setSaveError(null)
                                 }}
                               >
-                                <CountryFlag code={item.code} name={item.name} />
-                                <span>{item.name}</span>
+                                <CountryFlag code={item.code} name={item.displayName} />
+                                <span>{item.displayName}</span>
                                 {country === item.code && <Check size={15} />}
                               </button>
                             ))}
-                            {!filteredCountries.length && <div className="tlg-country-empty">No country matches your search.</div>}
+                            {!filteredCountries.length && <div className="tlg-country-empty">{t('createPlayer.identity.noCountry')}</div>}
                           </div>
                         </div>
                       )}
@@ -728,10 +728,10 @@ export default function CreatePlayerPage(): JSX.Element {
 
                   <FormField
                     id="home-city"
-                    label="Permanent home city"
+                    label={t('createPlayer.identity.homeCity')}
                     required
-                    hint="Your home city is used as the starting point for travel and future home-based systems."
-                    error={(attemptedStep === 2 || submitted) && !homeCityValid ? (homeCityLoadError ?? 'Choose one of the available home cities for your country.') : undefined}
+                    hint={t('createPlayer.identity.homeCityHint')}
+                    error={(attemptedStep === 2 || submitted) && !homeCityValid ? (homeCityLoadError ?? t('createPlayer.errors.homeCity')) : undefined}
                   >
                     <div className="tlg-home-city-control tlg-city-picker" ref={homeCityPickerRef}>
                       <button
@@ -749,17 +749,17 @@ export default function CreatePlayerPage(): JSX.Element {
                         disabled={!country || homeCitiesLoading || Boolean(homeCityLoadError)}
                       >
                         <span className="tlg-city-trigger-main">
-                          {selectedCountry && <CountryFlag code={selectedCountry.code} name={selectedCountry.name} />}
+                          {selectedCountry && <CountryFlag code={selectedCountry.code} name={selectedCountry.displayName} />}
                           <span className={homeCity ? '' : 'tlg-city-trigger-placeholder'}>
                             {!country
-                              ? 'Choose a country first'
+                              ? t('createPlayer.identity.chooseCountryFirst')
                               : homeCitiesLoading
-                                ? `${selectedCountry?.name ?? 'Country'} · Loading home cities…`
+                                ? `${selectedCountry?.displayName ?? t('createPlayer.identity.country')} · ${t('createPlayer.identity.loadingCities')}`
                                 : homeCityLoadError
-                                  ? `${selectedCountry?.name ?? 'Country'} · Home cities unavailable`
+                                  ? `${selectedCountry?.displayName ?? t('createPlayer.identity.country')} · ${t('createPlayer.identity.citiesUnavailable')}`
                                   : homeCity
-                                    ? `${selectedCountry?.name ?? ''} · ${homeCity}`
-                                    : `${selectedCountry?.name ?? 'Country'} · Choose your home city`}
+                                    ? `${selectedCountry?.displayName ?? ''} · ${homeCity}`
+                                    : `${selectedCountry?.displayName ?? t('createPlayer.identity.country')} · ${t('createPlayer.identity.chooseHomeCity')}`}
                           </span>
                         </span>
                         <ChevronDown size={18} />
@@ -773,13 +773,13 @@ export default function CreatePlayerPage(): JSX.Element {
                               autoFocus
                               value={homeCityQuery}
                               onChange={(event) => setHomeCityQuery(event.target.value)}
-                              placeholder={`Search cities in ${selectedCountry.name}…`}
-                              aria-label={`Search cities in ${selectedCountry.name}`}
+                              placeholder={t('createPlayer.identity.searchCities', { country: selectedCountry.displayName })}
+                              aria-label={t('createPlayer.identity.searchCitiesAria', { country: selectedCountry.displayName })}
                               onKeyDown={(event) => { if (event.key === 'Escape') setHomeCityOpen(false) }}
                             />
                           </div>
 
-                          <div className="tlg-city-options" role="listbox" aria-label={`Cities in ${selectedCountry.name}`}>
+                          <div className="tlg-city-options" role="listbox" aria-label={t('createPlayer.identity.citiesAria', { country: selectedCountry.displayName })}>
                             {filteredHomeCities.map((item) => (
                               <button
                                 key={`${country}-${item.city}`}
@@ -794,13 +794,13 @@ export default function CreatePlayerPage(): JSX.Element {
                                   setSaveError(null)
                                 }}
                               >
-                                <CountryFlag code={selectedCountry.code} name={selectedCountry.name} />
-                                <span className="tlg-city-option-country">{selectedCountry.name}</span>
+                                <CountryFlag code={selectedCountry.code} name={selectedCountry.displayName} />
+                                <span className="tlg-city-option-country">{selectedCountry.displayName}</span>
                                 <span className="tlg-city-option-name">{item.city}</span>
                                 {homeCity === item.city && <Check size={15} />}
                               </button>
                             ))}
-                            {!filteredHomeCities.length && <div className="tlg-city-empty">No city matches your search.</div>}
+                            {!filteredHomeCities.length && <div className="tlg-city-empty">{t('createPlayer.identity.noCity')}</div>}
                           </div>
                         </div>
                       )}
@@ -810,8 +810,8 @@ export default function CreatePlayerPage(): JSX.Element {
                   <div className="tlg-real-name-policy tlg-real-name-policy-v2" role="note">
                     <AlertTriangle size={20} aria-hidden="true" />
                     <div>
-                      <strong>REALISTIC PLAYER NAME REQUIRED</strong>
-                      <p>Use a normal first and last name. Gamer tags, joke identities, offensive names and impersonating a real professional player are not allowed.</p>
+                      <strong>{t('createPlayer.identity.realisticName')}</strong>
+                      <p>{t('createPlayer.identity.realisticNameBody')}</p>
                     </div>
                   </div>
                 </div>
@@ -821,20 +821,20 @@ export default function CreatePlayerPage(): JSX.Element {
                 <div className="tlg-onboarding-stage-content">
                   <div className="tlg-avatar-picker-header">
                     <div>
-                      <strong>Choose a {world} portrait</strong>
-                      <p>Portrait selection is optional. Only portraits that are currently free are shown. If you later replace it with an approved custom portrait, this catalog portrait returns to the pool.</p>
+                      <strong>{t('createPlayer.portrait.title', { world })}</strong>
+                      <p>{t('createPlayer.portrait.body')}</p>
                     </div>
-                    {!avatarsLoading && avatars.length > 0 && <span className="tlg-avatar-count">{availableAvatarCount} available</span>}
+                    {!avatarsLoading && avatars.length > 0 && <span className="tlg-avatar-count">{t('createPlayer.portrait.available', { count: availableAvatarCount })}</span>}
                   </div>
 
                   {avatarsLoading ? (
-                    <div className="tlg-avatar-state">Loading {world} player portraits…</div>
+                    <div className="tlg-avatar-state">{t('createPlayer.portrait.loading', { world })}</div>
                   ) : avatarError ? (
                     <div className="tlg-avatar-state">{avatarError}</div>
                   ) : avatars.length === 0 ? (
-                    <div className="tlg-avatar-state">No {world} portraits are available in the avatar library yet.</div>
+                    <div className="tlg-avatar-state">{t('createPlayer.portrait.noneAvailable', { world })}</div>
                   ) : (
-                    <div className="tlg-avatar-grid tlg-avatar-grid-v2" aria-label={`${world} player portraits`}>
+                    <div className="tlg-avatar-grid tlg-avatar-grid-v2" aria-label={t('createPlayer.portrait.aria', { world })}>
                       {avatars.map((avatar) => {
                         const selected = selectedAvatarPath === avatar.path
                         return (
@@ -843,7 +843,7 @@ export default function CreatePlayerPage(): JSX.Element {
                             type="button"
                             className={`tlg-avatar-option ${selected ? 'selected' : ''}`}
                             onClick={() => { setSelectedAvatarPath(avatar.path); setSaveError(null) }}
-                            aria-label={`Select ${avatar.label}`}
+                            aria-label={t('createPlayer.portrait.selectAria', { label: avatar.label })}
                             aria-pressed={selected}
                           >
                             <img src={avatar.signedUrl} alt="" loading="lazy" />
@@ -855,9 +855,9 @@ export default function CreatePlayerPage(): JSX.Element {
                   )}
 
                   <div className="tlg-avatar-choice-footer">
-                    <span>{selectedAvatar ? 'Portrait selected' : 'No portrait selected — you can continue without one.'}</span>
+                    <span>{selectedAvatar ? t('createPlayer.portrait.selected') : t('createPlayer.portrait.none')}</span>
                     {selectedAvatar && (
-                      <button type="button" onClick={() => setSelectedAvatarPath(null)}>Remove selection</button>
+                      <button type="button" onClick={() => setSelectedAvatarPath(null)}>{t('createPlayer.portrait.remove')}</button>
                     )}
                   </div>
                 </div>
@@ -867,9 +867,9 @@ export default function CreatePlayerPage(): JSX.Element {
                 <div className="tlg-onboarding-stage-content tlg-onboarding-profile-stage">
                   <section className={`tlg-surface-preference-card ${(attemptedStep === 4 || submitted) && !surfaceValid ? 'tlg-surface-preference-error' : ''}`}>
                     <div className="tlg-surface-preference-head">
-                      <span>PLAYING PROFILE</span>
-                      <h2>Preferred surface</h2>
-                      <p>Choose the surface your player prefers. It redistributes starting tennis skills but does not change total starting strength.</p>
+                      <span>{t('createPlayer.playing.profileLabel')}</span>
+                      <h2>{t('createPlayer.playing.surfaceTitle')}</h2>
+                      <p>{t('createPlayer.playing.surfaceBody')}</p>
                     </div>
                     <div className="tlg-surface-options">
                       {SURFACES.map((surface) => (
@@ -881,7 +881,7 @@ export default function CreatePlayerPage(): JSX.Element {
                           aria-pressed={preferredSurface === surface.value}
                         >
                           <span className={`tlg-surface-dot tlg-surface-dot-${surface.value.toLowerCase()}`}><Circle size={13} /></span>
-                          <span><strong>{surface.value}</strong><small>{surface.text}</small></span>
+                          <span><strong>{t(surface.labelKey)}</strong><small>{t(surface.textKey)}</small></span>
                           {preferredSurface === surface.value && <Check size={17} />}
                         </button>
                       ))}
@@ -890,9 +890,9 @@ export default function CreatePlayerPage(): JSX.Element {
 
                   <section className={`tlg-style-preference-card ${(attemptedStep === 4 || submitted) && !styleValid ? 'tlg-style-preference-error' : ''}`}>
                     <div className="tlg-style-preference-head">
-                      <span>PLAYING PROFILE</span>
-                      <h2>Playing style</h2>
-                      <p>Choose how your existing skill profile will be expressed during matches. This is not a flat strength bonus.</p>
+                      <span>{t('createPlayer.playing.profileLabel')}</span>
+                      <h2>{t('createPlayer.playing.styleTitle')}</h2>
+                      <p>{t('createPlayer.playing.styleBody')}</p>
                     </div>
                     <div className="tlg-style-options">
                       {PLAYING_STYLES.map((style) => (
@@ -903,8 +903,8 @@ export default function CreatePlayerPage(): JSX.Element {
                           onClick={() => { setPlayingStyle(style.value); setSaveError(null) }}
                           aria-pressed={playingStyle === style.value}
                         >
-                          <span><strong>{style.value}</strong><small>{style.text}</small></span>
-                          <em>{playingStyle === style.value ? 'Selected' : 'Choose'}</em>
+                          <span><strong>{t(style.labelKey)}</strong><small>{t(style.textKey)}</small></span>
+                          <em>{playingStyle === style.value ? t('createPlayer.playing.selected') : t('createPlayer.playing.choose')}</em>
                         </button>
                       ))}
                     </div>
@@ -912,9 +912,9 @@ export default function CreatePlayerPage(): JSX.Element {
 
                   <section className={`tlg-hand-preference-card ${(attemptedStep === 4 || submitted) && !handValid ? 'tlg-hand-preference-error' : ''}`}>
                     <div className="tlg-hand-preference-head">
-                      <span>PLAYING PROFILE</span>
-                      <h2>Playing hand</h2>
-                      <p>Handedness changes serve angles and tactical rally geometry. It does not add or remove starting Forehand or Backhand skill points.</p>
+                      <span>{t('createPlayer.playing.profileLabel')}</span>
+                      <h2>{t('createPlayer.playing.handTitle')}</h2>
+                      <p>{t('createPlayer.playing.handBody')}</p>
                     </div>
                     <div className="tlg-hand-options">
                       {PLAYING_HANDS.map((hand) => (
@@ -925,7 +925,7 @@ export default function CreatePlayerPage(): JSX.Element {
                           onClick={() => { setPlayingHand(hand.value); setSaveError(null) }}
                           aria-pressed={playingHand === hand.value}
                         >
-                          <span><strong>{hand.label}</strong><small>{hand.text}</small></span>
+                          <span><strong>{t(hand.labelKey)}</strong><small>{t(hand.textKey)}</small></span>
                           {playingHand === hand.value && <Check size={17} />}
                         </button>
                       ))}
@@ -933,23 +933,23 @@ export default function CreatePlayerPage(): JSX.Element {
                   </section>
 
                   <section className="tlg-player-identity-preview">
-                    <span>PLAYER IDENTITY PREVIEW</span>
+                    <span>{t('createPlayer.playing.preview')}</span>
                     <strong>
-                      {playingHand ? (playingHand === 'left' ? 'Left-handed' : 'Right-handed') : 'Choose hand'}
+                      {playingHand ? handLabel(playingHand) : t('createPlayer.playing.chooseHand')}
                       {' · '}
-                      {playingStyle ?? 'Choose playing style'}
+                      {playingStyle ? styleLabel(playingStyle) : t('createPlayer.playing.chooseStyle')}
                     </strong>
                     <p>
-                      {preferredSurface ? `${preferredSurface}-court preference.` : 'Choose a preferred surface.'}
+                      {preferredSurface ? t('createPlayer.playing.courtPreference', { surface: surfaceLabel(preferredSurface) }) : t('createPlayer.playing.chooseSurface')}
                       {' '}
-                      Handedness changes matchup geometry rather than permanent skill strength.
+                      {t('createPlayer.playing.geometry')}
                     </p>
                   </section>
 
                   {(attemptedStep === 4 || submitted) && (!surfaceValid || !styleValid || !handValid) && (
                     <div className="tlg-auth-status tlg-auth-status-information" role="alert">
                       <ShieldCheck size={18} />
-                      <span>Choose a preferred surface, playing style and playing hand before continuing.</span>
+                      <span>{t('createPlayer.errors.profile')}</span>
                     </div>
                   )}
                 </div>
@@ -961,30 +961,30 @@ export default function CreatePlayerPage(): JSX.Element {
                     <div className="tlg-onboarding-review-player">
                       <div className="tlg-onboarding-review-avatar">
                         {selectedAvatar
-                          ? <img src={selectedAvatar.signedUrl} alt="Selected player portrait" />
+                          ? <img src={selectedAvatar.signedUrl} alt={t('createPlayer.portrait.selectedAlt')} />
                           : <UserRound size={42} />}
                       </div>
                       <div>
-                        <span>Ready to start</span>
+                        <span>{t('createPlayer.review.ready')}</span>
                         <h3>{cleanFirstName} {cleanLastName}</h3>
                         <p>{world} · {selectedCountryName}</p>
                       </div>
                     </div>
 
                     <div className="tlg-onboarding-review-grid">
-                      <div><span>Tour</span><strong>{world}</strong></div>
-                      <div><span>Nationality</span><strong>{selectedCountryName}</strong></div>
-                      <div><span>Home city</span><strong>{homeCity}</strong></div>
-                      <div><span>Portrait</span><strong>{selectedAvatar ? 'Selected' : 'None'}</strong></div>
-                      <div><span>Preferred surface</span><strong>{preferredSurface ?? 'Not selected'}</strong></div>
-                      <div><span>Playing style</span><strong>{playingStyle ?? 'Not selected'}</strong></div>
-                      <div><span>Playing hand</span><strong>{playingHand ? (playingHand === 'left' ? 'Left-handed' : 'Right-handed') : 'Not selected'}</strong></div>
+                      <div><span>{t('createPlayer.review.tour')}</span><strong>{world}</strong></div>
+                      <div><span>{t('createPlayer.review.nationality')}</span><strong>{selectedCountryName}</strong></div>
+                      <div><span>{t('createPlayer.review.homeCity')}</span><strong>{homeCity}</strong></div>
+                      <div><span>{t('createPlayer.review.portrait')}</span><strong>{selectedAvatar ? t('createPlayer.review.selected') : t('createPlayer.review.none')}</strong></div>
+                      <div><span>{t('createPlayer.review.surface')}</span><strong>{surfaceLabel(preferredSurface)}</strong></div>
+                      <div><span>{t('createPlayer.review.style')}</span><strong>{styleLabel(playingStyle)}</strong></div>
+                      <div><span>{t('createPlayer.review.hand')}</span><strong>{handLabel(playingHand)}</strong></div>
                     </div>
 
                     <div className="tlg-onboarding-start-note">
                       <ShieldCheck size={18} />
                       <p>
-                        <strong>Start Career</strong> creates this player once and starts the existing Tennis Legacy career initialization for skills, equipment, finance, rankings and other starting systems.
+                        <strong>{t('createPlayer.review.start')}</strong> {t('createPlayer.review.startBody')}
                       </p>
                     </div>
                   </div>
@@ -1009,7 +1009,7 @@ export default function CreatePlayerPage(): JSX.Element {
               </div>
 
               <span className="tlg-onboarding-nav-status">
-                {step < 5 ? 'Your progress is saved on this device.' : 'Review everything before creating the career.'}
+                {step < 5 ? t('createPlayer.review.progressSaved') : t('createPlayer.review.reviewFirst')}
               </span>
 
               {step < 5 ? (
@@ -1032,7 +1032,7 @@ export default function CreatePlayerPage(): JSX.Element {
                   disabled={!user || !formValid}
                   rightIcon={<ArrowRight size={18} />}
                 >
-                  {saving ? 'Starting your career…' : 'Start Career'}
+                  {saving ? t('createPlayer.review.starting') : t('createPlayer.review.start')}
                 </AppButton>
               )}
             </footer>
@@ -1041,28 +1041,28 @@ export default function CreatePlayerPage(): JSX.Element {
           <aside className="tlg-player-preview-card tlg-player-preview-card-v2">
             <div className="tlg-player-preview-visual">
               {selectedAvatar
-                ? <img src={selectedAvatar.signedUrl} alt="Selected player portrait" />
+                ? <img src={selectedAvatar.signedUrl} alt={t('createPlayer.portrait.selectedAlt')} />
                 : <div className="tlg-player-preview-placeholder"><UserRound size={45} /></div>}
             </div>
             <div className="tlg-player-preview-copy">
-              <p className="tlg-page-heading-eyebrow">Your career</p>
-              <h3>{`${firstName} ${lastName}`.trim() || 'Your Player'}</h3>
+              <p className="tlg-page-heading-eyebrow">{t('createPlayer.review.yourCareer')}</p>
+              <h3>{`${firstName} ${lastName}`.trim() || t('createPlayer.review.yourPlayer')}</h3>
               <p className="tlg-player-preview-country">
-                {selectedCountry && <CountryFlag code={selectedCountry.code} name={selectedCountry.name} />}
+                {selectedCountry && <CountryFlag code={selectedCountry.code} name={selectedCountry.displayName} />}
                 <span>{selectedCountryName}</span>
               </p>
               <div className="tlg-player-preview-tags">
                 <span className="tlg-player-preview-tag">{world}</span>
                 {preferredSurface && <span className="tlg-player-preview-tag">{preferredSurface}</span>}
                 {playingStyle && <span className="tlg-player-preview-tag">{playingStyle}</span>}
-                {playingHand && <span className="tlg-player-preview-tag">{playingHand === 'left' ? 'Left-handed' : 'Right-handed'}</span>}
+                {playingHand && <span className="tlg-player-preview-tag">{handLabel(playingHand)}</span>}
               </div>
               <div className="tlg-player-preview-meta">
-                <div className="tlg-player-preview-meta-row"><span>Current step</span><strong>{currentStep.label}</strong></div>
-                <div className="tlg-player-preview-meta-row"><span>Home base</span><strong>{homeCity || 'Not selected'}</strong></div>
-                <div className="tlg-player-preview-meta-row"><span>Playing hand</span><strong>{playingHand ? (playingHand === 'left' ? 'Left-handed' : 'Right-handed') : 'Not selected'}</strong></div>
-                <div className="tlg-player-preview-meta-row"><span>Account</span><strong>{user?.email ?? 'Authenticated'}</strong></div>
-                <div className="tlg-player-preview-meta-row"><span>Starting technical points</span><strong>440–455 · varied</strong></div>
+                <div className="tlg-player-preview-meta-row"><span>{t('createPlayer.review.currentStep')}</span><strong>{t(currentStep.labelKey)}</strong></div>
+                <div className="tlg-player-preview-meta-row"><span>{t('createPlayer.review.homeBase')}</span><strong>{homeCity || t('createPlayer.review.notSelected')}</strong></div>
+                <div className="tlg-player-preview-meta-row"><span>{t('createPlayer.review.hand')}</span><strong>{handLabel(playingHand)}</strong></div>
+                <div className="tlg-player-preview-meta-row"><span>{t('createPlayer.review.account')}</span><strong>{user?.email ?? t('createPlayer.review.authenticated')}</strong></div>
+                <div className="tlg-player-preview-meta-row"><span>{t('createPlayer.review.startingPoints')}</span><strong>440–455 · varied</strong></div>
               </div>
             </div>
           </aside>
