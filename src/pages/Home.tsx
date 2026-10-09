@@ -5,6 +5,7 @@
  */
 
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import {
   Activity,
@@ -36,139 +37,35 @@ import HomepagePlayerReviews from '../components/marketing/HomepagePlayerReviews
 import { supabase } from '../lib/supabase'
 
 const statistics = [
-  {
-    label: 'Active Players',
-    value: '—',
-    helper: 'Connecting to Supabase',
-    icon: UsersRound,
-  },
-  {
-    label: 'Total Tournaments',
-    value: '—',
-    helper: 'Connecting to Supabase',
-    icon: Trophy,
-  },
-  {
-    label: 'Matches Completed',
-    value: '—',
-    helper: 'Connecting to Supabase',
-    icon: Activity,
-  },
-  {
-    label: 'Countries Represented',
-    value: '—',
-    helper: 'Connecting to Supabase',
-    icon: Globe2,
-  },
+  { labelKey: 'home.stats.activePlayers', value: '—', icon: UsersRound },
+  { labelKey: 'home.stats.tournaments', value: '—', icon: Trophy },
+  { labelKey: 'home.stats.matches', value: '—', icon: Activity },
+  { labelKey: 'home.stats.countries', value: '—', icon: Globe2 },
 ] as const
 
 const journeySteps = [
-  {
-    number: '01',
-    icon: UserRound,
-    title: 'Create Your Player',
-    description:
-      'Choose the ATP or WTA world, select your country and create a realistic professional identity.',
-  },
-  {
-    number: '02',
-    icon: Dumbbell,
-    title: 'Train and Develop',
-    description:
-      'Improve technical, physical, tactical and mental attributes throughout the season.',
-  },
-  {
-    number: '03',
-    icon: Target,
-    title: 'Compete Worldwide',
-    description:
-      'Enter tournaments, prepare for opponents and compete against real managers.',
-  },
-  {
-    number: '04',
-    icon: Trophy,
-    title: 'Build Your Legacy',
-    description:
-      'Win titles, climb the rankings and create a career that becomes part of tennis history.',
-  },
+  { number: '01', icon: UserRound, titleKey: 'home.journey.createTitle', descriptionKey: 'home.journey.createBody' },
+  { number: '02', icon: Dumbbell, titleKey: 'home.journey.trainTitle', descriptionKey: 'home.journey.trainBody' },
+  { number: '03', icon: Target, titleKey: 'home.journey.competeTitle', descriptionKey: 'home.journey.competeBody' },
+  { number: '04', icon: Trophy, titleKey: 'home.journey.legacyTitle', descriptionKey: 'home.journey.legacyBody' },
 ] as const
 
 const managementFeatures = [
-  {
-    icon: Dumbbell,
-    title: 'Player Development',
-    description:
-      'Build a balanced athlete through structured technical, physical and mental training.',
-  },
-  {
-    icon: CalendarDays,
-    title: 'Tournament Calendar',
-    description:
-      'Plan an entire season around tournaments, rest periods, travel and preparation.',
-  },
-  {
-    icon: Brain,
-    title: 'Match Preparation',
-    description:
-      'Study opponents, select tactics and prepare for different surfaces and conditions.',
-  },
-  {
-    icon: Package,
-    title: 'Equipment Management',
-    description:
-      'Choose rackets, shoes, apparel and accessories that support your playing style.',
-  },
-  {
-    icon: CircleDollarSign,
-    title: 'Career Finance',
-    description:
-      'Manage prize money, travel costs, coaching expenses and sponsorship income.',
-  },
-  {
-    icon: BarChart3,
-    title: 'Statistics and Records',
-    description:
-      'Track match performance, surface results, titles, rankings and career milestones.',
-  },
-  {
-    icon: Globe2,
-    title: 'Global Rankings',
-    description:
-      'Compete for position in a living worldwide ranking system driven by results.',
-  },
-  {
-    icon: UsersRound,
-    title: 'Multiplayer Competition',
-    description:
-      'Share a persistent tennis universe with players controlled by real managers.',
-  },
-] as const
-
-const careerDecisions = [
-  'Select tournaments and plan your season',
-  'Develop technical and physical attributes',
-  'Prepare tactics for specific opponents',
-  'Manage equipment, travel and career finance',
-  'Protect energy, condition and confidence',
-  'Build rankings, records and reputation',
-] as const
-
-const seasonMonths = [
-  'Janu',
-  'Feb',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
+  { icon: Dumbbell, titleKey: 'home.features.developmentTitle', descriptionKey: 'home.features.developmentBody' },
+  { icon: CalendarDays, titleKey: 'home.features.calendarTitle', descriptionKey: 'home.features.calendarBody' },
+  { icon: Brain, titleKey: 'home.features.prepTitle', descriptionKey: 'home.features.prepBody' },
+  { icon: Package, titleKey: 'home.features.equipmentTitle', descriptionKey: 'home.features.equipmentBody' },
+  { icon: CircleDollarSign, titleKey: 'home.features.financeTitle', descriptionKey: 'home.features.financeBody' },
+  { icon: BarChart3, titleKey: 'home.features.statsTitle', descriptionKey: 'home.features.statsBody' },
+  { icon: Globe2, titleKey: 'home.features.rankingsTitle', descriptionKey: 'home.features.rankingsBody' },
+  { icon: UsersRound, titleKey: 'home.features.multiplayerTitle', descriptionKey: 'home.features.multiplayerBody' },
 ] as const
 
 export default function HomePage() {
+  const { t } = useTranslation()
+  const careerDecisions = t('home.fantasy.decisions', { returnObjects: true }) as string[]
+  const seasonMonths = t('home.clock.months', { returnObjects: true }) as string[]
+
   useEffect(() => {
     const source = new URLSearchParams(window.location.search).get('source')
     if (source !== 'propeloton_manager') return
@@ -201,21 +98,16 @@ export default function HomePage() {
                   <Sparkles size={15} />
                 </span>
 
-                Online Multiplayer Tennis Management
+                {t('home.hero.eyebrow')}
               </div>
 
               <h1 className="tlg-hero-title">
-                <span>Build Your Career.</span>
-                <strong>Create Your Legacy.</strong>
+                <span>{t('home.hero.line1')}</span>
+                <strong>{t('home.hero.line2')}</strong>
               </h1>
 
               <p className="tlg-hero-description">
-                Create and develop your own
-                professional tennis player, master
-                every surface, compete against real
-                managers and fight your way from an
-                unknown prospect to a world tennis
-                legend.
+                {t('home.hero.description')}
               </p>
 
               <div className="tlg-hero-actions">
@@ -223,7 +115,7 @@ export default function HomePage() {
                   to="/register"
                   className="tlg-btn tlg-btn-primary tlg-btn-large"
                 >
-                  Start Playing
+                  {t('home.hero.start')}
                   <ArrowRight size={18} />
                 </Link>
 
@@ -231,7 +123,7 @@ export default function HomePage() {
                   to="/login"
                   className="tlg-btn tlg-btn-secondary tlg-btn-large"
                 >
-                  Sign In
+                  {t('home.hero.signIn')}
                 </Link>
 
                 <button
@@ -245,24 +137,24 @@ export default function HomePage() {
                       })
                   }
                 >
-                  Explore the Game
+                  {t('home.hero.explore')}
                 </button>
               </div>
 
               <div className="tlg-hero-assurances">
                 <div>
                   <ShieldCheck size={17} />
-                  Persistent multiplayer world
+                  {t('home.hero.persistent')}
                 </div>
 
                 <div>
                   <Clock3 size={17} />
-                  Season-based game time
+                  {t('home.hero.seasonTime')}
                 </div>
 
                 <div>
                   <Globe2 size={17} />
-                  ATP and WTA worlds
+                  {t('home.hero.worlds')}
                 </div>
               </div>
             </div>
@@ -271,13 +163,13 @@ export default function HomePage() {
               <HeroCourtVisual />
 
               <div className="tlg-hero-floating-card tlg-hero-floating-ranking">
-                <span>World Ranking</span>
+                <span>{t('home.hero.ranking')}</span>
                 <strong>#1,284</strong>
-                <small>Future Supabase data</small>
+                <small>{t('home.hero.futureData')}</small>
               </div>
 
               <div className="tlg-hero-floating-card tlg-hero-floating-season">
-                <span>Current Game Time</span>
+                <span>{t('home.hero.currentTime')}</span>
                 <strong>
                   Season 1 · March 14
                 </strong>
@@ -289,24 +181,22 @@ export default function HomePage() {
 
         <section
           className="tlg-statistics-section"
-          aria-label="Live game statistics"
+          aria-label={t('home.liveWorld.aria')}
         >
           <div className="tlg-section">
             <div className="tlg-statistics-heading">
               <div>
                 <span className="tlg-section-eyebrow">
-                  Live Game World
+                  {t('home.liveWorld.eyebrow')}
                 </span>
 
                 <h2>
-                  A shared tennis universe
+                  {t('home.liveWorld.title')}
                 </h2>
               </div>
 
               <p>
-                These values are prepared for direct
-                Supabase integration and currently do
-                not display invented live data.
+                {t('home.liveWorld.description')}
               </p>
             </div>
 
@@ -316,11 +206,11 @@ export default function HomePage() {
 
                 return (
                   <StatCard
-                    key={statistic.label}
-                    label={statistic.label}
+                    key={statistic.labelKey}
+                    label={t(statistic.labelKey)}
                     value={statistic.value}
-                    helper={statistic.helper}
-                    status="Live data"
+                    helper={t('home.stats.connecting')}
+                    status={t('home.stats.liveData')}
                     icon={<Icon size={20} />}
                   />
                 )
@@ -333,20 +223,15 @@ export default function HomePage() {
           <div className="tlg-section tlg-fantasy-layout">
             <div className="tlg-fantasy-copy">
               <span className="tlg-section-eyebrow">
-                The Career Fantasy
+                {t('home.fantasy.eyebrow')}
               </span>
 
               <h2 className="tlg-section-title">
-                One player. One career.
-                <span> One legacy.</span>
+                {t('home.fantasy.title')}<span>{t('home.fantasy.titleAccent')}</span>
               </h2>
 
               <p className="tlg-section-description">
-                Tennis Legacy places you in control of
-                every important career decision. Your
-                player is not just a collection of
-                ratings. They are a developing athlete
-                competing in a living online world.
+                {t('home.fantasy.description')}
               </p>
 
               <div className="tlg-career-decision-list">
@@ -376,17 +261,15 @@ export default function HomePage() {
           <div className="tlg-section">
             <div className="tlg-section-heading tlg-section-heading-centered">
               <span className="tlg-section-eyebrow">
-                Your Journey
+                {t('home.journey.eyebrow')}
               </span>
 
               <h2 className="tlg-section-title">
-                From prospect to champion
+                {t('home.journey.title')}
               </h2>
 
               <p className="tlg-section-description">
-                Every career begins with a player and
-                develops through preparation,
-                competition and long-term management.
+                {t('home.journey.description')}
               </p>
             </div>
 
@@ -409,9 +292,9 @@ export default function HomePage() {
                       </span>
                     </div>
 
-                    <h3>{step.title}</h3>
+                    <h3>{t(step.titleKey)}</h3>
 
-                    <p>{step.description}</p>
+                    <p>{t(step.descriptionKey)}</p>
                   </article>
                 )
               })}
@@ -426,37 +309,32 @@ export default function HomePage() {
           <div className="tlg-section">
             <div className="tlg-section-heading">
               <span className="tlg-section-eyebrow">
-                Choose Your World
+                {t('home.worlds.eyebrow')}
               </span>
 
               <h2 className="tlg-section-title">
-                Two worlds. One standard of
-                greatness.
+                {t('home.worlds.title')}
               </h2>
 
               <p className="tlg-section-description">
-                Your player enters either the ATP or
-                WTA professional world. The choice
-                defines the player’s competition
-                ecosystem and remains permanent for
-                that player.
+                {t('home.worlds.description')}
               </p>
             </div>
 
             <div className="tlg-world-grid">
               <WorldCard
                 type="ATP"
-                title="ATP World"
-                subtitle="Male professional tennis world"
-                description="Build a career through a complete professional tournament structure, world rankings and multiplayer competition."
+                title={t('home.worlds.atpTitle')}
+                subtitle={t('home.worlds.atpSubtitle')}
+                description={t('home.worlds.atpBody')}
                 imagePosition="left"
               />
 
               <WorldCard
                 type="WTA"
-                title="WTA World"
-                subtitle="Female professional tennis world"
-                description="Create a player and compete through a dedicated professional ecosystem with its own rankings, tournaments and records."
+                title={t('home.worlds.wtaTitle')}
+                subtitle={t('home.worlds.wtaSubtitle')}
+                description={t('home.worlds.wtaBody')}
                 imagePosition="right"
               />
             </div>
@@ -470,18 +348,15 @@ export default function HomePage() {
           <div className="tlg-section">
             <div className="tlg-section-heading tlg-section-heading-centered">
               <span className="tlg-section-eyebrow">
-                Complete Career Management
+                {t('home.features.eyebrow')}
               </span>
 
               <h2 className="tlg-section-title">
-                Every part of the career matters
+                {t('home.features.title')}
               </h2>
 
               <p className="tlg-section-description">
-                A serious management simulation
-                designed around interconnected
-                decisions rather than isolated
-                matches.
+                {t('home.features.description')}
               </p>
             </div>
 
@@ -491,16 +366,16 @@ export default function HomePage() {
 
                 return (
                   <article
-                    key={feature.title}
+                    key={feature.titleKey}
                     className="tlg-feature-card"
                   >
                     <span className="tlg-feature-icon">
                       <Icon size={22} />
                     </span>
 
-                    <h3>{feature.title}</h3>
+                    <h3>{t(feature.titleKey)}</h3>
 
-                    <p>{feature.description}</p>
+                    <p>{t(feature.descriptionKey)}</p>
 
                     <span className="tlg-feature-arrow">
                       <ArrowRight size={17} />
@@ -519,26 +394,21 @@ export default function HomePage() {
             <div className="tlg-game-time-panel">
               <div className="tlg-game-time-copy">
                 <span className="tlg-section-eyebrow">
-                  The Game Clock
+                  {t('home.clock.eyebrow')}
                 </span>
 
                 <h2 className="tlg-section-title">
-                  A world moving faster than
-                  real time
+                  {t('home.clock.title')}
                 </h2>
 
                 <p className="tlg-section-description">
-                  One real-life hour equals two
-                  in-game hours. Tennis Legacy uses
-                  seasons rather than real-world
-                  years, allowing careers and
-                  tournaments to progress continuously.
+                  {t('home.clock.description')}
                 </p>
 
                 <div className="tlg-game-time-equation">
                   <div>
                     <strong>1</strong>
-                    <span>Real hour</span>
+                    <span>{t('home.clock.realHour')}</span>
                   </div>
 
                   <span className="tlg-game-time-equals">
@@ -547,7 +417,7 @@ export default function HomePage() {
 
                   <div>
                     <strong>2</strong>
-                    <span>Game hours</span>
+                    <span>{t('home.clock.gameHours')}</span>
                   </div>
                 </div>
               </div>
@@ -556,18 +426,18 @@ export default function HomePage() {
                 <div className="tlg-game-clock-card-header">
                   <span>
                     <Clock3 size={18} />
-                    Global Game Time
+                    {t('home.clock.global')}
                   </span>
 
                   <span className="tlg-game-clock-live">
                     <span />
-                    Display preview
+                    {t('home.clock.preview')}
                   </span>
                 </div>
 
                 <div className="tlg-game-clock-date">
-                  <span>Season 1</span>
-                  <strong>March 14</strong>
+                  <span>{t('home.clock.season')}</span>
+                  <strong>{t('home.clock.date')}</strong>
                   <time>18:00</time>
                 </div>
 
@@ -576,7 +446,7 @@ export default function HomePage() {
                     <span
                       key={month}
                       className={
-                        month === 'March'
+                        month === seasonMonths[2]
                           ? 'tlg-season-month-active'
                           : ''
                       }
@@ -587,9 +457,7 @@ export default function HomePage() {
                 </div>
 
                 <p className="tlg-game-clock-note">
-                  This is currently a visual
-                  placeholder. The centralized clock
-                  will later be loaded from Supabase.
+                  {t('home.clock.note')}
                 </p>
               </div>
             </div>
@@ -599,46 +467,44 @@ export default function HomePage() {
         <section className="tlg-home-pricing-section" id="premium">
           <div className="tlg-section">
             <div className="tlg-home-pricing-heading">
-              <span className="tlg-section-eyebrow">Optional Premium</span>
-              <h2>Play free. Upgrade only if you want more.</h2>
+              <span className="tlg-section-eyebrow">{t('home.premium.eyebrow')}</span>
+              <h2>{t('home.premium.title')}</h2>
               <p>
-                The core Tennis Legacy career remains free. Premium adds optional advanced tools,
-                Premium-only features and coin rewards. Choose the billing period that fits you.
+                {t('home.premium.description')}
               </p>
             </div>
 
             <div className="tlg-home-pricing-grid">
               <article className="tlg-home-price-card">
-                <span>Monthly</span>
+                <span>{t('home.premium.monthly')}</span>
                 <strong>€3.29</strong>
-                <small>every month</small>
-                <p>30 coins after each successful monthly payment.</p>
-                <Link to="/register" className="tlg-btn tlg-btn-secondary">Start Free</Link>
+                <small>{t('home.premium.everyMonth')}</small>
+                <p>{t('home.premium.monthlyCoins')}</p>
+                <Link to="/register" className="tlg-btn tlg-btn-secondary">{t('home.premium.startFree')}</Link>
               </article>
 
               <article className="tlg-home-price-card tlg-home-price-card-featured">
-                <div className="tlg-home-price-badge">Most popular</div>
+                <div className="tlg-home-price-badge">{t('home.premium.mostPopular')}</div>
                 <Crown size={24} />
-                <span>3 Months</span>
+                <span>{t('home.premium.threeMonths')}</span>
                 <strong>€9.49</strong>
-                <small>every 3 months · €3.16/month</small>
-                <p>90 coins after each successful 3-month payment.</p>
-                <Link to="/register" className="tlg-btn tlg-btn-primary">Start Free</Link>
+                <small>{t('home.premium.everyThree')}</small>
+                <p>{t('home.premium.threeCoins')}</p>
+                <Link to="/register" className="tlg-btn tlg-btn-primary">{t('home.premium.startFree')}</Link>
               </article>
 
               <article className="tlg-home-price-card">
-                <div className="tlg-home-price-badge tlg-home-price-badge-save">Save 15%</div>
-                <span>12 Months</span>
+                <div className="tlg-home-price-badge tlg-home-price-badge-save">{t('home.premium.save15')}</div>
+                <span>{t('home.premium.annual')}</span>
                 <strong>€33.49</strong>
-                <small>per year · €2.79/month</small>
-                <p>360 coins after each successful annual payment.</p>
-                <Link to="/register" className="tlg-btn tlg-btn-secondary">Start Free</Link>
+                <small>{t('home.premium.annualPrice')}</small>
+                <p>{t('home.premium.annualCoins')}</p>
+                <Link to="/register" className="tlg-btn tlg-btn-secondary">{t('home.premium.startFree')}</Link>
               </article>
             </div>
 
             <p className="tlg-home-pricing-note">
-              Premium and coin packs are optional. Buying coins does not activate Premium,
-              and Premium does not remove separate coin costs for optional coin actions.
+              {t('home.premium.note')}
             </p>
           </div>
         </section>
@@ -652,18 +518,15 @@ export default function HomePage() {
 
               <div className="tlg-final-cta-content">
                 <span className="tlg-section-eyebrow">
-                  Begin Your Career
+                  {t('home.cta.eyebrow')}
                 </span>
 
                 <h2>
-                  Your road to glory starts here
+                  {t('home.cta.title')}
                 </h2>
 
                 <p>
-                  Create your player, enter the
-                  professional tennis world and begin
-                  building a legacy that other
-                  managers will remember.
+                  {t('home.cta.description')}
                 </p>
 
                 <div className="tlg-final-cta-actions">
@@ -671,7 +534,7 @@ export default function HomePage() {
                     to="/register"
                     className="tlg-btn tlg-btn-primary tlg-btn-large"
                   >
-                    Create Your Player
+                    {t('home.cta.create')}
                     <ArrowRight size={18} />
                   </Link>
 
@@ -679,7 +542,7 @@ export default function HomePage() {
                     to="/login"
                     className="tlg-btn tlg-btn-secondary tlg-btn-large"
                   >
-                    Sign In
+                    {t('home.hero.signIn')}
                   </Link>
                 </div>
               </div>
