@@ -12,7 +12,9 @@ import type {
 } from '../../hooks/useStaff'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import {
+  staffAttributeDescription,
   staffAttributeLabel,
+  staffBackendText,
   staffCadence,
   staffCourse,
   staffEducation,
@@ -54,7 +56,7 @@ function AttributeRows({
             <div className="tlg-staff-profile-attribute-top">
               <div>
                 <strong>{label}</strong>
-                <p>{attribute.description}</p>
+                <p>{staffAttributeDescription(t, attribute.key, attribute.description)}</p>
               </div>
               <b>{value}</b>
             </div>
@@ -124,7 +126,7 @@ function StaffProfileDialog({
               <div><span>{t('staffPage.profile.experience')}</span><strong>{t('staffPage.profile.years', { count: profile.staff.experience_years })}</strong></div>
               <div><span>{t('staffPage.profile.specialty')}</span><strong>{staffSpecialty(t, profile.staff.specialty)}</strong></div>
               <div><span>{t('staffPage.profile.status')}</span><strong>{profile.contract.status === 'active' ? t('staffPage.profile.employedActive') : profile.contract.status}</strong></div>
-              <div><span>{t('staffPage.profile.assignment')}</span><strong>{profile.current_assignment}</strong></div>
+              <div><span>{t('staffPage.profile.assignment')}</span><strong>{staffBackendText(t, profile.current_assignment)}</strong></div>
               <div><span>{t('staffPage.profile.weeklyWage')}</span><strong>{formatCurrency(profile.contract.weekly_salary, 'USD')}</strong></div>
             </section>
 
@@ -147,12 +149,12 @@ function StaffProfileDialog({
                   <div><dt>{t('staffPage.profile.start')}</dt><dd>{formatGameDate(t, profile.contract.start_game_day)}</dd></div>
                   <div><dt>{t('staffPage.profile.expiry')}</dt><dd>{formatGameDate(t, profile.contract.end_game_day)}</dd></div>
                   <div><dt>{t('staffPage.profile.remaining')}</dt><dd className={profile.contract.weeks_remaining <= 4 ? 'warning' : ''}>{t('staffPage.candidate.weeks', { count: profile.contract.weeks_remaining })}</dd></div>
-                  <div><dt>{t('staffPage.profile.assignmentLabel')}</dt><dd>{profile.contract.assignment}</dd></div>
+                  <div><dt>{t('staffPage.profile.assignmentLabel')}</dt><dd>{staffBackendText(t, profile.contract.assignment)}</dd></div>
                 </dl>
               </article>
               <article>
                 <header><div><span>{t('staffPage.profile.facility')}</span><h3>{t('staffPage.profile.facilityTitle')}</h3></div></header>
-                <p>{profile.facility.message}</p>
+                <p>{staffBackendText(t, profile.facility.message)}</p>
                 <strong>{profile.facility.limited ? t('staffPage.profile.capActive') : t('staffPage.profile.noCap')}</strong>
               </article>
             </section>
@@ -165,7 +167,7 @@ function StaffProfileDialog({
               </article>
               <article>
                 <header><div><span>{t('staffPage.profile.advisory')}</span><h3>{t('staffPage.profile.advisoryTitle')}</h3></div></header>
-                <p>{profile.advisory.message}</p>
+                <p>{staffBackendText(t, profile.advisory.message)}</p>
               </article>
             </section>
 
