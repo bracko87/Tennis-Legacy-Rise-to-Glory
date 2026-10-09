@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 import { Link } from 'react-router'
 
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 import '../../styles/statistics.css'
 
@@ -129,28 +131,25 @@ const CATEGORY_LABELS: Record<string, string> = {
   grand_slam_2000: 'Grand Slam',
 }
 
-function number(value: number | null | undefined) {
-  return Math.round(Number(value) || 0).toLocaleString()
-}
-
-function money(value: number | null | undefined) {
-  return `$${number(value)}`
-}
-
-function playerName(player: RecordPlayer) {
-  if (!player) return 'No record yet'
-  return `${player.first_name ?? ''} ${player.last_name ?? ''}`.trim() || 'No record yet'
-}
-
 function categoryLabel(code: string) {
   return CATEGORY_LABELS[code] ?? code.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
 }
 
-function surfaceLabel(surface: string) {
-  return surface.charAt(0).toUpperCase() + surface.slice(1)
+function surfaceLabel(surface: string, t: TFunction) {
+  return t(`statisticsPage.surfaces.${surface}`, {
+    defaultValue: surface.charAt(0).toUpperCase() + surface.slice(1),
+  })
 }
 
 export default function StatisticsPage() {
+  const { t } = useTranslation()
+  const { formatNumber, formatCurrency } = useLocalization()
+  const number = (value: number | null | undefined) => formatNumber(Math.round(Number(value) || 0))
+  const money = (value: number | null | undefined) => formatCurrency(Number(value) || 0, 'USD')
+  const playerName = (player: RecordPlayer) => {
+    if (!player) return t('statisticsPage.noRecord')
+    return `${player.first_name ?? ''} ${player.last_name ?? ''}`.trim() || t('statisticsPage.noRecord')
+  }
   const [tab, setTab] = useState<StatisticsTab>('players')
   const [period, setPeriod] = useState<StatisticsPeriod>('season')
   const [world, setWorld] = useState<TennisWorld | null>(null)
@@ -166,7 +165,7 @@ export default function StatisticsPage() {
       p_period: nextPeriod,
     })
     if (statisticsError || !data) {
-      setError(statisticsError?.message ?? 'Unable to load world statistics.')
+      setError(statisticsError?.message ?? t('statisticsPage.loadError'))
     } else {
       const next = data as StatisticsDashboard
       setDashboard(next)
@@ -195,32 +194,32 @@ export default function StatisticsPage() {
   }, [dashboard?.tournaments])
 
   return (
-    <GameLayout title="Statistics" subtitle="World records, tournament leaders and career analytics">
+    <GameLayout title={t('statisticsPage.title')} subtitle={t('statisticsPage.subtitle')}>
       <div className="tlg-statistics-page">
         <section className="tlg-statistics-hero">
           <div>
-            <span>PERFORMANCE INTELLIGENCE</span>
-            <h1>World Statistics</h1>
-            <p>Official Tennis Legacy records built from completed matches, tournament results and rankings. ATP and WTA statistics stay separate, while your Career Records follow your own professional world.</p>
+            <span>{t('statisticsPage.heroKicker')}</span>
+            <h1>{t('statisticsPage.heading')}</h1>
+            <p>{t('statisticsPage.intro')}</p>
           </div>
         </section>
 
-        <div className="tlg-statistics-tabs" role="tablist" aria-label="Statistics sections">
-          <button type="button" className={tab === 'players' ? 'active' : ''} onClick={() => setTab('players')}>Player Statistics</button>
-          <button type="button" className={tab === 'tournaments' ? 'active' : ''} onClick={() => setTab('tournaments')}>Tournament Statistics</button>
-          <button type="button" className={tab === 'career' ? 'active' : ''} onClick={() => setTab('career')}>Career Records</button>
+        <div className="tlg-statistics-tabs" role="tablist" aria-label={t('statisticsPage.tabsAria')}>
+          <button type="button" className={tab === 'players' ? 'active' : ''} onClick={() => setTab('players')}>{t('statisticsPage.tabs.players')}</button>
+          <button type="button" className={tab === 'tournaments' ? 'active' : ''} onClick={() => setTab('tournaments')}>{t('statisticsPage.tabs.tournaments')}</button>
+          <button type="button" className={tab === 'career' ? 'active' : ''} onClick={() => setTab('career')}>{t('statisticsPage.tabs.career')}</button>
         </div>
 
         {tab !== 'career' && (
           <section className="tlg-statistics-filters">
-            <div className="switch-group" aria-label="Tennis world">
+            <div className="switch-group" aria-label={t('statisticsPage.tennisWorld')}>
               {(['ATP', 'WTA'] as TennisWorld[]).map((value) => (
                 <button key={value} type="button" className={world === value ? 'active' : ''} onClick={() => setWorld(value)}>{value}</button>
               ))}
             </div>
-            <div className="switch-group" aria-label="Statistics period">
-              <button type="button" className={period === 'season' ? 'active' : ''} onClick={() => setPeriod('season')}>Season {dashboard?.season ?? 1}</button>
-              <button type="button" className={period === 'all_time' ? 'active' : ''} onClick={() => setPeriod('all_time')}>All-Time</button>
+            <div className="switch-group" aria-label={t('statisticsPage.period')}>
+              <button type="button" className={period === 'season' ? 'active' : ''} onClick={() => setPeriod('season')}>{t('statisticsPage.season', { season: dashboard?.season ?? 1 })}</button>
+              <button type="button" className={period === 'all_time' ? 'active' : ''} onClick={() => setPeriod('all_time')}>{t('statisticsPage.allTime')}</button>
             </div>
           </section>
         )}
@@ -228,31 +227,31 @@ export default function StatisticsPage() {
         {error && <div className="tlg-statistics-alert error">{error}</div>}
 
         {loading && !dashboard ? (
-          <div className="tlg-statistics-state">Loading world statistics…</div>
+          <div className="tlg-statistics-state">{t('statisticsPage.loading')}</div>
         ) : dashboard ? (
           <>
             {tab === 'players' && (
               <div className="tlg-statistics-view">
                 <section className="tlg-statistics-record-grid">
-                  <RecordCard title="Current World #1" player={dashboard.records.current_world_no1} value={dashboard.records.current_world_no1 ? '#1' : '—'} detail={`${number(dashboard.records.current_world_no1?.current_ranking_points)} ranking points`} />
-                  <RecordCard title={period === 'season' ? `Season ${dashboard.season} Leader` : 'All-Time Performance Leader'} player={dashboard.records.performance_leader} value={dashboard.records.performance_leader ? `${number(dashboard.records.performance_leader.wins)} wins` : '—'} detail={dashboard.records.performance_leader ? `${number(dashboard.records.performance_leader.win_pct)}% win rate` : 'No completed matches'} />
-                  <RecordCard title="Most Match Wins" player={dashboard.records.wins_leader} value={dashboard.records.wins_leader ? number(dashboard.records.wins_leader.wins) : '—'} detail={period === 'season' ? `Season ${dashboard.season}` : 'Career record'} />
-                  <RecordCard title="Best Win Rate" player={dashboard.records.win_rate_leader} value={dashboard.records.win_rate_leader ? `${number(dashboard.records.win_rate_leader.win_pct)}%` : '—'} detail={dashboard.records.win_rate_leader ? `${number(dashboard.records.win_rate_leader.matches)} matches` : 'No completed matches'} />
+                  <RecordCard title={t('statisticsPage.records.worldNo1')} player={dashboard.records.current_world_no1} value={dashboard.records.current_world_no1 ? '#1' : '—'} detail={t('statisticsPage.rankingPoints', { count: number(dashboard.records.current_world_no1?.current_ranking_points) })} t={t} />
+                  <RecordCard title={period === 'season' ? t('statisticsPage.records.seasonLeader', { season: dashboard.season }) : t('statisticsPage.records.allTimeLeader')} player={dashboard.records.performance_leader} value={dashboard.records.performance_leader ? t('statisticsPage.wins', { count: number(dashboard.records.performance_leader.wins) }) : '—'} detail={dashboard.records.performance_leader ? t('statisticsPage.winRate', { value: number(dashboard.records.performance_leader.win_pct) }) : t('statisticsPage.noCompletedMatches')} t={t} />
+                  <RecordCard title={t('statisticsPage.records.mostWins')} player={dashboard.records.wins_leader} value={dashboard.records.wins_leader ? number(dashboard.records.wins_leader.wins) : '—'} detail={period === 'season' ? t('statisticsPage.season', { season: dashboard.season }) : t('statisticsPage.careerRecord')} t={t} />
+                  <RecordCard title={t('statisticsPage.records.bestWinRate')} player={dashboard.records.win_rate_leader} value={dashboard.records.win_rate_leader ? `${number(dashboard.records.win_rate_leader.win_pct)}%` : '—'} detail={dashboard.records.win_rate_leader ? t('statisticsPage.matches', { count: number(dashboard.records.win_rate_leader.matches) }) : t('statisticsPage.noCompletedMatches')} t={t} />
                 </section>
 
                 <section className="tlg-statistics-mini-records">
-                  <MiniRecord title="Most Aces" player={dashboard.records.aces_leader} value={dashboard.records.aces_leader?.aces} />
-                  <MiniRecord title="Most Winners" player={dashboard.records.winners_leader} value={dashboard.records.winners_leader?.winners} />
-                  <MiniRecord title="Most Defeats" player={dashboard.records.losses_leader} value={dashboard.records.losses_leader?.losses} />
-                  <MiniRecord title="Most Titles" player={dashboard.records.titles_leader} value={dashboard.records.titles_leader?.titles} />
+                  <MiniRecord title={t('statisticsPage.records.mostAces')} t={t} player={dashboard.records.aces_leader} value={dashboard.records.aces_leader?.aces} />
+                  <MiniRecord title={t('statisticsPage.records.mostWinners')} t={t} player={dashboard.records.winners_leader} value={dashboard.records.winners_leader?.winners} />
+                  <MiniRecord title={t('statisticsPage.records.mostDefeats')} t={t} player={dashboard.records.losses_leader} value={dashboard.records.losses_leader?.losses} />
+                  <MiniRecord title={t('statisticsPage.records.mostTitles')} t={t} player={dashboard.records.titles_leader} value={dashboard.records.titles_leader?.titles} />
                 </section>
 
                 <section className="tlg-statistics-panel">
                   <header className="tlg-statistics-panel-head">
-                    <div><span>WORLD LEADERBOARD</span><h2>{dashboard.world} {period === 'season' ? `Season ${dashboard.season}` : 'All-Time'} player statistics</h2><p>Top 50 players with at least one completed official match in the selected period.</p></div>
-                    <small>{dashboard.players.length} players shown</small>
+                    <div><span>{t('statisticsPage.playersPanel.kicker')}</span><h2>{t('statisticsPage.playersPanel.title', { world: dashboard.world, period: period === 'season' ? t('statisticsPage.season', { season: dashboard.season }) : t('statisticsPage.allTime') })}</h2><p>{t('statisticsPage.playersPanel.body')}</p></div>
+                    <small>{t('statisticsPage.playersPanel.shown', { count: dashboard.players.length })}</small>
                   </header>
-                  {dashboard.players.length === 0 ? <EmptyState text="No completed matches are available for this world and period yet." /> : <PlayerStatisticsTable players={dashboard.players} />}
+                  {dashboard.players.length === 0 ? <EmptyState text={t('statisticsPage.playersPanel.empty')} /> : <PlayerStatisticsTable players={dashboard.players} t={t} number={number} />}
                 </section>
               </div>
             )}
@@ -260,23 +259,23 @@ export default function StatisticsPage() {
             {tab === 'tournaments' && (
               <div className="tlg-statistics-view">
                 <section className="tlg-statistics-record-grid">
-                  <TournamentRecord title="Most Completed Matches" tournament={tournamentHighlights.matches} value={tournamentHighlights.matches?.completed_matches} />
-                  <TournamentRecord title="Most Aces" tournament={tournamentHighlights.aces} value={tournamentHighlights.aces?.total_aces} />
-                  <TournamentRecord title="Most Winners" tournament={tournamentHighlights.winners} value={tournamentHighlights.winners?.total_winners} />
-                  <TournamentRecord title="Highest Aces / Match" tournament={tournamentHighlights.aceRate} value={tournamentHighlights.aceRate?.avg_aces_per_match} decimal />
+                  <TournamentRecord title={t('statisticsPage.records.mostCompletedMatches')} t={t} tournament={tournamentHighlights.matches} value={tournamentHighlights.matches?.completed_matches} />
+                  <TournamentRecord title={t('statisticsPage.records.mostAces')} t={t} tournament={tournamentHighlights.aces} value={tournamentHighlights.aces?.total_aces} />
+                  <TournamentRecord title={t('statisticsPage.records.mostWinners')} t={t} tournament={tournamentHighlights.winners} value={tournamentHighlights.winners?.total_winners} />
+                  <TournamentRecord title={t('statisticsPage.records.highestAcesMatch')} t={t} tournament={tournamentHighlights.aceRate} value={tournamentHighlights.aceRate?.avg_aces_per_match} decimal />
                 </section>
 
                 <section className="tlg-statistics-panel">
                   <header className="tlg-statistics-panel-head">
-                    <div><span>TOURNAMENT DATABASE</span><h2>{dashboard.world} {period === 'season' ? `Season ${dashboard.season}` : 'All-Time'} tournament statistics</h2><p>Official completed-match totals, shot production and the player with the most wins at each event.</p></div>
-                    <small>Top 50 tournaments</small>
+                    <div><span>{t('statisticsPage.tournamentsPanel.kicker')}</span><h2>{t('statisticsPage.tournamentsPanel.title', { world: dashboard.world, period: period === 'season' ? t('statisticsPage.season', { season: dashboard.season }) : t('statisticsPage.allTime') })}</h2><p>{t('statisticsPage.tournamentsPanel.body')}</p></div>
+                    <small>{t('statisticsPage.tournamentsPanel.top50')}</small>
                   </header>
-                  {dashboard.tournaments.length === 0 ? <EmptyState text="No tournament match statistics are available for this world and period yet." /> : <TournamentStatisticsTable tournaments={dashboard.tournaments} />}
+                  {dashboard.tournaments.length === 0 ? <EmptyState text={t('statisticsPage.tournamentsPanel.empty')} /> : <TournamentStatisticsTable tournaments={dashboard.tournaments} t={t} number={number} />}
                 </section>
               </div>
             )}
 
-            {tab === 'career' && <CareerRecords career={dashboard.career} />}
+            {tab === 'career' && <CareerRecords career={dashboard.career} t={t} number={number} money={money} />}
           </>
         ) : null}
       </div>
@@ -284,46 +283,50 @@ export default function StatisticsPage() {
   )
 }
 
-function RecordCard({ title, player, value, detail }: { title: string; player: RecordPlayer; value: string; detail: string }) {
+function RecordCard({ title, player, value, detail, t }: { title: string; player: RecordPlayer; value: string; detail: string; t: TFunction }) {
+  const playerName = (record: RecordPlayer) => record ? (`${record.first_name ?? ''} ${record.last_name ?? ''}`.trim() || t('statisticsPage.noRecord')) : t('statisticsPage.noRecord')
   return (
     <article className="tlg-statistics-record-card">
       <span>{title}</span>
       <strong>{value}</strong>
       <div className="record-player">
         {player?.country_code && <CountryFlag countryCode={player.country_code} width={22} height={15} />}
-        {player?.player_id ? <Link to={`/game/players/${player.player_id}`}>{playerName(player)}</Link> : <b>No record yet</b>}
+        {player?.player_id ? <Link to={`/game/players/${player.player_id}`}>{playerName(player)}</Link> : <b>{t('statisticsPage.noRecord')}</b>}
       </div>
       <small>{detail}</small>
     </article>
   )
 }
 
-function MiniRecord({ title, player, value }: { title: string; player: RecordPlayer; value?: number | null }) {
+function MiniRecord({ title, player, value, t }: { title: string; player: RecordPlayer; value?: number | null; t: TFunction }) {
+  const playerName = (record: RecordPlayer) => record ? (`${record.first_name ?? ''} ${record.last_name ?? ''}`.trim() || t('statisticsPage.noRecord')) : t('statisticsPage.noRecord')
+  const number = (numeric: number | null | undefined) => new Intl.NumberFormat().format(Math.round(Number(numeric) || 0))
   return (
     <div>
       <span>{title}</span>
       <strong>{player ? number(value) : '—'}</strong>
-      <small>{player?.player_id ? <Link to={`/game/players/${player.player_id}`}>{playerName(player)}</Link> : 'No record yet'}</small>
+      <small>{player?.player_id ? <Link to={`/game/players/${player.player_id}`}>{playerName(player)}</Link> : t('statisticsPage.noRecord')}</small>
     </div>
   )
 }
 
-function TournamentRecord({ title, tournament, value, decimal = false }: { title: string; tournament: TournamentStat | null; value?: number | null; decimal?: boolean }) {
+function TournamentRecord({ title, tournament, value, decimal = false, t }: { title: string; tournament: TournamentStat | null; value?: number | null; decimal?: boolean; t: TFunction }) {
+  const number = (numeric: number | null | undefined) => new Intl.NumberFormat().format(Math.round(Number(numeric) || 0))
   return (
     <article className="tlg-statistics-record-card tournament-record">
       <span>{title}</span>
       <strong>{tournament ? (decimal ? Number(value ?? 0).toFixed(1) : number(value)) : '—'}</strong>
-      <div className="record-tournament">{tournament?.tournament_name ?? 'No record yet'}</div>
-      <small>{tournament ? `${tournament.city} · ${categoryLabel(tournament.category_code)}` : 'No completed tournament matches'}</small>
+      <div className="record-tournament">{tournament?.tournament_name ?? t('statisticsPage.noRecord')}</div>
+      <small>{tournament ? `${tournament.city} · ${categoryLabel(tournament.category_code)}` : t('statisticsPage.tournamentsPanel.noCompleted')}</small>
     </article>
   )
 }
 
-function PlayerStatisticsTable({ players }: { players: PlayerStat[] }) {
+function PlayerStatisticsTable({ players, t, number }: { players: PlayerStat[]; t: TFunction; number: (value: number | null | undefined) => string }) {
   return (
     <div className="tlg-statistics-table-scroll">
       <table className="tlg-statistics-table player-table">
-        <thead><tr><th>#</th><th>Player</th><th>World Rank</th><th>Points</th><th>M</th><th>W</th><th>L</th><th>Win %</th><th>Titles</th><th>Aces</th><th>Winners</th></tr></thead>
+        <thead><tr><th>#</th><th>{t('statisticsPage.tables.player')}</th><th>{t('statisticsPage.tables.worldRank')}</th><th>{t('statisticsPage.tables.points')}</th><th>M</th><th>W</th><th>L</th><th>{t('statisticsPage.tables.winPct')}</th><th>{t('statisticsPage.tables.titles')}</th><th>{t('statisticsPage.tables.aces')}</th><th>{t('statisticsPage.tables.winners')}</th></tr></thead>
         <tbody>
           {players.map((player) => (
             <tr key={player.player_id}>
@@ -346,18 +349,18 @@ function PlayerStatisticsTable({ players }: { players: PlayerStat[] }) {
   )
 }
 
-function TournamentStatisticsTable({ tournaments }: { tournaments: TournamentStat[] }) {
+function TournamentStatisticsTable({ tournaments, t, number }: { tournaments: TournamentStat[]; t: TFunction; number: (value: number | null | undefined) => string }) {
   return (
     <div className="tlg-statistics-table-scroll">
       <table className="tlg-statistics-table tournament-table">
-        <thead><tr><th>#</th><th>Tournament</th><th>Category</th><th>Surface</th><th>Editions</th><th>Matches</th><th>Players</th><th>Aces</th><th>Winners</th><th>Aces / Match</th><th>Top Performer</th></tr></thead>
+        <thead><tr><th>#</th><th>{t('statisticsPage.tables.tournament')}</th><th>{t('statisticsPage.tables.category')}</th><th>{t('statisticsPage.tables.surface')}</th><th>{t('statisticsPage.tables.editions')}</th><th>{t('statisticsPage.tables.matches')}</th><th>{t('statisticsPage.tables.players')}</th><th>{t('statisticsPage.tables.aces')}</th><th>{t('statisticsPage.tables.winners')}</th><th>{t('statisticsPage.tables.acesMatch')}</th><th>{t('statisticsPage.tables.topPerformer')}</th></tr></thead>
         <tbody>
           {tournaments.map((tournament) => (
             <tr key={tournament.tournament_series_id}>
               <td className="rank">{tournament.stats_rank}</td>
               <td><div className="tournament-cell"><CountryFlag countryCode={tournament.country_code} width={22} height={15} /><div><strong>{tournament.tournament_name}</strong><span>{tournament.city}</span></div></div></td>
               <td>{categoryLabel(tournament.category_code)}</td>
-              <td><span className={`surface-pill ${tournament.surface}`}>{surfaceLabel(tournament.surface)}</span></td>
+              <td><span className={`surface-pill ${tournament.surface}`}>{surfaceLabel(tournament.surface, t)}</span></td>
               <td>{number(tournament.editions)}</td>
               <td>{number(tournament.completed_matches)}</td>
               <td>{number(tournament.unique_players)}</td>
@@ -373,27 +376,27 @@ function TournamentStatisticsTable({ tournaments }: { tournaments: TournamentSta
   )
 }
 
-function CareerRecords({ career }: { career: CareerStats }) {
+function CareerRecords({ career, t, number, money }: { career: CareerStats; t: TFunction; number: (value: number | null | undefined) => string; money: (value: number | null | undefined) => string }) {
   const player = career.player
-  if (!player) return <EmptyState text="Career statistics are not available yet." />
+  if (!player) return <EmptyState text={t('statisticsPage.career.unavailable')} />
   return (
     <div className="tlg-statistics-view career-view">
       <section className="tlg-statistics-career-summary">
-        <div><span>CURRENT RANK</span><strong>#{player.current_rank}</strong><small>{number(player.current_ranking_points)} ranking points</small></div>
-        <div><span>CAREER BEST</span><strong>{career.best_rank ? `#${career.best_rank}` : '—'}</strong><small>Ranking history snapshot</small></div>
-        <div><span>MATCH RECORD</span><strong>{player.wins}–{player.losses}</strong><small>{Number(player.win_pct).toFixed(1)}% win rate</small></div>
-        <div><span>TITLES / FINALS</span><strong>{player.titles} / {player.finals}</strong><small>{player.tournament_appearances} tournament appearances</small></div>
-        <div><span>PRIZE MONEY</span><strong>{money(career.career_prize_money)}</strong><small>Career Finance ledger</small></div>
+        <div><span>{t('statisticsPage.career.currentRank')}</span><strong>#{player.current_rank}</strong><small>{t('statisticsPage.rankingPoints', { count: number(player.current_ranking_points) })}</small></div>
+        <div><span>{t('statisticsPage.career.careerBest')}</span><strong>{career.best_rank ? `#${career.best_rank}` : '—'}</strong><small>{t('statisticsPage.career.rankingHistory')}</small></div>
+        <div><span>{t('statisticsPage.career.matchRecord')}</span><strong>{player.wins}–{player.losses}</strong><small>{t('statisticsPage.winRate', { value: Number(player.win_pct).toFixed(1) })}</small></div>
+        <div><span>{t('statisticsPage.career.titlesFinals')}</span><strong>{player.titles} / {player.finals}</strong><small>{t('statisticsPage.career.appearances', { count: player.tournament_appearances })}</small></div>
+        <div><span>{t('statisticsPage.career.prizeMoney')}</span><strong>{money(career.career_prize_money)}</strong><small>{t('statisticsPage.career.financeLedger')}</small></div>
       </section>
 
       <div className="tlg-statistics-career-grid">
         <section className="tlg-statistics-panel">
-          <header className="tlg-statistics-panel-head compact"><div><span>COURT PERFORMANCE</span><h2>Surface record</h2></div></header>
-          {career.surface_records.length === 0 ? <EmptyState text="No completed surface records yet." /> : (
+          <header className="tlg-statistics-panel-head compact"><div><span>{t('statisticsPage.career.courtKicker')}</span><h2>{t('statisticsPage.career.surfaceRecord')}</h2></div></header>
+          {career.surface_records.length === 0 ? <EmptyState text={t('statisticsPage.career.noSurface')} /> : (
             <div className="surface-record-grid">
               {career.surface_records.map((record) => (
                 <div key={record.surface} className={`surface-record ${record.surface}`}>
-                  <span>{surfaceLabel(record.surface)}</span><strong>{record.wins}–{record.losses}</strong><small>{Number(record.win_pct).toFixed(1)}% · {record.matches} matches</small>
+                  <span>{surfaceLabel(record.surface, t)}</span><strong>{record.wins}–{record.losses}</strong><small>{Number(record.win_pct).toFixed(1)}% · {t('statisticsPage.matches', { count: record.matches })}</small>
                 </div>
               ))}
             </div>
@@ -401,21 +404,21 @@ function CareerRecords({ career }: { career: CareerStats }) {
         </section>
 
         <section className="tlg-statistics-panel">
-          <header className="tlg-statistics-panel-head compact"><div><span>SHOT PRODUCTION</span><h2>Career match totals</h2></div></header>
+          <header className="tlg-statistics-panel-head compact"><div><span>{t('statisticsPage.career.shotKicker')}</span><h2>{t('statisticsPage.career.matchTotals')}</h2></div></header>
           <div className="career-shot-grid">
-            <div><span>Aces</span><strong>{number(player.aces)}</strong></div>
-            <div><span>Winners</span><strong>{number(player.winners)}</strong></div>
-            <div><span>Unforced Errors</span><strong>{number(player.unforced_errors)}</strong></div>
-            <div><span>Total Points Won</span><strong>{number(player.total_points_won)}</strong></div>
+            <div><span>{t('statisticsPage.tables.aces')}</span><strong>{number(player.aces)}</strong></div>
+            <div><span>{t('statisticsPage.tables.winners')}</span><strong>{number(player.winners)}</strong></div>
+            <div><span>{t('statisticsPage.tables.unforcedErrors')}</span><strong>{number(player.unforced_errors)}</strong></div>
+            <div><span>{t('statisticsPage.tables.totalPointsWon')}</span><strong>{number(player.total_points_won)}</strong></div>
           </div>
         </section>
       </div>
 
       <section className="tlg-statistics-panel">
-        <header className="tlg-statistics-panel-head"><div><span>TOURNAMENT PROFILE</span><h2>Career by tournament category</h2><p>How your player performs at each competitive level.</p></div></header>
-        {career.category_records.length === 0 ? <EmptyState text="No tournament-category records yet." /> : (
+        <header className="tlg-statistics-panel-head"><div><span>{t('statisticsPage.career.tournamentKicker')}</span><h2>{t('statisticsPage.career.byCategory')}</h2><p>{t('statisticsPage.career.byCategoryBody')}</p></div></header>
+        {career.category_records.length === 0 ? <EmptyState text={t('statisticsPage.career.noCategories')} /> : (
           <div className="tlg-statistics-table-scroll">
-            <table className="tlg-statistics-table"><thead><tr><th>Category</th><th>Tournaments</th><th>Matches</th><th>Wins</th><th>Losses</th><th>Win %</th><th>Titles</th></tr></thead><tbody>
+            <table className="tlg-statistics-table"><thead><tr><th>{t('statisticsPage.tables.category')}</th><th>{t('statisticsPage.tables.tournaments')}</th><th>{t('statisticsPage.tables.matches')}</th><th>{t('statisticsPage.tables.wins')}</th><th>{t('statisticsPage.tables.losses')}</th><th>{t('statisticsPage.tables.winPct')}</th><th>{t('statisticsPage.tables.titles')}</th></tr></thead><tbody>
               {career.category_records.map((record) => <tr key={record.category_code}><td><strong>{categoryLabel(record.category_code)}</strong></td><td>{record.tournaments}</td><td>{record.matches}</td><td className="positive">{record.wins}</td><td className="negative">{record.losses}</td><td>{Number(record.win_pct).toFixed(1)}%</td><td>{record.titles}</td></tr>)}
             </tbody></table>
           </div>
@@ -423,11 +426,11 @@ function CareerRecords({ career }: { career: CareerStats }) {
       </section>
 
       <section className="tlg-statistics-panel">
-        <header className="tlg-statistics-panel-head"><div><span>CAREER TIMELINE</span><h2>Season-by-season record</h2><p>This becomes the long-term historical record as the career advances through multiple seasons.</p></div></header>
-        {career.season_records.length === 0 ? <EmptyState text="No completed season match history yet." /> : (
+        <header className="tlg-statistics-panel-head"><div><span>{t('statisticsPage.career.timelineKicker')}</span><h2>{t('statisticsPage.career.timeline')}</h2><p>{t('statisticsPage.career.timelineBody')}</p></div></header>
+        {career.season_records.length === 0 ? <EmptyState text={t('statisticsPage.career.noSeasons')} /> : (
           <div className="tlg-statistics-table-scroll">
-            <table className="tlg-statistics-table"><thead><tr><th>Season</th><th>Matches</th><th>Wins</th><th>Losses</th><th>Win %</th><th>Titles</th></tr></thead><tbody>
-              {career.season_records.map((record) => <tr key={record.season}><td><strong>Season {record.season}</strong></td><td>{record.matches}</td><td className="positive">{record.wins}</td><td className="negative">{record.losses}</td><td>{Number(record.win_pct).toFixed(1)}%</td><td>{record.titles}</td></tr>)}
+            <table className="tlg-statistics-table"><thead><tr><th>{t('statisticsPage.tables.season')}</th><th>{t('statisticsPage.tables.matches')}</th><th>{t('statisticsPage.tables.wins')}</th><th>{t('statisticsPage.tables.losses')}</th><th>{t('statisticsPage.tables.winPct')}</th><th>{t('statisticsPage.tables.titles')}</th></tr></thead><tbody>
+              {career.season_records.map((record) => <tr key={record.season}><td><strong>{t('statisticsPage.season', { season: record.season })}</strong></td><td>{record.matches}</td><td className="positive">{record.wins}</td><td className="negative">{record.losses}</td><td>{Number(record.win_pct).toFixed(1)}%</td><td>{record.titles}</td></tr>)}
             </tbody></table>
           </div>
         )}
