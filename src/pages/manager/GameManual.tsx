@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, Download, Search, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 
 import GameLayout from '../../components/layout/GameLayout'
 import { getGameManual, type ManualChapter, type ManualSection } from '../../content/manual'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import { downloadGameManualPdf } from '../../lib/manualPdf'
 import '../../styles/game-manual.css'
 
@@ -55,8 +57,9 @@ function snippetFor(chapter: ManualChapter, query: string) {
 }
 
 export default function GameManualPage() {
-  const activeLocale = (document.documentElement.lang || navigator.language || 'en').split('-')[0].toLowerCase()
-  const manual = getGameManual(activeLocale)
+  const { t } = useTranslation()
+  const { locale } = useLocalization()
+  const manual = getGameManual(locale)
   const navigate = useNavigate()
   const { chapterId } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -101,25 +104,24 @@ export default function GameManualPage() {
   }
 
   return (
-    <GameLayout title="Full Game Manual" subtitle="Complete Tennis Legacy gameplay reference">
+    <GameLayout title={t('manual.title')} subtitle={t('manual.subtitle')}>
       <div className="tlg-manual-page">
         <section className="tlg-manual-hero">
           <div>
-            <span>OFFICIAL IN-GAME REFERENCE</span>
+            <span>{t('manual.official')}</span>
             <h2>{manual.meta.title}</h2>
             <p>
-              {manual.chapters.length} chapters covering the implemented career from player creation through
-              training, tournaments, rankings, equipment, finance, health, community and long-term progression.
+              {t('manual.intro', { count: manual.chapters.length })}
             </p>
             <small>
-              English source edition · Version {manual.meta.version} · Updated {manual.meta.updated}
+              {t('manual.edition', { language: manual.meta.language, version: manual.meta.version, updated: manual.meta.updated })}
             </small>
           </div>
           <div className="tlg-manual-hero-actions">
-            <Link to="/game/help">Back to Help Center</Link>
+            <Link to="/game/help">{t('manual.backHelp')}</Link>
             <button className="primary" type="button" onClick={() => downloadGameManualPdf(manual)}>
               <Download size={15} aria-hidden="true" />
-              Download PDF
+              {t('manual.download')}
             </button>
           </div>
         </section>
@@ -131,34 +133,34 @@ export default function GameManualPage() {
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search the full manual…"
-              aria-label="Search the full game manual"
+              placeholder={t('manual.searchPlaceholder')}
+              aria-label={t('manual.searchAria')}
             />
             {query && (
-              <button type="button" onClick={() => setQuery('')} aria-label="Clear manual search">
+              <button type="button" onClick={() => setQuery('')} aria-label={t('manual.clearSearch')}>
                 <X size={15} />
               </button>
             )}
           </div>
-          <span>{query.trim() ? `${searchResults.length} matching chapter${searchResults.length === 1 ? '' : 's'}` : 'Search rules, pages, systems and gameplay processes'}</span>
+          <span>{query.trim() ? t('manual.matching', { count: searchResults.length }) : t('manual.searchHint')}</span>
         </section>
 
         {query.trim() ? (
           <section className="tlg-manual-search-results">
             <header>
-              <span>SEARCH RESULTS</span>
-              <h3>Matches for “{query.trim()}”</h3>
+              <span>{t('manual.searchResults')}</span>
+              <h3>{t('manual.matchesFor', { query: query.trim() })}</h3>
             </header>
             {searchResults.length === 0 ? (
               <div className="tlg-manual-empty">
-                <strong>No manual chapter matched this search.</strong>
-                <p>Try a page name such as Training, Rankings, Finance, Equipment, Staff, Health or Tournament.</p>
+                <strong>{t('manual.noMatch')}</strong>
+                <p>{t('manual.tryPages')}</p>
               </div>
             ) : (
               <div className="tlg-manual-result-grid">
                 {searchResults.map(({ chapter, snippet }) => (
                   <button type="button" key={chapter.id} onClick={() => openChapter(chapter.id)}>
-                    <span>Chapter {manual.chapters.findIndex((item) => item.id === chapter.id) + 1}</span>
+                    <span>{t('manual.chapter', { number: manual.chapters.findIndex((item) => item.id === chapter.id) + 1 })}</span>
                     <strong>{chapter.title}</strong>
                     <p>{snippet}</p>
                   </button>
@@ -168,10 +170,10 @@ export default function GameManualPage() {
           </section>
         ) : (
           <div className="tlg-manual-layout">
-            <aside className="tlg-manual-toc" aria-label="Manual table of contents">
+            <aside className="tlg-manual-toc" aria-label={t('manual.tocAria')}>
               <div className="tlg-manual-toc-head">
-                <span>TABLE OF CONTENTS</span>
-                <strong>{manual.chapters.length} chapters</strong>
+                <span>{t('manual.toc')}</span>
+                <strong>{t('manual.chapters', { count: manual.chapters.length })}</strong>
               </div>
               <nav>
                 {manual.chapters.map((chapter, index) => (
@@ -190,7 +192,7 @@ export default function GameManualPage() {
 
             <article className="tlg-manual-reader">
               <header className="tlg-manual-chapter-head">
-                <span>CHAPTER {currentIndex + 1} OF {manual.chapters.length}</span>
+                <span>{t('manual.chapterOf', { current: currentIndex + 1, total: manual.chapters.length })}</span>
                 <h1>{current.title}</h1>
                 <p>{current.summary}</p>
               </header>
@@ -235,14 +237,14 @@ export default function GameManualPage() {
 
                     {section.example && (
                       <div className="tlg-manual-callout example">
-                        <strong>Example</strong>
+                        <strong>{t('manual.example')}</strong>
                         <p>{section.example}</p>
                       </div>
                     )}
 
                     {section.note && (
                       <div className="tlg-manual-callout note">
-                        <strong>Important</strong>
+                        <strong>{t('manual.important')}</strong>
                         <p>{section.note}</p>
                       </div>
                     )}
@@ -263,18 +265,18 @@ export default function GameManualPage() {
                   {previous ? (
                     <button type="button" onClick={() => openChapter(previous.id)}>
                       <ChevronLeft size={15} />
-                      <span><small>Previous chapter</small>{previous.title}</span>
+                      <span><small>{t('manual.previous')}</small>{previous.title}</span>
                     </button>
                   ) : <span />}
                 </div>
                 <div>
                   {next ? (
                     <button type="button" onClick={() => openChapter(next.id)}>
-                      <span><small>Next chapter</small>{next.title}</span>
+                      <span><small>{t('manual.next')}</small>{next.title}</span>
                       <ChevronRight size={15} />
                     </button>
                   ) : (
-                    <Link to="/game/help">Return to Help Center</Link>
+                    <Link to="/game/help">{t('manual.returnHelp')}</Link>
                   )}
                 </div>
               </footer>
@@ -283,8 +285,8 @@ export default function GameManualPage() {
         )}
 
         <section className="tlg-manual-source-note">
-          <strong>Localization-ready manual architecture</strong>
-          <p>{manual.meta.sourceNotice} English is the current source edition.</p>
+          <strong>{t('manual.localization')}</strong>
+          <p>{manual.meta.sourceNotice} {t('manual.sourceSuffix')}</p>
         </section>
       </div>
     </GameLayout>
