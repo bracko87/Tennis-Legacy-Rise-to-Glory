@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 
 import { useAuth } from '../../auth/AuthContext'
 import GameLayout from '../../components/layout/GameLayout'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 import '../../styles/player-skills.css'
 
@@ -66,38 +68,17 @@ interface AttributeItem {
   change?: number
 }
 
-const SURFACE_COPY: Record<PreferredSurface, string> = {
-  Hard: 'Balanced fast-court identity with stronger serve, groundstrokes and return while specialty shots remain lower.',
-  Clay: 'Rally-oriented identity with stronger groundstrokes, return, touch and Lob, with less emphasis on serve and net finishing.',
-  Grass: 'Fast-court identity with strong serve, volley, slice and Smash, while defensive and specialty shots begin lower.',
+const SURFACE_COPY_KEYS: Record<PreferredSurface, string> = {
+  Hard: 'skillsPage.surfaces.Hard',
+  Clay: 'skillsPage.surfaces.Clay',
+  Grass: 'skillsPage.surfaces.Grass',
 }
 
-const STYLE_COPY: Record<PlayingStyle, string> = {
-  'Aggressive Baseliner': 'Baseline pressure with extra emphasis on serve, forehand and attacking groundstrokes.',
-  'Defensive Baseliner': 'Return, backhand stability and Lob are emphasized while serve, volley and overhead aggression are reduced.',
-  'All-court': 'Balanced style with the preferred surface providing most of the technical identity.',
-  'Serve & Volley': 'Serve, volley, slice, Smash and forward-court play receive the extra emphasis.',
-}
-
-const TAB_COPY: Record<SkillsTab, { label: string; kicker: string; title: string; description: string }> = {
-  tennis: {
-    label: 'Tennis Skills',
-    kicker: 'Developable attributes',
-    title: 'Technical profile',
-    description: 'The nine racket skills that define how your player performs on court. Training and match development will improve these values over time.',
-  },
-  physical: {
-    label: 'Physical',
-    kicker: 'Athletic development',
-    title: 'Physical profile',
-    description: 'The permanent athletic base behind movement, endurance and recovery. Every new player begins from the same physical starting point.',
-  },
-  condition: {
-    label: 'Current Condition',
-    kicker: 'Live career state',
-    title: 'Readiness & mindset',
-    description: 'Dynamic values that rise and fall through matches, rest, form, training load and career events rather than permanent skill progression.',
-  },
+const STYLE_COPY_KEYS: Record<PlayingStyle, string> = {
+  'Aggressive Baseliner': 'skillsPage.styles.aggressive',
+  'Defensive Baseliner': 'skillsPage.styles.defensive',
+  'All-court': 'skillsPage.styles.allCourt',
+  'Serve & Volley': 'skillsPage.styles.serveVolley',
 }
 
 function scoreCategory(row: PlayerSkillsRow | SkillHistoryRow, tab: SkillsTab) {
@@ -119,12 +100,12 @@ function signed(value: number) {
   return `${value > 0 ? '+' : ''}${value.toFixed(1)}`
 }
 
-function readinessLabel(score: number) {
-  if (score >= 80) return 'Excellent'
-  if (score >= 65) return 'Strong'
-  if (score >= 50) return 'Ready'
-  if (score >= 35) return 'Managing load'
-  return 'Needs recovery'
+function readinessLabel(score: number, t: TFunction) {
+  if (score >= 80) return t('skillsPage.readinessLabels.excellent')
+  if (score >= 65) return t('skillsPage.readinessLabels.strong')
+  if (score >= 50) return t('skillsPage.readinessLabels.ready')
+  if (score >= 35) return t('skillsPage.readinessLabels.managingLoad')
+  return t('skillsPage.readinessLabels.needsRecovery')
 }
 
 function heatLevel(value: number) {
@@ -134,19 +115,21 @@ function heatLevel(value: number) {
   return 'development'
 }
 
-function developmentDirection(history: SkillHistoryRow[]) {
+function developmentDirection(history: SkillHistoryRow[], t: TFunction) {
   const updates = Math.max(0, history.length - 1)
-  if (!updates) return 'Baseline established'
+  if (!updates) return t('skillsPage.developmentDirection.baseline')
   const latest = history[history.length - 1]
   const previous = history[history.length - 2]
   const technicalMove = scoreCategory(latest, 'tennis') - scoreCategory(previous, 'tennis')
   const physicalMove = scoreCategory(latest, 'physical') - scoreCategory(previous, 'physical')
-  if (technicalMove > 0.05 || physicalMove > 0.05) return 'Improving'
-  if (technicalMove < -0.05 || physicalMove < -0.05) return 'Declining'
-  return 'Stable'
+  if (technicalMove > 0.05 || physicalMove > 0.05) return t('skillsPage.developmentDirection.improving')
+  if (technicalMove < -0.05 || physicalMove < -0.05) return t('skillsPage.developmentDirection.declining')
+  return t('skillsPage.developmentDirection.stable')
 }
 
 export default function SkillsPage() {
+  const { t } = useTranslation()
+  const { localeTag } = useLocalization()
   const { player } = useAuth()
   const [tab, setTab] = useState<SkillsTab>('tennis')
   const [skills, setSkills] = useState<PlayerSkillsRow | null>(null)
@@ -207,47 +190,68 @@ export default function SkillsPage() {
     return () => { active = false }
   }, [player?.id])
 
+  const tabCopy: Record<SkillsTab, { label: string; kicker: string; title: string; description: string }> = {
+    tennis: {
+      label: t('skillsPage.tabs.tennis.label'),
+      kicker: t('skillsPage.tabs.tennis.kicker'),
+      title: t('skillsPage.tabs.tennis.title'),
+      description: t('skillsPage.tabs.tennis.description'),
+    },
+    physical: {
+      label: t('skillsPage.tabs.physical.label'),
+      kicker: t('skillsPage.tabs.physical.kicker'),
+      title: t('skillsPage.tabs.physical.title'),
+      description: t('skillsPage.tabs.physical.description'),
+    },
+    condition: {
+      label: t('skillsPage.tabs.condition.label'),
+      kicker: t('skillsPage.tabs.condition.kicker'),
+      title: t('skillsPage.tabs.condition.title'),
+      description: t('skillsPage.tabs.condition.description'),
+    },
+  }
+
   const previousSnapshot = history.length > 1 ? history[history.length - 2] : null
 
   const tennis = useMemo<AttributeItem[]>(() => skills ? [
-    { label: 'Serve', value: skills.serve, note: 'Power, placement and reliability', change: previousSnapshot ? skills.serve - previousSnapshot.serve : 0 },
-    { label: 'Forehand', value: skills.forehand, note: 'Primary attacking groundstroke', change: previousSnapshot ? skills.forehand - previousSnapshot.forehand : 0 },
-    { label: 'Backhand', value: skills.backhand, note: 'Quality, control and stability', change: previousSnapshot ? skills.backhand - previousSnapshot.backhand : 0 },
-    { label: 'Return', value: skills.return_skill, note: 'Neutralizing and attacking serve', change: previousSnapshot ? skills.return_skill - previousSnapshot.return_skill : 0 },
-    { label: 'Volley', value: skills.volley, note: 'Net play and finishing ability', change: previousSnapshot ? skills.volley - previousSnapshot.volley : 0 },
-    { label: 'Slice', value: skills.slice, note: 'Variation and low-ball control', change: previousSnapshot ? skills.slice - previousSnapshot.slice : 0 },
-    { label: 'Drop Shot', value: skills.drop_shot, note: 'Touch and short-court variation', change: previousSnapshot ? skills.drop_shot - previousSnapshot.drop_shot : 0 },
-    { label: 'Lob', value: skills.lob, note: 'Height, depth and accuracy over an opponent', change: previousSnapshot ? skills.lob - previousSnapshot.lob : 0 },
-    { label: 'Smash', value: skills.smash, note: 'Overhead timing, power and finishing', change: previousSnapshot ? skills.smash - previousSnapshot.smash : 0 },
-  ] : [], [skills, previousSnapshot])
+    { label: t('skillsPage.attributes.serve.label'), value: skills.serve, note: t('skillsPage.attributes.serve.note'), change: previousSnapshot ? skills.serve - previousSnapshot.serve : 0 },
+    { label: t('skillsPage.attributes.forehand.label'), value: skills.forehand, note: t('skillsPage.attributes.forehand.note'), change: previousSnapshot ? skills.forehand - previousSnapshot.forehand : 0 },
+    { label: t('skillsPage.attributes.backhand.label'), value: skills.backhand, note: t('skillsPage.attributes.backhand.note'), change: previousSnapshot ? skills.backhand - previousSnapshot.backhand : 0 },
+    { label: t('skillsPage.attributes.return.label'), value: skills.return_skill, note: t('skillsPage.attributes.return.note'), change: previousSnapshot ? skills.return_skill - previousSnapshot.return_skill : 0 },
+    { label: t('skillsPage.attributes.volley.label'), value: skills.volley, note: t('skillsPage.attributes.volley.note'), change: previousSnapshot ? skills.volley - previousSnapshot.volley : 0 },
+    { label: t('skillsPage.attributes.slice.label'), value: skills.slice, note: t('skillsPage.attributes.slice.note'), change: previousSnapshot ? skills.slice - previousSnapshot.slice : 0 },
+    { label: t('skillsPage.attributes.dropShot.label'), value: skills.drop_shot, note: t('skillsPage.attributes.dropShot.note'), change: previousSnapshot ? skills.drop_shot - previousSnapshot.drop_shot : 0 },
+    { label: t('skillsPage.attributes.lob.label'), value: skills.lob, note: t('skillsPage.attributes.lob.note'), change: previousSnapshot ? skills.lob - previousSnapshot.lob : 0 },
+    { label: t('skillsPage.attributes.smash.label'), value: skills.smash, note: t('skillsPage.attributes.smash.note'), change: previousSnapshot ? skills.smash - previousSnapshot.smash : 0 },
+  ] : [], [skills, previousSnapshot, t])
 
   const physical = useMemo<AttributeItem[]>(() => skills ? [
-    { label: 'Fitness', value: skills.fitness, note: 'General athletic readiness', change: previousSnapshot ? skills.fitness - previousSnapshot.fitness : 0 },
-    { label: 'Stamina', value: skills.stamina, note: 'Maintaining quality in long matches', change: previousSnapshot ? skills.stamina - previousSnapshot.stamina : 0 },
-    { label: 'Recovery', value: skills.recovery, note: 'Recovery between matches and sessions', change: previousSnapshot ? skills.recovery - previousSnapshot.recovery : 0 },
-    { label: 'Movement', value: skills.movement, note: 'Court coverage, speed and balance', change: previousSnapshot ? skills.movement - previousSnapshot.movement : 0 },
-  ] : [], [skills, previousSnapshot])
+    { label: t('skillsPage.attributes.fitness.label'), value: skills.fitness, note: t('skillsPage.attributes.fitness.note'), change: previousSnapshot ? skills.fitness - previousSnapshot.fitness : 0 },
+    { label: t('skillsPage.attributes.stamina.label'), value: skills.stamina, note: t('skillsPage.attributes.stamina.note'), change: previousSnapshot ? skills.stamina - previousSnapshot.stamina : 0 },
+    { label: t('skillsPage.attributes.recovery.label'), value: skills.recovery, note: t('skillsPage.attributes.recovery.note'), change: previousSnapshot ? skills.recovery - previousSnapshot.recovery : 0 },
+    { label: t('skillsPage.attributes.movement.label'), value: skills.movement, note: t('skillsPage.attributes.movement.note'), change: previousSnapshot ? skills.movement - previousSnapshot.movement : 0 },
+  ] : [], [skills, previousSnapshot, t])
 
   const condition = useMemo<AttributeItem[]>(() => skills ? [
-    { label: 'Morale', value: skills.morale, note: 'Current motivation and emotional state', change: previousSnapshot ? skills.morale - previousSnapshot.morale : 0 },
-    { label: 'Confidence', value: skills.confidence, note: 'Belief shaped by form and results', change: previousSnapshot ? skills.confidence - previousSnapshot.confidence : 0 },
-    { label: 'Sharpness', value: skills.sharpness, note: 'Competitive rhythm and match readiness', change: previousSnapshot ? skills.sharpness - previousSnapshot.sharpness : 0 },
-    { label: 'Focus', value: skills.focus, note: 'Concentration and mental stability', change: previousSnapshot ? skills.focus - previousSnapshot.focus : 0 },
-    { label: 'Fatigue', value: skills.fatigue, note: 'Accumulated tiredness · lower is better', inverse: true, change: previousSnapshot ? skills.fatigue - previousSnapshot.fatigue : 0 },
-  ] : [], [skills, previousSnapshot])
+    { label: t('skillsPage.attributes.morale.label'), value: skills.morale, note: t('skillsPage.attributes.morale.note'), change: previousSnapshot ? skills.morale - previousSnapshot.morale : 0 },
+    { label: t('skillsPage.attributes.confidence.label'), value: skills.confidence, note: t('skillsPage.attributes.confidence.note'), change: previousSnapshot ? skills.confidence - previousSnapshot.confidence : 0 },
+    { label: t('skillsPage.attributes.sharpness.label'), value: skills.sharpness, note: t('skillsPage.attributes.sharpness.note'), change: previousSnapshot ? skills.sharpness - previousSnapshot.sharpness : 0 },
+    { label: t('skillsPage.attributes.focus.label'), value: skills.focus, note: t('skillsPage.attributes.focus.note'), change: previousSnapshot ? skills.focus - previousSnapshot.focus : 0 },
+    { label: t('skillsPage.attributes.fatigue.label'), value: skills.fatigue, note: t('skillsPage.attributes.fatigue.note'), inverse: true, change: previousSnapshot ? skills.fatigue - previousSnapshot.fatigue : 0 },
+  ] : [], [skills, previousSnapshot, t])
 
   const tennisTotal = useMemo(() => tennis.reduce((sum, item) => sum + item.value, 0), [tennis])
   const physicalTotal = useMemo(() => physical.reduce((sum, item) => sum + item.value, 0), [physical])
-  const activeCopy = TAB_COPY[tab]
+  const activeCopy = tabCopy[tab]
   const activeItems = tab === 'tennis' ? tennis : tab === 'physical' ? physical : condition
   const activeScore = skills ? scoreCategory(skills, tab) : 0
   const baselineScore = history.length ? scoreCategory(history[0], tab) : activeScore
   const scoreChange = activeScore - baselineScore
   const categoryDetail = tab === 'tennis'
-    ? `${tennisTotal} total points · 9 skills`
+    ? t('skillsPage.tennisDetail', { points: tennisTotal })
     : tab === 'physical'
-      ? `${physicalTotal} total points · 4 skills`
-      : '5 live values · fatigue counts as freshness'
+      ? t('skillsPage.physicalDetail', { points: physicalTotal })
+      : t('skillsPage.conditionDetail')
 
   const technical = skills ? scoreCategory(skills, 'tennis') : 0
   const physicalScore = skills ? scoreCategory(skills, 'physical') : 0
@@ -259,30 +263,30 @@ export default function SkillsPage() {
   const technicalChange = baseline && skills ? technical - scoreCategory(baseline, 'tennis') : 0
   const physicalChange = baseline && skills ? physicalScore - scoreCategory(baseline, 'physical') : 0
   const updates = Math.max(0, history.length - 1)
-  const direction = developmentDirection(history)
+  const direction = developmentDirection(history, t)
 
   return (
-    <GameLayout title="Skills" subtitle="Player development center">
+    <GameLayout title={t('skillsPage.title')} subtitle={t('skillsPage.subtitle')}>
       <section className="tlg-v2-command tlg-skills-command">
         <div className="tlg-v2-command-inner tlg-skills-command-inner">
           <div className="tlg-skills-command-copy">
-            <span className="tlg-v2-command-kicker">Player development center</span>
-            <h2>Player skills</h2>
+            <span className="tlg-v2-command-kicker">{t('skillsPage.kicker')}</span>
+            <h2>{t('skillsPage.heading')}</h2>
             <p>
-              Build your professional through technical and physical development while monitoring the current condition that changes throughout the season.
+              {t('skillsPage.intro')}
             </p>
           </div>
         </div>
       </section>
 
       <section className="tlg-skills-workspace">
-        <nav className="tlg-skills-side-tabs" role="tablist" aria-label="Player skill categories">
+        <nav className="tlg-skills-side-tabs" role="tablist" aria-label={t('skillsPage.categoriesAria')}>
           <div className="tlg-skills-side-heading">
-            <span>Development</span>
+            <span>{t('skillsPage.development')}</span>
           </div>
 
-          {(Object.keys(TAB_COPY) as SkillsTab[]).map((tabId) => {
-            const item = TAB_COPY[tabId]
+          {(Object.keys(tabCopy) as SkillsTab[]).map((tabId) => {
+            const item = tabCopy[tabId]
             const active = tab === tabId
             return (
               <button
@@ -319,13 +323,13 @@ export default function SkillsPage() {
                   textTransform: 'uppercase',
                 }}
               >
-                Performance snapshot
+                {t('skillsPage.performanceSnapshot')}
               </span>
               <div style={{ display: 'grid', gap: 8 }}>
-                <SidebarMetric label="Technical" value={technical.toFixed(1)} detail={`${signed(technicalChange)} since start`} />
-                <SidebarMetric label="Physical" value={physicalScore.toFixed(1)} detail={`${signed(physicalChange)} since start`} />
-                <SidebarMetric label="Readiness" value={readiness.toFixed(1)} detail={readinessLabel(readiness)} />
-                <SidebarMetric label="Recorded development" value={String(updates)} detail={direction} />
+                <SidebarMetric label={t('skillsPage.technical')} value={technical.toFixed(1)} detail={t('skillsPage.sinceStart', { change: signed(technicalChange) })} />
+                <SidebarMetric label={t('skillsPage.physical')} value={physicalScore.toFixed(1)} detail={t('skillsPage.sinceStart', { change: signed(physicalChange) })} />
+                <SidebarMetric label={t('skillsPage.readiness')} value={readiness.toFixed(1)} detail={readinessLabel(readiness, t)} />
+                <SidebarMetric label={t('skillsPage.recordedDevelopment')} value={String(updates)} detail={direction} />
               </div>
             </div>
           )}
@@ -333,11 +337,11 @@ export default function SkillsPage() {
 
         <div className="tlg-skills-main">
           {loading ? (
-            <div className="tlg-skills-state">Loading player attributes…</div>
+            <div className="tlg-skills-state">{t('skillsPage.loading')}</div>
           ) : error ? (
-            <div className="tlg-skills-state tlg-skills-state-error">Unable to load player skills: {error}</div>
+            <div className="tlg-skills-state tlg-skills-state-error">{t('skillsPage.loadError', { error })}</div>
           ) : !skills ? (
-            <div className="tlg-skills-state">Player skill profile has not been initialized yet.</div>
+            <div className="tlg-skills-state">{t('skillsPage.notInitialized')}</div>
           ) : (
             <>
               <header className="tlg-skills-section-head">
@@ -347,10 +351,10 @@ export default function SkillsPage() {
                   <p>{activeCopy.description}</p>
                 </div>
                 <div className="tlg-skills-section-score">
-                  <span>{tab === 'condition' ? 'Readiness score' : 'Category average'}</span>
+                  <span>{tab === 'condition' ? t('skillsPage.readinessScore') : t('skillsPage.categoryAverage')}</span>
                   <div><strong>{activeScore.toFixed(1)}</strong><small>/ 100</small></div>
                   <p>{categoryDetail}</p>
-                  <em className={scoreChange > 0.05 ? 'positive' : scoreChange < -0.05 ? 'negative' : ''}>{signed(scoreChange)} since start</em>
+                  <em className={scoreChange > 0.05 ? 'positive' : scoreChange < -0.05 ? 'negative' : ''}>{t('skillsPage.sinceStart', { change: signed(scoreChange) })}</em>
                 </div>
               </header>
 
@@ -363,32 +367,32 @@ export default function SkillsPage() {
               {tab === 'tennis' && (
                 <div className="tlg-skill-build-row">
                   <BuildCard
-                    label="Preferred surface"
-                    value={skills.preferred_surface ?? 'Neutral'}
-                    description={skills.preferred_surface ? SURFACE_COPY[skills.preferred_surface] : 'Neutral surface profile.'}
+                    label={t('skillsPage.preferredSurface')}
+                    value={skills.preferred_surface ?? t('skillsPage.neutral')}
+                    description={skills.preferred_surface ? t(SURFACE_COPY_KEYS[skills.preferred_surface]) : t('skillsPage.neutralSurface')}
                   />
                   <BuildCard
-                    label="Playing style · fixed identity"
+                    label={t('skillsPage.playingStyle')}
                     value={skills.playing_style}
-                    description={`${STYLE_COPY[skills.playing_style]} Chosen at career creation and it does not change automatically.`}
+                    description={t('skillsPage.styleFixed', { description: t(STYLE_COPY_KEYS[skills.playing_style]) })}
                   />
                   <BuildCard
-                    label="Starting profile"
-                    value={`${baselineTechnicalTotal} points`}
-                    description="Human starting totals vary slightly from player to player (440–455). Surface, playing style and a one-time individual variation shape the nine starting skills."
+                    label={t('skillsPage.startingProfile')}
+                    value={t('skillsPage.startingPoints', { points: baselineTechnicalTotal })}
+                    description={t('skillsPage.startingProfileBody')}
                   />
                 </div>
               )}
 
               {tab === 'physical' && (
                 <div className="tlg-skills-info-strip">
-                  Every new player begins at 50 in each physical attribute. Training will later create the long-term differences between careers.
+                  {t('skillsPage.physicalStartNote')}
                 </div>
               )}
 
               {tab === 'condition' && (
                 <div className="tlg-skills-info-strip">
-                  Morale, confidence, sharpness and focus begin at 50. Fatigue begins at 0 because lower fatigue represents a fresher player.
+                  {t('skillsPage.conditionStartNote')}
                 </div>
               )}
             </>
@@ -397,7 +401,7 @@ export default function SkillsPage() {
       </section>
 
       {!loading && skills && (
-        <PerformanceCentre skills={skills} history={history} historyError={historyError} />
+        <PerformanceCentre skills={skills} history={history} historyError={historyError} localeTag={localeTag} />
       )}
     </GameLayout>
   )
