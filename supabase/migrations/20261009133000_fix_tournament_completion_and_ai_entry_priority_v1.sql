@@ -658,4 +658,4 @@ end;
 $repair$;
 
 -- Re-plan still-open ATP week 15 events with the corrected rank ceilings and hierarchy.
-select public.refresh_ai_tournament_applications_v2(1,15,'ATP');
+select public.refresh_ai_tournament_applications_v2(1,15::smallint,'ATP'::text);
