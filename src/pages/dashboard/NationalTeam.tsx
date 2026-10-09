@@ -10,6 +10,7 @@ import {
   Vote,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 import { Link } from 'react-router'
 
 import CountryFlag from '../../components/common/CountryFlag'
@@ -160,7 +161,6 @@ interface NationalAssociationSnapshot {
 
 type PageTab = 'overview' | 'competition' | 'members' | 'elections' | 'chat' | 'history'
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
 function absoluteGameDateParts(absoluteDay?: number | null) {
@@ -175,26 +175,33 @@ function absoluteGameDateParts(absoluteDay?: number | null) {
   return { season, month, day: remaining + 1 }
 }
 
-function formatAbsoluteGameDay(absoluteDay?: number | null) {
-  const date = absoluteGameDateParts(absoluteDay)
-  if (!date) return '—'
-  return `Season ${date.season} · ${date.day} ${MONTHS[date.month]}`
+function localizedMonths(t: TFunction) {
+  return t('nationalTeamPage.monthsShort', { returnObjects: true }) as string[]
 }
 
-function formatAbsoluteGameDayShort(absoluteDay?: number | null) {
+function formatAbsoluteGameDay(t: TFunction, absoluteDay?: number | null) {
   const date = absoluteGameDateParts(absoluteDay)
   if (!date) return '—'
-  return `${date.day} ${MONTHS[date.month]}`
+  const months = localizedMonths(t)
+  return `${t('nationalTeamPage.common.season', { season: date.season })} · ${date.day} ${months[date.month]}`
 }
 
-function formatAbsoluteGameRange(start?: number | null, end?: number | null) {
+function formatAbsoluteGameDayShort(t: TFunction, absoluteDay?: number | null) {
+  const date = absoluteGameDateParts(absoluteDay)
+  if (!date) return '—'
+  const months = localizedMonths(t)
+  return `${date.day} ${months[date.month]}`
+}
+
+function formatAbsoluteGameRange(t: TFunction, start?: number | null, end?: number | null) {
   const startDate = absoluteGameDateParts(start)
   const endDate = absoluteGameDateParts(end)
-  if (!startDate || !endDate) return 'Not scheduled'
+  if (!startDate || !endDate) return t('nationalTeamPage.common.notScheduled')
+  const months = localizedMonths(t)
   if (startDate.season === endDate.season && startDate.month === endDate.month) {
-    return `${startDate.day}–${endDate.day} ${MONTHS[startDate.month]}`
+    return `${startDate.day}–${endDate.day} ${months[startDate.month]}`
   }
-  return `${formatAbsoluteGameDayShort(start)} – ${formatAbsoluteGameDayShort(end)}`
+  return `${formatAbsoluteGameDayShort(t, start)} – ${formatAbsoluteGameDayShort(t, end)}`
 }
 
 function initialNationalTab(): PageTab {
@@ -209,24 +216,12 @@ function initialNationalTab(): PageTab {
     : 'overview'
 }
 
-function statusLabel(status: AssociationStatus) {
-  switch (status) {
-    case 'activation_funding': return 'Activation funding'
-    case 'renewal_required': return 'Renewal required'
-    case 'suspended': return 'Suspended'
-    case 'active': return 'Active'
-    default: return 'Inactive'
-  }
+function statusLabel(status: AssociationStatus, t: TFunction) {
+  return t(`nationalTeamPage.status.${status}`)
 }
 
-function statusCopy(status: AssociationStatus) {
-  switch (status) {
-    case 'active': return 'The association is active and governed by its player community.'
-    case 'renewal_required': return 'The association is active but must complete community renewal for the next national-team season.'
-    case 'suspended': return 'The association missed renewal and has lost its sporting place. A future reactivation returns through the bottom active tier.'
-    case 'activation_funding': return 'Community activation has started. Funding and the five-member requirement must both be completed.'
-    default: return 'This national association is dormant until the player community completes activation.'
-  }
+function statusCopy(status: AssociationStatus, t: TFunction) {
+  return t(`nationalTeamPage.statusBody.${status}`)
 }
 
 function eventLabel(type: string) {
@@ -235,9 +230,11 @@ function eventLabel(type: string) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase())
 }
 
-function formatGameDate(date?: FundSummary['deadline_date']) {
-  if (!date) return 'Not scheduled'
-  return `Season ${date.season} · ${date.day} ${MONTHS[Math.max(0, date.month - 1)] ?? `Month ${date.month}`}`
+function formatGameDate(t: TFunction, date?: FundSummary['deadline_date']) {
+  if (!date) return t('nationalTeamPage.common.notScheduled')
+  const months = localizedMonths(t)
+  const month = months[Math.max(0, date.month - 1)] ?? t('nationalTeamPage.common.monthFallback', { month: date.month })
+  return `${t('nationalTeamPage.common.season', { season: date.season })} · ${date.day} ${month}`
 }
 
 function progressPercent(fund?: FundSummary) {
@@ -246,19 +243,12 @@ function progressPercent(fund?: FundSummary) {
   return Math.min(100, Math.round((Number(fund?.contributed ?? 0) / target) * 100))
 }
 
-function electionStageLabel(status?: ElectionStatus) {
-  switch (status) {
-    case 'candidate_registration': return 'Candidate registration'
-    case 'campaign': return 'Voting open'
-    case 'voting': return 'Voting open'
-    case 'runoff': return 'Runoff voting'
-    case 'completed': return 'Election completed'
-    case 'cancelled': return 'Election cancelled'
-    default: return 'Not scheduled'
-  }
+function electionStageLabel(status: ElectionStatus | undefined, t: TFunction) {
+  return t(`nationalTeamPage.electionStatus.${status ?? 'none'}`)
 }
 
 export default function NationalTeamPage() {
+  const { t } = useTranslation()
   const { coins, refresh: refreshCommerce } = useCommerce()
   const [snapshot, setSnapshot] = useState<NationalAssociationSnapshot | null>(null)
   const [loading, setLoading] = useState(true)
@@ -313,7 +303,7 @@ export default function NationalTeamPage() {
     if (rpcError) setError(rpcError.message)
     else {
       const result = data as { association_name?: string } | null
-      setNotice(`You joined ${result?.association_name ?? 'your national association'}. You are now eligible for national-team call-ups and association elections.`)
+      setNotice(t('nationalTeamPage.notices.joined', { name: result?.association_name ?? t('nationalTeamPage.eyebrow') }))
       await load(true)
     }
 
@@ -330,7 +320,7 @@ export default function NationalTeamPage() {
 
     if (rpcError) setError(rpcError.message)
     else {
-      setNotice('Captaincy resigned. Association members have been notified and a replacement election is being opened.')
+      setNotice(t('nationalTeamPage.notices.resigned'))
       await load(true)
     }
 
@@ -352,7 +342,7 @@ export default function NationalTeamPage() {
       setError(rpcError.message)
     } else {
       const result = data as { accepted_amount?: number } | null
-      setNotice(`${Number(result?.accepted_amount ?? amount)} coin${Number(result?.accepted_amount ?? amount) === 1 ? '' : 's'} contributed to the association fund.`)
+      setNotice(t('nationalTeamPage.notices.contributed', { count: Number(result?.accepted_amount ?? amount) }))
       await Promise.all([load(), refreshCommerce()])
     }
 
@@ -372,7 +362,7 @@ export default function NationalTeamPage() {
 
     if (rpcError) setError(rpcError.message)
     else {
-      setNotice('Your captain candidacy and manifesto have been registered.')
+      setNotice(t('nationalTeamPage.notices.candidacyRegistered'))
       setCandidatePanelOpen(false)
       await load(true)
     }
@@ -392,7 +382,7 @@ export default function NationalTeamPage() {
 
     if (rpcError) setError(rpcError.message)
     else {
-      setNotice('Your candidacy has been withdrawn. You may register again while candidate registration remains open.')
+      setNotice(t('nationalTeamPage.notices.candidacyWithdrawn'))
       setCandidatePanelOpen(false)
       await load(true)
     }
@@ -413,7 +403,7 @@ export default function NationalTeamPage() {
 
     if (rpcError) setError(rpcError.message)
     else {
-      setNotice('Your vote has been recorded. Donations never change voting power.')
+      setNotice(t('nationalTeamPage.notices.voteRecorded'))
       await load(true)
     }
 
@@ -422,10 +412,10 @@ export default function NationalTeamPage() {
 
   if (loading) {
     return (
-      <GameLayout title="National Team" subtitle="Association & captaincy">
+      <GameLayout title={t('nationalTeamPage.title')} subtitle={t('nationalTeamPage.subtitle')}>
         <section className="tlg-v2-panel nt-loading">
           <RefreshCw size={20} className="nt-spin" />
-          <strong>Loading national association…</strong>
+          <strong>{t('nationalTeamPage.loading')}</strong>
         </section>
       </GameLayout>
     )
@@ -433,11 +423,11 @@ export default function NationalTeamPage() {
 
   if (!snapshot?.available) {
     return (
-      <GameLayout title="National Team" subtitle="Association & captaincy">
+      <GameLayout title={t('nationalTeamPage.title')} subtitle={t('nationalTeamPage.subtitle')}>
         <section className="tlg-v2-panel nt-empty">
           <Flag size={28} />
-          <h2>National association unavailable</h2>
-          <p>Your player needs an eligible ATP or WTA national identity before joining a national association.</p>
+          <h2>{t('nationalTeamPage.unavailableTitle')}</h2>
+          <p>{t('nationalTeamPage.unavailableBody')}</p>
         </section>
       </GameLayout>
     )
@@ -462,21 +452,21 @@ export default function NationalTeamPage() {
     : null
   const captainHeadline = captainName
     ?? (electionInProgress
-      ? 'Election in progress'
+      ? t('nationalTeamPage.common.electionInProgress')
       : association.activated_game_day !== null
-        ? 'Election pending'
-        : 'Not elected')
+        ? t('nationalTeamPage.common.electionPending')
+        : t('nationalTeamPage.common.notElected'))
   const captainDetail = captainName
     ? electionInProgress
-      ? 'Acting captain · election in progress'
+      ? t('nationalTeamPage.common.actingElection')
       : snapshot.captain.term_kind === 'carryover'
-        ? 'Acting captain'
-        : 'Current captain'
+        ? t('nationalTeamPage.common.actingCaptain')
+        : t('nationalTeamPage.common.currentCaptain')
     : electionInProgress
-      ? electionStageLabel(election.status)
+      ? electionStageLabel(election.status, t)
       : association.activated_game_day !== null
-        ? 'Annual candidate registration opens 1 January'
-        : 'Election starts after activation'
+        ? t('nationalTeamPage.common.annualRegistration')
+        : t('nationalTeamPage.common.startsAfterActivation')
 
   const registrationDisplayEnd = election.registration_end_game_day
   const expectedRunoffStart = election.runoff_start_game_day ?? (
@@ -508,10 +498,10 @@ export default function NationalTeamPage() {
       : 'upcoming'
 
   return (
-    <GameLayout title="National Team" subtitle={`${association.world} · ${association.name}`}>
+    <GameLayout title={t('nationalTeamPage.title')} subtitle={`${association.world} · ${association.name}`}>
       <header className="tlg-v2-page-head tlg-page-head-with-tabs nt-page-head">
         <div className="tlg-v2-page-head-copy">
-          <div className="tlg-v2-page-eyebrow">National association</div>
+          <div className="tlg-v2-page-eyebrow">{t('nationalTeamPage.eyebrow')}</div>
           <div className="nt-title-line">
             <CountryFlag
               countryCode={association.country_code}
@@ -521,25 +511,25 @@ export default function NationalTeamPage() {
             />
             <h2 className="tlg-v2-page-title">{association.name}</h2>
           </div>
-          <p className="tlg-v2-page-description">{statusCopy(association.status)}</p>
+          <p className="tlg-v2-page-description">{statusCopy(association.status, t)}</p>
           <div className="nt-head-meta">
-            <span className={`nt-status nt-status-${association.status}`}>{statusLabel(association.status)}</span>
-            <span>Season {snapshot.season_number}</span>
-            <span>{association.world} national-team world</span>
+            <span className={`nt-status nt-status-${association.status}`}>{statusLabel(association.status, t)}</span>
+            <span>{t('nationalTeamPage.common.season', { season: snapshot.season_number })}</span>
+            <span>{t('nationalTeamPage.common.nationalWorld', { world: association.world })}</span>
             {association.is_member ? (
-              <span className="nt-member-chip">Association member</span>
+              <span className="nt-member-chip">{t('nationalTeamPage.member')}</span>
             ) : association.can_join ? (
               <button type="button" className="nt-join-association" disabled={working} onClick={() => void joinAssociation()}>
-                {working ? 'Joining…' : 'Join association'}
+                {working ? t('nationalTeamPage.common.joining') : t('nationalTeamPage.common.join')}
               </button>
             ) : null}
           </div>
           {!association.is_member && association.can_join && (
-            <p className="nt-join-copy">Join to enter the captain's eligible call-up pool and participate in association elections.</p>
+            <p className="nt-join-copy">{t('nationalTeamPage.joinCopy')}</p>
           )}
         </div>
 
-        <div className="nt-tabs tlg-standard-tabs" role="tablist" aria-label="National association sections">
+        <div className="nt-tabs tlg-standard-tabs" role="tablist" aria-label={t('nationalTeamPage.tabsAria')}>
           {([
             ['overview', 'Overview'],
             ['competition', 'Competition'],
