@@ -5,6 +5,9 @@ import { manualCareerChapters } from './manual.en.career'
 import { manualCoreChaptersSr } from './manual.sr.core'
 import { manualCompetitionChaptersSr } from './manual.sr.competition'
 import { manualCareerChaptersSr } from './manual.sr.career'
+import { manualCoreChaptersDe } from './manual.de.core'
+import { manualCompetitionChaptersDe } from './manual.de.competition'
+import { manualCareerChaptersDe } from './manual.de.career'
 
 const englishManual: GameManualDocument = {
   meta: {
@@ -40,9 +43,27 @@ const serbianManual: GameManualDocument = {
   ],
 }
 
+const germanManual: GameManualDocument = {
+  meta: {
+    title: 'Tennis Legacy: Rise to Glory - Vollständiges Spielhandbuch',
+    shortTitle: 'Vollständiges Spielhandbuch',
+    language: 'Deutsch',
+    locale: 'de',
+    version: '1.0',
+    updated: '2026-10-09',
+    sourceNotice: 'Die deutsche Ausgabe verwendet dieselben Kapitel- und Abschnittskennungen wie die englische Ausgangsausgabe.',
+  },
+  chapters: [
+    ...manualCoreChaptersDe,
+    ...manualCompetitionChaptersDe,
+    ...manualCareerChaptersDe,
+  ],
+}
+
 const MANUALS: Record<string, GameManualDocument> = {
   en: englishManual,
   sr: serbianManual,
+  de: germanManual,
 }
 
 export function getGameManual(locale = 'en'): GameManualDocument {
