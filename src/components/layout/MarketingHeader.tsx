@@ -5,12 +5,15 @@
  * onboarding or their dashboard and can sign out directly from the header.
  */
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
-import { LogOut, Menu, X } from 'lucide-react'
+import { ChevronDown, LogOut, Menu, X } from 'lucide-react'
 
 import { useAuth } from '../../auth/AuthContext'
+import { useLocalization } from '../../i18n/LocalizationProvider'
+import type { AppLocale } from '../../i18n'
+import CountryFlag from '../common/CountryFlag'
 import BetaDisclaimer from '../marketing/BetaDisclaimer'
 
 interface MarketingNavigationItem {
@@ -24,17 +27,59 @@ const navigationItems: readonly MarketingNavigationItem[] = [
   { labelKey: 'marketing.gameWorld', sectionId: 'game-world' },
 ]
 
+const LANGUAGE_META: Record<AppLocale, { label: string; shortLabel: string; countryCode: string }> = {
+  en: { label: 'English', shortLabel: 'EN', countryCode: 'GB' },
+  sr: { label: 'Srpski', shortLabel: 'SR', countryCode: 'RS' },
+  de: { label: 'Deutsch', shortLabel: 'DE', countryCode: 'DE' },
+  es: { label: 'Español', shortLabel: 'ES', countryCode: 'ES' },
+  it: { label: 'Italiano', shortLabel: 'IT', countryCode: 'IT' },
+  fr: { label: 'Français', shortLabel: 'FR', countryCode: 'FR' },
+  ru: { label: 'Русский', shortLabel: 'RU', countryCode: 'RU' },
+  pt: { label: 'Português', shortLabel: 'PT', countryCode: 'PT' },
+}
+
 export default function MarketingHeader() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { user, player, authLoading, signOut } = useAuth()
+  const { locale, enabledLocales, setLocale, saving: languageSaving } = useLocalization()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [languageOpen, setLanguageOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
+  const languageRef = useRef<HTMLDivElement | null>(null)
 
   const dashboardPath = player ? '/game/overview' : '/create-player'
+  const activeLanguage = LANGUAGE_META[locale]
+
+  useEffect(() => {
+    function handlePointerDown(event: MouseEvent) {
+      if (!languageRef.current?.contains(event.target as Node)) setLanguageOpen(false)
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setLanguageOpen(false)
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
+
+  async function chooseLanguage(nextLocale: AppLocale) {
+    if (nextLocale === locale || languageSaving) {
+      setLanguageOpen(false)
+      return
+    }
+    const changed = await setLocale(nextLocale)
+    if (changed) setLanguageOpen(false)
+  }
 
   const goToSection = (sectionId: string) => {
     setMobileMenuOpen(false)
+    setLanguageOpen(false)
     navigate('/')
 
     window.setTimeout(() => {
@@ -111,6 +156,55 @@ export default function MarketingHeader() {
             </>
           )}
 
+          <div className="tlg-marketing-language" ref={languageRef}>
+            <button
+              type="button"
+              className="tlg-marketing-language-trigger"
+              aria-label={t('common.language')}
+              aria-haspopup="menu"
+              aria-expanded={languageOpen}
+              onClick={() => setLanguageOpen((current) => !current)}
+              disabled={languageSaving}
+            >
+              <CountryFlag
+                countryCode={activeLanguage.countryCode}
+                countryName={activeLanguage.label}
+                width={20}
+                height={14}
+              />
+              <span>{activeLanguage.shortLabel}</span>
+              <ChevronDown size={13} className={languageOpen ? 'is-open' : ''} />
+            </button>
+
+            {languageOpen && (
+              <div className="tlg-marketing-language-menu" role="menu" aria-label={t('common.language')}>
+                {enabledLocales.map((language) => {
+                  const meta = LANGUAGE_META[language]
+                  return (
+                    <button
+                      key={language}
+                      type="button"
+                      role="menuitemradio"
+                      aria-checked={language === locale}
+                      className={language === locale ? 'active' : ''}
+                      onClick={() => void chooseLanguage(language)}
+                      disabled={languageSaving}
+                    >
+                      <CountryFlag
+                        countryCode={meta.countryCode}
+                        countryName={meta.label}
+                        width={22}
+                        height={15}
+                      />
+                      <span>{meta.label}</span>
+                      <small>{meta.shortLabel}</small>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
           <button
             type="button"
             className="tlg-mobile-menu-button"
@@ -147,7 +241,7 @@ export default function MarketingHeader() {
                     className="tlg-btn tlg-btn-primary tlg-btn-full"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    {player ? 'Dashboard' : 'Create Player'}
+                    {player ? t('marketing.dashboard') : t('marketing.createPlayer')}
                   </Link>
                   <button
                     type="button"
@@ -155,13 +249,13 @@ export default function MarketingHeader() {
                     onClick={() => void handleSignOut()}
                     disabled={signingOut}
                   >
-                    {signingOut ? 'Signing Out…' : 'Sign Out'}
+                    {signingOut ? t('marketing.signingOut') : t('marketing.signOut')}
                   </button>
                 </>
               ) : (
                 <>
-                  <Link to="/login" className="tlg-btn tlg-btn-secondary tlg-btn-full" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>
-                  <Link to="/register" className="tlg-btn tlg-btn-primary tlg-btn-full" onClick={() => setMobileMenuOpen(false)}>Start Playing</Link>
+                  <Link to="/login" className="tlg-btn tlg-btn-secondary tlg-btn-full" onClick={() => setMobileMenuOpen(false)}>{t('marketing.signIn')}</Link>
+                  <Link to="/register" className="tlg-btn tlg-btn-primary tlg-btn-full" onClick={() => setMobileMenuOpen(false)}>{t('marketing.startPlaying')}</Link>
                 </>
               )}
             </div>
