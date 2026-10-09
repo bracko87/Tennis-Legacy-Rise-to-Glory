@@ -3,11 +3,12 @@ import { initReactI18next } from 'react-i18next'
 
 import en from './locales/en'
 import sr from './locales/sr'
+import de from './locales/de'
 
 export const SUPPORTED_LOCALES = ['en', 'sr', 'de', 'es', 'it', 'fr', 'ru', 'pt'] as const
 export type AppLocale = typeof SUPPORTED_LOCALES[number]
 
-export const ENABLED_LOCALES: readonly AppLocale[] = ['en', 'sr']
+export const ENABLED_LOCALES: readonly AppLocale[] = ['en', 'sr', 'de']
 
 export const LOCALE_TAGS: Record<AppLocale, string> = {
   en: 'en-US',
@@ -33,6 +34,7 @@ void i18n
     resources: {
       en: { translation: en },
       sr: { translation: sr },
+      de: { translation: de },
     },
     lng: normalizeAppLocale(
       typeof window !== 'undefined'
