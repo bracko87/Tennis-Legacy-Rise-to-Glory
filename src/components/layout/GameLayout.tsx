@@ -62,7 +62,6 @@ export default function GameLayout({ title, subtitle, children }: GameLayoutProp
           title={title}
           subtitle={subtitle}
           onToggleSidebarMobile={() => setSidebarMobileOpen((value) => !value)}
-          onOpenEarnCoins={() => setEarnCoinsOpen(true)}
         />
 
         <main
