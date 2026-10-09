@@ -354,7 +354,7 @@ export default function InjuriesPage() {
               <div className="tlg-health-section-head"><div><span>{t('healthPage.recordKicker')}</span><h2>{t('healthPage.historyHeading')}</h2></div><strong>{t('healthPage.recorded', { count: data.health_history.length })}</strong></div>
               {data.health_history.length === 0 ? <div className="tlg-health-empty">{t('healthPage.noHistory')}</div> : (
                 <div className="tlg-health-history-table">
-                  <div className="head"><span>Condition</span><span>Type</span><span>Severity</span><span>{t('healthPage.started')}</span><span>Recovered</span><span>Duration</span><span>Treatment</span></div>
+                  <div className="head"><span>{t('healthPage.historyColumns.condition')}</span><span>{t('healthPage.historyColumns.type')}</span><span>{t('healthPage.historyColumns.severity')}</span><span>{t('healthPage.historyColumns.started')}</span><span>{t('healthPage.historyColumns.recovered')}</span><span>{t('healthPage.historyColumns.duration')}</span><span>{t('healthPage.historyColumns.treatment')}</span></div>
                   {data.health_history.map((item) => <div key={`${item.kind}-${item.id}`}><strong>{item.name}<small>{item.body_area ?? ''}</small></strong><span>{t(item.kind === 'illness' ? 'healthPage.illness' : 'healthPage.injury')}</span><span>{severityLabel(item.severity, t)}</span><span>{gameDate(item.onset_game_date, t)}</span><span>{gameDate(item.recovered_game_date, t)}</span><span>{t('healthPage.durationDays', { count: item.recovery_days })}</span><span>{item.treatment_label}</span></div>)}
                 </div>
               )}
