@@ -159,7 +159,7 @@ export default function GameSidebar({
                   active && 'tlg-v2-nav-link-active',
                   item.premiumOnly && 'tlg-v2-nav-link-premium',
                 )}
-                title={isCollapsed ? `${t(t(item.labelKey)Key)}${item.premiumOnly ? ` · ${t('header.premium')}` : ''}` : undefined}
+                title={isCollapsed ? `${t(item.labelKey)}${item.premiumOnly ? ` · ${t('header.premium')}` : ''}` : undefined}
                 aria-current={active ? 'page' : undefined}
               >
                 <span className="tlg-v2-nav-icon">{item.icon}</span>
@@ -167,10 +167,10 @@ export default function GameSidebar({
                 {!isCollapsed && (
                   <span className="tlg-v2-nav-copy">
                     <span className="tlg-v8-nav-title-line">
-                      <strong>{t(t(item.labelKey)Key)}</strong>
+                      <strong>{t(item.labelKey)}</strong>
                       {item.premiumOnly && <em>{t('header.premium')}</em>}
                     </span>
-                    <small>{t(t(item.descriptionKey)Key)}</small>
+                    <small>{t(item.descriptionKey)}</small>
                   </span>
                 )}
               </Link>
@@ -193,7 +193,7 @@ export default function GameSidebar({
             <LogOut size={16} />
             {!isCollapsed && <span>{t('nav.signOut')}</span>}
           </button>
-          {!isCollapsed && <div className="tlg-v6-version">{t('nav.version', { version: '1.0.0' })}</div>
+          {!isCollapsed && <div className="tlg-v6-version">{t('nav.version', { version: '1.0.0' })}</div>}
         </div>
       </aside>
     </>
