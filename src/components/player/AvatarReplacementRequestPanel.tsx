@@ -1,7 +1,9 @@
 import { CheckCircle2, Clock3, RefreshCcw, ShieldCheck, Upload } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation, type TFunction } from 'react-i18next'
 
 import { useAuth } from '../../auth/AuthContext'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import usePlayerAvatarUrl from '../../hooks/usePlayerAvatarUrl'
 import { supabase } from '../../lib/supabase'
 import '../../styles/avatar-replacement-request.css'
@@ -35,14 +37,14 @@ interface AvatarRequestRow {
   updated_at: string
 }
 
-const STATUS_COPY: Record<AvatarRequestRow['status'], { label: string; detail: string; tone: string }> = {
-  submitted: { label: 'Submitted', detail: 'The private request is in the admin queue.', tone: 'info' },
-  under_review: { label: 'Under review', detail: 'The Tennis Legacy team is reviewing your photo.', tone: 'info' },
-  preparing: { label: 'Replacement being prepared', detail: 'A replacement avatar is currently being prepared.', tone: 'info' },
-  ready_for_review: { label: 'Ready for review', detail: 'Your prepared avatar is ready. Your current avatar stays active until you approve it.', tone: 'success' },
-  completed: { label: 'Completed', detail: 'You approved the replacement and it is now active.', tone: 'success' },
-  revision_requested: { label: 'Revision requested', detail: 'Your feedback was returned to the admin team for another revision.', tone: 'warning' },
-  rejected: { label: 'Rejected / unable to process', detail: 'The request was closed without changing your current avatar.', tone: 'warning' },
+const STATUS_TONE: Record<AvatarRequestRow['status'], string> = {
+  submitted: 'info',
+  under_review: 'info',
+  preparing: 'info',
+  ready_for_review: 'success',
+  completed: 'success',
+  revision_requested: 'warning',
+  rejected: 'warning',
 }
 
 function detectImageType(bytes: Uint8Array) {
@@ -61,13 +63,13 @@ function detectImageType(bytes: Uint8Array) {
   return null
 }
 
-function createSecureRequestId() {
+function createSecureRequestId(t: TFunction) {
   const cryptoApi = globalThis.crypto
-  if (!cryptoApi) throw new Error('Secure random number generation is not supported by this browser.')
+  if (!cryptoApi) throw new Error(t('playerAccountPage.avatar.errors.crypto'))
 
   if (typeof cryptoApi.randomUUID === 'function') return cryptoApi.randomUUID()
   if (typeof cryptoApi.getRandomValues !== 'function') {
-    throw new Error('Secure random number generation is not supported by this browser.')
+    throw new Error(t('playerAccountPage.avatar.errors.crypto'))
   }
 
   const bytes = cryptoApi.getRandomValues(new Uint8Array(16))
@@ -77,27 +79,29 @@ function createSecureRequestId() {
   return `${hex.slice(0, 4).join('')}-${hex.slice(4, 6).join('')}-${hex.slice(6, 8).join('')}-${hex.slice(8, 10).join('')}-${hex.slice(10, 16).join('')}`
 }
 
-async function validateImage(file: File) {
-  if (file.size <= 0) throw new Error('Please choose a valid image file.')
-  if (file.size > MAX_FILE_BYTES) throw new Error('The image must be 8 MB or smaller.')
+async function validateImage(file: File, t: TFunction) {
+  if (file.size <= 0) throw new Error(t('playerAccountPage.avatar.errors.file'))
+  if (file.size > MAX_FILE_BYTES) throw new Error(t('playerAccountPage.avatar.errors.size'))
 
   const bytes = new Uint8Array(await file.slice(0, 16).arrayBuffer())
   const detected = detectImageType(bytes)
-  if (!detected) throw new Error('Only JPG, PNG and WEBP images are accepted. SVG and executable files are not allowed.')
+  if (!detected) throw new Error(t('playerAccountPage.avatar.errors.type'))
 
   if (file.type && file.type !== detected.mime && !(file.type === 'image/jpg' && detected.mime === 'image/jpeg')) {
-    throw new Error('The image contents do not match the selected file type.')
+    throw new Error(t('playerAccountPage.avatar.errors.mismatch'))
   }
 
   return detected
 }
 
-function formatDate(value: string | null) {
+function formatDate(value: string | null, localeTag: string) {
   if (!value) return '—'
-  return new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
+  return new Intl.DateTimeFormat(localeTag, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
 }
 
 export default function AvatarReplacementRequestPanel() {
+  const { t } = useTranslation()
+  const { localeTag } = useLocalization()
   const { player, user, refreshPlayer } = useAuth()
   const [request, setRequest] = useState<AvatarRequestRow | null>(null)
   const [loading, setLoading] = useState(true)
@@ -112,7 +116,7 @@ export default function AvatarReplacementRequestPanel() {
 
   const reviewAvatarUrl = usePlayerAvatarUrl(request?.status === 'ready_for_review' ? request.review_image_path : null)
   const isActive = Boolean(request && ACTIVE_STATUSES.has(request.status))
-  const statusCopy = request ? STATUS_COPY[request.status] : null
+  const statusTone = request ? STATUS_TONE[request.status] : null
 
   const loadRequest = useCallback(async () => {
     if (!user?.id) {
@@ -224,11 +228,11 @@ export default function AvatarReplacementRequestPanel() {
     setSuccess(null)
 
     if (!file) {
-      setError('Please upload one clear photo of yourself.')
+      setError(t('playerAccountPage.avatar.errors.photoRequired'))
       return
     }
     if (!consentConfirmed) {
-      setError('Please confirm that this is your own photo and that Tennis Legacy may process it privately for this avatar request.')
+      setError(t('playerAccountPage.avatar.errors.consentRequired'))
       return
     }
 
@@ -236,8 +240,8 @@ export default function AvatarReplacementRequestPanel() {
     let storagePath: string | null = null
 
     try {
-      const detected = await validateImage(file)
-      const requestId = createSecureRequestId()
+      const detected = await validateImage(file, t)
+      const requestId = createSecureRequestId(t)
       storagePath = `${user.id}/${requestId}/submission.${detected.extension}`
 
       const { error: uploadError } = await supabase.storage
@@ -273,10 +277,10 @@ export default function AvatarReplacementRequestPanel() {
       setFileInputKey((value) => value + 1)
       setColors(['', '', ''])
       setConsentConfirmed(false)
-      setSuccess(`Request ${requestId} was submitted privately to Tennis Legacy support.`)
+      setSuccess(t('playerAccountPage.avatar.success.submitted', { id: requestId }))
       await loadRequest()
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'The avatar request could not be submitted.'
+      const message = caught instanceof Error ? caught.message : t('playerAccountPage.avatar.errors.submit')
       setError(message)
     } finally {
       setBusy(false)
@@ -291,7 +295,7 @@ export default function AvatarReplacementRequestPanel() {
     if (approveError) {
       setError(approveError.message)
     } else {
-      setSuccess('Replacement approved. Your new avatar is now active.')
+      setSuccess(t('playerAccountPage.avatar.success.approved'))
       await refreshPlayer()
       await loadRequest()
     }
@@ -301,7 +305,7 @@ export default function AvatarReplacementRequestPanel() {
   async function requestRevision() {
     if (!request || busy) return
     if (revisionMessage.trim().length < 5) {
-      setError('Please explain what should be corrected in at least 5 characters.')
+      setError(t('playerAccountPage.avatar.errors.revision'))
       return
     }
     setBusy(true)
@@ -314,7 +318,7 @@ export default function AvatarReplacementRequestPanel() {
       setError(revisionError.message)
     } else {
       setRevisionMessage('')
-      setSuccess('Revision request sent. Your current avatar remains active.')
+      setSuccess(t('playerAccountPage.avatar.success.revision'))
       await loadRequest()
     }
     setBusy(false)
@@ -324,52 +328,52 @@ export default function AvatarReplacementRequestPanel() {
     <section className="tlg-account-section tlg-avatar-request-section">
       <header className="tlg-account-section-head">
         <div>
-          <span>Player image</span>
-          <h3>Private avatar replacement request</h3>
-          <p>Upload one clear photo of yourself and, if you want, choose up to three jersey colors. We prepare the Tennis Legacy avatar, you review it, and nothing changes until you approve it. Your original source photo is temporary and is automatically deleted no later than 24 hours after upload.</p>
+          <span>{t('playerAccountPage.avatar.requestKicker')}</span>
+          <h3>{t('playerAccountPage.avatar.requestTitle')}</h3>
+          <p>{t('playerAccountPage.avatar.requestIntro')}</p>
         </div>
       </header>
 
       {loading ? (
-        <div className="tlg-avatar-request-loading">Loading avatar request status…</div>
+        <div className="tlg-avatar-request-loading">{t('playerAccountPage.avatar.loading')}</div>
       ) : (
         <>
-          {request && statusCopy && (
-            <div className={`tlg-avatar-request-status tone-${statusCopy.tone}`}>
+          {request && statusTone && (
+            <div className={`tlg-avatar-request-status tone-${statusTone}`}>
               <div className="tlg-avatar-status-main">
                 <span className="tlg-avatar-status-icon">{request.status === 'completed' ? <CheckCircle2 size={19} /> : <Clock3 size={19} />}</span>
                 <div>
-                  <span>Request status</span>
-                  <strong>{statusCopy.label}</strong>
-                  <p>{statusCopy.detail}</p>
+                  <span>{t('playerAccountPage.avatar.status')}</span>
+                  <strong>{t(`playerAccountPage.avatar.statuses.${request.status}.label`)}</strong>
+                  <p>{t(`playerAccountPage.avatar.statuses.${request.status}.detail`)}</p>
                 </div>
               </div>
               <div className="tlg-avatar-status-meta">
-                <span>Request ID</span><code>{request.id}</code>
-                <span>Submitted</span><strong>{formatDate(request.created_at)}</strong>
-                <span>Type</span><strong>Reference photo</strong>
+                <span>{t('playerAccountPage.avatar.requestId')}</span><code>{request.id}</code>
+                <span>{t('playerAccountPage.avatar.submittedAt')}</span><strong>{formatDate(request.created_at, localeTag)}</strong>
+                <span>{t('playerAccountPage.avatar.type')}</span><strong>{t('playerAccountPage.avatar.referencePhoto')}</strong>
               </div>
-              {request.admin_public_message && <p className="tlg-avatar-admin-message"><strong>Admin note:</strong> {request.admin_public_message}</p>}
+              {request.admin_public_message && <p className="tlg-avatar-admin-message"><strong>{t('playerAccountPage.avatar.adminNote')}</strong> {request.admin_public_message}</p>}
             </div>
           )}
 
           {request?.status === 'ready_for_review' && (
             <div className="tlg-avatar-review-panel">
               <div className="tlg-avatar-review-copy">
-                <span>Replacement ready</span>
-                <h4>Review before applying</h4>
-                <p>Your existing avatar remains active until you press <strong>Approve & apply</strong>. If something is wrong, you may request up to two revisions.</p>
-                <div className="tlg-avatar-review-meta"><span>Revisions used</span><strong>{request.revision_count} / 2</strong></div>
+                <span>{t('playerAccountPage.avatar.readyKicker')}</span>
+                <h4>{t('playerAccountPage.avatar.readyTitle')}</h4>
+                <p>{t('playerAccountPage.avatar.readyBody')}</p>
+                <div className="tlg-avatar-review-meta"><span>{t('playerAccountPage.avatar.revisionsUsed')}</span><strong>{request.revision_count} / 2</strong></div>
               </div>
               <div className="tlg-avatar-review-image">
-                {reviewAvatarUrl ? <img src={reviewAvatarUrl} alt="Prepared replacement avatar" /> : <div>Loading preview…</div>}
+                {reviewAvatarUrl ? <img src={reviewAvatarUrl} alt={t('playerAccountPage.avatar.preparedAlt')} /> : <div>{t('playerAccountPage.avatar.loadingPreview')}</div>}
               </div>
               <div className="tlg-avatar-review-actions">
-                <button type="button" className="tlg-account-primary-button" onClick={() => void approveReplacement()} disabled={busy || !reviewAvatarUrl}>Approve & apply</button>
+                <button type="button" className="tlg-account-primary-button" onClick={() => void approveReplacement()} disabled={busy || !reviewAvatarUrl}>{t('playerAccountPage.avatar.approve')}</button>
                 {request.revision_count < 2 && (
                   <div className="tlg-avatar-revision-box">
-                    <label><span>Revision request</span><textarea rows={3} maxLength={1000} value={revisionMessage} onChange={(event) => setRevisionMessage(event.target.value)} placeholder="Describe exactly what should be corrected." /></label>
-                    <button type="button" className="tlg-account-secondary-button" onClick={() => void requestRevision()} disabled={busy}>Request revision</button>
+                    <label><span>{t('playerAccountPage.avatar.revision')}</span><textarea rows={3} maxLength={1000} value={revisionMessage} onChange={(event) => setRevisionMessage(event.target.value)} placeholder={t('playerAccountPage.avatar.revisionPlaceholder')} /></label>
+                    <button type="button" className="tlg-account-secondary-button" onClick={() => void requestRevision()} disabled={busy}>{t('playerAccountPage.avatar.requestRevision')}</button>
                   </div>
                 )}
               </div>
@@ -381,8 +385,8 @@ export default function AvatarReplacementRequestPanel() {
               <ShieldCheck size={17} />
               <p>
                 {request.reference_deleted_at
-                  ? `The private original/reference image was deleted on ${formatDate(request.reference_deleted_at)}.`
-                  : 'The private original/reference image is queued for automatic deletion now that the request is closed. The server cleanup runs automatically, and source photos are never retained beyond the 24-hour retention window.'}
+                  ? t('playerAccountPage.avatar.deletedOn', { date: formatDate(request.reference_deleted_at, localeTag) })
+                  : t('playerAccountPage.avatar.deletionQueued')}
               </p>
             </div>
           )}
@@ -393,18 +397,18 @@ export default function AvatarReplacementRequestPanel() {
                 <div className="tlg-avatar-simple-copy">
                   <Upload size={22} />
                   <div>
-                    <strong>Upload your photo</strong>
-                    <p>Use a clear, front-facing photo of yourself. JPG, PNG or WEBP, maximum 8 MB.</p>
+                    <strong>{t('playerAccountPage.avatar.uploadTitle')}</strong>
+                    <p>{t('playerAccountPage.avatar.uploadBody')}</p>
                   </div>
                 </div>
                 <label className="tlg-account-field tlg-avatar-file-field">
-                  <span>Your photo</span>
+                  <span>{t('playerAccountPage.avatar.yourPhoto')}</span>
                   <input key={fileInputKey} type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setError(null) }} required />
                 </label>
               </div>
 
               <div className="tlg-avatar-simple-colors">
-                <span>Jersey colors · optional · up to 3</span>
+                <span>{t('playerAccountPage.avatar.jerseyColors')}</span>
                 <div>
                   {colors.map((color, index) => (
                     <input
@@ -412,7 +416,7 @@ export default function AvatarReplacementRequestPanel() {
                       maxLength={30}
                       value={color}
                       onChange={(event) => setColors((items) => items.map((item, itemIndex) => itemIndex === index ? event.target.value : item))}
-                      placeholder={`Color ${index + 1}`}
+                      placeholder={t('playerAccountPage.avatar.colorPlaceholder', { index: index + 1 })}
                     />
                   ))}
                 </div>
@@ -420,27 +424,27 @@ export default function AvatarReplacementRequestPanel() {
 
               <label className="tlg-avatar-simple-consent">
                 <input type="checkbox" checked={consentConfirmed} onChange={(event) => setConsentConfirmed(event.target.checked)} required />
-                <span>I confirm this is my own photo and allow Tennis Legacy to process it privately only for this avatar request.</span>
+                <span>{t('playerAccountPage.avatar.consent')}</span>
               </label>
 
               <div className="tlg-avatar-privacy-box">
                 <ShieldCheck size={18} />
-                <div><strong>Private upload · temporary source photo</strong><p>Your source photo is stored privately and is never shown to other players. It is automatically deleted when your replacement is approved/applied or the request is closed, and in all cases no later than 24 hours after upload.</p></div>
+                <div><strong>{t('playerAccountPage.avatar.privacyTitle')}</strong><p>{t('playerAccountPage.avatar.privacyBody')}</p></div>
               </div>
 
-              {file && <div className="tlg-avatar-selected-file"><strong>Selected:</strong> {file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB</div>}
+              {file && <div className="tlg-avatar-selected-file"><strong>{t('playerAccountPage.avatar.selected')}</strong> {file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB</div>}
               {error && <p className="tlg-avatar-request-error" role="alert">{error}</p>}
               {success && <p className="tlg-avatar-request-success" role="status">{success}</p>}
 
               <div className="tlg-account-form-actions">
-                <button type="submit" className="tlg-account-primary-button" disabled={!player || !user || busy}>{busy ? 'Uploading privately…' : 'Submit photo for avatar creation'}</button>
-                <small>Your current avatar stays unchanged until you review and approve the prepared replacement. The original uploaded photo is temporary and is automatically removed from the server within the 24-hour retention window.</small>
+                <button type="submit" className="tlg-account-primary-button" disabled={!player || !user || busy}>{busy ? t('playerAccountPage.avatar.uploading') : t('playerAccountPage.avatar.submit')}</button>
+                <small>{t('playerAccountPage.avatar.submitNote')}</small>
               </div>
             </form>
           )}
 
           {isActive && request?.status !== 'ready_for_review' && (
-            <div className="tlg-avatar-active-note"><RefreshCcw size={17} /><p>A new request cannot be opened while this one is active. You can follow the current state here; the page updates when the admin team changes it.</p></div>
+            <div className="tlg-avatar-active-note"><RefreshCcw size={17} /><p>{t('playerAccountPage.avatar.activeNote')}</p></div>
           )}
 
           {isActive && error && <p className="tlg-avatar-request-error active" role="alert">{error}</p>}
