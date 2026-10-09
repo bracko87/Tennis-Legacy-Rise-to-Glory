@@ -821,10 +821,10 @@ export default function NationalTeamCompetition() {
 
           <section className="tlg-v2-panel nt-window-panel">
             <header className="nt-section-header">
-              <div><span>NATIONAL CALENDAR</span><h3>National-team windows</h3></div>
+              <div><span>{t('nationalTeamPage.competition.calendar')}</span><h3>{t('nationalTeamPage.competition.windows')}</h3></div>
             </header>
             <p className="nt-section-copy">
-              Windows are visible well before play so tournament planning can account for national-team weeks. Accepted call-ups become hard calendar commitments.
+              {t('nationalTeamPage.competition.windowsBody')}
             </p>
 
             <div className="nt-window-seasons">
@@ -836,8 +836,8 @@ export default function NationalTeamCompetition() {
                   <section key={seasonNumber} className="nt-window-season">
                     <div className="nt-window-season-head">
                       <div>
-                        <span>SEASON {seasonNumber}</span>
-                        <strong>{friendlySeason ? 'Friendly programme' : 'Official competition calendar'}</strong>
+                        <span>{t('nationalTeamPage.competition.seasonLabel', { season: seasonNumber })}</span>
+                        <strong>{friendlySeason ? t('nationalTeamPage.competition.friendlyProgramme') : t('nationalTeamPage.competition.officialCalendar')}</strong>
                       </div>
                       <small>{friendlySeason ? 'No standings · no promotion/relegation' : 'Official results affect the pyramid'}</small>
                     </div>
@@ -846,18 +846,18 @@ export default function NationalTeamCompetition() {
                       {windows.map((window) => (
                         <article key={window.id}>
                           <div>
-                            <span>{windowModeLabel(window)} · {window.status === 'planned' ? 'Scheduled' : titleCase(window.status)}</span>
+                            <span>{windowModeLabel(t, window)} · {window.status === 'planned' ? 'Scheduled' : titleCase(window.status)}</span>
                             <strong>{window.label}</strong>
                             <small>Week {window.season_week} · {window.competition_phase}</small>
                           </div>
                           <div>
-                            <span>Match window</span>
-                            <strong>{formatAbsoluteDay(window.start_absolute_day)}</strong>
-                            <small>through {formatAbsoluteDay(window.end_absolute_day)}</small>
+                            <span>{t('nationalTeamPage.competition.matchWindow')}</span>
+                            <strong>{formatAbsoluteDay(t, window.start_absolute_day)}</strong>
+                            <small>through {formatAbsoluteDay(t, window.end_absolute_day)}</small>
                           </div>
                           <div>
-                            <span>Announcement target</span>
-                            <strong>{formatAbsoluteDay(window.announcement_absolute_day)}</strong>
+                            <span>{t('nationalTeamPage.competition.announcementTarget')}</span>
+                            <strong>{formatAbsoluteDay(t, window.announcement_absolute_day)}</strong>
                             <small>Call-ups close {formatAbsoluteDay(window.callup_deadline_absolute_day)}</small>
                           </div>
                         </article>
@@ -871,7 +871,7 @@ export default function NationalTeamCompetition() {
 
           <section className="tlg-v2-panel nt-fixtures-panel">
             <header className="nt-section-header">
-              <div><span>FIXTURES</span><h3>National ties</h3></div>
+              <div><span>{t('nationalTeamPage.competition.fixtures')}</span><h3>{t('nationalTeamPage.competition.tiesTitle')}</h3></div>
             </header>
 
             {hub.fixtures.length === 0 ? (
@@ -897,7 +897,7 @@ export default function NationalTeamCompetition() {
                   >
                     <CountryFlag countryCode={fixture.opponent_country_code} countryName={fixture.opponent_country_code} width={28} height={19} />
                     <span>
-                      <small>{formatAbsoluteDay(fixture.tie_start_absolute_day)}</small>
+                      <small>{formatAbsoluteDay(t, fixture.tie_start_absolute_day)}</small>
                       <strong>vs {nationalCountryName(fixture.opponent_country_code, fixture.opponent_name)}</strong>
                       <em>{fixture.host_city} · {titleCase(fixture.surface)} · {titleCase(fixture.status)}</em>
                     </span>
@@ -908,23 +908,23 @@ export default function NationalTeamCompetition() {
             )}
           </section>
 
-          {detailLoading && <section className="tlg-v2-panel nt-competition-loading">Loading selected fixture…</section>}
+          {detailLoading && <section className="tlg-v2-panel nt-competition-loading">{t('nationalTeamPage.competition.fixtureLoading')}</section>}
 
           {detail && !detailLoading && (
             <>
               <section className="tlg-v2-panel nt-fixture-detail">
                 <header className="nt-section-header">
                   <div>
-                    <span>SELECTED TIE</span>
+                    <span>{t('nationalTeamPage.competition.selectedTie')}</span>
                     <h3>{nationalCountryName(detail.fixture.home_country_code, detail.fixture.home_name)} vs {nationalCountryName(detail.fixture.away_country_code, detail.fixture.away_name)}</h3>
                   </div>
                 </header>
 
                 <div className="nt-fixture-meta">
-                  <div><MapPin size={15} /><span>Host</span><strong>{detail.fixture.host_city}, {detail.fixture.host_country_code}</strong></div>
-                  <div><CalendarDays size={15} /><span>Dates</span><strong>{formatAbsoluteDay(detail.fixture.tie_start_absolute_day)} – {formatAbsoluteDay(detail.fixture.tie_end_absolute_day)}</strong></div>
-                  <div><Coins size={15} /><span>Appearance payment</span><strong>{money(detail.fixture.expected_appearance_fee_usd)}</strong></div>
-                  <div><Trophy size={15} /><span>Tie score</span><strong>{detail.fixture.home_match_wins} – {detail.fixture.away_match_wins}</strong></div>
+                  <div><MapPin size={15} /><span>{t('nationalTeamPage.competition.host')}</span><strong>{detail.fixture.host_city}, {detail.fixture.host_country_code}</strong></div>
+                  <div><CalendarDays size={15} /><span>{t('nationalTeamPage.competition.dates')}</span><strong>{formatAbsoluteDay(t, detail.fixture.tie_start_absolute_day)} – {formatAbsoluteDay(t, detail.fixture.tie_end_absolute_day)}</strong></div>
+                  <div><Coins size={15} /><span>{t('nationalTeamPage.competition.appearancePaymentLabel')}</span><strong>{money(detail.fixture.expected_appearance_fee_usd)}</strong></div>
+                  <div><Trophy size={15} /><span>{t('nationalTeamPage.competition.tieScore')}</span><strong>{detail.fixture.home_match_wins} – {detail.fixture.away_match_wins}</strong></div>
                 </div>
 
                 {detail.fixture.central_event_key && (
@@ -934,11 +934,11 @@ export default function NationalTeamCompetition() {
                 )}
 
                 <div className="nt-format-strip">
-                  <span>1</span><strong>Singles</strong>
-                  <span>2</span><strong>Singles</strong>
-                  <span>3</span><strong>Doubles</strong>
-                  <span>4</span><strong>Singles</strong>
-                  <span>5</span><strong>Singles</strong>
+                  <span>1</span><strong>{t('nationalTeamPage.competition.singles')}</strong>
+                  <span>2</span><strong>{t('nationalTeamPage.competition.singles')}</strong>
+                  <span>3</span><strong>{t('nationalTeamPage.competition.doubles')}</strong>
+                  <span>4</span><strong>{t('nationalTeamPage.competition.singles')}</strong>
+                  <span>5</span><strong>{t('nationalTeamPage.competition.singles')}</strong>
                 </div>
                 <p className="nt-rule-note">
                   First to three match wins takes the tie. Once the tie is decided, remaining dead rubbers are cancelled to avoid unnecessary fatigue and injury exposure.
@@ -948,12 +948,12 @@ export default function NationalTeamCompetition() {
               {detail.is_captain && (
                 <section className="tlg-v2-panel nt-captain-desk">
                   <header className="nt-section-header">
-                    <div><span>CAPTAIN DESK</span><h3>Call-ups & five-player squad</h3></div>
+                    <div><span>{t('nationalTeamPage.competition.captainDesk')}</span><h3>{t('nationalTeamPage.competition.callupsSquad')}</h3></div>
                   </header>
 
                   <div className="nt-captain-deadlines">
-                    <div><span>Call-up response deadline</span><strong>{formatAbsoluteDay(detail.fixture.response_deadline_absolute_day)}</strong></div>
-                    <div><span>Squad nomination deadline</span><strong>{formatAbsoluteDay(detail.fixture.squad_deadline_absolute_day)}</strong></div>
+                    <div><span>{t('nationalTeamPage.competition.callupDeadline')}</span><strong>{formatAbsoluteDay(t, detail.fixture.response_deadline_absolute_day)}</strong></div>
+                    <div><span>{t('nationalTeamPage.competition.squadDeadline')}</span><strong>{formatAbsoluteDay(t, detail.fixture.squad_deadline_absolute_day)}</strong></div>
                   </div>
 
                   <div className="nt-eligible-callups">
@@ -961,9 +961,9 @@ export default function NationalTeamCompetition() {
                       <article key={member.player_id}>
                         <div>
                           <strong>{memberName(member)}</strong>
-                          <small>{member.rank_position ? `World #${member.rank_position}` : 'Unranked'} · {member.national_appearances} national appearance{member.national_appearances === 1 ? '' : 's'}</small>
+                          <small>{member.rank_position ? `World #${member.rank_position}` : t('nationalTeamPage.competition.unranked')} · {member.national_appearances} national appearance{member.national_appearances === 1 ? '' : 's'}</small>
                         </div>
-                        <span className={`callup-status status-${member.callup_status ?? 'none'}`}>{callupStatusLabel(member.callup_status)}</span>
+                        <span className={`callup-status status-${member.callup_status ?? 'none'}`}>{callupStatusLabel(t, member.callup_status)}</span>
                         <button
                           type="button"
                           disabled={working || member.callup_status === 'accepted' || member.callup_status === 'pending'}
@@ -977,8 +977,8 @@ export default function NationalTeamCompetition() {
 
                   <div className="nt-squad-builder">
                     <div className="nt-squad-builder-head">
-                      <div><span>FINAL SQUAD</span><strong>{squadSelection.length} / 5 selected</strong></div>
-                      <small>Only players who accepted can be nominated. Four are required for four different singles slots; a fifth player can remain reserve.</small>
+                      <div><span>{t('nationalTeamPage.competition.finalSquad')}</span><strong>{t('nationalTeamPage.competition.selectedCount', { count: squadSelection.length })}</strong></div>
+                      <small>{t('nationalTeamPage.competition.finalSquadNote')}</small>
                     </div>
                     <div className="nt-squad-options">
                       {detail.eligible_members.filter((member) => member.accepted).map((member) => {
@@ -986,7 +986,7 @@ export default function NationalTeamCompetition() {
                         return (
                           <label key={member.player_id} className={selected ? 'selected' : ''}>
                             <input type="checkbox" checked={selected} onChange={() => toggleSquadPlayer(member.player_id)} disabled={!selected && squadSelection.length >= 5} />
-                            <span><strong>{memberName(member)}</strong><small>{member.rank_position ? `#${member.rank_position}` : 'Unranked'}</small></span>
+                            <span><strong>{memberName(member)}</strong><small>{member.rank_position ? `#${member.rank_position}` : t('nationalTeamPage.competition.unranked')}</small></span>
                           </label>
                         )
                       })}
@@ -1001,22 +1001,22 @@ export default function NationalTeamCompetition() {
               {detail.is_captain && detail.squad.length >= 4 && (
                 <section className="tlg-v2-panel nt-lineup-builder">
                   <header className="nt-section-header">
-                    <div><span>HIDDEN LINEUP</span><h3>Submit match roles privately</h3></div>
+                    <div><span>{t('nationalTeamPage.competition.hiddenLineup')}</span><h3>{t('nationalTeamPage.competition.hiddenLineupTitle')}</h3></div>
                   </header>
                   <p className="nt-section-copy">
-                    Four different players must fill the four singles slots. A player may additionally play doubles, but nobody can play two singles matches in the same tie.
+                    {t('nationalTeamPage.competition.hiddenLineupBody')}
                   </p>
 
                   <div className="nt-lineup-grid">
-                    {SLOT_LABELS.map((slot) => (
-                      <label key={slot.code}>
-                        <span>{slot.label}<small>{slot.discipline}</small></span>
+                    {SLOT_CODES.map((code) => (
+                      <label key={code}>
+                        <span>{t(`nationalTeamPage.competition.slots.${code}`)}<small>{code.startsWith('D') ? t('nationalTeamPage.competition.doubles') : t('nationalTeamPage.competition.singles')}</small></span>
                         <select
-                          value={lineupDraft[slot.code]}
+                          value={lineupDraft[code]}
                           disabled={detail.our_lineup_status === 'locked' || detail.our_lineup_status === 'auto_locked'}
-                          onChange={(event) => setLineupDraft((current) => ({ ...current, [slot.code]: event.target.value }))}
+                          onChange={(event) => setLineupDraft((current) => ({ ...current, [code]: event.target.value }))}
                         >
-                          <option value="">Select player</option>
+                          <option value="">{t('nationalTeamPage.competition.selectPlayer')}</option>
                           {detail.squad.map((member) => (
                             <option key={member.player_id} value={member.player_id}>
                               {member.first_name} {member.last_name}
@@ -1028,14 +1028,14 @@ export default function NationalTeamCompetition() {
                   </div>
 
                   <div className="nt-lineup-actions">
-                    <span>Lineup status: <strong>{detail.our_lineup_status ? titleCase(detail.our_lineup_status) : 'Not submitted'}</strong></span>
+                    <span>{t('nationalTeamPage.competition.lineupStatus')}: <strong>{detail.our_lineup_status ? titleCase(detail.our_lineup_status) : t('nationalTeamPage.competition.notSubmitted')}</strong></span>
                     {detail.our_lineup_status !== 'locked' && detail.our_lineup_status !== 'auto_locked' && (
                       <>
                         <button type="button" disabled={working || Object.values(lineupDraft).some((value) => !value)} onClick={() => void saveLineup()}>
                           Save private lineup
                         </button>
                         <button type="button" className="lock" disabled={working || detail.our_lineup.length !== 6} onClick={() => void lockLineup()}>
-                          <LockKeyhole size={14} /> Lock lineup
+                          <LockKeyhole size={14} /> {t('nationalTeamPage.competition.lockLineup')}
                         </button>
                       </>
                     )}
@@ -1045,20 +1045,20 @@ export default function NationalTeamCompetition() {
 
               <section className="tlg-v2-panel nt-reveal-panel">
                 <header className="nt-section-header">
-                  <div><span>LINEUP REVEAL</span><h3>{detail.lineups_revealed ? 'Both lineups revealed' : 'Opponent lineup hidden'}</h3></div>
+                  <div><span>{t('nationalTeamPage.competition.reveal')}</span><h3>{detail.lineups_revealed ? t('nationalTeamPage.competition.bothRevealed') : t('nationalTeamPage.competition.opponentHidden')}</h3></div>
                 </header>
 
                 <div className="nt-lineup-compare">
                   <div>
                     <span>{nationalCountryName(detail.association.country_code, detail.association.name)}</span>
-                    {detail.our_lineup.length === 0 ? <small>No lineup submitted yet.</small> : detail.our_lineup.map((slot) => (
+                    {detail.our_lineup.length === 0 ? <small>{t('nationalTeamPage.competition.noLineup')}</small> : detail.our_lineup.map((slot) => (
                       <div key={slot.slot_code}><b>{slot.slot_code}</b><strong>{slot.first_name} {slot.last_name}</strong></div>
                     ))}
                   </div>
                   <div className={!detail.lineups_revealed ? 'hidden' : ''}>
                     <span>{nationalCountryName(detail.fixture.opponent_country_code, detail.fixture.opponent_name)}</span>
                     {!detail.lineups_revealed ? (
-                      <div className="nt-hidden-lineup"><LockKeyhole size={20} /><strong>Hidden until simultaneous reveal</strong></div>
+                      <div className="nt-hidden-lineup"><LockKeyhole size={20} /><strong>{t('nationalTeamPage.competition.hiddenUntilReveal')}</strong></div>
                     ) : detail.opponent_lineup.map((slot) => (
                       <div key={slot.slot_code}><b>{slot.slot_code}</b><strong>{slot.first_name} {slot.last_name}</strong></div>
                     ))}
@@ -1069,7 +1069,7 @@ export default function NationalTeamCompetition() {
               {detail.matches.length > 0 && (
                 <section className="tlg-v2-panel nt-match-order">
                   <header className="nt-section-header">
-                    <div><span>MATCH ORDER</span><h3>Five-match national tie</h3></div>
+                    <div><span>{t('nationalTeamPage.competition.matchOrder')}</span><h3>{t('nationalTeamPage.competition.matchOrderTitle')}</h3></div>
                   </header>
 
                   <div className="nt-match-list">
@@ -1090,19 +1090,19 @@ export default function NationalTeamCompetition() {
                         <article key={match.slot_id}>
                           <span className="order">{match.slot_order}</span>
                           <div>
-                            <small>{match.discipline === 'doubles' ? 'Doubles' : 'Singles'} · {titleCase(match.status)}</small>
+                            <small>{match.discipline === 'doubles' ? t('nationalTeamPage.competition.doubles') : t('nationalTeamPage.competition.singles')} · {titleCase(match.status)}</small>
                             <strong>{playerNames(match.home_players)} vs {playerNames(match.away_players)}</strong>
                           </div>
-                          {match.winner_association_id && <b>Completed</b>}
+                          {match.winner_association_id && <b>{t('nationalTeamPage.competition.completed')}</b>}
                           {isMine && route && match.status === 'scheduled' && (
-                            <Link to={route}>Open my match controls</Link>
+                            <Link to={route}>{t('nationalTeamPage.competition.openControls')}</Link>
                           )}
                         </article>
                       )
                     })}
                   </div>
                   <p className="nt-rule-note">
-                    The captain controls selection and doubles pairing only. Each human player keeps control of their own tactics, equipment and match strategy in the normal match interface.
+                    {t('nationalTeamPage.competition.matchOrderNote')}
                   </p>
                 </section>
               )}
@@ -1172,7 +1172,7 @@ export default function NationalTeamCompetition() {
                       <div>
                         <span>SEASON {window.season_number} · WEEK {window.season_week}</span>
                         <strong>{window.label}</strong>
-                        <small>{formatAbsoluteDay(window.start_absolute_day)} – {formatAbsoluteDay(window.end_absolute_day)}</small>
+                        <small>{formatAbsoluteDay(t, window.start_absolute_day)} – {formatAbsoluteDay(t, window.end_absolute_day)}</small>
                       </div>
                       <div className="nt-friendly-deadline">
                         <span>PAIRING DEADLINE</span>
