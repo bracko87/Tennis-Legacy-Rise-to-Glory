@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom'
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 
 import { supabase } from '../../lib/supabase'
@@ -107,6 +108,7 @@ function weatherLabel(weather?: MatchWeather) {
 }
 
 export default function TournamentMatchSchedule() {
+  const { t } = useTranslation()
   const { competitionId } = useParams()
   const [target, setTarget] = useState<HTMLElement | null>(null)
   const [matches, setMatches] = useState<ScheduledDrawMatch[]>([])
@@ -257,13 +259,13 @@ export default function TournamentMatchSchedule() {
         <section className="tlg-detail-panel tlg-match-schedule-panel">
           <header className="tlg-detail-panel-head tlg-match-schedule-head">
             <div>
-              <span>Match schedule</span>
-              <h2>Order of play</h2>
-              <p>All times are tournament local. Outdoor weather can modestly affect performance, but it never delays, cancels or reschedules a match.</p>
+              <span>{t('tournamentPage.enhancements.matchSchedule.kicker')}</span>
+              <h2>{t('tournamentPage.enhancements.matchSchedule.title')}</h2>
+              <p>{t('tournamentPage.enhancements.matchSchedule.body')}</p>
             </div>
             <label className="tlg-match-schedule-day-select">
-              <span>Day</span>
-              <select value={selectedDay} onChange={(event) => setSelectedDay(event.target.value)} aria-label="Tournament schedule day">
+              <span>{t('tournamentPage.enhancements.matchSchedule.day')}</span>
+              <select value={selectedDay} onChange={(event) => setSelectedDay(event.target.value)} aria-label={t('tournamentPage.enhancements.matchSchedule.dayAria')}>
                 {days.map((day) => (
                   <option key={day.key} value={day.key}>Day {day.day} — {day.count} {day.count === 1 ? 'match' : 'matches'}</option>
                 ))}
@@ -278,7 +280,7 @@ export default function TournamentMatchSchedule() {
 
           <div className="tlg-match-schedule-table-wrap">
             <div className="tlg-match-schedule-table">
-              <div className="tlg-match-schedule-row head"><span>Time</span><span>Court</span><span>Draw</span><span>Round</span><span>Match</span><span>Players</span><span>Note / weather</span><span>Replay</span></div>
+              <div className="tlg-match-schedule-row head"><span>{t('tournamentPage.enhancements.matchSchedule.time')}</span><span>{t('tournamentPage.enhancements.matchSchedule.court')}</span><span>{t('tournamentPage.enhancements.matchSchedule.draw')}</span><span>{t('tournamentPage.enhancements.matchSchedule.round')}</span><span>{t('tournamentPage.enhancements.matchSchedule.match')}</span><span>{t('tournamentPage.enhancements.matchSchedule.players')}</span><span>{t('tournamentPage.enhancements.matchSchedule.noteWeather')}</span><span>{t('tournamentPage.enhancements.matchSchedule.replay')}</span></div>
               {visible.map((match) => {
                 const scheduleNote = match.schedule_reason === 'travel_accommodation'
                   ? 'Travel-adjusted start'
