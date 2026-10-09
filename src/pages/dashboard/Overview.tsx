@@ -14,16 +14,17 @@ import {
   Users,
 } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
 import usePlayerAvatarUrl from '../../hooks/usePlayerAvatarUrl'
+import { useLocalization } from '../../i18n/LocalizationProvider'
+import { localizeNotification } from '../../i18n/notificationLocalization'
 import { supabase } from '../../lib/supabase'
 import '../../styles/overview-dashboard.css'
-
-const GAME_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
 const CATEGORY_LABELS: Record<string, string> = {
   futures_15: 'Futures 15',
@@ -156,10 +157,12 @@ type GameNewsItem = {
 
 type CareerNewsItem = {
   id: string
+  notification_code: string
   title: string
   message: string
   severity: string
   route: string | null
+  payload: Record<string, unknown>
   created_at: string
   read_at: string | null
 }
@@ -265,21 +268,13 @@ type OverviewDashboard = {
   }
 }
 
-function getCountryName(code?: string) {
-  if (!code) return 'Country not set'
+function getCountryName(code: string | undefined, localeTag: string, fallback: string) {
+  if (!code) return fallback
   try {
-    return new Intl.DisplayNames(['en'], { type: 'region' }).of(code) ?? code
+    return new Intl.DisplayNames([localeTag], { type: 'region' }).of(code) ?? code
   } catch {
     return code
   }
-}
-
-function money(value: number | null | undefined) {
-  return `$${Math.round(Number(value) || 0).toLocaleString()}`
-}
-
-function number(value: number | null | undefined) {
-  return Math.round(Number(value) || 0).toLocaleString()
 }
 
 function categoryLabel(code?: string | null) {
@@ -292,17 +287,21 @@ function titleCase(value?: string | null) {
   return value.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
 }
 
-function gameDate(day?: GameDay) {
-  if (!day) return 'Game date unavailable'
-  return `${GAME_MONTHS[day.month - 1] ?? `Month ${day.month}`} ${day.day} · Season ${day.season}`
+function gameDate(day: GameDay | undefined, localeTag: string, fallback: string, seasonLabel: string) {
+  if (!day) return fallback
+  const dateLabel = new Intl.DateTimeFormat(localeTag, { month: 'long', day: 'numeric' })
+    .format(new Date(2020, Math.max(0, day.month - 1), Math.max(1, day.day)))
+  return `${dateLabel} · ${seasonLabel}`
 }
 
-function resultScore(result: LatestResult) {
-  if (!result || result.sets.length === 0) return 'Result recorded'
+function resultScore(result: LatestResult, fallback: string) {
+  if (!result || result.sets.length === 0) return fallback
   return result.sets.map((set) => result.player_side === 1 ? `${set.player1_games}–${set.player2_games}` : `${set.player2_games}–${set.player1_games}`).join('  ')
 }
 
 export default function OverviewPage() {
+  const { t } = useTranslation()
+  const { localeTag, formatNumber, formatCurrency } = useLocalization()
   const { player } = useAuth()
   const [dashboard, setDashboard] = useState<OverviewDashboard | null>(null)
   const [rankingProtection, setRankingProtection] = useState<RankingProtectionResponse | null>(null)
@@ -310,9 +309,9 @@ export default function OverviewPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const displayName = player ? `${player.first_name} ${player.last_name}`.trim() : 'Tennis Legacy Player'
+  const displayName = player ? `${player.first_name} ${player.last_name}`.trim() : t('header.playerFallback')
   const initials = player ? `${player.first_name.charAt(0)}${player.last_name.charAt(0)}`.toUpperCase() : 'TL'
-  const countryName = getCountryName(player?.country_code)
+  const countryName = getCountryName(player?.country_code, localeTag, t('header.countryNotSet'))
   const avatarUrl = usePlayerAvatarUrl(player?.image_path)
 
   useEffect(() => {
@@ -321,12 +320,12 @@ export default function OverviewPage() {
       setLoading(true)
       setError(null)
       const [overviewResponse, rankingProtectionResponse] = await Promise.all([
-        supabase.rpc('get_overview_dashboard_v1'),
+        supabase.rpc('get_overview_dashboard_v2'),
         supabase.rpc('get_premium_ranking_protection_v1'),
       ])
       if (!mounted) return
       if (overviewResponse.error || !overviewResponse.data) {
-        setError(overviewResponse.error?.message ?? 'Unable to load career overview.')
+        setError(overviewResponse.error?.message ?? t('overviewPage.loadError'))
       } else {
         setDashboard(overviewResponse.data as OverviewDashboard)
       }
@@ -346,6 +345,8 @@ export default function OverviewPage() {
   const latestFinance = dashboard?.finance?.recent_transactions?.slice(0, 3) ?? []
   const todayTournaments = dashboard?.today_tournaments?.slice(0, 6) ?? []
   const gameNews = dashboard?.game_news?.slice(0, 5) ?? []
+  const money = (value: number | null | undefined) => formatCurrency(Math.round(Number(value) || 0), 'USD')
+  const number = (value: number | null | undefined) => formatNumber(Math.round(Number(value) || 0))
 
   const equipmentAverage = useMemo(() => {
     const values = [equipment?.racket?.condition, equipment?.string?.condition, equipment?.shoes?.condition].filter((value): value is number => typeof value === 'number')
@@ -353,13 +354,18 @@ export default function OverviewPage() {
   }, [equipment])
 
   return (
-    <GameLayout title="Overview" subtitle="Career command center">
+    <GameLayout title={t('overviewPage.title')} subtitle={t('overviewPage.subtitle')}>
       <section className="tlg-v2-command">
         <div className="tlg-v2-command-inner">
           <div>
-            <span className="tlg-v2-command-kicker">Career command center</span>
-            <h2>Welcome back, {player?.first_name || 'manager'}.</h2>
-            <p>{dashboard ? `${gameDate(dashboard.game_day)} · Season Week ${dashboard.game_day.season_week}. Your tournaments, performance, finances and career operations are summarized below.` : 'Your career dashboard is loading the latest tournament, finance, training and performance data.'}</p>
+            <span className="tlg-v2-command-kicker">{t('overviewPage.kicker')}</span>
+            <h2>{t('overviewPage.welcome', { name: player?.first_name || t('overviewPage.managerFallback') })}</h2>
+            <p>{dashboard
+              ? t('overviewPage.loadedSummary', {
+                date: gameDate(dashboard.game_day, localeTag, t('overviewPage.gameDateUnavailable'), t('overviewPage.season', { season: dashboard.game_day.season })),
+                week: dashboard.game_day.season_week,
+              })
+              : t('overviewPage.loadingSummary')}</p>
           </div>
 
           <div className="tlg-v2-player-card">
@@ -368,11 +374,15 @@ export default function OverviewPage() {
                 {avatarUrl ? <img src={avatarUrl} alt={displayName} /> : initials}
               </div>
               <div className="tlg-v2-player-copy">
-                <span>Professional profile</span>
+                <span>{t('overviewPage.professionalProfile')}</span>
                 <strong>{displayName}</strong>
                 <p className="tlg-v7-country-line">
                   <CountryFlag countryCode={player?.country_code} countryName={countryName} width={20} height={15} />
-                  <span>{countryName} · {player?.world ?? '—'} World · {player?.playing_hand === 'left' ? 'Left-handed' : 'Right-handed'}</span>
+                  <span>{t('overviewPage.worldLabel', {
+                    country: countryName,
+                    world: player?.world ?? '—',
+                    hand: player?.playing_hand === 'left' ? t('overviewPage.leftHanded') : t('overviewPage.rightHanded'),
+                  })}</span>
                 </p>
               </div>
             </div>
@@ -381,25 +391,25 @@ export default function OverviewPage() {
       </section>
 
       {error && <div className="tlg-overview-alert error">{error}</div>}
-      {loading && !dashboard ? <div className="tlg-overview-loading">Loading career command center…</div> : null}
+      {loading && !dashboard ? <div className="tlg-overview-loading">{t('overviewPage.loading')}</div> : null}
 
       {dashboard && (
         <div className="tlg-overview-dashboard">
           <section className="tlg-overview-kpis">
-            <OverviewKpi label="World ranking" value={`#${dashboard.player.current_rank}`} detail={`${number(dashboard.player.ranking_points)} ranking points`} />
-            <OverviewKpi label="Season record" value={`${dashboard.season_stats.wins}–${dashboard.season_stats.losses}`} detail={`${dashboard.season_stats.win_pct.toFixed(1)}% win rate`} />
-            <OverviewKpi label="Career balance" value={money(dashboard.finance.balance)} detail={`${money(dashboard.finance.season_net)} season net`} />
-            <OverviewKpi label="Fatigue" value={`${number(readiness.fatigue)}/100`} detail={`${number(readiness.sharpness)} sharpness`} />
-            <OverviewKpi label="Equipment" value={`${equipmentAverage}%`} detail="Average equipped condition" />
-            <OverviewKpi label="Team" value={`${dashboard.staff.active_count} staff`} detail={`${money(dashboard.staff.weekly_payroll)}/week payroll`} />
+            <OverviewKpi label={t('overviewPage.worldRanking')} value={`#${dashboard.player.current_rank}`} detail={t('overviewPage.rankingPoints', { points: number(dashboard.player.ranking_points) })} />
+            <OverviewKpi label={t('overviewPage.seasonRecord')} value={`${dashboard.season_stats.wins}–${dashboard.season_stats.losses}`} detail={t('overviewPage.winRate', { rate: dashboard.season_stats.win_pct.toLocaleString(localeTag, { maximumFractionDigits: 1 }) })} />
+            <OverviewKpi label={t('overviewPage.careerBalance')} value={money(dashboard.finance.balance)} detail={t('overviewPage.seasonNet', { amount: money(dashboard.finance.season_net) })} />
+            <OverviewKpi label={t('overviewPage.fatigue')} value={`${number(readiness.fatigue)}/100`} detail={t('overviewPage.sharpnessDetail', { value: number(readiness.sharpness) })} />
+            <OverviewKpi label={t('overviewPage.equipment')} value={`${equipmentAverage}%`} detail={t('overviewPage.equippedCondition')} />
+            <OverviewKpi label={t('overviewPage.team')} value={t('overviewPage.staffCount', { count: dashboard.staff.active_count })} detail={t('overviewPage.weeklyPayroll', { amount: money(dashboard.staff.weekly_payroll) })} />
           </section>
 
           <section className={`tlg-overview-panel tlg-overview-ranking-protection${rankingProtectionOpen ? ' is-open' : ''}`}>
             <div className="tlg-overview-ranking-protection-head">
               <div>
-                <span>PREMIUM · RANKING PROTECTION</span>
-                <h3>Upcoming Point Expirations</h3>
-                <p>Track the next five singles ranking results that will expire and need to be defended.</p>
+                <span>{t('overviewPage.premiumProtection')}</span>
+                <h3>{t('overviewPage.upcomingExpirations')}</h3>
+                <p>{t('overviewPage.protectionIntro')}</p>
               </div>
               {rankingProtection?.premium ? (
                 <button
@@ -408,7 +418,7 @@ export default function OverviewPage() {
                   aria-expanded={rankingProtectionOpen}
                   onClick={() => setRankingProtectionOpen((current) => !current)}
                 >
-                  {rankingProtectionOpen ? 'Minimize' : 'Expand'}
+                  {rankingProtectionOpen ? t('overviewPage.minimize') : t('overviewPage.expand')}
                   {rankingProtectionOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                 </button>
               ) : (
@@ -420,8 +430,8 @@ export default function OverviewPage() {
               <div className="tlg-overview-ranking-protection-locked">
                 <LockKeyhole size={17} />
                 <div>
-                  <strong>Ranking Protection is a Premium feature</strong>
-                  <span>Premium managers can expand this panel to see the next five ranking-point expirations.</span>
+                  <strong>{t('overviewPage.protectionPremium')}</strong>
+                  <span>{t('overviewPage.protectionPremiumBody')}</span>
                 </div>
               </div>
             ) : rankingProtectionOpen ? (
@@ -430,24 +440,24 @@ export default function OverviewPage() {
                   {rankingProtection.contributions.slice(0, 5).map((item) => (
                     <article key={item.contribution_id}>
                       <div>
-                        <span>{item.next_edition_scheduled ? 'Defending points' : 'Scheduled expiration'}</span>
+                        <span>{item.next_edition_scheduled ? t('overviewPage.defendingPoints') : t('overviewPage.scheduledExpiration')}</span>
                         <strong>{item.tournament_name}</strong>
                         <small>{item.source_result_label}</small>
                       </div>
                       <div className="points">
-                        <strong>{item.ranking_points.toLocaleString()} pts</strong>
-                        <small>{item.days_remaining.toLocaleString()} game days</small>
+                        <strong>{t('overviewPage.pointsShort', { points: formatNumber(item.ranking_points) })}</strong>
+                        <small>{t('overviewPage.gameDays', { count: item.days_remaining })}</small>
                       </div>
                       <div className="expires">
-                        <span>Expires</span>
-                        <strong>Season {item.expiration_season} · Week {item.expiration_week}</strong>
-                        <small>Month {item.expiration_month}, Day {item.expiration_day}</small>
+                        <span>{t('overviewPage.expires')}</span>
+                        <strong>{t('overviewPage.seasonAndWeek', { season: item.expiration_season, week: item.expiration_week })}</strong>
+                        <small>{t('overviewPage.monthAndDay', { month: item.expiration_month, day: item.expiration_day })}</small>
                       </div>
                     </article>
                   ))}
                 </div>
               ) : (
-                <div className="tlg-overview-ranking-protection-empty">No active ranking points are currently waiting to expire.</div>
+                <div className="tlg-overview-ranking-protection-empty">{t('overviewPage.noExpirations')}</div>
               )
             ) : null}
           </section>
@@ -475,15 +485,15 @@ export default function OverviewPage() {
 
           <section className="tlg-overview-quick-panel">
             <div className="tlg-overview-panel-head">
-              <div><span>QUICK ACCESS</span><h3>Career operations</h3></div>
+              <div><span>{t('overviewPage.quickAccess')}</span><h3>{t('overviewPage.careerOperations')}</h3></div>
             </div>
             <div className="tlg-overview-quick-grid">
-              <QuickLink to="/game/calendar" icon={<CalendarDays size={16} />} title="Calendar" subtitle="Tournament season" />
-              <QuickLink to="/game/training" icon={<Dumbbell size={16} />} title="Training" subtitle="Development & camps" />
-              <QuickLink to="/game/finance" icon={<CircleDollarSign size={16} />} title="Finance" subtitle="Income & expenses" />
-              <QuickLink to="/game/equipment" icon={<ShoppingBag size={16} />} title="Equipment" subtitle="Gear & condition" />
-              <QuickLink to="/game/tennis-club" icon={<Users size={16} />} title="Tennis Club" subtitle="Members & world clubs" />
-              <QuickLink to="/game/statistics" icon={<Activity size={16} />} title="Statistics" subtitle="World & career records" />
+              <QuickLink to="/game/calendar" icon={<CalendarDays size={16} />} title={t('overviewPage.calendar')} subtitle={t('overviewPage.calendarSubtitle')} />
+              <QuickLink to="/game/training" icon={<Dumbbell size={16} />} title={t('overviewPage.training')} subtitle={t('overviewPage.trainingSubtitle')} />
+              <QuickLink to="/game/finance" icon={<CircleDollarSign size={16} />} title={t('overviewPage.finance')} subtitle={t('overviewPage.financeSubtitle')} />
+              <QuickLink to="/game/equipment" icon={<ShoppingBag size={16} />} title={t('overviewPage.equipment')} subtitle={t('overviewPage.equipmentSubtitle')} />
+              <QuickLink to="/game/tennis-club" icon={<Users size={16} />} title={t('overviewPage.tennisClub')} subtitle={t('overviewPage.tennisClubSubtitle')} />
+              <QuickLink to="/game/statistics" icon={<Activity size={16} />} title={t('overviewPage.statistics')} subtitle={t('overviewPage.statisticsSubtitle')} />
             </div>
           </section>
         </div>
