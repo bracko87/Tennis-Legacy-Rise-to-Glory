@@ -271,17 +271,17 @@ export default function NationalTeamPage() {
   const [candidatePanelOpen, setCandidatePanelOpen] = useState(false)
   const [electionHelpOpen, setElectionHelpOpen] = useState(false)
 
-  const load = useCallback(async () => {
-    setLoading(true)
+  const load = useCallback(async (background = false) => {
+    if (!background) setLoading(true)
     setError(null)
     const { data, error: rpcError } = await supabase.rpc('get_my_national_association_v1')
     if (rpcError) {
       setError(rpcError.message)
-      setSnapshot(null)
+      if (!background) setSnapshot(null)
     } else {
       setSnapshot((data ?? null) as NationalAssociationSnapshot | null)
     }
-    setLoading(false)
+    if (!background) setLoading(false)
   }, [])
 
   useEffect(() => {
@@ -314,7 +314,7 @@ export default function NationalTeamPage() {
     else {
       const result = data as { association_name?: string } | null
       setNotice(`You joined ${result?.association_name ?? 'your national association'}. You are now eligible for national-team call-ups and association elections.`)
-      await load()
+      await load(true)
     }
 
     setWorking(false)
@@ -331,7 +331,7 @@ export default function NationalTeamPage() {
     if (rpcError) setError(rpcError.message)
     else {
       setNotice('Captaincy resigned. Association members have been notified and a replacement election is being opened.')
-      await load()
+      await load(true)
     }
 
     setWorking(false)
@@ -374,7 +374,7 @@ export default function NationalTeamPage() {
     else {
       setNotice('Your captain candidacy and manifesto have been registered.')
       setCandidatePanelOpen(false)
-      await load()
+      await load(true)
     }
 
     setWorking(false)
@@ -394,7 +394,7 @@ export default function NationalTeamPage() {
     else {
       setNotice('Your candidacy has been withdrawn. You may register again while candidate registration remains open.')
       setCandidatePanelOpen(false)
-      await load()
+      await load(true)
     }
 
     setWorking(false)
@@ -414,7 +414,7 @@ export default function NationalTeamPage() {
     if (rpcError) setError(rpcError.message)
     else {
       setNotice('Your vote has been recorded. Donations never change voting power.')
-      await load()
+      await load(true)
     }
 
     setWorking(false)
