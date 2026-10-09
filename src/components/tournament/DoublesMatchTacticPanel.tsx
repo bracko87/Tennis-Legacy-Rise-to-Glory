@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { supabase } from '../../lib/supabase'
 import {
@@ -34,11 +35,12 @@ function TacticSelect({
   values: readonly string[]
   onChange: (value: string) => void
 }) {
+  const { t } = useTranslation()
   return (
     <label className="tlg-doubles-tactic-field">
       <span>{label}</span>
       <select value={value} onChange={(event) => onChange(event.target.value)}>
-        {values.map((option) => <option key={option} value={option}>{option}</option>)}
+        {values.map((option) => <option key={option} value={option}>{t(`tournamentPage.tactic.options.${option}`, { defaultValue: option })}</option>)}
       </select>
     </label>
   )
@@ -51,6 +53,7 @@ export default function DoublesMatchTacticPanel({
   matchId: string
   currentPlayerId: string
 }) {
+  const { t } = useTranslation()
   const [data, setData] = useState<DoublesMatchTacticResponse | null>(null)
   const [draft, setDraft] = useState<TournamentTactic>({ ...BALANCED_TACTIC })
   const [loading, setLoading] = useState(true)
@@ -66,7 +69,7 @@ export default function DoublesMatchTacticPanel({
     setLoading(false)
 
     if (error || !tacticData) {
-      setMessage(error?.message ?? 'Unable to load doubles tactic.')
+      setMessage(error?.message ?? t('tournamentPage.enhancements.doublesTactic.loadError'))
       setData(null)
       return
     }
@@ -97,14 +100,14 @@ export default function DoublesMatchTacticPanel({
     setSaving(false)
 
     if (error || !tacticData) {
-      setMessage(error?.message ?? 'Unable to save doubles tactic.')
+      setMessage(error?.message ?? t('tournamentPage.enhancements.doublesTactic.saveError'))
       return
     }
 
     const next = tacticData as DoublesMatchTacticResponse
     setData(next)
     setDraft(next.effective)
-    setMessage('Your doubles match tactic is saved.')
+    setMessage(t('tournamentPage.enhancements.doublesTactic.saved'))
   }
 
   async function reset() {
@@ -117,58 +120,61 @@ export default function DoublesMatchTacticPanel({
     setSaving(false)
 
     if (error || !tacticData) {
-      setMessage(error?.message ?? 'Unable to reset doubles tactic.')
+      setMessage(error?.message ?? t('tournamentPage.enhancements.doublesTactic.resetError'))
       return
     }
 
     const next = tacticData as DoublesMatchTacticResponse
     setData(next)
     setDraft(next.effective)
-    setMessage('Automatic Balanced tactic restored.')
+    setMessage(t('tournamentPage.enhancements.doublesTactic.automaticRestored'))
   }
 
-  const sourceLabel = data?.source === 'match_override' ? 'Your match override' : 'Automatic Balanced'
-  let partnerLabel = (data?.partner_name ?? 'Partner') + ' uses their own automatic tactic.'
+  const sourceLabel = data?.source === 'match_override'
+    ? t('tournamentPage.enhancements.doublesTactic.sourceOverride')
+    : t('tournamentPage.enhancements.doublesTactic.sourceAutomatic')
+  const partnerName = data?.partner_name ?? t('tournamentPage.enhancements.doublesTactic.partnerFallback')
+  let partnerLabel = t('tournamentPage.enhancements.doublesTactic.partnerAutomatic', { name: partnerName })
   if (data?.partner_tactic_source === 'ai_automatic') {
-    partnerLabel = (data.partner_name ?? 'Partner') + ' uses an automatic AI tactic based on playing style.'
+    partnerLabel = t('tournamentPage.enhancements.doublesTactic.partnerAi', { name: partnerName })
   } else if (data?.partner_tactic_source === 'match_override') {
-    partnerLabel = (data.partner_name ?? 'Partner') + ' controls their own saved tactic.'
+    partnerLabel = t('tournamentPage.enhancements.doublesTactic.partnerOverride', { name: partnerName })
   }
 
   if (loading) {
-    return <div className="tlg-doubles-tactic-panel loading">Loading your doubles tactic…</div>
+    return <div className="tlg-doubles-tactic-panel loading">{t('tournamentPage.enhancements.doublesTactic.loading')}</div>
   }
 
   if (!data) {
-    return <div className="tlg-doubles-tactic-panel error">{message ?? 'Doubles tactic unavailable.'}</div>
+    return <div className="tlg-doubles-tactic-panel error">{message ?? t('tournamentPage.enhancements.doublesTactic.unavailable')}</div>
   }
 
   return (
     <section className="tlg-doubles-tactic-panel">
       <header>
         <div>
-          <span>Your doubles tactic</span>
-          <h3>Control your player in this match</h3>
-          <p>Your selections affect only your player. Your partner and both opponents control their own tactics independently; AI players choose theirs automatically.</p>
+          <span>{t('tournamentPage.enhancements.doublesTactic.kicker')}</span>
+          <h3>{t('tournamentPage.enhancements.doublesTactic.title')}</h3>
+          <p>{t('tournamentPage.enhancements.doublesTactic.body')}</p>
         </div>
-        <div className="tlg-doubles-tactic-source"><span>Active</span><strong>{sourceLabel}</strong></div>
+        <div className="tlg-doubles-tactic-source"><span>{t('tournamentPage.enhancements.doublesTactic.active')}</span><strong>{sourceLabel}</strong></div>
       </header>
 
       <div className="tlg-doubles-partner-tactic-note">
-        <strong>Partner plan</strong>
+        <strong>{t('tournamentPage.enhancements.doublesTactic.partnerPlan')}</strong>
         <span>{partnerLabel}</span>
       </div>
 
       {!data.editable ? (
         <div className="tlg-doubles-tactic-locked">
-          This match tactic is locked because the match has started, finished, or reached the one-hour pre-match lock.
+          {t('tournamentPage.enhancements.doublesTactic.lockedBody')}
         </div>
       ) : (
         <>
           <div className="tlg-doubles-tactic-presets">
             {TACTIC_PRESETS.map((preset) => (
               <button
-                key={preset}
+                key={t(`tournamentPage.tactic.options.${preset}`, { defaultValue: preset })}
                 type="button"
                 className={draft.preset === preset ? 'active' : ''}
                 onClick={() => setDraft(tacticFromPreset(preset))}
@@ -179,20 +185,20 @@ export default function DoublesMatchTacticPanel({
           </div>
 
           <div className="tlg-doubles-tactic-grid">
-            <TacticSelect label="Overall approach" value={draft.approach} values={TACTIC_OPTIONS.approach} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', approach: value }))} />
-            <TacticSelect label="Rally strategy" value={draft.rally} values={TACTIC_OPTIONS.rally} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', rally: value }))} />
-            <TacticSelect label="Serve strategy" value={draft.serve} values={TACTIC_OPTIONS.serve} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', serve: value }))} />
-            <TacticSelect label="Return strategy" value={draft.returnGame} values={TACTIC_OPTIONS.returnGame} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', returnGame: value }))} />
-            <TacticSelect label="Court position" value={draft.courtPosition} values={TACTIC_OPTIONS.courtPosition} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', courtPosition: value }))} />
-            <TacticSelect label="Opponent target" value={draft.target} values={TACTIC_OPTIONS.target} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', target: value }))} />
-            <TacticSelect label="Risk level" value={draft.risk} values={TACTIC_OPTIONS.risk} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', risk: value }))} />
+            <TacticSelect label={t('tournamentPage.enhancements.doublesTactic.overall')} value={draft.approach} values={TACTIC_OPTIONS.approach} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', approach: value }))} />
+            <TacticSelect label={t('tournamentPage.enhancements.doublesTactic.rally')} value={draft.rally} values={TACTIC_OPTIONS.rally} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', rally: value }))} />
+            <TacticSelect label={t('tournamentPage.enhancements.doublesTactic.serve')} value={draft.serve} values={TACTIC_OPTIONS.serve} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', serve: value }))} />
+            <TacticSelect label={t('tournamentPage.enhancements.doublesTactic.return')} value={draft.returnGame} values={TACTIC_OPTIONS.returnGame} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', returnGame: value }))} />
+            <TacticSelect label={t('tournamentPage.enhancements.doublesTactic.court')} value={draft.courtPosition} values={TACTIC_OPTIONS.courtPosition} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', courtPosition: value }))} />
+            <TacticSelect label={t('tournamentPage.enhancements.doublesTactic.target')} value={draft.target} values={TACTIC_OPTIONS.target} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', target: value }))} />
+            <TacticSelect label={t('tournamentPage.enhancements.doublesTactic.risk')} value={draft.risk} values={TACTIC_OPTIONS.risk} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', risk: value }))} />
           </div>
 
           <div className="tlg-doubles-tactic-actions">
-            <span>{message ?? 'Changes lock one game hour before the scheduled match.'}</span>
+            <span>{message ?? t('tournamentPage.enhancements.doublesTactic.lockNote')}</span>
             <div>
-              <button type="button" disabled={saving || data.source !== 'match_override'} onClick={() => void reset()}>Use Automatic</button>
-              <button type="button" className="primary" disabled={saving} onClick={() => void save()}>{saving ? 'Saving…' : 'Save Tactic'}</button>
+              <button type="button" disabled={saving || data.source !== 'match_override'} onClick={() => void reset()}>{t('tournamentPage.enhancements.doublesTactic.useAutomatic')}</button>
+              <button type="button" className="primary" disabled={saving} onClick={() => void save()}>{saving ? t('tournamentPage.enhancements.doublesTactic.saving') : t('tournamentPage.enhancements.doublesTactic.saveTactic')}</button>
             </div>
           </div>
         </>
