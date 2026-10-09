@@ -31,9 +31,13 @@ export const manualCareerChapters: ManualChapter[] = [
       s('Free core gameplay', { paragraphs: [
         'Normal career gameplay is free. Premium adds optional analysis, convenience and selected premium-only systems; it is not required to create a player, train, enter tournaments or use the core career loop.',
       ]}),
-      s('Current Premium plan', { table: {
-        headers: ['Item', 'Current value'],
-        rows: [['Premium price', 'EUR 3.29 per real-life month'], ['Monthly Premium Coin reward', '30 Coins after a successful monthly payment'], ['Cancellation', 'Can be cancelled; normal gameplay remains Free']],
+      s('Current Premium plans', { table: {
+        headers: ['Plan', 'Price', 'Coin reward after successful payment'],
+        rows: [
+          ['Monthly', 'EUR 3.29 per real-life month', '30 Coins'],
+          ['3 months · main offer', 'EUR 9.49 every 3 real-life months', '90 Coins'],
+          ['12 months · 15% saving', 'EUR 33.49 per year', '360 Coins'],
+        ],
       }}),
       s('Current Coin packs', { table: {
         headers: ['Pack', 'Price'],
@@ -45,7 +49,7 @@ export const manualCareerChapters: ManualChapter[] = [
       s('Premium examples currently implemented', { bullets: [
         'Ranking Protection view for upcoming singles/doubles ranking-point expirations.',
         'Private Life access and the one-time Premium starter apartment entitlement.',
-        'Monthly Premium Coin reward after successful billing.',
+        'Premium Coin reward equivalent to 30 Coins per covered month: 30 monthly, 90 every 3 months or 360 annually.',
       ]}),
       s('Billing history', { paragraphs: [
         'Premium invoices, Coin-package purchases and Coin-ledger activity are shown separately. Secure checkout and recurring billing are handled through Stripe.',
