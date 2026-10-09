@@ -2354,6 +2354,11 @@ export default {
         lockNote: 'Änderungen werden eine Spielstunde vor dem geplanten Match gesperrt.',
         saving: 'Wird gespeichert…',
         saveTactic: 'Taktik speichern',
+        partnerFallback: 'Partner',
+        partnerAutomatic: '{{name}} verwendet eine eigene automatische Taktik.',
+        partnerAi: '{{name}} verwendet eine automatische KI-Taktik auf Basis des Spielstils.',
+        partnerOverride: '{{name}} steuert eine eigene gespeicherte Taktik.',
+        lockedBody: 'Diese Matchtaktik ist gesperrt, weil das Match begonnen hat, beendet ist oder die Sperre eine Spielstunde vor dem Match erreicht wurde.',
       },
       replay: {
         winner: 'Sieger',
