@@ -855,7 +855,7 @@ function MatchTacticPanel({ detail, currentPlayerId }: { detail: MatchDetail; cu
         <><div className="tlg-match-tactic-locked">{t('tournamentPage.tactic.locked')}</div><TacticSummary tactic={effective} /><TacticEffects tactic={effective} locked /></>
       ) : (
         <>
-          <div className="tlg-match-tactic-presets">{TACTIC_PRESETS.map((preset) => <button key={preset} type="button" className={draft.preset === preset ? 'selected' : ''} onClick={() => setDraft(tacticFromPreset(preset))}>{preset}</button>)}</div>
+          <div className="tlg-match-tactic-presets">{TACTIC_PRESETS.map((preset) => <button key={preset} type="button" className={draft.preset === preset ? 'selected' : ''} onClick={() => setDraft(tacticFromPreset(preset))}>{t(`tournamentPage.tactic.options.${preset}`, { defaultValue: preset })}</button>)}</div>
           <div className="tlg-match-tactic-grid">
             <TacticSelect label={t('tournamentPage.tactic.overall')} value={draft.approach} values={TACTIC_OPTIONS.approach} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', approach: value }))} />
             <TacticSelect label={t('tournamentPage.tactic.rally')} value={draft.rally} values={TACTIC_OPTIONS.rally} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', rally: value }))} />
@@ -868,7 +868,7 @@ function MatchTacticPanel({ detail, currentPlayerId }: { detail: MatchDetail; cu
             <TacticSelect label={t('tournamentPage.tactic.risk')} value={draft.risk} values={TACTIC_OPTIONS.risk} onChange={(value) => setDraft((current) => ({ ...current, preset: 'Custom', risk: value }))} />
           </div>
           <TacticEffects tactic={draft} />
-          <div className="tlg-match-tactic-actions"><span className="tlg-match-tactic-message">{message ?? t('tournamentPage.tactic.tournamentDefault', { preset: data.tournament_default.preset })}</span><div className="tlg-match-tactic-buttons"><button type="button" onClick={useTournamentDefault} disabled={saving || data.source !== 'match_override'}>{t('tournamentPage.tactic.useDefault')}</button><button type="button" className="primary" onClick={saveOverride} disabled={saving}>{saving ? t('tournamentPage.tactic.saving') : t('tournamentPage.tactic.save')}</button></div></div>
+          <div className="tlg-match-tactic-actions"><span className="tlg-match-tactic-message">{message ?? t('tournamentPage.tactic.tournamentDefault', { preset: t(`tournamentPage.tactic.options.${data.tournament_default.preset}`, { defaultValue: data.tournament_default.preset }) })}</span><div className="tlg-match-tactic-buttons"><button type="button" onClick={useTournamentDefault} disabled={saving || data.source !== 'match_override'}>{t('tournamentPage.tactic.useDefault')}</button><button type="button" className="primary" onClick={saveOverride} disabled={saving}>{saving ? t('tournamentPage.tactic.saving') : t('tournamentPage.tactic.save')}</button></div></div>
         </>
       )}
     </section>
@@ -887,7 +887,7 @@ function OpponentAnalysis({ opponent, scouting }: { opponent: MatchPlayerDetail;
         <div>
           <span>{t('tournamentPage.tactic.opponentAnalysis')}</span>
           <strong>{playerName(opponent)}</strong>
-          <p>{handLabel} · {opponent.playing_style} · {opponent.preferred_surface ?? t('tournamentPage.tactic.noSurface')}</p>
+          <p>{handLabel} · {t(`playerProfilePage.style.${opponent.playing_style}`, { defaultValue: opponent.playing_style })} · {opponent.preferred_surface ? t(`calendarPage.surface.${opponent.preferred_surface}`, { defaultValue: opponent.preferred_surface }) : t('tournamentPage.tactic.noSurface')}</p>
         </div>
         {scouting?.available
           ? <div className="confidence"><strong>{scouting.confidence_percent ?? 0}%</strong><span>{t('tournamentPage.tactic.report', { stage: scouting.report_stage ?? 'general' })}</span><small>{t('tournamentPage.tactic.estimate', { value: scouting.estimate_margin })}</small></div>
