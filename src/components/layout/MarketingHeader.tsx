@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { LogOut, Menu, X } from 'lucide-react'
 
@@ -13,17 +14,18 @@ import { useAuth } from '../../auth/AuthContext'
 import BetaDisclaimer from '../marketing/BetaDisclaimer'
 
 interface MarketingNavigationItem {
-  readonly label: string
+  readonly labelKey: string
   readonly sectionId: string
 }
 
 const navigationItems: readonly MarketingNavigationItem[] = [
-  { label: 'Features', sectionId: 'features' },
-  { label: 'How It Works', sectionId: 'how-it-works' },
-  { label: 'Game World', sectionId: 'game-world' },
+  { labelKey: 'marketing.features', sectionId: 'features' },
+  { labelKey: 'marketing.howItWorks', sectionId: 'how-it-works' },
+  { labelKey: 'marketing.gameWorld', sectionId: 'game-world' },
 ]
 
 export default function MarketingHeader() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { user, player, authLoading, signOut } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -72,8 +74,8 @@ export default function MarketingHeader() {
           </span>
         </Link>
 
-        <nav className="tlg-marketing-navigation" aria-label="Main navigation">
-          <Link to="/" className="tlg-marketing-navigation-link">Home</Link>
+        <nav className="tlg-marketing-navigation" aria-label={t('marketing.mainNavigation')}>
+          <Link to="/" className="tlg-marketing-navigation-link">{t('marketing.home')}</Link>
           {navigationItems.map((item) => (
             <button
               key={item.sectionId}
@@ -81,7 +83,7 @@ export default function MarketingHeader() {
               className="tlg-marketing-navigation-link"
               onClick={() => goToSection(item.sectionId)}
             >
-              {item.label}
+              {t(item.labelKey)}
             </button>
           ))}
         </nav>
@@ -96,23 +98,23 @@ export default function MarketingHeader() {
                 disabled={signingOut}
               >
                 <LogOut size={15} />
-                {signingOut ? 'Signing Out…' : 'Sign Out'}
+                {signingOut ? t('marketing.signingOut') : t('marketing.signOut')}
               </button>
               <Link to={dashboardPath} className="tlg-btn tlg-btn-primary tlg-btn-small">
-                {player ? 'Dashboard' : 'Create Player'}
+                {player ? t('marketing.dashboard') : t('marketing.createPlayer')}
               </Link>
             </>
           ) : (
             <>
-              <Link to="/login" className="tlg-btn tlg-btn-ghost tlg-btn-small tlg-header-signin">Sign In</Link>
-              <Link to="/register" className="tlg-btn tlg-btn-primary tlg-btn-small">Start Playing</Link>
+              <Link to="/login" className="tlg-btn tlg-btn-ghost tlg-btn-small tlg-header-signin">{t('marketing.signIn')}</Link>
+              <Link to="/register" className="tlg-btn tlg-btn-primary tlg-btn-small">{t('marketing.startPlaying')}</Link>
             </>
           )}
 
           <button
             type="button"
             className="tlg-mobile-menu-button"
-            aria-label={mobileMenuOpen ? 'Close navigation' : 'Open navigation'}
+            aria-label={mobileMenuOpen ? t('marketing.closeNavigation') : t('marketing.openNavigation')}
             aria-expanded={mobileMenuOpen}
             onClick={() => setMobileMenuOpen((current) => !current)}
           >
@@ -123,8 +125,8 @@ export default function MarketingHeader() {
 
       {mobileMenuOpen && (
         <div className="tlg-mobile-navigation">
-          <nav className="tlg-mobile-navigation-inner" aria-label="Mobile navigation">
-            <Link to="/" className="tlg-mobile-navigation-link" onClick={() => setMobileMenuOpen(false)}>Home</Link>
+          <nav className="tlg-mobile-navigation-inner" aria-label={t('marketing.mobileNavigation')}>
+            <Link to="/" className="tlg-mobile-navigation-link" onClick={() => setMobileMenuOpen(false)}>{t('marketing.home')}</Link>
 
             {navigationItems.map((item) => (
               <button
@@ -133,7 +135,7 @@ export default function MarketingHeader() {
                 className="tlg-mobile-navigation-link"
                 onClick={() => goToSection(item.sectionId)}
               >
-                {item.label}
+                {t(item.labelKey)}
               </button>
             ))}
 
