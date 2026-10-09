@@ -822,16 +822,16 @@ export default function NationalTeamPage() {
           {association.is_member ? (
             <div className="nt-membership-join-card nt-membership-already-joined">
               <div>
-                <strong>You are already an association member</strong>
-                <span>Your player is in the captain's eligible call-up pool and can participate in association elections and Team Chat.</span>
+                <strong>{t('nationalTeamPage.members.already')}</strong>
+                <span>{t('nationalTeamPage.members.alreadyBody')}</span>
               </div>
               <span className="nt-membership-confirmed">{t('nationalTeamPage.fundingExtra.memberBadge')}</span>
             </div>
           ) : association.can_join ? (
             <div className="nt-membership-join-card">
               <div>
-                <strong>Become an association member</strong>
-                <span>Join {association.name} to become eligible for national-team call-ups, captain elections and the private team chat.</span>
+                <strong>{t('nationalTeamPage.members.become')}</strong>
+                <span>{t('nationalTeamPage.common.joinNamed', { name: association.name })}</span>
               </div>
               <button type="button" disabled={working} onClick={() => void joinAssociation()}>
                 {working ? 'Joining…' : 'Join association'}
@@ -840,14 +840,14 @@ export default function NationalTeamPage() {
           ) : null}
 
           {snapshot.roster.length === 0 ? (
-            <div className="nt-placeholder">No eligible members yet.</div>
+            <div className="nt-placeholder">{t('nationalTeamPage.members.none')}</div>
           ) : (
             <div className="nt-roster">
-              <div className="nt-roster-head"><span>Player</span><span>Captain eligibility</span><span>National appearances</span></div>
+              <div className="nt-roster-head"><span>{t('nationalTeamPage.members.player')}</span><span>{t('nationalTeamPage.members.captainEligibility')}</span><span>{t('nationalTeamPage.members.appearances')}</span></div>
               {snapshot.roster.map((member) => (
                 <div key={member.membership_id} className="nt-roster-row">
                   <strong>{member.first_name} {member.last_name}</strong>
-                  <span>{member.captain_eligible ? 'Eligible' : 'Not eligible'}</span>
+                  <span>{member.captain_eligible ? t('nationalTeamPage.common.eligible') : t('nationalTeamPage.common.notEligible')}</span>
                   <span>{member.national_appearances}</span>
                 </div>
               ))}
@@ -860,59 +860,59 @@ export default function NationalTeamPage() {
         <div className="nt-election-grid">
           <section className="tlg-v2-panel nt-election-main">
             <header className="nt-section-header">
-              <div><span>CAPTAIN ELECTION</span><h3>{electionStageLabel(election.status)}</h3></div>
+              <div><span>{t('nationalTeamPage.election.kicker')}</span><h3>{electionStageLabel(election.status, t)}</h3></div>
             </header>
 
             {!election.id ? (
               <div className="nt-placeholder">
                 <Vote size={20} />
                 <div>
-                  <strong>No election scheduled yet</strong>
-                  <span>The first election opens when the association activates: 10 game days for candidate registration, then 10 game days for the main vote. In later seasons, candidate registration opens on 1 January and voting runs from 10–20 January.</span>
+                  <strong>{t('nationalTeamPage.election.none')}</strong>
+                  <span>{t('nationalTeamPage.election.noneBody')}</span>
                 </div>
               </div>
             ) : (
               <>
                 <div className="nt-election-meta">
-                  <div><span>Season</span><strong>{election.season_number}</strong></div>
-                  <div><span>Election</span><strong>{election.election_kind === 'special' ? 'Replacement' : election.election_kind === 'activation' ? 'First captain' : 'Annual'}</strong></div>
-                  <div><span>Current phase</span><strong>{electionStageLabel(election.status)}</strong></div>
-                  <div><span>Phase closes</span><strong>{formatAbsoluteGameDay(currentPhaseEnd)}</strong></div>
+                  <div><span>{t('nationalTeamPage.election.season')}</span><strong>{election.season_number}</strong></div>
+                  <div><span>{t('nationalTeamPage.election.election')}</span><strong>{election.election_kind === 'special' ? t('nationalTeamPage.election.replacement') : election.election_kind === 'activation' ? t('nationalTeamPage.election.firstCaptain') : t('nationalTeamPage.election.annual')}</strong></div>
+                  <div><span>{t('nationalTeamPage.election.currentPhase')}</span><strong>{electionStageLabel(election.status, t)}</strong></div>
+                  <div><span>{t('nationalTeamPage.election.closes')}</span><strong>{formatAbsoluteGameDay(t, currentPhaseEnd)}</strong></div>
                 </div>
 
                 <div className="nt-election-process">
                   <article className={`nt-election-phase ${registrationPhaseState}`}>
                     <div className="nt-election-phase-number">1</div>
                     <div>
-                      <span>CANDIDATE REGISTRATION</span>
-                      <strong>{formatAbsoluteGameRange(election.registration_start_game_day, registrationDisplayEnd)}</strong>
-                      <p>Eligible members register themselves as candidates and submit a manifesto. Voting is not open during this phase.</p>
+                      <span>{t('nationalTeamPage.election.registration')}</span>
+                      <strong>{formatAbsoluteGameRange(t, election.registration_start_game_day, registrationDisplayEnd)}</strong>
+                      <p>{t('nationalTeamPage.election.registrationBody')}</p>
                     </div>
                   </article>
 
                   <article className={`nt-election-phase ${votingPhaseState}`}>
                     <div className="nt-election-phase-number">2</div>
                     <div>
-                      <span>MAIN ELECTION</span>
-                      <strong>{formatAbsoluteGameRange(election.voting_start_game_day, election.voting_end_game_day)}</strong>
-                      <p>Candidate registration is closed. Every active association member has one vote and may choose among the registered candidates.</p>
+                      <span>{t('nationalTeamPage.election.main')}</span>
+                      <strong>{formatAbsoluteGameRange(t, election.voting_start_game_day, election.voting_end_game_day)}</strong>
+                      <p>{t('nationalTeamPage.election.mainBody')}</p>
                     </div>
                   </article>
 
                   <article className={`nt-election-phase ${runoffPhaseState}`}>
                     <div className="nt-election-phase-number">3</div>
                     <div>
-                      <span>RUNOFF · IF NEEDED</span>
-                      <strong>{formatAbsoluteGameRange(expectedRunoffStart, expectedRunoffEnd)}</strong>
-                      <p>Only needed when there is no unique winner. Tied leaders continue for seven game days; further ties create another seven-day runoff.</p>
+                      <span>{t('nationalTeamPage.election.runoff')}</span>
+                      <strong>{formatAbsoluteGameRange(t, expectedRunoffStart, expectedRunoffEnd)}</strong>
+                      <p>{t('nationalTeamPage.election.runoffBody')}</p>
                     </div>
                   </article>
                 </div>
 
                 {snapshot.captain.is_me && (
                   <div className="nt-captain-resign">
-                    <div><strong>You are the current national captain.</strong><span>You may resign at any time. A replacement election will open immediately.</span></div>
-                    <button type="button" disabled={working} onClick={() => void resignCaptain()}>Resign captaincy</button>
+                    <div><strong>{t('nationalTeamPage.election.captainNow')}</strong><span>{t('nationalTeamPage.election.captainNowBody')}</span></div>
+                    <button type="button" disabled={working} onClick={() => void resignCaptain()}>{t('nationalTeamPage.election.resign')}</button>
                   </div>
                 )}
 
@@ -920,34 +920,34 @@ export default function NationalTeamPage() {
                   <div className={`nt-candidacy-action ${candidatePanelOpen ? 'expanded' : ''}`}>
                     <div className="nt-candidacy-action-head">
                       <div>
-                        <span>CANDIDATE ACTION</span>
-                        <strong>{election.my_candidate_id ? 'Your candidacy is registered' : 'Stand for national captain'}</strong>
+                        <span>{t('nationalTeamPage.election.candidateAction')}</span>
+                        <strong>{election.my_candidate_id ? t('nationalTeamPage.electionExtra.candidacyRegistered') : t('nationalTeamPage.electionExtra.stand')}</strong>
                         <small>
                           {election.my_candidate_id
-                            ? 'You can update your manifesto until candidate registration closes.'
-                            : 'Register yourself and submit a manifesto before the candidate-registration deadline.'}
+                            ? t('nationalTeamPage.electionExtra.updateHint')
+                            : t('nationalTeamPage.electionExtra.registerHint')}
                         </small>
                       </div>
                       <button type="button" className="nt-candidacy-toggle" onClick={() => setCandidatePanelOpen((open) => !open)}>
                         {candidatePanelOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-                        {candidatePanelOpen ? 'Collapse' : 'Expand'}
+                        {candidatePanelOpen ? t('nationalTeamPage.electionExtra.collapse') : t('nationalTeamPage.electionExtra.expand')}
                       </button>
                     </div>
 
                     {candidatePanelOpen && (
                       <div className="nt-manifesto-box">
-                        <label htmlFor="captain-manifesto">Your captain manifesto</label>
+                        <label htmlFor="captain-manifesto">{t('nationalTeamPage.election.manifesto')}</label>
                         <textarea
                           id="captain-manifesto"
                           maxLength={1000}
                           value={manifesto}
                           onChange={(event) => setManifesto(event.target.value)}
-                          placeholder="Explain how you would lead the national team…"
+                          placeholder={t('nationalTeamPage.election.manifestoPlaceholder')}
                         />
                         <div>
-                          <small>{manifesto.trim().length} / 1000 characters · minimum 10</small>
+                          <small>{t('nationalTeamPage.electionExtra.characters', { count: manifesto.trim().length })}</small>
                           <button type="button" disabled={working || manifesto.trim().length < 10} onClick={() => void registerCandidate()}>
-                            {election.my_candidate_id ? 'Update manifesto' : 'Register candidacy'}
+                            {election.my_candidate_id ? t('nationalTeamPage.electionExtra.update') : t('nationalTeamPage.electionExtra.register')}
                           </button>
                         </div>
                       </div>
@@ -956,8 +956,8 @@ export default function NationalTeamPage() {
                     {canWithdrawCandidate && (
                       <div className="nt-candidacy-withdraw">
                         <div>
-                          <strong>Withdraw candidacy</strong>
-                          <span>You can withdraw while candidate registration is open. Once voting starts, the candidate list is locked for that round.</span>
+                          <strong>{t('nationalTeamPage.election.withdraw')}</strong>
+                          <span>{t('nationalTeamPage.election.withdrawBody')}</span>
                         </div>
                         <button type="button" disabled={working} onClick={() => void withdrawCandidate()}>
                           Withdraw
@@ -969,7 +969,7 @@ export default function NationalTeamPage() {
 
                 <div className="nt-candidate-list">
                   {candidates.length === 0 ? (
-                    <div className="nt-placeholder">No candidates registered yet.</div>
+                    <div className="nt-placeholder">{t('nationalTeamPage.election.noCandidates')}</div>
                   ) : candidates.map((candidate, index) => (
                     <article
                       key={candidate.candidate_id}
@@ -982,10 +982,10 @@ export default function NationalTeamPage() {
                           <div>
                             <span>
                               {candidate.candidate_id === election.winning_candidate_id
-                                ? 'ELECTED CAPTAIN'
+                                ? t('nationalTeamPage.electionExtra.elected')
                                 : election.status === 'runoff'
-                                  ? 'RUNOFF CANDIDATE'
-                                  : 'CANDIDATE'}
+                                  ? t('nationalTeamPage.electionExtra.runoffCandidate')
+                                  : t('nationalTeamPage.electionExtra.candidate')}
                             </span>
                             <Link to={`/game/players/${candidate.player_id}`} className="nt-candidate-player-link">
                               {candidate.first_name} {candidate.last_name}
@@ -995,7 +995,7 @@ export default function NationalTeamPage() {
                           <div className="nt-candidate-actions">
                             {candidate.vote_total !== null && (
                               <span className="nt-candidate-vote-total">
-                                {candidate.vote_total} vote{candidate.vote_total === 1 ? '' : 's'}
+                                {t('nationalTeamPage.electionExtra.votes', { count: candidate.vote_total })}
                               </span>
                             )}
 
@@ -1006,7 +1006,7 @@ export default function NationalTeamPage() {
                             )}
 
                             {election.my_vote_candidate_id === candidate.candidate_id && (
-                              <strong className="nt-your-vote">Your vote · final</strong>
+                              <strong className="nt-your-vote">{t('nationalTeamPage.election.yourVote')}</strong>
                             )}
 
                             {candidate.candidate_id === election.winning_candidate_id && <Crown size={18} />}
@@ -1014,7 +1014,7 @@ export default function NationalTeamPage() {
                         </div>
 
                         <details className="nt-candidate-manifesto">
-                          <summary>Read manifesto</summary>
+                          <summary>{t('nationalTeamPage.election.readManifesto')}</summary>
                           <p>{candidate.manifesto}</p>
                         </details>
                       </div>
@@ -1023,8 +1023,7 @@ export default function NationalTeamPage() {
 
                   {election.my_vote_candidate_id && (
                     <div className="nt-vote-final-note">
-                      Your vote for this round has been recorded and is final. It cannot be changed or withdrawn.
-                      If a runoff is required, you will receive one new vote in that new round.
+                      {t('nationalTeamPage.electionExtra.voteFinalNote')}
                     </div>
                   )}
                 </div>
@@ -1034,8 +1033,8 @@ export default function NationalTeamPage() {
             <div className={`nt-election-explainer nt-election-explainer-lower ${electionHelpOpen ? 'expanded' : 'collapsed'}`}>
               <div className="nt-election-explainer-head">
                 <div>
-                  <span>HOW CAPTAIN ELECTIONS WORK</span>
-                  <strong>One member, one vote — and a winner must have a unique lead</strong>
+                  <span>{t('nationalTeamPage.election.howKicker')}</span>
+                  <strong>{t('nationalTeamPage.election.howTitle')}</strong>
                 </div>
                 <button
                   type="button"
@@ -1043,56 +1042,56 @@ export default function NationalTeamPage() {
                   onClick={() => setElectionHelpOpen((open) => !open)}
                 >
                   {electionHelpOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-                  {electionHelpOpen ? 'Collapse' : 'Expand'}
+                  {electionHelpOpen ? t('nationalTeamPage.electionExtra.collapse') : t('nationalTeamPage.electionExtra.expand')}
                 </button>
               </div>
 
               {electionHelpOpen && (
                 <div className="nt-election-explainer-grid">
                 <article>
-                  <b>Phase 1 · Candidate registration</b>
-                  <strong>Annual: 1 January → 10 January</strong>
-                  <span>Before voting begins, eligible members can register themselves as candidates and submit or update a manifesto. On first activation or a replacement election, this phase lasts 10 game days from the moment the election opens.</span>
+                  <b>{t('nationalTeamPage.election.phase1')}</b>
+                  <strong>{t('nationalTeamPage.election.phase1When')}</strong>
+                  <span>{t('nationalTeamPage.election.phase1Body')}</span>
                 </article>
                 <article>
-                  <b>Phase 2 · Main election</b>
-                  <strong>Annual: 10 January → 20 January</strong>
-                  <span>Candidate registration is closed. Every active member gets exactly one vote for this round, including members who are candidates. A candidate may vote for themselves or any other candidate. Once cast, the vote is final and cannot be changed or withdrawn.</span>
+                  <b>{t('nationalTeamPage.election.phase2')}</b>
+                  <strong>{t('nationalTeamPage.election.phase2When')}</strong>
+                  <span>{t('nationalTeamPage.election.phase2Body')}</span>
                 </article>
                 <article>
-                  <b>Phase 3 · Runoff</b>
-                  <strong>7 game days · only if needed</strong>
-                  <span>If the main round has no unique winner, only the tied leaders continue. Every eligible member receives one new vote for that runoff round. A further tie creates another seven-day round with one new vote per member again.</span>
+                  <b>{t('nationalTeamPage.election.phase3')}</b>
+                  <strong>{t('nationalTeamPage.election.phase3When')}</strong>
+                  <span>{t('nationalTeamPage.election.phase3Body')}</span>
                 </article>
                 <article>
-                  <b>Winning condition</b>
-                  <strong>At least 1 vote + unique lead</strong>
-                  <span>A candidate wins only when their vote total is strictly higher than every other candidate. A zero-vote candidate cannot become captain automatically.</span>
+                  <b>{t('nationalTeamPage.election.winning')}</b>
+                  <strong>{t('nationalTeamPage.election.winningWhen')}</strong>
+                  <span>{t('nationalTeamPage.election.winningBody')}</span>
                 </article>
                 <article>
-                  <b>Candidate withdrawal</b>
-                  <strong>Allowed while registration is open</strong>
-                  <span>A registered candidate may withdraw before voting begins. Once a voting round starts, the candidate list is locked for that round so already-cast votes cannot be undermined.</span>
+                  <b>{t('nationalTeamPage.election.withdrawal')}</b>
+                  <strong>{t('nationalTeamPage.election.withdrawalWhen')}</strong>
+                  <span>{t('nationalTeamPage.election.withdrawalBody')}</span>
                 </article>
                 <article>
-                  <b>Previous captain</b>
-                  <strong>Acts until a successor wins</strong>
-                  <span>During an unresolved annual election, the previous elected captain remains acting captain until a new candidate wins with a unique lead.</span>
+                  <b>{t('nationalTeamPage.election.previous')}</b>
+                  <strong>{t('nationalTeamPage.election.previousWhen')}</strong>
+                  <span>{t('nationalTeamPage.election.previousBody')}</span>
                 </article>
                 <article>
-                  <b>Captain resignation</b>
-                  <strong>New three-stage process starts immediately</strong>
-                  <span>The captain may resign at any time. Members receive an inbox notification, then a new 10-day candidate-registration phase begins before the 10-day replacement vote.</span>
+                  <b>{t('nationalTeamPage.election.resignation')}</b>
+                  <strong>{t('nationalTeamPage.election.resignationWhen')}</strong>
+                  <span>{t('nationalTeamPage.election.resignationBody')}</span>
                 </article>
                 <article>
-                  <b>Captain becomes inactive</b>
-                  <strong>Seat automatically becomes vacant</strong>
-                  <span>If the captain is no longer an eligible active association member, the game opens the same replacement-election process automatically.</span>
+                  <b>{t('nationalTeamPage.election.inactive')}</b>
+                  <strong>{t('nationalTeamPage.election.inactiveWhen')}</strong>
+                  <span>{t('nationalTeamPage.election.inactiveBody')}</span>
                 </article>
                 <article>
-                  <b>Member notifications</b>
-                  <strong>Delivered through the in-game inbox</strong>
-                  <span>Members are notified when candidate registration opens, when the main vote opens, when a runoff is required, when a captain resigns or becomes inactive, and when a new captain is elected.</span>
+                  <b>{t('nationalTeamPage.election.notifications')}</b>
+                  <strong>{t('nationalTeamPage.election.notificationsWhen')}</strong>
+                  <span>{t('nationalTeamPage.election.notificationsBody')}</span>
                 </article>
                 </div>
               )}
@@ -1101,22 +1100,10 @@ export default function NationalTeamPage() {
           </section>
 
           <aside className="tlg-v2-panel nt-election-rules">
-            <span>ELECTION PRINCIPLES</span>
-            <h3>No pay-to-govern</h3>
+            <span>{t('nationalTeamPage.election.principles')}</span>
+            <h3>{t('nationalTeamPage.election.noPay')}</h3>
             <ul>
-              <li>Every active member receives exactly one vote per election round, including members who are candidates.</li>
-              <li>A candidate may vote for themselves or for any other candidate.</li>
-              <li>Once a vote is cast, it is final for that round and cannot be changed or withdrawn.</li>
-              <li>If a runoff starts, every eligible member receives one new vote for that runoff round.</li>
-              <li>Activation and renewal donations never create extra votes.</li>
-              <li>Candidate manifestos are required and remain available to all members from the candidate list.</li>
-              <li>Candidates may withdraw while candidate registration is open; once voting begins, the candidate list is locked.</li>
-              <li>Annual candidate registration runs from 1 January until voting opens on 10 January.</li>
-              <li>The annual main vote runs from 10 January through 20 January.</li>
-              <li>A tie moves only the tied leaders into a seven-day runoff. Further ties repeat in seven-day rounds until somebody has a unique lead.</li>
-              <li>The previous captain remains acting captain while an annual election is unresolved.</li>
-              <li>Resignation or captain ineligibility opens 10 days of candidate registration followed by a 10-day replacement vote.</li>
-              <li>The captain may be a player but receives no automatic squad position.</li>
+              {(t('nationalTeamPage.electionExtra.principles', { returnObjects: true }) as string[]).map((item) => <li key={item}>{item}</li>)}
             </ul>
           </aside>
         </div>
@@ -1125,14 +1112,14 @@ export default function NationalTeamPage() {
       {tab === 'history' && (
         <section className="tlg-v2-panel nt-history-panel">
           <header className="nt-section-header">
-            <div><span>ASSOCIATION HISTORY</span><h3>Permanent national record</h3></div>
+            <div><span>{t('nationalTeamPage.history.kicker')}</span><h3>{t('nationalTeamPage.history.title')}</h3></div>
           </header>
           <p className="nt-section-copy">
             Suspension never deletes association history, captaincies, titles, rankings or previous competition records.
           </p>
 
           {snapshot.history.length === 0 ? (
-            <div className="nt-placeholder">The association has no recorded lifecycle events yet.</div>
+            <div className="nt-placeholder">{t('nationalTeamPage.history.empty')}</div>
           ) : (
             <div className="nt-history-list">
               {snapshot.history.map((event) => (
@@ -1140,7 +1127,7 @@ export default function NationalTeamPage() {
                   <div className="nt-history-dot" />
                   <div>
                     <strong>{eventLabel(event.event_type)}</strong>
-                    <span>Season {event.season_number} · Game day {event.game_day}</span>
+                    <span>{t('nationalTeamPage.common.season', { season: event.season_number })} · {t('nationalTeamPage.common.gameDay', { day: event.game_day })}</span>
                   </div>
                 </article>
               ))}
