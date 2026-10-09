@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 import type { User } from '@supabase/supabase-js'
@@ -40,6 +41,9 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
+const INACTIVITY_TIMEOUT_MS = 10 * 60 * 1000
+const LAST_ACTIVITY_STORAGE_KEY = 'tlg:last-authenticated-activity'
+
 export function AuthProvider({ children }: { readonly children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [player, setPlayer] = useState<TennisPlayerRecord | null>(null)
@@ -47,15 +51,16 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
   const [authLoading, setAuthLoading] = useState(true)
   const [playerLoading, setPlayerLoading] = useState(false)
   const [adminLoading, setAdminLoading] = useState(false)
+  const activeUserIdRef = useRef<string | null>(null)
 
-  const loadPlayerForUser = useCallback(async (currentUser: User | null) => {
+  const loadPlayerForUser = useCallback(async (currentUser: User | null, background = false) => {
     if (!currentUser) {
       setPlayer(null)
       setPlayerLoading(false)
       return null
     }
 
-    setPlayerLoading(true)
+    if (!background) setPlayerLoading(true)
 
     const { data, error } = await supabase
       .from('players')
@@ -65,7 +70,7 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
       .eq('owner_user_id', currentUser.id)
       .maybeSingle()
 
-    setPlayerLoading(false)
+    if (!background) setPlayerLoading(false)
 
     if (error) {
       console.error('Unable to load Tennis Legacy player:', error.message)
@@ -78,16 +83,16 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     return record
   }, [])
 
-  const loadAdminForUser = useCallback(async (currentUser: User | null) => {
+  const loadAdminForUser = useCallback(async (currentUser: User | null, background = false) => {
     if (!currentUser) {
       setIsAdmin(false)
       setAdminLoading(false)
       return false
     }
 
-    setAdminLoading(true)
+    if (!background) setAdminLoading(true)
     const { data, error } = await supabase.rpc('is_app_admin_v1')
-    setAdminLoading(false)
+    if (!background) setAdminLoading(false)
 
     if (error) {
       console.error('Unable to verify Tennis Legacy admin access:', error.message)
@@ -101,11 +106,11 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
   }, [])
 
   const refreshPlayer = useCallback(async () => {
-    return loadPlayerForUser(user)
+    return loadPlayerForUser(user, true)
   }, [loadPlayerForUser, user])
 
   const refreshAdminAccess = useCallback(async () => {
-    return loadAdminForUser(user)
+    return loadAdminForUser(user, true)
   }, [loadAdminForUser, user])
 
   useEffect(() => {
@@ -119,6 +124,8 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
       if (!mounted) return
 
       const currentUser = session?.user ?? null
+      activeUserIdRef.current = currentUser?.id ?? null
+      if (!currentUser) window.localStorage.removeItem(LAST_ACTIVITY_STORAGE_KEY)
       setUser(currentUser)
       setAuthLoading(false)
       await Promise.all([
@@ -135,10 +142,26 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
       if (!mounted) return
 
       const currentUser = session?.user ?? null
+      const previousUserId = activeUserIdRef.current
+      const nextUserId = currentUser?.id ?? null
+      const identityChanged = previousUserId !== nextUserId
+
+      activeUserIdRef.current = nextUserId
+      if (!currentUser) {
+        window.localStorage.removeItem(LAST_ACTIVITY_STORAGE_KEY)
+      } else if (identityChanged) {
+        window.localStorage.setItem(LAST_ACTIVITY_STORAGE_KEY, String(Date.now()))
+      }
+
       setUser(currentUser)
       setAuthLoading(false)
-      void loadPlayerForUser(currentUser)
-      void loadAdminForUser(currentUser)
+
+      // Token refreshes and other background auth events must not remount the game UI.
+      // Reload player/admin state only when the authenticated identity actually changes.
+      if (identityChanged) {
+        void loadPlayerForUser(currentUser)
+        void loadAdminForUser(currentUser)
+      }
     })
 
     return () => {
@@ -147,7 +170,101 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     }
   }, [loadAdminForUser, loadPlayerForUser])
 
+  useEffect(() => {
+    if (!user?.id) return
+
+    let timeoutId: number | null = null
+    let locking = false
+    let lastRecordedAt = 0
+
+    const readLastActivity = () => {
+      const value = Number(window.localStorage.getItem(LAST_ACTIVITY_STORAGE_KEY))
+      return Number.isFinite(value) && value > 0 ? value : null
+    }
+
+    const lockSession = async () => {
+      if (locking) return
+      locking = true
+      window.localStorage.removeItem(LAST_ACTIVITY_STORAGE_KEY)
+
+      // Inactivity locks only this browser session. Other devices stay signed in.
+      const { error } = await supabase.auth.signOut({ scope: 'local' })
+      if (error) console.error('Unable to lock inactive Tennis Legacy session:', error.message)
+
+      activeUserIdRef.current = null
+      setUser(null)
+      setPlayer(null)
+      setIsAdmin(false)
+    }
+
+    const scheduleLock = () => {
+      if (timeoutId !== null) window.clearTimeout(timeoutId)
+      const lastActivity = readLastActivity() ?? Date.now()
+      if (!readLastActivity()) window.localStorage.setItem(LAST_ACTIVITY_STORAGE_KEY, String(lastActivity))
+      const remaining = INACTIVITY_TIMEOUT_MS - (Date.now() - lastActivity)
+
+      if (remaining <= 0) {
+        void lockSession()
+        return
+      }
+
+      timeoutId = window.setTimeout(() => {
+        const latest = readLastActivity() ?? lastActivity
+        if (Date.now() - latest >= INACTIVITY_TIMEOUT_MS) void lockSession()
+        else scheduleLock()
+      }, remaining + 50)
+    }
+
+    const recordActivity = () => {
+      if (locking) return
+      const now = Date.now()
+      const previous = readLastActivity()
+
+      // Returning after the timeout locks the session instead of extending it.
+      if (previous && now - previous >= INACTIVITY_TIMEOUT_MS) {
+        void lockSession()
+        return
+      }
+
+      // Avoid excessive localStorage writes during scrolling/pointer activity.
+      if (now - lastRecordedAt < 1000) return
+      lastRecordedAt = now
+      window.localStorage.setItem(LAST_ACTIVITY_STORAGE_KEY, String(now))
+      scheduleLock()
+    }
+
+    const checkOnReturn = () => {
+      if (document.visibilityState === 'visible') {
+        const lastActivity = readLastActivity()
+        if (lastActivity && Date.now() - lastActivity >= INACTIVITY_TIMEOUT_MS) void lockSession()
+        else scheduleLock()
+      }
+    }
+
+    const syncAcrossTabs = (event: StorageEvent) => {
+      if (event.key === LAST_ACTIVITY_STORAGE_KEY) scheduleLock()
+    }
+
+    const activityEvents: Array<keyof WindowEventMap> = ['pointerdown', 'keydown', 'scroll', 'touchstart']
+    activityEvents.forEach((eventName) => window.addEventListener(eventName, recordActivity, { passive: true }))
+    window.addEventListener('focus', checkOnReturn)
+    document.addEventListener('visibilitychange', checkOnReturn)
+    window.addEventListener('storage', syncAcrossTabs)
+
+    scheduleLock()
+
+    return () => {
+      if (timeoutId !== null) window.clearTimeout(timeoutId)
+      activityEvents.forEach((eventName) => window.removeEventListener(eventName, recordActivity))
+      window.removeEventListener('focus', checkOnReturn)
+      document.removeEventListener('visibilitychange', checkOnReturn)
+      window.removeEventListener('storage', syncAcrossTabs)
+    }
+  }, [user?.id])
+
   const signOut = useCallback(async () => {
+    window.localStorage.removeItem(LAST_ACTIVITY_STORAGE_KEY)
+    activeUserIdRef.current = null
     const { error } = await supabase.auth.signOut()
     if (error) throw error
     setUser(null)
