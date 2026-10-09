@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router'
 import { useAuth } from '../../auth/AuthContext'
 import GameLayout from '../../components/layout/GameLayout'
 import { useLocalization } from '../../i18n/LocalizationProvider'
-import { localizeNotification } from '../../i18n/notificationLocalization'
+import { localizeNotification, notificationTemplateKey } from '../../i18n/notificationLocalization'
 import { supabase } from '../../lib/supabase'
 import '../../styles/notification-center.css'
 
