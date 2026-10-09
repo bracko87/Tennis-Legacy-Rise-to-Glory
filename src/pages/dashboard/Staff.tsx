@@ -1,10 +1,20 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 
 import CountryFlag from '../../components/common/CountryFlag'
 import GameConfirmDialog from '../../components/common/GameConfirmDialog'
 import GameLayout from '../../components/layout/GameLayout'
 import StaffTeamRoles from '../../components/staff/StaffTeamRoles'
+import { useLocalization } from '../../i18n/LocalizationProvider'
+import {
+  staffAttributeLabel,
+  staffBackendText,
+  staffChanceLabel,
+  staffQualityLabel,
+  staffRoleLabel,
+  staffSpecialty,
+} from '../../i18n/staffLocalization'
 import {
   contractWeeklySalary,
   type StaffCandidate,
@@ -19,32 +29,23 @@ import '../../styles/staff.css'
 import '../../styles/staff-interactions.css'
 import '../../styles/shared-segmented-tabs.css'
 
-const ROLES: Array<{ role: StaffRole; label: string; description: string }> = [
-  { role: 'head_coach', label: 'Head Coach', description: 'Technical development, tactics and match preparation.' },
-  { role: 'fitness_coach', label: 'Fitness Coach', description: 'Physical development, conditioning and workload control.' },
-  { role: 'physiotherapist', label: 'Physiotherapist', description: 'Fatigue recovery, injury prevention and rehabilitation.' },
-  { role: 'sports_psychologist', label: 'Sports Psychologist', description: 'Morale, confidence, focus and pressure management.' },
-  { role: 'performance_analyst', label: 'Performance Analyst', description: 'Opponent scouting ranges, preparation confidence and tactical recommendations. Better analysts improve information certainty rather than hidden player strength.' },
-  { role: 'agent_manager', label: 'Career Manager', description: 'Sponsorship, commercial representation and career management.' },
+const ROLES: StaffRole[] = [
+  'head_coach',
+  'fitness_coach',
+  'physiotherapist',
+  'sports_psychologist',
+  'performance_analyst',
+  'agent_manager',
 ]
 
-const QUALITY_OPTIONS: Array<{ value: StaffQuality | ''; label: string }> = [
-  { value: '', label: 'All quality levels' },
-  { value: 'developing', label: 'Developing' },
-  { value: 'professional', label: 'Professional' },
-  { value: 'advanced', label: 'Advanced' },
-  { value: 'elite', label: 'Elite' },
-  { value: 'world_class', label: 'World Class' },
+const QUALITY_OPTIONS: Array<StaffQuality | ''> = [
+  '',
+  'developing',
+  'professional',
+  'advanced',
+  'elite',
+  'world_class',
 ]
-
-const ATTRIBUTE_LABELS: Record<string, string> = {
-  technical_coaching: 'Technical Coaching', tactical_knowledge: 'Tactical Knowledge', player_development: 'Player Development', motivation: 'Motivation',
-  conditioning: 'Conditioning', physical_development: 'Physical Development', workload_management: 'Workload Management', recovery_knowledge: 'Recovery Knowledge',
-  recovery: 'Recovery', injury_prevention: 'Injury Prevention', rehabilitation: 'Rehabilitation', treatment: 'Treatment',
-  morale: 'Morale', confidence: 'Confidence', focus: 'Focus', pressure_management: 'Pressure Management',
-  opponent_analysis: 'Opponent Analysis', tactical_analysis: 'Tactical Analysis', match_preparation: 'Match Preparation', scouting: 'Scouting',
-  negotiation: 'Negotiation', sponsorship_network: 'Sponsorship Network', commercial_reputation: 'Commercial Reputation', career_management: 'Career Management',
-}
 
 interface PendingStaffContract {
   negotiation_id: string
@@ -58,20 +59,22 @@ interface PendingStaffContract {
 }
 
 function StaffIdentity({ staff }: { staff: StaffCandidate }) {
+  const { t } = useTranslation()
   return (
     <div className="tlg-staff-identity">
       <CountryFlag countryCode={staff.country_code} countryName={staff.country_code} width={24} height={16} />
-      <div><strong>{staff.first_name} {staff.last_name}</strong><span>{staff.country_code} · {staff.specialty}</span></div>
+      <div><strong>{staff.first_name} {staff.last_name}</strong><span>{staff.country_code} · {staffSpecialty(t, staff.specialty)}</span></div>
     </div>
   )
 }
 
 function AttributeGrid({ staff }: { staff: StaffCandidate }) {
+  const { t } = useTranslation()
   return (
     <div className="tlg-staff-attributes">
       {Object.entries(staff.attributes).map(([key, value]) => (
-        <div key={key} title={ATTRIBUTE_LABELS[key] ?? key}>
-          <div><span>{ATTRIBUTE_LABELS[key] ?? key}</span><strong>{value}</strong></div>
+        <div key={key} title={staffAttributeLabel(t, key)}>
+          <div><span>{staffAttributeLabel(t, key)}</span><strong>{value}</strong></div>
           <div className="bar"><i style={{ width: `${value}%` }} /></div>
         </div>
       ))}
@@ -96,6 +99,8 @@ function pendingContractFromQuote(selected: StaffCandidate, quote: StaffNegotiat
 }
 
 export default function StaffPage() {
+  const { t } = useTranslation()
+  const { formatCurrency, formatNumber } = useLocalization()
   const [searchParams] = useSearchParams()
   const requestedView = searchParams.get('view')
   const {
@@ -223,7 +228,7 @@ export default function StaffPage() {
         salary_total: salaryTotal,
         total_commitment: result.total_commitment ?? signingFee + salaryTotal,
       })
-      setOfferNotice({ tone: 'success', text: `${selected.first_name} accepted the offer. Review the contract before the hire becomes official.` })
+      setOfferNotice({ tone: 'success', text: t('staffPage.notices.accepted', { name: selected.first_name }) })
       setHireConfirmOpen(true)
       await refreshNegotiationQuote(salaryMultiplier)
       return
@@ -234,13 +239,13 @@ export default function StaffPage() {
       setSalaryMultiplier(nextMultiplier)
       setOfferNotice({
         tone: 'error',
-        text: `${selected.first_name} ${selected.last_name} rejected the offer. ${result.remaining_rounds} negotiation round${result.remaining_rounds === 1 ? '' : 's'} remain. Improve the salary offer and try again.`,
+        text: t('staffPage.notices.rejected', { name: `${selected.first_name} ${selected.last_name}`, count: result.remaining_rounds }),
       })
       await refreshNegotiationQuote(nextMultiplier)
     } else {
       setOfferNotice({
         tone: 'error',
-        text: `${selected.first_name} ${selected.last_name} rejected the final offer. Negotiations are closed for 14 in-game days.`,
+        text: t('staffPage.notices.rejectedFinal', { name: `${selected.first_name} ${selected.last_name}` }),
       })
       await refreshNegotiationQuote(salaryMultiplier)
     }
@@ -252,7 +257,7 @@ export default function StaffPage() {
     if (!result) return
     setHireConfirmOpen(false)
     setOfferNotice(null)
-    setMessage(`${pendingContract.staff_name} has joined your team.`)
+    setMessage(t('staffPage.notices.joined', { name: pendingContract.staff_name }))
     setPendingContract(null)
     await loadMarket({ role, qualityTier: quality, countryCode: country, maxWeeklySalary: maxSalary, offset: page * 25, limit: 25 })
     setView('team')
@@ -267,7 +272,7 @@ export default function StaffPage() {
     setTerminationLoading(false)
     if (quoteError || !quote) {
       setTerminationTarget(null)
-      setMessage(quoteError ?? 'Could not calculate the termination cost.')
+      setMessage(quoteError ?? t('staffPage.notices.terminationCostError'))
       return
     }
     setTerminationQuote(quote)
@@ -280,7 +285,7 @@ export default function StaffPage() {
     if (!result) return
     setTerminationTarget(null)
     setTerminationQuote(null)
-    setMessage(`${staffName}'s contract has been terminated.`)
+    setMessage(t('staffPage.notices.terminated', { name: staffName }))
   }
 
   const pendingConfirmation = Boolean(pendingContract || negotiationQuote?.pending_confirmation)
@@ -298,35 +303,35 @@ export default function StaffPage() {
   const sliderMin = Math.max(100, Math.round((negotiationQuote?.minimum_next_multiplier ?? 1) * 100))
 
   return (
-    <GameLayout title="Staff" subtitle="Build the team around your professional player">
+    <GameLayout title={t('staffPage.title')} subtitle={t('staffPage.subtitle')}>
       <div className="tlg-staff-page">
         <header className="tlg-staff-page-head tlg-page-head-with-tabs">
           <div>
-            <span>CAREER SUPPORT TEAM</span>
-            <h1>Staff</h1>
-            <p>Build a six-role support team with transparent, capped career effects. Staff strengthen development, recovery, analysis and commercial management without replacing player attributes or career decisions.</p>
+            <span>{t('staffPage.kicker')}</span>
+            <h1>{t('staffPage.heading')}</h1>
+            <p>{t('staffPage.intro')}</p>
           </div>
 
-          <div className="tlg-staff-tabs tlg-standard-tabs" role="tablist" aria-label="Staff sections">
-            <button type="button" role="tab" aria-selected={view === 'team'} className={view === 'team' ? 'active' : ''} onClick={() => setView('team')}>My Staff</button>
-            <button type="button" role="tab" aria-selected={view === 'market'} className={view === 'market' ? 'active' : ''} onClick={() => setView('market')}>Staff Market</button>
+          <div className="tlg-staff-tabs tlg-standard-tabs" role="tablist" aria-label={t('staffPage.tabsAria')}>
+            <button type="button" role="tab" aria-selected={view === 'team'} className={view === 'team' ? 'active' : ''} onClick={() => setView('team')}>{t('staffPage.myStaff')}</button>
+            <button type="button" role="tab" aria-selected={view === 'market'} className={view === 'market' ? 'active' : ''} onClick={() => setView('market')}>{t('staffPage.market')}</button>
           </div>
         </header>
 
         {error && <div className="tlg-staff-alert error">{error}</div>}
         {message && <div className="tlg-staff-alert">{message}</div>}
 
-        {loading && !dashboard ? <div className="tlg-staff-loading">Loading staff team…</div> : dashboard && (
+        {loading && !dashboard ? <div className="tlg-staff-loading">{t('staffPage.loadingTeam')}</div> : dashboard && (
           <>
             <section className="tlg-staff-summary">
-              <div><span>EMPLOYED</span><strong>{dashboard.employed_count} / {dashboard.max_staff}</strong><small>One active person per role</small></div>
-              <div><span>WEEKLY STAFF COST</span><strong>${dashboard.weekly_cost.toLocaleString()}</strong><small>Contracted weekly salaries</small></div>
-              <div><span>EXPIRING SOON</span><strong>{dashboard.contracts_expiring_4_weeks}</strong><small>Contracts with ≤4 weeks left</small></div>
-              <div><span>STAFF EFFECT MODEL</span><strong>Capped & transparent</strong><small>Current and maximum effects shown per role</small></div>
+              <div><span>{t('staffPage.summary.employed')}</span><strong>{dashboard.employed_count} / {dashboard.max_staff}</strong><small>{t('staffPage.summary.employedNote')}</small></div>
+              <div><span>{t('staffPage.summary.weeklyCost')}</span><strong>{formatCurrency(dashboard.weekly_cost, 'USD')}</strong><small>{t('staffPage.summary.weeklyCostNote')}</small></div>
+              <div><span>{t('staffPage.summary.expiring')}</span><strong>{dashboard.contracts_expiring_4_weeks}</strong><small>{t('staffPage.summary.expiringNote')}</small></div>
+              <div><span>{t('staffPage.summary.effectModel')}</span><strong>{t('staffPage.summary.capped')}</strong><small>{t('staffPage.summary.effectModelNote')}</small></div>
             </section>
 
             {!dashboard.finance.is_live && (
-              <div className="tlg-staff-finance-note"><strong>Career finance bridge:</strong> salaries, signing fees and termination fees are calculated and recorded now. They are not deducted from Premium Coins. Automatic affordability enforcement activates when the Career Finance balance goes live.</div>
+              <div className="tlg-staff-finance-note"><strong>{t('staffPage.financeBridgeTitle')}</strong> {t('staffPage.financeBridge')}</div>
             )}
 
             {view === 'team' ? (
@@ -340,75 +345,75 @@ export default function StaffPage() {
             ) : (
               <>
                 <section className="tlg-staff-market-filters">
-                  <label><span>Role</span><select value={role} onChange={(event) => setRole(event.target.value as StaffRole | '')}><option value="">All staff roles</option>{ROLES.map((item) => <option key={item.role} value={item.role}>{item.label}</option>)}</select></label>
-                  <label><span>Quality</span><select value={quality} onChange={(event) => setQuality(event.target.value as StaffQuality | '')}>{QUALITY_OPTIONS.map((item) => <option key={item.value || 'all'} value={item.value}>{item.label}</option>)}</select></label>
-                  <label><span>Country code</span><input value={country} maxLength={2} placeholder="All" onChange={(event) => setCountry(event.target.value.toUpperCase())} /></label>
-                  <label className="salary"><span>Max base salary: <strong>${maxSalary.toLocaleString()}</strong></span><input type="range" min="100" max="4000" step="50" value={maxSalary} onChange={(event) => setMaxSalary(Number(event.target.value))} /></label>
+                  <label><span>{t('staffPage.filters.role')}</span><select value={role} onChange={(event) => setRole(event.target.value as StaffRole | '')}><option value="">{t('staffPage.filters.allRoles')}</option>{ROLES.map((item) => <option key={item} value={item}>{staffRoleLabel(t, item)}</option>)}</select></label>
+                  <label><span>{t('staffPage.filters.quality')}</span><select value={quality} onChange={(event) => setQuality(event.target.value as StaffQuality | '')}>{QUALITY_OPTIONS.map((item) => <option key={item || 'all'} value={item}>{item ? staffQualityLabel(t, item) : t('staffPage.qualities.all')}</option>)}</select></label>
+                  <label><span>{t('staffPage.filters.countryCode')}</span><input value={country} maxLength={2} placeholder={t('staffPage.filters.all')} onChange={(event) => setCountry(event.target.value.toUpperCase())} /></label>
+                  <label className="salary"><span>{t('staffPage.filters.maxSalary', { amount: formatCurrency(maxSalary, 'USD') })}</span><input type="range" min="100" max="4000" step="50" value={maxSalary} onChange={(event) => setMaxSalary(Number(event.target.value))} /></label>
                 </section>
 
                 <div className="tlg-staff-market-layout">
                   <section className="tlg-staff-market-list-panel">
-                    <header><div><span>AVAILABLE WORLDWIDE</span><h2>Staff Market</h2></div><small>{market.total.toLocaleString()} candidates · Page {page + 1}/{pageCount}</small></header>
-                    {marketLoading ? <div className="tlg-staff-loading">Loading candidates…</div> : (
+                    <header><div><span>{t('staffPage.marketPanel.availableWorldwide')}</span><h2>{t('staffPage.marketPanel.title')}</h2></div><small>{t('staffPage.marketPanel.candidatesPage', { count: market.total, page: page + 1, pages: pageCount })}</small></header>
+                    {marketLoading ? <div className="tlg-staff-loading">{t('staffPage.marketPanel.loading')}</div> : (
                       <div className="tlg-staff-market-list">
                         {market.items.map((candidate) => (
                           <button type="button" key={candidate.id} className={selected?.id === candidate.id ? 'selected' : ''} onClick={() => setSelectedId(candidate.id)}>
                             <StaffIdentity staff={candidate} />
-                            <div className="quality"><strong>{candidate.overall_rating}</strong><span>{candidate.quality_label}</span></div>
-                            <div className="cost"><strong>${candidate.base_weekly_salary.toLocaleString()}</strong><span>/ week base</span></div>
+                            <div className="quality"><strong>{candidate.overall_rating}</strong><span>{staffQualityLabel(t, candidate.quality_tier, candidate.quality_label)}</span></div>
+                            <div className="cost"><strong>{formatCurrency(candidate.base_weekly_salary, 'USD')}</strong><span>{t('staffPage.marketPanel.weekBase')}</span></div>
                           </button>
                         ))}
-                        {market.items.length === 0 && <div className="tlg-staff-loading">No candidates match these filters.</div>}
+                        {market.items.length === 0 && <div className="tlg-staff-loading">{t('staffPage.marketPanel.noCandidates')}</div>}
                       </div>
                     )}
-                    <footer><button type="button" disabled={page === 0 || marketLoading} onClick={() => setPage((value) => Math.max(0, value - 1))}>Previous</button><span>{page + 1} / {pageCount}</span><button type="button" disabled={page + 1 >= pageCount || marketLoading} onClick={() => setPage((value) => value + 1)}>Next</button></footer>
+                    <footer><button type="button" disabled={page === 0 || marketLoading} onClick={() => setPage((value) => Math.max(0, value - 1))}>{t('staffPage.marketPanel.previous')}</button><span>{page + 1} / {pageCount}</span><button type="button" disabled={page + 1 >= pageCount || marketLoading} onClick={() => setPage((value) => value + 1)}>{t('staffPage.marketPanel.next')}</button></footer>
                   </section>
 
                   <aside className="tlg-staff-candidate-detail">
                     {selected ? (
                       <>
                         <div className="tlg-staff-detail-head">
-                          <div><span>{selected.role_label.toUpperCase()}</span><h2>{selected.first_name} {selected.last_name}</h2><div><CountryFlag countryCode={selected.country_code} countryName={selected.country_code} width={26} height={17} /> {selected.country_code}</div></div>
-                          <div className="rating"><strong>{selected.overall_rating}</strong><span>{selected.quality_label}</span></div>
+                          <div><span>{staffRoleLabel(t, selected.role, selected.role_label).toUpperCase()}</span><h2>{selected.first_name} {selected.last_name}</h2><div><CountryFlag countryCode={selected.country_code} countryName={selected.country_code} width={26} height={17} /> {selected.country_code}</div></div>
+                          <div className="rating"><strong>{selected.overall_rating}</strong><span>{staffQualityLabel(t, selected.quality_tier, selected.quality_label)}</span></div>
                         </div>
-                        <div className="tlg-staff-specialty"><span>SPECIALTY</span><strong>{selected.specialty}</strong></div>
+                        <div className="tlg-staff-specialty"><span>{t('staffPage.candidate.specialty')}</span><strong>{staffSpecialty(t, selected.specialty)}</strong></div>
                         <AttributeGrid staff={selected} />
-                        <div className="tlg-staff-eligibility"><div><span>YOUR WORLD RANK</span><strong>#{dashboard.rank_position}</strong></div><div><span>SIGNING FEE</span><strong>${effectiveSigningFee.toLocaleString()}</strong></div></div>
+                        <div className="tlg-staff-eligibility"><div><span>{t('staffPage.candidate.worldRank')}</span><strong>#{formatNumber(dashboard.rank_position)}</strong></div><div><span>{t('staffPage.candidate.signingFee')}</span><strong>{formatCurrency(effectiveSigningFee, 'USD')}</strong></div></div>
 
                         <section className="tlg-staff-contract-options">
-                          <header><span>CONTRACT</span><h3>Choose contract length</h3></header>
-                          <div>{([13, 26, 52] as const).map((weeks) => { const salary = contractWeeklySalary(selected.base_weekly_salary, weeks); return <button type="button" key={weeks} disabled={pendingConfirmation} className={effectiveDuration === weeks ? 'selected' : ''} onClick={() => setDuration(weeks)}><strong>{weeks} weeks</strong><span>${salary.toLocaleString()} / week</span><small>{weeks === 13 ? 'Base rate' : weeks === 26 ? '7% weekly discount' : '14% weekly discount'}</small></button> })}</div>
+                          <header><span>{t('staffPage.candidate.contract')}</span><h3>{t('staffPage.candidate.chooseLength')}</h3></header>
+                          <div>{([13, 26, 52] as const).map((weeks) => { const salary = contractWeeklySalary(selected.base_weekly_salary, weeks); return <button type="button" key={weeks} disabled={pendingConfirmation} className={effectiveDuration === weeks ? 'selected' : ''} onClick={() => setDuration(weeks)}><strong>{t('staffPage.candidate.weeks', { count: weeks })}</strong><span>{t('staffPage.candidate.perWeek', { amount: formatCurrency(salary, 'USD') })}</span><small>{weeks === 13 ? t('staffPage.candidate.baseRate') : weeks === 26 ? t('staffPage.candidate.discount7') : t('staffPage.candidate.discount14')}</small></button> })}</div>
                         </section>
 
                         <section className="tlg-staff-salary-offer">
-                          <header><div><span>SALARY OFFER</span><h3>{pendingConfirmation ? 'Accepted terms' : 'Improve the proposal'}</h3></div><strong>{Math.round((pendingContract ? (pendingContract.weekly_salary / Math.max(1, contractWeeklySalary(selected.base_weekly_salary, pendingContract.duration_weeks))) : salaryMultiplier) * 100)}%</strong></header>
+                          <header><div><span>{t('staffPage.candidate.salaryOffer')}</span><h3>{pendingConfirmation ? t('staffPage.candidate.acceptedTerms') : t('staffPage.candidate.improveProposal')}</h3></div><strong>{Math.round((pendingContract ? (pendingContract.weekly_salary / Math.max(1, contractWeeklySalary(selected.base_weekly_salary, pendingContract.duration_weeks))) : salaryMultiplier) * 100)}%</strong></header>
                           <input type="range" min={sliderMin} max="200" step="5" disabled={pendingConfirmation} value={Math.round(salaryMultiplier * 100)} onChange={(event) => setSalaryMultiplier(Number(event.target.value) / 100)} />
-                          <div className="scale"><span>{sliderMin}% minimum</span><span>200% maximum</span></div>
-                          <p>{pendingConfirmation ? 'The staff member has accepted these terms. Review the final contract before confirming the hire.' : 'Higher salary increases willingness, but sporting reputation still matters. Money cannot persuade a World Class staff member to join a player outside the Top 500.'}</p>
+                          <div className="scale"><span>{t('staffPage.candidate.minimum', { value: sliderMin })}</span><span>{t('staffPage.candidate.maximum', { value: 200 })}</span></div>
+                          <p>{pendingConfirmation ? t('staffPage.candidate.acceptedTermsBody') : t('staffPage.candidate.salaryBody')}</p>
                         </section>
 
                         <section className={`tlg-staff-chance ${hardRefusal ? 'refusal' : ''}`}>
                           <header>
-                            <div><span>ACCEPTANCE CHANCE</span><h3>{pendingConfirmation ? 'Accepted' : quoteLoading ? 'Calculating…' : negotiationQuote?.chance_label ?? 'Unavailable'}</h3></div>
+                            <div><span>{t('staffPage.candidate.acceptanceChance')}</span><h3>{pendingConfirmation ? t('staffPage.candidate.accepted') : quoteLoading ? t('staffPage.candidate.calculating') : staffChanceLabel(t, negotiationQuote?.chance_label)}</h3></div>
                             <strong>{pendingConfirmation ? '✓' : quoteLoading ? '—' : `${acceptanceChance}%`}</strong>
                           </header>
                           <div className="chance-track"><i style={{ width: `${pendingConfirmation ? 100 : acceptanceChance}%` }} /></div>
-                          {negotiationQuote?.available && <p>{negotiationQuote.explanation} · Round {negotiationQuote.round_number ?? 1} of {negotiationQuote.max_rounds ?? 3}.</p>}
-                          {pendingConfirmation && <p>Your offer was accepted. The staff member is not hired until you confirm the final contract.</p>}
-                          {!negotiationQuote?.available && !pendingConfirmation && negotiationQuote?.reason && <p>{negotiationQuote.reason}{negotiationQuote.cooldown_days_remaining ? ` Try again in ${negotiationQuote.cooldown_days_remaining} in-game days.` : ''}</p>}
+                          {negotiationQuote?.available && <p>{staffBackendText(t, negotiationQuote.explanation)} · {t('staffPage.candidate.round', { round: negotiationQuote.round_number ?? 1, max: negotiationQuote.max_rounds ?? 3 })}</p>}
+                          {pendingConfirmation && <p>{t('staffPage.candidate.acceptedPending')}</p>}
+                          {!negotiationQuote?.available && !pendingConfirmation && negotiationQuote?.reason && <p>{staffBackendText(t, negotiationQuote.reason)}{negotiationQuote.cooldown_days_remaining ? t('staffPage.candidate.tryAgainDays', { count: negotiationQuote.cooldown_days_remaining }) : ''}</p>}
                           {quoteError && <p>{quoteError}</p>}
                         </section>
 
-                        <div className="tlg-staff-offer-total"><div><span>Negotiated weekly salary</span><strong>${weeklyOffer.toLocaleString()}</strong></div><div><span>Full salary over {effectiveDuration} weeks</span><strong>${salaryTotal.toLocaleString()}</strong></div><div><span>Signing fee</span><strong>${effectiveSigningFee.toLocaleString()}</strong></div><div><span>Full contract commitment</span><strong>${contractTotal.toLocaleString()}</strong></div></div>
-                        {roleOccupied && <div className="tlg-staff-blocked">You already employ a {selected.role_label.toLowerCase()}. End that contract before negotiating with a replacement.</div>}
-                        {financeBlocked && <div className="tlg-staff-blocked">Your career balance cannot cover this signing fee.</div>}
-                        {hardRefusal && <div className="tlg-staff-blocked">This staff member will not enter negotiations at your current sporting reputation, regardless of salary.</div>}
+                        <div className="tlg-staff-offer-total"><div><span>{t('staffPage.candidate.negotiatedWeekly')}</span><strong>{formatCurrency(weeklyOffer, 'USD')}</strong></div><div><span>{t('staffPage.candidate.fullSalary', { weeks: effectiveDuration })}</span><strong>{formatCurrency(salaryTotal, 'USD')}</strong></div><div><span>{t('staffPage.hireDialog.signingFee')}</span><strong>{formatCurrency(effectiveSigningFee, 'USD')}</strong></div><div><span>{t('staffPage.candidate.fullContract')}</span><strong>{formatCurrency(contractTotal, 'USD')}</strong></div></div>
+                        {roleOccupied && <div className="tlg-staff-blocked">{t('staffPage.candidate.roleOccupied', { role: staffRoleLabel(t, selected.role, selected.role_label).toLowerCase() })}</div>}
+                        {financeBlocked && <div className="tlg-staff-blocked">{t('staffPage.candidate.insufficientBalance')}</div>}
+                        {hardRefusal && <div className="tlg-staff-blocked">{t('staffPage.candidate.hardRefusal')}</div>}
                         {offerNotice && <div className={`tlg-staff-offer-notice ${offerNotice.tone}`}>{offerNotice.text}</div>}
                         <button type="button" className="tlg-staff-hire" disabled={saving || quoteLoading || roleOccupied || financeBlocked || hardRefusal || negotiationUnavailable || !negotiationQuote} onClick={() => void handleOffer()}>
-                          {saving ? 'Processing…' : pendingConfirmation ? `Review accepted offer · ${effectiveDuration} weeks` : hardRefusal ? 'Staff will not negotiate' : `Make offer to ${selected.first_name} · ${duration} weeks`}
+                          {saving ? t('staffPage.candidate.processing') : pendingConfirmation ? t('staffPage.candidate.reviewAccepted', { weeks: effectiveDuration }) : hardRefusal ? t('staffPage.candidate.willNotNegotiate') : t('staffPage.candidate.makeOffer', { name: selected.first_name, weeks: duration })}
                         </button>
                       </>
-                    ) : <div className="tlg-staff-loading">Select a candidate to see the full profile.</div>}
+                    ) : <div className="tlg-staff-loading">{t('staffPage.marketPanel.selectCandidate')}</div>}
                   </aside>
                 </div>
               </>
@@ -420,20 +425,20 @@ export default function StaffPage() {
       <GameConfirmDialog
         open={hireConfirmOpen && Boolean(pendingContract)}
         tone="success"
-        eyebrow="Offer accepted"
-        title={pendingContract ? `Confirm ${pendingContract.staff_name}'s contract` : 'Confirm staff contract'}
-        message="The staff member accepted your offer. Review the complete financial commitment before making the hire official."
+        eyebrow={t('staffPage.hireDialog.eyebrow')}
+        title={pendingContract ? t('staffPage.hireDialog.title', { name: pendingContract.staff_name }) : t('staffPage.hireDialog.fallbackTitle')}
+        message={t('staffPage.hireDialog.message')}
         detail={pendingContract ? (
           <div className="tlg-game-confirm-summary">
-            <div><span>Signing fee</span><strong>${pendingContract.signing_fee.toLocaleString()}</strong></div>
-            <div><span>Weekly salary</span><strong>${pendingContract.weekly_salary.toLocaleString()}</strong></div>
-            <div><span>Contract length</span><strong>{pendingContract.duration_weeks} weeks</strong></div>
-            <div><span>Salary over full contract</span><strong>${pendingContract.salary_total.toLocaleString()}</strong></div>
-            <div className="total"><span>Total contract commitment</span><strong>${pendingContract.total_commitment.toLocaleString()}</strong></div>
+            <div><span>{t('staffPage.hireDialog.signingFee')}</span><strong>{formatCurrency(pendingContract.signing_fee, 'USD')}</strong></div>
+            <div><span>{t('staffPage.hireDialog.weeklySalary')}</span><strong>{formatCurrency(pendingContract.weekly_salary, 'USD')}</strong></div>
+            <div><span>{t('staffPage.hireDialog.contractLength')}</span><strong>{t('staffPage.candidate.weeks', { count: pendingContract.duration_weeks })}</strong></div>
+            <div><span>{t('staffPage.hireDialog.salaryFull')}</span><strong>{formatCurrency(pendingContract.salary_total, 'USD')}</strong></div>
+            <div className="total"><span>{t('staffPage.hireDialog.total')}</span><strong>{formatCurrency(pendingContract.total_commitment, 'USD')}</strong></div>
           </div>
         ) : undefined}
-        confirmLabel="Confirm contract"
-        cancelLabel="Not now"
+        confirmLabel={t('staffPage.hireDialog.confirm')}
+        cancelLabel={t('staffPage.hireDialog.cancel')}
         busy={saving}
         onCancel={() => setHireConfirmOpen(false)}
         onConfirm={handleConfirmHire}
@@ -442,20 +447,20 @@ export default function StaffPage() {
       <GameConfirmDialog
         open={Boolean(terminationTarget && terminationQuote)}
         tone="danger"
-        eyebrow="End staff contract"
-        title={terminationQuote ? `Terminate ${terminationQuote.staff_name}?` : 'Terminate contract?'}
-        message="Ending a staff contract early requires a settlement equal to 65% of the unpaid salary still remaining on the contract."
+        eyebrow={t('staffPage.terminationDialog.eyebrow')}
+        title={terminationQuote ? t('staffPage.terminationDialog.title', { name: terminationQuote.staff_name }) : t('staffPage.terminationDialog.fallbackTitle')}
+        message={t('staffPage.terminationDialog.message')}
         detail={terminationQuote ? (
           <div className="tlg-game-confirm-summary">
-            <div><span>Weekly salary</span><strong>${terminationQuote.weekly_salary.toLocaleString()}</strong></div>
-            <div><span>Unpaid weeks remaining</span><strong>{terminationQuote.remaining_weeks}</strong></div>
-            <div><span>Remaining salary value</span><strong>${terminationQuote.remaining_salary.toLocaleString()}</strong></div>
-            <div><span>Termination settlement rate</span><strong>{terminationQuote.termination_rate}%</strong></div>
-            <div className="danger total"><span>Termination fee charged now</span><strong>${terminationQuote.termination_fee.toLocaleString()}</strong></div>
+            <div><span>{t('staffPage.terminationDialog.weeklySalary')}</span><strong>{formatCurrency(terminationQuote.weekly_salary, 'USD')}</strong></div>
+            <div><span>{t('staffPage.terminationDialog.unpaidWeeks')}</span><strong>{terminationQuote.remaining_weeks}</strong></div>
+            <div><span>{t('staffPage.terminationDialog.remainingSalary')}</span><strong>{formatCurrency(terminationQuote.remaining_salary, 'USD')}</strong></div>
+            <div><span>{t('staffPage.terminationDialog.rate')}</span><strong>{terminationQuote.termination_rate}%</strong></div>
+            <div className="danger total"><span>{t('staffPage.terminationDialog.fee')}</span><strong>{formatCurrency(terminationQuote.termination_fee, 'USD')}</strong></div>
           </div>
         ) : undefined}
-        confirmLabel="Terminate contract"
-        cancelLabel="Keep staff member"
+        confirmLabel={t('staffPage.terminationDialog.confirm')}
+        cancelLabel={t('staffPage.terminationDialog.cancel')}
         busy={saving}
         onCancel={() => { setTerminationTarget(null); setTerminationQuote(null) }}
         onConfirm={handleConfirmTermination}
