@@ -507,164 +507,207 @@ function OverviewKpi({ label, value, detail }: { label: string; value: string; d
 }
 
 function NextTournamentCard({ tournament, match }: { tournament: NextTournament; match: NextMatch }) {
+  const { t } = useTranslation()
+  const surface = tournament?.surface?.toLowerCase()
+  const surfaceLabel = surface === 'hard'
+    ? t('overviewPage.surface.hard')
+    : surface === 'clay'
+      ? t('overviewPage.surface.clay')
+      : surface === 'grass'
+        ? t('overviewPage.surface.grass')
+        : titleCase(tournament?.surface)
+
   return (
     <article className="tlg-overview-panel tlg-overview-next-card">
       <div className="tlg-overview-panel-head">
-        <div><span>NEXT TOURNAMENT</span><h3>{tournament?.tournament_name ?? 'No tournament scheduled'}</h3></div>
-        {tournament && <Link className="tlg-overview-link" to={`/game/tournaments/${tournament.competition_id}`}>Open tournament <ChevronRight size={14} /></Link>}
+        <div><span>{t('overviewPage.nextTournament')}</span><h3>{tournament?.tournament_name ?? t('overviewPage.noTournament')}</h3></div>
+        {tournament && <Link className="tlg-overview-link" to={`/game/tournaments/${tournament.competition_id}`}>{t('overviewPage.openTournament')} <ChevronRight size={14} /></Link>}
       </div>
       {tournament ? (
         <div className="tlg-overview-next-body">
           <div className="tlg-overview-event-meta">
             <CountryFlag countryCode={tournament.country_code} width={24} height={16} />
-            <span>{tournament.city}</span><b>{categoryLabel(tournament.category_code)}</b><b>{titleCase(tournament.surface)}</b><b>Week {tournament.season_week}</b>
+            <span>{tournament.city}</span><b>{categoryLabel(tournament.category_code)}</b><b>{surfaceLabel}</b><b>{t('overviewPage.week', { week: tournament.season_week })}</b>
           </div>
           {match ? (
             <div className="tlg-overview-next-match">
-              <div><span>NEXT MATCH</span><strong>{match.round_label}</strong></div>
-              <div className="opponent"><CountryFlag countryCode={match.opponent_country_code} width={24} height={16} /><div><span>Opponent</span><Link to={`/game/players/${match.opponent_id}`}>{match.opponent_first_name} {match.opponent_last_name}</Link></div></div>
-              <div className="match-date"><span>Tournament Day</span><strong>Week {match.season_week} · Day {match.day}</strong></div>
+              <div><span>{t('overviewPage.nextMatch')}</span><strong>{match.round_label}</strong></div>
+              <div className="opponent"><CountryFlag countryCode={match.opponent_country_code} width={24} height={16} /><div><span>{t('overviewPage.opponent')}</span><Link to={`/game/players/${match.opponent_id}`}>{match.opponent_first_name} {match.opponent_last_name}</Link></div></div>
+              <div className="match-date"><span>{t('overviewPage.tournamentDay')}</span><strong>{t('overviewPage.week', { week: match.season_week })} · {t('overviewPage.day', { day: match.day })}</strong></div>
             </div>
-          ) : <p className="tlg-overview-muted">Entry is active. Your next match will appear here when the draw schedules it.</p>}
-          <div className="tlg-overview-next-actions"><Link to="/game/schedule">Prepare tournament</Link><Link to="/game/calendar">View calendar</Link></div>
+          ) : <p className="tlg-overview-muted">{t('overviewPage.entryActive')}</p>}
+          <div className="tlg-overview-next-actions"><Link to="/game/schedule">{t('overviewPage.prepareTournament')}</Link><Link to="/game/calendar">{t('overviewPage.viewCalendar')}</Link></div>
         </div>
-      ) : <EmptyCard text="No active or accepted tournament entry is currently scheduled." />}
+      ) : <EmptyCard text={t('overviewPage.noActiveEntry')} />}
     </article>
   )
 }
 
 function LatestResultCard({ result }: { result: LatestResult }) {
+  const { t } = useTranslation()
+
   return (
     <article className="tlg-overview-panel tlg-overview-result-card">
-      <div className="tlg-overview-panel-head"><div><span>PREVIOUS RESULT</span><h3>Latest match</h3></div>{result && <span className={`tlg-overview-result-badge ${result.won ? 'win' : 'loss'}`}>{result.won ? 'WIN' : 'LOSS'}</span>}</div>
+      <div className="tlg-overview-panel-head"><div><span>{t('overviewPage.previousResult')}</span><h3>{t('overviewPage.latestMatch')}</h3></div>{result && <span className={`tlg-overview-result-badge ${result.won ? 'win' : 'loss'}`}>{result.won ? t('overviewPage.win') : t('overviewPage.loss')}</span>}</div>
       {result ? (
         <div className="tlg-overview-result-body">
           <div className="tournament"><CountryFlag countryCode={result.country_code} width={24} height={16} /><div><strong>{result.tournament_name}</strong><span>{result.round_label} · {result.city}</span></div></div>
-          <div className="score">{resultScore(result)}</div>
-          <div className="opponent"><span>vs.</span><CountryFlag countryCode={result.opponent_country_code} width={22} height={15} /><Link to={`/game/players/${result.opponent_id}`}>{result.opponent_first_name} {result.opponent_last_name}</Link></div>
-          <Link className="tlg-overview-link inline" to={`/game/tournaments/${result.competition_id}`}>Tournament details <ChevronRight size={14} /></Link>
+          <div className="score">{resultScore(result, t('overviewPage.resultRecorded'))}</div>
+          <div className="opponent"><span>{t('overviewPage.versus')}</span><CountryFlag countryCode={result.opponent_country_code} width={22} height={15} /><Link to={`/game/players/${result.opponent_id}`}>{result.opponent_first_name} {result.opponent_last_name}</Link></div>
+          <Link className="tlg-overview-link inline" to={`/game/tournaments/${result.competition_id}`}>{t('overviewPage.tournamentDetails')} <ChevronRight size={14} /></Link>
         </div>
-      ) : <EmptyCard text="No completed official match yet." />}
+      ) : <EmptyCard text={t('overviewPage.noCompletedMatch')} />}
     </article>
   )
 }
 
 function FinanceCard({ finance, transactions }: { finance: FinanceSummary; transactions: FinanceTransaction[] }) {
+  const { t } = useTranslation()
+  const { formatCurrency } = useLocalization()
+  const money = (value: number | null | undefined) => formatCurrency(Math.round(Number(value) || 0), 'USD')
+
   return (
     <article className="tlg-overview-panel">
-      <div className="tlg-overview-panel-head"><div><span>FINANCE</span><h3>Career money</h3></div><Link className="tlg-overview-link" to="/game/finance">Finance <ChevronRight size={14} /></Link></div>
+      <div className="tlg-overview-panel-head"><div><span>{t('overviewPage.financeEyebrow')}</span><h3>{t('overviewPage.careerMoney')}</h3></div><Link className="tlg-overview-link" to="/game/finance">{t('overviewPage.finance')} <ChevronRight size={14} /></Link></div>
       <div className="tlg-overview-finance-summary">
-        <div><span>Balance</span><strong>{money(finance.balance)}</strong></div>
-        <div><span>Season income</span><strong className="positive">{money(finance.season_income)}</strong></div>
-        <div><span>Season expenses</span><strong className="negative">{money(finance.season_expenses)}</strong></div>
-        <div><span>Net</span><strong>{money(finance.season_net)}</strong></div>
+        <div><span>{t('overviewPage.balance')}</span><strong>{money(finance.balance)}</strong></div>
+        <div><span>{t('overviewPage.seasonIncome')}</span><strong className="positive">{money(finance.season_income)}</strong></div>
+        <div><span>{t('overviewPage.seasonExpenses')}</span><strong className="negative">{money(finance.season_expenses)}</strong></div>
+        <div><span>{t('overviewPage.net')}</span><strong>{money(finance.season_net)}</strong></div>
       </div>
       <div className="tlg-overview-mini-list">
-        {transactions.length ? transactions.map((transaction) => <div key={transaction.id}><span>{transaction.description}</span><strong className={transaction.amount >= 0 ? 'positive' : 'negative'}>{transaction.amount >= 0 ? '+' : '−'}{money(Math.abs(transaction.amount))}</strong></div>) : <p>No career transactions yet.</p>}
+        {transactions.length ? transactions.map((transaction) => <div key={transaction.id}><span>{transaction.description}</span><strong className={transaction.amount >= 0 ? 'positive' : 'negative'}>{transaction.amount >= 0 ? '+' : '−'}{money(Math.abs(transaction.amount))}</strong></div>) : <p>{t('overviewPage.noTransactions')}</p>}
       </div>
-      {finance.upcoming_commitments?.[0] && <div className="tlg-overview-commitment"><span>Next commitment</span><strong>{finance.upcoming_commitments[0].description}</strong><b>−{money(finance.upcoming_commitments[0].amount)}</b></div>}
+      {finance.upcoming_commitments?.[0] && <div className="tlg-overview-commitment"><span>{t('overviewPage.nextCommitment')}</span><strong>{finance.upcoming_commitments[0].description}</strong><b>−{money(finance.upcoming_commitments[0].amount)}</b></div>}
     </article>
   )
 }
 
 function TodayTournamentsCard({ tournaments, seasonWeek }: { tournaments: TodayTournament[]; seasonWeek: number }) {
+  const { t } = useTranslation()
   return (
     <article className="tlg-overview-panel">
-      <div className="tlg-overview-panel-head"><div><span>TODAY IN TENNIS LEGACY</span><h3>Today's tournaments</h3><p>Events active in Season Week {seasonWeek}.</p></div><Link className="tlg-overview-link" to="/game/calendar">Calendar <ChevronRight size={14} /></Link></div>
+      <div className="tlg-overview-panel-head"><div><span>{t('overviewPage.todayEyebrow')}</span><h3>{t('overviewPage.todayTournaments')}</h3><p>{t('overviewPage.eventsActive', { week: seasonWeek })}</p></div><Link className="tlg-overview-link" to="/game/calendar">{t('overviewPage.calendar')} <ChevronRight size={14} /></Link></div>
       <div className="tlg-overview-tournament-list">
-        {tournaments.length ? tournaments.map((tournament) => (
-          <Link to={`/game/tournaments/${tournament.competition_id}`} key={tournament.competition_id}>
-            <CountryFlag countryCode={tournament.country_code} width={22} height={15} />
-            <div><strong>{tournament.tournament_name}</strong><span>{tournament.city} · {categoryLabel(tournament.category_code)}</span></div>
-            <b>{titleCase(tournament.surface)}</b>
-          </Link>
-        )) : <EmptyCard text="No tournaments are active in the current competition week." />}
+        {tournaments.length ? tournaments.map((tournament) => {
+          const surface = tournament.surface?.toLowerCase()
+          const surfaceLabel = surface === 'hard'
+            ? t('overviewPage.surface.hard')
+            : surface === 'clay'
+              ? t('overviewPage.surface.clay')
+              : surface === 'grass'
+                ? t('overviewPage.surface.grass')
+                : titleCase(tournament.surface)
+
+          return (
+            <Link to={`/game/tournaments/${tournament.competition_id}`} key={tournament.competition_id}>
+              <CountryFlag countryCode={tournament.country_code} width={22} height={15} />
+              <div><strong>{tournament.tournament_name}</strong><span>{tournament.city} · {categoryLabel(tournament.category_code)}</span></div>
+              <b>{surfaceLabel}</b>
+            </Link>
+          )
+        }) : <EmptyCard text={t('overviewPage.noActiveTournaments')} />}
       </div>
     </article>
   )
 }
 
 function PlayerFormCard({ stats }: { stats: SeasonStats }) {
+  const { t } = useTranslation()
+  const { formatNumber, localeTag } = useLocalization()
+
   return (
     <article className="tlg-overview-panel tlg-overview-compact-panel">
-      <div className="tlg-overview-panel-head"><div><span>PLAYER STATISTICS</span><h3>Season form</h3></div><Link className="tlg-overview-link" to="/game/statistics">Stats <ChevronRight size={14} /></Link></div>
-      <div className="tlg-overview-record"><strong>{stats.wins}–{stats.losses}</strong><span>{stats.win_pct.toFixed(1)}% wins</span></div>
+      <div className="tlg-overview-panel-head"><div><span>{t('overviewPage.playerStatistics')}</span><h3>{t('overviewPage.seasonForm')}</h3></div><Link className="tlg-overview-link" to="/game/statistics">{t('overviewPage.stats')} <ChevronRight size={14} /></Link></div>
+      <div className="tlg-overview-record"><strong>{stats.wins}–{stats.losses}</strong><span>{t('overviewPage.wins', { rate: stats.win_pct.toLocaleString(localeTag, { maximumFractionDigits: 1 }) })}</span></div>
       <div className="tlg-overview-stat-grid">
-        <SmallStat label="Matches" value={number(stats.matches)} />
-        <SmallStat label="Titles" value={number(stats.titles)} />
-        <SmallStat label="Aces" value={number(stats.aces)} />
-        <SmallStat label="Winners" value={number(stats.winners)} />
-        <SmallStat label="Unforced errors" value={number(stats.unforced_errors)} />
-        <SmallStat label="Points won" value={number(stats.total_points_won)} />
+        <SmallStat label={t('overviewPage.matches')} value={formatNumber(stats.matches)} />
+        <SmallStat label={t('overviewPage.titles')} value={formatNumber(stats.titles)} />
+        <SmallStat label={t('overviewPage.aces')} value={formatNumber(stats.aces)} />
+        <SmallStat label={t('overviewPage.winners')} value={formatNumber(stats.winners)} />
+        <SmallStat label={t('overviewPage.unforcedErrors')} value={formatNumber(stats.unforced_errors)} />
+        <SmallStat label={t('overviewPage.pointsWon')} value={formatNumber(stats.total_points_won)} />
       </div>
     </article>
   )
 }
 
 function ReadinessCard({ training }: { training: TrainingSummary }) {
+  const { t } = useTranslation()
   const values = [
-    ['Fatigue', training.skills?.fatigue ?? 0],
-    ['Sharpness', training.skills?.sharpness ?? 0],
-    ['Morale', training.skills?.morale ?? 0],
-    ['Confidence', training.skills?.confidence ?? 0],
-    ['Focus', training.skills?.focus ?? 0],
+    [t('overviewPage.fatigue'), training.skills?.fatigue ?? 0, true],
+    [t('overviewPage.sharpness'), training.skills?.sharpness ?? 0, false],
+    [t('overviewPage.morale'), training.skills?.morale ?? 0, false],
+    [t('overviewPage.confidence'), training.skills?.confidence ?? 0, false],
+    [t('overviewPage.focus'), training.skills?.focus ?? 0, false],
   ] as const
+
   return (
     <article className="tlg-overview-panel tlg-overview-compact-panel">
-      <div className="tlg-overview-panel-head"><div><span>READINESS</span><h3>Training & condition</h3></div><Link className="tlg-overview-link" to="/game/training">Training <ChevronRight size={14} /></Link></div>
-      <div className="tlg-overview-readiness-status"><span>{titleCase(training.activity_type)}</span><strong>{training.eligible ? 'Training available' : training.block_reason ?? 'Training unavailable'}</strong></div>
+      <div className="tlg-overview-panel-head"><div><span>{t('overviewPage.readiness')}</span><h3>{t('overviewPage.trainingCondition')}</h3></div><Link className="tlg-overview-link" to="/game/training">{t('overviewPage.training')} <ChevronRight size={14} /></Link></div>
+      <div className="tlg-overview-readiness-status"><span>{titleCase(training.activity_type)}</span><strong>{training.eligible ? t('overviewPage.trainingAvailable') : training.block_reason ?? t('overviewPage.trainingUnavailable')}</strong></div>
       <div className="tlg-overview-bars">
-        {values.map(([label, value]) => <MetricBar key={label} label={label} value={value} inverse={label === 'Fatigue'} />)}
+        {values.map(([label, value, inverse]) => <MetricBar key={label} label={label} value={value} inverse={inverse} />)}
       </div>
-      <div className="tlg-overview-plan"><span>Current plan</span><strong>{titleCase(training.plan?.training_type)}</strong><small>{training.plan?.focus_attribute ? `Focus: ${titleCase(training.plan.focus_attribute)} · ` : ''}{titleCase(training.plan?.intensity)}</small></div>
+      <div className="tlg-overview-plan"><span>{t('overviewPage.currentPlan')}</span><strong>{titleCase(training.plan?.training_type)}</strong><small>{training.plan?.focus_attribute ? `${t('overviewPage.focusLabel', { value: titleCase(training.plan.focus_attribute) })} · ` : ''}{titleCase(training.plan?.intensity)}</small></div>
     </article>
   )
 }
 
 function OperationsCard({ dashboard, equipmentAverage }: { dashboard: OverviewDashboard; equipmentAverage: number }) {
+  const { t } = useTranslation()
+  const { formatCurrency, formatNumber } = useLocalization()
   const loadout = dashboard.equipment?.loadout
   const club = dashboard.club?.club
+  const money = (value: number | null | undefined) => formatCurrency(Math.round(Number(value) || 0), 'USD')
+
   return (
     <article className="tlg-overview-panel tlg-overview-compact-panel">
-      <div className="tlg-overview-panel-head"><div><span>CAREER OPERATIONS</span><h3>Gear, team & club</h3></div></div>
-      <OperationRow icon={<ShoppingBag size={15} />} title="Equipment" value={`${equipmentAverage}% condition`} detail={loadout?.racket ? `${loadout.racket.item.brand} ${loadout.racket.item.model}` : 'No racket equipped'} to="/game/equipment" />
-      <OperationRow icon={<Users size={15} />} title="Staff" value={`${dashboard.staff.active_count} active`} detail={`${money(dashboard.staff.weekly_payroll)} weekly payroll`} to="/game/staff" />
-      <OperationRow icon={<ShieldCheck size={15} />} title="Tennis Club" value={club?.name ?? 'No club'} detail={club ? `${number(club.points)} pts · ${club.member_count} members` : `${number(dashboard.club.coins_balance)} coins available`} to="/game/tennis-club" />
+      <div className="tlg-overview-panel-head"><div><span>{t('overviewPage.careerOperationsEyebrow')}</span><h3>{t('overviewPage.gearTeamClub')}</h3></div></div>
+      <OperationRow icon={<ShoppingBag size={15} />} title={t('overviewPage.equipment')} value={t('overviewPage.condition', { value: equipmentAverage })} detail={loadout?.racket ? `${loadout.racket.item.brand} ${loadout.racket.item.model}` : t('overviewPage.noRacket')} to="/game/equipment" />
+      <OperationRow icon={<Users size={15} />} title={t('overviewPage.staff')} value={t('overviewPage.activeCount', { count: dashboard.staff.active_count })} detail={t('overviewPage.weeklyPayrollShort', { amount: money(dashboard.staff.weekly_payroll) })} to="/game/staff" />
+      <OperationRow icon={<ShieldCheck size={15} />} title={t('overviewPage.tennisClub')} value={club?.name ?? t('overviewPage.noClub')} detail={club ? t('overviewPage.clubDetail', { points: formatNumber(club.points), count: club.member_count }) : t('overviewPage.coinsAvailable', { count: formatNumber(dashboard.club.coins_balance) })} to="/game/tennis-club" />
     </article>
   )
 }
 
 function GameNewsCard({ items }: { items: GameNewsItem[] }) {
+  const { t } = useTranslation()
   return (
     <article className="tlg-overview-panel">
-      <div className="tlg-overview-panel-head"><div><span>GAME NEWS</span><h3>Latest results around the tour</h3><p>Recent completed official matches from your professional world.</p></div></div>
+      <div className="tlg-overview-panel-head"><div><span>{t('overviewPage.gameNews')}</span><h3>{t('overviewPage.latestTourResults')}</h3><p>{t('overviewPage.gameNewsIntro')}</p></div></div>
       <div className="tlg-overview-news-list">
         {items.length ? items.map((item) => (
           <div key={item.match_id} className="tlg-overview-news-row">
             <div className="winner"><CountryFlag countryCode={item.winner_country_code} width={22} height={15} /><Link to={`/game/players/${item.winner_id}`}>{item.winner_first_name} {item.winner_last_name}</Link></div>
-            <span>defeated</span>
+            <span>{t('overviewPage.defeated')}</span>
             <div><CountryFlag countryCode={item.loser_country_code} width={22} height={15} /><Link to={`/game/players/${item.loser_id}`}>{item.loser_first_name} {item.loser_last_name}</Link></div>
             <small>{item.tournament_name} · {item.round_label}</small>
           </div>
-        )) : <EmptyCard text="No completed tour matches are available yet." />}
+        )) : <EmptyCard text={t('overviewPage.noTourMatches')} />}
       </div>
     </article>
   )
 }
 
 function CareerNewsCard({ items }: { items: CareerNewsItem[] }) {
+  const { t } = useTranslation()
+
   return (
     <article className="tlg-overview-panel">
-      <div className="tlg-overview-panel-head"><div><span>CAREER NEWS</span><h3>Your latest updates</h3></div><Link className="tlg-overview-link" to="/game/notifications">Notifications <ChevronRight size={14} /></Link></div>
+      <div className="tlg-overview-panel-head"><div><span>{t('overviewPage.careerNews')}</span><h3>{t('overviewPage.latestUpdates')}</h3></div><Link className="tlg-overview-link" to="/game/notifications">{t('overviewPage.notifications')} <ChevronRight size={14} /></Link></div>
       <div className="tlg-overview-career-news">
-        {items.length ? items.map((item) => (
-          <div key={item.id} className={item.read_at ? '' : 'unread'}>
-            <span>{item.read_at ? 'UPDATE' : 'NEW'}</span>
-            <strong>{item.title}</strong>
-            <p>{item.message}</p>
-            {item.route && <Link to={item.route}>Open <ChevronRight size={13} /></Link>}
-          </div>
-        )) : <div className="tlg-overview-no-news"><ShieldCheck size={22} /><strong>All caught up</strong><p>No new personal career notifications.</p></div>}
+        {items.length ? items.map((item) => {
+          const localized = localizeNotification(item, t)
+          return (
+            <div key={item.id} className={item.read_at ? '' : 'unread'}>
+              <span>{item.read_at ? t('overviewPage.update') : t('overviewPage.new')}</span>
+              <strong>{localized.title}</strong>
+              <p>{localized.message}</p>
+              {item.route && <Link to={item.route}>{t('overviewPage.open')} <ChevronRight size={13} /></Link>}
+            </div>
+          )
+        }) : <div className="tlg-overview-no-news"><ShieldCheck size={22} /><strong>{t('overviewPage.allCaughtUp')}</strong><p>{t('overviewPage.noCareerNews')}</p></div>}
       </div>
     </article>
   )
