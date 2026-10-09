@@ -622,7 +622,7 @@ export default function CreatePlayerPage(): JSX.Element {
                   <div className="tlg-onboarding-form-grid">
                     <FormField
                       id="first-name"
-                      label={t('createPlayer.identity.firstName')}"
+                      label={t('createPlayer.identity.firstName')}
                       required
                       error={(attemptedStep === 2 || submitted) && !firstNameValid ? t('createPlayer.errors.firstName') : undefined}
                     >
@@ -639,7 +639,7 @@ export default function CreatePlayerPage(): JSX.Element {
 
                     <FormField
                       id="last-name"
-                      label={t('createPlayer.identity.lastName')}"
+                      label={t('createPlayer.identity.lastName')}
                       required
                       error={(attemptedStep === 2 || submitted) && !lastNameValid ? t('createPlayer.errors.lastName') : undefined}
                     >
