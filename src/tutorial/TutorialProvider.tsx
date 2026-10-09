@@ -12,9 +12,11 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronLeft, ChevronRight, Coins, Crown, GraduationCap, GripHorizontal, LockKeyhole, Pause, Sparkles, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router'
 
 import { useAuth } from '../auth/AuthContext'
+import { useLocalization } from '../i18n/LocalizationProvider'
 import { supabase } from '../lib/supabase'
 import {
   TUTORIAL_PHASES,
@@ -80,6 +82,7 @@ function tutorialSessionKey(playerId: string, lastSignInAt?: string | null) {
 
 export function TutorialProvider({ children }: { children: ReactNode }) {
   const { player, user } = useAuth()
+  const { locale: appLocale } = useLocalization()
   const location = useLocation()
   const navigate = useNavigate()
   const [status, setStatus] = useState<TutorialStatus>('loading')
@@ -95,6 +98,11 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
   const currentStep = TUTORIAL_STEPS[currentStepIndex] ?? null
   const resources = useMemo(() => getTutorialResources(locale), [locale])
+
+  useEffect(() => {
+    const next = normalizeTutorialLocale(appLocale)
+    setLocale((current) => current === next ? current : next)
+  }, [appLocale])
 
   const persist = useCallback(async (
     nextStatus: Exclude<TutorialStatus, 'loading'>,
@@ -514,6 +522,7 @@ function TutorialOverlay({
   onPause: () => Promise<void>
   onSkip: () => Promise<void>
 }) {
+  const { t } = useTranslation()
   const resources = getTutorialResources(locale)
   const phase = getTutorialPhase(step.phaseId)
   const phaseIndex = TUTORIAL_PHASES.findIndex((item) => item.id === step.phaseId)
@@ -647,7 +656,7 @@ function TutorialOverlay({
           <div>
             <span>{resources.ui.tutorial}</span>
             <strong>{phaseCopy?.title ?? phase.id}</strong>
-            <span className="tlg-tutorial-drag-hint"><GripHorizontal size={13} /> Drag window to move it</span>
+            <span className="tlg-tutorial-drag-hint"><GripHorizontal size={13} /> {t('tutorial.drag')}</span>
           </div>
           <button type="button" onClick={() => void onPause()} aria-label={resources.ui.closeLabel} title={resources.ui.pause}>
             <X size={17} />
