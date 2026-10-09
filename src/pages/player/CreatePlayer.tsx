@@ -5,6 +5,7 @@
 
 import type { FormEvent } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import {
   AlertTriangle,
@@ -23,6 +24,7 @@ import AppButton from '../../components/common/AppButton'
 import SharedCountryFlag from '../../components/common/CountryFlag'
 import FormField from '../../components/common/FormField'
 import { COUNTRIES } from '../../data/countries'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 import '../../styles/create-player-enhancements.css'
 
@@ -78,34 +80,35 @@ interface AvatarOption {
 const NAME_PATTERN = /^[\p{L}][\p{L}'’ -]*$/u
 const PLAYER_DRAFT_KEY_PREFIX = 'tlg-create-player-draft:'
 
-const ONBOARDING_STEPS: Array<{ id: OnboardingStep; label: string; short: string }> = [
-  { id: 1, label: 'Career', short: 'Tour' },
-  { id: 2, label: 'Player', short: 'Identity' },
-  { id: 3, label: 'Appearance', short: 'Portrait' },
-  { id: 4, label: 'Profile', short: 'Style' },
-  { id: 5, label: 'Confirm', short: 'Review' },
+const ONBOARDING_STEPS: Array<{ id: OnboardingStep; labelKey: string; shortKey: string }> = [
+  { id: 1, labelKey: 'createPlayer.steps.career', shortKey: 'createPlayer.steps.tour' },
+  { id: 2, labelKey: 'createPlayer.steps.player', shortKey: 'createPlayer.steps.identity' },
+  { id: 3, labelKey: 'createPlayer.steps.appearance', shortKey: 'createPlayer.steps.portrait' },
+  { id: 4, labelKey: 'createPlayer.steps.profile', shortKey: 'createPlayer.steps.style' },
+  { id: 5, labelKey: 'createPlayer.steps.confirm', shortKey: 'createPlayer.steps.review' },
 ]
 
-
-const SURFACES: Array<{ value: PreferredSurface; text: string }> = [
-  { value: 'Hard', text: 'Balanced modern surface' },
-  { value: 'Clay', text: 'Long rallies and movement' },
-  { value: 'Grass', text: 'Fast points and attacking play' },
+const SURFACES: Array<{ value: PreferredSurface; labelKey: string; textKey: string }> = [
+  { value: 'Hard', labelKey: 'createPlayer.surfaces.Hard', textKey: 'createPlayer.surfaces.hardBody' },
+  { value: 'Clay', labelKey: 'createPlayer.surfaces.Clay', textKey: 'createPlayer.surfaces.clayBody' },
+  { value: 'Grass', labelKey: 'createPlayer.surfaces.Grass', textKey: 'createPlayer.surfaces.grassBody' },
 ]
 
-const PLAYING_STYLES: Array<{ value: PlayingStyle; text: string }> = [
-  { value: 'Aggressive Baseliner', text: 'More emphasis on forehand pressure and attacking from the baseline.' },
-  { value: 'Defensive Baseliner', text: 'More emphasis on return, backhand stability and absorbing pressure.' },
-  { value: 'All-court', text: 'Neutral style with no additional starting redistribution.' },
-  { value: 'Serve & Volley', text: 'More emphasis on serve, volley and moving forward quickly.' },
+const PLAYING_STYLES: Array<{ value: PlayingStyle; labelKey: string; textKey: string }> = [
+  { value: 'Aggressive Baseliner', labelKey: 'createPlayer.styles.aggressive', textKey: 'createPlayer.styles.aggressiveBody' },
+  { value: 'Defensive Baseliner', labelKey: 'createPlayer.styles.defensive', textKey: 'createPlayer.styles.defensiveBody' },
+  { value: 'All-court', labelKey: 'createPlayer.styles.allCourt', textKey: 'createPlayer.styles.allCourtBody' },
+  { value: 'Serve & Volley', labelKey: 'createPlayer.styles.serveVolley', textKey: 'createPlayer.styles.serveVolleyBody' },
 ]
 
-const PLAYING_HANDS: Array<{ value: PlayingHand; label: string; text: string }> = [
-  { value: 'right', label: 'Right-handed', text: 'Standard right-handed serve and rally geometry.' },
-  { value: 'left', label: 'Left-handed', text: 'Creates different serve angles and opposite-handed rally patterns.' },
+const PLAYING_HANDS: Array<{ value: PlayingHand; labelKey: string; textKey: string }> = [
+  { value: 'right', labelKey: 'createPlayer.hands.right', textKey: 'createPlayer.hands.rightBody' },
+  { value: 'left', labelKey: 'createPlayer.hands.left', textKey: 'createPlayer.hands.leftBody' },
 ]
 
 export default function CreatePlayerPage(): JSX.Element {
+  const { t } = useTranslation()
+  const { localeTag } = useLocalization()
   const { user, refreshPlayer } = useAuth()
   const navigate = useNavigate()
 
@@ -233,7 +236,7 @@ export default function CreatePlayerPage(): JSX.Element {
 
       if (error || !data?.length) {
         setHomeCities([])
-        setHomeCityLoadError('Home cities could not be loaded for this country. Choose the country again or refresh the page.')
+        setHomeCityLoadError(t('createPlayer.errors.homeCities'))
         resumeHomeCityRef.current = ''
       } else {
         const rows = data as HomeCityOption[]
@@ -274,7 +277,7 @@ export default function CreatePlayerPage(): JSX.Element {
         console.error('Unable to load Tennis Legacy avatar catalog:', error.message)
         setAvatars([])
         setAvatarsLoading(false)
-        setAvatarError('Player portraits could not be loaded. Refresh the page and try again.')
+        setAvatarError(t('createPlayer.errors.portraitsLoad'))
         return
       }
 
@@ -296,7 +299,7 @@ export default function CreatePlayerPage(): JSX.Element {
         console.error('Unable to sign Tennis Legacy avatar URLs:', signedError.message)
         setAvatars([])
         setAvatarsLoading(false)
-        setAvatarError('Player portraits could not be displayed. Refresh the page and try again.')
+        setAvatarError(t('createPlayer.errors.portraitsDisplay'))
         return
       }
 
@@ -362,16 +365,25 @@ export default function CreatePlayerPage(): JSX.Element {
     playingHand,
   ])
 
+  const localizedCountries = useMemo(() => {
+    let displayNames: Intl.DisplayNames | null = null
+    try { displayNames = new Intl.DisplayNames([localeTag], { type: 'region' }) } catch { displayNames = null }
+    return countries.map((item) => ({
+      ...item,
+      displayName: displayNames?.of(item.code) ?? item.name,
+    }))
+  }, [countries, localeTag])
+
   const selectedCountry = useMemo(
-    () => countries.find((item) => item.code === country) ?? null,
-    [countries, country],
+    () => localizedCountries.find((item) => item.code === country) ?? null,
+    [localizedCountries, country],
   )
 
   const filteredCountries = useMemo(() => {
     const query = countryQuery.trim().toLocaleLowerCase()
-    if (!query) return countries
-    return countries.filter((item) => `${item.name} ${item.code}`.toLocaleLowerCase().includes(query))
-  }, [countries, countryQuery])
+    if (!query) return localizedCountries
+    return localizedCountries.filter((item) => `${item.displayName} ${item.name} ${item.code}`.toLocaleLowerCase().includes(query))
+  }, [localizedCountries, countryQuery])
 
   const filteredHomeCities = useMemo(() => {
     const query = homeCityQuery.trim().toLocaleLowerCase()
@@ -384,7 +396,7 @@ export default function CreatePlayerPage(): JSX.Element {
     [avatars, selectedAvatarPath],
   )
 
-  const selectedCountryName = selectedCountry?.name ?? 'Country not selected'
+  const selectedCountryName = selectedCountry?.displayName ?? t('createPlayer.identity.countryNotSelected')
   const availableAvatarCount = avatars.length
   const cleanFirstName = firstName.trim()
   const cleanLastName = lastName.trim()
@@ -400,6 +412,19 @@ export default function CreatePlayerPage(): JSX.Element {
   const formValid = identityValid && profileValid
 
   const currentStep = ONBOARDING_STEPS.find((item) => item.id === step) ?? ONBOARDING_STEPS[0]
+  const surfaceLabel = (value: PreferredSurface | null) => value ? t(`createPlayer.surfaces.${value}`) : t('createPlayer.review.notSelected')
+  const styleLabel = (value: PlayingStyle | null) => {
+    if (value === 'Aggressive Baseliner') return t('createPlayer.styles.aggressive')
+    if (value === 'Defensive Baseliner') return t('createPlayer.styles.defensive')
+    if (value === 'All-court') return t('createPlayer.styles.allCourt')
+    if (value === 'Serve & Volley') return t('createPlayer.styles.serveVolley')
+    return t('createPlayer.review.notSelected')
+  }
+  const handLabel = (value: PlayingHand | null) => value === 'left'
+    ? t('createPlayer.hands.left')
+    : value === 'right'
+      ? t('createPlayer.hands.right')
+      : t('createPlayer.review.notSelected')
 
   function scrollToWizardTop() {
     window.requestAnimationFrame(() => {
@@ -466,7 +491,7 @@ export default function CreatePlayerPage(): JSX.Element {
           setAvatarRefreshKey((value) => value + 1)
           setStep(3)
           setSaving(false)
-          setSaveError('That player portrait was just selected by another manager. Choose another available portrait and try again.')
+          setSaveError(t('createPlayer.errors.portraitTaken'))
           return
         }
         throw error
@@ -478,7 +503,7 @@ export default function CreatePlayerPage(): JSX.Element {
     } catch (error) {
       console.error('Unable to create Tennis Legacy player:', error)
       setSaving(false)
-      setSaveError('Your player could not be created. Check the selected details, including the home city, and try again.')
+      setSaveError(t('createPlayer.errors.create'))
     }
   }
 
