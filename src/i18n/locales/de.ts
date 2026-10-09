@@ -1935,7 +1935,7 @@ export default {
     actionError: 'Aktion konnte nicht abgeschlossen werden',
     overview: {
       eyebrow: 'Privatleben-Dashboard', title: 'Deine Welt abseits des Platzes', body: 'Prestige, Sachwerte und Investitionen werden hier verwaltet, während Finanzen die maßgebliche Quelle für Geld bleiben.',
-      refreshing: 'Wird aktualisiert…', refresh: 'Aktualisieren', physical: 'Sachwertsammlung',
+      refreshing: 'Wird aktualisiert…', refresh: 'Aktualisieren', physical: 'Sachwertsammlung', ownedCount_one: '{{count}} im Besitz', ownedCount_other: '{{count}} im Besitz',
       investmentTitle: 'Investitionen', active: 'Aktiv', investmentBody: 'Handle simulierte Aktien und Kryptowährungen mit deinem Karrieregeld. Externe Marktkurse liefern den Referenzpreis im Spiel.', openInvestments: 'Investitionen öffnen',
       residenceTitle: 'Wohnsitzregel', residenceBody: 'Du musst immer mindestens eine Wohnung, ein Haus oder eine Villa behalten. Ein Wohnsitz kann erst verkauft werden, wenn ein anderer verfügbar ist.', residenceNote: 'Wohnkosten für Immobilien werden monatlich über das Karriere-Finanzbuch abgerechnet.',
       costsTitle: 'Besitzkosten', costsBody: 'Fahrzeuge, Häuser, Yachten und Privatflugzeuge verursachen wiederkehrende monatliche Kosten. Uhren, Schmuck, Kunst und Sammlerstücke nicht.', costsNote: 'Höherwertige Vermögenswerte haben höhere Wartungs- oder Wohnkosten.',
