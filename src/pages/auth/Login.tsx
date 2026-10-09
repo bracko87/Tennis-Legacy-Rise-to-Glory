@@ -6,6 +6,7 @@
 
 import type { FormEvent, ReactNode } from 'react'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import {
   ArrowLeft,
@@ -30,6 +31,7 @@ interface FormStatus {
 }
 
 export default function LoginPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [email, setEmail] = useState('')
@@ -41,7 +43,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (searchParams.get('password') === 'updated') {
-      setStatus({ type: 'success', message: 'Your password has been updated. Sign in with your new password.' })
+      setStatus({ type: 'success', message: t('authPages.login.passwordUpdated') })
     }
   }, [searchParams])
 
@@ -63,8 +65,8 @@ export default function LoginPage() {
       setStatus({
         type: 'error',
         message: error?.message.toLowerCase().includes('email not confirmed')
-          ? 'Confirm your email address before signing in. Use the verification email sent after registration.'
-          : 'Those sign-in details were not accepted. Check your email and password and try again.',
+          ? t('authPages.login.emailNotConfirmed')
+          : t('authPages.login.invalidCredentials'),
       })
       return
     }
@@ -78,7 +80,7 @@ export default function LoginPage() {
     setLoading(false)
 
     if (playerError) {
-      setStatus({ type: 'error', message: 'Your account is signed in, but your player profile could not be loaded. Try again.' })
+      setStatus({ type: 'error', message: t('authPages.login.playerLoadError') })
       return
     }
 
@@ -90,29 +92,29 @@ export default function LoginPage() {
       <AuthBackground />
 
       <header className="tlg-auth-topbar">
-        <Link to="/" className="tlg-brand" aria-label="Tennis Legacy homepage">
+        <Link to="/" className="tlg-brand" aria-label={t('authPages.login.homepageAria')}>
           <span className="tlg-brand-mark" aria-hidden="true" />
           <span className="tlg-brand-copy">
             <strong className="tlg-brand-name">Tennis Legacy</strong>
-            <span className="tlg-brand-subtitle">Rise to Glory</span>
+            <span className="tlg-brand-subtitle">{t('authPages.brandSubtitle')}</span>
           </span>
         </Link>
-        <Link to="/" className="tlg-auth-home-link"><ArrowLeft size={16} /> Home</Link>
+        <Link to="/" className="tlg-auth-home-link"><ArrowLeft size={16} /> {t('authPages.home')}</Link>
       </header>
 
       <main className="tlg-auth-main">
         <section className="tlg-auth-showcase tlg-auth-showcase-compact">
           <div className="tlg-auth-showcase-content">
-            <span className="tlg-auth-eyebrow">Welcome back</span>
-            <h1>Sign in.<strong> Continue your career.</strong></h1>
+            <span className="tlg-auth-eyebrow">{t('authPages.login.welcome')}</span>
+            <h1>{t('authPages.login.heading')}<strong>{t('authPages.login.headingAccent')}</strong></h1>
             <p>
-              Your Tennis Legacy account takes you straight back to your existing player and career.
+              {t('authPages.login.intro')}
             </p>
 
             <div className="tlg-auth-feature-list">
-              <AuthFeature icon={<Globe2 size={18} />} title="One account, one career" description="Your account securely owns your persistent Tennis Legacy player." />
-              <AuthFeature icon={<CalendarDays size={18} />} title="Resume where you left off" description="Sign in and continue directly from your current career state." />
-              <AuthFeature icon={<Trophy size={18} />} title="Your progress stays yours" description="Rankings, titles, records and milestones remain attached to your career." />
+              <AuthFeature icon={<Globe2 size={18} />} title={t('authPages.login.feature1Title')} description={t('authPages.login.feature1Body')} />
+              <AuthFeature icon={<CalendarDays size={18} />} title={t('authPages.login.feature2Title')} description={t('authPages.login.feature2Body')} />
+              <AuthFeature icon={<Trophy size={18} />} title={t('authPages.login.feature3Title')} description={t('authPages.login.feature3Body')} />
             </div>
 
           </div>
@@ -122,24 +124,24 @@ export default function LoginPage() {
           <div className="tlg-auth-card">
             <div className="tlg-auth-card-heading">
               <span className="tlg-auth-card-icon"><LockKeyhole size={21} /></span>
-              <div><span>Account access</span><h2>Sign In</h2></div>
+              <div><span>{t('authPages.login.accountAccess')}</span><h2>{t('authPages.login.signIn')}</h2></div>
             </div>
 
-            <p className="tlg-auth-card-description">Use the email and password for your Tennis Legacy account.</p>
+            <p className="tlg-auth-card-description">{t('authPages.login.cardBody')}</p>
 
             <form className="tlg-auth-form" onSubmit={handleSubmit} noValidate>
-              <FormField id="login-email" label="Email address" required error={submitted && !emailValid ? 'Enter a valid email address.' : undefined}>
+              <FormField id="login-email" label={t('auth.email')} required error={submitted && !emailValid ? t('authPages.login.emailError') : undefined}>
                 <div className="tlg-input-shell">
                   <Mail className="tlg-input-leading-icon" size={18} />
                   <input id="login-email" type="email" value={email} onChange={(event) => { setEmail(event.target.value); setStatus(null) }} className={`tlg-input tlg-input-with-leading-icon ${submitted && !emailValid ? 'tlg-input-error' : ''}`} placeholder="you@example.com" autoComplete="email" />
                 </div>
               </FormField>
 
-              <FormField id="login-password" label="Password" required labelAction={<Link className="tlg-auth-inline-action" to="/forgot-password">Forgot password?</Link>} error={submitted && !passwordValid ? 'Enter your account password.' : undefined}>
+              <FormField id="login-password" label={t('auth.password')} required labelAction={<Link className="tlg-auth-inline-action" to="/forgot-password">{t('auth.forgotPassword')}</Link>} error={submitted && !passwordValid ? t('authPages.login.passwordError') : undefined}>
                 <div className="tlg-input-shell">
                   <LockKeyhole className="tlg-input-leading-icon" size={18} />
-                  <input id="login-password" type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => { setPassword(event.target.value); setStatus(null) }} className={`tlg-input tlg-input-with-leading-icon tlg-input-with-action ${submitted && !passwordValid ? 'tlg-input-error' : ''}`} placeholder="Enter your password" autoComplete="current-password" />
-                  <button type="button" className="tlg-input-action" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+                  <input id="login-password" type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => { setPassword(event.target.value); setStatus(null) }} className={`tlg-input tlg-input-with-leading-icon tlg-input-with-action ${submitted && !passwordValid ? 'tlg-input-error' : ''}`} placeholder={t('authPages.login.passwordPlaceholder')} autoComplete="current-password" />
+                  <button type="button" className="tlg-input-action" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? t('authPages.login.hidePassword') : t('authPages.login.showPassword')}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
                 </div>
               </FormField>
 
@@ -150,27 +152,27 @@ export default function LoginPage() {
               )}
 
               <AppButton type="submit" variant="primary" size="large" fullWidth loading={loading} rightIcon={<ArrowRight size={18} />}>
-                {loading ? 'Signing in…' : 'Sign In'}
+                {loading ? t('auth.signingIn') : t('authPages.login.signIn')}
               </AppButton>
             </form>
 
-            <div className="tlg-auth-divider"><span>New to Tennis Legacy?</span></div>
+            <div className="tlg-auth-divider"><span>{t('authPages.login.newToGame')}</span></div>
             <button
               type="button"
               className="tlg-auth-outline-button tlg-auth-registration-disabled"
               disabled
               aria-disabled="true"
-              title="New account registration is temporarily closed."
+              title={t('authPages.login.registrationClosed')}
             >
-              Create Account <ArrowRight size={17} />
+              {t('authPages.login.createAccount')} <ArrowRight size={17} />
             </button>
 
-            <p className="tlg-auth-supabase-note">Secure account access · persistent career data</p>
+            <p className="tlg-auth-supabase-note">{t('authPages.login.secureNote')}</p>
           </div>
         </section>
       </main>
 
-      <footer className="tlg-auth-footer"><span>Tennis Legacy: Rise to Glory</span><span>Account → Player → Career</span></footer>
+      <footer className="tlg-auth-footer"><span>Tennis Legacy: Rise to Glory</span><span>{t('authPages.login.footerFlow')}</span></footer>
     </div>
   )
 }
