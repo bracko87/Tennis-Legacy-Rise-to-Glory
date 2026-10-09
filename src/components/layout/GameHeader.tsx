@@ -7,11 +7,13 @@ import {
   Settings,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import { useCommerce } from '../../hooks/useCommerce'
 import useUnreadNotificationCount from '../../hooks/useUnreadNotificationCount'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 import CountryFlag from '../common/CountryFlag'
 
@@ -22,11 +24,10 @@ export interface GameHeaderProps {
   onOpenEarnCoins?: () => void
 }
 
-function getCountryName(code?: string) {
-  if (!code) return 'Country not set'
-
+function getCountryName(code: string | undefined, localeTag: string, fallback: string) {
+  if (!code) return fallback
   try {
-    return new Intl.DisplayNames(['en'], { type: 'region' }).of(code) ?? code
+    return new Intl.DisplayNames([localeTag], { type: 'region' }).of(code) ?? code
   } catch {
     return code
   }
@@ -36,6 +37,8 @@ export default function GameHeader({
   onToggleSidebarMobile,
   onOpenEarnCoins,
 }: GameHeaderProps) {
+  const { t } = useTranslation()
+  const { localeTag, formatNumber } = useLocalization()
   const navigate = useNavigate()
   const { player, signOut } = useAuth()
   const { isPremium } = useCommerce()
@@ -46,8 +49,8 @@ export default function GameHeader({
 
   const displayName = player
     ? `${player.first_name} ${player.last_name}`.trim()
-    : 'Tennis Legacy Player'
-  const countryName = getCountryName(player?.country_code)
+    : t('header.playerFallback')
+  const countryName = getCountryName(player?.country_code, localeTag, t('header.countryNotSet'))
 
   useEffect(() => {
     let active = true
@@ -118,15 +121,15 @@ export default function GameHeader({
           type="button"
           className="tlg-v2-mobile-menu"
           onClick={onToggleSidebarMobile}
-          aria-label="Open navigation"
+          aria-label={t('header.openNavigation')}
         >
           <Menu size={18} />
         </button>
 
         {player && (
           <>
-            <div className="tlg-v6-header-rank" data-tutorial-id="header-rank" aria-label={currentRank ? `Current world ranking number ${currentRank}` : 'World ranking unavailable'}>
-              {currentRank ? `#${currentRank.toLocaleString()}` : '—'}
+            <div className="tlg-v6-header-rank" data-tutorial-id="header-rank" aria-label={currentRank ? t('header.worldRankAria', { rank: formatNumber(currentRank) }) : t('header.worldRankUnavailable')}>
+              {currentRank ? `#${formatNumber(currentRank)}` : '—'}
             </div>
             <span className="tlg-v6-header-identity-divider" aria-hidden="true" />
           </>
@@ -148,20 +151,20 @@ export default function GameHeader({
 
       <div className="tlg-v4-header-actions">
         <button type="button" className="tlg-cpx-launch"
-          aria-label="Earn Free Coins by completing optional surveys"
+          aria-label={t('header.earnFreeCoinsAria')}
           onClick={() => onOpenEarnCoins?.()}>
           <Coins size={16} />
-          <span>Earn Free Coins</span>
+          <span>{t('header.earnFreeCoins')}</span>
         </button>
         <button
           type="button"
           className="tlg-v4-header-action tlg-v4-notification-button"
           data-tutorial-id="header-notifications"
-          aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+          aria-label={unreadCount > 0 ? t('header.notificationsUnread', { count: unreadCount }) : t('header.notifications')}
           onClick={() => navigate('/game/notifications')}
         >
           <Bell size={16} />
-          <span>Notifications</span>
+          <span>{t('header.notifications')}</span>
           {unreadCount > 0 && (
             <span className="tlg-v4-notification-badge" aria-hidden="true">
               {unreadCount > 99 ? '99+' : unreadCount}
@@ -174,11 +177,11 @@ export default function GameHeader({
             type="button"
             className="tlg-v4-header-action tlg-commerce-premium-tab"
             data-tutorial-id="header-premium"
-            aria-label="Premium membership"
+            aria-label={t('header.premium')}
             onClick={() => navigate('/game/pro-packages')}
           >
             <Crown size={16} />
-            <span>Premium</span>
+            <span>{t('header.premium')}</span>
           </button>
         )}
 
@@ -192,48 +195,48 @@ export default function GameHeader({
             onClick={() => setSettingsOpen((value) => !value)}
           >
             <Settings size={16} />
-            <span>Settings</span>
+            <span>{t('header.settings')}</span>
             <ChevronDown size={13} className={settingsOpen ? 'tlg-v4-chevron-open' : ''} />
           </button>
 
           {settingsOpen && (
             <div className="tlg-v4-settings-menu" role="menu">
-              <div className="tlg-v4-settings-heading">Manager settings</div>
+              <div className="tlg-v4-settings-heading">{t('header.managerSettings')}</div>
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/player-account')}>
-                <span><strong>Player & account</strong><small>Identity and account</small></span>
+                <span><strong>{t('header.playerAccount')}</strong><small>{t('header.playerAccountDesc')}</small></span>
               </button>
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/preferences')}>
-                <span><strong>Game preferences</strong><small>Personal game settings</small></span>
+                <span><strong>{t('header.gamePreferences')}</strong><small>{t('header.gamePreferencesDesc')}</small></span>
               </button>
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/inbox')}>
-                <span><strong>Inbox</strong><small>Manager messages</small></span>
+                <span><strong>{t('header.inbox')}</strong><small>{t('header.inboxDesc')}</small></span>
               </button>
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/help')}>
-                <span><strong>Help</strong><small>Guides and support</small></span>
+                <span><strong>{t('header.help')}</strong><small>{t('header.helpDesc')}</small></span>
               </button>
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/forum')}>
-                <span><strong>Forum</strong><small>Community discussion</small></span>
+                <span><strong>{t('header.forum')}</strong><small>{t('header.forumDesc')}</small></span>
               </button>
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/pro-packages')}>
-                <span><strong>Pro Packages</strong><small>Premium services & coins</small></span>
+                <span><strong>{t('header.proPackages')}</strong><small>{t('header.proPackagesDesc')}</small></span>
               </button>
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/contact')}>
-                <span><strong>Contact Us</strong><small>Contact Tennis Legacy</small></span>
+                <span><strong>{t('header.contactUs')}</strong><small>{t('header.contactUsDesc')}</small></span>
               </button>
 
               <button type="button" className="tlg-v4-settings-row" onClick={() => openManagerPage('/game/invite-friends')}>
-                <span><strong>Invite Friends</strong><small>Share Tennis Legacy</small></span>
+                <span><strong>{t('header.inviteFriends')}</strong><small>{t('header.inviteFriendsDesc')}</small></span>
               </button>
 
               <button type="button" className="tlg-v4-settings-row" onClick={handleLogout}>
-                <span><strong>Logout</strong><small>Sign out of your account</small></span>
+                <span><strong>{t('header.logout')}</strong><small>{t('header.logoutDesc')}</small></span>
               </button>
             </div>
           )}
