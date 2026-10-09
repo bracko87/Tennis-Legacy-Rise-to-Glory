@@ -36,7 +36,7 @@ void i18n
     },
     lng: normalizeAppLocale(
       typeof window !== 'undefined'
-        ? window.localStorage.getItem('tlg:locale') || document.documentElement.lang || navigator.language
+        ? window.localStorage.getItem('tlg:locale') || 'en'
         : 'en',
     ),
     fallbackLng: 'en',
