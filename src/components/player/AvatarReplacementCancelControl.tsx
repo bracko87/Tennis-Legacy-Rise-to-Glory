@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
 import { AlertTriangle, X, XCircle } from 'lucide-react'
 
 import { useAuth } from '../../auth/AuthContext'
@@ -15,6 +16,7 @@ type ActiveRequest = {
 }
 
 export default function AvatarReplacementCancelControl() {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const [request, setRequest] = useState<ActiveRequest | null>(null)
   const [busy, setBusy] = useState(false)
@@ -91,7 +93,9 @@ export default function AvatarReplacementCancelControl() {
       }
     }
 
-    window.location.reload()
+    setRequest(null)
+    setConfirmOpen(false)
+    setBusy(false)
   }
 
   if (!request) return null
@@ -108,25 +112,25 @@ export default function AvatarReplacementCancelControl() {
         <header className="tlg-avatar-confirm-head">
           <span className="tlg-avatar-confirm-icon"><AlertTriangle size={19} /></span>
           <div>
-            <span>Avatar request</span>
-            <h3 id="tlg-avatar-cancel-title">Cancel this request?</h3>
+            <span>{t('playerAccountPage.avatar.cancel.kicker')}</span>
+            <h3 id="tlg-avatar-cancel-title">{t('playerAccountPage.avatar.cancel.title')}</h3>
           </div>
-          <button type="button" onClick={() => setConfirmOpen(false)} disabled={busy} aria-label="Close cancellation dialog">
+          <button type="button" onClick={() => setConfirmOpen(false)} disabled={busy} aria-label={t('playerAccountPage.avatar.cancel.closeAria')}>
             <X size={18} />
           </button>
         </header>
 
         <div className="tlg-avatar-confirm-body">
-          <p>Your current avatar will stay unchanged. The request will be closed, the private reference image will be queued for deletion, and you will be able to submit a new avatar request immediately.</p>
-          <div className="tlg-avatar-confirm-request-id"><span>Request ID</span><code>{request.id}</code></div>
+          <p>{t('playerAccountPage.avatar.cancel.body')}</p>
+          <div className="tlg-avatar-confirm-request-id"><span>{t('playerAccountPage.avatar.requestId')}</span><code>{request.id}</code></div>
         </div>
 
         <footer className="tlg-avatar-confirm-actions">
           <button type="button" className="tlg-avatar-confirm-secondary" onClick={() => setConfirmOpen(false)} disabled={busy}>
-            Keep request
+            {t('playerAccountPage.avatar.cancel.keep')}
           </button>
           <button type="button" className="tlg-avatar-confirm-danger" onClick={() => void cancelRequest()} disabled={busy}>
-            <XCircle size={16} /> {busy ? 'Cancelling…' : 'Cancel request'}
+            <XCircle size={16} /> {busy ? t('playerAccountPage.avatar.cancel.cancelling') : t('playerAccountPage.avatar.cancel.cancel')}
           </button>
         </footer>
       </div>
@@ -138,8 +142,8 @@ export default function AvatarReplacementCancelControl() {
     <>
       <div className="tlg-avatar-cancel-inline">
         <div className="tlg-avatar-cancel-copy">
-          <span>Need to change this request?</span>
-          <p>You can cancel it and submit a new one. Your existing avatar will not be changed.</p>
+          <span>{t('playerAccountPage.avatar.cancel.inlineTitle')}</span>
+          <p>{t('playerAccountPage.avatar.cancel.inlineBody')}</p>
         </div>
         <button
           type="button"
@@ -150,7 +154,7 @@ export default function AvatarReplacementCancelControl() {
           }}
           disabled={busy}
         >
-          <XCircle size={16} /> Cancel avatar request
+          <XCircle size={16} /> {t('playerAccountPage.avatar.cancel.inlineButton')}
         </button>
         {error && <p className="tlg-avatar-cancel-error" role="alert">{error}</p>}
       </div>
