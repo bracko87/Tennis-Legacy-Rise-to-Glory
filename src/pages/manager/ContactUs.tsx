@@ -1,8 +1,10 @@
 import { FormEvent, useState } from 'react'
 import { CheckCircle2, LifeBuoy, Mail, MessageSquare, Send } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../../auth/AuthContext'
 import GameLayout from '../../components/layout/GameLayout'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 import '../../styles/contact-us.css'
 
@@ -21,6 +23,8 @@ const categories = [
 type ContactCategory = (typeof categories)[number]
 
 export default function ContactUsPage() {
+  const { t } = useTranslation()
+  const { formatNumber } = useLocalization()
   const { player, user } = useAuth()
   const [category, setCategory] = useState<ContactCategory>('Technical issue')
   const [subject, setSubject] = useState('')
@@ -64,11 +68,11 @@ export default function ContactUsPage() {
     const cleanMessage = message.trim()
 
     if (cleanSubject.length < 3) {
-      setError('Please enter a subject with at least 3 characters.')
+      setError(t('supportPages.contact.subjectError'))
       return
     }
     if (cleanMessage.length < 10) {
-      setError('Please describe the issue in at least 10 characters.')
+      setError(t('supportPages.contact.messageError'))
       return
     }
 
@@ -84,7 +88,7 @@ export default function ContactUsPage() {
     })
 
     if (submitError || !data) {
-      setError(submitError?.message ?? 'Your support request could not be submitted. Please try again.')
+      setError(submitError?.message ?? t('supportPages.contact.submitError'))
       setBusy(false)
       return
     }
@@ -98,27 +102,27 @@ export default function ContactUsPage() {
   }
 
   return (
-    <GameLayout title="Contact Us" subtitle="Direct Tennis Legacy support">
+    <GameLayout title={t('supportPages.contact.title')} subtitle={t('supportPages.contact.subtitle')}>
       <div className="tlg-contact-page">
         <section className="tlg-contact-hero">
           <div>
-            <span>SUPPORT</span>
-            <h2>Contact Tennis Legacy</h2>
+            <span>{t('supportPages.contact.support')}</span>
+            <h2>{t('supportPages.contact.heading')}</h2>
             <p>
-              Send a support request directly from the game. Your account and player details are attached automatically so we can identify the correct career faster.
+              {t('supportPages.contact.intro')}
             </p>
           </div>
           <div className="tlg-contact-hero-actions">
-            <a href={DISCORD_INVITE} target="_blank" rel="noreferrer"><MessageSquare size={16} /> Ask on Discord</a>
+            <a href={DISCORD_INVITE} target="_blank" rel="noreferrer"><MessageSquare size={16} /> {t('supportPages.contact.askDiscord')}</a>
           </div>
         </section>
 
         <section className="tlg-contact-panel">
           <header className="tlg-contact-panel-head">
             <div>
-              <span>CONTACT FORM</span>
-              <h3>Send a support request</h3>
-              <p>Messages are registered securely with Tennis Legacy support. Please include enough detail for us to reproduce or understand the issue.</p>
+              <span>{t('supportPages.contact.form')}</span>
+              <h3>{t('supportPages.contact.sendRequest')}</h3>
+              <p>{t('supportPages.contact.formIntro')}</p>
             </div>
             <Mail size={20} />
           </header>
@@ -127,63 +131,63 @@ export default function ContactUsPage() {
             <div className="tlg-contact-success" role="status">
               <CheckCircle2 size={24} />
               <div>
-                <strong>Your support request was submitted.</strong>
-                <p>Reference: <code>{referenceId}</code></p>
-                <p>Keep this reference if you need to follow up with us.</p>
-                <button type="button" onClick={() => setReferenceId(null)}>Send another request</button>
+                <strong>{t('supportPages.contact.submitted')}</strong>
+                <p>{t('supportPages.contact.reference')}: <code>{referenceId}</code></p>
+                <p>{t('supportPages.contact.keepReference')}</p>
+                <button type="button" onClick={() => setReferenceId(null)}>{t('supportPages.contact.another')}</button>
               </div>
             </div>
           ) : (
             <form className="tlg-contact-form" onSubmit={handleSubmit}>
               <div className="tlg-contact-identity-grid">
                 <label>
-                  <span>Account email</span>
+                  <span>{t('supportPages.contact.email')}</span>
                   <input value={user?.email ?? ''} readOnly />
                 </label>
                 <label>
-                  <span>Player</span>
+                  <span>{t('supportPages.contact.player')}</span>
                   <input value={playerName} readOnly />
                 </label>
                 <label>
-                  <span>Competition world</span>
+                  <span>{t('supportPages.contact.world')}</span>
                   <input value={player?.world ?? '—'} readOnly />
                 </label>
                 <label>
-                  <span>Country</span>
+                  <span>{t('supportPages.contact.country')}</span>
                   <input value={player?.country_code ?? '—'} readOnly />
                 </label>
               </div>
 
               <div className="tlg-contact-fields">
                 <label>
-                  <span>Category</span>
+                  <span>{t('supportPages.contact.category')}</span>
                   <select value={category} onChange={(event) => setCategory(event.target.value as ContactCategory)}>
-                    {categories.map((item) => <option key={item} value={item}>{item}</option>)}
+                    {categories.map((item) => <option key={item} value={item}>{t(`supportPages.contact.categories.${item}`)}</option>)}
                   </select>
                 </label>
 
                 <label>
-                  <span>Subject</span>
+                  <span>{t('supportPages.contact.subject')}</span>
                   <input
                     value={subject}
                     onChange={(event) => { setSubject(event.target.value); setError(null) }}
                     maxLength={160}
-                    placeholder="Short summary of your question or problem"
+                    placeholder={t('supportPages.contact.subjectPlaceholder')}
                     required
                   />
                 </label>
 
                 <label className="tlg-contact-message-field">
-                  <span>Message</span>
+                  <span>{t('supportPages.contact.message')}</span>
                   <textarea
                     value={message}
                     onChange={(event) => { setMessage(event.target.value); setError(null) }}
                     maxLength={5000}
                     rows={9}
-                    placeholder="Describe what happened, what you expected, and any steps needed to reproduce the problem."
+                    placeholder={t('supportPages.contact.messagePlaceholder')}
                     required
                   />
-                  <small>{message.length.toLocaleString()} / 5,000</small>
+                  <small>{formatNumber(message.length)} / {formatNumber(5000)}</small>
                 </label>
               </div>
 
@@ -191,9 +195,9 @@ export default function ContactUsPage() {
 
               <div className="tlg-contact-submit-row">
                 <button type="submit" disabled={busy}>
-                  <Send size={16} /> {busy ? 'Sending…' : 'Send to Tennis Legacy Support'}
+                  <Send size={16} /> {busy ? t('supportPages.contact.sending') : t('supportPages.contact.send')}
                 </button>
-                <p>Support address: <strong>{SUPPORT_EMAIL}</strong></p>
+                <p>{t('supportPages.contact.supportAddress')}: <strong>{SUPPORT_EMAIL}</strong></p>
               </div>
             </form>
           )}
@@ -202,10 +206,10 @@ export default function ContactUsPage() {
         <section className="tlg-contact-alternative">
           <LifeBuoy size={20} />
           <div>
-            <strong>Need community help instead?</strong>
-            <p>For gameplay questions and community discussion, the Tennis Legacy Discord is usually the fastest place to ask other players.</p>
+            <strong>{t('supportPages.contact.communityTitle')}</strong>
+            <p>{t('supportPages.contact.communityBody')}</p>
           </div>
-          <a href={DISCORD_INVITE} target="_blank" rel="noreferrer">Join Discord</a>
+          <a href={DISCORD_INVITE} target="_blank" rel="noreferrer">{t('supportPages.contact.joinDiscord')}</a>
         </section>
       </div>
     </GameLayout>
