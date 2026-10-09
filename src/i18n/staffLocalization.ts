@@ -140,6 +140,9 @@ const CHANCE_KEYS: Record<string, string> = {
 }
 
 const BACKEND_TEXT_KEYS: Record<string, string> = {
+  'Your professional team': 'professionalTeam',
+  'No facility cap currently applies in Tennis Legacy. The calculated staff bonus is applied in full.': 'noFacilityCapMessage',
+  'No separate Staff Advisory service is enabled for Tennis Legacy staff yet. Role effects shown here are the live gameplay effects.': 'advisoryUnavailable',
   'Your offer was accepted. Review and confirm the contract.': 'offerAcceptedReview',
   'The staff member accepted these terms. The contract starts only after you confirm.': 'acceptedTerms',
   'Negotiations ended after three rejected offers.': 'threeRejected',
@@ -209,4 +212,9 @@ export function staffRoleCatalogText(
   fallback?: string | null,
 ) {
   return t(`staffPage.roleCatalog.${ROLE_KEYS[role]}.${field}`, { defaultValue: fallback ?? '' })
+}
+
+
+export function staffAttributeDescription(t: TFunction, key: string, fallback?: string) {
+  return t(`staffPage.attributeDescriptions.${key}`, { defaultValue: fallback ?? '' })
 }
