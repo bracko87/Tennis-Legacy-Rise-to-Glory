@@ -33,7 +33,7 @@ create or replace function public.ai_tournament_fit_score_v1(
   p_surface text,
   p_player_id uuid,
   p_competition_id uuid,
-  p_same_country boolean
+  p_same_country boolean default false
 )
 returns integer
 language plpgsql
