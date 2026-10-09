@@ -1,4 +1,5 @@
 import { CircleHelp, GraduationCap, LifeBuoy, MessageSquare } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import GameLayout from '../../components/layout/GameLayout'
 import { useTutorial } from '../../tutorial/TutorialProvider'
@@ -7,42 +8,41 @@ import '../../styles/community-support.css'
 const DISCORD_INVITE = 'https://discord.gg/RBBtXgZey2'
 
 export function ForumPage() {
+  const { t } = useTranslation()
   return (
-    <GameLayout title="Forum" subtitle="Tennis Legacy community on Discord">
+    <GameLayout title={t('supportPages.forum.title')} subtitle={t('supportPages.forum.subtitle')}>
       <div className="tlg-community-page">
         <section className="tlg-community-discord-hero">
           <div className="tlg-community-discord-mark" aria-hidden="true">
             <MessageSquare size={34} />
           </div>
           <div className="tlg-community-discord-copy">
-            <span>Official community forum</span>
-            <h2>Tennis Legacy Discord</h2>
+            <span>{t('supportPages.forum.official')}</span>
+            <h2>{t('supportPages.forum.name')}</h2>
             <p>
-              Our Discord server is the official community forum for Tennis Legacy: Rise to Glory.
-              Join other players to discuss careers, tournaments and strategy, ask questions, report
-              bugs, share suggestions and follow development.
+              {t('supportPages.forum.intro')}
             </p>
             <div className="tlg-community-actions">
               <a className="tlg-community-button tlg-community-button-primary" href={DISCORD_INVITE} target="_blank" rel="noreferrer">
-                Join Tennis Legacy Discord
+                {t('supportPages.forum.join')}
               </a>
-              <a className="tlg-community-button" href="/game/help">Open Help Center</a>
+              <a className="tlg-community-button" href="/game/help">{t('supportPages.forum.openHelp')}</a>
             </div>
           </div>
         </section>
 
         <section className="tlg-community-panel">
           <header>
-            <span>Community</span>
-            <h3>What you can do on Discord</h3>
+            <span>{t('supportPages.forum.community')}</span>
+            <h3>{t('supportPages.forum.canDo')}</h3>
           </header>
           <div className="tlg-community-grid tlg-community-grid-three">
-            <InfoCard title="Talk with players" text="Discuss ATP and WTA careers, tournaments, rankings, training plans and long-term strategy." />
-            <InfoCard title="Get help" text="Ask gameplay questions, report problems and compare solutions with other Tennis Legacy players." />
-            <InfoCard title="Follow development" text="See announcements, development updates and important information as new systems are introduced." />
-            <InfoCard title="Share feedback" text="Post suggestions and explain what would make the game clearer, deeper or easier to use." />
-            <InfoCard title="Report bugs" text="Share reproducible issues and screenshots so problems can be investigated and corrected faster." />
-            <InfoCard title="Share your career" text="Post screenshots, tournament runs, ranking milestones and memorable moments from your player's story." />
+            <InfoCard title={t('supportPages.forum.talkTitle')} text={t('supportPages.forum.talkBody')} />
+            <InfoCard title={t('supportPages.forum.helpTitle')} text={t('supportPages.forum.helpBody')} />
+            <InfoCard title={t('supportPages.forum.devTitle')} text={t('supportPages.forum.devBody')} />
+            <InfoCard title={t('supportPages.forum.feedbackTitle')} text={t('supportPages.forum.feedbackBody')} />
+            <InfoCard title={t('supportPages.forum.bugsTitle')} text={t('supportPages.forum.bugsBody')} />
+            <InfoCard title={t('supportPages.forum.careerTitle')} text={t('supportPages.forum.careerBody')} />
           </div>
         </section>
       </div>
@@ -51,18 +51,18 @@ export function ForumPage() {
 }
 
 export function HelpPage() {
+  const { t } = useTranslation()
   const { status: tutorialStatus, restartTutorial } = useTutorial()
 
   return (
-    <GameLayout title="Help" subtitle="Guides, quick links and support">
+    <GameLayout title={t('supportPages.help.title')} subtitle={t('supportPages.help.subtitle')}>
       <div className="tlg-community-page">
         <section className="tlg-help-hero">
           <div>
-            <span>Welcome</span>
-            <h2>Tennis Legacy Help Center</h2>
+            <span>{t('supportPages.help.welcome')}</span>
+            <h2>{t('supportPages.help.center')}</h2>
             <p>
-              Find the most important starting points for your player career, open key game pages,
-              contact support or join the Tennis Legacy Discord community when something is unclear.
+              {t('supportPages.help.intro')}
             </p>
           </div>
           <div className="tlg-community-actions">
@@ -72,82 +72,82 @@ export function HelpPage() {
               onClick={() => void restartTutorial()}
             >
               <GraduationCap size={15} aria-hidden="true" />
-              {tutorialStatus === 'completed' || tutorialStatus === 'skipped' ? 'Restart Game Tutorial' : 'Start Game Tutorial'}
+              {tutorialStatus === 'completed' || tutorialStatus === 'skipped' ? t('supportPages.help.restartTutorial') : t('supportPages.help.startTutorial')}
             </button>
             <a className="tlg-community-button" href="/game/manual">
-              Full Game Manual
+              {t('supportPages.help.fullManual')}
             </a>
             <a className="tlg-community-button" href="/game/manual?download=pdf">
-              Download Manual PDF
+              {t('supportPages.help.downloadManual')}
             </a>
-            <a className="tlg-community-button" href="/game/contact">Contact Support</a>
-            <a className="tlg-community-button tlg-community-button-discord" href={DISCORD_INVITE} target="_blank" rel="noreferrer">Join Discord</a>
+            <a className="tlg-community-button" href="/game/contact">{t('supportPages.help.contactSupport')}</a>
+            <a className="tlg-community-button tlg-community-button-discord" href={DISCORD_INVITE} target="_blank" rel="noreferrer">{t('supportPages.help.joinDiscord')}</a>
           </div>
         </section>
 
         <section className="tlg-community-panel tlg-help-start-panel">
           <div className="tlg-help-main-column">
             <header>
-              <span>Getting started</span>
-              <h3>First steps for new players</h3>
+              <span>{t('supportPages.help.gettingStarted')}</span>
+              <h3>{t('supportPages.help.firstSteps')}</h3>
             </header>
             <div className="tlg-community-grid tlg-community-grid-two">
-              <HelpStep number="1" title="Start from Overview" text="Use Overview as your main career dashboard and starting point after signing in." href="/game/overview" linkLabel="Open Overview" />
-              <HelpStep number="2" title="Check the Calendar" text="Review tournament weeks, surfaces and upcoming competition opportunities before planning your schedule." href="/game/calendar" linkLabel="Open Calendar" />
-              <HelpStep number="3" title="Follow the Rankings" text="Every created player enters the correct ATP or WTA ranking. Open other players to view their profile." href="/game/rankings" linkLabel="Open Rankings" />
-              <HelpStep number="4" title="Review Player & Account" text="See your player identity and avatar, request an avatar replacement, manage password recovery and account actions." href="/game/player-account" linkLabel="Open Player & Account" />
+              <HelpStep number="1" title={t('supportPages.help.step1Title')} text={t('supportPages.help.step1Body')} href="/game/overview" linkLabel={t('supportPages.help.step1Link')} />
+              <HelpStep number="2" title={t('supportPages.help.step2Title')} text={t('supportPages.help.step2Body')} href="/game/calendar" linkLabel={t('supportPages.help.step2Link')} />
+              <HelpStep number="3" title={t('supportPages.help.step3Title')} text={t('supportPages.help.step3Body')} href="/game/rankings" linkLabel={t('supportPages.help.step3Link')} />
+              <HelpStep number="4" title={t('supportPages.help.step4Title')} text={t('supportPages.help.step4Body')} href="/game/player-account" linkLabel={t('supportPages.help.step4Link')} />
             </div>
           </div>
 
           <aside className="tlg-help-quick-links">
-            <span>Quick links</span>
-            <a href="/game/overview">Overview</a>
-            <a href="/game/calendar">Tournament Calendar</a>
-            <a href="/game/rankings">ATP / WTA Rankings</a>
-            <a href="/game/inbox">Manager Inbox</a>
-            <a href="/game/preferences">Game Preferences</a>
-            <a href="/game/contact">Contact Us</a>
+            <span>{t('supportPages.help.quickLinks')}</span>
+            <a href="/game/overview">{t('supportPages.help.overview')}</a>
+            <a href="/game/calendar">{t('supportPages.help.tournamentCalendar')}</a>
+            <a href="/game/rankings">{t('supportPages.help.rankings')}</a>
+            <a href="/game/inbox">{t('supportPages.help.inbox')}</a>
+            <a href="/game/preferences">{t('supportPages.help.preferences')}</a>
+            <a href="/game/contact">{t('supportPages.help.contactUs')}</a>
           </aside>
         </section>
 
         <section>
-          <h3 className="tlg-community-section-title">Gameplay basics</h3>
+          <h3 className="tlg-community-section-title">{t('supportPages.help.gameplayBasics')}</h3>
           <div className="tlg-community-grid tlg-community-grid-three">
-            <InfoCard title="ATP and WTA are separate worlds" text="ATP players compete in the ATP singles world and WTA players compete in the WTA singles world. Rankings remain separated." />
-            <InfoCard title="Tournament choice matters" text="Tournament category, surface and calendar timing will shape your season. Use the calendar before committing to a schedule." />
-            <InfoCard title="Your player name is permanent" text="The professional player name is fixed when the career is created. Avatar changes require a replacement request." />
-            <InfoCard title="Player profiles are social" text="Ranking entries open player profile pages. From another player's profile you can start a private Manager Inbox conversation." />
-            <InfoCard title="Rankings start immediately" text="Every created player receives an ATP or WTA ranking entry. Official tournament results create the ranking-point contributions used by the live rankings." />
-            <InfoCard title="Use the Full Game Manual" text="The manual documents the currently implemented game page by page, including training, tournaments, rankings, travel, equipment, staff, finance, health, community systems and important limitations." />
+            <InfoCard title={t('supportPages.help.worldsTitle')} text={t('supportPages.help.worldsBody')} />
+            <InfoCard title={t('supportPages.help.tournamentTitle')} text={t('supportPages.help.tournamentBody')} />
+            <InfoCard title={t('supportPages.help.nameTitle')} text={t('supportPages.help.nameBody')} />
+            <InfoCard title={t('supportPages.help.profilesTitle')} text={t('supportPages.help.profilesBody')} />
+            <InfoCard title={t('supportPages.help.rankTitle')} text={t('supportPages.help.rankBody')} />
+            <InfoCard title="Use the {t('supportPages.help.fullManual')}" text="The manual documents the currently implemented game page by page, including training, tournaments, rankings, travel, equipment, staff, finance, health, community systems and important limitations." />
           </div>
         </section>
 
         <section className="tlg-community-panel">
           <header>
-            <span>Help topics</span>
-            <h3>Manual sections</h3>
-            <p>The complete English source manual is now available in-game with search, chapter navigation and a downloadable PDF edition.</p>
+            <span>{t('supportPages.help.helpTopics')}</span>
+            <h3>{t('supportPages.help.manualSections')}</h3>
+            <p>{t('supportPages.help.manualIntro')}</p>
           </header>
           <div className="tlg-community-grid tlg-community-grid-three">
-            <ManualCard title="Overview" status="Available" href="/game/overview" />
-            <ManualCard title="Tournament Calendar" status="Available" href="/game/calendar" />
-            <ManualCard title="Rankings & Player Profiles" status="Available" href="/game/rankings" />
-            <ManualCard title="Manager Inbox" status="Available" href="/game/inbox" />
-            <ManualCard title="Player & Account" status="Available" href="/game/player-account" />
-            <ManualCard title="Training & Skills" status="Covered in Full Game Manual" href="/game/manual/regular-training" />
-            <ManualCard title="Full Game Manual" status="33 detailed chapters" href="/game/manual" />
+            <ManualCard title={t('supportPages.help.overview')} status={t('supportPages.help.available')} href="/game/overview" />
+            <ManualCard title={t('supportPages.help.tournamentCalendar')} status={t('supportPages.help.available')} href="/game/calendar" />
+            <ManualCard title={t('supportPages.help.rankingsProfiles')} status={t('supportPages.help.available')} href="/game/rankings" />
+            <ManualCard title={t('supportPages.help.inbox')} status={t('supportPages.help.available')} href="/game/inbox" />
+            <ManualCard title={t('supportPages.help.playerAccount')} status={t('supportPages.help.available')} href="/game/player-account" />
+            <ManualCard title="Training & Skills" status="Covered in {t('supportPages.help.fullManual')}" href="/game/manual/regular-training" />
+            <ManualCard title="{t('supportPages.help.fullManual')}" status="33 detailed chapters" href="/game/manual" />
           </div>
         </section>
 
         <section className="tlg-help-support-banner">
           <div>
-            <span>Still need help?</span>
-            <h3>Ask the Tennis Legacy community or contact support.</h3>
-            <p>If something looks wrong, include the page name, player name, screenshots and the steps needed to reproduce the issue.</p>
+            <span>{t('supportPages.help.stillNeed')}</span>
+            <h3>{t('supportPages.help.askSupport')}</h3>
+            <p>{t('supportPages.help.reportTip')}</p>
           </div>
           <div className="tlg-community-actions">
-            <a className="tlg-community-button tlg-community-button-light" href="/game/contact"><LifeBuoy size={16} /> Contact Us</a>
-            <a className="tlg-community-button tlg-community-button-outline-light" href={DISCORD_INVITE} target="_blank" rel="noreferrer"><CircleHelp size={16} /> Ask on Discord</a>
+            <a className="tlg-community-button tlg-community-button-light" href="/game/contact"><LifeBuoy size={16} /> {t('supportPages.help.contact')}</a>
+            <a className="tlg-community-button tlg-community-button-outline-light" href={DISCORD_INVITE} target="_blank" rel="noreferrer"><CircleHelp size={16} /> {t('supportPages.help.askDiscord')}</a>
           </div>
         </section>
       </div>
@@ -170,11 +170,12 @@ function HelpStep({ number, title, text, href, linkLabel }: { number: string; ti
 }
 
 function ManualCard({ title, status, href }: { title: string; status: string; href?: string }) {
+  const { t } = useTranslation()
   return (
     <article className="tlg-community-info-card tlg-manual-card">
       <strong>{title}</strong>
       <p>{status}</p>
-      {href ? <a href={href}>Open page</a> : <span>Coming later</span>}
+      {href ? <a href={href}>{t('supportPages.help.openPage')}</a> : <span>{t('supportPages.help.comingLater')}</span>}
     </article>
   )
 }
