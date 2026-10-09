@@ -576,7 +576,7 @@ export default function PrivateLifePage() {
       if (filter !== 'all' && listing.category !== filter) return false
       const locationText = listing.location ? `${listing.location.city} ${listing.location.country_name}` : ''
       const builderText = yachtBuilder(listing)
-      if (search && !`${listing.name} ${builderText} ${listing.description} ${categoryLabel(listing.category)} ${locationText}`.toLowerCase().includes(search)) return false
+      if (search && !`${listing.name} ${builderText} ${listing.description} ${categoryLabel(t, listing.category)} ${locationText}`.toLowerCase().includes(search)) return false
       if (!matchesPriceBand(listing.effective_price, marketPrice)) return false
       if (marketRarity !== 'all' && listing.rarity !== marketRarity) return false
       if (marketAffordableOnly && (!listing.effective_affordable || listing.effective_owned)) return false
@@ -851,7 +851,7 @@ export default function PrivateLifePage() {
             <h2>{t('privateLifePage.hero.title')}</h2>
             <p>{t('privateLifePage.hero.body')}</p>
           </div>
-          <div className="private-life-prestige-banner"><span>{t('privateLifePage.purchase.prestige')}</span><strong>{dashboard.prestige.toLocaleString()}</strong><small>From currently owned assets</small></div>
+          <div className="private-life-prestige-banner"><span>{t('privateLifePage.purchase.prestige')}</span><strong>{dashboard.prestige.toLocaleString()}</strong><small>{t('privateLifePage.hero.prestigeNote')}</small></div>
         </section>
 
         <section className="private-life-metrics" aria-label={t('privateLifePage.metrics.aria')}>
@@ -865,7 +865,7 @@ export default function PrivateLifePage() {
 
         <nav className="private-life-tabs" aria-label={t('privateLifePage.tabs.aria')}>
           <button className={tab === 'overview' ? 'active' : ''} type="button" onClick={() => setTab('overview')}>{t('privateLifePage.tabs.overview')}</button>
-          <button className={tab === 'assets' ? 'active' : ''} type="button" onClick={() => setTab('assets')}>Collection ({dashboard.owned_assets.length})</button>
+          <button className={tab === 'assets' ? 'active' : ''} type="button" onClick={() => setTab('assets')}>{t('privateLifePage.tabs.assets')} ({dashboard.owned_assets.length})</button>
           <button className={tab === 'investments' ? 'active' : ''} type="button" onClick={() => setTab('investments')}>{t('privateLifePage.tabs.investments')}</button>
           <button className={tab === 'marketplace' ? 'active' : ''} type="button" onClick={() => setTab('marketplace')}>{t('privateLifePage.tabs.marketplace')}</button>
         </nav>
@@ -885,7 +885,7 @@ export default function PrivateLifePage() {
                 <div className="private-life-category-list">
                   {(Object.keys(CATEGORY_META) as AssetCategory[]).map((category) => {
                     const total = categoryTotals.get(category)
-                    return <div key={category} className="private-life-category-row"><div className="private-life-category-name"><span>{CATEGORY_META[category].label}</span></div><span>{total?.owned_count ?? 0} owned</span><strong>{money(total?.market_value ?? 0, currency)}</strong><span>+{total?.prestige ?? 0} prestige pts</span></div>
+                    return <div key={category} className="private-life-category-row"><div className="private-life-category-name"><span>{categoryLabel(t, category)}</span></div><span>{t('privateLifePage.overview.ownedCount', { count: total?.owned_count ?? 0 })}</span><strong>{money(total?.market_value ?? 0, currency)}</strong><span>+{total?.prestige ?? 0} {t('privateLifePage.purchase.prestige')}</span></div>
                   })}
                 </div>
               </div>
@@ -922,7 +922,7 @@ export default function PrivateLifePage() {
                             <td><span className={`private-life-asset-history-type ${row.transaction_type}`}>{assetTransactionLabel(t, row.transaction_type)}</span></td>
                             <td><strong>{row.name}</strong><span>{categoryLabel(row.category)}{row.city && row.country_name ? ` · ${row.city}, ${row.country_name}` : ''}</span></td>
                             <td><strong className={`private-life-asset-history-amount ${amountTone}`}>{assetTransactionAmount(row, currency, formatCurrency)}</strong></td>
-                            <td><strong>{row.transaction_type === 'starter_home' ? 'Starting residence assigned' : row.title}</strong><span>{row.transaction_type === 'starter_home' ? 'Initial home value; not a marketplace purchase.' : row.description}</span></td>
+                            <td><strong>{row.transaction_type === 'starter_home' ? t('privateLifePage.assets.starterAssigned') : row.title}</strong><span>{row.transaction_type === 'starter_home' ? t('privateLifePage.assets.starterDetail') : row.description}</span></td>
                           </tr>
                         )
                       })}</tbody>
@@ -948,7 +948,7 @@ export default function PrivateLifePage() {
                   const ownedImageUrl = catalogAsset ? propertyImageUrl(catalogAsset, ownedLocation) : asset.image_url
                   return (
                     <article className="private-life-owned-card" key={asset.id}>
-                      <div className="private-life-card-image"><AssetImage src={ownedImageUrl} name={asset.name} /><div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(t, asset.rarity)}</span><span className="private-life-badge level">+{asset.prestige} prestige pts</span></div></div>
+                      <div className="private-life-card-image"><AssetImage src={ownedImageUrl} name={asset.name} /><div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(t, asset.rarity)}</span><span className="private-life-badge level">+{asset.prestige} {t('privateLifePage.purchase.prestige')}</span></div></div>
                       <div className="private-life-card-body">
                         <div className="private-life-card-title-row"><div>{catalogAsset && yachtBuilder(catalogAsset) ? <div className="private-life-yacht-builder">{yachtBuilder(catalogAsset)}</div> : null}<h4>{asset.name}</h4></div><div className="private-life-price">{money(asset.current_market_value, currency)}</div></div>
                         {asset.acquisition_type === 'starter_home' ? <div className="private-life-starter-home-label">{t('privateLifePage.assets.startingHome')}</div> : null}
@@ -966,7 +966,7 @@ export default function PrivateLifePage() {
                           className="private-life-action details"
                           onClick={() => setDetailTarget({ type: 'owned', asset, imageUrl: ownedImageUrl })}
                         >
-                          Details
+                          {t('privateLifePage.assets.details')}
                         </button>
                         {asset.pending_sale ? (
                           <div className="private-life-sale-pending"><div><span>{t('privateLifePage.assets.listed')}</span><strong>{saleLabel(asset.pending_sale.sale_mode)} · {money(asset.pending_sale.quoted_sale_price, currency)}</strong><small>{t('privateLifePage.dates.settlementDay', { day: asset.pending_sale.settle_absolute_day })}</small></div><button type="button" disabled={actionBusy} onClick={() => void cancelSale(asset.pending_sale!.id)}>{t('privateLifePage.assets.cancelSale')}</button></div>
@@ -975,7 +975,7 @@ export default function PrivateLifePage() {
                             {(Object.keys(SALE_META) as SaleMode[]).map((mode) => {
                               const quote = asset.sale_quotes?.[mode]
                               if (!quote) return null
-                              return <button key={mode} type="button" onClick={() => setPendingAction({ type: 'sell', asset, saleMode: mode, quote })}><span>{SALE_META[mode].label}</span><strong>{money(quote.price, currency)}</strong><small>{SALE_META[mode].detail}</small></button>
+                              return <button key={mode} type="button" onClick={() => setPendingAction({ type: 'sell', asset, saleMode: mode, quote })}><span>{t(`privateLifePage.saleModes.${mode}.label`)}</span><strong>{money(quote.price, currency)}</strong><small>{t(`privateLifePage.saleModes.${mode}.detail`)}</small></button>
                             })}
                           </div>
                         ) : (
@@ -995,33 +995,33 @@ export default function PrivateLifePage() {
         {tab === 'marketplace' ? (
           <section className="private-life-section">
             <div className="private-life-section-head">
-              <div><div className="private-life-section-eyebrow">Luxury marketplace</div><h3>Buy physical assets</h3><p>Every item has a game price, value trend and prestige-point value. Property prices depend on the selected country and city.</p></div>
-              <span className="private-life-market-new-pill">New items</span>
+              <div><div className="private-life-section-eyebrow">{t('privateLifePage.marketplace.eyebrow')}</div><h3>{t('privateLifePage.marketplace.title')}</h3><p>{t('privateLifePage.marketplace.body')}</p></div>
+              <span className="private-life-market-new-pill">{t('privateLifePage.marketplace.newItems')}</span>
             </div>
             <CategoryFilters value={filter} onChange={setFilter} />
 
             {(filter === 'apartment' || filter === 'house_villa') ? (
               <div className="private-life-property-selector">
-                <div><span>Property country</span><select value={propertyCountry} onChange={(event) => {
+                <div><span>{t('privateLifePage.marketplace.country')}</span><select value={propertyCountry} onChange={(event) => {
                   const countryCode = event.target.value
                   const firstLocation = selectablePropertyLocations.find((location) => location.country_code === countryCode)
                   setPropertyCountry(countryCode)
                   setPropertyLocationCode(firstLocation?.code ?? '')
                 }}>{countries.map((country) => <option key={country.code} value={country.code}>{country.name}</option>)}</select></div>
-                <div><span>City</span><select value={propertyLocationCode} onChange={(event) => setPropertyLocationCode(event.target.value)}>{countryLocations.map((location) => <option key={location.code} value={location.code}>{location.city}</option>)}</select></div>
+                <div><span>{t('privateLifePage.marketplace.city')}</span><select value={propertyLocationCode} onChange={(event) => setPropertyLocationCode(event.target.value)}>{countryLocations.map((location) => <option key={location.code} value={location.code}>{location.city}</option>)}</select></div>
               </div>
             ) : null}
 
             <div className="private-life-marketplace-tools">
-              <input value={marketSearch} onChange={(event) => setMarketSearch(event.target.value)} placeholder="Search assets" aria-label="Search marketplace assets" />
-              <select value={marketPrice} onChange={(event) => setMarketPrice(event.target.value as MarketplacePrice)} aria-label="Marketplace price filter"><option value="all">All prices</option><option value="under_10k">Under $10K</option><option value="10k_50k">$10K – $50K</option><option value="50k_250k">$50K – $250K</option><option value="250k_1m">$250K – $1M</option><option value="1m_5m">$1M – $5M</option><option value="5m_plus">$5M+</option></select>
-              <select value={marketRarity} onChange={(event) => setMarketRarity(event.target.value as MarketplaceRarity)} aria-label="Marketplace rarity filter"><option value="all">All rarities</option><option value="common">Common</option><option value="uncommon">Uncommon</option><option value="rare">Rare</option><option value="very_rare">Very rare</option><option value="legendary">Legendary</option></select>
-              <select value={marketSort} onChange={(event) => setMarketSort(event.target.value as MarketplaceSort)} aria-label="Marketplace sort order"><option value="default">Default order</option><option value="price_asc">Price: low to high</option><option value="price_desc">Price: high to low</option><option value="prestige_desc">Prestige: high to low</option><option value="appreciation_desc">Best market move</option></select>
-              <label className="private-life-marketplace-affordable"><input type="checkbox" checked={marketAffordableOnly} onChange={(event) => setMarketAffordableOnly(event.target.checked)} /><span>Affordable only</span></label>
-              <button type="button" className="private-life-marketplace-reset" onClick={() => { setMarketSearch(''); setMarketPrice('all'); setMarketRarity('all'); setMarketSort('default'); setMarketAffordableOnly(false); setFilter('all') }}>Reset</button>
+              <input value={marketSearch} onChange={(event) => setMarketSearch(event.target.value)} placeholder={t('privateLifePage.marketplace.search')} aria-label={t('privateLifePage.marketplace.searchAria')} />
+              <select value={marketPrice} onChange={(event) => setMarketPrice(event.target.value as MarketplacePrice)} aria-label={t('privateLifePage.marketplace.priceAria')}>{(['all','under_10k','10k_50k','50k_250k','250k_1m','1m_5m','5m_plus'] as MarketplacePrice[]).map((price) => <option key={price} value={price}>{t(`privateLifePage.marketplace.prices.${price}`)}</option>)}</select>
+              <select value={marketRarity} onChange={(event) => setMarketRarity(event.target.value as MarketplaceRarity)} aria-label={t('privateLifePage.marketplace.rarityAria')}><option value="all">{t('privateLifePage.marketplace.allRarities')}</option>{(['common','uncommon','rare','very_rare','legendary'] as const).map((rarity) => <option key={rarity} value={rarity}>{rarityLabel(t, rarity)}</option>)}</select>
+              <select value={marketSort} onChange={(event) => setMarketSort(event.target.value as MarketplaceSort)} aria-label={t('privateLifePage.marketplace.sortAria')}>{(['default','price_asc','price_desc','prestige_desc','appreciation_desc'] as MarketplaceSort[]).map((sort) => <option key={sort} value={sort}>{t(`privateLifePage.marketplace.sort.${sort}`)}</option>)}</select>
+              <label className="private-life-marketplace-affordable"><input type="checkbox" checked={marketAffordableOnly} onChange={(event) => setMarketAffordableOnly(event.target.checked)} /><span>{t('privateLifePage.marketplace.affordable')}</span></label>
+              <button type="button" className="private-life-marketplace-reset" onClick={() => { setMarketSearch(''); setMarketPrice('all'); setMarketRarity('all'); setMarketSort('default'); setMarketAffordableOnly(false); setFilter('all') }}>{t('privateLifePage.marketplace.reset')}</button>
             </div>
-            <div className="private-life-marketplace-results"><span>{visibleCatalog.length} listings</span><span>{dashboard.catalog.length} base asset types · {(filter === 'apartment' || filter === 'house_villa') ? selectablePropertyLocations.length : standardPropertyLocations.length} available property destinations</span></div>
-            {visibleCatalog.length === 0 ? <div className="private-life-empty"><strong>No marketplace matches</strong><p>Change the category, destination, price or rarity filters to see more assets.</p></div> : (
+            <div className="private-life-marketplace-results"><span>{t('privateLifePage.marketplace.listings', { count: visibleCatalog.length })}</span><span>{t('privateLifePage.marketplace.destinations', { assets: dashboard.catalog.length, destinations: (filter === 'apartment' || filter === 'house_villa') ? selectablePropertyLocations.length : standardPropertyLocations.length })}</span></div>
+            {visibleCatalog.length === 0 ? <div className="private-life-empty"><strong>{t('privateLifePage.marketplace.emptyTitle')}</strong><p>{t('privateLifePage.marketplace.emptyBody')}</p></div> : (
               <div className="private-life-market-grid">
                 {visibleCatalog.map((listing) => {
                   const marketMove = listing.effective_market_change_bps
@@ -1029,20 +1029,20 @@ export default function PrivateLifePage() {
                   const canBuy = listing.effective_affordable && !listing.effective_owned
                   return (
                     <article className="private-life-card" key={`${listing.code}:${listing.location?.code ?? 'global'}`}>
-                      <div className="private-life-card-image"><AssetImage src={listing.image_url} name={listing.name} /><div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(listing.rarity)}</span><span className="private-life-badge new">New</span></div></div>
+                      <div className="private-life-card-image"><AssetImage src={listing.image_url} name={listing.name} /><div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(t, listing.rarity)}</span><span className="private-life-badge new">{t('privateLifePage.marketplace.new')}</span></div></div>
                       <div className="private-life-card-body">
                         <div className="private-life-card-title-row"><div>{yachtBuilder(listing) ? <div className="private-life-yacht-builder">{yachtBuilder(listing)}</div> : null}<h4>{listing.name}</h4></div><div className="private-life-price">{money(listing.effective_price, currency)}</div></div>
                         {listing.location ? <div className="private-life-property-location">{listing.location.city}, {listing.location.country_name}</div> : null}
                         <p className="private-life-description">{listing.description}</p>
                         <div className="private-life-card-stats">
                           <div className="private-life-card-stat"><span>{t('privateLifePage.purchase.prestige')}</span><strong>+{listing.prestige}</strong></div>
-                          <div className="private-life-card-stat"><span>{ownershipCostLabel(listing.category)}</span><strong>{listing.effective_annual_cost > 0 ? money(listing.effective_annual_cost / 12, currency) : t('privateLifePage.costs.none')}</strong></div>
-                          <div className="private-life-card-stat"><span>{t('privateLifePage.marketplace.marketMove')}</span><strong className={Number(marketMove ?? 0) < 0 ? 'private-life-trend-negative' : isPositive ? 'private-life-trend-positive' : ''}>{Number(marketMove ?? 0) < 0 ? <TrendingDown size={12} /> : isPositive ? <TrendingUp size={12} /> : null} {marketMoveText(marketMove)}</strong></div>
+                          <div className="private-life-card-stat"><span>{ownershipCostLabel(t, listing.category)}</span><strong>{listing.effective_annual_cost > 0 ? money(listing.effective_annual_cost / 12, currency) : t('privateLifePage.costs.none')}</strong></div>
+                          <div className="private-life-card-stat"><span>{t('privateLifePage.marketplace.marketMove')}</span><strong className={Number(marketMove ?? 0) < 0 ? 'private-life-trend-negative' : isPositive ? 'private-life-trend-positive' : ''}>{Number(marketMove ?? 0) < 0 ? <TrendingDown size={12} /> : isPositive ? <TrendingUp size={12} /> : null} {marketMoveText(t, marketMove)}</strong></div>
                           <div className="private-life-card-stat"><span>{t('privateLifePage.purchase.category')}</span><strong>{categoryLabel(listing.category)}</strong></div>
                         </div>
                         <div className="private-life-card-actions">
                           <button type="button" className="private-life-action details" onClick={() => setDetailTarget({ type: 'market', listing })}>{t('privateLifePage.assets.details')}</button>
-                          <button type="button" className="private-life-action" disabled={!canBuy} onClick={() => setPendingAction({ type: 'buy', listing })}>{listing.effective_owned ? 'Already owned here' : !listing.effective_affordable ? 'Insufficient funds' : 'Purchase'}</button>
+                          <button type="button" className="private-life-action" disabled={!canBuy} onClick={() => setPendingAction({ type: 'buy', listing })}>{listing.effective_owned ? t('privateLifePage.marketplace.owned') : !listing.effective_affordable ? t('privateLifePage.marketplace.insufficient') : t('privateLifePage.marketplace.purchase')}</button>
                         </div>
                       </div>
                     </article>
@@ -1053,7 +1053,7 @@ export default function PrivateLifePage() {
           </section>
         ) : null}
 
-        <div className="private-life-notice"><span>Private Life uses your existing career Finance account. Prestige is a point total from currently owned assets; there are no prestige levels and no direct tennis-skill bonuses.</span></div>
+        <div className="private-life-notice"><span>{t('privateLifePage.footerNote')}</span></div>
       </div>
 
       <GameConfirmDialog
@@ -1064,22 +1064,23 @@ export default function PrivateLifePage() {
         size={detailDialog?.size}
         message={detailDialog?.message ?? ''}
         detail={detailDialog?.detail}
-        cancelLabel="Close"
+        cancelLabel={t('privateLifePage.dialogs.close')}
         tone="neutral"
         showConfirm={false}
         onConfirm={() => undefined}
         onCancel={() => setDetailTarget(null)}
       />
-      <GameConfirmDialog open={Boolean(confirmation)} eyebrow={confirmation?.eyebrow} title={confirmation?.title ?? ''} hero={confirmation?.hero} size={confirmation?.size} message={confirmation?.message ?? ''} detail={confirmation?.detail} confirmLabel={confirmation?.confirmLabel} cancelLabel="Cancel" busy={actionBusy} tone={confirmation?.tone} onConfirm={confirmAction} onCancel={() => { if (!actionBusy) setPendingAction(null) }} />
+      <GameConfirmDialog open={Boolean(confirmation)} eyebrow={confirmation?.eyebrow} title={confirmation?.title ?? ''} hero={confirmation?.hero} size={confirmation?.size} message={confirmation?.message ?? ''} detail={confirmation?.detail} confirmLabel={confirmation?.confirmLabel} cancelLabel={t('common.cancel')} busy={actionBusy} tone={confirmation?.tone} onConfirm={confirmAction} onCancel={() => { if (!actionBusy) setPendingAction(null) }} />
     </GameLayout>
   )
 }
 
 function CategoryFilters({ value, onChange }: { value: CategoryFilter; onChange: (value: CategoryFilter) => void }) {
+  const { t } = useTranslation()
   return (
-    <div className="private-life-filter-bar" aria-label="Asset category filters">
-      <button type="button" className={value === 'all' ? 'active' : ''} onClick={() => onChange('all')}>All</button>
-      {(Object.keys(CATEGORY_META) as AssetCategory[]).map((category) => <button key={category} type="button" className={value === category ? 'active' : ''} onClick={() => onChange(category)}>{CATEGORY_META[category].label}</button>)}
+    <div className="private-life-filter-bar" aria-label={t('privateLifePage.filters.aria')}>
+      <button type="button" className={value === 'all' ? 'active' : ''} onClick={() => onChange('all')}>{t('privateLifePage.filters.all')}</button>
+      {(Object.keys(CATEGORY_META) as AssetCategory[]).map((category) => <button key={category} type="button" className={value === category ? 'active' : ''} onClick={() => onChange(category)}>{categoryLabel(t, category)}</button>)}
     </div>
   )
 }
