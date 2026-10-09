@@ -118,7 +118,7 @@ export function HelpPage() {
             <InfoCard title={t('supportPages.help.nameTitle')} text={t('supportPages.help.nameBody')} />
             <InfoCard title={t('supportPages.help.profilesTitle')} text={t('supportPages.help.profilesBody')} />
             <InfoCard title={t('supportPages.help.rankTitle')} text={t('supportPages.help.rankBody')} />
-            <InfoCard title="Use the {t('supportPages.help.fullManual')}" text="The manual documents the currently implemented game page by page, including training, tournaments, rankings, travel, equipment, staff, finance, health, community systems and important limitations." />
+            <InfoCard title={t('supportPages.help.manualTitle')} text={t('supportPages.help.manualBody')} />
           </div>
         </section>
 
@@ -134,8 +134,8 @@ export function HelpPage() {
             <ManualCard title={t('supportPages.help.rankingsProfiles')} status={t('supportPages.help.available')} href="/game/rankings" />
             <ManualCard title={t('supportPages.help.inbox')} status={t('supportPages.help.available')} href="/game/inbox" />
             <ManualCard title={t('supportPages.help.playerAccount')} status={t('supportPages.help.available')} href="/game/player-account" />
-            <ManualCard title="Training & Skills" status="Covered in {t('supportPages.help.fullManual')}" href="/game/manual/regular-training" />
-            <ManualCard title="{t('supportPages.help.fullManual')}" status="33 detailed chapters" href="/game/manual" />
+            <ManualCard title={t('supportPages.help.trainingSkills')} status={t('supportPages.help.coveredManual')} href="/game/manual/regular-training" />
+            <ManualCard title={t('supportPages.help.fullManual')} status={t('supportPages.help.detailedChapters', { count: 33 })} href="/game/manual" />
           </div>
         </section>
 
