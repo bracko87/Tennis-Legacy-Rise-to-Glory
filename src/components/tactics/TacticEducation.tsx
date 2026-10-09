@@ -1,32 +1,19 @@
 import { createPortal } from 'react-dom'
 import { Info, Target } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import '../../styles/tactic-education.css'
 
-const TACTIC_ROWS = [
-  ['Overall approach', 'Aggressive', 'Pushes the player to take initiative earlier.', 'Raises execution and unforced-error risk.'],
-  ['Overall approach', 'Defensive', 'Prioritises patience, coverage and stable point construction.', 'Concedes some first-strike pressure.'],
-  ['Rally strategy', 'Shorten points', 'Rewards serve, attacking shots and net finishing.', 'Higher variance and execution risk.'],
-  ['Rally strategy', 'Extend rallies', 'Can exploit weaker opponent stamina/movement when your own physical profile supports it.', 'Raises physical demand.'],
-  ['Serve strategy', 'Power serving', 'More serve pressure and ace potential.', 'Lower first-serve reliability and more double-fault risk.'],
-  ['Serve strategy', 'Safe first serve', 'More first serves in and fewer double faults.', 'Fewer free points and less serving pressure.'],
-  ['Serve strategy', 'Serve + 1', 'Builds around a strong serve followed by an attacking first groundstroke.', 'Requires suitable serve and attacking skills.'],
-  ['Serve placement', 'Wide / Body / T', 'Changes the geometry of the service pattern and can target movement or return tendencies.', 'A predictable or unsuitable target can reduce the benefit.'],
-  ['Return strategy', 'Aggressive return', 'Adds early return pressure.', 'Raises return-error exposure.'],
-  ['Return strategy', 'Attack second serve', 'Steps in harder when the opponent misses the first serve.', 'Can be less useful against strong second serving.'],
-  ['Return strategy', 'Safe return', 'Prioritises starting the rally.', 'Less immediate attacking pressure.'],
-  ['Return position', 'Closer / Deeper', 'Closer pressures weaker serves; deeper creates reaction time against pace.', 'Each choice gives up something in reaction time or court position.'],
-  ['Court position', 'Inside baseline', 'Takes time away and adds attacking pressure.', 'Less reaction time.'],
-  ['Court position', 'Net attack', 'Rewards suitable serve/volley profiles.', 'Can expose weaker net skills and passing-shot defense.'],
-  ['Court position', 'Deep baseline', 'Helps return and rally defense.', 'Concedes court position.'],
-  ['Opponent target', 'Forehand / Backhand', 'Modestly exploits the selected wing when it is actually weaker.', 'Forcing the stronger wing can be counterproductive.'],
-  ['Opponent target', 'Movement / Stamina / Second serve', 'Builds the plan around a scouted physical or serving vulnerability.', 'Works poorly when the scouting read is wrong or your own skills do not suit the plan.'],
-  ['Risk level', 'Aggressive', 'Small attacking boost and more winner chances.', 'Substantially more unforced-error risk.'],
-  ['Risk level', 'Safe', 'Reduces errors and stabilizes points.', 'Less attacking pressure and fewer high-payoff attempts.'],
+const TACTIC_ROW_KEYS = [
+  'aggressiveApproach','defensiveApproach','shortenPoints','extendRallies','powerServing',
+  'safeServe','servePlusOne','servePlacement','aggressiveReturn','attackSecond','safeReturn',
+  'returnPosition','insideBaseline','netAttack','deepBaseline','wingTarget','weaknessTarget',
+  'aggressiveRisk','safeRisk',
 ] as const
 
 function TacticGuide({ matchSpecific = false }: { matchSpecific?: boolean }) {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -36,24 +23,26 @@ function TacticGuide({ matchSpecific = false }: { matchSpecific?: boolean }) {
       onToggle={(event) => setIsOpen(event.currentTarget.open)}
     >
       <summary>
-        <span><Info size={16} /><strong>{matchSpecific ? 'Match tactic guide' : 'How tactic settings change the match plan'}</strong></span>
-        <b>{isOpen ? 'Collapse' : 'Expand'}</b>
+        <span><Info size={16} /><strong>{matchSpecific ? t('tacticEducation.matchGuide') : t('tacticEducation.tournamentGuide')}</strong></span>
+        <b>{isOpen ? t('tacticEducation.collapse') : t('tacticEducation.expand')}</b>
       </summary>
       <div className="tlg-tactic-education-body">
-        <p>{matchSpecific
-          ? 'All match-tactic help is collected here. A saved one-match plan overrides your Tournament Default only for this opponent and locks 60 minutes before the scheduled start. Every aggressive choice has a trade-off; there is no universal “best” tactic.'
-          : 'All tactic guidance is collected here. Your Tournament Default is used for every match at this event unless you save a match-specific override. Presets are shortcuts; the individual choices below are what the match engine actually uses.'}</p>
+        <p>{matchSpecific ? t('tacticEducation.matchBody') : t('tacticEducation.tournamentBody')}</p>
         <div className="tlg-tactic-education-grid">
-          {TACTIC_ROWS.map(([group, option, benefit, tradeoff]) => (
-            <article key={`${group}-${option}`}>
-              <span>{group}</span>
-              <strong>{option}</strong>
-              <small className="benefit">+ {benefit}</small>
-              <small className="tradeoff">− {tradeoff}</small>
-            </article>
-          ))}
+          {TACTIC_ROW_KEYS.map((key) => {
+            const row = t(`tacticEducation.rows.${key}`, { returnObjects: true }) as string[]
+            const [group, option, benefit, tradeoff] = row
+            return (
+              <article key={key}>
+                <span>{group}</span>
+                <strong>{option}</strong>
+                <small className="benefit">+ {benefit}</small>
+                <small className="tradeoff">− {tradeoff}</small>
+              </article>
+            )
+          })}
         </div>
-        <div className="tlg-tactic-education-rule"><Target size={16} /><span><strong>Opponent-specific tactics:</strong> handedness changes rally and serve geometry, but it is not a permanent skill bonus. The match engine weighs your own skills, the opponent's real strengths/weaknesses, surface, condition and the chosen plan. A good counter helps modestly; it never guarantees a win.</span></div>
+        <div className="tlg-tactic-education-rule"><Target size={16} /><span><strong>{t('tacticEducation.opponentRuleTitle')}</strong> {t('tacticEducation.opponentRule')}</span></div>
       </div>
     </details>
   )
