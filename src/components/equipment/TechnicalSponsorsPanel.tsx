@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import GameConfirmDialog from '../common/GameConfirmDialog'
+import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 import '../../styles/equipment-refinement-v2.css'
 
@@ -9,23 +11,20 @@ type Tier = 'entry' | 'established' | 'premium' | 'elite'
 type Json = Record<string, any>
 
 const CATEGORIES: Category[] = ['apparel', 'shoes', 'racket']
-const LABEL: Record<Category, string> = { apparel: 'Clothing', shoes: 'Shoes', racket: 'Racquets' }
-const SLOT: Record<Category, string> = { apparel: 'Clothing Sponsor', shoes: 'Shoe Sponsor', racket: 'Racquet Sponsor' }
 
 function pct(value: number) {
   const n = Number(value) || 0
   return Number.isInteger(n) ? `${n}%` : `${n.toFixed(1)}%`
 }
 
-function money(value: number) {
-  return `$${Math.round(Number(value) || 0).toLocaleString()}`
-}
-
-function tierLabel(value: Tier) {
-  return value === 'elite' ? 'Elite / Global' : value.charAt(0).toUpperCase() + value.slice(1)
-}
 
 export default function TechnicalSponsorsPanel({ onChanged }: { onChanged?: () => Promise<void> | void }) {
+  const { t } = useTranslation()
+  const { formatCurrency } = useLocalization()
+  const money = (value: number) => formatCurrency(Number(value) || 0, 'USD')
+  const categoryLabel = (category: Category) => t(`equipmentPage.categories.${category}`)
+  const slotLabel = (category: Category) => t(`equipmentPage.technicalUi.slots.${category}`)
+  const tierLabel = (value: Tier) => t(`equipmentPage.ui.sponsorTiers.${value}`)
   const [dashboard, setDashboard] = useState<Json | null>(null)
   const [pendingSign, setPendingSign] = useState<Json | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
@@ -37,7 +36,7 @@ export default function TechnicalSponsorsPanel({ onChanged }: { onChanged?: () =
     setLoading(true)
     setError(null)
     const { data, error: loadError } = await supabase.rpc('get_player_technical_sponsor_dashboard_v1')
-    if (loadError || !data) setError(loadError?.message ?? 'Unable to load technical sponsor contracts.')
+    if (loadError || !data) setError(loadError?.message ?? t('equipmentPage.technicalLoadError'))
     else setDashboard(data as Json)
     setLoading(false)
   }
@@ -54,10 +53,11 @@ export default function TechnicalSponsorsPanel({ onChanged }: { onChanged?: () =
     else {
       const result = data as Json
       const bonus = Number(result?.signing_bonus_usd ?? offer.signing_bonus_usd ?? 0)
-      const suffix = bonus > 0 ? ` ${money(bonus)} was added to Career Finance.` : ''
+      const suffix = bonus > 0 ? t('equipmentPage.technicalUi.bonusAdded', { amount: money(bonus) }) : ''
+      const category = categoryLabel(offer.category as Category).toLowerCase()
       setMessage(result?.status === 'scheduled'
-        ? `${offer.brand.name} is signed as your next ${LABEL[offer.category as Category].toLowerCase()} sponsor.${suffix}`
-        : `${offer.brand.name} is now your active ${LABEL[offer.category as Category].toLowerCase()} sponsor.${suffix}`)
+        ? t('equipmentPage.technicalUi.scheduledSigned', { brand: offer.brand.name, category, suffix })
+        : t('equipmentPage.technicalUi.activeSigned', { brand: offer.brand.name, category, suffix }))
       setPendingSign(null)
       await load()
       await onChanged?.()
@@ -70,18 +70,18 @@ export default function TechnicalSponsorsPanel({ onChanged }: { onChanged?: () =
     setError(null)
     const { error: declineError } = await supabase.rpc('decline_player_technical_sponsor_offer_v1', { p_offer_id: offer.id })
     if (declineError) setError(declineError.message)
-    else { setMessage(`${offer.brand.name} offer declined.`); await load() }
+    else { setMessage(t('equipmentPage.technicalUi.declined', { brand: offer.brand.name })); await load() }
     setBusy(null)
   }
 
-  if (loading && !dashboard) return <section className="tlg-equipment-panel"><div className="tlg-equipment-state">Loading Technical Sponsors…</div></section>
+  if (loading && !dashboard) return <section className="tlg-equipment-panel"><div className="tlg-equipment-state">{t('equipmentPage.technicalUi.loading')}</div></section>
 
   return (
     <>
       <section className="tlg-equipment-panel tlg-technical-sponsor-panel tlg-technical-sponsor-panel-v2">
         <header className="tlg-equipment-panel-head market-head">
-          <div><span>TECHNICAL SPONSORSHIPS</span><h2>Clothing · Shoes · Racquets</h2><p>One exclusive equipment sponsor per category. Contracts provide marketplace discounts only, are based on your current world ranking and run until the end of the season.</p></div>
-          {dashboard && <div className="tlg-technical-player-profile"><span>CURRENT RANKING</span><strong>#{dashboard.player_profile.rank}</strong></div>}
+          <div><span>{t('equipmentPage.technicalUi.kicker')}</span><h2>{t('equipmentPage.technicalUi.heading')}</h2><p>{t('equipmentPage.technicalUi.intro')}</p></div>
+          {dashboard && <div className="tlg-technical-player-profile"><span>{t('equipmentPage.technicalUi.currentRanking')}</span><strong>#{dashboard.player_profile.rank}</strong></div>}
         </header>
         {error && <div className="tlg-equipment-alert error tlg-technical-inline-alert">{error}</div>}
         {message && <div className="tlg-equipment-alert tlg-technical-inline-alert">{message}</div>}
@@ -91,37 +91,37 @@ export default function TechnicalSponsorsPanel({ onChanged }: { onChanged?: () =
           const scheduled = (dashboard.contracts as Json[]).find((c) => c.category === cat && c.status === 'scheduled')
           const offers = (dashboard.offers as Json[]).filter((o) => o.category === cat)
           return <article className={`tlg-technical-contract-slot${active ? ' active' : ''}`} key={cat}>
-            <div className="tlg-technical-contract-slot-head"><span>{SLOT[cat].toUpperCase()}</span><b>{active ? 'ACTIVE' : scheduled ? 'NEXT DEAL SIGNED' : 'OPEN'}</b></div>
+            <div className="tlg-technical-contract-slot-head"><span>{slotLabel(cat).toUpperCase()}</span><b>{active ? t('equipmentPage.technicalUi.status.active') : scheduled ? t('equipmentPage.technicalUi.status.scheduled') : t('equipmentPage.technicalUi.status.open')}</b></div>
             {active ? <>
               <div className="tlg-technical-current-brand">{active.brand.logo_url && <img src={active.brand.logo_url} alt={`${active.brand.name} logo`} />}<div><small>{tierLabel(active.brand.tier)}</small><h3>{active.brand.name}</h3></div></div>
-              <div className="tlg-technical-contract-primary"><strong>{pct(active.discount_pct)}</strong><span>marketplace discount</span></div>
-              <dl className="tlg-technical-contract-facts"><div><dt>Contract</dt><dd>Until season end</dd></div><div><dt>Marketplace</dt><dd>{pct(active.discount_pct)} off</dd></div><div><dt>Premium Tier 4–5</dt><dd>{Number(active.premium_discount_bonus_pct) > 0 ? `+${pct(active.premium_discount_bonus_pct)}` : 'Same discount'}</dd></div><div><dt>Signed at</dt><dd>World #{active.player_rank_at_sign}</dd></div></dl>
-            </> : <div className="tlg-technical-no-contract"><strong>No active sponsor</strong><p>Choose from the available {LABEL[cat].toLowerCase()} proposals below.</p></div>}
-            {scheduled && <div className="tlg-technical-scheduled"><span>NEXT CONTRACT</span><strong>{scheduled.brand.name}</strong><small>Starts after the current season · {pct(scheduled.discount_pct)} discount</small></div>}
-            <div className="tlg-technical-slot-offer-count"><span>Available proposals</span><strong>{offers.length}</strong></div>
+              <div className="tlg-technical-contract-primary"><strong>{pct(active.discount_pct)}</strong><span>{t('equipmentPage.technicalUi.marketplaceDiscount')}</span></div>
+              <dl className="tlg-technical-contract-facts"><div><dt>{t('equipmentPage.technicalUi.contract')}</dt><dd>{t('equipmentPage.technicalUi.untilSeasonEnd')}</dd></div><div><dt>{t('equipmentPage.technicalUi.marketplace')}</dt><dd>{t('equipmentPage.technicalUi.off', { discount: pct(active.discount_pct) })}</dd></div><div><dt>{t('equipmentPage.technicalUi.premiumTier')}</dt><dd>{Number(active.premium_discount_bonus_pct) > 0 ? `+${pct(active.premium_discount_bonus_pct)}` : t('equipmentPage.technicalUi.sameDiscount')}</dd></div><div><dt>{t('equipmentPage.technicalUi.signedAt')}</dt><dd>{t('equipmentPage.technicalUi.worldRank', { rank: active.player_rank_at_sign })}</dd></div></dl>
+            </> : <div className="tlg-technical-no-contract"><strong>{t('equipmentPage.technicalUi.noActive')}</strong><p>{t('equipmentPage.technicalUi.chooseProposals', { category: categoryLabel(cat).toLowerCase() })}</p></div>}
+            {scheduled && <div className="tlg-technical-scheduled"><span>{t('equipmentPage.technicalUi.nextContract')}</span><strong>{scheduled.brand.name}</strong><small>{t('equipmentPage.technicalUi.startsNextSeason', { discount: pct(scheduled.discount_pct) })}</small></div>}
+            <div className="tlg-technical-slot-offer-count"><span>{t('equipmentPage.technicalUi.availableProposals')}</span><strong>{offers.length}</strong></div>
           </article>
         })}</div>}
 
         {dashboard && CATEGORIES.map((cat) => {
           const offers = (dashboard.offers as Json[]).filter((o) => o.category === cat)
           return <section className="tlg-technical-offer-section" key={cat}>
-            <div className="tlg-technical-offer-section-head"><div><span>{SLOT[cat].toUpperCase()} OFFERS</span><h3>{offers.length ? `${offers.length} proposals available` : 'No proposals available'}</h3></div><small>Offer quantity and value are determined by your current ranking group.</small></div>
+            <div className="tlg-technical-offer-section-head"><div><span>{t('equipmentPage.technicalUi.offersKicker', { slot: slotLabel(cat).toUpperCase() })}</span><h3>{offers.length ? t('equipmentPage.technicalUi.proposalsAvailable', { count: offers.length }) : t('equipmentPage.technicalUi.noProposals')}</h3></div><small>{t('equipmentPage.technicalUi.rankingGroupNote')}</small></div>
             {offers.length ? <div className="tlg-technical-offer-grid">{offers.map((offer) => <article className="tlg-technical-offer-card tlg-technical-offer-card-v2" key={offer.id}>
               <div className="tlg-technical-offer-copy">
                 <div className="tlg-technical-offer-brand">{offer.brand.logo_url && <img src={offer.brand.logo_url} alt="" />}<div><small>{offer.brand.country_code} · {tierLabel(offer.brand.tier)}</small><h4>{offer.brand.name}</h4></div></div>
-                <div className="tlg-technical-offer-main"><strong>{pct(offer.discount_pct)}</strong><span>brand discount</span></div>
-                <div className="tlg-technical-offer-benefits"><span>Until season end</span><span>Discount-only equipment deal</span>{Number(offer.signing_bonus_usd) > 0 && <span>{money(offer.signing_bonus_usd)} signing bonus</span>}{offer.premium_discount_bonus_pct > 0 && <span>+{pct(offer.premium_discount_bonus_pct)} premium-item discount</span>}</div>
+                <div className="tlg-technical-offer-main"><strong>{pct(offer.discount_pct)}</strong><span>{t('equipmentPage.technicalUi.brandDiscount')}</span></div>
+                <div className="tlg-technical-offer-benefits"><span>{t('equipmentPage.technicalUi.untilSeasonEnd')}</span><span>{t('equipmentPage.technicalUi.discountOnly')}</span>{Number(offer.signing_bonus_usd) > 0 && <span>{t('equipmentPage.technicalUi.signingBonus', { amount: money(offer.signing_bonus_usd) })}</span>}{offer.premium_discount_bonus_pct > 0 && <span>{t('equipmentPage.technicalUi.premiumItemDiscount', { discount: pct(offer.premium_discount_bonus_pct) })}</span>}</div>
                 <p>{offer.brand.philosophy}</p>
-                <details><summary>Review full offer</summary><dl className="tlg-technical-offer-review"><div><dt>Marketplace discount</dt><dd>{pct(offer.discount_pct)}</dd></div><div><dt>Signing payment</dt><dd>{Number(offer.signing_bonus_usd) > 0 ? money(offer.signing_bonus_usd) : 'No signing payment'}</dd></div><div><dt>Equipment benefit</dt><dd>Discounted purchases only</dd></div><div><dt>Premium Tier 4–5 bonus</dt><dd>{offer.premium_discount_bonus_pct ? `+${pct(offer.premium_discount_bonus_pct)}` : 'Same base discount'}</dd></div><div><dt>Eligibility</dt><dd>Current ranking only · {offer.requirements.rank_group_label} (#{offer.requirements.rank_best}–#{offer.requirements.rank_worst})</dd></div><div><dt>Your ranking at offer</dt><dd>World #{offer.player_rank}</dd></div><div><dt>Contract term</dt><dd>Signing/start date through season end</dd></div><div><dt>Offer expiry</dt><dd>In {offer.days_until_expiry} days</dd></div></dl></details>
-                <div className="tlg-technical-offer-foot"><span>{offer.is_renewal ? 'Renewal offer' : `Expires in ${offer.days_until_expiry} days`}</span><div><button type="button" className="secondary" disabled={busy === `decline:${offer.id}`} onClick={() => void declineOffer(offer)}>Decline</button><button type="button" onClick={() => setPendingSign(offer)}>Sign</button></div></div>
+                <details><summary>{t('equipmentPage.technicalUi.reviewOffer')}</summary><dl className="tlg-technical-offer-review"><div><dt>{t('equipmentPage.technicalUi.marketplaceDiscount')}</dt><dd>{pct(offer.discount_pct)}</dd></div><div><dt>{t('equipmentPage.technicalUi.signingPayment')}</dt><dd>{Number(offer.signing_bonus_usd) > 0 ? money(offer.signing_bonus_usd) : t('equipmentPage.technicalUi.noSigningPayment')}</dd></div><div><dt>{t('equipmentPage.technicalUi.equipmentBenefit')}</dt><dd>{t('equipmentPage.technicalUi.discountedOnly')}</dd></div><div><dt>{t('equipmentPage.technicalUi.premiumBonus')}</dt><dd>{offer.premium_discount_bonus_pct ? `+${pct(offer.premium_discount_bonus_pct)}` : t('equipmentPage.technicalUi.sameBaseDiscount')}</dd></div><div><dt>{t('equipmentPage.technicalUi.eligibility')}</dt><dd>{t('equipmentPage.technicalUi.eligibilityValue', { group: offer.requirements.rank_group_label, best: offer.requirements.rank_best, worst: offer.requirements.rank_worst })}</dd></div><div><dt>{t('equipmentPage.technicalUi.rankingAtOffer')}</dt><dd>{t('equipmentPage.technicalUi.worldRank', { rank: offer.player_rank })}</dd></div><div><dt>{t('equipmentPage.technicalUi.contractTerm')}</dt><dd>{t('equipmentPage.technicalUi.contractTermValue')}</dd></div><div><dt>{t('equipmentPage.technicalUi.offerExpiry')}</dt><dd>{t('equipmentPage.technicalUi.inDays', { count: offer.days_until_expiry })}</dd></div></dl></details>
+                <div className="tlg-technical-offer-foot"><span>{offer.is_renewal ? t('equipmentPage.technicalUi.renewal') : t('equipmentPage.technicalUi.expiresIn', { count: offer.days_until_expiry })}</span><div><button type="button" className="secondary" disabled={busy === `decline:${offer.id}`} onClick={() => void declineOffer(offer)}>{t('equipmentPage.technicalUi.decline')}</button><button type="button" onClick={() => setPendingSign(offer)}>{t('equipmentPage.technicalUi.sign')}</button></div></div>
               </div>
               <div className="tlg-technical-offer-logo-stage">{offer.brand.logo_url ? <img src={offer.brand.logo_url} alt={`${offer.brand.name} logo`} /> : <strong>{offer.brand.name}</strong>}</div>
-            </article>)}</div> : <div className="tlg-technical-empty-offers">No open {LABEL[cat].toLowerCase()} offers right now.</div>}
+            </article>)}</div> : <div className="tlg-technical-empty-offers">{t('equipmentPage.technicalUi.noOpenOffers', { category: categoryLabel(cat).toLowerCase() })}</div>}
           </section>
         })}
       </section>
 
-      {pendingSign && <GameConfirmDialog open eyebrow="Technical sponsorship" title={`Sign with ${pendingSign.brand.name}?`} message={<>This creates an exclusive <strong>{SLOT[pendingSign.category as Category]}</strong> agreement with a <strong>{pct(pendingSign.discount_pct)}</strong> equipment discount until the end of the season.</>} detail={<>{Number(pendingSign.signing_bonus_usd) > 0 ? <>Signing payment: <strong>{money(pendingSign.signing_bonus_usd)}</strong>. </> : null}Sponsored equipment remains a normal Marketplace purchase at the contract discount. The agreement is based on your current world ranking of <strong>#{pendingSign.player_rank}</strong>.</>} confirmLabel="Sign technical sponsor" tone="neutral" busy={busy === `sign:${pendingSign.id}`} onCancel={() => { if (!busy) setPendingSign(null) }} onConfirm={signOffer} />}
+      {pendingSign && <GameConfirmDialog open eyebrow={t('equipmentPage.technicalUi.dialogEyebrow')} title={t('equipmentPage.technicalUi.dialogTitle', { brand: pendingSign.brand.name })} message={<>{t('equipmentPage.technicalUi.dialogMessage', { slot: slotLabel(pendingSign.category as Category), discount: pct(pendingSign.discount_pct) })}</>} detail={<>{Number(pendingSign.signing_bonus_usd) > 0 ? t('equipmentPage.technicalUi.dialogSigning', { amount: money(pendingSign.signing_bonus_usd) }) : ''}{t('equipmentPage.technicalUi.dialogDetail', { rank: pendingSign.player_rank })}</>} confirmLabel={t('equipmentPage.technicalUi.confirm')} tone="neutral" busy={busy === `sign:${pendingSign.id}`} onCancel={() => { if (!busy) setPendingSign(null) }} onConfirm={signOffer} />}
     </>
   )
 }
