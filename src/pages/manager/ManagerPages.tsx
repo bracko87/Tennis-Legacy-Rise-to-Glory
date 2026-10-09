@@ -15,6 +15,7 @@ import {
   UsersRound,
 } from 'lucide-react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import GameLayout from '../../components/layout/GameLayout'
@@ -92,7 +93,8 @@ export function NotificationsPage() {
 }
 
 export function PlayerAccountPage() {
-  const { player, user } = useAuth()
+  const navigate = useNavigate()
+  const { player, user, refreshPlayer, signOut } = useAuth()
   const avatarUrl = usePlayerAvatarUrl(player?.image_path)
   const playerName = player ? `${player.first_name} ${player.last_name}`.trim() : 'Player not available'
   const [passwordStatus, setPasswordStatus] = useState<string | null>(null)
@@ -153,7 +155,8 @@ export function PlayerAccountPage() {
         return
       }
 
-      window.location.assign('/game/overview')
+      await refreshPlayer()
+      navigate('/game/overview', { replace: true })
       return
     }
 
@@ -165,9 +168,9 @@ export function PlayerAccountPage() {
     }
 
     try {
-      await supabase.auth.signOut({ scope: 'local' })
+      await signOut()
     } finally {
-      window.location.assign('/')
+      navigate('/', { replace: true })
     }
   }
 
