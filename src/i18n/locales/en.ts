@@ -1147,6 +1147,7 @@ export default {
       roundTrip: '{{amount}} round trip',
       fatigueArrival: '+{{fatigue}} fatigue on arrival',
       fatigueTraveller: '+{{fatigue}} fatigue per traveller · {{count}} staff',
+      travelClasses: { Economy: 'Economy', 'Premium Economy': 'Premium Economy', Business: 'Business', 'First Class': 'First Class' },
       travelInfo: {
         Economy: 'Standard travel fatigue',
         'Premium Economy': 'About 15% less travel fatigue',
