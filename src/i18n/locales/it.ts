@@ -2734,5 +2734,267 @@ export default {
     "processing": "Elaborazione…",
     "restartNow": "Riavvia account ora",
     "deletePermanently": "Elimina definitivamente giocatore e account"
+  },
+  "playerProfilePage": {
+    "title": "Profilo del giocatore",
+    "subtitle": "Identità del tennista professionista",
+    "backRankings": "Torna alle classifiche",
+    "loading": "Caricamento del profilo giocatore…",
+    "notFound": "Profilo del giocatore non trovato.",
+    "conversationError": "Impossibile avviare la conversazione.",
+    "player": "Giocatore",
+    "avatarAlt": "Avatar di {{name}}",
+    "singlesPlayer": "Giocatore di singolare {{world}}",
+    "openInbox": "Apri la posta",
+    "opening": "Apertura…",
+    "sendMessage": "Invia messaggio",
+    "worldRanking": "Classifica mondiale",
+    "rankingPoints": "Punti classifica",
+    "competitionWorld": "Circuito competitivo",
+    "information": "Informazioni sul giocatore",
+    "careerOverview": "Panoramica della carriera",
+    "homeCity": "Città di residenza",
+    "country": "Paese",
+    "notSet": "Non impostato",
+    "playingHand": "Mano dominante",
+    "leftHanded": "Mancino · M",
+    "rightHanded": "Destrimane · D",
+    "preferredSurface": "Superficie preferita",
+    "playingStyle": "Stile di gioco",
+    "discipline": "Disciplina",
+    "singles": "Singolare",
+    "tour": "Circuito",
+    "rankingStatus": "Stato in classifica",
+    "ranked": "Posizione n. {{rank}}",
+    "unranked": "Non classificato",
+    "privacyNote": "Le abilità interne esatte del giocatore sono private. Risultati pubblici, forma e storia della carriera rimangono visibili a tutti.",
+    "tournament": {
+      "completed": "Completato",
+      "points": "+{{points}} punti",
+      "weekSingle": "Stagione {{season}} · Settimana {{week}}",
+      "weekRange": "Stagione {{season}} · Settimane {{start}}–{{end}}",
+      "upcomingKicker": "PROSSIMAMENTE",
+      "upcomingTitle": "Prossimi tornei",
+      "upcomingBody": "Fino a cinque tornei con iscrizione confermata non ancora conclusi.",
+      "loadingSchedule": "Caricamento del programma dei tornei…",
+      "noUpcoming": "Nessun torneo in programma con iscrizione confermata.",
+      "recentKicker": "FORMA RECENTE",
+      "recentTitle": "Tornei recenti",
+      "recentBody": "I cinque tornei conclusi più di recente dal giocatore.",
+      "loadingHistory": "Caricamento della cronologia dei tornei…",
+      "noCompleted": "Nessun torneo ancora completato.",
+      "bestKicker": "MOMENTI MIGLIORI DELLA CARRIERA",
+      "bestTitle": "Migliori risultati",
+      "bestBody": "I cinque migliori risultati della carriera, ponderati per categoria del torneo e turno raggiunto.",
+      "loadingBest": "Caricamento dei migliori risultati…",
+      "noResults": "Nessun risultato nei tornei.",
+      "loadError": "Impossibile caricare le statistiche dei tornei: {{error}}"
+    },
+    "privateLife": {
+      "kicker": "VITA PRIVATA",
+      "title": "Prestigio e proprietà",
+      "body": "Il prestigio è la somma dei punti attribuiti ai beni fisici attualmente posseduti da questo giocatore. I beni venduti non contribuiscono più.",
+      "loading": "Caricamento del profilo Vita privata…",
+      "prestige": "Punti prestigio",
+      "possessions": "Proprietà attuali",
+      "value": "Valore dei beni fisici",
+      "startingResidence": "Residenza iniziale",
+      "ownedAsset": "Bene posseduto",
+      "showFewer": "Mostra meno proprietà",
+      "showAll": "Mostra tutte le {{count}} proprietà",
+      "empty": "Nessuna proprietà attuale nella Vita privata.",
+      "categories": {
+        "watch": "Orologio",
+        "jewelry": "Gioiello",
+        "car": "Veicolo",
+        "apartment": "Appartamento",
+        "house_villa": "Casa o villa",
+        "yacht": "Yacht",
+        "private_jet": "Jet privato",
+        "art": "Opera d'arte",
+        "collectible": "Oggetto da collezione"
+      }
+    },
+    "scouting": {
+      "kicker": "ANALISI DELLE PRESTAZIONI",
+      "title": "Rapporto di scouting dell'avversario",
+      "body": "Mano dominante, superficie e stile sono pubblici. Un Analista delle prestazioni assunto aggiunge intervalli approssimativi delle abilità, affidabilità della preparazione e osservazioni sul confronto senza rivelare i valori privati esatti.",
+      "report": "Rapporto {{stage}}",
+      "analyst": "Analista {{rating}}/100",
+      "unavailable": "Scouting dettagliato non disponibile",
+      "hireAnalyst": "Assumi un Analista delle prestazioni per sbloccare le stime sugli avversari.",
+      "known": "Noto: {{hand}} · {{surface}} · {{style}}",
+      "openStaff": "Apri il mercato dello staff",
+      "strength": "PUNTO DI FORZA IDENTIFICATO",
+      "weakness": "PUNTO DEBOLE IDENTIFICATO",
+      "identity": "IDENTITÀ CONOSCIUTA",
+      "leftHanded": "Mancino",
+      "rightHanded": "Destrimane",
+      "preparation": "Preparazione",
+      "gameHours": "{{stage}} · {{hours}} ore di gioco",
+      "preparationBody": "Più tempo per prepararsi restringe l'intervallo delle stime; la qualità dell'analista cambia la certezza delle informazioni, non le abilità reali dell'avversario.",
+      "estimated": "stimato",
+      "tendencies": "TENDENZE OSSERVATE",
+      "considerations": "CONSIDERAZIONI TATTICHE",
+      "stages": {
+        "general": "generale",
+        "quick": "rapido",
+        "partial": "parziale",
+        "normal": "normale",
+        "full": "completo"
+      },
+      "attributes": {
+        "serve": "Servizio",
+        "forehand": "Diritto",
+        "backhand": "Rovescio",
+        "return_skill": "Risposta",
+        "volley": "Volée",
+        "slice": "Slice",
+        "drop_shot": "Palla corta",
+        "lob": "Pallonetto",
+        "smash": "Smash",
+        "fitness": "Forma fisica",
+        "stamina": "Resistenza",
+        "recovery": "Recupero",
+        "movement": "Movimento"
+      }
+    },
+    "surface": {
+      "Hard": "Cemento",
+      "Clay": "Terra battuta",
+      "Grass": "Erba"
+    },
+    "style": {
+      "Aggressive Baseliner": "Fondocampista aggressivo",
+      "Defensive Baseliner": "Fondocampista difensivo",
+      "All-court": "A tutto campo",
+      "Serve & Volley": "Servizio e volée"
+    }
+  },
+  "tacticEducation": {
+    "matchGuide": "Guida alle tattiche di partita",
+    "tournamentGuide": "Come le impostazioni tattiche modificano il piano di gioco",
+    "collapse": "Comprimi",
+    "expand": "Espandi",
+    "matchBody": "Qui trovi tutte le indicazioni sulle tattiche per la partita. Un piano salvato per una singola partita sostituisce la tattica predefinita del torneo solo contro questo avversario e si blocca 60 minuti prima dell'inizio previsto. Ogni scelta aggressiva ha vantaggi e svantaggi: non esiste una tattica universalmente migliore.",
+    "tournamentBody": "Qui trovi tutte le indicazioni tattiche. La tattica predefinita del torneo si applica a ogni partita dell'evento, salvo la presenza di un piano specifico salvato. Le preimpostazioni sono scorciatoie: il motore di gioco usa le singole scelte qui sotto.",
+    "opponentRuleTitle": "Tattiche specifiche per l'avversario:",
+    "opponentRule": "la mano dominante modifica la geometria degli scambi e del servizio, ma non garantisce un bonus permanente alle abilità. Il motore di gioco considera le tue capacità, i veri punti forti e deboli dell'avversario, la superficie, la condizione e il piano scelto. Una buona contromisura aiuta moderatamente, ma non garantisce mai la vittoria.",
+    "rows": {
+      "aggressiveApproach": [
+        "Approccio generale",
+        "Aggressivo",
+        "Spinge il giocatore a prendere prima l'iniziativa.",
+        "Aumenta il rischio di esecuzione ed errori non forzati."
+      ],
+      "defensiveApproach": [
+        "Approccio generale",
+        "Difensivo",
+        "Privilegia pazienza, copertura del campo e costruzione regolare del punto.",
+        "Rinuncia a una parte della pressione immediata."
+      ],
+      "shortenPoints": [
+        "Strategia di scambio",
+        "Accorcia i punti",
+        "Premia servizio, colpi d'attacco e chiusure a rete.",
+        "Maggiore variabilità e rischio nell'esecuzione."
+      ],
+      "extendRallies": [
+        "Strategia di scambio",
+        "Allunga gli scambi",
+        "Può sfruttare la scarsa resistenza o mobilità dell'avversario se il tuo profilo fisico lo consente.",
+        "Aumenta lo sforzo fisico richiesto."
+      ],
+      "powerServing": [
+        "Strategia al servizio",
+        "Servizio potente",
+        "Aumenta la pressione al servizio e la possibilità di ace.",
+        "Riduce l'affidabilità della prima e aumenta il rischio di doppi falli."
+      ],
+      "safeServe": [
+        "Strategia al servizio",
+        "Prima sicura",
+        "Aumenta le prime in campo e riduce i doppi falli.",
+        "Meno punti gratuiti e minore pressione al servizio."
+      ],
+      "servePlusOne": [
+        "Strategia al servizio",
+        "Servizio + 1",
+        "Si basa su un servizio forte seguito da un primo colpo da fondo d'attacco.",
+        "Richiede buone abilità di servizio e attacco."
+      ],
+      "servePlacement": [
+        "Piazzamento del servizio",
+        "Esterno / corpo / T",
+        "Modifica gli angoli del servizio e può colpire le debolezze di movimento o risposta.",
+        "Un bersaglio prevedibile o inadatto può ridurre il vantaggio."
+      ],
+      "aggressiveReturn": [
+        "Strategia in risposta",
+        "Risposta aggressiva",
+        "Aumenta la pressione fin dalla risposta.",
+        "Aumenta il rischio di errori in risposta."
+      ],
+      "attackSecond": [
+        "Strategia in risposta",
+        "Attacca la seconda",
+        "Entra maggiormente in campo quando l'avversario manca la prima.",
+        "Può essere meno utile contro una seconda molto forte."
+      ],
+      "safeReturn": [
+        "Strategia in risposta",
+        "Risposta sicura",
+        "Privilegia l'inizio dello scambio.",
+        "Meno pressione d'attacco immediata."
+      ],
+      "returnPosition": [
+        "Posizione in risposta",
+        "Più vicino / più lontano",
+        "Più vicino mette pressione ai servizi deboli; più lontano offre tempo di reazione contro la velocità.",
+        "Ogni scelta comporta uno svantaggio nel tempo di reazione o nella posizione in campo."
+      ],
+      "insideBaseline": [
+        "Posizione in campo",
+        "Dentro la linea di fondo",
+        "Toglie tempo all'avversario e aumenta la pressione offensiva.",
+        "Meno tempo di reazione."
+      ],
+      "netAttack": [
+        "Posizione in campo",
+        "Attacco a rete",
+        "Premia i giocatori adatti al servizio e volée.",
+        "Può mettere in evidenza debolezze a rete e sui passanti avversari."
+      ],
+      "deepBaseline": [
+        "Posizione in campo",
+        "Dietro la linea di fondo",
+        "Aiuta la risposta e la difesa negli scambi.",
+        "Cede terreno in campo."
+      ],
+      "wingTarget": [
+        "Bersaglio sull'avversario",
+        "Diritto / rovescio",
+        "Sfrutta moderatamente il lato scelto quando è davvero quello più debole.",
+        "Insistere sul lato più forte può essere controproducente."
+      ],
+      "weaknessTarget": [
+        "Bersaglio sull'avversario",
+        "Movimento / resistenza / seconda",
+        "Costruisce il piano su una vulnerabilità fisica o al servizio identificata dallo scouting.",
+        "Funziona male se lo scouting è errato o le tue abilità non sono adatte."
+      ],
+      "aggressiveRisk": [
+        "Livello di rischio",
+        "Aggressivo",
+        "Piccolo bonus offensivo e più possibilità di colpi vincenti.",
+        "Rischio di errori non forzati molto più elevato."
+      ],
+      "safeRisk": [
+        "Livello di rischio",
+        "Prudente",
+        "Riduce gli errori e stabilizza i punti.",
+        "Meno pressione offensiva e meno tentativi ad alto rendimento."
+      ]
+    }
   }
 } as const
