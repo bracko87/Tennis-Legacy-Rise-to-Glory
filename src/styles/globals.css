@@ -949,6 +949,13 @@ html:lang(de) .tlg-hero-title {
   letter-spacing: -0.055em;
 }
 
+html:lang(es) .tlg-hero-title {
+  /* Give longer Spanish headlines enough room beside the artwork. */
+  font-size: clamp(2.4rem, 3.4vw, 3.8rem);
+  line-height: 1.02;
+  letter-spacing: -0.055em;
+}
+
 .tlg-hero-title strong {
   margin-top: 12px;
 
@@ -2850,6 +2857,10 @@ html:lang(de) .tlg-hero-title {
     font-size: clamp(1.95rem, 8.3vw, 2.75rem);
   }
 
+  html:lang(es) .tlg-hero-title {
+    font-size: clamp(2rem, 8.8vw, 2.85rem);
+  }
+
   .tlg-hero-description {
     font-size: 0.95rem;
   }
@@ -2997,6 +3008,10 @@ html:lang(de) .tlg-hero-title {
 
   html:lang(de) .tlg-hero-title {
     font-size: clamp(1.85rem, 8vw, 2.1rem);
+  }
+
+  html:lang(es) .tlg-hero-title {
+    font-size: clamp(1.9rem, 8.2vw, 2.2rem);
   }
 
   .tlg-game-time-equation {
