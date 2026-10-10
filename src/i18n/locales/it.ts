@@ -609,5 +609,427 @@ export default {
     "newPassword": "Nuova password",
     "confirmPassword": "Conferma password",
     "updatePassword": "Aggiorna password"
+  },
+  "notifications": {
+    "pageTitle": "Notifiche",
+    "pageSubtitle": "Avvisi sulla carriera, decisioni e aggiornamenti del gioco",
+    "center": "Centro notifiche",
+    "careerNotifications": "Notifiche della carriera",
+    "intro": "Decisioni sui tornei, viaggi, condizioni del giocatore, allenamenti, attrezzatura, eventi dell'account e altri aggiornamenti della carriera sono raccolti qui. Apri una notifica per visualizzare tutti i dettagli e accedere direttamente alla sezione interessata.",
+    "unread": "Non lette",
+    "important": "Importanti",
+    "total": "Totale",
+    "markAllRead": "Segna tutte come lette",
+    "updating": "Aggiornamento…",
+    "updateError": "Impossibile aggiornare le notifiche: {{error}}",
+    "loading": "Caricamento delle notifiche…",
+    "noUnread": "Nessuna notifica non letta",
+    "noCategory": "Nessuna notifica in questa categoria",
+    "allRead": "Hai letto tutte le notifiche.",
+    "emptyCategory": "Le iscrizioni ai tornei, i sorteggi, i viaggi, la salute, gli allenamenti, l'attrezzatura, le ricompense e gli altri eventi della carriera compariranno qui.",
+    "fullDescription": "Descrizione completa",
+    "created": "Creata",
+    "category": "Categoria",
+    "type": "Tipo",
+    "status": "Stato",
+    "dismiss": "Ignora",
+    "openDetails": "Apri i dettagli della notifica",
+    "collapse": "Comprimi notifica",
+    "summaryAria": "Riepilogo delle notifiche",
+    "filtersAria": "Filtri delle notifiche",
+    "priority": "Priorità",
+    "read": "Letta",
+    "noActiveDestination": "Questo aggiornamento non ha più una destinazione attiva nel gioco.",
+    "filters": {
+      "all": "Tutte",
+      "unread": "Non lette",
+      "important": "Importanti",
+      "tournament": "Tornei e viaggi",
+      "health": "Giocatore e allenamento",
+      "equipment": "Attrezzatura",
+      "account": "Account e finanze"
+    },
+    "categories": {
+      "account": "Account",
+      "equipment": "Attrezzatura",
+      "finance": "Finanze",
+      "player_condition": "Condizione del giocatore",
+      "player_development": "Sviluppo del giocatore",
+      "player_health": "Salute e infortuni",
+      "private_life": "Vita privata",
+      "staff": "Staff",
+      "national_team": "Nazionale",
+      "tournament": "Torneo",
+      "training": "Allenamento",
+      "travel": "Viaggio"
+    },
+    "severity": {
+      "error": "Critica",
+      "warning": "Importante",
+      "success": "Successo",
+      "info": "Informazione"
+    },
+    "time": {
+      "justNow": "Proprio ora",
+      "minutesAgo": "{{count}} min fa",
+      "hoursAgo": "{{count}} h fa",
+      "daysAgo": "{{count}} g fa"
+    },
+    "actions": {
+      "reviewInvitation": "Esamina l'invito",
+      "viewDoublesDraw": "Visualizza il tabellone di doppio",
+      "prepareDoublesMatch": "Prepara la partita di doppio",
+      "viewDoublesResult": "Visualizza il risultato del doppio",
+      "openDoubles": "Apri il doppio",
+      "viewDraw": "Visualizza il tabellone",
+      "openPreparation": "Apri la preparazione",
+      "viewTournament": "Visualizza il torneo",
+      "viewCoins": "Visualizza i Coins",
+      "openSponsorOffers": "Apri le offerte degli sponsor",
+      "openSponsorship": "Apri le sponsorizzazioni",
+      "viewEquipment": "Visualizza l'attrezzatura",
+      "openSchedule": "Apri il programma",
+      "openTraining": "Apri gli allenamenti",
+      "openHealth": "Apri la sezione salute",
+      "viewSkills": "Visualizza le abilità",
+      "openPrivateLife": "Apri la vita privata",
+      "openAccount": "Apri l'account",
+      "openFinance": "Apri le finanze",
+      "openStaff": "Apri lo staff",
+      "reviewCallup": "Esamina la convocazione",
+      "voteNow": "Vota ora",
+      "openElection": "Apri le elezioni",
+      "openNationalTeam": "Apri la nazionale",
+      "viewPlayer": "Visualizza il giocatore",
+      "open": "Apri"
+    },
+    "context": {
+      "tournament": "Torneo",
+      "entryWave": "Fase di iscrizione",
+      "draw": "Tabellone",
+      "priority": "Priorità",
+      "nextEntryWave": "Prossima fase di iscrizione",
+      "tournamentStart": "Inizio del torneo",
+      "acceptedPlayers": "Giocatori ammessi",
+      "minimumPlayers": "Numero minimo di giocatori",
+      "refunded": "Rimborsato",
+      "city": "Città",
+      "partner": "Compagno",
+      "opponents": "Avversari",
+      "round": "Turno",
+      "entryStatus": "Stato dell'iscrizione",
+      "result": "Risultato",
+      "partnershipDeadline": "Scadenza dell'accordo di coppia",
+      "tournamentEnd": "Fine del torneo",
+      "matchDay": "Giorno della partita",
+      "matchTime": "Orario della partita",
+      "court": "Campo",
+      "setsPlayed": "Set giocati",
+      "gamesPlayed": "Game giocati",
+      "drawSize": "Dimensione del tabellone",
+      "association": "Federazione",
+      "captain": "Capitano",
+      "opponent": "Avversario",
+      "hostCity": "Città ospitante",
+      "votingDeadline": "Scadenza delle votazioni",
+      "electionRound": "Turno elettorale",
+      "responseDeadline": "Scadenza della risposta",
+      "appearancePayment": "Compenso di partecipazione",
+      "destination": "Destinazione",
+      "distance": "Distanza",
+      "grossFatigue": "Stanchezza lorda",
+      "travelDayRecovery": "Recupero nel giorno di viaggio",
+      "netFatigue": "Stanchezza netta",
+      "travelCost": "Costo del viaggio",
+      "fatigue": "Stanchezza",
+      "skill": "Abilità",
+      "skillChange": "Variazione dell'abilità",
+      "riskLevel": "Livello di rischio",
+      "risk": "Rischio",
+      "riskFactors": "Fattori di rischio",
+      "equipmentCategory": "Categoria dell'attrezzatura",
+      "daysRemaining": "Giorni rimanenti",
+      "birthdayReward": "Regalo di compleanno",
+      "rewardYear": "Anno del premio",
+      "requestStatus": "Stato della richiesta",
+      "billingMonth": "Mese di fatturazione",
+      "totalCost": "Costo totale",
+      "recoveryProgress": "Avanzamento del recupero",
+      "condition": "Condizione",
+      "seasonWeekDay": "Stagione, settimana {{week}} · giorno {{day}}",
+      "courtNumber": "Campo {{court}}",
+      "teamsCount": "{{count}} squadre",
+      "gameDay": "Giorno di gioco {{day}}",
+      "seasonMoment": "Stagione {{season}} · {{day}}/{{month}} · {{time}}",
+      "apparel": "Abbigliamento",
+      "racket": "Racchetta",
+      "shoes": "Scarpe"
+    },
+    "templates": {
+      "account_birthday_gift": {
+        "title": "Buon compleanno! 🎂",
+        "message": "Ti auguriamo uno splendido compleanno! Come regalo da Tennis Legacy, abbiamo aggiunto 20 Coins al tuo account."
+      },
+      "avatar_request_cancelled": {
+        "title": "Richiesta avatar annullata",
+        "message": "La richiesta di sostituzione dell'avatar è stata annullata. L'avatar attuale rimane invariato e puoi inviare una nuova richiesta."
+      },
+      "avatar_request_completed": {
+        "title": "Sostituzione avatar completata",
+        "message": "Il nuovo avatar approvato è ora attivo."
+      },
+      "avatar_request_ready": {
+        "title": "Nuovo avatar pronto per la revisione",
+        "message": "Il nuovo avatar è pronto. Controllalo prima di applicarlo."
+      },
+      "avatar_request_rejected": {
+        "title": "Impossibile elaborare la richiesta avatar",
+        "message": "Non è stato possibile elaborare la richiesta di sostituzione dell'avatar. Apri Giocatore e account per i dettagli."
+      },
+      "avatar_request_revision": {
+        "title": "Richiesta di revisione avatar inviata",
+        "message": "La richiesta di revisione è stata registrata e inviata per una nuova valutazione."
+      },
+      "avatar_request_submitted": {
+        "title": "Richiesta avatar inviata",
+        "message": "Abbiamo ricevuto la tua richiesta privata di sostituzione dell'avatar."
+      },
+      "doubles_draw_published": {
+        "title": "Tabellone di doppio pubblicato",
+        "message": "È disponibile il tabellone ufficiale del doppio."
+      },
+      "doubles_entry_accepted": {
+        "title": "Iscrizione al doppio accettata",
+        "message": "La tua coppia di doppio ha ottenuto un posto nel tabellone."
+      },
+      "doubles_entry_waitlisted": {
+        "title": "Coppia di doppio in lista d'attesa",
+        "message": "La tua coppia è nella lista delle riserve."
+      },
+      "doubles_invitation_accepted": {
+        "title": "Invito al doppio accettato",
+        "message": "Il tuo invito al doppio è stato accettato."
+      },
+      "doubles_invitation_declined": {
+        "title": "Invito al doppio rifiutato",
+        "message": "Il tuo invito al doppio è stato rifiutato."
+      },
+      "doubles_invitation_expired": {
+        "title": "Invito al doppio scaduto",
+        "message": "L'invito al doppio è scaduto al termine del periodo previsto per il torneo."
+      },
+      "doubles_match_result": {
+        "title": "Risultato della partita di doppio",
+        "message": "La tua partita di doppio è terminata."
+      },
+      "doubles_match_scheduled": {
+        "title": "Partita di doppio programmata",
+        "message": "Sono stati confermati orario e campo della tua partita di doppio."
+      },
+      "doubles_partner_invitation": {
+        "title": "Invito da un compagno di doppio",
+        "message": "Hai ricevuto un invito per giocare in doppio."
+      },
+      "doubles_partnership_confirmed": {
+        "title": "Coppia di doppio confermata",
+        "message": "La tua coppia di doppio è confermata per questo torneo."
+      },
+      "doubles_team_withdrawn": {
+        "title": "Coppia di doppio ritirata",
+        "message": "La tua coppia è stata ritirata dal torneo."
+      },
+      "equipment_technical_sponsor_expired": {
+        "title": "Contratto con lo sponsor tecnico concluso",
+        "message": "Un contratto di sponsorizzazione tecnica è terminato e i relativi vantaggi sull'attrezzatura non sono più attivi."
+      },
+      "equipment_technical_sponsor_expiring": {
+        "title": "Contratto con lo sponsor tecnico in scadenza",
+        "message": "Un contratto di sponsorizzazione tecnica sta per scadere. Valuta il rinnovo e le offerte alternative."
+      },
+      "equipment_technical_sponsor_offer": {
+        "title": "Nuove offerte da sponsor tecnici",
+        "message": "Sono disponibili nuove proposte di sponsor tecnici nella sezione Attrezzatura."
+      },
+      "equipment_technical_sponsor_signed": {
+        "title": "Contratto con lo sponsor tecnico firmato",
+        "message": "È stato firmato un nuovo contratto di sponsorizzazione tecnica."
+      },
+      "national_association_renewal": {
+        "title": "Rinnovo della federazione disponibile",
+        "message": "La federazione deve completare il rinnovo di gennaio prima del 1º febbraio."
+      },
+      "national_captain_elected": {
+        "title": "Capitano della nazionale eletto",
+        "message": "La federazione ha eletto il proprio capitano."
+      },
+      "national_captain_election": {
+        "title": "Elezione del capitano della nazionale aperta",
+        "message": "Candidati, leggi i programmi e vota per il capitano della federazione."
+      },
+      "national_captain_runoff": {
+        "title": "L'elezione del capitano continua",
+        "message": "Nessun candidato è in testa da solo. È aperto un altro turno elettorale di sette giorni."
+      },
+      "national_captain_vacancy": {
+        "title": "Ruolo di capitano della nazionale vacante",
+        "message": "Verrà avviata un'elezione per un nuovo capitano."
+      },
+      "national_competition_launch": {
+        "title": "Aggiornamento sul programma della nazionale",
+        "message": "La stagione 1 è dedicata alla formazione delle federazioni e alle amichevoli; le competizioni ufficiali iniziano nella stagione 2."
+      },
+      "national_friendly_accepted": {
+        "title": "Amichevole della nazionale confermata",
+        "message": "L'amichevole della tua nazionale è stata confermata."
+      },
+      "national_friendly_declined": {
+        "title": "Amichevole della nazionale rifiutata",
+        "message": "La proposta di amichevole della tua nazionale è stata rifiutata."
+      },
+      "national_friendly_invitation": {
+        "title": "Invito a un'amichevole internazionale",
+        "message": "Un'altra federazione vuole organizzare un'amichevole."
+      },
+      "player_fatigue_critical": {
+        "title": "Stanchezza critica",
+        "message": "La stanchezza ha raggiunto {{fatigue}}/100. Dai priorità al recupero prima di altre attività impegnative."
+      },
+      "player_fatigue_day_off_recommended": {
+        "title": "Giorno di riposo consigliato",
+        "message": "La stanchezza ha raggiunto {{fatigue}}/100. È fortemente consigliato un giorno di riposo o un allenamento di recupero leggero."
+      },
+      "player_fatigue_tired": {
+        "title": "La stanchezza aumenta",
+        "message": "La stanchezza è arrivata a {{fatigue}}/100. Valuta presto un allenamento più leggero o un recupero."
+      },
+      "player_health_competition_clear": {
+        "title": "Idoneo alle competizioni",
+        "message": "Puoi tornare a partecipare ai tornei, anche se il giocatore potrebbe non essere ancora al massimo della forma."
+      },
+      "player_health_match_surrendered": {
+        "title": "Partita abbandonata",
+        "message": "Hai abbandonato la partita per proteggere la salute del tuo giocatore."
+      },
+      "player_health_medical_walkover": {
+        "title": "Vittoria a tavolino per motivi medici",
+        "message": "Non eri idoneo a disputare questa partita per motivi medici, quindi l'avversario è passato al turno successivo senza giocare."
+      },
+      "player_health_nearly_fit": {
+        "title": "Quasi completamente in forma",
+        "message": "Il recupero è nella fase finale."
+      },
+      "player_health_risk": {
+        "title": "Avviso di rischio per la salute",
+        "message": "Il rischio attuale di malattia o problemi di salute è elevato."
+      },
+      "player_health_tournament_withdrawn": {
+        "title": "Ritiro dal torneo per motivi di salute",
+        "message": "L'iscrizione al torneo è stata ritirata perché la data del rientro medico è successiva all'inizio del torneo."
+      },
+      "player_health_training_clear": {
+        "title": "Idoneo agli allenamenti",
+        "message": "Puoi riprendere i normali allenamenti, anche se il recupero completo potrebbe essere ancora in corso."
+      },
+      "player_illness_detected": {
+        "title": "Giocatore ammalato",
+        "message": "È stata rilevata una nuova malattia."
+      },
+      "player_illness_recovered": {
+        "title": "Completamente guarito dalla malattia",
+        "message": "La malattia è stata completamente superata."
+      },
+      "player_illness_worsened": {
+        "title": "La malattia è peggiorata",
+        "message": "La malattia attuale è diventata più grave."
+      },
+      "player_injury_detected": {
+        "title": "Infortunio rilevato",
+        "message": "È stato rilevato un nuovo infortunio."
+      },
+      "player_injury_recovered": {
+        "title": "Recupero completato",
+        "message": "Il tuo giocatore si è completamente ristabilito."
+      },
+      "player_injury_risk": {
+        "title": "Rischio di infortunio aumentato",
+        "message": "Il rischio attuale di infortunio è aumentato."
+      },
+      "player_injury_worsened": {
+        "title": "Infortunio aggravato",
+        "message": "L'infortunio attuale si è aggravato e i tempi di recupero si sono allungati."
+      },
+      "player_private_life_running_costs": {
+        "title": "Spese mensili della vita privata",
+        "message": "Le spese complessive di vita e manutenzione della Vita privata sono state detratte dal saldo delle finanze della carriera."
+      },
+      "player_skill_decreased": {
+        "title": "{{skill}} diminuita",
+        "message": "{{skill}} è passata da {{old_value}} a {{new_value}} ({{delta}})."
+      },
+      "player_skill_increased": {
+        "title": "{{skill}} migliorata",
+        "message": "{{skill}} è passata da {{old_value}} a {{new_value}} ({{delta}})."
+      },
+      "tournament_application_submitted": {
+        "title": "Iscrizione inviata",
+        "message": "La tua richiesta di iscrizione al torneo è stata inviata."
+      },
+      "tournament_application_withdrawn": {
+        "title": "Iscrizione ritirata",
+        "message": "La tua richiesta di iscrizione al torneo è stata ritirata."
+      },
+      "tournament_canceled": {
+        "title": "Torneo annullato",
+        "message": "Il torneo è stato annullato. I costi relativi al torneo vengono rimborsati automaticamente."
+      },
+      "tournament_draw_published": {
+        "title": "Tabellone del torneo pubblicato",
+        "message": "Il tabellone ufficiale del torneo è ora disponibile."
+      },
+      "tournament_entry_accepted_main": {
+        "title": "Ammesso al tabellone principale",
+        "message": "Sei stato ammesso al tabellone principale del torneo."
+      },
+      "tournament_entry_accepted_qualification": {
+        "title": "Ammesso alle qualificazioni",
+        "message": "Sei stato ammesso alle qualificazioni del torneo."
+      },
+      "tournament_entry_rejected": {
+        "title": "Iscrizione al torneo rifiutata",
+        "message": "La tua richiesta di iscrizione al torneo non è stata accettata."
+      },
+      "tournament_match_travel_no_show": {
+        "title": "Partita persa: conflitto di viaggio",
+        "message": "Hai perso questa partita perché il tuo itinerario di viaggio non ti ha permesso di arrivare alla sede del torneo prima dell'orario previsto."
+      },
+      "tournament_preparation_available": {
+        "title": "Prepara il tuo torneo",
+        "message": "Il tuo posto al torneo è confermato. Apri il Programma e prepara viaggio, hotel, staff e tattica predefinita."
+      },
+      "tournament_result_completed": {
+        "title": "Risultato del torneo",
+        "message": "Il risultato del torneo, i punti classifica e il montepremi vinto sono stati registrati."
+      },
+      "training_camp_booked": {
+        "title": "Ritiro di allenamento prenotato",
+        "message": "{{camp_name}} è prenotato dal {{start_date}} per {{duration_weeks}} settimane."
+      },
+      "training_camp_cancelled": {
+        "title": "Ritiro di allenamento annullato",
+        "message": "{{camp_name}} è stato annullato. {{refund_amount}} sono stati restituiti al saldo della carriera."
+      },
+      "training_camp_completed": {
+        "title": "Ritiro di allenamento completato",
+        "message": "{{camp_name}} è terminato. I miglioramenti ottenuti durante il ritiro sono stati applicati."
+      },
+      "travel_arrived": {
+        "title": "Viaggio completato",
+        "message": "Sei arrivato a destinazione. È stata applicata la stanchezza del viaggio."
+      },
+      "travel_planned": {
+        "title": "Viaggio pianificato",
+        "message": "Il tuo itinerario di viaggio è stato aggiornato."
+      }
+    }
   }
 } as const
