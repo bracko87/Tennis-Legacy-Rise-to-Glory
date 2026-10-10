@@ -1,3 +1,5 @@
+import { IT } from './tutorialContent.it'
+
 export const TUTORIAL_VERSION = 'launch-v1'
 
 export type TutorialRoute =
@@ -1356,6 +1358,7 @@ const RESOURCES: Record<string, TutorialResources> = {
   en: EN,
   sr: SR,
   de: DE,
+  it: IT,
 }
 
 export function normalizeTutorialLocale(locale?: string | null) {
