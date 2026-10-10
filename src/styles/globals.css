@@ -942,6 +942,12 @@ html:lang(sr) .tlg-hero-title {
   font-size: clamp(3.15rem, 5.85vw, 5.95rem);
 }
 
+html:lang(de) .tlg-hero-title {
+  font-size: clamp(2.9rem, 4.6vw, 4.8rem);
+  line-height: 0.96;
+  letter-spacing: -0.055em;
+}
+
 .tlg-hero-title strong {
   margin-top: 12px;
 
@@ -2839,6 +2845,10 @@ html:lang(sr) .tlg-hero-title {
     font-size: clamp(2.65rem, 13.8vw, 4.1rem);
   }
 
+  html:lang(de) .tlg-hero-title {
+    font-size: clamp(2.45rem, 12.2vw, 3.65rem);
+  }
+
   .tlg-hero-description {
     font-size: 0.95rem;
   }
@@ -2982,6 +2992,10 @@ html:lang(sr) .tlg-hero-title {
 
   html:lang(sr) .tlg-hero-title {
     font-size: 2.48rem;
+  }
+
+  html:lang(de) .tlg-hero-title {
+    font-size: 2.25rem;
   }
 
   .tlg-game-time-equation {
