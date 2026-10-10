@@ -943,8 +943,9 @@ html:lang(sr) .tlg-hero-title {
 }
 
 html:lang(de) .tlg-hero-title {
-  font-size: clamp(2.9rem, 4.6vw, 4.8rem);
-  line-height: 0.96;
+  /* German copy is significantly longer: keep both headline lines within the hero. */
+  font-size: clamp(2.3rem, 3.15vw, 3.5rem);
+  line-height: 1.01;
   letter-spacing: -0.055em;
 }
 
@@ -2846,7 +2847,7 @@ html:lang(de) .tlg-hero-title {
   }
 
   html:lang(de) .tlg-hero-title {
-    font-size: clamp(2.45rem, 12.2vw, 3.65rem);
+    font-size: clamp(1.95rem, 8.3vw, 2.75rem);
   }
 
   .tlg-hero-description {
