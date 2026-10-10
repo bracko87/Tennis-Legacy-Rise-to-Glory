@@ -1,4 +1,4 @@
-// Italian translation — rollout in progress. Do not enable 'it' until full parity and QA.
+// Italian locale — full English-key coverage; further in-game visual QA recommended.
 export default {
   "common": {
     "language": "Lingua",
