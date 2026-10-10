@@ -5,6 +5,7 @@ import en from './locales/en'
 import sr from './locales/sr'
 import de from './locales/de'
 import es from './locales/es'
+import it from './locales/it'
 
 export const SUPPORTED_LOCALES = ['en', 'sr', 'de', 'es', 'it', 'fr', 'ru', 'pt'] as const
 export type AppLocale = typeof SUPPORTED_LOCALES[number]
@@ -37,6 +38,7 @@ void i18n
       sr: { translation: sr },
       de: { translation: de },
       es: { translation: es },
+      it: { translation: it },
     },
     lng: normalizeAppLocale(
       typeof window !== 'undefined'
