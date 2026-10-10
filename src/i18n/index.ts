@@ -10,7 +10,7 @@ import it from './locales/it'
 export const SUPPORTED_LOCALES = ['en', 'sr', 'de', 'es', 'it', 'fr', 'ru', 'pt'] as const
 export type AppLocale = typeof SUPPORTED_LOCALES[number]
 
-export const ENABLED_LOCALES: readonly AppLocale[] = ['en', 'sr', 'de', 'es']
+export const ENABLED_LOCALES: readonly AppLocale[] = ['en', 'sr', 'de', 'es', 'it']
 
 export const LOCALE_TAGS: Record<AppLocale, string> = {
   en: 'en-US',
