@@ -5848,6 +5848,44 @@ export default {
       "Ottobre",
       "Novembre",
       "Dicembre"
-    ]
+    ],
+    "roleCatalog": {
+      "headCoach": {
+        "responsibility": "Guida lo sviluppo tecnico e trasforma la conoscenza tattica in un piccolo vantaggio nella preparazione alla partita.",
+        "vacancy": "Allenamenti e partite continuano normalmente, ma senza bonus dell'allenatore capo allo sviluppo o alla preparazione.",
+        "stacking": "Può essere attivo un solo allenatore capo. Il suo bonus può sommarsi al supporto dell'analista e dello psicologo sportivo, entro il limite globale del +2,0% dello staff in partita.",
+        "review": "Rimane un ruolo distinto. La guida dello sviluppo è diversa dall'analisi degli avversari e non viene unita all'Analista delle prestazioni."
+      },
+      "fitnessCoach": {
+        "responsibility": "Migliora sviluppo fisico, preparazione atletica e gestione del carico senza sostituire le normali scelte di riposo.",
+        "vacancy": "Allenamento fisico e stanchezza continuano con i valori base, ma senza il bonus del preparatore atletico allo sviluppo o alla riduzione della stanchezza.",
+        "stacking": "Può essere attivo un solo preparatore atletico. La riduzione della stanchezza riguarda soltanto il carico di allenamento e non modifica il recupero fisso dei giorni di viaggio né quello dei giorni di riposo.",
+        "review": "Rimane separato dal fisioterapista: il preparatore gestisce carico e sviluppo fisico; il fisioterapista gestisce recupero medico e infortuni."
+      },
+      "physiotherapist": {
+        "responsibility": "Supporta il recupero dalla stanchezza, la prevenzione degli infortuni e il rientro sicuro.",
+        "vacancy": "I sistemi di recupero e infortuni continuano normalmente, ma senza bonus medici a recupero, prevenzione o riabilitazione.",
+        "stacking": "Può essere attivo un solo fisioterapista. Migliora il recupero dei giorni di riposo scelti dal giocatore senza modificare il recupero fisso dei giorni di viaggio.",
+        "review": "Rimane l'unico ruolo medico. Un medico di squadra separato duplicherebbe le stesse funzioni nell'attuale simulazione sanitaria."
+      },
+      "sportsPsychologist": {
+        "responsibility": "Supporta morale, fiducia, concentrazione e gestione della pressione, lasciando decisive le abilità e le tattiche del giocatore.",
+        "vacancy": "La condizione mentale cambia comunque attraverso i normali sistemi, ma non si applicano i punti di recupero dello psicologo né i bonus per la pressione in partita.",
+        "stacking": "Può essere attivo un solo psicologo sportivo. Il suo effetto può sommarsi al supporto di allenatore capo e analista entro il limite globale del +2,0% dello staff in partita.",
+        "review": "Rimane un ruolo mentale distinto. Non elimina la pressione né garantisce risultati."
+      },
+      "performanceAnalyst": {
+        "responsibility": "Trasforma scouting e analisi tattica in rapporti più precisi sugli avversari e consigli per affrontarli.",
+        "vacancy": "L'identità pubblica degli avversari rimane visibile, ma le stime dettagliate degli attributi, l'affidabilità e i consigli dell'analista rimangono bloccati.",
+        "stacking": "Può essere attivo un solo analista. La sua qualità modifica la certezza delle informazioni, non aumenta direttamente le valutazioni segrete delle partite.",
+        "review": "Ruolo di intelligence sugli avversari. La precisione dello scouting e il tempo di preparazione sono il vero beneficio; nessun bonus nascosto alla forza in partita."
+      },
+      "careerManager": {
+        "responsibility": "Gestisce la rappresentanza commerciale e usa negoziazione, rete, reputazione e qualità gestionale per migliorare il valore delle offerte degli sponsor.",
+        "vacancy": "Offerte degli sponsor e decisioni di carriera rimangono disponibili ai valori base, senza il miglioramento offerto dal manager di carriera.",
+        "stacking": "Può essere attivo un solo manager di carriera. Il ruolo offre un unico beneficio commerciale combinato e limitato, senza accumulare più moltiplicatori di denaro.",
+        "review": "Rinominato nell'interfaccia da Agente / Manager a Manager di carriera. Non vengono aggiunti ruoli separati di agente, osservatore o attrezzatura perché ogni nuovo ruolo deve corrispondere a un sistema di gioco distinto."
+      }
+    }
   }
 } as const
