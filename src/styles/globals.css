@@ -2996,7 +2996,7 @@ html:lang(de) .tlg-hero-title {
   }
 
   html:lang(de) .tlg-hero-title {
-    font-size: 2.25rem;
+    font-size: clamp(1.85rem, 8vw, 2.1rem);
   }
 
   .tlg-game-time-equation {
