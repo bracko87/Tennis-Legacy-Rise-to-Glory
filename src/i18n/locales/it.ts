@@ -3414,5 +3414,236 @@ export default {
       "Safe": "Prudente",
       "Custom": "Personalizzata"
     }
+  },
+  "privateLifePage": {
+    "title": "Vita privata",
+    "subtitle": "Stile di vita, beni e patrimonio personale",
+    "premium": {
+      "checking": "Verifica dell'abbonamento Premium…",
+      "feature": "Funzionalità Premium",
+      "body": "Costruisci una vita fuori dal campo con il denaro guadagnato nella tua carriera tennistica. Acquisti e investimenti usano lo stesso saldo delle Finanze, mai i Coins Premium.",
+      "view": "Scopri Premium"
+    },
+    "loading": "Caricamento del tuo patrimonio privato…",
+    "loadError": "Impossibile caricare la Vita privata",
+    "tryAgain": "Riprova",
+    "categories": {
+      "watch": "Orologi",
+      "jewelry": "Gioielli",
+      "car": "Automobili",
+      "apartment": "Appartamenti",
+      "house_villa": "Case e ville",
+      "yacht": "Yacht",
+      "private_jet": "Aerei privati",
+      "art": "Arte",
+      "collectible": "Oggetti da collezione"
+    },
+    "rarities": {
+      "common": "Comune",
+      "uncommon": "Non comune",
+      "rare": "Raro",
+      "very_rare": "Molto raro",
+      "legendary": "Leggendario"
+    },
+    "saleModes": {
+      "urgent": {
+        "label": "Vendi subito",
+        "detail": "Vendita immediata · ricavo minimo"
+      },
+      "standard": {
+        "label": "Vendita standard",
+        "detail": "7 giorni di gioco · ricavo normale"
+      },
+      "patient": {
+        "label": "Vendita al prezzo migliore",
+        "detail": "21 giorni di gioco · ricavo massimo"
+      }
+    },
+    "trends": {
+      "stable": "Stabile",
+      "noMonthly": "Nessuna variazione mensile",
+      "stableMonth": "Stabile questo mese",
+      "annual": "{{value}}% / anno",
+      "monthly": "{{value}}% questo mese"
+    },
+    "dates": {
+      "unavailable": "Data di gioco non disponibile",
+      "seasonDate": "Stagione {{season}} · {{day}} {{month}}",
+      "gameDays": "{{count}} giorni di gioco",
+      "settlementDay": "Giorno di gioco del pagamento: {{day}}"
+    },
+    "transactionTypes": {
+      "starter_home": "Residenza iniziale",
+      "purchase": "Acquisto",
+      "sale": "Vendita",
+      "running_cost": "Spese di proprietà"
+    },
+    "costs": {
+      "living": "Costo mensile di vita",
+      "maintenanceMonthly": "Manutenzione mensile",
+      "maintenance": "Manutenzione",
+      "none": "Nessuno",
+      "annualOwnership": "Costo annuo di proprietà"
+    },
+    "notices": {
+      "saleCancelled": "Annuncio di vendita annullato. Il bene rimane nella tua collezione.",
+      "purchased": "{{name}}{{location}} ora fa parte della tua collezione privata. Il pagamento è stato registrato nelle Finanze.",
+      "sold": "{{name}} è stato venduto immediatamente. {{amount}} sono stati accreditati alle Finanze.",
+      "listed": "{{name}} è stato messo in vendita. Pagamento previsto tra {{days}} giorni di gioco."
+    },
+    "purchase": {
+      "eyebrow": "Acquisto nella Vita privata",
+      "buyTitle": "Acquistare {{name}}{{location}}?",
+      "purchasePrice": "Prezzo d'acquisto",
+      "builder": "Costruttore",
+      "model": "Modello",
+      "length": "Lunghezza",
+      "yachtType": "Tipo di yacht",
+      "category": "Categoria",
+      "rarity": "Rarità",
+      "prestige": "Punti prestigio",
+      "monthlyMove": "Variazione mensile di mercato",
+      "annualTrend": "Tendenza annuale del valore",
+      "financeAfter": "Saldo delle Finanze dopo l'acquisto",
+      "financeNote": "{{amount}} saranno prelevati dal normale saldo delle Finanze della carriera. Gli acquisti della Vita privata non usano mai Coins Premium.",
+      "buyFor": "Acquista per {{amount}}",
+      "sellEyebrow": "Vendi bene privato",
+      "saleQuote": "{{amount}} è l'offerta di vendita attuale del gioco.",
+      "saleDetail": "{{mode}} · Valore di mercato attuale {{current}} · Valore originale {{original}}.",
+      "sellNow": "Vendi subito per {{amount}}",
+      "listFor": "Metti in vendita per {{amount}}",
+      "detailsEyebrow": "Dettagli della Vita privata",
+      "ownedEyebrow": "Bene privato posseduto",
+      "currentValue": "Valore di mercato attuale",
+      "ownership": "Proprietà",
+      "originalValue": "Valore originale",
+      "estimatedSale": "Valore di vendita stimato"
+    },
+    "hero": {
+      "eyebrow": "La tua vita fuori dal tennis",
+      "title": "Accresci la ricchezza, colleziona beni e aumenta il prestigio.",
+      "body": "Ogni bene posseduto contribuisce con punti prestigio. Non esistono livelli di prestigio: il totale è semplicemente la somma dei punti associati ai beni che possiedi attualmente.",
+      "prestige": "Punti prestigio",
+      "prestigeNote": "Dai beni attualmente posseduti"
+    },
+    "metrics": {
+      "aria": "Riepilogo del patrimonio privato",
+      "cash": "Saldo di cassa",
+      "assets": "Beni fisici",
+      "investments": "Investimenti",
+      "netWorth": "Patrimonio netto attuale",
+      "prestige": "Punti prestigio",
+      "monthlyCost": "Costo mensile di proprietà"
+    },
+    "tabs": {
+      "aria": "Sezioni della Vita privata",
+      "overview": "Panoramica",
+      "assets": "Beni",
+      "investments": "Investimenti",
+      "marketplace": "Mercato"
+    },
+    "actionError": "Impossibile completare l'azione",
+    "overview": {
+      "eyebrow": "Dashboard della Vita privata",
+      "title": "Il tuo mondo fuori dal campo",
+      "body": "Qui trovi prestigio, beni fisici e investimenti; le Finanze rimangono la fonte di riferimento per il denaro.",
+      "refreshing": "Aggiornamento…",
+      "refresh": "Aggiorna",
+      "physical": "Collezione di beni fisici",
+      "ownedCount_one": "{{count}} posseduto",
+      "ownedCount_other": "{{count}} posseduti",
+      "investmentTitle": "Investimenti",
+      "active": "Attivo",
+      "investmentBody": "Negozia azioni e criptovalute simulate usando il denaro della tua carriera. Le quotazioni dei mercati esterni forniscono il prezzo di riferimento del gioco.",
+      "openInvestments": "Apri investimenti",
+      "residenceTitle": "Regola della residenza",
+      "residenceBody": "Devi sempre mantenere almeno un appartamento, una casa o una villa. Non puoi vendere una residenza finché non ne hai un'altra disponibile.",
+      "residenceNote": "Le spese abitative vengono addebitate mensilmente nel registro delle Finanze della carriera.",
+      "costsTitle": "Costi di proprietà",
+      "costsBody": "Veicoli, abitazioni, yacht e aerei privati hanno spese mensili ricorrenti. Orologi, gioielli, opere d'arte e oggetti da collezione no.",
+      "costsNote": "I beni più costosi comportano spese di manutenzione o di vita maggiori."
+    },
+    "assets": {
+      "eyebrow": "Collezione",
+      "title": "I miei beni fisici",
+      "body": "Monitora il valore attuale, i punti prestigio, i costi mensili di proprietà e scegli quanto velocemente vendere ogni bene.",
+      "history": "Cronologia transazioni",
+      "historyBody": "Acquisti, vendite e costi di proprietà dei beni fisici ordinati per data di gioco.",
+      "closeHistory": "Chiudi cronologia transazioni",
+      "loadingHistory": "Caricamento della cronologia transazioni…",
+      "noTransactions": "Nessuna transazione di beni.",
+      "headers": {
+        "date": "Data di gioco",
+        "transaction": "Transazione",
+        "asset": "Bene",
+        "amount": "Importo",
+        "details": "Dettagli"
+      },
+      "starterAssigned": "Residenza iniziale assegnata",
+      "starterDetail": "Valore iniziale della casa; non è un acquisto sul mercato.",
+      "previous": "Precedente",
+      "next": "Successiva",
+      "page": "Pagina {{page}} di {{pages}} · 10 transazioni per pagina",
+      "emptyTitle": "Nessun bene in questa categoria",
+      "emptyBody": "Visita il Mercato per iniziare a costruire la tua collezione privata.",
+      "startingHome": "Residenza iniziale",
+      "details": "Dettagli",
+      "listed": "In vendita",
+      "cancelSale": "Annulla vendita",
+      "primary": "Residenza principale",
+      "primaryBody": "Acquista un altro appartamento, una casa o una villa prima di vendere questa residenza."
+    },
+    "marketplace": {
+      "eyebrow": "Mercato del lusso",
+      "title": "Acquista beni fisici",
+      "body": "Ogni oggetto ha un prezzo di gioco, una tendenza del valore e punti prestigio. I prezzi immobiliari dipendono dal Paese e dalla città selezionati.",
+      "newItems": "Nuovi oggetti",
+      "country": "Paese dell'immobile",
+      "city": "Città",
+      "search": "Cerca beni",
+      "searchAria": "Cerca beni nel mercato",
+      "priceAria": "Filtro per prezzo del mercato",
+      "prices": {
+        "all": "Tutti i prezzi",
+        "under_10k": "Meno di 10.000 $",
+        "10k_50k": "10.000–50.000 $",
+        "50k_250k": "50.000–250.000 $",
+        "250k_1m": "250.000–1 mln $",
+        "1m_5m": "1–5 mln $",
+        "5m_plus": "Oltre 5 mln $"
+      },
+      "rarityAria": "Filtro per rarità del mercato",
+      "allRarities": "Tutte le rarità",
+      "sortAria": "Ordinamento del mercato",
+      "sort": {
+        "default": "Ordine predefinito",
+        "price_asc": "Prezzo: dal più basso",
+        "price_desc": "Prezzo: dal più alto",
+        "prestige_desc": "Prestigio: dal più alto",
+        "appreciation_desc": "Migliore variazione di mercato"
+      },
+      "affordable": "Solo beni accessibili",
+      "reset": "Reimposta",
+      "listings": "{{count}} annunci",
+      "destinations": "{{assets}} tipi di beni di base · {{destinations}} destinazioni immobiliari disponibili",
+      "emptyTitle": "Nessuna corrispondenza nel mercato",
+      "emptyBody": "Modifica i filtri per categoria, destinazione, prezzo o rarità per vedere altri beni.",
+      "new": "Nuovo",
+      "marketMove": "Variazione di mercato",
+      "category": "Categoria",
+      "details": "Dettagli",
+      "owned": "Già posseduto qui",
+      "insufficient": "Fondi insufficienti",
+      "purchase": "Acquista"
+    },
+    "footerNote": "La Vita privata utilizza il tuo conto Finanze della carriera. Il prestigio è la somma dei punti dei beni attualmente posseduti: non esistono livelli di prestigio né bonus diretti alle abilità tennistiche.",
+    "dialogs": {
+      "close": "Chiudi",
+      "cancel": "Annulla"
+    },
+    "filters": {
+      "aria": "Filtri delle categorie di beni",
+      "all": "Tutti"
+    }
   }
 } as const
