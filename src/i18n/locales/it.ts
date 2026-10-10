@@ -2597,5 +2597,142 @@ export default {
       "send": "Invia messaggio",
       "gameDate": "{{day}} {{month}} · S{{season}}"
     }
+  },
+  "playerAccountPage": {
+    "unavailable": "Giocatore non disponibile",
+    "passwordSent": "Email di reimpostazione password inviata. Controlla la posta in arrivo e lo spam.",
+    "confirmPhrase": "Digita esattamente {{phrase}} per confermare.",
+    "title": "Giocatore e account",
+    "subtitle": "Informazioni sull'identità e sull'account",
+    "profile": "Profilo del giocatore",
+    "heading": "Giocatore e account",
+    "intro": "Controlla l'identità associata al tuo account Tennis Legacy e alla carriera professionistica.",
+    "avatarAria": "Avatar attuale del giocatore",
+    "avatarAlt": "Avatar di {{name}}",
+    "playerName": "Nome del giocatore",
+    "playerNameNote": "Il nome del giocatore viene fissato alla creazione della carriera e non può essere modificato.",
+    "email": "Email dell'account",
+    "emailNote": "Questo è l'indirizzo email associato al tuo account Tennis Legacy.",
+    "world": "Circuito competitivo",
+    "worldValue": "Circuito {{world}}",
+    "country": "Paese",
+    "security": "Sicurezza",
+    "changePassword": "Cambia password tramite email",
+    "passwordIntro": "Per sicurezza, le modifiche della password si completano tramite un link verificato inviato all'email dell'account.",
+    "emailAria": "Email dell'account per il cambio password",
+    "sending": "Invio in corso…",
+    "sendReset": "Invia email di reimpostazione password",
+    "resetNote": "Apri il link sicuro nell'email e scegli una nuova password nella pagina di reimpostazione di Tennis Legacy.",
+    "avatar": {
+      "requestKicker": "Immagine del giocatore",
+      "requestTitle": "Richiesta privata di sostituzione avatar",
+      "requestIntro": "Carica una foto nitida di te e, se vuoi, scegli fino a tre colori per la maglia. Prepariamo l'avatar di Tennis Legacy, tu lo controlli e nulla cambia finché non lo approvi. La foto originale è temporanea e viene eliminata automaticamente entro 24 ore dal caricamento.",
+      "loading": "Caricamento dello stato della richiesta avatar…",
+      "status": "Stato della richiesta",
+      "requestId": "ID richiesta",
+      "submittedAt": "Inviata",
+      "type": "Tipo",
+      "referencePhoto": "Foto di riferimento",
+      "adminNote": "Nota dell'amministratore:",
+      "statuses": {
+        "submitted": {
+          "label": "Inviata",
+          "detail": "La richiesta privata è nella coda degli amministratori."
+        },
+        "under_review": {
+          "label": "In revisione",
+          "detail": "Il team di Tennis Legacy sta esaminando la tua foto."
+        },
+        "preparing": {
+          "label": "Preparazione del nuovo avatar",
+          "detail": "L'avatar sostitutivo è in preparazione."
+        },
+        "ready_for_review": {
+          "label": "Pronto per la revisione",
+          "detail": "Il nuovo avatar è pronto. Quello attuale rimane attivo fino alla tua approvazione."
+        },
+        "completed": {
+          "label": "Completata",
+          "detail": "Hai approvato il nuovo avatar, che ora è attivo."
+        },
+        "revision_requested": {
+          "label": "Revisione richiesta",
+          "detail": "I tuoi commenti sono stati inviati al team per un'ulteriore revisione."
+        },
+        "rejected": {
+          "label": "Rifiutata / non elaborabile",
+          "detail": "La richiesta è stata chiusa senza modificare l'avatar attuale."
+        }
+      },
+      "readyKicker": "Nuovo avatar pronto",
+      "readyTitle": "Controlla prima di applicare",
+      "readyBody": "L'avatar attuale rimane attivo finché non premi Approva e applica. Se qualcosa non va, puoi richiedere fino a due revisioni.",
+      "revisionsUsed": "Revisioni utilizzate",
+      "preparedAlt": "Avatar sostitutivo preparato",
+      "loadingPreview": "Caricamento anteprima…",
+      "approve": "Approva e applica",
+      "revision": "Richiesta di revisione",
+      "revisionPlaceholder": "Descrivi esattamente cosa deve essere corretto.",
+      "requestRevision": "Richiedi revisione",
+      "deletedOn": "L'immagine privata originale/di riferimento è stata eliminata il {{date}}.",
+      "deletionQueued": "L'immagine privata originale/di riferimento è in coda per l'eliminazione automatica ora che la richiesta è chiusa. La pulizia del server viene eseguita automaticamente e le foto originali non vengono conservate oltre 24 ore.",
+      "uploadTitle": "Carica la tua foto",
+      "uploadBody": "Usa una foto frontale nitida di te. JPG, PNG o WEBP, massimo 8 MB.",
+      "yourPhoto": "La tua foto",
+      "jerseyColors": "Colori della maglia · facoltativi · fino a 3",
+      "colorPlaceholder": "Colore {{index}}",
+      "consent": "Confermo che questa foto mi ritrae e autorizzo Tennis Legacy a elaborarla privatamente solo per questa richiesta di avatar.",
+      "privacyTitle": "Caricamento privato · foto originale temporanea",
+      "privacyBody": "La tua foto originale viene conservata privatamente e non viene mai mostrata agli altri giocatori. Viene eliminata automaticamente quando approvi/applichi il nuovo avatar o chiudi la richiesta e comunque entro 24 ore dal caricamento.",
+      "selected": "Selezionato:",
+      "uploading": "Caricamento privato…",
+      "submit": "Invia foto per creare l'avatar",
+      "submitNote": "L'avatar attuale rimane invariato finché non controlli e approvi quello preparato. La foto originale caricata è temporanea e viene rimossa automaticamente dal server entro 24 ore.",
+      "activeNote": "Non puoi aprire una nuova richiesta finché questa è attiva. Puoi seguirne lo stato qui; la pagina si aggiorna quando interviene il team amministrativo.",
+      "errors": {
+        "crypto": "Questo browser non supporta la generazione sicura di numeri casuali.",
+        "file": "Seleziona un file immagine valido.",
+        "size": "L'immagine deve essere di massimo 8 MB.",
+        "type": "Sono accettate solo immagini JPG, PNG e WEBP. SVG e file eseguibili non sono consentiti.",
+        "mismatch": "Il contenuto dell'immagine non corrisponde al tipo di file selezionato.",
+        "photoRequired": "Carica una foto nitida di te.",
+        "consentRequired": "Conferma che la foto ti ritrae e che Tennis Legacy può elaborarla privatamente per questa richiesta di avatar.",
+        "submit": "Impossibile inviare la richiesta di avatar.",
+        "revision": "Spiega cosa deve essere corretto con almeno 5 caratteri."
+      },
+      "success": {
+        "submitted": "La richiesta {{id}} è stata inviata privatamente all'assistenza di Tennis Legacy.",
+        "approved": "Nuovo avatar approvato. Ora è attivo.",
+        "revision": "Richiesta di revisione inviata. L'avatar attuale rimane attivo."
+      },
+      "cancel": {
+        "kicker": "Richiesta avatar",
+        "title": "Annullare questa richiesta?",
+        "closeAria": "Chiudi la finestra di annullamento",
+        "body": "L'avatar attuale rimarrà invariato. La richiesta verrà chiusa, la foto privata di riferimento verrà messa in coda per l'eliminazione e potrai inviare subito una nuova richiesta.",
+        "keep": "Mantieni la richiesta",
+        "cancelling": "Annullamento…",
+        "cancel": "Annulla richiesta",
+        "inlineTitle": "Vuoi modificare questa richiesta?",
+        "inlineBody": "Puoi annullarla e inviarne una nuova. L'avatar esistente non verrà modificato.",
+        "inlineButton": "Annulla richiesta avatar"
+      }
+    },
+    "danger": "Zona pericolosa",
+    "removal": "Eliminazione della carriera e dell'account",
+    "dangerIntro": "Queste azioni sono irreversibili. Leggi attentamente ogni opzione prima di procedere.",
+    "restart": "Riavvia account",
+    "restartBody": "Azzera le attività attuali di tornei e carriera mantenendo nome del giocatore, avatar, circuito ATP/WTA, Paese, email di accesso, portafoglio e abbonamento.",
+    "delete": "Elimina giocatore e account",
+    "deleteBody": "Elimina giocatore, profilo, dati dell'account ed email di autenticazione. L'account Tennis Legacy verrà chiuso definitivamente e non potrà essere recuperato.",
+    "confirmAria": "Conferma azione irreversibile sull'account",
+    "confirmRestart": "Conferma riavvio dell'account",
+    "confirmDelete": "Conferma eliminazione permanente di giocatore e account",
+    "confirmRestartBody": "Azzera le attività attuali di tornei e carriera, ma mantiene identità, avatar ed email di accesso del giocatore.",
+    "confirmDeleteBody": "Elimina definitivamente giocatore, profilo, dati dell'account ed email di accesso.",
+    "typePhrase": "Digita {{phrase}} per confermare",
+    "processing": "Elaborazione…",
+    "restartNow": "Riavvia account ora",
+    "deletePermanently": "Elimina definitivamente giocatore e account"
   }
 } as const
