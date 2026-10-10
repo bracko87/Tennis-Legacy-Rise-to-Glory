@@ -926,7 +926,8 @@ button {
 
   color: #ffffff;
 
-  font-size: clamp(3.4rem, 6.3vw, 6.3rem);
+  /* Shared headline scale for every locale, matching the Serbian version. */
+  font-size: clamp(3.15rem, 5.85vw, 5.95rem);
   font-weight: 830;
   line-height: 0.94;
   letter-spacing: -0.065em;
@@ -936,24 +937,6 @@ button {
 .tlg-hero-title span,
 .tlg-hero-title strong {
   display: block;
-}
-
-html:lang(sr) .tlg-hero-title {
-  font-size: clamp(3.15rem, 5.85vw, 5.95rem);
-}
-
-html:lang(de) .tlg-hero-title {
-  /* German copy is significantly longer: keep both headline lines within the hero. */
-  font-size: clamp(2.3rem, 3.15vw, 3.5rem);
-  line-height: 1.01;
-  letter-spacing: -0.055em;
-}
-
-html:lang(es) .tlg-hero-title {
-  /* Give longer Spanish headlines enough room beside the artwork. */
-  font-size: clamp(2.4rem, 3.4vw, 3.8rem);
-  line-height: 1.02;
-  letter-spacing: -0.055em;
 }
 
 .tlg-hero-title strong {
@@ -2846,19 +2829,8 @@ html:lang(es) .tlg-hero-title {
   }
 
   .tlg-hero-title {
-    font-size: clamp(2.8rem, 15vw, 4.4rem);
-  }
-
-  html:lang(sr) .tlg-hero-title {
+    /* The former Serbian tablet/mobile scale applies to all languages. */
     font-size: clamp(2.65rem, 13.8vw, 4.1rem);
-  }
-
-  html:lang(de) .tlg-hero-title {
-    font-size: clamp(1.95rem, 8.3vw, 2.75rem);
-  }
-
-  html:lang(es) .tlg-hero-title {
-    font-size: clamp(2rem, 8.8vw, 2.85rem);
   }
 
   .tlg-hero-description {
@@ -2999,19 +2971,7 @@ html:lang(es) .tlg-hero-title {
   }
 
   .tlg-hero-title {
-    font-size: 2.65rem;
-  }
-
-  html:lang(sr) .tlg-hero-title {
     font-size: 2.48rem;
-  }
-
-  html:lang(de) .tlg-hero-title {
-    font-size: clamp(1.85rem, 8vw, 2.1rem);
-  }
-
-  html:lang(es) .tlg-hero-title {
-    font-size: clamp(1.9rem, 8.2vw, 2.2rem);
   }
 
   .tlg-game-time-equation {
