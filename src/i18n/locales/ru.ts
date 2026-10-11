@@ -1,4 +1,4 @@
-// Russian translation — staged. Do not enable 'ru' before full parity and visual QA.
+// Russian locale — full English-key parity; in-game visual QA required before public release.
 import en from './en'
 
 type TranslationShape<T> = T extends string ? string
@@ -6037,5 +6037,40 @@ function mergeTranslations(base: Record<string, unknown>, overrides: Record<stri
   return result
 }
 
-// English is only a temporary fallback for untranslated Russian sections.
-export default mergeTranslations(en as unknown as Record<string, unknown>, russianTranslations)
+// Russian has one / few / many / other plural categories. The English
+// catalog only defines one / other; explicitly supply Russian categories so
+// counts such as 2, 4, 5 and 21 never fall through to English.
+const fewForms: Record<string, string> = {
+  'common.days': '{{count}} дня',
+  'common.matches': '{{count}} матча',
+  'common.players': '{{count}} игрока',
+  'common.tournaments': '{{count}} турнира',
+  'common.notifications': '{{count}} уведомления',
+  'common.coinsCount': '{{count}} монеты',
+  'common.points': '{{count}} очка',
+  'overviewPage.healthCard.inDays': 'Через {{count}} дня',
+  'healthPage.durationDays': '{{count}} дня',
+  'healthPage.day': '{{count}} дня',
+  'staffPage.candidate.tryAgainDays': ' Повторите через {{count}} игровых дня.',
+  'trainingPage.campShortened': ' · сокращён на {{count}} дня поездки',
+  'trainingPage.camps.shortened': ' · сокращён на {{count}} дня поездки',
+  'trainingPage.planner.planPrepared': 'План подготовлен на {{count}} доступных дня. Для подтверждения нажмите «Сохранить план тренировок».',
+}
+
+function withRussianPlurals(values: Record<string, unknown>, prefix = ''): Record<string, unknown> {
+  const result: Record<string, unknown> = { ...values }
+  for (const [key, value] of Object.entries(values)) {
+    if (isPlainObject(value)) {
+      result[key] = withRussianPlurals(value, prefix ? `${prefix}.${key}` : key)
+    }
+    if (!key.endsWith('_other') || typeof value !== 'string') continue
+    const base = key.slice(0, -'_other'.length)
+    if (typeof values[`${base}_one`] !== 'string') continue
+    const path = prefix ? `${prefix}.${base}` : base
+    result[`${base}_few`] = fewForms[path] ?? value
+    result[`${base}_many`] = value
+  }
+  return result
+}
+
+export default withRussianPlurals(mergeTranslations(en as unknown as Record<string, unknown>, russianTranslations))
