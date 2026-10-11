@@ -1,6 +1,12 @@
 // French translation — in progress. Do not enable 'fr' before full parity and QA.
 import en from './en'
 
+// Ensure translated keys, nested sections and string lists match the English source.
+type TranslationShape<T> = T extends string ? string
+  : T extends readonly (infer U)[] ? TranslationShape<U>[]
+  : T extends object ? { [K in keyof T]?: TranslationShape<T[K]> }
+  : T
+
 const frenchTranslations = {
   "common": {
     "language": "Langue",
@@ -612,7 +618,7 @@ const frenchTranslations = {
       "startingPoints": "Points techniques de départ"
     }
   }
-}
+} satisfies TranslationShape<typeof en>
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
