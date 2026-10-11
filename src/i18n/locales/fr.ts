@@ -1,4 +1,4 @@
-// French translation — in progress. Do not enable 'fr' before full parity and QA.
+// French locale — all English source keys and placeholders checked; visual in-game QA required before public enablement.
 import en from './en'
 
 // Ensure translated keys, nested sections and string lists match the English source.
@@ -6028,7 +6028,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-// Keep the full English source as fallback while French is translated section by section.
+// Keep English fallback for newly introduced source keys until they are translated.
 function mergeTranslations(base: Record<string, unknown>, overrides: Record<string, unknown>): Record<string, unknown> {
   const result: Record<string, unknown> = { ...base }
   for (const [key, value] of Object.entries(overrides)) {
