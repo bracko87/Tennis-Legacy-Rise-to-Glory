@@ -6049,7 +6049,7 @@ const fewForms: Record<string, string> = {
   'calendarPage.tournament.entries': "{{count}} события в календаре",
   'overviewPage.staffCount': "{{count}} сотрудника",
   'overviewPage.gameDays': "{{count}} игровых дня",
-  'skillsPage.updates': "{{count}} записанных изменения",
+  'skillsPage.updates': "Записаны {{count}} изменения",
   'healthPage.activeConditions': "{{count}} активные проблемы со здоровьем",
   'healthPage.daysToRecovery': "До полного восстановления {{count}} дня",
   'tennisClubPage.world.ranked': "В рейтинге {{count}} клуба",
