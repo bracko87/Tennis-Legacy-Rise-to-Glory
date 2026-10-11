@@ -3105,6 +3105,132 @@ const frenchTranslations = {
       "aria": "Filtres de catégorie de biens",
       "all": "Tous"
     }
+  },
+  "tacticEducation": {
+    "matchGuide": "Guide des tactiques de match",
+    "tournamentGuide": "Comment les réglages tactiques modifient votre plan de match",
+    "collapse": "Réduire",
+    "expand": "Développer",
+    "matchBody": "Toutes les explications sur les tactiques de match se trouvent ici. Un plan enregistré pour un match particulier remplace votre tactique par défaut du tournoi uniquement face à cet adversaire et se verrouille 60 minutes avant le début prévu. Chaque choix agressif comporte un compromis : aucune tactique n’est universellement la meilleure.",
+    "tournamentBody": "Toutes les recommandations tactiques sont réunies ici. La tactique par défaut du tournoi est utilisée pour chaque match sauf si vous enregistrez une exception propre à un match. Les préréglages sont des raccourcis ; ce sont les options individuelles ci-dessous que le moteur de match utilise réellement.",
+    "opponentRuleTitle": "Tactiques spécifiques à l’adversaire :",
+    "opponentRule": "la main dominante modifie la géométrie des échanges et du service, sans donner de bonus de compétence permanent. Le moteur de match tient compte de vos compétences, des forces et faiblesses réelles de l’adversaire, de la surface, de l’état physique et du plan choisi. Un bon contre peut apporter un avantage modéré, mais jamais garantir la victoire.",
+    "rows": {
+      "aggressiveApproach": [
+        "Approche générale",
+        "Offensif",
+        "Incite le joueur à prendre l’initiative plus tôt.",
+        "Augmente le risque d’erreurs d’exécution et de fautes directes."
+      ],
+      "defensiveApproach": [
+        "Approche générale",
+        "Défensif",
+        "Privilégie la patience, la couverture du court et la construction régulière des points.",
+        "Réduit une partie de la pression offensive immédiate."
+      ],
+      "shortenPoints": [
+        "Stratégie des échanges",
+        "Raccourcir les points",
+        "Favorise le service, les frappes offensives et les conclusions au filet.",
+        "Augmente la variabilité et le risque d’erreur."
+      ],
+      "extendRallies": [
+        "Stratégie des échanges",
+        "Allonger les échanges",
+        "Peut exploiter une endurance ou des déplacements faibles chez l’adversaire si votre profil physique le permet.",
+        "Accroît l’exigence physique."
+      ],
+      "powerServing": [
+        "Stratégie au service",
+        "Service puissant",
+        "Augmente la pression au service et le potentiel d’aces.",
+        "Réduit la fiabilité du premier service et augmente le risque de doubles fautes."
+      ],
+      "safeServe": [
+        "Stratégie au service",
+        "Premier service sûr",
+        "Augmente le nombre de premiers services réussis et réduit les doubles fautes.",
+        "Moins de points gratuits et de pression au service."
+      ],
+      "servePlusOne": [
+        "Stratégie au service",
+        "Service + 1",
+        "Mise sur un service puissant suivi d’un premier coup de fond de court offensif.",
+        "Nécessite de bonnes compétences au service et à l’attaque."
+      ],
+      "servePlacement": [
+        "Placement du service",
+        "Extérieur / Corps / T",
+        "Modifie les angles du service et peut cibler les déplacements ou les tendances en retour.",
+        "Un choix prévisible ou mal adapté peut réduire l’avantage."
+      ],
+      "aggressiveReturn": [
+        "Stratégie en retour",
+        "Retour agressif",
+        "Augmente la pression dès le retour.",
+        "Augmente le risque de faute en retour."
+      ],
+      "attackSecond": [
+        "Stratégie en retour",
+        "Attaquer le deuxième service",
+        "Permet d’avancer davantage quand l’adversaire manque son premier service.",
+        "Peut être moins utile face à un excellent deuxième service."
+      ],
+      "safeReturn": [
+        "Stratégie en retour",
+        "Retour sûr",
+        "Privilégie la mise en jeu de l’échange.",
+        "Moins de pression offensive immédiate."
+      ],
+      "returnPosition": [
+        "Position en retour",
+        "Plus près / Plus loin",
+        "Se rapprocher met la pression sur les services faibles ; reculer laisse plus de temps de réaction face à la vitesse.",
+        "Chaque option sacrifie du temps de réaction ou du terrain."
+      ],
+      "insideBaseline": [
+        "Position sur le court",
+        "À l’intérieur de la ligne de fond",
+        "Prend l’adversaire de vitesse et ajoute de la pression offensive.",
+        "Réduit le temps de réaction."
+      ],
+      "netAttack": [
+        "Position sur le court",
+        "Montée au filet",
+        "Favorise les profils adaptés au service-volée.",
+        "Peut exposer un jeu au filet faible et une défense vulnérable aux passings."
+      ],
+      "deepBaseline": [
+        "Position sur le court",
+        "Loin derrière la ligne de fond",
+        "Aide la défense en retour et dans les échanges.",
+        "Cède du terrain."
+      ],
+      "wingTarget": [
+        "Cible chez l’adversaire",
+        "Coup droit / Revers",
+        "Exploite modérément le côté ciblé s’il est réellement le plus faible.",
+        "Viser le côté fort peut être contre-productif."
+      ],
+      "weaknessTarget": [
+        "Cible chez l’adversaire",
+        "Déplacement / Endurance / Deuxième service",
+        "Construit le plan autour d’une faiblesse physique ou au service repérée.",
+        "Fonctionne mal si l’analyse est erronée ou si vos propres compétences ne conviennent pas."
+      ],
+      "aggressiveRisk": [
+        "Niveau de risque",
+        "Offensif",
+        "Petit bonus offensif et davantage d’occasions de coups gagnants.",
+        "Risque de fautes directes nettement plus élevé."
+      ],
+      "safeRisk": [
+        "Niveau de risque",
+        "Prudent",
+        "Réduit les erreurs et stabilise les points.",
+        "Moins de pression offensive et d’initiatives à fort rendement."
+      ]
+    }
   }
 } satisfies TranslationShape<typeof en>
 
