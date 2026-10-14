@@ -179,6 +179,11 @@ const GAME_MONTHS = [
 
 const ASSET_HISTORY_PAGE_SIZE = 10
 
+// Keep available category and sale-mode identifiers independent of translated labels.
+// Translated label maps were removed during localization; these stable keys remain necessary for rendering.
+const ASSET_CATEGORIES: AssetCategory[] = ['watch', 'jewelry', 'car', 'apartment', 'house_villa', 'yacht', 'private_jet', 'art', 'collectible']
+const SALE_MODES: SaleMode[] = ['urgent', 'standard', 'patient']
+
 function categoryLabel(t: TFunction, category: AssetCategory) {
   return t(`privateLifePage.categories.${category}`, { defaultValue: category })
 }
@@ -883,7 +888,7 @@ export default function PrivateLifePage() {
               <div className="private-life-panel">
                 <h4>{t('privateLifePage.overview.physical')}</h4>
                 <div className="private-life-category-list">
-                  {(Object.keys(CATEGORY_META) as AssetCategory[]).map((category) => {
+                  {(ASSET_CATEGORIES).map((category) => {
                     const total = categoryTotals.get(category)
                     return <div key={category} className="private-life-category-row"><div className="private-life-category-name"><span>{categoryLabel(t, category)}</span></div><span>{t('privateLifePage.overview.ownedCount', { count: total?.owned_count ?? 0 })}</span><strong>{money(total?.market_value ?? 0, currency)}</strong><span>+{total?.prestige ?? 0} {t('privateLifePage.purchase.prestige')}</span></div>
                   })}
@@ -920,7 +925,7 @@ export default function PrivateLifePage() {
                           <tr key={row.id}>
                             <td><strong>{gameDayLabel(t, row.event_absolute_day)}</strong></td>
                             <td><span className={`private-life-asset-history-type ${row.transaction_type}`}>{assetTransactionLabel(t, row.transaction_type)}</span></td>
-                            <td><strong>{row.name}</strong><span>{categoryLabel(row.category)}{row.city && row.country_name ? ` · ${row.city}, ${row.country_name}` : ''}</span></td>
+                            <td><strong>{row.name}</strong><span>{categoryLabel(t, row.category)}{row.city && row.country_name ? ` · ${row.city}, ${row.country_name}` : ''}</span></td>
                             <td><strong className={`private-life-asset-history-amount ${amountTone}`}>{assetTransactionAmount(row, currency, formatCurrency)}</strong></td>
                             <td><strong>{row.transaction_type === 'starter_home' ? t('privateLifePage.assets.starterAssigned') : row.title}</strong><span>{row.transaction_type === 'starter_home' ? t('privateLifePage.assets.starterDetail') : row.description}</span></td>
                           </tr>
@@ -972,7 +977,7 @@ export default function PrivateLifePage() {
                           <div className="private-life-sale-pending"><div><span>{t('privateLifePage.assets.listed')}</span><strong>{saleLabel(asset.pending_sale.sale_mode)} · {money(asset.pending_sale.quoted_sale_price, currency)}</strong><small>{t('privateLifePage.dates.settlementDay', { day: asset.pending_sale.settle_absolute_day })}</small></div><button type="button" disabled={actionBusy} onClick={() => void cancelSale(asset.pending_sale!.id)}>{t('privateLifePage.assets.cancelSale')}</button></div>
                         ) : canSellResidence ? (
                           <div className="private-life-sale-options">
-                            {(Object.keys(SALE_META) as SaleMode[]).map((mode) => {
+                            {(SALE_MODES).map((mode) => {
                               const quote = asset.sale_quotes?.[mode]
                               if (!quote) return null
                               return <button key={mode} type="button" onClick={() => setPendingAction({ type: 'sell', asset, saleMode: mode, quote })}><span>{t(`privateLifePage.saleModes.${mode}.label`)}</span><strong>{money(quote.price, currency)}</strong><small>{t(`privateLifePage.saleModes.${mode}.detail`)}</small></button>
@@ -1038,7 +1043,7 @@ export default function PrivateLifePage() {
                           <div className="private-life-card-stat"><span>{t('privateLifePage.purchase.prestige')}</span><strong>+{listing.prestige}</strong></div>
                           <div className="private-life-card-stat"><span>{ownershipCostLabel(t, listing.category)}</span><strong>{listing.effective_annual_cost > 0 ? money(listing.effective_annual_cost / 12, currency) : t('privateLifePage.costs.none')}</strong></div>
                           <div className="private-life-card-stat"><span>{t('privateLifePage.marketplace.marketMove')}</span><strong className={Number(marketMove ?? 0) < 0 ? 'private-life-trend-negative' : isPositive ? 'private-life-trend-positive' : ''}>{Number(marketMove ?? 0) < 0 ? <TrendingDown size={12} /> : isPositive ? <TrendingUp size={12} /> : null} {marketMoveText(t, marketMove)}</strong></div>
-                          <div className="private-life-card-stat"><span>{t('privateLifePage.purchase.category')}</span><strong>{categoryLabel(listing.category)}</strong></div>
+                          <div className="private-life-card-stat"><span>{t('privateLifePage.purchase.category')}</span><strong>{categoryLabel(t, listing.category)}</strong></div>
                         </div>
                         <div className="private-life-card-actions">
                           <button type="button" className="private-life-action details" onClick={() => setDetailTarget({ type: 'market', listing })}>{t('privateLifePage.assets.details')}</button>
@@ -1080,7 +1085,7 @@ function CategoryFilters({ value, onChange }: { value: CategoryFilter; onChange:
   return (
     <div className="private-life-filter-bar" aria-label={t('privateLifePage.filters.aria')}>
       <button type="button" className={value === 'all' ? 'active' : ''} onClick={() => onChange('all')}>{t('privateLifePage.filters.all')}</button>
-      {(Object.keys(CATEGORY_META) as AssetCategory[]).map((category) => <button key={category} type="button" className={value === category ? 'active' : ''} onClick={() => onChange(category)}>{categoryLabel(t, category)}</button>)}
+      {(ASSET_CATEGORIES).map((category) => <button key={category} type="button" className={value === category ? 'active' : ''} onClick={() => onChange(category)}>{categoryLabel(t, category)}</button>)}
     </div>
   )
 }
