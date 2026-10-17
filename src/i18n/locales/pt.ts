@@ -1,5 +1,5 @@
-// Brazilian Portuguese localization — staged rollout. English fallback remains for untranslated keys.
-// Keep this locale disabled in the public selector until the complete translation passes QA.
+// Brazilian Portuguese (pt-BR) localization — full English source-key coverage.
+// Keep English fallback for new keys added in future; visual in-game QA is still recommended.
 import en from './en'
 
 type TranslationShape<T> = T extends string ? string
