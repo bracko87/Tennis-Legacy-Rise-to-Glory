@@ -8,6 +8,7 @@ import es from './locales/es'
 import it from './locales/it'
 import fr from './locales/fr'
 import ru from './locales/ru'
+import pt from './locales/pt'
 
 export const SUPPORTED_LOCALES = ['en', 'sr', 'de', 'es', 'it', 'fr', 'ru', 'pt'] as const
 export type AppLocale = typeof SUPPORTED_LOCALES[number]
@@ -22,7 +23,7 @@ export const LOCALE_TAGS: Record<AppLocale, string> = {
   it: 'it-IT',
   fr: 'fr-FR',
   ru: 'ru-RU',
-  pt: 'pt-PT',
+  pt: 'pt-BR',
 }
 
 export function normalizeAppLocale(value?: string | null): AppLocale {
@@ -43,6 +44,7 @@ void i18n
       it: { translation: it },
       fr: { translation: fr },
       ru: { translation: ru },
+      pt: { translation: pt },
     },
     lng: normalizeAppLocale(
       typeof window !== 'undefined'
