@@ -1,0 +1,34 @@
+name: Validate Portuguese localization
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/i18n/locales/en.ts'
+      - 'src/i18n/locales/pt.ts'
+      - 'src/i18n/index.ts'
+      - 'scripts/check-pt-coverage.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/portuguese-locale.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  coverage-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Validate Portuguese key and placeholder parity
+        run: npm run check:pt
+      - name: Validate production bundle
+        run: npm run build
