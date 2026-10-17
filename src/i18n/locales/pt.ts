@@ -7,7 +7,7 @@ type TranslationShape<T> = T extends string ? string
   : T extends object ? { [K in keyof T]?: TranslationShape<T[K]> }
   : T
 
-const portugueseTranslations = {
+export const portugueseTranslations = {
   common: {
     language: 'Idioma', english: 'Inglês', serbian: 'Sérvio', german: 'Alemão',
     spanish: 'Espanhol', italian: 'Italiano', french: 'Francês', russian: 'Russo',
