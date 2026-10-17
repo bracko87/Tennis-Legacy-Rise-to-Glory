@@ -760,6 +760,44 @@ export const portugueseTranslations = {
     developmentApplied: 'Desenvolvimento aplicado',
   },
   staffPage: {
+    roleCatalog: {
+      headCoach: {
+        responsibility: 'Lidera o desenvolvimento técnico e transforma conhecimento tático em uma pequena vantagem de preparação para partidas.',
+        vacancy: 'Treinamentos e partidas continuam normalmente, mas sem bônus de desenvolvimento ou preparação do treinador principal.',
+        stacking: 'Apenas um treinador principal pode estar ativo. Seu bônus de partida pode ser combinado com o analista de desempenho e o psicólogo esportivo, respeitando o limite global de +2,0%.',
+        review: 'Mantido como função distinta. Liderança de desenvolvimento difere de análise de adversários e não é incorporada ao analista de desempenho.',
+      },
+      fitnessCoach: {
+        responsibility: 'Melhora desenvolvimento físico, condicionamento e gestão de carga sem substituir as decisões normais de descanso.',
+        vacancy: 'Treinamento físico e fadiga continuam com os valores básicos, mas sem bônus de desenvolvimento físico ou redução de fadiga do preparador físico.',
+        stacking: 'Apenas um preparador físico pode estar ativo. A redução de fadiga se aplica somente à carga de treino e não altera a recuperação fixa de viagens ou dias de folga.',
+        review: 'Separado do fisioterapeuta: o preparador físico gerencia esforço e desenvolvimento; o fisioterapeuta gerencia recuperação médica e lesões.',
+      },
+      physiotherapist: {
+        responsibility: 'Auxilia a recuperação da fadiga, a prevenção de lesões e um retorno mais seguro após lesões.',
+        vacancy: 'Os sistemas de recuperação e lesões continuam normalmente, mas sem bônus de recuperação, prevenção ou reabilitação da equipe médica.',
+        stacking: 'Apenas um fisioterapeuta pode estar ativo. Seu efeito melhora a recuperação em dias de folga escolhidos pelo jogador, sem alterar o bônus fixo dos dias de viagem.',
+        review: 'Mantido como única função médica. Um médico separado duplicaria a mesma área de jogo no nível atual de simulação.',
+      },
+      sportsPsychologist: {
+        responsibility: 'Apoia moral, confiança, concentração e gestão da pressão, mantendo atributos e táticas como fatores decisivos.',
+        vacancy: 'A condição mental ainda muda pelos sistemas normais, mas sem pontos adicionais de recuperação psicológica ou bônus em partidas sob pressão.',
+        stacking: 'Apenas um psicólogo esportivo pode estar ativo. Seu efeito pode combinar com o treinador principal e o analista de desempenho, respeitando o limite global de +2,0%.',
+        review: 'Mantido como função mental independente. Não elimina a pressão nem garante resultados.',
+      },
+      performanceAnalyst: {
+        responsibility: 'Transforma observação e análise tática em relatórios mais precisos e recomendações para confrontos.',
+        vacancy: 'A identidade pública do adversário continua visível, mas estimativas detalhadas, confiança e recomendações ficam bloqueadas.',
+        stacking: 'Apenas um analista de desempenho pode estar ativo. Sua qualidade aumenta a certeza das informações, mas não eleva diretamente atributos ocultos das partidas.',
+        review: 'Função de análise dos adversários. Precisão da observação e tempo de preparação são os benefícios; não existe bônus oculto direto de força.',
+      },
+      careerManager: {
+        responsibility: 'Gerencia representação comercial e usa negociação, contatos, reputação e qualidade de gestão para melhorar as ofertas de patrocínio.',
+        vacancy: 'Ofertas e decisões da carreira continuam disponíveis nos valores básicos, mas sem aumento de valor do gestor.',
+        stacking: 'Apenas um gestor da carreira pode estar ativo. A função possui um único efeito comercial combinado com limite, em vez de vários multiplicadores financeiros.',
+        review: 'Renomeado na interface de Agente/Gestor para Gestor da carreira. Nenhuma função adicional de agente, observador ou equipamentos é criada sem um sistema de jogo distinto.',
+      },
+    },
     team: {
       activeBenefits: 'BENEFÍCIOS ATIVOS DA EQUIPE',
       combinedEffects: 'Efeitos combinados na carreira',
