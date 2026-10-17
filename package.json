@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "node scripts/build.mjs",
-    "build": "node scripts/build.mjs --production"
+    "build": "node scripts/build.mjs --production",
+    "check:pt": "node scripts/check-pt-coverage.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
