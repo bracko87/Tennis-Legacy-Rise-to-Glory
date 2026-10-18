@@ -1,4 +1,9 @@
 export default {
+  clubAlerts: {
+    "sidebarSummary": "{{count}} new club alerts",
+    "pending": "{{count}} pending club requests",
+    "unreadMessages": "{{count}} unread club messages"
+  },
   premiumTrial: {
     "welcomeTitle": "Your free 7-day Premium trial has started",
     "welcomeBody": "Explore Premium features for seven real days, beginning with your first entry to Tennis Legacy.",
@@ -631,6 +636,7 @@ export default {
       account: 'Account & finance',
     },
     categories: {
+      club: "Tennis Club",
       account: 'Account',
       equipment: 'Equipment',
       finance: 'Finance',
@@ -747,6 +753,7 @@ export default {
       shoes: 'Shoes',
     },
     templates: {
+      club_invitation_received: {"title":"New Tennis Club invitation","message":"{{inviter_name}} invited you to join {{club_name}}. Open Tennis Club to accept or decline."},
       premium_trial_started: {"title":"Your 7-day Premium trial has started","message":"Try Private Life and Ranking Protection without payment."},
       premium_trial_reminder: {"title":"Your Premium trial ends soon","message":"Your free Premium access ends within 24 hours. No automatic charges."},
       premium_trial_expired: {"title":"Your Premium trial has ended","message":"Your career is safe. Premium actions are locked without a subscription; free play continues."},
