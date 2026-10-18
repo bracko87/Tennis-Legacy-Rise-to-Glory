@@ -307,7 +307,7 @@ export default function TennisClubPage() {
           <button type="button" className={tab === 'members' ? 'active' : ''} onClick={() => setTab('members')}>
             {t('tennisClubPage.tabs.members')}
             {(alerts.invitations + alerts.applications) > 0 && (
-              <span className="tlg-club-tab-badge" aria-label={t('tennisClubPage.alerts.pending', { count: alerts.invitations + alerts.applications })}>
+              <span className="tlg-club-tab-badge" aria-label={t('clubAlerts.pending', { count: alerts.invitations + alerts.applications })}>
                 {alerts.invitations + alerts.applications > 99 ? '99+' : alerts.invitations + alerts.applications}
               </span>
             )}
@@ -316,7 +316,7 @@ export default function TennisClubPage() {
           <button type="button" className={tab === 'chat' ? 'active' : ''} onClick={() => setTab('chat')}>
             {t('tennisClubPage.tabs.chat')}
             {alerts.messages > 0 && (
-              <span className="tlg-club-tab-badge" aria-label={t('tennisClubPage.alerts.unreadMessages', { count: alerts.messages })}>
+              <span className="tlg-club-tab-badge" aria-label={t('clubAlerts.unreadMessages', { count: alerts.messages })}>
                 {alerts.messages > 99 ? '99+' : alerts.messages}
               </span>
             )}
