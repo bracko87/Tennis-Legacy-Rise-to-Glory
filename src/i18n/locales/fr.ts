@@ -8,6 +8,30 @@ type TranslationShape<T> = T extends string ? string
   : T
 
 const frenchTranslations = {
+  premiumTrial: {
+    "welcomeTitle": "Votre essai Premium gratuit de 7 jours a commencé",
+    "welcomeBody": "Découvrez les fonctions Premium pendant sept jours réels dès votre première entrée dans Tennis Legacy.",
+    "expiredTitle": "Votre essai Premium gratuit est terminé",
+    "expiredBody": "Votre carrière, vos achats et votre progression restent intacts. Les actions Premium sont bloquées sans abonnement payant, mais le jeu gratuit reste accessible.",
+    "duration": "7 jours réels de Premium",
+    "until": "Jusqu'au {{date}}",
+    "includesTitle": "Ce que Premium débloque",
+    "privateLife": "Vie privée : propriétés, investissements, objets de collection et prestige avec l'argent de la carrière.",
+    "rankingProtection": "Protection du classement : prochaines expirations de points ATP/WTA sur l'aperçu et les classements.",
+    "extraFeatures": "Les autres outils ne sont inclus que s'ils portent la mention Premium. Les actions en Coins restent payantes en Coins.",
+    "noBilling": "Aucune carte requise. Aucun prélèvement ni renouvellement automatique. L'essai n'accorde pas les Coins des factures payées.",
+    "seeBenefits": "Découvrir Premium",
+    "viewPlans": "Voir les offres Premium",
+    "startPlaying": "Commencer à jouer",
+    "continueFree": "Continuer gratuitement",
+    "close": "Fermer",
+    "planName": "Essai Premium gratuit de 7 jours",
+    "activeLabel": "Essai Premium actif",
+    "trialEnds": "Fin de l'essai le {{date}}",
+    "noBillingPlan": "Essai gratuit · sans paiement",
+    "noPaidCoins": "Aucun Coin Premium payant",
+    "noAutomaticRenewal": "Aucun renouvellement automatique"
+  },
   "common": {
     "language": "Langue",
     "english": "Anglais",
