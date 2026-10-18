@@ -1,4 +1,9 @@
 export default {
+  clubAlerts: {
+    "sidebarSummary": "{{count}} avisos nuevos del club",
+    "pending": "{{count}} solicitudes de club pendientes",
+    "unreadMessages": "{{count}} mensajes de club sin leer"
+  },
   premiumTrial: {
     "welcomeTitle": "Tu prueba Premium gratuita de 7 días ha comenzado",
     "welcomeBody": "Descubre las funciones Premium durante siete días reales desde tu primera entrada a Tennis Legacy.",
@@ -631,6 +636,7 @@ export default {
       account: "Contabilidad y finanzas",
     },
     categories: {
+      club: "Club de tenis",
       account: "Cuenta",
       equipment: "Equipamiento",
       finance: "Finanzas",
@@ -747,6 +753,7 @@ export default {
       shoes: "Zapatos",
     },
     templates: {
+      club_invitation_received: {"title":"Nueva invitación a un club de tenis","message":"{{inviter_name}} te ha invitado a {{club_name}}. Abre Club de tenis para aceptar o rechazar."},
       premium_trial_started: {"title":"Tu prueba Premium de 7 días ha comenzado","message":"Prueba Vida privada y Protección del ranking sin pagar."},
       premium_trial_reminder: {"title":"Tu prueba Premium termina pronto","message":"El acceso gratis termina dentro de 24 horas. Sin cargos automáticos."},
       premium_trial_expired: {"title":"Tu prueba Premium ha terminado","message":"Tu carrera está segura. Las funciones Premium se bloquean sin suscripción; puedes seguir gratis."},
