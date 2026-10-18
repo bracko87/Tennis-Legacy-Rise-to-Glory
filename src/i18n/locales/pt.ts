@@ -361,6 +361,9 @@ export const portugueseTranslations = {
       apparel: 'Roupas', racket: 'Raquete', shoes: 'Tênis',
     },
     templates: {
+      premium_trial_started: {"title":"Seu período Premium de 7 dias começou","message":"Experimente Vida pessoal e Proteção de ranking sem pagar."},
+      premium_trial_reminder: {"title":"Seu período Premium termina em breve","message":"O acesso gratuito termina em até 24 horas. Sem cobrança automática."},
+      premium_trial_expired: {"title":"Seu período Premium terminou","message":"Sua carreira está segura. Recursos Premium ficam bloqueados sem assinatura; o jogo grátis continua."},
       account_birthday_gift: { title: 'Feliz aniversário! 🎂', message: 'Desejamos um aniversário maravilhoso! Como presente do Tennis Legacy, adicionamos 20 Coins à sua conta.' },
       avatar_request_cancelled: { title: 'Solicitação de avatar cancelada', message: 'Sua solicitação de substituição foi cancelada. Seu avatar atual não mudou e você pode enviar uma nova solicitação.' },
       avatar_request_completed: { title: 'Substituição de avatar concluída', message: 'Seu novo avatar aprovado está ativo.' },
