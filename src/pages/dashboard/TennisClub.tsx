@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation, type TFunction } from 'react-i18next'
 import { Link } from 'react-router'
 
 import GameLayout from '../../components/layout/GameLayout'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
+import { useTennisClubAlerts, notifyTennisClubAlertsChanged } from '../../hooks/useTennisClubAlerts'
 import '../../styles/tennis-club.css'
 
 type ClubTab = 'members' | 'world' | 'chat'
@@ -109,6 +110,8 @@ function WorldBadge({ world }: { world?: string }) {
 export default function TennisClubPage() {
   const { t } = useTranslation()
   const { formatNumber } = useLocalization()
+  const { alerts } = useTennisClubAlerts()
+  const lastReadMessageRef = useRef<string | null>(null)
   const number = (value: number) => formatNumber(Math.round(Number(value) || 0))
   const [tab, setTab] = useState<ClubTab>('members')
   const [dashboard, setDashboard] = useState<ClubDashboard | null>(null)
@@ -126,7 +129,10 @@ export default function TennisClubPage() {
     setError(null)
     const { data, error: dashboardError } = await supabase.rpc('get_tennis_club_dashboard_v1')
     if (dashboardError || !data) setError(dashboardError?.message ?? t('tennisClubPage.loadError'))
-    else setDashboard(data as ClubDashboard)
+    else {
+      setDashboard(data as ClubDashboard)
+      notifyTennisClubAlertsChanged()
+    }
     if (!background) setLoading(false)
   }
 
@@ -154,6 +160,38 @@ export default function TennisClubPage() {
     }
   }, [dashboard?.club?.id])
 
+  useEffect(() => {
+    if (tab !== 'chat' || !dashboard?.club?.id) return
+    // Refresh first so a newly opened chat is not acknowledged from stale data.
+    void loadChat()
+  }, [tab, dashboard?.club?.id])
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && tab === 'chat' && dashboard?.club?.id) {
+        void loadChat()
+      }
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [tab, dashboard?.club?.id])
+
+  useEffect(() => {
+    if (tab !== 'chat' || !dashboard?.club?.id || document.visibilityState !== 'visible') return
+    const messages = dashboard.chat?.messages ?? []
+    const latest = messages[messages.length - 1]
+    if (!latest || latest.id === lastReadMessageRef.current) return
+    lastReadMessageRef.current = latest.id
+    void supabase.rpc('mark_tennis_club_chat_read_v1', { p_last_message_id: latest.id })
+      .then(({ error: readError }) => {
+        if (readError) {
+          lastReadMessageRef.current = null
+          return
+        }
+        notifyTennisClubAlertsChanged()
+      })
+  }, [tab, dashboard?.club?.id, dashboard?.chat?.messages])
+
   async function runAction(key: string, action: () => Promise<{ error: { message?: string } | null }>, success: string) {
     setBusy(key)
     setError(null)
@@ -163,6 +201,7 @@ export default function TennisClubPage() {
     else {
       setMessage(success)
       await loadDashboard(true)
+      notifyTennisClubAlertsChanged()
     }
     setBusy(null)
   }
@@ -237,6 +276,7 @@ export default function TennisClubPage() {
     else {
       setChatText('')
       await loadChat()
+      notifyTennisClubAlertsChanged()
     }
     setBusy(null)
   }
@@ -264,9 +304,23 @@ export default function TennisClubPage() {
         </section>
 
         <div className="tlg-club-tabs" role="tablist" aria-label={t('tennisClubPage.tabsAria')}>
-          <button type="button" className={tab === 'members' ? 'active' : ''} onClick={() => setTab('members')}>{t('tennisClubPage.tabs.members')}</button>
+          <button type="button" className={tab === 'members' ? 'active' : ''} onClick={() => setTab('members')}>
+            {t('tennisClubPage.tabs.members')}
+            {(alerts.invitations + alerts.applications) > 0 && (
+              <span className="tlg-club-tab-badge" aria-label={t('tennisClubPage.alerts.pending', { count: alerts.invitations + alerts.applications })}>
+                {alerts.invitations + alerts.applications > 99 ? '99+' : alerts.invitations + alerts.applications}
+              </span>
+            )}
+          </button>
           <button type="button" className={tab === 'world' ? 'active' : ''} onClick={() => setTab('world')}>{t('tennisClubPage.tabs.world')}</button>
-          <button type="button" className={tab === 'chat' ? 'active' : ''} onClick={() => setTab('chat')}>{t('tennisClubPage.tabs.chat')}</button>
+          <button type="button" className={tab === 'chat' ? 'active' : ''} onClick={() => setTab('chat')}>
+            {t('tennisClubPage.tabs.chat')}
+            {alerts.messages > 0 && (
+              <span className="tlg-club-tab-badge" aria-label={t('tennisClubPage.alerts.unreadMessages', { count: alerts.messages })}>
+                {alerts.messages > 99 ? '99+' : alerts.messages}
+              </span>
+            )}
+          </button>
         </div>
 
         {error && <div className="tlg-club-alert error">{error}</div>}
