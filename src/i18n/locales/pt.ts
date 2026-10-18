@@ -8,6 +8,11 @@ type TranslationShape<T> = T extends string ? string
   : T
 
 export const portugueseTranslations = {
+  clubAlerts: {
+    "sidebarSummary": "{{count}} novos avisos do clube",
+    "pending": "{{count}} solicitações pendentes do clube",
+    "unreadMessages": "{{count}} mensagens não lidas do clube"
+  },
   premiumTrial: {
     "welcomeTitle": "Seu Premium gratuito de 7 dias começou",
     "welcomeBody": "Experimente os recursos Premium por sete dias reais, a partir da primeira entrada no Tennis Legacy.",
@@ -361,6 +366,7 @@ export const portugueseTranslations = {
       apparel: 'Roupas', racket: 'Raquete', shoes: 'Tênis',
     },
     templates: {
+      club_invitation_received: {"title":"Novo convite para clube de tênis","message":"{{inviter_name}} convidou você para o clube {{club_name}}. Abra Clube de tênis para aceitar ou recusar."},
       premium_trial_started: {"title":"Seu período Premium de 7 dias começou","message":"Experimente Vida pessoal e Proteção de ranking sem pagar."},
       premium_trial_reminder: {"title":"Seu período Premium termina em breve","message":"O acesso gratuito termina em até 24 horas. Sem cobrança automática."},
       premium_trial_expired: {"title":"Seu período Premium terminou","message":"Sua carreira está segura. Recursos Premium ficam bloqueados sem assinatura; o jogo grátis continua."},
@@ -457,6 +463,7 @@ export const portugueseTranslations = {
       equipment: 'Equipamentos', account: 'Conta e finanças',
     },
     categories: {
+      club: "Clube de tênis",
       account: 'Conta', equipment: 'Equipamentos', finance: 'Finanças',
       player_condition: 'Condição do jogador', player_development: 'Desenvolvimento do jogador',
       player_health: 'Saúde e lesões', private_life: 'Vida pessoal',
