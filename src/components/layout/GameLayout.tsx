@@ -10,6 +10,7 @@ import '../../styles/cpx-rewards.css'
 import { getReferralBrowserHash } from '../../lib/referrals'
 import { supabase } from '../../lib/supabase'
 import EarnCoinsDialog from '../rewards/EarnCoinsDialog'
+import WelcomePremiumTrial from '../premium/WelcomePremiumTrial'
 import GameFooter from './GameFooter'
 import GameHeader from './GameHeader'
 import GameSidebar from './GameSidebar'
@@ -74,6 +75,7 @@ export default function GameLayout({ title, subtitle, children }: GameLayoutProp
 
         <GameFooter />
         <EarnCoinsDialog open={earnCoinsOpen} onClose={() => setEarnCoinsOpen(false)} />
+        <WelcomePremiumTrial />
       </div>
     </div>
   )
