@@ -25,6 +25,8 @@ import { Link, useLocation, useNavigate } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import BugReportButton from '../dashboard/BugReportButton'
+import { useTennisClubAlerts } from '../../hooks/useTennisClubAlerts'
+import './tennis-club-alerts.css'
 
 const TENNIS_LEGACY_LOGO_URL = 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/logo%20333.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9sb2dvIDMzMy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg3OTQ1MDc5LCJleHAiOjQ5MTAwMDkwNzl9.Q7Ocay_B1kouWo_XmmgtVcGOCh0xtzhzaIm713AhU-ci-xJPY3JanaT3xhdkptAuKV5kUJGHov34fSM2TGjmcQ'
 
@@ -77,6 +79,7 @@ export default function GameSidebar({
   const location = useLocation()
   const navigate = useNavigate()
   const { signOut, isAdmin } = useAuth()
+  const { alerts: clubAlerts } = useTennisClubAlerts()
   const currentPageLabel = (() => {
     const exact = items.find((item) => item.to === location.pathname)
     if (exact) return t(exact.labelKey)
@@ -147,6 +150,11 @@ export default function GameSidebar({
         <nav className="tlg-v2-nav tlg-v2-nav-main" aria-label={t('nav.gameNavigation')}>
           {items.map((item) => {
             const active = location.pathname === item.to
+            const isClub = item.key === 'tennis-club'
+            const badgeCount = isClub ? clubAlerts.total : 0
+            const clubAlertLabel = isClub && badgeCount > 0
+              ? t('tennisClubPage.alerts.sidebarSummary', { count: badgeCount })
+              : ''
 
             return (
               <Link
@@ -159,7 +167,8 @@ export default function GameSidebar({
                   active && 'tlg-v2-nav-link-active',
                   item.premiumOnly && 'tlg-v2-nav-link-premium',
                 )}
-                title={isCollapsed ? `${t(item.labelKey)}${item.premiumOnly ? ` · ${t('header.premium')}` : ''}` : undefined}
+                title={isCollapsed ? `${t(item.labelKey)}${item.premiumOnly ? ` · ${t('header.premium')}` : ''}${clubAlertLabel ? ` · ${clubAlertLabel}` : ''}` : undefined}
+                aria-label={clubAlertLabel ? `${t(item.labelKey)} · ${clubAlertLabel}` : undefined}
                 aria-current={active ? 'page' : undefined}
               >
                 <span className="tlg-v2-nav-icon">{item.icon}</span>
@@ -172,6 +181,9 @@ export default function GameSidebar({
                     </span>
                     <small>{t(item.descriptionKey)}</small>
                   </span>
+                )}
+                {badgeCount > 0 && (
+                  <span className="tlg-club-sidebar-badge" aria-hidden="true">{badgeCount > 99 ? '99+' : badgeCount}</span>
                 )}
               </Link>
             )
