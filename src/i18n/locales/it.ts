@@ -1,5 +1,10 @@
 // Italian locale — full English-key coverage; further in-game visual QA recommended.
 export default {
+  clubAlerts: {
+    "sidebarSummary": "{{count}} avvisi del club",
+    "pending": "{{count}} richieste del club in attesa",
+    "unreadMessages": "{{count}} messaggi del club non letti"
+  },
   premiumTrial: {
     "welcomeTitle": "La prova Premium gratuita di 7 giorni è iniziata",
     "welcomeBody": "Scopri le funzioni Premium per sette giorni reali dal primo ingresso in Tennis Legacy.",
@@ -674,6 +679,7 @@ export default {
       "account": "Account e finanze"
     },
     "categories": {
+      club: "Tennis Club",
       "account": "Account",
       "equipment": "Attrezzatura",
       "finance": "Finanze",
@@ -790,6 +796,7 @@ export default {
       "shoes": "Scarpe"
     },
     "templates": {
+      club_invitation_received: {"title":"Nuovo invito a un Tennis Club","message":"{{inviter_name}} ti ha invitato al club {{club_name}}. Apri Tennis Club per accettare o rifiutare."},
       premium_trial_started: {"title":"La prova Premium di 7 giorni è iniziata","message":"Prova Vita privata e Protezione ranking senza pagare."},
       premium_trial_reminder: {"title":"La prova Premium sta per finire","message":"L'accesso gratuito termina entro 24 ore. Nessun addebito automatico."},
       premium_trial_expired: {"title":"La prova Premium è terminata","message":"La carriera è al sicuro. Le azioni Premium sono bloccate senza abbonamento; puoi giocare gratis."},
