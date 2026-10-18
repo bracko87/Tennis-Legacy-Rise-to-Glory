@@ -1,4 +1,28 @@
 export default {
+  premiumTrial: {
+    "welcomeTitle": "Počeo je vaš besplatni sedmodnevni Premium period",
+    "welcomeBody": "Isprobajte Premium funkcije tokom sedam stvarnih dana od prvog ulaska u Tennis Legacy.",
+    "expiredTitle": "Besplatni Premium period je istekao",
+    "expiredBody": "Karijera, kupovine i napredak su sačuvani. Premium funkcije su zaključane bez plaćene pretplate, ali možete igrati besplatno.",
+    "duration": "7 stvarnih dana Premium pristupa",
+    "until": "Do {{date}}",
+    "includesTitle": "Šta Premium otključava",
+    "privateLife": "Privatni život: nekretnine, investicije, kolekcije i prestiž uz novac iz karijere.",
+    "rankingProtection": "Zaštita rankinga: predstojeći istek ATP/WTA bodova na pregledu i rang-listama.",
+    "extraFeatures": "Ostali alati dostupni su samo gde je označen Premium. Akcije sa Coins i dalje koštaju Coins.",
+    "noBilling": "Kartica nije potrebna. Nema automatske naplate ili obnove. Probni period ne donosi Coins iz plaćenih računa.",
+    "seeBenefits": "Istraži Premium",
+    "viewPlans": "Premium paketi",
+    "startPlaying": "Počni igru",
+    "continueFree": "Nastavi besplatno",
+    "close": "Zatvori",
+    "planName": "Besplatan sedmodnevni Premium",
+    "activeLabel": "Premium period je aktivan",
+    "trialEnds": "Ističe {{date}}",
+    "noBillingPlan": "Besplatno · bez naplate",
+    "noPaidCoins": "Bez Coins nagrada iz plaćenog Premium-a",
+    "noAutomaticRenewal": "Bez automatskog obnavljanja"
+  },
   common: {
     language: 'Jezik',
     english: 'Engleski',
