@@ -7,6 +7,11 @@ type TranslationShape<T> = T extends string ? string
   : T
 
 const russianTranslations = {
+  clubAlerts: {
+    "sidebarSummary": "{{count}} новых уведомлений клуба",
+    "pending": "{{count}} ожидающих заявок клуба",
+    "unreadMessages": "{{count}} непрочитанных сообщений клуба"
+  },
   premiumTrial: {
     "welcomeTitle": "Ваш бесплатный Premium на 7 дней начался",
     "welcomeBody": "Изучайте функции Premium семь реальных дней с первого входа в Tennis Legacy.",
@@ -3064,6 +3069,7 @@ const russianTranslations = {
       "account": "Аккаунт и финансы"
     },
     "categories": {
+      club: "Теннисный клуб",
       "account": "Аккаунт",
       "equipment": "Экипировка",
       "finance": "Финансы",
@@ -3180,6 +3186,7 @@ const russianTranslations = {
       "shoes": "Обувь"
     },
     "templates": {
+      club_invitation_received: {"title":"Новое приглашение в теннисный клуб","message":"{{inviter_name}} приглашает вас в клуб {{club_name}}. Откройте Теннисный клуб, чтобы принять или отклонить приглашение."},
       premium_trial_started: {"title":"Пробный Premium на 7 дней начался","message":"Попробуйте Личную жизнь и Защиту рейтинга без оплаты."},
       premium_trial_reminder: {"title":"Пробный Premium скоро закончится","message":"Бесплатный доступ завершится в течение 24 часов. Автоматических списаний нет."},
       premium_trial_expired: {"title":"Пробный Premium завершён","message":"Карьера сохранена. Premium заблокирован без подписки; бесплатная игра доступна."},
