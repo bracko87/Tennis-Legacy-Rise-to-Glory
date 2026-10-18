@@ -18,8 +18,7 @@ begin
   if v_player is null then raise exception 'Player not found.'; end if;
   return v_player;
 end;
-$function$
-
+$function$;
 
 CREATE OR REPLACE FUNCTION public.ensure_private_life_starter_home_v1(p_player_id uuid)
  RETURNS uuid
@@ -230,5 +229,4 @@ begin
 
   return v_owned_id;
 end;
-$function$
-
+$function$;
