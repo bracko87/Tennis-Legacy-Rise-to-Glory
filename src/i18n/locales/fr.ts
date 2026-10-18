@@ -8,6 +8,11 @@ type TranslationShape<T> = T extends string ? string
   : T
 
 const frenchTranslations = {
+  clubAlerts: {
+    "sidebarSummary": "{{count}} nouvelles alertes du club",
+    "pending": "{{count}} demandes de club en attente",
+    "unreadMessages": "{{count}} messages de club non lus"
+  },
   premiumTrial: {
     "welcomeTitle": "Votre essai Premium gratuit de 7 jours a commencé",
     "welcomeBody": "Découvrez les fonctions Premium pendant sept jours réels dès votre première entrée dans Tennis Legacy.",
@@ -3670,6 +3675,7 @@ const frenchTranslations = {
       "account": "Compte et finances"
     },
     "categories": {
+      club: "Club de tennis",
       "account": "Compte",
       "equipment": "Équipement",
       "finance": "Finances",
@@ -3786,6 +3792,7 @@ const frenchTranslations = {
       "shoes": "Chaussures"
     },
     "templates": {
+      club_invitation_received: {"title":"Nouvelle invitation à un club de tennis","message":"{{inviter_name}} vous invite à rejoindre {{club_name}}. Ouvrez Club de tennis pour accepter ou refuser."},
       premium_trial_started: {"title":"Votre essai Premium de 7 jours a commencé","message":"Découvrez Vie privée et Protection du classement gratuitement."},
       premium_trial_reminder: {"title":"Votre essai Premium se termine bientôt","message":"L'accès gratuit se termine sous 24 heures. Aucun débit automatique."},
       premium_trial_expired: {"title":"Votre essai Premium est terminé","message":"Votre carrière reste intacte. Premium est verrouillé sans abonnement, mais le jeu gratuit continue."},
