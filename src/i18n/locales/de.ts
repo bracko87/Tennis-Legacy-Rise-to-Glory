@@ -1,4 +1,9 @@
 export default {
+  clubAlerts: {
+    "sidebarSummary": "{{count}} neue Club-Meldungen",
+    "pending": "{{count}} ausstehende Club-Anfragen",
+    "unreadMessages": "{{count}} ungelesene Clubnachrichten"
+  },
   premiumTrial: {
     "welcomeTitle": "Dein kostenloser 7-tägiger Premium-Test hat begonnen",
     "welcomeBody": "Entdecke sieben echte Tage lang Premium-Funktionen ab deinem ersten Einstieg in Tennis Legacy.",
@@ -631,6 +636,7 @@ export default {
       account: 'Konto & Finanzen',
     },
     categories: {
+      club: "Tennisclub",
       account: 'Konto',
       equipment: 'Ausrüstung',
       finance: 'Finanzen',
@@ -747,6 +753,7 @@ export default {
       shoes: 'Schuhe',
     },
     templates: {
+      club_invitation_received: {"title":"Neue Tennisclub-Einladung","message":"{{inviter_name}} hat dich in den Club {{club_name}} eingeladen. Öffne Tennisclub, um anzunehmen oder abzulehnen."},
       premium_trial_started: {"title":"Dein Premium-Test für 7 Tage hat begonnen","message":"Teste Privatleben und Ranglisten-Schutz ohne Bezahlung."},
       premium_trial_reminder: {"title":"Dein Premium-Test endet bald","message":"Dein kostenloser Premium-Zugang endet innerhalb von 24 Stunden. Keine automatische Abbuchung."},
       premium_trial_expired: {"title":"Dein Premium-Test ist beendet","message":"Deine Karriere bleibt erhalten. Premium-Aktionen sind ohne Abo gesperrt; du kannst kostenlos weiterspielen."},
