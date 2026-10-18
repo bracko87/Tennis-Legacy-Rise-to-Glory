@@ -754,6 +754,9 @@ export default {
       shoes: 'Obuća',
     },
     templates: {
+      premium_trial_started: {"title":"Počeo je sedmodnevni Premium probni period","message":"Isprobajte Privatni život i Zaštitu rankinga bez plaćanja."},
+      premium_trial_reminder: {"title":"Premium period uskoro ističe","message":"Besplatan Premium ističe za manje od 24 sata. Bez automatske naplate."},
+      premium_trial_expired: {"title":"Premium period je završen","message":"Vaša karijera je sačuvana. Premium funkcije su zaključane bez pretplate; besplatna igra ostaje dostupna."},
       account_birthday_gift: { title: 'Srećan rođendan! 🎂', message: 'Želimo ti sjajan rođendan! Kao poklon od Tennis Legacy, dodali smo 20 Coina na tvoj nalog.' },
       avatar_request_cancelled: { title: 'Zahtev za avatar je otkazan', message: 'Zahtev za zamenu avatara je otkazan. Trenutni avatar ostaje nepromenjen i možeš poslati novi zahtev.' },
       avatar_request_completed: { title: 'Zamena avatara je završena', message: 'Odobreni novi avatar je sada aktivan.' },
