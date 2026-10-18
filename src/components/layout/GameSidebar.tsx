@@ -153,7 +153,7 @@ export default function GameSidebar({
             const isClub = item.key === 'tennis-club'
             const badgeCount = isClub ? clubAlerts.total : 0
             const clubAlertLabel = isClub && badgeCount > 0
-              ? t('tennisClubPage.alerts.sidebarSummary', { count: badgeCount })
+              ? t('clubAlerts.sidebarSummary', { count: badgeCount })
               : ''
 
             return (
