@@ -8,6 +8,30 @@ type TranslationShape<T> = T extends string ? string
   : T
 
 export const portugueseTranslations = {
+  premiumTrial: {
+    "welcomeTitle": "Seu Premium gratuito de 7 dias começou",
+    "welcomeBody": "Experimente os recursos Premium por sete dias reais, a partir da primeira entrada no Tennis Legacy.",
+    "expiredTitle": "Seu período Premium gratuito terminou",
+    "expiredBody": "Sua carreira, suas compras e seu progresso estão seguros. Ações Premium ficam bloqueadas sem plano pago, mas você pode continuar jogando grátis.",
+    "duration": "7 dias reais de Premium",
+    "until": "Até {{date}}",
+    "includesTitle": "O que o Premium desbloqueia",
+    "privateLife": "Vida pessoal: imóveis, investimentos, colecionáveis e prestígio comprados com dinheiro da carreira.",
+    "rankingProtection": "Proteção de ranking: vencimentos de pontos ATP/WTA na Visão geral e nos Rankings.",
+    "extraFeatures": "Outras ferramentas só estão incluídas quando marcadas como Premium. Ações com Coins continuam exigindo Coins.",
+    "noBilling": "Não precisa de cartão. Sem cobrança ou renovação automática. O período não concede Coins exclusivos de faturas pagas.",
+    "seeBenefits": "Explorar Premium",
+    "viewPlans": "Ver planos Premium",
+    "startPlaying": "Começar a jogar",
+    "continueFree": "Continuar grátis",
+    "close": "Fechar",
+    "planName": "Período Premium grátis de 7 dias",
+    "activeLabel": "Período Premium ativo",
+    "trialEnds": "Termina em {{date}}",
+    "noBillingPlan": "Período grátis · sem cobrança",
+    "noPaidCoins": "Sem Coins de assinatura paga",
+    "noAutomaticRenewal": "Sem renovação automática"
+  },
   common: {
     language: 'Idioma', english: 'Inglês', serbian: 'Sérvio', german: 'Alemão',
     spanish: 'Espanhol', italian: 'Italiano', french: 'Francês', russian: 'Russo',
