@@ -193,7 +193,7 @@ export default function ProPackagesPage() {
   }
 
   const membership = commerce.membership
-  const planName = commerce.isPremium ? t('commercePage.premiumName') : t('commercePage.freeName')
+  const planName = commerce.isTrial ? t('premiumTrial.planName') : commerce.isPaidPremium ? t('commercePage.premiumName') : t('commercePage.freeName')
   const resolvedPremiumOffers = premiumOffers.map((offer) => {
     const item = catalog.find((candidate) => candidate.code === offer.code)
     const priceCents = item?.price_eur_cents ?? offer.fallbackPriceCents
@@ -202,9 +202,9 @@ export default function ProPackagesPage() {
   })
   const mainPremiumOffer = resolvedPremiumOffers.find((offer) => offer.code === 'premium_quarterly')!
   const activeBillingMonths = membership?.billing_period_months ?? 1
-  const activeBillingAmount = membership?.billing_amount_eur_cents ?? (commerce.isPremium ? membership?.monthly_price_eur_cents ?? 329 : 0)
-  const activeMonthlyEquivalent = commerce.isPremium ? membership?.monthly_price_eur_cents ?? 329 : 0
-  const activeCoinsPerPayment = membership?.coins_per_payment ?? (commerce.isPremium ? membership?.monthly_coin_reward ?? 30 : 0)
+  const activeBillingAmount = membership?.billing_amount_eur_cents ?? (commerce.isPaidPremium ? membership?.monthly_price_eur_cents ?? 329 : 0)
+  const activeMonthlyEquivalent = commerce.isPaidPremium ? membership?.monthly_price_eur_cents ?? 329 : 0
+  const activeCoinsPerPayment = membership?.coins_per_payment ?? (commerce.isPaidPremium ? membership?.monthly_coin_reward ?? 30 : 0)
   const coinPacks: readonly CoinPack[] = fallbackCoinPacks.map((fallback) => {
     const item = catalog.find((candidate) => candidate.code === fallback.code)
     return item ? {
@@ -250,6 +250,15 @@ export default function ProPackagesPage() {
           </div>
         )}
 
+        {commerce.isTrial && (
+          <section className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-5 text-slate-900" aria-label={t('premiumTrial.planName')}>
+            <h2 className="mb-2 flex items-center gap-2 text-lg font-bold"><Crown size={20} /> {t('premiumTrial.activeLabel')}</h2>
+            <p className="mb-2 text-sm">{t('premiumTrial.trialEnds', { date: date(commerce.trial?.expires_at) })}</p>
+            <p className="text-sm">{t('premiumTrial.privateLife')} {t('premiumTrial.rankingProtection')}</p>
+            <p className="mt-2 text-xs">{t('premiumTrial.noBilling')}</p>
+          </section>
+        )}
+
         <section className="tlg-commerce-premium-card">
           <div className="tlg-commerce-premium-main">
             <div className="tlg-commerce-badges">
@@ -268,8 +277,8 @@ export default function ProPackagesPage() {
               <li><Check size={15} /> {t('commercePage.benefit5')}</li>
             </ul>
             <div className="tlg-commerce-free-rule">
-              <strong>{commerce.isPremium ? t('commercePage.premiumActive') : t('commercePage.freeAvailable')}</strong>
-              <span>{commerce.isPremium ? t('commercePage.currentPeriodEnds', { date: date(membership?.current_period_end) }) : t('commercePage.premiumOptionalBody')}</span>
+              <strong>{commerce.isTrial ? t('premiumTrial.activeLabel') : commerce.isPaidPremium ? t('commercePage.premiumActive') : t('commercePage.freeAvailable')}</strong>
+              <span>{commerce.isTrial ? t('premiumTrial.trialEnds', { date: date(commerce.trial?.expires_at) }) : commerce.isPaidPremium ? t('commercePage.currentPeriodEnds', { date: date(membership?.current_period_end) }) : t('commercePage.premiumOptionalBody')}</span>
             </div>
           </div>
 
@@ -283,7 +292,7 @@ export default function ProPackagesPage() {
               <button
                 type="button"
                 onClick={() => {
-                  if (commerce.isPremium) {
+                  if (commerce.isPaidPremium) {
                     const portalUrl = commerceSettings?.stripe_customer_portal_url
                     if (portalUrl) window.location.assign(portalUrl)
                     else showStripeNotice(t('commercePage.subscriptionUnavailable'))
@@ -292,7 +301,7 @@ export default function ProPackagesPage() {
                   }
                 }}
               >
-                {commerce.isPremium ? t('commercePage.manageSubscription') : t('commercePage.chooseThree')}
+                {commerce.isPaidPremium ? t('commercePage.manageSubscription') : t('commercePage.chooseThree')}
               </button>
             </div>
 
@@ -308,7 +317,7 @@ export default function ProPackagesPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      if (commerce.isPremium) {
+                      if (commerce.isPaidPremium) {
                         const portalUrl = commerceSettings?.stripe_customer_portal_url
                         if (portalUrl) window.location.assign(portalUrl)
                         else showStripeNotice(t('commercePage.subscriptionUnavailable'))
@@ -317,7 +326,7 @@ export default function ProPackagesPage() {
                       }
                     }}
                   >
-                    {commerce.isPremium ? t('commercePage.manage') : offer.months === 1 ? t('commercePage.chooseMonthly') : t('commercePage.chooseAnnual')}
+                    {commerce.isPaidPremium ? t('commercePage.manage') : offer.months === 1 ? t('commercePage.chooseMonthly') : t('commercePage.chooseAnnual')}
                   </button>
                 </div>
               ))}
@@ -391,15 +400,15 @@ export default function ProPackagesPage() {
           </div>
           <div className="tlg-commerce-membership-card">
             <MembershipStat label={t('commercePage.plan')} value={planName} />
-            <MembershipStat label={t('commercePage.status')} value={membership?.status === 'active' ? t('commercePage.active') : membership?.status ?? t('commercePage.active')} />
-            <MembershipStat label={t('commercePage.started')} value={date(membership?.started_at)} />
-            <MembershipStat label={t('commercePage.currentPeriodEndsLabel')} value={date(membership?.current_period_end)} />
-            <MembershipStat label={t('commercePage.nextRenewal')} value={commerce.isPremium && !membership?.cancel_at_period_end ? date(membership?.current_period_end) : '—'} />
-            <MembershipStat label={t('commercePage.billingPlan')} value={commerce.isPremium ? activeBillingMonths === 12 ? t('commercePage.months12') : activeBillingMonths === 3 ? t('commercePage.months3') : t('commercePage.monthly') : t('commercePage.free')} />
+            <MembershipStat label={t('commercePage.status')} value={commerce.isTrial ? t('premiumTrial.activeLabel') : membership?.status === 'active' ? t('commercePage.active') : membership?.status ?? t('commercePage.free')} />
+            <MembershipStat label={t('commercePage.started')} value={date(commerce.isTrial ? commerce.trial?.started_at : membership?.started_at)} />
+            <MembershipStat label={t('commercePage.currentPeriodEndsLabel')} value={date(commerce.isTrial ? commerce.trial?.expires_at : membership?.current_period_end)} />
+            <MembershipStat label={t('commercePage.nextRenewal')} value={commerce.isPaidPremium && !membership?.cancel_at_period_end ? date(membership?.current_period_end) : '—'} />
+            <MembershipStat label={t('commercePage.billingPlan')} value={commerce.isTrial ? t('premiumTrial.noBillingPlan') : commerce.isPaidPremium ? activeBillingMonths === 12 ? t('commercePage.months12') : activeBillingMonths === 3 ? t('commercePage.months3') : t('commercePage.monthly') : t('commercePage.free')} />
             <MembershipStat label={t('commercePage.pricePerPeriod')} value={money(activeBillingAmount)} />
             <MembershipStat label={t('commercePage.monthlyEquivalent')} value={money(activeMonthlyEquivalent)} />
-            <MembershipStat label={t('commercePage.coinRewardPerPayment')} value={t('commercePage.coinsCount', { count: activeCoinsPerPayment })} />
-            <MembershipStat label={t('commercePage.cancelAtEnd')} value={membership?.cancel_at_period_end ? t('commercePage.yes') : t('commercePage.no')} />
+            <MembershipStat label={t('commercePage.coinRewardPerPayment')} value={commerce.isTrial ? t('premiumTrial.noPaidCoins') : t('commercePage.coinsCount', { count: activeCoinsPerPayment })} />
+            <MembershipStat label={t('commercePage.cancelAtEnd')} value={commerce.isTrial ? t('premiumTrial.noAutomaticRenewal') : membership?.cancel_at_period_end ? t('commercePage.yes') : t('commercePage.no')} />
           </div>
         </section>
 
