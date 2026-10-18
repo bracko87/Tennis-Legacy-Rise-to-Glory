@@ -3786,6 +3786,9 @@ const frenchTranslations = {
       "shoes": "Chaussures"
     },
     "templates": {
+      premium_trial_started: {"title":"Votre essai Premium de 7 jours a commencé","message":"Découvrez Vie privée et Protection du classement gratuitement."},
+      premium_trial_reminder: {"title":"Votre essai Premium se termine bientôt","message":"L'accès gratuit se termine sous 24 heures. Aucun débit automatique."},
+      premium_trial_expired: {"title":"Votre essai Premium est terminé","message":"Votre carrière reste intacte. Premium est verrouillé sans abonnement, mais le jeu gratuit continue."},
       "account_birthday_gift": {
         "title": "Joyeux anniversaire ! 🎂",
         "message": "Nous vous souhaitons un merveilleux anniversaire ! Tennis Legacy vous offre 20 Coins, déjà ajoutés à votre compte."
