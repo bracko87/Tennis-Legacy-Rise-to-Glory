@@ -747,6 +747,9 @@ export default {
       shoes: "Zapatos",
     },
     templates: {
+      premium_trial_started: {"title":"Tu prueba Premium de 7 días ha comenzado","message":"Prueba Vida privada y Protección del ranking sin pagar."},
+      premium_trial_reminder: {"title":"Tu prueba Premium termina pronto","message":"El acceso gratis termina dentro de 24 horas. Sin cargos automáticos."},
+      premium_trial_expired: {"title":"Tu prueba Premium ha terminado","message":"Tu carrera está segura. Las funciones Premium se bloquean sin suscripción; puedes seguir gratis."},
       account_birthday_gift: { title: "¡Feliz cumpleaños! 🎂", message: "¡Te deseamos un cumpleaños fantástico! Como regalo de cumpleaños de Tennis Legacy, hemos añadido 20 Coins a tu cuenta." },
       avatar_request_cancelled: { title: "Solicitud de avatar cancelada", message: "Tu solicitud de reemplazo de avatar fue cancelada. Tu avatar actual permanece sin cambios y puedes enviar una nueva solicitud." },
       avatar_request_completed: { title: "Se ha completado el reemplazo del avatar.", message: "Tu avatar de reemplazo aprobado ya está activo." },
