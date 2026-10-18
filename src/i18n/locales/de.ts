@@ -1,4 +1,28 @@
 export default {
+  premiumTrial: {
+    "welcomeTitle": "Dein kostenloser 7-tägiger Premium-Test hat begonnen",
+    "welcomeBody": "Entdecke sieben echte Tage lang Premium-Funktionen ab deinem ersten Einstieg in Tennis Legacy.",
+    "expiredTitle": "Dein kostenloser Premium-Test ist beendet",
+    "expiredBody": "Deine Karriere, Käufe und Fortschritte bleiben erhalten. Premium-Aktionen sind ohne bezahltes Abo gesperrt. Kostenloses Spielen bleibt möglich.",
+    "duration": "7 echte Tage Premium",
+    "until": "Bis {{date}}",
+    "includesTitle": "Das schaltet Premium frei",
+    "privateLife": "Privatleben: Immobilien, Investitionen, Sammlerstücke und Prestige mit Karrieregeld.",
+    "rankingProtection": "Ranglisten-Schutz: bevorstehende ATP-/WTA-Punkteverfälle in Übersicht und Ranglisten.",
+    "extraFeatures": "Weitere Werkzeuge sind nur dort enthalten, wo Premium steht. Coins-Aktionen kosten weiterhin Coins.",
+    "noBilling": "Keine Karte nötig. Keine automatische Zahlung oder Verlängerung. Der Test enthält keine Coins aus bezahlten Abrechnungen.",
+    "seeBenefits": "Premium entdecken",
+    "viewPlans": "Premium-Angebote",
+    "startPlaying": "Jetzt spielen",
+    "continueFree": "Kostenlos weiterspielen",
+    "close": "Schließen",
+    "planName": "Kostenloser Premium-Test für 7 Tage",
+    "activeLabel": "Premium-Test aktiv",
+    "trialEnds": "Test endet am {{date}}",
+    "noBillingPlan": "Gratis-Test · keine Abrechnung",
+    "noPaidCoins": "Keine Coins aus bezahltem Premium",
+    "noAutomaticRenewal": "Keine automatische Verlängerung"
+  },
   common: {
     language: 'Sprache',
     english: 'Englisch',
