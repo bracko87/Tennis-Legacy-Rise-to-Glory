@@ -3180,6 +3180,9 @@ const russianTranslations = {
       "shoes": "Обувь"
     },
     "templates": {
+      premium_trial_started: {"title":"Пробный Premium на 7 дней начался","message":"Попробуйте Личную жизнь и Защиту рейтинга без оплаты."},
+      premium_trial_reminder: {"title":"Пробный Premium скоро закончится","message":"Бесплатный доступ завершится в течение 24 часов. Автоматических списаний нет."},
+      premium_trial_expired: {"title":"Пробный Premium завершён","message":"Карьера сохранена. Premium заблокирован без подписки; бесплатная игра доступна."},
       "account_birthday_gift": {
         "title": "С днём рождения! 🎂",
         "message": "Желаем вам замечательного дня рождения! В подарок от Tennis Legacy мы добавили на ваш счёт 20 монет."
