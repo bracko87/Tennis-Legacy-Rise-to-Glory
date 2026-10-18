@@ -1,4 +1,9 @@
 export default {
+  clubAlerts: {
+    "sidebarSummary": "{{count}} novih obaveštenja kluba",
+    "pending": "{{count}} zahteva kluba na čekanju",
+    "unreadMessages": "{{count}} nepročitanih klupskih poruka"
+  },
   premiumTrial: {
     "welcomeTitle": "Počeo je vaš besplatni sedmodnevni Premium period",
     "welcomeBody": "Isprobajte Premium funkcije tokom sedam stvarnih dana od prvog ulaska u Tennis Legacy.",
@@ -638,6 +643,7 @@ export default {
       account: 'Nalog i finansije',
     },
     categories: {
+      club: "Teniski klub",
       account: 'Nalog',
       equipment: 'Oprema',
       finance: 'Finansije',
@@ -754,6 +760,7 @@ export default {
       shoes: 'Obuća',
     },
     templates: {
+      club_invitation_received: {"title":"Nova pozivnica za teniski klub","message":"{{inviter_name}} vas poziva u klub {{club_name}}. Otvorite Teniski klub da prihvatite ili odbijete."},
       premium_trial_started: {"title":"Počeo je sedmodnevni Premium probni period","message":"Isprobajte Privatni život i Zaštitu rankinga bez plaćanja."},
       premium_trial_reminder: {"title":"Premium period uskoro ističe","message":"Besplatan Premium ističe za manje od 24 sata. Bez automatske naplate."},
       premium_trial_expired: {"title":"Premium period je završen","message":"Vaša karijera je sačuvana. Premium funkcije su zaključane bez pretplate; besplatna igra ostaje dostupna."},
