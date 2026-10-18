@@ -7,6 +7,30 @@ type TranslationShape<T> = T extends string ? string
   : T
 
 const russianTranslations = {
+  premiumTrial: {
+    "welcomeTitle": "Ваш бесплатный Premium на 7 дней начался",
+    "welcomeBody": "Изучайте функции Premium семь реальных дней с первого входа в Tennis Legacy.",
+    "expiredTitle": "Бесплатный пробный Premium завершён",
+    "expiredBody": "Карьера, покупки и прогресс сохранены. Действия Premium заблокированы без платного плана, но бесплатная игра доступна.",
+    "duration": "7 реальных дней Premium",
+    "until": "До {{date}}",
+    "includesTitle": "Что открывает Premium",
+    "privateLife": "Личная жизнь: недвижимость, инвестиции, коллекции и престиж за деньги карьеры.",
+    "rankingProtection": "Защита рейтинга: будущие сроки истечения очков ATP/WTA в обзоре и рейтингах.",
+    "extraFeatures": "Другие инструменты доступны только с пометкой Premium. Действия за Coins по-прежнему требуют Coins.",
+    "noBilling": "Карта не нужна. Нет списаний или автопродления. Пробный период не даёт Coins за оплаченные счета.",
+    "seeBenefits": "Изучить Premium",
+    "viewPlans": "Планы Premium",
+    "startPlaying": "Начать игру",
+    "continueFree": "Продолжить бесплатно",
+    "close": "Закрыть",
+    "planName": "Бесплатный Premium на 7 дней",
+    "activeLabel": "Пробный Premium активен",
+    "trialEnds": "Закончится {{date}}",
+    "noBillingPlan": "Бесплатно · без оплаты",
+    "noPaidCoins": "Без бонусных Coins платного Premium",
+    "noAutomaticRenewal": "Без автопродления"
+  },
   "common": {
     "language": "Язык",
     "english": "Английский",
