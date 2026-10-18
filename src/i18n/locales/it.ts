@@ -790,6 +790,9 @@ export default {
       "shoes": "Scarpe"
     },
     "templates": {
+      premium_trial_started: {"title":"La prova Premium di 7 giorni è iniziata","message":"Prova Vita privata e Protezione ranking senza pagare."},
+      premium_trial_reminder: {"title":"La prova Premium sta per finire","message":"L'accesso gratuito termina entro 24 ore. Nessun addebito automatico."},
+      premium_trial_expired: {"title":"La prova Premium è terminata","message":"La carriera è al sicuro. Le azioni Premium sono bloccate senza abbonamento; puoi giocare gratis."},
       "account_birthday_gift": {
         "title": "Buon compleanno! 🎂",
         "message": "Ti auguriamo uno splendido compleanno! Come regalo da Tennis Legacy, abbiamo aggiunto 20 Coins al tuo account."
