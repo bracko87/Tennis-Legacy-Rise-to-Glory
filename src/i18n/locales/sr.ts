@@ -9,7 +9,7 @@ export default {
     "optional": "Opciono",
     "reviewTypes": "Pregledaj {{count}} pojedinačnih obaveštenja",
     "trigger": "Okidač",
-    "toggleType": "Uključi/isključi {{name}",
+    "toggleType": "Uključi/isključi {{name}}",
     "title": "Podešavanja",
     "subtitle": "Jezik, obaveštenja i prikaz",
     "eyebrow": "CENTAR MENADŽERA",
