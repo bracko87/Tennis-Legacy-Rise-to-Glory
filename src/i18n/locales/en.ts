@@ -9,7 +9,7 @@ export default {
     "optional": "Optional",
     "reviewTypes": "Review {{count}} individual notifications",
     "trigger": "Trigger",
-    "toggleType": "Toggle {{name}",
+    "toggleType": "Toggle {{name}}",
     "title": "Preferences",
     "subtitle": "Language, notifications and interface",
     "eyebrow": "MANAGER CENTER",
