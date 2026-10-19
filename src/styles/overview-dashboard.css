@@ -9,7 +9,7 @@
 .tlg-overview-kpi strong{display:block;margin-top:6px;color:#17334a;font-size:1.14rem;line-height:1.15}
 .tlg-overview-kpi small{display:block;margin-top:5px;color:#8192a0;font-size:.6rem;line-height:1.35}
 
-.tlg-overview-primary-grid{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:16px}
+.tlg-overview-primary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .tlg-overview-secondary-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:16px}
 .tlg-overview-three-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
 .tlg-overview-news-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr);gap:16px}
@@ -384,22 +384,22 @@
   .tlg-overview-next-opponent-card .tlg-overview-result-portrait{max-height:180px}
 }
 
-/* One upcoming subject only: match OR tournament; never two adjacent cards. */
-.tlg-overview-primary-grid{align-items:start}
-.tlg-overview-next-card-refined .tlg-overview-next-body-refined{flex:0 0 auto;padding:14px 16px;gap:12px}
+/* One upcoming subject only: match OR tournament; never two adjacent cards. Equal-width summary cards. */
+.tlg-overview-primary-grid{align-items:stretch}
+.tlg-overview-next-card-refined .tlg-overview-next-body-refined{flex:1 1 auto;padding:14px 16px;gap:12px}
 .tlg-overview-next-dashboard-single{grid-template-columns:minmax(0,1fr)!important;flex:0 0 auto}
-.tlg-overview-next-dashboard-single .tlg-overview-next-opponent-card{padding:15px}
+.tlg-overview-next-dashboard-single .tlg-overview-next-opponent-card{padding:0;border:0;border-radius:0;background:transparent}
 .tlg-overview-next-dashboard-single .tlg-overview-next-opponent-card .tlg-overview-result-layout{grid-template-columns:minmax(0,1fr) minmax(135px,30%);align-items:start;height:auto}
-.tlg-overview-next-dashboard-single .tlg-overview-result-portrait{height:194px;min-height:0;max-height:194px}
-.tlg-overview-next-dashboard-single .tlg-overview-result-portrait img{max-height:194px;height:100%;object-fit:cover}
+.tlg-overview-next-dashboard-single .tlg-overview-result-portrait{height:190px;min-height:0;max-height:190px}
+.tlg-overview-next-dashboard-single .tlg-overview-result-portrait img{width:100%;height:100%;max-height:190px;object-fit:contain;object-position:center center}
 .tlg-overview-next-dashboard-single .tlg-overview-next-tournament-summary .tlg-overview-tournament-extras{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:14px}
 .tlg-overview-next-dashboard-single .tlg-overview-next-tournament-summary .tlg-overview-tournament-art{min-height:145px}
-.tlg-overview-next-body-refined .tlg-overview-next-actions{margin-top:0;padding-top:0}
-.tlg-overview-result-card-refined .tlg-overview-result-body-refined{flex:0 0 auto;padding:14px 16px;gap:12px}
+.tlg-overview-next-body-refined .tlg-overview-next-actions{margin-top:auto;padding-top:10px}
+.tlg-overview-result-card-refined .tlg-overview-result-body-refined{flex:1 1 auto;padding:14px 16px;gap:12px}
 .tlg-overview-result-card-refined .tlg-overview-result-body .score{margin:12px 0 9px;font-size:1.42rem}
 .tlg-overview-result-card-refined .tlg-overview-result-portrait{height:190px;min-height:0;max-height:190px}
-.tlg-overview-result-card-refined .tlg-overview-result-portrait img{max-height:190px;height:100%;object-fit:cover}
-.tlg-overview-result-card-refined .tlg-overview-result-bottom-link{margin-top:0;padding-top:0}
+.tlg-overview-result-card-refined .tlg-overview-result-portrait img{width:100%;height:100%;max-height:190px;object-fit:contain;object-position:center center}
+.tlg-overview-result-card-refined .tlg-overview-result-bottom-link{margin-top:auto;padding-top:10px}
 @media(max-width:760px){
   .tlg-overview-next-dashboard-single .tlg-overview-next-opponent-card .tlg-overview-result-layout{grid-template-columns:minmax(0,1fr) minmax(110px,35%)}
   .tlg-overview-next-dashboard-single .tlg-overview-next-tournament-summary .tlg-overview-tournament-extras{grid-template-columns:1fr}
