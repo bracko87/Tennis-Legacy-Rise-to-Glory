@@ -23,7 +23,6 @@ import {
   MapPin,
   Package,
   ShieldCheck,
-  Image as ImageIcon,
   Sparkles,
   Target,
   Trophy,
@@ -36,107 +35,50 @@ import MarketingHeader from '../components/layout/MarketingHeader'
 import MarketingFooter from '../components/layout/MarketingFooter'
 import StatCard from '../components/common/StatCard'
 import HomepagePlayerReviews from '../components/marketing/HomepagePlayerReviews'
+import HomeScreenshotGallery from '../components/marketing/HomeScreenshotGallery'
 import { supabase } from '../lib/supabase'
 
 
-// Fill in the three image URLs when official Tennis Legacy screenshots are supplied.
-// Until then, show intentional placeholders rather than invented gameplay images.
-const gameplayScreenshots: ReadonlyArray<{ id: number; url: string | null }> = [
-  { id: 1, url: null },
-  { id: 2, url: null },
-  { id: 3, url: null },
-]
-
-const screenshotCopy: Record<AppLocale, {
-  eyebrow: string; title: string; description: string; placeholder: string; views: string[]
-}> = {
+const screenshotCopy: Record<AppLocale, { eyebrow: string; title: string; description: string }> = {
   "en": {
     "eyebrow": "GAME SCREENSHOTS",
     "title": "See Tennis Legacy in action",
-    "description": "A closer look at the game experience. Official gameplay screenshots will be added here soon.",
-    "placeholder": "Game screenshot coming soon",
-    "views": [
-      "Career overview",
-      "Tournament preparation",
-      "Player development"
-    ]
+    "description": "Explore 20 real screenshots from the Tennis Legacy game world."
   },
   "sr": {
     "eyebrow": "SLIKE IZ IGRE",
     "title": "Pogledajte Tennis Legacy u akciji",
-    "description": "Detaljniji prikaz igre. Uskoro dodajemo zvanične slike ekrana.",
-    "placeholder": "Slika ekrana stiže uskoro",
-    "views": [
-      "Pregled karijere",
-      "Priprema turnira",
-      "Razvoj igrača"
-    ]
+    "description": "Pogledajte 20 stvarnih slika ekrana iz igre Tennis Legacy."
   },
   "de": {
     "eyebrow": "SPIEL-SCREENSHOTS",
     "title": "Tennis Legacy in Aktion",
-    "description": "Ein Einblick in das Spielerlebnis. Offizielle Screenshots werden hier in Kürze ergänzt.",
-    "placeholder": "Spiel-Screenshot folgt in Kürze",
-    "views": [
-      "Karriereübersicht",
-      "Turniervorbereitung",
-      "Spielerentwicklung"
-    ]
+    "description": "Entdecke 20 echte Screenshots aus der Tennis Legacy Spielwelt."
   },
   "es": {
     "eyebrow": "CAPTURAS DEL JUEGO",
     "title": "Descubre Tennis Legacy en acción",
-    "description": "Una mirada a la experiencia de juego. Pronto añadiremos capturas oficiales.",
-    "placeholder": "Captura de juego próximamente",
-    "views": [
-      "Resumen de carrera",
-      "Preparación de torneos",
-      "Desarrollo del jugador"
-    ]
+    "description": "Explora 20 capturas reales del mundo de Tennis Legacy."
   },
   "it": {
     "eyebrow": "SCHERMATE DI GIOCO",
     "title": "Scopri Tennis Legacy in azione",
-    "description": "Uno sguardo all'esperienza di gioco. Presto aggiungeremo le schermate ufficiali.",
-    "placeholder": "Schermata di gioco in arrivo",
-    "views": [
-      "Panoramica carriera",
-      "Preparazione tornei",
-      "Sviluppo del giocatore"
-    ]
+    "description": "Esplora 20 vere schermate del mondo di Tennis Legacy."
   },
   "fr": {
     "eyebrow": "CAPTURES DU JEU",
     "title": "Découvrez Tennis Legacy en action",
-    "description": "Un aperçu de l'expérience de jeu. Des captures officielles seront bientôt ajoutées.",
-    "placeholder": "Capture de jeu à venir",
-    "views": [
-      "Vue d'ensemble de carrière",
-      "Préparation des tournois",
-      "Développement du joueur"
-    ]
+    "description": "Découvrez 20 captures authentiques du jeu Tennis Legacy."
   },
   "ru": {
     "eyebrow": "СКРИНШОТЫ ИГРЫ",
     "title": "Tennis Legacy в действии",
-    "description": "Посмотрите, как выглядит игра. Скоро здесь появятся официальные скриншоты.",
-    "placeholder": "Скриншот скоро появится",
-    "views": [
-      "Обзор карьеры",
-      "Подготовка к турниру",
-      "Развитие игрока"
-    ]
+    "description": "Посмотрите 20 настоящих скриншотов игры Tennis Legacy."
   },
   "pt": {
     "eyebrow": "IMAGENS DO JOGO",
     "title": "Descobre Tennis Legacy em ação",
-    "description": "Uma visão mais próxima do jogo. Em breve serão adicionadas capturas de ecrã oficiais.",
-    "placeholder": "Imagem do jogo em breve",
-    "views": [
-      "Resumo da carreira",
-      "Preparação de torneios",
-      "Desenvolvimento do jogador"
-    ]
+    "description": "Explora 20 imagens reais do mundo de Tennis Legacy."
   }
 }
 
@@ -564,35 +506,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="tlg-home-screenshots-section" id="game-screenshots" aria-labelledby="tlg-home-screenshots-title">
-          <div className="tlg-section">
-            <div className="tlg-home-screenshots-heading">
-              <span className="tlg-section-eyebrow">{galleryText.eyebrow}</span>
-              <h2 id="tlg-home-screenshots-title">{galleryText.title}</h2>
-              <p>{galleryText.description}</p>
-            </div>
-            <div className="tlg-home-screenshots-grid">
-              {gameplayScreenshots.map((screenshot, index) => (
-                <article className="tlg-home-screenshot-card" key={screenshot.id}>
-                  <div className="tlg-home-screenshot-frame">
-                    {screenshot.url ? (
-                      <img src={screenshot.url} alt={galleryText.views[index]} loading="lazy" />
-                    ) : (
-                      <div className="tlg-home-screenshot-placeholder">
-                        <ImageIcon size={30} aria-hidden="true" />
-                        <span>{galleryText.placeholder}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="tlg-home-screenshot-caption">
-                    <span>{String(screenshot.id).padStart(2, '0')}</span>
-                    <strong>{galleryText.views[index]}</strong>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
+        <HomeScreenshotGallery eyebrow={galleryText.eyebrow} title={galleryText.title} description={galleryText.description} />
 
         <section className="tlg-final-cta-section">
           <div className="tlg-section">
