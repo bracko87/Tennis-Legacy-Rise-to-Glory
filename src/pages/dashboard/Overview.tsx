@@ -297,7 +297,7 @@ function gameDate(day: GameDay | undefined, localeTag: string, fallback: string,
 
 function resultScore(result: LatestResult, fallback: string) {
   if (!result || result.sets.length === 0) return fallback
-  return result.sets.map((set) => result.player_side === 1 ? `${set.player1_games}–${set.player2_games}` : `${set.player2_games}–${set.player1_games}`).join('  ')
+  return result.sets.map((set) => result.player_side === 1 ? `${set.player1_games}-${set.player2_games}` : `${set.player2_games}-${set.player1_games}`).join('  ')
 }
 
 export default function OverviewPage() {
@@ -398,7 +398,7 @@ export default function OverviewPage() {
         <div className="tlg-overview-dashboard">
           <section className="tlg-overview-kpis">
             <OverviewKpi label={t('overviewPage.worldRanking')} value={`#${dashboard.player.current_rank}`} detail={t('overviewPage.rankingPoints', { points: number(dashboard.player.ranking_points) })} />
-            <OverviewKpi label={t('overviewPage.seasonRecord')} value={`${dashboard.season_stats.wins}–${dashboard.season_stats.losses}`} detail={t('overviewPage.winRate', { rate: dashboard.season_stats.win_pct.toLocaleString(localeTag, { maximumFractionDigits: 1 }) })} />
+            <OverviewKpi label={t('overviewPage.seasonRecord')} value={`${dashboard.season_stats.wins}-${dashboard.season_stats.losses}`} detail={t('overviewPage.winRate', { rate: dashboard.season_stats.win_pct.toLocaleString(localeTag, { maximumFractionDigits: 1 }) })} />
             <OverviewKpi label={t('overviewPage.careerBalance')} value={money(dashboard.finance.balance)} detail={t('overviewPage.seasonNet', { amount: money(dashboard.finance.season_net) })} />
             <OverviewKpi label={t('overviewPage.fatigue')} value={`${number(readiness.fatigue)}/100`} detail={t('overviewPage.sharpnessDetail', { value: number(readiness.sharpness) })} />
             <OverviewKpi label={t('overviewPage.equipment')} value={`${equipmentAverage}%`} detail={t('overviewPage.equippedCondition')} />
@@ -578,8 +578,9 @@ function LatestOpponentPortrait({ playerId, name }: { playerId: string; name: st
     setImagePath(null)
     void supabase.rpc('get_player_profile_v2', { p_player_id: playerId }).then(({ data, error }) => {
       if (!active) return
-      const profile = data as { image_path?: string | null } | null
-      if (!error) setImagePath(profile?.image_path ?? null)
+      // This SQL RPC returns a TABLE (an array of rows), not one JSON object.
+      const rows = data as Array<{ image_path?: string | null }> | null
+      if (!error) setImagePath(rows?.[0]?.image_path ?? null)
     }).catch(() => {
       if (active) setImagePath(null)
     })
@@ -614,46 +615,31 @@ function FinanceCard({ finance, transactions }: { finance: FinanceSummary; trans
   )
 }
 
-function RecentFinanceTrends({ finance, transactions }: { finance: FinanceSummary; transactions: FinanceTransaction[] }) {
+function RecentFinanceTrends({ finance }: { finance: FinanceSummary; transactions: FinanceTransaction[] }) {
   const { t } = useTranslation()
-  if (transactions.length === 0) return null
+  const { formatCurrency } = useLocalization()
 
-  // Only the supplied recent ledger entries are plotted; these are not fabricated season-history points.
-  const chronological = [...transactions].reverse()
-  let balance = finance.balance - chronological.reduce((sum, entry) => sum + Number(entry.amount || 0), 0)
-  let income = 0
-  let expenses = 0
-  const samples = [{ balance, income, expenses }]
-  for (const entry of chronological) {
-    const amount = Number(entry.amount) || 0
-    balance += amount
-    income += Math.max(0, amount)
-    expenses += Math.max(0, -amount)
-    samples.push({ balance, income, expenses })
-  }
+  // A comparative snapshot of actual values, not an invented historical series.
+  const entries = [
+    { key: 'balance', label: t('overviewPage.balance'), value: Number(finance.balance) || 0, color: '#277fae' },
+    { key: 'income', label: t('overviewPage.seasonIncome'), value: Number(finance.season_income) || 0, color: '#17865b' },
+    { key: 'expenses', label: t('overviewPage.seasonExpenses'), value: Number(finance.season_expenses) || 0, color: '#ce655b' },
+    { key: 'net', label: t('overviewPage.net'), value: Number(finance.season_net) || 0, color: '#478da8' },
+  ]
+  const max = Math.max(1, ...entries.map((item) => Math.abs(item.value)))
 
-  const series = [
-    { key: 'balance', label: t('overviewPage.balance'), color: '#1679b8' },
-    { key: 'income', label: t('overviewPage.seasonIncome'), color: '#168b57' },
-    { key: 'expenses', label: t('overviewPage.seasonExpenses'), color: '#c75a5a' },
-  ] as const
-  return (
-    <div className="tlg-overview-finance-trends" aria-label={t('financePage.ledger.title')}>
-      {series.map((item) => {
-        const numbers = samples.map((sample) => sample[item.key])
-        const low = Math.min(...numbers)
-        const high = Math.max(...numbers)
-        const range = high - low || 1
-        const points = numbers.map((value, index) => `${6 + (index / Math.max(1, numbers.length - 1)) * 188},${49 - ((value - low) / range) * 40}`).join(' ')
-        return <div className="tlg-overview-finance-spark" key={item.key}>
-          <span style={{ color: item.color }}>{item.label}</span>
-          <svg viewBox="0 0 200 58" preserveAspectRatio="none" role="img" aria-label={item.label}>
-            <polyline points={points} fill="none" stroke={item.color} strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-          </svg>
-        </div>
-      })}
-    </div>
-  )
+  return <div className="tlg-overview-finance-bars">
+    {entries.map(({ key, label, value, color }) => <div className="tlg-overview-finance-bar" key={key}>
+      <div className="tlg-overview-finance-bar-label">
+        <span>{label}</span>
+        <strong>{formatCurrency(Math.round(value), 'USD')}</strong>
+      </div>
+      <div className="tlg-overview-finance-track" role="meter" aria-label={label}
+        aria-valuemin={0} aria-valuemax={Math.round(max)} aria-valuenow={Math.round(Math.abs(value))}>
+        <span style={{ width: `${Math.min(100, (Math.abs(value) / max) * 100)}%`, backgroundColor: color }} />
+      </div>
+    </div>)}
+  </div>
 }
 
 function TodayTournamentsCard({ tournaments, seasonWeek }: { tournaments: TodayTournament[]; seasonWeek: number }) {
