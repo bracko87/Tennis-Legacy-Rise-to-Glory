@@ -8,7 +8,6 @@ import {
   Dumbbell,
   LockKeyhole,
   Medal,
-  UserRound,
   ShieldCheck,
   ShoppingBag,
   Trophy,
@@ -510,7 +509,6 @@ function OverviewKpi({ label, value, detail }: { label: string; value: string; d
 
 function NextTournamentCard({ tournament, match }: { tournament: NextTournament; match: NextMatch }) {
   const { t } = useTranslation()
-  // The two cards are mutually exclusive. An unresolved opponent never counts as a next match.
   const hasNextMatch = Boolean(match?.opponent_id && (match.opponent_first_name?.trim() || match.opponent_last_name?.trim()))
   const surface = tournament?.surface?.toLowerCase()
   const surfaceLabel = surface === 'hard'
@@ -520,14 +518,17 @@ function NextTournamentCard({ tournament, match }: { tournament: NextTournament;
       : surface === 'grass'
         ? t('overviewPage.surface.grass')
         : titleCase(tournament?.surface)
+  const upcomingLabel = tournament && hasNextMatch
+    ? `${t('overviewPage.nextTournament')} · ${t('overviewPage.nextMatch')}`
+    : t(tournament ? 'overviewPage.nextTournament' : 'overviewPage.nextMatch')
 
   return (
     <article className="tlg-overview-panel tlg-overview-next-card tlg-overview-next-card-refined">
       <div className="tlg-overview-panel-head">
         <div className="tlg-overview-next-title-group">
-          <span>{t(hasNextMatch ? 'overviewPage.nextMatch' : 'overviewPage.nextTournament')}</span>
+          <span>{upcomingLabel}</span>
           <div className="tlg-overview-next-heading">
-            <h3>{(hasNextMatch ? match?.tournament_name : tournament?.tournament_name) ?? t('overviewPage.noTournament')}</h3>
+            <h3>{tournament?.tournament_name ?? match?.tournament_name ?? t('overviewPage.noTournament')}</h3>
             {tournament && <div className="tlg-overview-event-meta">
               <CountryFlag countryCode={tournament.country_code} width={24} height={16} />
               <span>{tournament.city}</span><b>{categoryLabel(tournament.category_code)}</b><b>{surfaceLabel}</b><b>{t('overviewPage.week', { week: tournament.season_week })}</b>
@@ -535,31 +536,31 @@ function NextTournamentCard({ tournament, match }: { tournament: NextTournament;
           </div>
         </div>
       </div>
-      {hasNextMatch || tournament ? (
+      {tournament || hasNextMatch ? (
         <div className="tlg-overview-next-body tlg-overview-next-body-refined">
-          <div className="tlg-overview-next-dashboard tlg-overview-next-dashboard-single">
-            {hasNextMatch && match ? (
-              <section className="tlg-overview-next-opponent-card tlg-overview-next-opponent-card-featured" aria-label={t('overviewPage.nextMatch')}>
-                <div className="tlg-overview-result-layout">
-                  <div className="tlg-overview-result-main">
-                    <div className="tournament">
-                      <CountryFlag countryCode={match.country_code} width={24} height={16} />
-                      <div><strong>{match.tournament_name}</strong><span>{match.round_label} · {t('overviewPage.week', { week: match.season_week })} · {t('overviewPage.day', { day: match.day })}</span></div>
-                    </div>
-                    <div className="tlg-overview-match-box tlg-overview-upcoming-match-box">
-                      <div className="tlg-overview-next-opponent-label">{t('overviewPage.nextMatch')} · {match.round_label}</div>
-                      <div className="opponent"><span>{t('overviewPage.versus')}</span><CountryFlag countryCode={match.opponent_country_code} width={22} height={15} /><Link to={`/game/players/${match.opponent_id}`}>{match.opponent_first_name} {match.opponent_last_name}</Link></div>
-                      <small>{t('overviewPage.tournamentDay')}: {t('overviewPage.week', { week: match.season_week })} · {t('overviewPage.day', { day: match.day })}</small>
-                    </div>
+          <div className={`tlg-overview-next-dashboard tlg-overview-next-dashboard-text-only${!tournament || !hasNextMatch ? ' is-single' : ''}`}>
+            {tournament && (
+              <section className="tlg-overview-next-tournament-summary" aria-label={t('overviewPage.nextTournament')}>
+                <strong className="tlg-overview-upcoming-section-label">{t('overviewPage.nextTournament')}</strong>
+                <NextTournamentExtras tournament={tournament} hideArtwork />
+              </section>
+            )}
+            {hasNextMatch && match && (
+              <section className="tlg-overview-next-opponent-card" aria-label={t('overviewPage.nextMatch')}>
+                <strong className="tlg-overview-upcoming-section-label">{t('overviewPage.nextMatch')}</strong>
+                <div className="tlg-overview-upcoming-match-main">
+                  <div className="tournament">
+                    <CountryFlag countryCode={match.country_code} width={24} height={16} />
+                    <div><strong>{match.tournament_name}</strong><span>{match.round_label} · {t('overviewPage.week', { week: match.season_week })} · {t('overviewPage.day', { day: match.day })}</span></div>
                   </div>
-                  <LatestOpponentPortrait playerId={match.opponent_id} name={`${match.opponent_first_name} ${match.opponent_last_name}`} />
+                  <div className="tlg-overview-match-box tlg-overview-upcoming-match-box">
+                    <div className="tlg-overview-next-opponent-label">{t('overviewPage.nextMatch')} · {match.round_label}</div>
+                    <div className="opponent"><span>{t('overviewPage.versus')}</span><CountryFlag countryCode={match.opponent_country_code} width={22} height={15} /><Link to={`/game/players/${match.opponent_id}`}>{match.opponent_first_name} {match.opponent_last_name}</Link></div>
+                    <small>{t('overviewPage.tournamentDay')}: {t('overviewPage.week', { week: match.season_week })} · {t('overviewPage.day', { day: match.day })}</small>
+                  </div>
                 </div>
               </section>
-            ) : tournament ? (
-              <section className="tlg-overview-next-tournament-summary" aria-label={t('overviewPage.nextTournament')}>
-                <NextTournamentExtras tournament={tournament} />
-              </section>
-            ) : null}
+            )}
           </div>
           <div className="tlg-overview-next-actions">
             <Link to="/game/schedule">{t('overviewPage.prepareTournament')}</Link>
@@ -584,7 +585,7 @@ function LatestResultCard({ result }: { result: LatestResult }) {
       <div className="tlg-overview-panel-head"><div><span>{t('overviewPage.previousResult')}</span><h3>{t('overviewPage.latestMatch')}</h3></div>{result && <span className={`tlg-overview-result-badge ${result.won ? 'win' : 'loss'}`}>{result.won ? t('overviewPage.win') : t('overviewPage.loss')}</span>}</div>
       {result ? (
         <div className="tlg-overview-result-body tlg-overview-result-body-refined">
-          <div className="tlg-overview-result-layout">
+          <div className="tlg-overview-result-layout tlg-overview-result-layout-text-only">
             <div className="tlg-overview-result-main">
               <div className="tournament"><CountryFlag countryCode={result.country_code} width={24} height={16} /><div><strong>{result.tournament_name}</strong><span>{result.round_label} · {result.city}</span></div></div>
               <div className="tlg-overview-match-box">
@@ -592,36 +593,12 @@ function LatestResultCard({ result }: { result: LatestResult }) {
                 <div className="opponent"><span>{t('overviewPage.versus')}</span><CountryFlag countryCode={result.opponent_country_code} width={22} height={15} /><Link to={`/game/players/${result.opponent_id}`}>{result.opponent_first_name} {result.opponent_last_name}</Link></div>
               </div>
             </div>
-            <LatestOpponentPortrait playerId={result.opponent_id} name={`${result.opponent_first_name} ${result.opponent_last_name}`} />
           </div>
           <Link className="tlg-overview-link tlg-overview-result-bottom-link" to={`/game/tournaments/${result.competition_id}`}>{t('overviewPage.tournamentDetails')} <ChevronRight size={14} /></Link>
         </div>
       ) : <EmptyCard text={t('overviewPage.noCompletedMatch')} />}
     </article>
   )
-}
-
-function LatestOpponentPortrait({ playerId, name }: { playerId: string; name: string }) {
-  const [imagePath, setImagePath] = useState<string | null>(null)
-  const avatarUrl = usePlayerAvatarUrl(imagePath)
-
-  useEffect(() => {
-    let active = true
-    setImagePath(null)
-    void supabase.rpc('get_player_profile_v2', { p_player_id: playerId }).then(({ data, error }) => {
-      if (!active) return
-      // This SQL RPC returns a TABLE (an array of rows), not one JSON object.
-      const rows = data as Array<{ image_path?: string | null }> | null
-      if (!error) setImagePath(rows?.[0]?.image_path ?? null)
-    }).catch(() => {
-      if (active) setImagePath(null)
-    })
-    return () => { active = false }
-  }, [playerId])
-
-  return <div className="tlg-overview-result-portrait">
-    {avatarUrl ? <img src={avatarUrl} alt={name} loading="lazy" /> : <UserRound size={50} aria-label={name} />}
-  </div>
 }
 
 function FinanceCard({ finance, transactions }: { finance: FinanceSummary; transactions: FinanceTransaction[] }) {
