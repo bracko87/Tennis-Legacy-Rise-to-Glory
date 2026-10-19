@@ -18,7 +18,6 @@ import {
   Check,
   CircleDollarSign,
   Clock3,
-  Crown,
   Dumbbell,
   Globe2,
   MapPin,
