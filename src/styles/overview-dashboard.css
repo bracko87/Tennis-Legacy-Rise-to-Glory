@@ -22,7 +22,7 @@
 .tlg-overview-link.inline{margin-top:15px}
 .tlg-overview-muted{margin:0;color:#768a99;font-size:.7rem;line-height:1.5}
 
-.tlg-overview-next-card{display:flex;flex-direction:column;background:linear-gradient(135deg,#fff 0%,#fbfdff 66%,#f0f8fd 100%)}
+.tlg-overview-next-card{display:flex;flex-direction:column;background:#fff}
 .tlg-overview-next-body{display:flex;flex-direction:column;flex:1;min-height:0;padding:19px 20px 20px}
 .tlg-overview-event-meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;color:#5e7385;font-size:.67rem}
 .tlg-overview-event-meta>b{padding:5px 8px;border:1px solid #dce7ee;border-radius:999px;color:#557085;background:#fff;font-size:.57rem}
@@ -291,3 +291,32 @@
 .tlg-overview-finance-bar-label strong{color:#29485f;font-size:.66rem;font-variant-numeric:tabular-nums}
 .tlg-overview-finance-track{height:6px;background:#e9eef2;border-radius:999px;overflow:hidden}
 .tlg-overview-finance-track>span{display:block;height:100%;border-radius:inherit}
+
+
+/* Overview tournament insight card: true white panel, facts at left and authentic logo at right. */
+.tlg-overview-next-card .tlg-overview-next-body{background:#fff}
+.tlg-overview-tournament-extras{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.95fr);gap:14px;align-items:stretch;margin-top:16px}
+.tlg-overview-tournament-facts{min-width:0;padding:14px;border:1px solid #e0e9ef;border-radius:11px;background:#fbfdff}
+.tlg-overview-extras-heading{display:block;color:#1675b7;font-size:.59rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.tlg-overview-tournament-facts-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 11px}
+.tlg-overview-tournament-facts-grid>div{min-width:0}
+.tlg-overview-tournament-facts-grid span{display:block;font-size:.6rem;color:#8293a1}
+.tlg-overview-tournament-facts-grid strong{display:block;margin-top:5px;color:#183c55;font-size:.76rem;overflow-wrap:anywhere}
+.tlg-overview-tournament-art{display:flex;align-items:center;justify-content:center;min-width:0;min-height:166px;padding:12px;border:1px solid #e0e9ef;border-radius:11px;background:#fff}
+.tlg-overview-tournament-art img{display:block;max-width:100%;max-height:192px;width:auto;height:auto;object-fit:contain}
+.tlg-overview-tournament-art-fallback{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;color:#7897ad}
+.tlg-overview-tournament-art-fallback strong{font-size:.77rem;font-weight:750;color:#35536a}
+.tlg-overview-world-news-list{display:grid;grid-template-columns:1fr;padding:4px 20px 12px}
+.tlg-overview-world-news-item{padding:15px 0;border-bottom:1px solid #edf1f4}
+.tlg-overview-world-news-item:last-child{border-bottom:0}
+.tlg-overview-world-news-item>a{display:inline-flex;align-items:center;gap:8px;color:#174967;text-decoration:none;font-size:.78rem}
+.tlg-overview-world-news-item>a:hover{text-decoration:underline}
+.tlg-overview-world-news-item>a svg{color:#1979b4;flex-shrink:0}
+.tlg-overview-world-news-meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:.64rem;color:#7891a3}
+.tlg-overview-world-news-meta span:first-child{font-weight:780;color:#1768a1}
+.tlg-overview-world-news-state{margin:0;padding:18px 20px;color:#768a99;font-size:.74rem}
+@media (max-width:680px){
+ .tlg-overview-tournament-extras{grid-template-columns:1fr}
+ .tlg-overview-tournament-art{min-height:140px}
+ .tlg-overview-tournament-art img{max-height:160px}
+}
