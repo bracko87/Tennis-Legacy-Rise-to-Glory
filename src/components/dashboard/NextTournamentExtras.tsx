@@ -46,7 +46,7 @@ function readableStatus(text: string | null | undefined) {
 }
 
 /** Uses existing tournament RPCs and stored Admin artwork, never invented prize/points. */
-export default function NextTournamentExtras({ tournament }: { tournament: TournamentSummary }) {
+export default function NextTournamentExtras({ tournament, hideArtwork = false }: { tournament: TournamentSummary; hideArtwork?: boolean }) {
   const { t } = useTranslation()
   const { formatCurrency, formatNumber } = useLocalization()
   const [detail, setDetail] = useState<Detail | null>(null)
@@ -77,6 +77,9 @@ export default function NextTournamentExtras({ tournament }: { tournament: Tourn
       setDetail(row)
       if (rewardResponse && !rewardResponse.error) setRewards(rewardResponse.data as Rewards | null)
 
+      // In text-only mode, do not fetch or render tournament artwork.
+      if (hideArtwork) return
+
       const storedPath = storedAdminPath(row?.logo_url)
       if (storedPath) {
         const { data, error } = await supabase.storage.from('Admin').createSignedUrl(storedPath, 3600)
@@ -104,7 +107,7 @@ export default function NextTournamentExtras({ tournament }: { tournament: Tourn
 
     void load()
     return () => { active = false }
-  }, [tournament.competition_id, tournament.tournament_name])
+  }, [tournament.competition_id, tournament.tournament_name, hideArtwork])
 
   const values = [
     { label: t('overviewPage.extra.prizePool'), value: rewards?.announced_prize_pool_usd != null ? formatCurrency(rewards.announced_prize_pool_usd, 'USD') : null },
@@ -123,11 +126,13 @@ export default function NextTournamentExtras({ tournament }: { tournament: Tourn
             <div key={item.label}><span>{item.label}</span><strong>{item.value}</strong></div>)}
         </div>
       </div>
-      <div className="tlg-overview-tournament-art">
-        {logo && !logoFailed
-          ? <img src={logo} alt={t('overviewPage.extra.logoAlt', { name: tournament.tournament_name })} onError={() => setLogoFailed(true)} />
-          : <div className="tlg-overview-tournament-art-fallback"><Trophy size={42} aria-hidden="true" /><strong>{tournament.tournament_name}</strong></div>}
-      </div>
+      {!hideArtwork && (
+        <div className="tlg-overview-tournament-art">
+          {logo && !logoFailed
+            ? <img src={logo} alt={t('overviewPage.extra.logoAlt', { name: tournament.tournament_name })} onError={() => setLogoFailed(true)} />
+            : <div className="tlg-overview-tournament-art-fallback"><Trophy size={42} aria-hidden="true" /><strong>{tournament.tournament_name}</strong></div>}
+        </div>
+      )}
     </div>
   )
 }
