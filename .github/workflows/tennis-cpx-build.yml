@@ -38,6 +38,8 @@ jobs:
         run: npm run check:preferences
       - name: Build production website
         run: npm run build
+      - name: Validate public SEO pages, sitemap, and private noindex protections
+        run: npm run check:seo
       - name: Assert CPX integration is bundled
         run: |
           if ! grep -rlq 'Earn Free Coins' dist; then
