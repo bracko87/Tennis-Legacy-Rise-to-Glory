@@ -54,6 +54,7 @@ const frenchTranslations = {
     "tutorialNote": "Relancer reprend au premier chapitre. Retrouvez les explications dans le tutoriel et l'aide.",
     "accountSync": "Les préférences du compte sont synchronisées avec vos autres appareils à la connexion.",
     "categories": {
+      "player_health": "Santé et récupération",
       "tournament": "Tournois et double",
       "training": "Entraînement et stages",
       "player_development": "Progression du joueur",
