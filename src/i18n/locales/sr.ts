@@ -1849,7 +1849,8 @@ export default {
     radarAria: 'Radar trenutnih devet teniskih veština',
     historyAria: 'Istorija razvoja tehnike, fizičkih sposobnosti i spremnosti',
   },
-  overviewPage: {\n    extra: {
+  overviewPage: {
+    extra: {
       "atAGlance": "Turnir na prvi pogled",
       "prizePool": "Nagradni fond",
       "winnerPoints": "Poeni pobednika",
