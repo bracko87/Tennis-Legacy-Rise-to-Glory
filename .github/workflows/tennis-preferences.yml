@@ -10,7 +10,7 @@ on:
       - 'src/styles/notification-center.css'
       - 'src/i18n/**'
       - 'src/App.tsx'
-      - 'supabase/migrations/*preferences*.sql'
+      - 'supabase/migrations/*preference*.sql'
       - 'scripts/check-preferences-locales.mjs'
       - 'package.json'
       - '.github/workflows/tennis-preferences.yml'
