@@ -534,11 +534,6 @@ function NextTournamentCard({ tournament, match }: { tournament: NextTournament;
             </div>}
           </div>
         </div>
-        {(hasNextMatch && match ? match.competition_id : tournament?.competition_id) && (
-          <Link className="tlg-overview-link" to={`/game/tournaments/${hasNextMatch && match ? match.competition_id : tournament?.competition_id}`}>
-            {t('overviewPage.openTournament')} <ChevronRight size={14} />
-          </Link>
-        )}
       </div>
       {hasNextMatch || tournament ? (
         <div className="tlg-overview-next-body tlg-overview-next-body-refined">
@@ -569,6 +564,11 @@ function NextTournamentCard({ tournament, match }: { tournament: NextTournament;
           <div className="tlg-overview-next-actions">
             <Link to="/game/schedule">{t('overviewPage.prepareTournament')}</Link>
             <Link to="/game/calendar">{t('overviewPage.viewCalendar')}</Link>
+            {(hasNextMatch && match ? match.competition_id : tournament?.competition_id) && (
+              <Link className="tlg-overview-link tlg-overview-next-tournament-link" to={`/game/tournaments/${hasNextMatch && match ? match.competition_id : tournament?.competition_id}`}>
+                {t('overviewPage.tournamentDetails')} <ChevronRight size={14} />
+              </Link>
+            )}
           </div>
         </div>
       ) : <EmptyCard text={t('overviewPage.noActiveEntry')} />}
