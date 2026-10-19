@@ -8,6 +8,7 @@ import {
   Dumbbell,
   LockKeyhole,
   Medal,
+  UserRound,
   ShieldCheck,
   ShoppingBag,
   Trophy,
@@ -551,14 +552,43 @@ function LatestResultCard({ result }: { result: LatestResult }) {
       <div className="tlg-overview-panel-head"><div><span>{t('overviewPage.previousResult')}</span><h3>{t('overviewPage.latestMatch')}</h3></div>{result && <span className={`tlg-overview-result-badge ${result.won ? 'win' : 'loss'}`}>{result.won ? t('overviewPage.win') : t('overviewPage.loss')}</span>}</div>
       {result ? (
         <div className="tlg-overview-result-body">
-          <div className="tournament"><CountryFlag countryCode={result.country_code} width={24} height={16} /><div><strong>{result.tournament_name}</strong><span>{result.round_label} · {result.city}</span></div></div>
-          <div className="score">{resultScore(result, t('overviewPage.resultRecorded'))}</div>
-          <div className="opponent"><span>{t('overviewPage.versus')}</span><CountryFlag countryCode={result.opponent_country_code} width={22} height={15} /><Link to={`/game/players/${result.opponent_id}`}>{result.opponent_first_name} {result.opponent_last_name}</Link></div>
-          <Link className="tlg-overview-link inline" to={`/game/tournaments/${result.competition_id}`}>{t('overviewPage.tournamentDetails')} <ChevronRight size={14} /></Link>
+          <div className="tlg-overview-result-layout">
+            <div className="tlg-overview-result-main">
+              <div className="tournament"><CountryFlag countryCode={result.country_code} width={24} height={16} /><div><strong>{result.tournament_name}</strong><span>{result.round_label} · {result.city}</span></div></div>
+              <div className="tlg-overview-match-box">
+                <div className="score">{resultScore(result, t('overviewPage.resultRecorded'))}</div>
+                <div className="opponent"><span>{t('overviewPage.versus')}</span><CountryFlag countryCode={result.opponent_country_code} width={22} height={15} /><Link to={`/game/players/${result.opponent_id}`}>{result.opponent_first_name} {result.opponent_last_name}</Link></div>
+              </div>
+              <Link className="tlg-overview-link inline" to={`/game/tournaments/${result.competition_id}`}>{t('overviewPage.tournamentDetails')} <ChevronRight size={14} /></Link>
+            </div>
+            <LatestOpponentPortrait playerId={result.opponent_id} name={`${result.opponent_first_name} ${result.opponent_last_name}`} />
+          </div>
         </div>
       ) : <EmptyCard text={t('overviewPage.noCompletedMatch')} />}
     </article>
   )
+}
+
+function LatestOpponentPortrait({ playerId, name }: { playerId: string; name: string }) {
+  const [imagePath, setImagePath] = useState<string | null>(null)
+  const avatarUrl = usePlayerAvatarUrl(imagePath)
+
+  useEffect(() => {
+    let active = true
+    setImagePath(null)
+    void supabase.rpc('get_player_profile_v2', { p_player_id: playerId }).then(({ data, error }) => {
+      if (!active) return
+      const profile = data as { image_path?: string | null } | null
+      if (!error) setImagePath(profile?.image_path ?? null)
+    }).catch(() => {
+      if (active) setImagePath(null)
+    })
+    return () => { active = false }
+  }, [playerId])
+
+  return <div className="tlg-overview-result-portrait">
+    {avatarUrl ? <img src={avatarUrl} alt={name} loading="lazy" /> : <UserRound size={50} aria-label={name} />}
+  </div>
 }
 
 function FinanceCard({ finance, transactions }: { finance: FinanceSummary; transactions: FinanceTransaction[] }) {
@@ -578,8 +608,51 @@ function FinanceCard({ finance, transactions }: { finance: FinanceSummary; trans
       <div className="tlg-overview-mini-list">
         {transactions.length ? transactions.map((transaction) => <div key={transaction.id}><span>{transaction.description}</span><strong className={transaction.amount >= 0 ? 'positive' : 'negative'}>{transaction.amount >= 0 ? '+' : '−'}{money(Math.abs(transaction.amount))}</strong></div>) : <p>{t('overviewPage.noTransactions')}</p>}
       </div>
+      <RecentFinanceTrends finance={finance} transactions={transactions} />
       {finance.upcoming_commitments?.[0] && <div className="tlg-overview-commitment"><span>{t('overviewPage.nextCommitment')}</span><strong>{finance.upcoming_commitments[0].description}</strong><b>−{money(finance.upcoming_commitments[0].amount)}</b></div>}
     </article>
+  )
+}
+
+function RecentFinanceTrends({ finance, transactions }: { finance: FinanceSummary; transactions: FinanceTransaction[] }) {
+  const { t } = useTranslation()
+  if (transactions.length === 0) return null
+
+  // Only the supplied recent ledger entries are plotted; these are not fabricated season-history points.
+  const chronological = [...transactions].reverse()
+  let balance = finance.balance - chronological.reduce((sum, entry) => sum + Number(entry.amount || 0), 0)
+  let income = 0
+  let expenses = 0
+  const samples = [{ balance, income, expenses }]
+  for (const entry of chronological) {
+    const amount = Number(entry.amount) || 0
+    balance += amount
+    income += Math.max(0, amount)
+    expenses += Math.max(0, -amount)
+    samples.push({ balance, income, expenses })
+  }
+
+  const series = [
+    { key: 'balance', label: t('overviewPage.balance'), color: '#1679b8' },
+    { key: 'income', label: t('overviewPage.seasonIncome'), color: '#168b57' },
+    { key: 'expenses', label: t('overviewPage.seasonExpenses'), color: '#c75a5a' },
+  ] as const
+  return (
+    <div className="tlg-overview-finance-trends" aria-label={t('financePage.ledger.title')}>
+      {series.map((item) => {
+        const numbers = samples.map((sample) => sample[item.key])
+        const low = Math.min(...numbers)
+        const high = Math.max(...numbers)
+        const range = high - low || 1
+        const points = numbers.map((value, index) => `${6 + (index / Math.max(1, numbers.length - 1)) * 188},${49 - ((value - low) / range) * 40}`).join(' ')
+        return <div className="tlg-overview-finance-spark" key={item.key}>
+          <span style={{ color: item.color }}>{item.label}</span>
+          <svg viewBox="0 0 200 58" preserveAspectRatio="none" role="img" aria-label={item.label}>
+            <polyline points={points} fill="none" stroke={item.color} strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+          </svg>
+        </div>
+      })}
+    </div>
   )
 }
 
@@ -619,7 +692,7 @@ function PlayerFormCard({ stats }: { stats: SeasonStats }) {
   return (
     <article className="tlg-overview-panel tlg-overview-compact-panel">
       <div className="tlg-overview-panel-head"><div><span>{t('overviewPage.playerStatistics')}</span><h3>{t('overviewPage.seasonForm')}</h3></div><Link className="tlg-overview-link" to="/game/statistics">{t('overviewPage.stats')} <ChevronRight size={14} /></Link></div>
-      <div className="tlg-overview-record"><strong>{stats.wins}–{stats.losses}</strong><span>{t('overviewPage.wins', { rate: stats.win_pct.toLocaleString(localeTag, { maximumFractionDigits: 1 }) })}</span></div>
+      <div className="tlg-overview-record"><strong>{stats.wins}-{stats.losses}</strong><span>{t('overviewPage.wins', { rate: stats.win_pct.toLocaleString(localeTag, { maximumFractionDigits: 1 }) })}</span></div>
       <div className="tlg-overview-stat-grid">
         <SmallStat label={t('overviewPage.matches')} value={formatNumber(stats.matches)} />
         <SmallStat label={t('overviewPage.titles')} value={formatNumber(stats.titles)} />
