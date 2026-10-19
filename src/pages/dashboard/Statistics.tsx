@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation, type TFunction } from 'react-i18next'
 import { Link } from 'react-router'
 
+import { useAuth } from '../../auth/AuthContext'
+import { useCommerce } from '../../hooks/useCommerce'
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
 import { useLocalization } from '../../i18n/LocalizationProvider'
@@ -143,6 +145,8 @@ function surfaceLabel(surface: string, t: TFunction) {
 
 export default function StatisticsPage() {
   const { t } = useTranslation()
+  const { player: myPlayer } = useAuth()
+  const { isPremium, loading: premiumLoading } = useCommerce()
   const { formatNumber, formatCurrency } = useLocalization()
   const number = (value: number | null | undefined) => formatNumber(Math.round(Number(value) || 0))
   const money = (value: number | null | undefined) => formatCurrency(Number(value) || 0, 'USD')
@@ -192,6 +196,22 @@ export default function StatisticsPage() {
       aceRate: pick('avg_aces_per_match'),
     }
   }, [dashboard?.tournaments])
+
+  const intelligence = useMemo(() => {
+    if (!dashboard || !myPlayer || dashboard.world !== myPlayer.world) return null
+    const sample = dashboard.players.filter((item) => Number(item.matches) > 0)
+    const mine = sample.find((item) => item.player_id === myPlayer.id)
+    if (!mine || sample.length < 2) return null
+    const metrics = (['win_pct', 'aces', 'winners', 'unforced_errors'] as const).map((key) => {
+      const getValue = (player: PlayerStat) => key === 'win_pct'
+        ? Number(player.win_pct)
+        : Number(player[key]) / Math.max(1, Number(player.matches))
+      const playerValue = getValue(mine)
+      const average = sample.reduce((sum, item) => sum + getValue(item), 0) / sample.length
+      return { key, playerValue, average, difference: playerValue - average }
+    })
+    return { sampleSize: sample.length, metrics }
+  }, [dashboard, myPlayer])
 
   return (
     <GameLayout title={t('statisticsPage.title')} subtitle={t('statisticsPage.subtitle')}>
@@ -244,6 +264,40 @@ export default function StatisticsPage() {
                   <MiniRecord title={t('statisticsPage.records.mostWinners')} t={t} player={dashboard.records.winners_leader} value={dashboard.records.winners_leader?.winners} />
                   <MiniRecord title={t('statisticsPage.records.mostDefeats')} t={t} player={dashboard.records.losses_leader} value={dashboard.records.losses_leader?.losses} />
                   <MiniRecord title={t('statisticsPage.records.mostTitles')} t={t} player={dashboard.records.titles_leader} value={dashboard.records.titles_leader?.titles} />
+                </section>
+
+                <section className="tlg-statistics-panel tlg-statistics-intelligence">
+                  <header className="tlg-statistics-panel-head">
+                    <div>
+                      <span>{t('statisticsPage.intelligence.kicker')}</span>
+                      <h2>{t('statisticsPage.intelligence.title')}</h2>
+                      <p>{t('statisticsPage.intelligence.description')}</p>
+                    </div>
+                    <small>{t('statisticsPage.intelligence.premium')}</small>
+                  </header>
+                  {premiumLoading ? <EmptyState text={t('statisticsPage.loading')} /> : !isPremium ? (
+                    <div className="tlg-intelligence-locked">
+                      <p>{t('statisticsPage.intelligence.locked')}</p>
+                      <Link to="/game/pro-packages">{t('statisticsPage.intelligence.viewPremium')}</Link>
+                    </div>
+                  ) : !intelligence ? (
+                    <EmptyState text={t('statisticsPage.intelligence.unavailable')} />
+                  ) : (
+                    <div className="tlg-intelligence-content">
+                      <p>{t('statisticsPage.intelligence.sample', { count: intelligence.sampleSize })}</p>
+                      <div className="tlg-intelligence-grid">
+                        {intelligence.metrics.map(({ key, playerValue, average, difference }) => (
+                          <div key={key} className="tlg-intelligence-metric">
+                            <span>{t('statisticsPage.intelligence.metrics.' + key)}</span>
+                            <strong>{playerValue.toFixed(1)}{key === 'win_pct' ? '%' : ''}</strong>
+                            <small>{t('statisticsPage.intelligence.average', { value: average.toFixed(1), unit: key === 'win_pct' ? '%' : '' })}</small>
+                            <small className={difference >= 0 ? 'positive' : 'negative'}>{difference > 0 ? '+' : ''}{difference.toFixed(1)}{key === 'win_pct' ? '%' : ''}</small>
+                          </div>
+                        ))}
+                      </div>
+                      <p>{t('statisticsPage.intelligence.disclaimer')}</p>
+                    </div>
+                  )}
                 </section>
 
                 <section className="tlg-statistics-panel">

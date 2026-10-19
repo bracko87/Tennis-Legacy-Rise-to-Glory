@@ -3960,6 +3960,17 @@ export default {
     showHistory: 'Verlauf anzeigen',
   },
   statisticsPage: {
+    intelligence: {
+      kicker: 'PREMIUM-ANALYSE', title: 'Statistik-Intelligenz',
+      description: 'Vergleiche deine Leistung aus abgeschlossenen Matches mit der veröffentlichten Ranglisten-Stichprobe.',
+      premium: 'PREMIUM', locked: 'Schalte persönliche Ranglistenvergleiche mit Premium frei. Alle bisherigen Statistiken bleiben kostenlos.',
+      viewPremium: 'Premium-Pakete ansehen',
+      unavailable: 'Dein Spieler ist nicht in der aktuellen Stichprobe mit abgeschlossenen Matches enthalten. Versuche einen anderen Zeitraum.',
+      sample: 'Vergleichsstichprobe: {{count}} Spieler mit abgeschlossenen Matches.',
+      average: 'Stichprobenmittel: {{value}}{{unit}}',
+      disclaimer: 'Die Vergleiche beziehen sich nur auf die angezeigte Stichprobe, nicht auf alle Spieler. Schlagwerte gelten pro abgeschlossenem Match, die Siegquote ist ein Prozentwert. Keine versteckten Attribute oder Taktikempfehlungen.',
+      metrics: { win_pct: 'Siegquote', aces: 'Asse pro Match', winners: 'Winner pro Match', unforced_errors: 'Unforced Errors pro Match' },
+    },
     title: 'Statistiken',
     subtitle: 'Weltrekorde, Turnierführer und Karriereanalysen',
     loadError: 'Die Weltstatistiken konnten nicht geladen werden.',

@@ -2119,6 +2119,17 @@ export default {
     showHistory: 'Prikaži istoriju',
   },
   statisticsPage: {
+    intelligence: {
+      kicker: 'PREMIUM ANALIZA', title: 'Inteligentna statistika',
+      description: 'Uporedi učinak iz završenih mečeva sa objavljenim uzorkom rang-liste.',
+      premium: 'PREMIUM', locked: 'Otključaj poređenja sa rang-listom uz Premium. Sva postojeća statistika ostaje besplatna.',
+      viewPremium: 'Pogledaj Premium pakete',
+      unavailable: 'Tvoj igrač nije u trenutnom uzorku rang-liste sa završenim mečevima. Probaj drugi period.',
+      sample: 'Uzorak za poređenje: {{count}} igrača sa završenim mečevima.',
+      average: 'Prosek uzorka: {{value}}{{unit}}',
+      disclaimer: 'Poređenje opisuje prikazani uzorak, a ne sve igrače. Statistika udaraca je po završenom meču; procenat pobeda je izražen u procentima. Bez skrivenih atributa i taktičkih saveta.',
+      metrics: { win_pct: 'Procenat pobeda', aces: 'Asovi po meču', winners: 'Vineri po meču', unforced_errors: 'Neiznuđene greške po meču' },
+    },
     title: 'Statistika',
     subtitle: 'Svetski rekordi, lideri turnira i analiza karijere',
     loadError: 'Nije moguće učitati svetsku statistiku.',

@@ -3960,6 +3960,17 @@ export default {
     showHistory: 'Show history',
   },
   statisticsPage: {
+    intelligence: {
+      kicker: 'PREMIUM INSIGHTS', title: 'Statistics Intelligence',
+      description: 'Compare your completed-match performance with the published leaderboard sample.',
+      premium: 'PREMIUM', locked: 'Unlock personal leaderboard comparisons with Premium. All existing statistics remain free.',
+      viewPremium: 'View Premium plans',
+      unavailable: 'Your player is not in the current completed-match leaderboard sample. Try another period after more matches.',
+      sample: 'Comparison sample: {{count}} players with completed matches.',
+      average: 'Sample average: {{value}}{{unit}}',
+      disclaimer: 'Comparisons describe the displayed sample, not the full player population. Shot values are per completed match; win rate is a percentage. No hidden player attributes or tactical advice.',
+      metrics: { win_pct: 'Win rate', aces: 'Aces per match', winners: 'Winners per match', unforced_errors: 'Unforced errors per match' },
+    },
     title: 'Statistics',
     subtitle: 'World records, tournament leaders and career analytics',
     loadError: 'Unable to load world statistics.',
