@@ -485,8 +485,6 @@ export default function OverviewPage() {
             <CareerNewsCard items={dashboard.career_news} />
           </section>
 
-          <RealWorldTennisNews />
-
           <section className="tlg-overview-quick-panel">
             <div className="tlg-overview-panel-head">
               <div><span>{t('overviewPage.quickAccess')}</span><h3>{t('overviewPage.careerOperations')}</h3></div>
@@ -524,22 +522,27 @@ function NextTournamentCard({ tournament, match }: { tournament: NextTournament;
   return (
     <article className="tlg-overview-panel tlg-overview-next-card">
       <div className="tlg-overview-panel-head">
-        <div><span>{t('overviewPage.nextTournament')}</span><h3>{tournament?.tournament_name ?? t('overviewPage.noTournament')}</h3></div>
+        <div className="tlg-overview-next-title-group">
+          <span>{t('overviewPage.nextTournament')}</span>
+          <div className="tlg-overview-next-heading">
+            <h3>{tournament?.tournament_name ?? t('overviewPage.noTournament')}</h3>
+            {tournament && <div className="tlg-overview-event-meta">
+              <CountryFlag countryCode={tournament.country_code} width={24} height={16} />
+              <span>{tournament.city}</span><b>{categoryLabel(tournament.category_code)}</b><b>{surfaceLabel}</b><b>{t('overviewPage.week', { week: tournament.season_week })}</b>
+            </div>}
+          </div>
+        </div>
         {tournament && <Link className="tlg-overview-link" to={`/game/tournaments/${tournament.competition_id}`}>{t('overviewPage.openTournament')} <ChevronRight size={14} /></Link>}
       </div>
       {tournament ? (
         <div className="tlg-overview-next-body">
-          <div className="tlg-overview-event-meta">
-            <CountryFlag countryCode={tournament.country_code} width={24} height={16} />
-            <span>{tournament.city}</span><b>{categoryLabel(tournament.category_code)}</b><b>{surfaceLabel}</b><b>{t('overviewPage.week', { week: tournament.season_week })}</b>
-          </div>
           {match ? (
             <div className="tlg-overview-next-match">
               <div><span>{t('overviewPage.nextMatch')}</span><strong>{match.round_label}</strong></div>
               <div className="opponent"><CountryFlag countryCode={match.opponent_country_code} width={24} height={16} /><div><span>{t('overviewPage.opponent')}</span><Link to={`/game/players/${match.opponent_id}`}>{match.opponent_first_name} {match.opponent_last_name}</Link></div></div>
               <div className="match-date"><span>{t('overviewPage.tournamentDay')}</span><strong>{t('overviewPage.week', { week: match.season_week })} · {t('overviewPage.day', { day: match.day })}</strong></div>
             </div>
-          ) : <p className="tlg-overview-muted">{t('overviewPage.entryActive')}</p>}
+          ) : null}
           <NextTournamentExtras tournament={tournament} />
           <div className="tlg-overview-next-actions"><Link to="/game/schedule">{t('overviewPage.prepareTournament')}</Link><Link to="/game/calendar">{t('overviewPage.viewCalendar')}</Link></div>
         </div>
@@ -737,7 +740,7 @@ function OperationsCard({ dashboard, equipmentAverage }: { dashboard: OverviewDa
 function GameNewsCard({ items }: { items: GameNewsItem[] }) {
   const { t } = useTranslation()
   return (
-    <article className="tlg-overview-panel">
+    <article className="tlg-overview-panel tlg-overview-game-news-card">
       <div className="tlg-overview-panel-head"><div><span>{t('overviewPage.gameNews')}</span><h3>{t('overviewPage.latestTourResults')}</h3><p>{t('overviewPage.gameNewsIntro')}</p></div></div>
       <div className="tlg-overview-news-list">
         {items.length ? items.slice(0, 5).map((item) => (
@@ -749,6 +752,7 @@ function GameNewsCard({ items }: { items: GameNewsItem[] }) {
           </div>
         )) : <EmptyCard text={t('overviewPage.noTourMatches')} />}
       </div>
+      <RealWorldTennisNews />
     </article>
   )
 }
