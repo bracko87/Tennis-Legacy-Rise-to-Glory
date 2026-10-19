@@ -1706,7 +1706,8 @@ const frenchTranslations = {
     "loadError": "Impossible de charger les informations de parrainage pour le moment.",
     "shareText": "Rejoignez-moi dans Tennis Legacy: Rise to Glory."
   },
-  "overviewPage": {\n    extra: {
+  "overviewPage": {
+    extra: {
       "atAGlance": "Le tournoi en bref",
       "prizePool": "Dotation",
       "winnerPoints": "Points du vainqueur",
