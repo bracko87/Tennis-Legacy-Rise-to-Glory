@@ -370,21 +370,6 @@
 .tlg-statistics-section .tlg-stat-card-top { display:none; }
 .tlg-statistics-section .tlg-stat-card-content { padding-top:0; }
 
-/* Game screenshots: accepts owner-supplied image URLs; empty slots are honest placeholders. */
-.tlg-home-screenshots-section { padding:88px 0 102px; border-top:1px solid #e2edf5; background:#f7fbff; }
-.tlg-home-screenshots-heading { max-width:850px; }
-.tlg-home-screenshots-heading h2 { margin:8px 0 0; color:#071c32; font-size:clamp(2rem,4vw,3.5rem); line-height:1.08; letter-spacing:-.04em; }
-.tlg-home-screenshots-heading p { margin:16px 0 0; color:#647d91; font-size:.96rem; line-height:1.65; }
-.tlg-home-screenshots-grid { margin-top:34px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; }
-.tlg-home-screenshot-card { min-width:0; padding:10px; border:1px solid #d9e5ef; border-radius:17px; background:white; box-shadow:0 14px 35px rgba(16,46,74,.06); }
-.tlg-home-screenshot-frame { aspect-ratio:16/10; overflow:hidden; border:1px solid #e1eaf1; border-radius:11px; background:#f0f6fb; }
-.tlg-home-screenshot-frame img { display:block; width:100%; height:100%; object-fit:contain; background:#fff; }
-.tlg-home-screenshot-placeholder { width:100%; height:100%; min-height:160px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:14px; background:linear-gradient(155deg,#f0f6fc,#e8f1f9); color:#6d91ae; text-align:center; }
-.tlg-home-screenshot-placeholder span { max-width:80%; font-size:.76rem; font-weight:650; }
-.tlg-home-screenshot-caption { display:flex; align-items:center; gap:12px; padding:15px 7px 7px; }
-.tlg-home-screenshot-caption span { color:#1b83c2; font-size:.66rem; font-weight:850; letter-spacing:.06em; }
-.tlg-home-screenshot-caption strong { color:#183951; font-size:.84rem; }
-
 /* Premium plans remain available in the footer without occupying a homepage section. */
 .tlg-home-footer-premium { scroll-margin-top:80px; }
 .tlg-home-footer-premium-heading { display:flex; flex-wrap:wrap; gap:8px 18px; align-items:baseline; }
