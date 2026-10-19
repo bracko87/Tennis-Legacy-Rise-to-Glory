@@ -187,3 +187,41 @@
     padding-right: 14px !important;
   }
 }
+
+
+/* Completed-match header: replay is a first-class action next to the final status.
+   The existing replay viewer still owns playback and historical controls. */
+.tlg-match-result-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+.tlg-match-replay-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 13px;
+  border: 1px solid #0a70c7;
+  border-radius: 9px;
+  color: #fff;
+  background: #0879d3;
+  font-size: .75rem;
+  font-weight: 750;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.tlg-match-replay-open:hover {
+  background: #0867b4;
+}
+.tlg-match-replay-open:focus-visible {
+  outline: 3px solid #89c8ff;
+  outline-offset: 3px;
+}
+@media (max-width: 620px) {
+  .tlg-match-modal-head { padding-right: 64px !important; }
+  .tlg-match-result-actions { justify-content: flex-start; }
+}
