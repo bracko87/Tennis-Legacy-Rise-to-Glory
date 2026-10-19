@@ -68,4 +68,4 @@ Create a dedicated **Season Migration** section beside Tournament Operations. It
 
 ## Immediate blockers discovered
 
-**0 Season-2 tournament editions and 0 Season-2 schedule slots** as audited on 2026-10-19; thus preflight is blocked. No automated safety stop, journal, backup/restore flow or step execution system is currently installed. The Control Center must state this plainly rather than implying migration is ready.
+**0 Season-2 tournament editions and 0 Season-2 schedule slots** as audited on 2026-10-19; thus preflight is blocked. **Critical:** The existing shared game clock computes Season 2 automatically once its 366-day counter expires. The current Phase-1 UI does not pause that clock or protect the boundary; that safeguard is an urgent independent engineering requirement. No automated safety stop, journal, backup/restore flow or step execution system is currently installed. The Control Center must state this plainly rather than implying migration is ready.
