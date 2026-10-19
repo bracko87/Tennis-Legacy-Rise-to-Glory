@@ -8,6 +8,16 @@ type TranslationShape<T> = T extends string ? string
 
 const russianTranslations = {
   preferencesCenter: {
+    "notificationInventory": "{{count}} активных типов уведомлений",
+    "restoreDefaults": "Восстановить уведомления по умолчанию",
+    "restored": "Настройки по умолчанию восстановлены.",
+    "optionalsCount": "{{count}} дополнительных",
+    "requiredCount": "{{count}} обязательных",
+    "required": "Обязательно",
+    "optional": "Дополнительно",
+    "reviewTypes": "Показать {{count}} отдельных уведомлений",
+    "trigger": "Событие",
+    "toggleType": "Переключить {{name}",
     "title": "Настройки",
     "subtitle": "Язык, уведомления и интерфейс",
     "eyebrow": "ЦЕНТР МЕНЕДЖЕРА",
