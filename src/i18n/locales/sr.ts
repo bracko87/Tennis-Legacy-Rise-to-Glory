@@ -45,6 +45,7 @@ export default {
     "tutorialNote": "Ponovno pokretanje vodi na prvi korak uputstva. Pojedinačne teme su dostupne u uputstvu i centru za pomoć.",
     "accountSync": "Podešavanja naloga se sinhronizuju sa drugim uređajima nakon prijave.",
     "categories": {
+      "player_health": "Zdravlje i oporavak",
       "tournament": "Turniri i dubl",
       "training": "Trening i kampovi",
       "player_development": "Razvoj igrača",
