@@ -139,8 +139,8 @@ export default function AdminSeasonMigrationPanel() {
 
     <div className="tlg-admin-season-warning" role="status">
       <AlertTriangle size={20} aria-hidden="true" />
-      <div><strong>Migration NOT READY — clock boundary is not yet protected</strong>
-        <p>Execution controls are disabled. The existing shared game clock may still advance into Season 2 automatically unless a separate boundary safeguard is deployed. Backups, runner and recovery tests are not yet ready.</p>
+      <div><strong>Migration NOT READY — season boundary guarded; execution unavailable</strong>
+        <p>Execution controls are disabled. The shared game clock is now guarded at the end of Season 1, so gameplay time cannot advance into Season 2 before an approved handover. The migration runner, recovery journal, Season 2 calendar and dry-run certification are still missing.</p>
       </div>
     </div>
 
@@ -196,7 +196,7 @@ export default function AdminSeasonMigrationPanel() {
     <div className="tlg-admin-season-blockers">
       <h4>Blocking requirements</h4>
       {status?.blockers?.length ? <ul>{status.blockers.map((issue) => <li key={issue}>{issue}</li>)}</ul> :
-        <p>Season N+1 calendar, clock boundary protection, snapshot/recovery, idempotent step processor and dry-run validation must be completed before migration can be enabled.</p>}
+        <p>Season N+1 tournament calendar, a tested transition runner, snapshot/recovery, idempotent step processing and dry-run validation must be completed before migration can be enabled.</p>}
     </div>
 
     <div className="tlg-admin-season-checkpoints">
