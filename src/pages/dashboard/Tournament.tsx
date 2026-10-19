@@ -5,6 +5,8 @@ import { Link, useLocation, useParams } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
+import TournamentMatchReplayModal from '../../components/tournament/TournamentMatchReplayModal'
+import TournamentReplayWeatherEnhancement from '../../components/tournament/TournamentReplayWeatherEnhancement'
 import usePlayerAvatarUrl from '../../hooks/usePlayerAvatarUrl'
 import { supabase } from '../../lib/supabase'
 import {
@@ -222,6 +224,7 @@ export default function TournamentPage() {
   const [tournamentWorld, setTournamentWorld] = useState<'ATP' | 'WTA' | null>(null)
   const [drawMatches, setDrawMatches] = useState<TournamentDrawMatch[]>([])
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null)
+  const [replayMatchId, setReplayMatchId] = useState<string | null>(null)
   const [matchDetail, setMatchDetail] = useState<MatchDetail | null>(null)
   const [matchLoading, setMatchLoading] = useState(false)
   const [matchError, setMatchError] = useState<string | null>(null)
@@ -337,8 +340,14 @@ export default function TournamentPage() {
         pageTarget,
       )}
 
-      {selectedMatchId && (
-        <MatchDetailModal detail={matchDetail} drawMatches={drawMatches} loading={matchLoading} error={matchError} currentPlayerId={player?.id ?? null} returnPath={returnPath} tournamentName={tournamentName} tournamentWorld={tournamentWorld} onClose={() => setSelectedMatchId(null)} />
+      {selectedMatchId && !replayMatchId && (
+        <MatchDetailModal detail={matchDetail} drawMatches={drawMatches} loading={matchLoading} error={matchError} currentPlayerId={player?.id ?? null} returnPath={returnPath} tournamentName={tournamentName} tournamentWorld={tournamentWorld} onClose={() => setSelectedMatchId(null)} onReplay={setReplayMatchId} />
+      )}
+      {replayMatchId && (
+        <>
+          <TournamentMatchReplayModal matchId={replayMatchId} onClose={() => setReplayMatchId(null)} />
+          <TournamentReplayWeatherEnhancement matchId={replayMatchId} />
+        </>
       )}
     </div>
   )
@@ -430,13 +439,13 @@ function BracketPlayer({ matchExists, matchStatus, playerId, firstName, lastName
   )
 }
 
-function MatchDetailModal({ detail, drawMatches, loading, error, currentPlayerId, returnPath, tournamentName, tournamentWorld, onClose }: { detail: MatchDetail | null; drawMatches: TournamentDrawMatch[]; loading: boolean; error: string | null; currentPlayerId: string | null; returnPath: string; tournamentName: string; tournamentWorld: 'ATP' | 'WTA' | null; onClose: () => void }) {
+function MatchDetailModal({ detail, drawMatches, loading, error, currentPlayerId, returnPath, tournamentName, tournamentWorld, onClose, onReplay }: { detail: MatchDetail | null; drawMatches: TournamentDrawMatch[]; loading: boolean; error: string | null; currentPlayerId: string | null; returnPath: string; tournamentName: string; tournamentWorld: 'ATP' | 'WTA' | null; onClose: () => void; onReplay: (matchId: string) => void }) {
   const { t } = useTranslation()
   return createPortal(
     <div className="tlg-match-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose() }}>
       <section className="tlg-match-modal" role="dialog" aria-modal="true" aria-label={t('tournamentPage.match.dialogAria')}>
         <button type="button" className="tlg-match-modal-close" onClick={onClose} aria-label={t('tournamentPage.match.close')}>×</button>
-        {loading ? <div className="tlg-match-modal-state">{t('tournamentPage.match.loading')}</div> : error || !detail ? <div className="tlg-match-modal-state">{error ?? t('tournamentPage.match.unavailable')}</div> : <MatchDetailContent detail={detail} drawMatches={drawMatches} currentPlayerId={currentPlayerId} returnPath={returnPath} tournamentName={tournamentName} tournamentWorld={tournamentWorld} />}
+        {loading ? <div className="tlg-match-modal-state">{t('tournamentPage.match.loading')}</div> : error || !detail ? <div className="tlg-match-modal-state">{error ?? t('tournamentPage.match.unavailable')}</div> : <MatchDetailContent detail={detail} drawMatches={drawMatches} currentPlayerId={currentPlayerId} returnPath={returnPath} tournamentName={tournamentName} tournamentWorld={tournamentWorld} onReplay={onReplay} />}
       </section>
     </div>,
     document.body,
@@ -630,7 +639,7 @@ function buildWtaPortraitTransform(
   return { size, shift }
 }
 
-function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, tournamentName, tournamentWorld }: { detail: MatchDetail; drawMatches: TournamentDrawMatch[]; currentPlayerId: string | null; returnPath: string; tournamentName: string; tournamentWorld: 'ATP' | 'WTA' | null }) {
+function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, tournamentName, tournamentWorld, onReplay }: { detail: MatchDetail; drawMatches: TournamentDrawMatch[]; currentPlayerId: string | null; returnPath: string; tournamentName: string; tournamentWorld: 'ATP' | 'WTA' | null; onReplay: (matchId: string) => void }) {
   const { t } = useTranslation()
   const p1Avatar = usePlayerAvatarUrl(detail.player1?.image_path)
   const p2Avatar = usePlayerAvatarUrl(detail.player2?.image_path)
@@ -656,7 +665,17 @@ function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, 
 
   return (
     <>
-      <header className="tlg-match-modal-head"><div><span>{detail.tournament_name} · Season Week {detail.scheduled_season_week}</span><h2>{detail.round_label} · Match {detail.match_number}</h2><p>{detail.city}, {detail.country_code} · Day {detail.scheduled_day}</p></div><strong className={`match-status status-${detail.status}`}>{statusLabel(detail.status, t)}</strong></header>
+      <header className="tlg-match-modal-head">
+        <div><span>{detail.tournament_name} · Season Week {detail.scheduled_season_week}</span><h2>{detail.round_label} · Match {detail.match_number}</h2><p>{detail.city}, {detail.country_code} · Day {detail.scheduled_day}</p></div>
+        <div className="tlg-match-result-actions">
+          <strong className={`match-status status-${detail.status}`}>{statusLabel(detail.status, t)}</strong>
+          {(detail.status === 'completed' || detail.status === 'in_progress') && (
+            <button type="button" className="tlg-match-replay-open" onClick={() => onReplay(detail.match_id)}>
+              <span aria-hidden="true">▶</span> {detail.status === 'in_progress' ? 'Watch Live' : t('tournamentPage.enhancements.matchSchedule.replay')}
+            </button>
+          )}
+        </div>
+      </header>
 
       <div className={`tlg-match-versus${tournamentWorld === 'WTA' ? ' tlg-match-versus-wta' : ''}`}>
         <MatchPlayerCard
@@ -692,7 +711,7 @@ function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, 
         </>
       )}
 
-      <MatchTacticPanel detail={detail} currentPlayerId={currentPlayerId} />
+      {detail.status === 'scheduled' && <MatchTacticPanel detail={detail} currentPlayerId={currentPlayerId} />}
     </>
   )
 }
@@ -839,6 +858,10 @@ function MatchTacticPanel({ detail, currentPlayerId }: { detail: MatchDetail; cu
   const sourceLabel = data?.source ? t(`tournamentPage.tactic.source.${data.source}`) : t('tournamentPage.tactic.source.automatic_default')
   const effective = data?.effective ?? draft
   const editable = Boolean(data?.editable)
+
+  // Once the pre-match tactic deadline has passed, the entire preparation
+  // area (including equipment, health and countdown add-ons) is no longer relevant.
+  if (data && !editable) return null
 
   return (
     <section className="tlg-match-tactic-section">
