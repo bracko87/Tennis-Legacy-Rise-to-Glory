@@ -3,6 +3,64 @@
   publish = "dist"
 
 [[redirects]]
+  from = "/about"
+  to = "/about/"
+  status = 301
+
+[[redirects]]
+  from = "/features"
+  to = "/features/"
+  status = 301
+
+[[redirects]]
+  from = "/how-to-play"
+  to = "/how-to-play/"
+  status = 301
+
+# The application must still load on authentication, recovery, and gameplay URLs.
+# Robots is intentionally Allow: / so Google may encounter the X-Robots-Tag
+# response and understand these URLs are not public search destinations.
+[[headers]]
+  for = "/game/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+
+[[headers]]
+  for = "/login"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/register"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/forgot-password"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/reset-password"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/create-player"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/reviews/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/r/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
