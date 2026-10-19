@@ -178,19 +178,19 @@ export default function MarketingFooter({
               <p className="tlg-pricing-description">{t('home.premium.description')}</p>
               <div className="tlg-pricing-plans">
                 {[
-                  { label: t('home.premium.monthly'), price: '€3.29', coins: 30, period: '1' },
-                  { label: t('home.premium.threeMonths'), price: '€9.49', coins: 90, period: '3' },
-                  { label: t('home.premium.annual'), price: '€33.49', coins: 360, period: '12' },
+                  { label: t('home.premium.monthly'), price: '€3.29', coins: 30, period: '1', note: t('home.premium.monthlyCoins') },
+                  { label: t('home.premium.threeMonths'), price: '€9.49', period: '3', note: t('home.premium.threeCoins') },
+                  { label: t('home.premium.annual'), price: '€33.49', period: '12', note: t('home.premium.annualCoins') },
                 ].map((plan) => (
                   <article className="tlg-pricing-plan" key={plan.period}>
                     <h3>{plan.label}</h3>
                     <strong>{plan.price}</strong>
-                    <span>{t('home.premium.coinsOnPayment', { count: plan.coins, defaultValue: `${plan.coins} Coins per successful payment` })}</span>
+                    <span>{plan.note}</span>
                   </article>
                 ))}
               </div>
               <p className="tlg-pricing-note">{t('home.premium.note')}</p>
-              <div className="tlg-pricing-actions"><Link to="/register" onClick={() => setPricingOpen(false)}>{t('home.hero.createPlayer')}</Link></div>
+              <div className="tlg-pricing-actions"><Link to="/register" onClick={() => setPricingOpen(false)}>{t('home.cta.create')}</Link></div>
             </section>
           </div>
         )}
