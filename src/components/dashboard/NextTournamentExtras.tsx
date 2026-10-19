@@ -111,7 +111,6 @@ export default function NextTournamentExtras({ tournament }: { tournament: Tourn
     { label: t('overviewPage.extra.winnerPoints'), value: detail?.winner_points != null ? formatNumber(detail.winner_points) : null },
     { label: t('overviewPage.extra.mainDraw'), value: detail?.main_draw_capacity != null ? formatNumber(detail.main_draw_capacity) : null },
     { label: t('overviewPage.extra.environment'), value: detail?.environment ? readableStatus(detail.environment) : null },
-    { label: t('overviewPage.extra.status'), value: detail?.competition_status ? readableStatus(detail.competition_status) : null },
     { label: t('overviewPage.extra.yourEntry'), value: readableStatus(tournament.entry_status) },
   ]
 
