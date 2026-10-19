@@ -1,6 +1,6 @@
 # Tennis Legacy — Controlled season-to-season transition (design baseline)
 
-**Status:** Season 1 → Season 2 rules approved for design, including annual sponsor renewals and the legacy-contract exception (2026-10-19). Planning and Control Center visibility (Phase 1). **No rollover engine is authorized or deployed.**
+**Status:** Season 1 → Season 2 transition rules approved; Phase 2 read-only telemetry and source-season boundary clock guard deployed 2026-10-19. **No rollover execution engine is authorized or deployed.**
 **Project lock:** Tennis Legacy only, Supabase `cwfznmroiqcyhfkfcrow`. No ProPeloton dependencies or shared migrations.
 **Source of truth:** Existing game-clock, weekly rankings, tournament, training, finance, sponsor and national-team engines. This plan cannot override live game rules without explicit approval.
 
@@ -139,6 +139,14 @@ Create a dedicated **Season Migration** section beside Tournament Operations. It
 - Should major season awards and end-of-season newsletters be introduced? Preserve historical records either way.
 - Confirm the boundary and tournament week alignment on a 366-day game season and ensure end of Season 1 cannot outrun readiness at 8×.
 
+## Phase 2 implementation status (2026-10-19)
+
+- **Installed live:** source-season clock guard in `get_game_clock_v1` stopping the clock at the end of Season 1 (game second `366*86400-1`), with configured speed retained at 8× until that boundary. The guard does not move game time, alter player records, or complete a season rollover; it holds the current season if the transition is not prepared.
+- **Installed live:** read-only administrator season readiness RPC, secure five-minute source-to-Control Center migration snapshots (13 checkpoints, real clock/calendar/sponsors and blockers), and System Health monitoring of the scheduled delivery job.
+- **Validated:** at Season 1 game day 105, the guard does not affect ongoing 8× time advancement; an out-of-range timestamp is mathematically capped at Dec 31 23:59:59. Initial authenticated telemetry send returned HTTP 204, and the first cron run succeeded.
+- **Not implemented:** the atomic freeze/snapshot/settlement/Season 2 generation/verification/run-journal/controlled resume pipeline. The guard must remain enabled. Future handover must re-anchor the `game_clock` in one guarded transaction; simply disarming the guard would release accumulated real time and is unsafe.
+- **Warning:** the central getter guard covers the authoritative game-clock read path; full integration testing of all scheduled game processes and every client near the exact boundary is still required.
+
 ## Immediate blockers discovered
 
-**0 Season-2 tournament editions and 0 Season-2 schedule slots** as audited on 2026-10-19; thus preflight is blocked. **Critical:** The existing shared game clock computes Season 2 automatically once its 366-day counter expires. The current Phase-1 UI does not pause that clock or protect the boundary; that safeguard is an urgent independent engineering requirement. No automated safety stop, journal, backup/restore flow or step execution system is currently installed. The Control Center must state this plainly rather than implying migration is ready.
+**0 Season-2 tournament editions and 0 Season-2 schedule slots** as audited on 2026-10-19; preflight is blocked. The source-season clock guard is now installed and active; **it will hold Season 1 at Dec 31 23:59:59 until a controlled handover exists**. No executable migration runner, journal, backup/restore workflow, calendar generator or step processor is installed. The Control Center must report these blockers rather than implying Season 2 is ready.
