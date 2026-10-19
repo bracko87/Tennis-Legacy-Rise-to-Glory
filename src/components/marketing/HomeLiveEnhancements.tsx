@@ -5,6 +5,13 @@ import { useGameClock } from '../../hooks/useGameClock'
 import { supabase } from '../../lib/supabase'
 import '../../styles/home-live-enhancements.css'
 
+// Anonymous visitors may sign only these three gallery images via the scoped storage policy.
+const CAREER_STACK_PATHS = [
+  'Branding/tennis 001.png',
+  'Branding/tennis 002.png',
+  'Branding/tennis 003.png',
+] as const
+
 const CAREER_OVERVIEW_IMAGE_URL = 'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/Profile%20one%20image.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9Qcm9maWxlIG9uZSBpbWFnZS5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg5Mzc0Mzc3LCJleHAiOjQ5MTE0MzgzNzd9.8eAFbuK0uBHY8PFzF87wYaglFqTH41U5NbsAsayUO4I_p1D2gy5L38ytKH_X6uHXeeTTaXpahbPr7N-qdwyDJw'
 
 interface PublicHomeStats {
@@ -27,6 +34,26 @@ function formatStat(value: number | string) {
 export default function HomeLiveEnhancements() {
   const clock = useGameClock()
   const [careerPanel, setCareerPanel] = useState<HTMLElement | null>(null)
+  const [careerStackUrls, setCareerStackUrls] = useState<string[]>([])
+
+  useEffect(() => {
+    let active = true
+
+    async function loadCareerStack() {
+      try {
+        const { data, error } = await supabase.storage.from('Admin')
+          .createSignedUrls([...CAREER_STACK_PATHS], 3600)
+        if (!active || error || !data) return
+        setCareerStackUrls(data.map((entry) => entry?.signedUrl && !entry.error ? entry.signedUrl : ''))
+      } catch {
+        // The original front screenshot remains visible if decorative layers fail.
+      }
+    }
+
+    void loadCareerStack()
+    const refresh = window.setInterval(() => void loadCareerStack(), 45 * 60 * 1000)
+    return () => { active = false; window.clearInterval(refresh) }
+  }, [])
 
   useEffect(() => {
     const panel = document.querySelector<HTMLElement>('.tlg-career-control-panel')
@@ -116,11 +143,23 @@ export default function HomeLiveEnhancements() {
 
   return careerPanel
     ? createPortal(
-        <img
-          className="tlg-career-control-live-image"
-          src={CAREER_OVERVIEW_IMAGE_URL}
-          alt="Tennis Legacy player profile overview"
-        />,
+        <div className="tlg-career-control-live-stack">
+          {CAREER_STACK_PATHS.map((path, index) => careerStackUrls[index] ? (
+            <img
+              key={path}
+              className={`tlg-career-control-stack-back tlg-career-control-stack-back-${index + 1}`}
+              src={careerStackUrls[index]}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+            />
+          ) : null)}
+          <img
+            className="tlg-career-control-live-image"
+            src={CAREER_OVERVIEW_IMAGE_URL}
+            alt="Tennis Legacy player profile overview"
+          />
+        </div>,
         careerPanel,
       )
     : null
