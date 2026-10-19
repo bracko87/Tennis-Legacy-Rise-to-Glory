@@ -55,6 +55,7 @@ export default {
     "tutorialNote": "Reiniciar comienza desde el primer paso. Consulta otras explicaciones en el tutorial y la ayuda.",
     "accountSync": "Las preferencias de tu cuenta se sincronizan con otros dispositivos al iniciar sesión.",
     "categories": {
+      "account": "Cuenta y facturación",
       "player_health": "Salud y recuperación",
       "tournament": "Torneos y dobles",
       "training": "Entrenamiento y concentraciones",
