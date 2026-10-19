@@ -121,6 +121,9 @@ export default function MarketingFooter({
           <div className="tlg-footer-links-grid">
             <FooterColumn title="Explore">
               <Link to="/">Home</Link>
+              <a href="/about/">About the Game</a>
+              <a href="/features/">Game Features</a>
+              <a href="/how-to-play/">How to Play</a>
 
               <button
                 type="button"
