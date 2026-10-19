@@ -1,19 +1,17 @@
 name: Validate Tennis Premium trial
+
+# Release validation also runs the locale and production build checks.
+# Keep this specialist workflow for explicit troubleshooting only.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'src/components/premium/**'
-      - 'src/components/layout/GameLayout.tsx'
-      - 'src/hooks/useCommerce.ts'
-      - 'src/pages/manager/ProPackages.tsx'
-      - 'src/i18n/locales/**'
-      - 'supabase/migrations/*tennis*trial*.sql'
-      - 'package.json'
-      - '.github/workflows/tennis-premium-trial.yml'
   workflow_dispatch:
+
 permissions:
   contents: read
+
+concurrency:
+  group: tennis-premium-trial-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-locales:
     runs-on: ubuntu-latest

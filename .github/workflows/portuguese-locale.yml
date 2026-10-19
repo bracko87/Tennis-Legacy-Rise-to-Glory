@@ -1,20 +1,16 @@
 name: Validate Portuguese localization
 
+# The release validation workflow runs this check on each release.
+# Keep this specialist workflow for explicit troubleshooting only.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'src/i18n/locales/en.ts'
-      - 'src/i18n/locales/pt.ts'
-      - 'src/i18n/index.ts'
-      - 'scripts/check-pt-coverage.mjs'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/portuguese-locale.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: tennis-portuguese-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   coverage-and-build:

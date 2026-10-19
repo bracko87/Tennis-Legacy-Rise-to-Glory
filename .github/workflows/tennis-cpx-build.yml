@@ -1,13 +1,26 @@
-name: Tennis Legacy CPX survey build
+name: Tennis Legacy release validation
+
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+  pull_request:
+    branches: [main]
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Newer work replaces superseded builds on the same branch or pull request.
+concurrency:
+  group: tennis-release-validation-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   production-build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     timeout-minutes: 15
     steps:
       - name: Checkout
@@ -17,8 +30,12 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Install dependencies
+      - name: Install dependencies once
         run: npm ci
+      - name: Validate Portuguese key and placeholder parity
+        run: npm run check:pt
+      - name: Validate Preferences translations
+        run: npm run check:preferences
       - name: Build production website
         run: npm run build
       - name: Assert CPX integration is bundled

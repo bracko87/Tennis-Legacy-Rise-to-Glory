@@ -1,22 +1,17 @@
 name: Validate Tennis Preferences
+
+# The release validation workflow runs these checks on each release.
+# Keep this specialist workflow for explicit troubleshooting only.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'src/preferences/**'
-      - 'src/pages/manager/GamePreferences.tsx'
-      - 'src/pages/manager/Notifications.tsx'
-      - 'src/styles/game-preferences.css'
-      - 'src/styles/notification-center.css'
-      - 'src/i18n/**'
-      - 'src/App.tsx'
-      - 'supabase/migrations/*preference*.sql'
-      - 'scripts/check-preferences-locales.mjs'
-      - 'package.json'
-      - '.github/workflows/tennis-preferences.yml'
   workflow_dispatch:
+
 permissions:
   contents: read
+
+concurrency:
+  group: tennis-preferences-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   verify:
     runs-on: ubuntu-latest
