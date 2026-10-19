@@ -113,10 +113,17 @@ export function useGameClock(): GameClockView {
     }
 
     const elapsedRealSeconds = Math.max(0, (nowMs - anchor.receivedAtMs) / 1000)
-    const totalGameSeconds = Math.max(
+    const projectedGameSeconds = Math.max(
       0,
       Math.floor(anchor.gameSeconds + elapsedRealSeconds * anchor.speedMultiplier),
     )
+    // The backend guards Season 1 at Dec 31 23:59:59. Locally never
+    // extrapolate beyond that boundary between the five-minute resyncs.
+    // Once the controlled backend handover publishes Season 2, a new
+    // server anchor starts at/after SEASON_SECONDS and removes this cap.
+    const totalGameSeconds = anchor.gameSeconds < SEASON_SECONDS
+      ? Math.min(projectedGameSeconds, SEASON_SECONDS - 1)
+      : projectedGameSeconds
 
     const seasonIndex = Math.floor(totalGameSeconds / SEASON_SECONDS)
     let seasonRemainder = totalGameSeconds % SEASON_SECONDS
