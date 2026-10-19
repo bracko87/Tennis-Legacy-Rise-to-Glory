@@ -10,6 +10,7 @@ import { lockBodyScroll } from '../../lib/bodyScrollLock'
 import { supabase } from '../../lib/supabase'
 import '../../styles/equipment.css'
 import '../../styles/equipment-marketplace-v2.css'
+import '../../styles/equipment-gear-room-inventory.css'
 import '../../styles/equipment-technical-sponsor.css'
 
 type EquipmentTab = 'gear' | 'inventory' | 'market' | 'sponsors'
