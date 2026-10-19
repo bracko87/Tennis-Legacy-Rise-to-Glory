@@ -1,5 +1,15 @@
 export default {
   preferencesCenter: {
+    "notificationInventory": "{{count}} active notification types",
+    "restoreDefaults": "Restore notification defaults",
+    "restored": "Defaults restored.",
+    "optionalsCount": "{{count}} optional",
+    "requiredCount": "{{count}} required",
+    "required": "Required",
+    "optional": "Optional",
+    "reviewTypes": "Review {{count}} individual notifications",
+    "trigger": "Trigger",
+    "toggleType": "Toggle {{name}",
     "title": "Preferences",
     "subtitle": "Language, notifications and interface",
     "eyebrow": "MANAGER CENTER",
