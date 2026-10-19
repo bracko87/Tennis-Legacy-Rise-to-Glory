@@ -10,7 +10,7 @@ export default {
     "optional": "Facoltativa",
     "reviewTypes": "Mostra {{count}} notifiche singole",
     "trigger": "Evento",
-    "toggleType": "Attiva/disattiva {{name}",
+    "toggleType": "Attiva/disattiva {{name}}",
     "title": "Preferenze",
     "subtitle": "Lingua, notifiche e interfaccia",
     "eyebrow": "CENTRO GESTIONE",
