@@ -57,7 +57,8 @@ export function LocalizationProvider({ children }: { children: ReactNode }) {
 
       if (cancelled) return
 
-      const accountLocale = !error && data?.locale ? normalizeAppLocale(data.locale) : locale
+      // A different account must not inherit the previous account's cached language.
+      const accountLocale = !error && data?.locale ? normalizeAppLocale(data.locale) : 'en'
       await applyLocale(accountLocale)
       if (!cancelled) setLoading(false)
     }
