@@ -115,7 +115,7 @@ export default function AdminSeasonMigrationPanel() {
 
     <div className="tlg-admin-season-warning" role="status">
       <AlertTriangle size={20} aria-hidden="true" />
-      <div><strong>Migration NOT READY — no automatic rollover</strong>
+      <div><strong>Migration NOT READY — clock boundary is not yet protected</strong>
         <p>Execution is disabled. The step runner, backups and recovery rehearsal must be implemented and certified first.</p>
       </div>
     </div>
