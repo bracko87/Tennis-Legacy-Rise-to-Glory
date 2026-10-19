@@ -1,4 +1,5 @@
-import { Bell, BookOpen, Check, ChevronRight, GraduationCap, Languages, LayoutGrid, ShieldCheck, SlidersHorizontal } from 'lucide-react'
+import { Bell, BookOpen, Check, ChevronRight, GraduationCap, Languages, LayoutGrid, RotateCcw, ShieldCheck, SlidersHorizontal } from 'lucide-react'
+import { notificationTemplateKey } from '../../i18n/notificationLocalization'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
@@ -18,12 +19,27 @@ const LANGUAGE_LABEL_KEYS: Record<AppLocale,string> = {
   ru:'common.russian',pt:'common.portuguese',
 }
 type Notice = {kind:'success'|'error';message:string}
+type NotificationType = {
+  code:string
+  label:string
+  description:string
+  trigger:string
+  condition:string
+  mechanism:string
+  severity:'info'|'success'|'warning'|'error'
+  configurable:boolean
+  enabled:boolean
+  default_enabled:boolean
+}
 type NotificationGroup = {
   category:string
-  event_types:number
-  enabled_types:number
-  enabled:boolean
+  total:number
+  optional_count:number
+  required_count:number
+  enabled_count:number
+  all_optional_enabled:boolean
   mixed:boolean
+  items:NotificationType[]
 }
 
 const CATEGORY_ORDER = [
@@ -45,7 +61,7 @@ export default function GamePreferencesPage() {
 
   const reloadNotifications=useCallback(async()=>{
     if(!user?.id){setGroups([]);setNotificationsLoading(false);return}
-    const {data,error}=await supabase.rpc('get_my_notification_category_preferences_v1')
+    const {data,error}=await supabase.rpc('get_my_notification_inventory_v2')
     if(error){setNotificationError(error.message);setNotificationsLoading(false);return}
     setGroups(Array.isArray(data)?data as NotificationGroup[]:[])
     setNotificationError(null)
@@ -73,8 +89,8 @@ export default function GamePreferencesPage() {
   }
 
   async function toggleCategory(row:NotificationGroup){
-    if(savingCategory||notificationsLoading)return
-    const enabled=!row.enabled
+    if(savingCategory||notificationsLoading||restoringDefaults||row.optional_count===0)return
+    const enabled=!row.all_optional_enabled
     setSavingCategory(row.category)
     setNotice(null)
     const {error}=await supabase.rpc('set_my_notification_category_enabled_v1',{
@@ -84,13 +100,47 @@ export default function GamePreferencesPage() {
       setNotice({kind:'error',message:t('preferencesCenter.saveError')})
       setNotificationError(error.message)
     }else{
-      setGroups(old=>old.map(item=>item.category===row.category
-        ?{...item,enabled,enabled_types:enabled?item.event_types:0,mixed:false}
-        :item))
-      setNotificationError(null)
+      await reloadNotifications()
       setNotice({kind:'success',message:t('preferencesCenter.saved')})
     }
     setSavingCategory(null)
+  }
+
+  async function toggleType(item:NotificationType){
+    if(savingCategory||notificationsLoading||restoringDefaults||!item.configurable)return
+    setSavingCategory(item.code)
+    setNotice(null)
+    const {error}=await supabase.rpc('set_my_notification_type_enabled_v1',{
+      p_code:item.code,p_enabled:!item.enabled,
+    })
+    if(error){
+      setNotice({kind:'error',message:t('preferencesCenter.saveError')})
+      setNotificationError(error.message)
+    }else{
+      await reloadNotifications()
+      setNotice({kind:'success',message:t('preferencesCenter.saved')})
+    }
+    setSavingCategory(null)
+  }
+
+  async function restoreNotificationDefaults(){
+    if(savingCategory||restoringDefaults||notificationsLoading)return
+    setRestoringDefaults(true)
+    setNotice(null)
+    const {error}=await supabase.rpc('restore_my_notification_defaults_v1')
+    if(error){
+      setNotice({kind:'error',message:t('preferencesCenter.saveError')})
+      setNotificationError(error.message)
+    }else{
+      await reloadNotifications()
+      setNotice({kind:'success',message:t('preferencesCenter.restored')})
+    }
+    setRestoringDefaults(false)
+  }
+
+  function localizedNotificationName(item:NotificationType){
+    const template=t('notifications.templates.'+notificationTemplateKey(item.code)+'.title',{defaultValue:''})
+    return template && !template.includes('{{') ? template : item.label
   }
 
   const orderedGroups=[...groups].sort((a,b)=>{
@@ -152,22 +202,61 @@ export default function GamePreferencesPage() {
             </div>
             {notificationsLoading?<p className="tlg-pref-help">{t('preferencesCenter.loading')}</p>
             :orderedGroups.length===0?<p className="tlg-pref-help">{t('preferencesCenter.noGroups')}</p>
-            :<div className="tlg-pref-options">
+            :<div className="tlg-pref-notification-groups">
+              <div className="tlg-pref-notification-actions">
+                <p>{t('preferencesCenter.notificationInventory',{count:orderedGroups.reduce((sum,group)=>sum+group.total,0)})}</p>
+                <button className="tlg-pref-action" type="button"
+                  disabled={savingCategory!==null||restoringDefaults}
+                  onClick={()=>void restoreNotificationDefaults()}>
+                  <RotateCcw size={16} aria-hidden="true"/>{t('preferencesCenter.restoreDefaults')}
+                </button>
+              </div>
               {orderedGroups.map(group=>(
-                <div className="tlg-pref-option-row" key={group.category}>
-                  <div className="tlg-pref-option-copy">
-                    <strong>{t(`preferencesCenter.categories.${group.category}`,{defaultValue:group.category.replaceAll('_',' ')})}</strong>
-                    <small>{t('preferencesCenter.categoryCount',{count:group.event_types})}
-                      {group.mixed?` · ${t('preferencesCenter.mixed')}`:''}</small>
+                <div className="tlg-pref-notification-group" key={group.category}>
+                  <div className="tlg-pref-notification-group-header">
+                    <div className="tlg-pref-option-copy">
+                      <strong>{t(`preferencesCenter.categories.${group.category}`,{defaultValue:group.category.replaceAll('_',' ')})}</strong>
+                      <small>{t('preferencesCenter.optionalsCount',{count:group.optional_count})}
+                        {' · '}{t('preferencesCenter.requiredCount',{count:group.required_count})}
+                        {group.mixed?` · ${t('preferencesCenter.mixed')}`:''}</small>
+                    </div>
+                    {group.optional_count>0 ? (
+                      <button type="button" role="switch"
+                        className={`tlg-pref-switch ${group.all_optional_enabled?'on':''}`}
+                        aria-checked={group.all_optional_enabled}
+                        aria-label={t('preferencesCenter.toggleCategory',{category:t(`preferencesCenter.categories.${group.category}`,{defaultValue:group.category})})}
+                        disabled={savingCategory!==null||restoringDefaults}
+                        onClick={()=>void toggleCategory(group)}><span aria-hidden="true"/></button>
+                    ):(
+                      <span className="tlg-pref-required-chip"><ShieldCheck size={14}/>{t('preferencesCenter.required')}</span>
+                    )}
                   </div>
-                  <button type="button" className={`tlg-pref-switch ${group.enabled?'on':''}`}
-                    role="switch" aria-checked={group.enabled} aria-label={t('preferencesCenter.toggleCategory',{
-                      category:t(`preferencesCenter.categories.${group.category}`,{defaultValue:group.category}),
-                    })}
-                    disabled={savingCategory!==null}
-                    onClick={()=>void toggleCategory(group)}>
-                    <span aria-hidden="true"/>
-                  </button>
+                  <details className="tlg-pref-notification-details">
+                    <summary>{t('preferencesCenter.reviewTypes',{count:group.total})}</summary>
+                    <div className="tlg-pref-notification-types">
+                      {group.items.map(item=>(
+                        <div className="tlg-pref-notification-type" key={item.code}>
+                          <div className="tlg-pref-option-copy">
+                            <strong>{localizedNotificationName(item)}</strong>
+                            <small>{item.description}</small>
+                            <small className="tlg-pref-event-trigger">{t('preferencesCenter.trigger')}: {item.trigger}</small>
+                            <span className="tlg-pref-severity">{t('notifications.severity.'+item.severity,{defaultValue:item.severity})}
+                              {' · '}{item.configurable?t('preferencesCenter.optional'):t('preferencesCenter.required')}</span>
+                          </div>
+                          {item.configurable ? (
+                            <button type="button" role="switch"
+                              className={`tlg-pref-switch ${item.enabled?'on':''}`}
+                              aria-checked={item.enabled}
+                              aria-label={t('preferencesCenter.toggleType',{name:localizedNotificationName(item)})}
+                              disabled={savingCategory!==null||restoringDefaults}
+                              onClick={()=>void toggleType(item)}><span aria-hidden="true"/></button>
+                          ):(
+                            <span className="tlg-pref-required-chip"><ShieldCheck size={14}/>{t('preferencesCenter.required')}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </details>
                 </div>
               ))}
             </div>}
