@@ -41,6 +41,8 @@ for (const [route, source] of routes) {
   assert.ok(!built.includes('localhost'), route + ': localhost reference')
   if (route !== '/') {
     assert.ok(built.includes('href="/login"'), route + ': missing game sign-in link')
+    assert.ok(!built.includes('href="/register"'), route + ': registration is closed; public CTA cannot point to /register')
+    assert.ok(built.includes('New-player registration is currently unavailable.'), route + ': missing truthful registration status')
     assert.ok(built.includes('href="/features/"'), route + ': missing navigation')
   }
   const input = read(source)
