@@ -18,7 +18,7 @@ const frenchTranslations = {
     "optional": "Facultative",
     "reviewTypes": "Voir {{count}} notifications individuelles",
     "trigger": "Événement déclencheur",
-    "toggleType": "Activer/désactiver {{name}",
+    "toggleType": "Activer/désactiver {{name}}",
     "title": "Préférences",
     "subtitle": "Langue, notifications et interface",
     "eyebrow": "CENTRE DE GESTION",
