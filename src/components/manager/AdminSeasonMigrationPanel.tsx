@@ -146,6 +146,8 @@ export default function AdminSeasonMigrationPanel() {
         </article>)}
       </div>
     </div>
-    <p className="tlg-admin-season-footnote">All career records, historical match results, finances, rankings, staff contracts, purchased assets and active player profiles are preserved by design. An executable engine and durable step journal are future phases, not part of this read-only panel.</p>
+    <p className="tlg-admin-season-footnote">All career records, historical match results, finances, rankings, staff contracts, purchased assets and active player profiles are preserved by design. An executable engine and durable step journal are future phases, not part of this read-only panel.{' '}
+      <a href="https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/blob/staging/docs/SEASON_MIGRATION_PLAN.md" target="_blank" rel="noopener noreferrer">View complete migration rules and operator runbook</a>
+    </p>
   </section>
 }
