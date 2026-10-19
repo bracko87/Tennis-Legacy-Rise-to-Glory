@@ -35,3 +35,9 @@ Reduce paid GitHub Actions usage while retaining production validation and deplo
 - GitHub's actual billing budget is separate. Set a suitable spending cap at https://github.com/settings/billing/budgets.
 - If free Actions minutes are exhausted, PR checks can be blocked; do not merge an unvalidated release just to bypass usage limits.
 - Before any code task, explicitly tell the coding assistant to use `staging` and batch release changes.
+
+## Staging branch verification
+
+To verify that staging saves Actions minutes, first push a small change to `staging` while no pull request from `staging` into `main` is open. Confirm that GitHub Actions does not create a new run for that staging push. A local production build is free of Actions charges, but a CI run or an open pull request into `main` can consume billable minutes.
+
+After the account's approved Actions billing budget is enabled, open a short-lived `staging` → `main` PR to check consolidated validation. Merge only after the PR tests actually pass, and verify that merging triggers just one post-release workflow.
