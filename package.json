@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "node scripts/build.mjs",
     "build": "node scripts/build.mjs --production",
-    "check:pt": "node scripts/check-pt-coverage.mjs"
+    "check:pt": "node scripts/check-pt-coverage.mjs",
+    "check:preferences": "node scripts/check-preferences-locales.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
