@@ -20,6 +20,8 @@ import { Link } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
+import NextTournamentExtras from '../../components/dashboard/NextTournamentExtras'
+import RealWorldTennisNews from '../../components/dashboard/RealWorldTennisNews'
 import GameLayout from '../../components/layout/GameLayout'
 import usePlayerAvatarUrl from '../../hooks/usePlayerAvatarUrl'
 import { useLocalization } from '../../i18n/LocalizationProvider'
@@ -379,10 +381,9 @@ export default function OverviewPage() {
                 <strong>{displayName}</strong>
                 <p className="tlg-v7-country-line">
                   <CountryFlag countryCode={player?.country_code} countryName={countryName} width={20} height={15} />
-                  <span>{t('overviewPage.worldLabel', {
+                  <span>{t('overviewPage.extra.worldLabel', {
                     country: countryName,
                     world: player?.world ?? '—',
-                    hand: player?.playing_hand === 'left' ? t('overviewPage.leftHanded') : t('overviewPage.rightHanded'),
                   })}</span>
                 </p>
               </div>
@@ -484,6 +485,8 @@ export default function OverviewPage() {
             <CareerNewsCard items={dashboard.career_news} />
           </section>
 
+          <RealWorldTennisNews />
+
           <section className="tlg-overview-quick-panel">
             <div className="tlg-overview-panel-head">
               <div><span>{t('overviewPage.quickAccess')}</span><h3>{t('overviewPage.careerOperations')}</h3></div>
@@ -537,6 +540,7 @@ function NextTournamentCard({ tournament, match }: { tournament: NextTournament;
               <div className="match-date"><span>{t('overviewPage.tournamentDay')}</span><strong>{t('overviewPage.week', { week: match.season_week })} · {t('overviewPage.day', { day: match.day })}</strong></div>
             </div>
           ) : <p className="tlg-overview-muted">{t('overviewPage.entryActive')}</p>}
+          <NextTournamentExtras tournament={tournament} />
           <div className="tlg-overview-next-actions"><Link to="/game/schedule">{t('overviewPage.prepareTournament')}</Link><Link to="/game/calendar">{t('overviewPage.viewCalendar')}</Link></div>
         </div>
       ) : <EmptyCard text={t('overviewPage.noActiveEntry')} />}
@@ -736,7 +740,7 @@ function GameNewsCard({ items }: { items: GameNewsItem[] }) {
     <article className="tlg-overview-panel">
       <div className="tlg-overview-panel-head"><div><span>{t('overviewPage.gameNews')}</span><h3>{t('overviewPage.latestTourResults')}</h3><p>{t('overviewPage.gameNewsIntro')}</p></div></div>
       <div className="tlg-overview-news-list">
-        {items.length ? items.map((item) => (
+        {items.length ? items.slice(0, 5).map((item) => (
           <div key={item.match_id} className="tlg-overview-news-row">
             <div className="winner"><CountryFlag countryCode={item.winner_country_code} width={22} height={15} /><Link to={`/game/players/${item.winner_id}`}>{item.winner_first_name} {item.winner_last_name}</Link></div>
             <span>{t('overviewPage.defeated')}</span>
