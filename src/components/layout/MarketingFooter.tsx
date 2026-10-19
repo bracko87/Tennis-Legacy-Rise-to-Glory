@@ -6,6 +6,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { createPortal } from 'react-dom'
 import {
   Link,
   useNavigate,
@@ -169,7 +170,7 @@ export default function MarketingFooter({
           </div>
         </div>
 
-        {pricingOpen && (
+        {pricingOpen && createPortal((
           <div className="tlg-pricing-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setPricingOpen(false) }}>
             <section className="tlg-pricing-dialog" role="dialog" aria-modal="true" aria-labelledby="tlg-pricing-dialog-title">
               <button className="tlg-pricing-close" type="button" aria-label={t('home.premium.close', { defaultValue: 'Close' })} onClick={() => setPricingOpen(false)}><X size={21} /></button>
@@ -193,7 +194,7 @@ export default function MarketingFooter({
               <div className="tlg-pricing-actions"><Link to="/register" onClick={() => setPricingOpen(false)}>{t('home.cta.create')}</Link></div>
             </section>
           </div>
-        )}
+        ), document.body)}
 
         {children && (
           <div className="tlg-footer-extra">
