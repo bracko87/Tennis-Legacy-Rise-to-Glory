@@ -9,6 +9,16 @@ type TranslationShape<T> = T extends string ? string
 
 const frenchTranslations = {
   preferencesCenter: {
+    "notificationInventory": "{{count}} types de notification actifs",
+    "restoreDefaults": "Rétablir les notifications par défaut",
+    "restored": "Paramètres par défaut rétablis.",
+    "optionalsCount": "{{count}} facultatives",
+    "requiredCount": "{{count}} obligatoires",
+    "required": "Obligatoire",
+    "optional": "Facultative",
+    "reviewTypes": "Voir {{count}} notifications individuelles",
+    "trigger": "Événement déclencheur",
+    "toggleType": "Activer/désactiver {{name}",
     "title": "Préférences",
     "subtitle": "Langue, notifications et interface",
     "eyebrow": "CENTRE DE GESTION",
