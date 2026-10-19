@@ -1,0 +1,138 @@
+/* Gear-room inventory: broad shelves of side-by-side equipment, not tall marketplace tiles.
+   Scoped to Inventory so the Market and Gear tabs keep their existing presentation. */
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-inventory-groups {
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:18px;
+  padding:20px 22px 24px;
+}
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-inventory-group {
+  padding:16px;
+  min-width:0;
+  border:1px solid #dbe7ef;
+  border-radius:13px;
+  background:linear-gradient(180deg,#f7fafc,#fff 60%);
+}
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-inventory-group-head {
+  margin-bottom:14px;
+  padding:0 2px 11px;
+  border-bottom:1px solid #e2ebf1;
+}
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-inventory-group-head h3 {
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#143b58;
+  font-size:.94rem;
+}
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-inventory-card-grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:stretch;
+  gap:13px;
+  padding:0;
+}
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card {
+  display:grid;
+  grid-template-columns:minmax(140px,32%) minmax(0,1fr);
+  min-width:0;
+  overflow:hidden;
+  border:1px solid #d7e5ee;
+  border-radius:12px;
+  background:#fff;
+  box-shadow:0 5px 17px rgba(12,51,81,.055);
+}
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card.equipped {
+  border-color:#8cc4e5;
+  box-shadow:inset 0 3px 0 #1884bf,0 5px 18px rgba(24,92,130,.1);
+}
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card > .tlg-equipment-product-image.large {
+  width:100%;
+  height:100%;
+  min-height:244px;
+  border:0;
+  border-right:1px solid #e5ebf1;
+  border-radius:0;
+  background:#f2f7fb;
+}
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card > .tlg-equipment-product-image.large img {
+  width:100%;
+  height:100%;
+  max-height:100%;
+  object-fit:cover;
+  object-position:center;
+}
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card-body {
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  gap:8px;
+  padding:14px 16px 13px;
+}
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card .tlg-equipment-brand-identity {
+  align-self:flex-start;
+  margin:0;
+}
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card h3 {
+  padding:0;
+  border:0;
+  background:transparent;
+  font-size:.93rem;
+  line-height:1.35;
+}
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card p {
+  -webkit-line-clamp:1;
+  font-size:.63rem;
+}
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-condition {
+  padding:8px 10px;
+  gap:5px;
+  background:#f9fcfe;
+}
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-facts {
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-facts span {
+  flex:1 1 90px;
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  align-items:center;
+  padding:7px 9px;
+}
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-effect-chips {
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px;
+}
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card-actions {
+  display:flex;
+  gap:8px;
+  margin-top:auto;
+  padding-top:6px;
+  justify-content:flex-start;
+}
+.tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card-actions button {
+  min-height:33px;
+  padding:0 11px;
+}
+@media (max-width:1180px) {
+  .tlg-equipment-inventory-panel-v3 .tlg-equipment-inventory-card-grid { grid-template-columns:minmax(0,1fr); }
+  .tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card { grid-template-columns:minmax(140px,27%) minmax(0,1fr); }
+}
+@media (max-width:700px) {
+  .tlg-equipment-inventory-panel-v3 .tlg-equipment-inventory-groups { padding:12px;gap:12px; }
+  .tlg-equipment-inventory-panel-v3 .tlg-equipment-inventory-group { padding:10px; }
+  .tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card { grid-template-columns:minmax(95px,34%) minmax(0,1fr); }
+  .tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card > .tlg-equipment-product-image.large { height:100%;min-height:225px; }
+  .tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card-body { padding:10px;gap:7px; }
+  .tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card .tlg-equipment-brand-identity { display:none; }
+  .tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card h3 { font-size:.79rem; }
+  .tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card p { display:none; }
+}
+@media (max-width:410px) {
+  .tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card { grid-template-columns:1fr; }
+  .tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card > .tlg-equipment-product-image.large { height:160px;min-height:160px; }
+}
