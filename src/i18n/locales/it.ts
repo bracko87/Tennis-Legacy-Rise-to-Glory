@@ -46,6 +46,7 @@ export default {
     "tutorialNote": "Il riavvio riparte dal primo passaggio. Le lezioni sono disponibili nel tutorial e nella guida.",
     "accountSync": "Le preferenze dell'account si sincronizzano tra dispositivi dopo l'accesso.",
     "categories": {
+      "player_health": "Salute e recupero",
       "tournament": "Tornei e doppio",
       "training": "Allenamenti e ritiri",
       "player_development": "Sviluppo del giocatore",
