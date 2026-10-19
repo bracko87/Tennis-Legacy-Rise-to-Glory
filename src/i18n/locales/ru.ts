@@ -1223,7 +1223,8 @@ const russianTranslations = {
       }
     }
   },
-  "overviewPage": {\n    extra: {
+  "overviewPage": {
+    extra: {
       "atAGlance": "Информация о турнире",
       "prizePool": "Призовой фонд",
       "winnerPoints": "Очки победителя",
