@@ -24,6 +24,7 @@ import {
 
 import { AuthProvider } from './auth/AuthContext'
 import { LocalizationProvider } from './i18n/LocalizationProvider'
+import { GamePreferencesProvider } from './preferences/GamePreferencesProvider'
 import { TutorialProvider } from './tutorial/TutorialProvider'
 import {
   AnonymousOnly,
@@ -194,6 +195,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <LocalizationProvider>
+          <GamePreferencesProvider>
           <TutorialProvider>
           <AnalyticsTracker />
           <Routes>
@@ -245,6 +247,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           </TutorialProvider>
+          </GamePreferencesProvider>
         </LocalizationProvider>
       </AuthProvider>
     </BrowserRouter>
