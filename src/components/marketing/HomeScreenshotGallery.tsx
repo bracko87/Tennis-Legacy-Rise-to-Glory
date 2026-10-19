@@ -35,17 +35,31 @@ export default function HomeScreenshotGallery({ eyebrow, title, description }: P
 
   const load = useCallback(async (isActive: () => boolean) => {
     setLoading(true)
-    const { data, error } = await supabase.storage.from('Admin')
-      .createSignedUrls(SCREENSHOTS.map(({ path }) => path), 3600)
-    if (!isActive()) return
-    const next: Record<string, string> = {}
-    if (!error && data) {
-      for (let i = 0; i < data.length; i += 1) {
-        if (data[i]?.signedUrl && !data[i]?.error) next[SCREENSHOTS[i].path] = data[i].signedUrl
+    try {
+      // Anon/public visitors can sign ONLY the twenty marketing objects after
+      // the scoped storage.objects SELECT policy is deployed.
+      const { data, error } = await supabase.storage.from('Admin')
+        .createSignedUrls(SCREENSHOTS.map(({ path }) => path), 3600)
+      if (!isActive()) return
+      const next: Record<string, string> = {}
+      if (!error && data) {
+        for (let i = 0; i < data.length; i += 1) {
+          const item = data[i]
+          if (item?.signedUrl && !item.error) {
+            next[SCREENSHOTS[i].path] = item.signedUrl
+          }
+        }
       }
+      setSources(next)
+      // Do not claim successful loading when Supabase denies the signed URLs.
+      if (error) console.warn('[Marketing gallery] Image access unavailable:', error.message)
+    } catch (error) {
+      if (!isActive()) return
+      setSources({})
+      console.warn('[Marketing gallery] Failed to fetch screenshot links:', error)
+    } finally {
+      if (isActive()) setLoading(false)
     }
-    setSources(next)
-    setLoading(false)
   }, [])
 
   useEffect(() => {
@@ -97,7 +111,7 @@ export default function HomeScreenshotGallery({ eyebrow, title, description }: P
                   <button key={path} type="button" className="tlg-home-screenshot-card"
                     onClick={() => setSelected(number - 1)} disabled={!sources[path]} aria-label={`${labels.view} ${number}`}>
                     <span className="tlg-home-screenshot-frame">
-                      {sources[path] ? <img src={sources[path]} alt={`${title} — ${labels.image} ${number}`} loading="lazy" /> : <Images aria-hidden="true" size={26} />}
+                      {sources[path] ? <img src={sources[path]} alt={`${title} — ${labels.image} ${number}`} loading="lazy" onError={() => setSources((current) => { if (!current[path]) return current; const next = { ...current }; delete next[path]; return next })} /> : <Images aria-hidden="true" size={26} />}
                     </span>
                     <span className="tlg-home-screenshot-caption"><span>{String(number).padStart(2, '0')}</span><strong>{labels.image} {number}</strong></span>
                   </button>
