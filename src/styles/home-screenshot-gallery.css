@@ -1,0 +1,38 @@
+/* Gameplay previews: six-image paginated layout inspired by ProPeloton's homepage. */
+.tlg-home-screenshots-section{padding:76px 0 84px;background:linear-gradient(145deg,#06182e 0%,#092a48 100%);color:#fff;border:0}
+.tlg-home-screenshots-top{display:flex;align-items:flex-end;justify-content:space-between;gap:25px}
+.tlg-home-screenshots-heading{min-width:0;max-width:810px}
+.tlg-home-screenshots-heading .tlg-section-eyebrow{color:#64c0fa}
+.tlg-home-screenshots-heading h2{margin:11px 0 0;color:#fff;font-size:clamp(1.8rem,3vw,2.8rem);line-height:1.15;letter-spacing:-.03em}
+.tlg-home-screenshots-heading p{margin:12px 0 0;color:#b2c9dd;font-size:.88rem;line-height:1.65}
+.tlg-home-screenshots-nav{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.tlg-home-screenshots-count{margin-right:10px;color:#8eabc4;font-size:.74rem;white-space:nowrap}
+.tlg-home-screenshots-nav button,.tlg-home-gallery-lightbox-controls button,.tlg-home-gallery-close{display:grid;place-items:center;width:40px;height:40px;border:1px solid rgba(190,224,250,.3);border-radius:50%;background:rgba(255,255,255,.075);color:#fff;cursor:pointer}
+.tlg-home-screenshots-nav button:hover,.tlg-home-gallery-lightbox-controls button:hover,.tlg-home-gallery-close:hover{border-color:#58b7ff;background:#12456e}
+.tlg-home-screenshots-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:28px}
+.tlg-home-screenshot-card{display:block;min-width:0;padding:8px;background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(183,218,243,.23);border-radius:13px;text-align:left;overflow:hidden;cursor:pointer;box-shadow:0 7px 25px rgba(0,0,0,.12);transition:transform .16s ease,border-color .16s ease}
+.tlg-home-screenshot-card:hover:not(:disabled){transform:translateY(-3px);border-color:#65bcf1}
+.tlg-home-screenshot-card:disabled{cursor:not-allowed;opacity:.5}
+.tlg-home-screenshot-frame{display:grid;place-items:center;overflow:hidden;width:100%;aspect-ratio:16/10;border:0;border-radius:8px;background:#092a46;color:#92b9d5}
+.tlg-home-screenshot-frame img{display:block;width:100%;height:100%;object-fit:cover;object-position:top center;transition:transform .22s ease}
+.tlg-home-screenshot-card:hover .tlg-home-screenshot-frame img{transform:scale(1.025)}
+.tlg-home-screenshot-caption{display:flex;align-items:center;gap:10px;padding:12px 7px 6px}
+.tlg-home-screenshot-caption span{font-size:.65rem;font-weight:850;color:#73c9ff}
+.tlg-home-screenshot-caption strong{color:#edf6ff;font-size:.78rem;font-weight:670}
+.tlg-home-screenshots-pages{display:flex;justify-content:center;gap:9px;margin-top:24px}
+.tlg-home-screenshots-pages button{width:10px;height:10px;border:0;border-radius:999px;background:#779bb5;cursor:pointer;transition:width .15s ease,background .15s ease}
+.tlg-home-screenshots-pages button.active{width:30px;background:#70c3ff}
+.tlg-home-gallery-state{display:flex;align-items:center;justify-content:center;gap:14px;min-height:220px;margin-top:26px;padding:24px;border:1px dashed rgba(196,230,253,.25);border-radius:14px;text-align:center;color:#b3ccde;font-size:.83rem}
+.tlg-home-gallery-state button{border:1px solid #77beee;border-radius:9px;padding:9px 14px;background:transparent;color:#e6f5ff;cursor:pointer}
+.tlg-home-gallery-lightbox{position:fixed;z-index:99999;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(3,12,25,.97)}
+.tlg-home-gallery-close{position:absolute;right:20px;top:18px;z-index:3}
+.tlg-home-gallery-lightbox-content{display:grid;justify-items:center;gap:14px;min-width:0;max-width:96vw}
+.tlg-home-gallery-lightbox-content img{display:block;max-width:96vw;max-height:82dvh;width:auto;height:auto;object-fit:contain}
+.tlg-home-gallery-lightbox-controls{display:flex;align-items:center;gap:30px;color:#eaf3fb;font-variant-numeric:tabular-nums;font-size:.78rem}
+@media(max-width:950px){.tlg-home-screenshots-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){
+ .tlg-home-screenshots-section{padding:55px 0 62px}
+ .tlg-home-screenshots-top{align-items:flex-start;flex-direction:column;gap:15px}
+ .tlg-home-screenshots-grid{grid-template-columns:1fr;gap:14px}
+ .tlg-home-gallery-state{flex-direction:column}
+}
