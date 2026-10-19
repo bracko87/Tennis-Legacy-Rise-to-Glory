@@ -1,6 +1,16 @@
 // Italian locale — full English-key coverage; further in-game visual QA recommended.
 export default {
   preferencesCenter: {
+    "notificationInventory": "{{count}} tipi di notifica attivi",
+    "restoreDefaults": "Ripristina notifiche predefinite",
+    "restored": "Impostazioni predefinite ripristinate.",
+    "optionalsCount": "{{count}} facoltative",
+    "requiredCount": "{{count}} obbligatorie",
+    "required": "Obbligatoria",
+    "optional": "Facoltativa",
+    "reviewTypes": "Mostra {{count}} notifiche singole",
+    "trigger": "Evento",
+    "toggleType": "Attiva/disattiva {{name}",
     "title": "Preferenze",
     "subtitle": "Lingua, notifiche e interfaccia",
     "eyebrow": "CENTRO GESTIONE",
