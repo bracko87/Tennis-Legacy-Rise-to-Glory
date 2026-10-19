@@ -10,10 +10,11 @@ import {
 } from 'lucide-react'
 
 import GameLayout from '../../components/layout/GameLayout'
+import AdminSeasonMigrationPanel from '../../components/manager/AdminSeasonMigrationPanel'
 import { supabase } from '../../lib/supabase'
 import '../../styles/admin-system-health.css'
 
-type AdminTab = 'overview' | 'tournaments' | 'incidents' | 'logs'
+type AdminTab = 'overview' | 'tournaments' | 'season' | 'incidents' | 'logs'
 type TournamentOpsView = 'today' | 'problems' | 'history'
 type TournamentOpsStatus = 'waiting' | 'running' | 'done' | 'overdue' | 'cancelled'
 type IncidentFilter = 'active' | 'resolved' | 'all'
@@ -490,6 +491,7 @@ export default function AdminSystemHealthPage() {
             {([
               ['overview', 'Overview'],
               ['tournaments', 'Tournament Operations'],
+              ['season', 'Season Migration'],
               ['incidents', 'Incidents'],
               ['logs', 'Process Logs'],
             ] as Array<[AdminTab, string]>).map(([key, label]) => (
@@ -808,6 +810,8 @@ export default function AdminSystemHealthPage() {
                 </section>
               </div>
             )}
+
+            {tab === 'season' && <AdminSeasonMigrationPanel />}
 
             {tab === 'incidents' && (
               <div className="tlg-system-health-incidents">
