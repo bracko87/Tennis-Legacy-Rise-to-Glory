@@ -1,5 +1,15 @@
 export default {
   preferencesCenter: {
+    "notificationInventory": "{{count}} tipos de notificación activos",
+    "restoreDefaults": "Restaurar notificaciones predeterminadas",
+    "restored": "Valores predeterminados restaurados.",
+    "optionalsCount": "{{count}} opcionales",
+    "requiredCount": "{{count}} obligatorios",
+    "required": "Obligatorio",
+    "optional": "Opcional",
+    "reviewTypes": "Revisar {{count}} notificaciones individuales",
+    "trigger": "Evento",
+    "toggleType": "Cambiar {{name}",
     "title": "Preferencias",
     "subtitle": "Idioma, notificaciones e interfaz",
     "eyebrow": "CENTRO DEL MANAGER",
