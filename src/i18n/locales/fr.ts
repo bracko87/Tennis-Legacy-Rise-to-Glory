@@ -1706,7 +1706,23 @@ const frenchTranslations = {
     "loadError": "Impossible de charger les informations de parrainage pour le moment.",
     "shareText": "Rejoignez-moi dans Tennis Legacy: Rise to Glory."
   },
-  "overviewPage": {
+  "overviewPage": {\n    extra: {
+      "atAGlance": "Le tournoi en bref",
+      "prizePool": "Dotation",
+      "winnerPoints": "Points du vainqueur",
+      "mainDraw": "Tableau principal",
+      "environment": "Lieu",
+      "status": "Statut du tournoi",
+      "yourEntry": "Votre inscription",
+      "logoAlt": "Logo du tournoi {{name}}",
+      "newsEyebrow": "TENNIS RÉEL",
+      "newsTitle": "Dernières actualités du tennis",
+      "newsIntro": "Titres de médias spécialisés. Ouvre l'article original.",
+      "newsLoading": "Chargement de l'actualité tennis…",
+      "newsUnavailable": "L'actualité tennis est temporairement indisponible. Réessayez plus tard.",
+      "fullArticle": "Lire l'article complet",
+      "worldLabel": "{{country}} · Circuit {{world}}"
+  },
     "title": "Vue d’ensemble",
     "subtitle": "Tableau de bord de carrière",
     "kicker": "Tableau de bord de carrière",
