@@ -1,0 +1,37 @@
+name: Validate Tennis Preferences
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/preferences/**'
+      - 'src/pages/manager/GamePreferences.tsx'
+      - 'src/pages/manager/Notifications.tsx'
+      - 'src/styles/game-preferences.css'
+      - 'src/styles/notification-center.css'
+      - 'src/i18n/**'
+      - 'src/App.tsx'
+      - 'supabase/migrations/*preferences*.sql'
+      - 'scripts/check-preferences-locales.mjs'
+      - 'package.json'
+      - '.github/workflows/tennis-preferences.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Validate Preferences translations
+        run: npm run check:preferences
+      - name: Validate Portuguese source parity
+        run: npm run check:pt
+      - name: Compile production bundle
+        run: npm run build
