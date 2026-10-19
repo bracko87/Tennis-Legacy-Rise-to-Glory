@@ -3680,7 +3680,8 @@ export default {
     radarAria: 'Aktuelles Tennisradar mit neun Fähigkeiten',
     historyAria: 'Technischer, körperlicher und Bereitschaftsverlauf',
   },
-  overviewPage: {\n    extra: {
+  overviewPage: {
+    extra: {
       "atAGlance": "Turnier im Überblick",
       "prizePool": "Preisgeld",
       "winnerPoints": "Siegerpunkte",
