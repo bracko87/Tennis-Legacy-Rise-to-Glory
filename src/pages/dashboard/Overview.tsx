@@ -520,10 +520,10 @@ function NextTournamentCard({ tournament, match }: { tournament: NextTournament;
         : titleCase(tournament?.surface)
 
   return (
-    <article className="tlg-overview-panel tlg-overview-next-card">
+    <article className="tlg-overview-panel tlg-overview-next-card tlg-overview-next-card-refined">
       <div className="tlg-overview-panel-head">
         <div className="tlg-overview-next-title-group">
-          <span>{t('overviewPage.nextTournament')}</span>
+          <span>{t('overviewPage.nextMatch')}</span>
           <div className="tlg-overview-next-heading">
             <h3>{tournament?.tournament_name ?? t('overviewPage.noTournament')}</h3>
             {tournament && <div className="tlg-overview-event-meta">
@@ -535,16 +535,39 @@ function NextTournamentCard({ tournament, match }: { tournament: NextTournament;
         {tournament && <Link className="tlg-overview-link" to={`/game/tournaments/${tournament.competition_id}`}>{t('overviewPage.openTournament')} <ChevronRight size={14} /></Link>}
       </div>
       {tournament ? (
-        <div className="tlg-overview-next-body">
-          {match ? (
-            <div className="tlg-overview-next-match">
-              <div><span>{t('overviewPage.nextMatch')}</span><strong>{match.round_label}</strong></div>
-              <div className="opponent"><CountryFlag countryCode={match.opponent_country_code} width={24} height={16} /><div><span>{t('overviewPage.opponent')}</span><Link to={`/game/players/${match.opponent_id}`}>{match.opponent_first_name} {match.opponent_last_name}</Link></div></div>
-              <div className="match-date"><span>{t('overviewPage.tournamentDay')}</span><strong>{t('overviewPage.week', { week: match.season_week })} · {t('overviewPage.day', { day: match.day })}</strong></div>
-            </div>
-          ) : null}
-          <NextTournamentExtras tournament={tournament} />
-          <div className="tlg-overview-next-actions"><Link to="/game/schedule">{t('overviewPage.prepareTournament')}</Link><Link to="/game/calendar">{t('overviewPage.viewCalendar')}</Link></div>
+        <div className="tlg-overview-next-body tlg-overview-next-body-refined">
+          <div className="tlg-overview-next-dashboard">
+            <section className="tlg-overview-next-tournament-summary" aria-label={t('overviewPage.nextTournament')}>
+              <NextTournamentExtras tournament={tournament} />
+            </section>
+            <section className="tlg-overview-next-opponent-card" aria-label={t('overviewPage.nextMatch')}>
+              {match ? (
+                <div className="tlg-overview-result-layout">
+                  <div className="tlg-overview-result-main">
+                    <div className="tournament">
+                      <CountryFlag countryCode={match.country_code} width={24} height={16} />
+                      <div><strong>{match.tournament_name}</strong><span>{match.round_label} · {t('overviewPage.week', { week: match.season_week })} · {t('overviewPage.day', { day: match.day })}</span></div>
+                    </div>
+                    <div className="tlg-overview-match-box tlg-overview-upcoming-match-box">
+                      <div className="tlg-overview-next-opponent-label">{t('overviewPage.nextMatch')} · {match.round_label}</div>
+                      <div className="opponent"><span>{t('overviewPage.versus')}</span><CountryFlag countryCode={match.opponent_country_code} width={22} height={15} /><Link to={`/game/players/${match.opponent_id}`}>{match.opponent_first_name} {match.opponent_last_name}</Link></div>
+                      <small>{t('overviewPage.tournamentDay')}: {t('overviewPage.week', { week: match.season_week })} · {t('overviewPage.day', { day: match.day })}</small>
+                    </div>
+                  </div>
+                  <LatestOpponentPortrait playerId={match.opponent_id} name={`${match.opponent_first_name} ${match.opponent_last_name}`} />
+                </div>
+              ) : (
+                <div className="tlg-overview-next-awaiting-match">
+                  <strong>{t('overviewPage.nextMatch')}</strong>
+                  <p>{t('overviewPage.entryActive')}</p>
+                </div>
+              )}
+            </section>
+          </div>
+          <div className="tlg-overview-next-actions">
+            <Link to="/game/schedule">{t('overviewPage.prepareTournament')}</Link>
+            <Link to="/game/calendar">{t('overviewPage.viewCalendar')}</Link>
+          </div>
         </div>
       ) : <EmptyCard text={t('overviewPage.noActiveEntry')} />}
     </article>
@@ -555,10 +578,10 @@ function LatestResultCard({ result }: { result: LatestResult }) {
   const { t } = useTranslation()
 
   return (
-    <article className="tlg-overview-panel tlg-overview-result-card">
+    <article className="tlg-overview-panel tlg-overview-result-card tlg-overview-result-card-refined">
       <div className="tlg-overview-panel-head"><div><span>{t('overviewPage.previousResult')}</span><h3>{t('overviewPage.latestMatch')}</h3></div>{result && <span className={`tlg-overview-result-badge ${result.won ? 'win' : 'loss'}`}>{result.won ? t('overviewPage.win') : t('overviewPage.loss')}</span>}</div>
       {result ? (
-        <div className="tlg-overview-result-body">
+        <div className="tlg-overview-result-body tlg-overview-result-body-refined">
           <div className="tlg-overview-result-layout">
             <div className="tlg-overview-result-main">
               <div className="tournament"><CountryFlag countryCode={result.country_code} width={24} height={16} /><div><strong>{result.tournament_name}</strong><span>{result.round_label} · {result.city}</span></div></div>
@@ -566,10 +589,10 @@ function LatestResultCard({ result }: { result: LatestResult }) {
                 <div className="score">{resultScore(result, t('overviewPage.resultRecorded'))}</div>
                 <div className="opponent"><span>{t('overviewPage.versus')}</span><CountryFlag countryCode={result.opponent_country_code} width={22} height={15} /><Link to={`/game/players/${result.opponent_id}`}>{result.opponent_first_name} {result.opponent_last_name}</Link></div>
               </div>
-              <Link className="tlg-overview-link inline" to={`/game/tournaments/${result.competition_id}`}>{t('overviewPage.tournamentDetails')} <ChevronRight size={14} /></Link>
             </div>
             <LatestOpponentPortrait playerId={result.opponent_id} name={`${result.opponent_first_name} ${result.opponent_last_name}`} />
           </div>
+          <Link className="tlg-overview-link tlg-overview-result-bottom-link" to={`/game/tournaments/${result.competition_id}`}>{t('overviewPage.tournamentDetails')} <ChevronRight size={14} /></Link>
         </div>
       ) : <EmptyCard text={t('overviewPage.noCompletedMatch')} />}
     </article>
