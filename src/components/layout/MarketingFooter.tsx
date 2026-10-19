@@ -4,12 +4,14 @@
  * Shared public footer.
  */
 
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Link,
   useNavigate,
 } from 'react-router'
-import { Clock3 } from 'lucide-react'
+import { Clock3, X } from 'lucide-react'
+import '../../styles/marketing-premium-dialog.css'
 
 import { useGameClock } from '../../hooks/useGameClock'
 import { supabase } from '../../lib/supabase'
@@ -27,7 +29,16 @@ export default function MarketingFooter({
   children,
 }: MarketingFooterProps) {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const clock = useGameClock()
+  const [pricingOpen, setPricingOpen] = useState(false)
+
+  useEffect(() => {
+    if (!pricingOpen) return
+    const handleKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setPricingOpen(false) }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [pricingOpen])
 
   function recordCrossGameClick() {
     void supabase.rpc('record_cross_game_referral_event_v1', {
@@ -143,6 +154,9 @@ export default function MarketingFooter({
               <span>Global Rankings</span>
               <span>Tournaments</span>
               <span>Career Records</span>
+              <button id="premium" type="button" className="tlg-footer-pricing-link" onClick={() => setPricingOpen(true)}>
+                {t('home.premium.eyebrow')}
+              </button>
             </FooterColumn>
 
             <FooterColumn title="Support">
@@ -154,6 +168,32 @@ export default function MarketingFooter({
             </FooterColumn>
           </div>
         </div>
+
+        {pricingOpen && (
+          <div className="tlg-pricing-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setPricingOpen(false) }}>
+            <section className="tlg-pricing-dialog" role="dialog" aria-modal="true" aria-labelledby="tlg-pricing-dialog-title">
+              <button className="tlg-pricing-close" type="button" aria-label={t('home.premium.close', { defaultValue: 'Close' })} onClick={() => setPricingOpen(false)}><X size={21} /></button>
+              <span className="tlg-pricing-eyebrow">{t('home.premium.eyebrow')}</span>
+              <h2 id="tlg-pricing-dialog-title">{t('home.premium.title')}</h2>
+              <p className="tlg-pricing-description">{t('home.premium.description')}</p>
+              <div className="tlg-pricing-plans">
+                {[
+                  { label: t('home.premium.monthly'), price: '€3.29', coins: 30, period: '1' },
+                  { label: t('home.premium.threeMonths'), price: '€9.49', coins: 90, period: '3' },
+                  { label: t('home.premium.annual'), price: '€33.49', coins: 360, period: '12' },
+                ].map((plan) => (
+                  <article className="tlg-pricing-plan" key={plan.period}>
+                    <h3>{plan.label}</h3>
+                    <strong>{plan.price}</strong>
+                    <span>{t('home.premium.coinsOnPayment', { count: plan.coins, defaultValue: `${plan.coins} Coins per successful payment` })}</span>
+                  </article>
+                ))}
+              </div>
+              <p className="tlg-pricing-note">{t('home.premium.note')}</p>
+              <div className="tlg-pricing-actions"><Link to="/register" onClick={() => setPricingOpen(false)}>{t('home.hero.createPlayer')}</Link></div>
+            </section>
+          </div>
+        )}
 
         {children && (
           <div className="tlg-footer-extra">
