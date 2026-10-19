@@ -515,3 +515,14 @@
     margin-left: 0;
   }
 }
+
+
+/* Preferences is managed centrally, with an accessible entry in Notifications. */
+.tlg-notification-management-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.tlg-notification-manage-preferences { min-height:38px; padding:7px 13px; border-radius:8px; border:1px solid #bed9ea; color:#0b639f; background:#eaf6fd; font-size:.72rem; font-weight:750; cursor:pointer; }
+.tlg-notification-manage-preferences:hover { background:#d9effb; }
+.tlg-notification-manage-preferences:focus-visible { outline:3px solid #ffc44e; outline-offset:3px; }
+@media (max-width:760px) {
+  .tlg-notification-toolbar { flex-wrap:wrap; }
+  .tlg-notification-management-actions { width:100%; justify-content:flex-start; }
+}
