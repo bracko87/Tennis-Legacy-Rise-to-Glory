@@ -1,5 +1,15 @@
 export default {
   preferencesCenter: {
+    "notificationInventory": "{{count}} aktivnih tipova obaveštenja",
+    "restoreDefaults": "Vrati podrazumevana podešavanja",
+    "restored": "Podrazumevana podešavanja su vraćena.",
+    "optionalsCount": "{{count}} opcionih",
+    "requiredCount": "{{count}} obaveznih",
+    "required": "Obavezno",
+    "optional": "Opciono",
+    "reviewTypes": "Pregledaj {{count}} pojedinačnih obaveštenja",
+    "trigger": "Okidač",
+    "toggleType": "Uključi/isključi {{name}",
     "title": "Podešavanja",
     "subtitle": "Jezik, obaveštenja i prikaz",
     "eyebrow": "CENTAR MENADŽERA",
