@@ -448,3 +448,75 @@
   .tlg-overview-next-dashboard-single .tlg-overview-result-portrait,
   .tlg-overview-result-card-refined .tlg-overview-result-portrait{flex-basis:150px}
 }
+
+/* Text-only homepage experiment: 70% upcoming, 30% previous result. */
+.tlg-overview-primary-grid{
+  grid-template-columns:minmax(0,7fr) minmax(0,3fr);
+  align-items:stretch;
+}
+.tlg-overview-next-dashboard-text-only{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  flex:1 1 auto;
+  align-items:stretch;
+}
+.tlg-overview-next-dashboard-text-only.is-single{
+  grid-template-columns:minmax(0,1fr);
+}
+.tlg-overview-next-dashboard-text-only .tlg-overview-next-tournament-summary,
+.tlg-overview-next-dashboard-text-only .tlg-overview-next-opponent-card{
+  min-width:0;
+  padding:15px;
+  border:1px solid #dae7ef;
+  border-radius:12px;
+  background:#fbfdff;
+}
+.tlg-overview-upcoming-section-label{
+  display:block;
+  margin-bottom:13px;
+  color:#1675b7;
+  font-size:.64rem;
+  font-weight:850;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.tlg-overview-next-dashboard-text-only .tlg-overview-tournament-extras{
+  display:block;
+  margin:0;
+}
+.tlg-overview-next-dashboard-text-only .tlg-overview-tournament-facts{
+  padding:0;
+  border:0;
+  background:transparent;
+}
+.tlg-overview-next-dashboard-text-only .tlg-overview-tournament-facts-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:13px 10px;
+}
+.tlg-overview-next-dashboard-text-only .tlg-overview-next-opponent-card .tournament{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.tlg-overview-next-dashboard-text-only .tlg-overview-next-opponent-card .tlg-overview-match-box{
+  margin-top:13px;
+}
+.tlg-overview-result-card-refined .tlg-overview-result-layout-text-only{
+  display:block;
+}
+.tlg-overview-result-card-refined .tlg-overview-result-layout-text-only .tlg-overview-result-main{
+  width:100%;
+}
+.tlg-overview-result-card-refined .tlg-overview-result-layout-text-only .tlg-overview-match-box{
+  width:100%;
+}
+@media(max-width:1050px){
+  .tlg-overview-primary-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:760px){
+  .tlg-overview-next-dashboard-text-only{
+    grid-template-columns:minmax(0,1fr);
+  }
+}
