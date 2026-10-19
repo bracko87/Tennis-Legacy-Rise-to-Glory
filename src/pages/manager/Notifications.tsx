@@ -615,9 +615,14 @@ export default function NotificationsPage() {
               </button>
             ))}
           </div>
-          <button type="button" className="tlg-notification-mark-all" disabled={unreadCount === 0 || busy} onClick={markAllRead}>
-            {busy ? t('notifications.updating') : t('notifications.markAllRead')}
-          </button>
+          <div className="tlg-notification-management-actions">
+            <button type="button" className="tlg-notification-mark-all" disabled={unreadCount === 0 || busy} onClick={markAllRead}>
+              {busy ? t('notifications.updating') : t('notifications.markAllRead')}
+            </button>
+            <button type="button" className="tlg-notification-manage-preferences" onClick={() => navigate('/game/preferences')}>
+              {t('preferencesCenter.inGame')}
+            </button>
+          </div>
         </header>
 
         {error && <div className="tlg-notification-error">{t('notifications.updateError', { error })}</div>}
