@@ -3680,7 +3680,8 @@ export default {
     radarAria: "radar actual de tenis de nueve habilidades",
     historyAria: "Historial de desarrollo técnico, físico y de preparación",
   },
-  overviewPage: {\n    extra: {
+  overviewPage: {
+    extra: {
       "atAGlance": "El torneo de un vistazo",
       "prizePool": "Bolsa de premios",
       "winnerPoints": "Puntos del campeón",
