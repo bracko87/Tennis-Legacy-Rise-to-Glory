@@ -1,17 +1,72 @@
 .tlg-career-control-panel-live-image {
-  overflow: hidden;
+  overflow: visible;
   padding: 0 !important;
-  background: #062b52 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
 }
 
-.tlg-career-control-panel-live-image > :not(.tlg-career-control-live-image) {
+.tlg-career-control-panel-live-image > :not(.tlg-career-control-live-stack) {
   display: none !important;
 }
 
+/* Three subtle real-game screenshots behind the original, fully visible preview. */
+.tlg-career-control-live-stack {
+  position: relative;
+  isolation: isolate;
+  display: block;
+  width: 100%;
+  margin: 0;
+}
+
+.tlg-career-control-stack-back {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  border: 1px solid #acc9dd;
+  border-radius: 17px;
+  background: #f4f9fd;
+  box-shadow: 0 15px 34px rgba(13, 49, 82, .16);
+  pointer-events: none;
+}
+
+.tlg-career-control-stack-back-1 {
+  z-index: 1;
+  transform: translate(52px, -30px) rotate(2.5deg) scale(.94);
+}
+.tlg-career-control-stack-back-2 {
+  z-index: 2;
+  transform: translate(35px, -21px) rotate(1.6deg) scale(.96);
+}
+.tlg-career-control-stack-back-3 {
+  z-index: 3;
+  transform: translate(18px, -11px) rotate(.7deg) scale(.98);
+}
+
 .tlg-career-control-live-image {
+  position: relative;
+  z-index: 4;
   display: block;
   width: 100%;
   height: auto;
   object-fit: contain;
-  border-radius: inherit;
+  border: 1px solid #164b76;
+  border-radius: 17px;
+  background: white;
+  box-shadow: 0 30px 60px rgba(14, 43, 71, .2);
+}
+
+@media (max-width: 1100px) {
+  .tlg-career-control-stack-back-1 { transform: translate(30px, -18px) rotate(2deg) scale(.95); }
+  .tlg-career-control-stack-back-2 { transform: translate(20px, -13px) rotate(1.3deg) scale(.97); }
+  .tlg-career-control-stack-back-3 { transform: translate(10px, -7px) rotate(.5deg) scale(.99); }
+}
+
+@media (max-width: 640px) {
+  .tlg-career-control-stack-back { display: none; }
+  .tlg-career-control-live-image { box-shadow: 0 18px 34px rgba(14, 43, 71, .13); }
 }
