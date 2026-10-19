@@ -1,0 +1,6 @@
+# Public marketing pages are crawlable. Private game pages are kept out of
+# search through server-side X-Robots-Tag noindex headers instead of Disallow.
+User-agent: *
+Allow: /
+
+Sitemap: https://tennislegacygame.com/sitemap.xml
