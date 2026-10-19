@@ -380,12 +380,6 @@
 .tlg-home-footer-premium-plans span { color:rgba(235,244,255,.79); font-size:.76rem; }
 .tlg-home-footer-premium-plans strong { color:#fff; font-size:.99rem; }
 .tlg-home-footer-premium-note { margin:12px 0 0; color:rgba(220,233,246,.59); font-size:.68rem; line-height:1.5; }
-@media (max-width: 980px) {
- .tlg-home-screenshots-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-}
 @media (max-width: 640px) {
- .tlg-home-screenshots-section { padding:65px 0 73px; }
- .tlg-home-screenshots-grid { grid-template-columns:1fr; gap:16px; }
- .tlg-home-screenshot-placeholder { min-height:180px; }
  .tlg-home-footer-premium-plans > div { flex-basis:100%; }
 }
