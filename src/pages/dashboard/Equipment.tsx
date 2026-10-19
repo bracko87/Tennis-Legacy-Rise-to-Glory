@@ -322,10 +322,19 @@ export default function EquipmentPage() {
   async function loadEquipment() {
     setLoading(true)
     setError(null)
-    const { data, error: loadError } = await supabase.rpc('get_equipment_dashboard_v1')
-    if (loadError || !data) setError(loadError?.message ?? t('equipmentPage.loadError'))
-    else setDashboard(data as EquipmentDashboard)
-    setLoading(false)
+    // Abort an unresponsive request instead of leaving the Equipment page loading forever.
+    const controller = new AbortController()
+    const timeout = window.setTimeout(() => controller.abort(), 15000)
+    try {
+      const { data, error: loadError } = await supabase.rpc('get_equipment_dashboard_v1').abortSignal(controller.signal)
+      if (loadError || !data) setError(loadError?.message ?? t('equipmentPage.loadError'))
+      else setDashboard(data as EquipmentDashboard)
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : t('equipmentPage.loadError'))
+    } finally {
+      window.clearTimeout(timeout)
+      setLoading(false)
+    }
   }
 
   useEffect(() => { void loadEquipment() }, [])
@@ -493,7 +502,12 @@ export default function EquipmentPage() {
     setTab('market')
   }
 
-  if (loading && !dashboard) return <GameLayout title={t('equipmentPage.title')} subtitle={t('equipmentPage.subtitle')}><div className="tlg-equipment-state">{t('equipmentPage.ui.loadingCenter')}</div></GameLayout>
+  if (!dashboard) return <GameLayout title={t('equipmentPage.title')} subtitle={t('equipmentPage.subtitle')}>
+    <div className="tlg-equipment-state" role={error ? 'alert' : 'status'}>
+      <p>{loading ? t('equipmentPage.ui.loadingCenter') : error ?? t('equipmentPage.loadError')}</p>
+      {!loading && <button type="button" onClick={() => void loadEquipment()}>{t('privateLifePage.tryAgain', { defaultValue: 'Try again' })}</button>}
+    </div>
+  </GameLayout>
 
   const effects = dashboard?.effects?.[surface]
 
