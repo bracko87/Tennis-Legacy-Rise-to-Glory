@@ -510,6 +510,8 @@ function OverviewKpi({ label, value, detail }: { label: string; value: string; d
 
 function NextTournamentCard({ tournament, match }: { tournament: NextTournament; match: NextMatch }) {
   const { t } = useTranslation()
+  // The two cards are mutually exclusive. An unresolved opponent never counts as a next match.
+  const hasNextMatch = Boolean(match?.opponent_id && (match.opponent_first_name?.trim() || match.opponent_last_name?.trim()))
   const surface = tournament?.surface?.toLowerCase()
   const surfaceLabel = surface === 'hard'
     ? t('overviewPage.surface.hard')
@@ -523,25 +525,26 @@ function NextTournamentCard({ tournament, match }: { tournament: NextTournament;
     <article className="tlg-overview-panel tlg-overview-next-card tlg-overview-next-card-refined">
       <div className="tlg-overview-panel-head">
         <div className="tlg-overview-next-title-group">
-          <span>{t('overviewPage.nextMatch')}</span>
+          <span>{t(hasNextMatch ? 'overviewPage.nextMatch' : 'overviewPage.nextTournament')}</span>
           <div className="tlg-overview-next-heading">
-            <h3>{tournament?.tournament_name ?? t('overviewPage.noTournament')}</h3>
+            <h3>{(hasNextMatch ? match?.tournament_name : tournament?.tournament_name) ?? t('overviewPage.noTournament')}</h3>
             {tournament && <div className="tlg-overview-event-meta">
               <CountryFlag countryCode={tournament.country_code} width={24} height={16} />
               <span>{tournament.city}</span><b>{categoryLabel(tournament.category_code)}</b><b>{surfaceLabel}</b><b>{t('overviewPage.week', { week: tournament.season_week })}</b>
             </div>}
           </div>
         </div>
-        {tournament && <Link className="tlg-overview-link" to={`/game/tournaments/${tournament.competition_id}`}>{t('overviewPage.openTournament')} <ChevronRight size={14} /></Link>}
+        {(hasNextMatch && match ? match.competition_id : tournament?.competition_id) && (
+          <Link className="tlg-overview-link" to={`/game/tournaments/${hasNextMatch && match ? match.competition_id : tournament?.competition_id}`}>
+            {t('overviewPage.openTournament')} <ChevronRight size={14} />
+          </Link>
+        )}
       </div>
-      {tournament ? (
+      {hasNextMatch || tournament ? (
         <div className="tlg-overview-next-body tlg-overview-next-body-refined">
-          <div className="tlg-overview-next-dashboard">
-            <section className="tlg-overview-next-tournament-summary" aria-label={t('overviewPage.nextTournament')}>
-              <NextTournamentExtras tournament={tournament} />
-            </section>
-            <section className="tlg-overview-next-opponent-card" aria-label={t('overviewPage.nextMatch')}>
-              {match ? (
+          <div className="tlg-overview-next-dashboard tlg-overview-next-dashboard-single">
+            {hasNextMatch && match ? (
+              <section className="tlg-overview-next-opponent-card tlg-overview-next-opponent-card-featured" aria-label={t('overviewPage.nextMatch')}>
                 <div className="tlg-overview-result-layout">
                   <div className="tlg-overview-result-main">
                     <div className="tournament">
@@ -556,13 +559,12 @@ function NextTournamentCard({ tournament, match }: { tournament: NextTournament;
                   </div>
                   <LatestOpponentPortrait playerId={match.opponent_id} name={`${match.opponent_first_name} ${match.opponent_last_name}`} />
                 </div>
-              ) : (
-                <div className="tlg-overview-next-awaiting-match">
-                  <strong>{t('overviewPage.nextMatch')}</strong>
-                  <p>{t('overviewPage.entryActive')}</p>
-                </div>
-              )}
-            </section>
+              </section>
+            ) : tournament ? (
+              <section className="tlg-overview-next-tournament-summary" aria-label={t('overviewPage.nextTournament')}>
+                <NextTournamentExtras tournament={tournament} />
+              </section>
+            ) : null}
           </div>
           <div className="tlg-overview-next-actions">
             <Link to="/game/schedule">{t('overviewPage.prepareTournament')}</Link>
