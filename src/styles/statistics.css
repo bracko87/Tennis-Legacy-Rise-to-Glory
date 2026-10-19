@@ -91,3 +91,19 @@
   .tlg-statistics-mini-records>div,.tlg-statistics-career-summary>div{border-left:0!important;border-top:1px solid #e7edf2}.tlg-statistics-mini-records>div:first-child,.tlg-statistics-career-summary>div:first-child{border-top:0}
   .tlg-statistics-panel-head{display:grid}.tlg-statistics-filters{display:grid;grid-template-columns:1fr}.tlg-statistics-filters .switch-group{display:flex}.tlg-statistics-filters button{flex:1}
 }
+
+/* Premium sample comparisons — existing Free leaderboards are unchanged. */
+.tlg-statistics-intelligence{border-color:#d7dded}
+.tlg-statistics-intelligence .tlg-statistics-panel-head{background:linear-gradient(110deg,#f8faff,#fff)}
+.tlg-intelligence-locked{padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:18px}
+.tlg-intelligence-locked p,.tlg-intelligence-content>p{margin:0;color:#657b8d;font-size:.74rem;line-height:1.6}
+.tlg-intelligence-locked a{flex-shrink:0;display:inline-block;border-radius:8px;background:#172c4e;color:#fff;padding:10px 15px;font-size:.72rem;font-weight:750;text-decoration:none}
+.tlg-intelligence-content{padding:18px 22px;display:grid;gap:16px}
+.tlg-intelligence-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.tlg-intelligence-metric{padding:16px;border:1px solid #e2e8f0;border-radius:11px;background:#fafcff}
+.tlg-intelligence-metric span{display:block;color:#62778b;font-size:.67rem;font-weight:750}
+.tlg-intelligence-metric strong{display:block;margin-top:10px;color:#17344b;font-size:1.45rem}
+.tlg-intelligence-metric small{display:block;margin-top:5px;color:#73879a;font-size:.64rem}
+.tlg-intelligence-metric small.positive{color:#158055}.tlg-intelligence-metric small.negative{color:#b55454}
+@media(max-width:820px){.tlg-intelligence-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.tlg-intelligence-grid{grid-template-columns:1fr}.tlg-intelligence-locked{align-items:stretch;flex-direction:column}}
