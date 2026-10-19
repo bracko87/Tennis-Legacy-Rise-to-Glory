@@ -9,7 +9,7 @@ export default {
     "optional": "Opcional",
     "reviewTypes": "Revisar {{count}} notificaciones individuales",
     "trigger": "Evento",
-    "toggleType": "Cambiar {{name}",
+    "toggleType": "Cambiar {{name}}",
     "title": "Preferencias",
     "subtitle": "Idioma, notificaciones e interfaz",
     "eyebrow": "CENTRO DEL MANAGER",
