@@ -1333,7 +1333,8 @@ export default {
     "radarAria": "Grafico radar delle nove abilità tennistiche attuali",
     "historyAria": "Cronologia dello sviluppo tecnico, fisico e della prontezza"
   },
-  "overviewPage": {\n    extra: {
+  "overviewPage": {
+    extra: {
       "atAGlance": "Il torneo in breve",
       "prizePool": "Montepremi",
       "winnerPoints": "Punti del vincitore",
