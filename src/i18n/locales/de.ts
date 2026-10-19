@@ -1,5 +1,15 @@
 export default {
   preferencesCenter: {
+    "notificationInventory": "{{count}} aktive Mitteilungstypen",
+    "restoreDefaults": "Mitteilungsstandards wiederherstellen",
+    "restored": "Standardeinstellungen wiederhergestellt.",
+    "optionalsCount": "{{count}} optional",
+    "requiredCount": "{{count}} erforderlich",
+    "required": "Erforderlich",
+    "optional": "Optional",
+    "reviewTypes": "{{count}} einzelne Mitteilungen ansehen",
+    "trigger": "Auslöser",
+    "toggleType": "{{name}} umschalten",
     "title": "Einstellungen",
     "subtitle": "Sprache, Benachrichtigungen und Darstellung",
     "eyebrow": "MANAGERZENTRALE",
