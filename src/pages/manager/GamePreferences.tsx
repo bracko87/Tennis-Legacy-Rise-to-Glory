@@ -27,7 +27,7 @@ type NotificationGroup = {
 }
 
 const CATEGORY_ORDER = [
-  'tournament','training','player_development','player_condition','equipment',
+  'tournament','training','player_development','player_condition','player_health','equipment',
   'private_life','national_team','travel','club',
 ]
 
