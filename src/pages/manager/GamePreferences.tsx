@@ -6,6 +6,7 @@ import { Link } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import GameLayout from '../../components/layout/GameLayout'
+import CountryFlag from '../../components/common/CountryFlag'
 import { ENABLED_LOCALES, type AppLocale } from '../../i18n'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { useGamePreferences, type TableDensity } from '../../preferences/GamePreferencesProvider'
@@ -17,6 +18,9 @@ const LANGUAGE_LABEL_KEYS: Record<AppLocale,string> = {
   en:'common.english',sr:'settings.serbianLatin',de:'common.german',
   es:'common.spanish',it:'common.italian',fr:'common.french',
   ru:'common.russian',pt:'common.portuguese',
+}
+const LANGUAGE_FLAG_CODES: Record<AppLocale,string> = {
+  en:'GB',sr:'RS',de:'DE',es:'ES',it:'IT',fr:'FR',ru:'RU',pt:'PT',
 }
 type Notice = {kind:'success'|'error';message:string}
 type NotificationType = {
@@ -182,6 +186,7 @@ export default function GamePreferencesPage() {
                 className={`tlg-language-option ${locale===code?'active':''}`}
                 disabled={languageLoading||languageSaving}
                 onClick={()=>void changeLanguage(code)}>
+                <CountryFlag countryCode={LANGUAGE_FLAG_CODES[code]} countryName={t(LANGUAGE_LABEL_KEYS[code])} />
                 <span><strong>{t(LANGUAGE_LABEL_KEYS[code])}</strong>
                   <small>{locale===code?t('preferencesCenter.selected'):t('preferencesCenter.available')}</small></span>
                 <em>{code.toUpperCase()}</em>
