@@ -91,3 +91,31 @@
   .tlg-statistics-mini-records>div,.tlg-statistics-career-summary>div{border-left:0!important;border-top:1px solid #e7edf2}.tlg-statistics-mini-records>div:first-child,.tlg-statistics-career-summary>div:first-child{border-top:0}
   .tlg-statistics-panel-head{display:grid}.tlg-statistics-filters{display:grid;grid-template-columns:1fr}.tlg-statistics-filters .switch-group{display:flex}.tlg-statistics-filters button{flex:1}
 }
+
+/* Premium Statistics Intelligence — completed statistics only, never gameplay effects. */
+.tlg-stats-premium-intelligence{margin:15px 0 18px;padding:20px;border:1px solid #cfe1ed;border-radius:14px;background:linear-gradient(115deg,#f7fbff,#fff);box-shadow:0 8px 20px rgba(26,76,115,.045)}
+.tlg-stats-premium-intelligence>header{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.tlg-stats-premium-intelligence>header>div>span{display:inline-flex;align-items:center;gap:6px;color:#126baa;font-size:.66rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.tlg-stats-premium-intelligence h2{margin:9px 0 6px;color:#132f48;font-size:1.15rem}
+.tlg-stats-premium-intelligence>header p{margin:0;color:#688194;font-size:.75rem;line-height:1.6;max-width:750px}
+.tlg-stats-premium-status{flex:none;border:1px solid #d2e1eb;border-radius:999px;background:#fff;color:#2b719a;padding:6px 10px;font-size:.62rem;font-weight:750}
+.tlg-stats-premium-locked{display:flex;align-items:center;gap:14px;padding:18px;border:1px solid #dbe7ef;border-radius:11px;background:#fff;margin-top:16px}
+.tlg-stats-premium-locked>svg{flex:none;color:#2c779f}
+.tlg-stats-premium-locked>div{flex:1;min-width:0}
+.tlg-stats-premium-locked strong{display:block;color:#18415c;font-size:.79rem}
+.tlg-stats-premium-locked p{margin:5px 0 0;color:#647e90;font-size:.72rem;line-height:1.5}
+.tlg-stats-premium-locked a{white-space:nowrap;padding:9px 12px;border:1px solid #187bb7;background:#117ac1;border-radius:8px;color:white;text-decoration:none;font-size:.72rem;font-weight:750}
+.tlg-stats-premium-sample{margin:14px 0;color:#58768a;font-size:.72rem}
+.tlg-stats-premium-comparisons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tlg-stats-premium-metric{padding:15px;border:1px solid #e0e9ef;border-radius:11px;background:#fff;min-width:0}
+.tlg-stats-premium-metric h3{font-size:.8rem;color:#1b3e58;margin:0 0 15px}
+.tlg-stats-premium-line{margin:10px 0}
+.tlg-stats-premium-line>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.68rem;color:#637e91}
+.tlg-stats-premium-line strong{font-size:.78rem;color:#214b67;font-variant-numeric:tabular-nums}
+.tlg-stats-premium-track{height:8px;overflow:hidden;border-radius:999px;background:#eaf1f6;margin-top:7px}
+.tlg-stats-premium-track>span{height:100%;display:block;border-radius:999px}
+.tlg-stats-premium-track>span.own{background:#137abe}
+.tlg-stats-premium-track>span.peer{background:#8ab4d0}
+.tlg-stats-premium-note,.tlg-stats-premium-empty{font-size:.68rem;color:#738b9c;line-height:1.6;margin:12px 0 0}
+@media(max-width:980px){.tlg-stats-premium-comparisons{grid-template-columns:1fr}}
+@media(max-width:600px){.tlg-stats-premium-intelligence{padding:15px}.tlg-stats-premium-intelligence>header{flex-direction:column}.tlg-stats-premium-locked{align-items:flex-start;flex-wrap:wrap}.tlg-stats-premium-locked a{margin-left:37px}}
