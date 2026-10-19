@@ -2436,7 +2436,8 @@ export const portugueseTranslations = {
     radarAria: 'Gráfico radial das nove habilidades atuais de tênis',
     historyAria: 'Histórico de desenvolvimento técnico, físico e de preparação',
   },
-  overviewPage: {\n    extra: {
+  overviewPage: {
+    extra: {
       "atAGlance": "Torneio em resumo",
       "prizePool": "Prémios monetários",
       "winnerPoints": "Pontos do vencedor",
