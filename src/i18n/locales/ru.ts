@@ -1223,7 +1223,23 @@ const russianTranslations = {
       }
     }
   },
-  "overviewPage": {
+  "overviewPage": {\n    extra: {
+      "atAGlance": "Информация о турнире",
+      "prizePool": "Призовой фонд",
+      "winnerPoints": "Очки победителя",
+      "mainDraw": "Основная сетка",
+      "environment": "Место проведения",
+      "status": "Статус турнира",
+      "yourEntry": "Ваша заявка",
+      "logoAlt": "Логотип турнира {{name}}",
+      "newsEyebrow": "РЕАЛЬНЫЙ ТЕННИС",
+      "newsTitle": "Последние новости реального тенниса",
+      "newsIntro": "Заголовки теннисных изданий. Ссылка ведёт на оригинальную статью.",
+      "newsLoading": "Загрузка теннисных новостей…",
+      "newsUnavailable": "Новости тенниса временно недоступны. Повторите попытку позже.",
+      "fullArticle": "Открыть статью",
+      "worldLabel": "{{country}} · Тур {{world}}"
+  },
     "title": "Обзор",
     "subtitle": "Панель управления карьерой",
     "kicker": "Управление карьерой",
