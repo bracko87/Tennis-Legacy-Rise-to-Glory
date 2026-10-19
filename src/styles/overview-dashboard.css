@@ -391,7 +391,7 @@
 .tlg-overview-next-dashboard-single .tlg-overview-next-opponent-card{padding:0;border:0;border-radius:0;background:transparent}
 .tlg-overview-next-dashboard-single .tlg-overview-next-opponent-card .tlg-overview-result-layout{grid-template-columns:minmax(0,1fr) 190px;align-items:center;height:auto}
 .tlg-overview-next-dashboard-single .tlg-overview-result-portrait{width:190px;height:190px;min-height:190px;max-height:190px;border:0;border-radius:0;background:transparent;box-shadow:none;justify-self:end}
-.tlg-overview-next-dashboard-single .tlg-overview-result-portrait img{width:100%;height:100%;max-height:none;object-fit:contain;object-position:center center;transform:scale(1.5);transform-origin:center 20%;background:transparent}
+.tlg-overview-next-dashboard-single .tlg-overview-result-portrait img{display:block;width:100%;height:100%;max-height:none;object-fit:cover;object-position:center 30%;transform:scale(1.2);transform-origin:center 30%;background:transparent}
 .tlg-overview-next-dashboard-single .tlg-overview-next-tournament-summary .tlg-overview-tournament-extras{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:14px}
 .tlg-overview-next-dashboard-single .tlg-overview-next-tournament-summary .tlg-overview-tournament-art{min-height:145px}
 .tlg-overview-next-body-refined .tlg-overview-next-actions{margin-top:auto;padding-top:10px}
@@ -399,7 +399,7 @@
 .tlg-overview-result-card-refined .tlg-overview-result-body .score{margin:12px 0 9px;font-size:1.42rem}
 .tlg-overview-result-card-refined .tlg-overview-result-layout{grid-template-columns:minmax(0,1fr) 190px;align-items:center}
 .tlg-overview-result-card-refined .tlg-overview-result-portrait{width:190px;height:190px;min-height:190px;max-height:190px;border:0;border-radius:0;background:transparent;box-shadow:none;justify-self:end}
-.tlg-overview-result-card-refined .tlg-overview-result-portrait img{width:100%;height:100%;max-height:none;object-fit:contain;object-position:center center;transform:scale(1.5);transform-origin:center 20%;background:transparent}
+.tlg-overview-result-card-refined .tlg-overview-result-portrait img{display:block;width:100%;height:100%;max-height:none;object-fit:cover;object-position:center 30%;transform:scale(1.2);transform-origin:center 30%;background:transparent}
 .tlg-overview-result-card-refined .tlg-overview-result-bottom-link{margin-top:auto;padding-top:10px}
 @media(max-width:760px){
   .tlg-overview-next-dashboard-single .tlg-overview-next-opponent-card .tlg-overview-result-layout{grid-template-columns:minmax(0,1fr) 150px}
@@ -413,4 +413,34 @@
   .tlg-overview-result-card-refined .tlg-overview-result-layout{grid-template-columns:1fr}
   .tlg-overview-next-dashboard-single .tlg-overview-result-portrait,
   .tlg-overview-result-card-refined .tlg-overview-result-portrait{justify-self:center;margin-top:12px}
+}
+
+/* Matching fixed portrait viewports and a text-style tournament link. */
+.tlg-overview-next-dashboard-single .tlg-overview-result-portrait,
+.tlg-overview-result-card-refined .tlg-overview-result-portrait{
+  flex:0 0 190px;
+  aspect-ratio:1;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.tlg-overview-next-actions .tlg-overview-next-tournament-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  align-self:center;
+  gap:4px;
+  padding:7px 0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:#1879b5;
+  font-size:.63rem;
+  font-weight:780;
+  white-space:nowrap;
+}
+@media(max-width:760px){
+  .tlg-overview-next-dashboard-single .tlg-overview-result-portrait,
+  .tlg-overview-result-card-refined .tlg-overview-result-portrait{flex-basis:150px}
 }
