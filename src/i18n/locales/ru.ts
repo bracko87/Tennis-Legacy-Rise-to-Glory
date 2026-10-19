@@ -17,7 +17,7 @@ const russianTranslations = {
     "optional": "Дополнительно",
     "reviewTypes": "Показать {{count}} отдельных уведомлений",
     "trigger": "Событие",
-    "toggleType": "Переключить {{name}",
+    "toggleType": "Переключить {{name}}",
     "title": "Настройки",
     "subtitle": "Язык, уведомления и интерфейс",
     "eyebrow": "ЦЕНТР МЕНЕДЖЕРА",
