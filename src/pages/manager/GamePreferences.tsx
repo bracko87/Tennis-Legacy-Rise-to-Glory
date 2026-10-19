@@ -57,6 +57,7 @@ export default function GamePreferencesPage() {
   const [notificationsLoading,setNotificationsLoading]=useState(true)
   const [notificationError,setNotificationError]=useState<string|null>(null)
   const [savingCategory,setSavingCategory]=useState<string|null>(null)
+  const [restoringDefaults,setRestoringDefaults]=useState(false)
   const [notice,setNotice]=useState<Notice|null>(null)
 
   const reloadNotifications=useCallback(async()=>{
