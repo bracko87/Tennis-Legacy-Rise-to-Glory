@@ -383,3 +383,27 @@
   .tlg-overview-next-opponent-card .tlg-overview-result-layout{grid-template-columns:1fr}
   .tlg-overview-next-opponent-card .tlg-overview-result-portrait{max-height:180px}
 }
+
+/* One upcoming subject only: match OR tournament; never two adjacent cards. */
+.tlg-overview-primary-grid{align-items:start}
+.tlg-overview-next-card-refined .tlg-overview-next-body-refined{flex:0 0 auto;padding:14px 16px;gap:12px}
+.tlg-overview-next-dashboard-single{grid-template-columns:minmax(0,1fr)!important;flex:0 0 auto}
+.tlg-overview-next-dashboard-single .tlg-overview-next-opponent-card{padding:15px}
+.tlg-overview-next-dashboard-single .tlg-overview-next-opponent-card .tlg-overview-result-layout{grid-template-columns:minmax(0,1fr) minmax(135px,30%);align-items:start;height:auto}
+.tlg-overview-next-dashboard-single .tlg-overview-result-portrait{height:194px;min-height:0;max-height:194px}
+.tlg-overview-next-dashboard-single .tlg-overview-result-portrait img{max-height:194px;height:100%;object-fit:cover}
+.tlg-overview-next-dashboard-single .tlg-overview-next-tournament-summary .tlg-overview-tournament-extras{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:14px}
+.tlg-overview-next-dashboard-single .tlg-overview-next-tournament-summary .tlg-overview-tournament-art{min-height:145px}
+.tlg-overview-next-body-refined .tlg-overview-next-actions{margin-top:0;padding-top:0}
+.tlg-overview-result-card-refined .tlg-overview-result-body-refined{flex:0 0 auto;padding:14px 16px;gap:12px}
+.tlg-overview-result-card-refined .tlg-overview-result-body .score{margin:12px 0 9px;font-size:1.42rem}
+.tlg-overview-result-card-refined .tlg-overview-result-portrait{height:190px;min-height:0;max-height:190px}
+.tlg-overview-result-card-refined .tlg-overview-result-portrait img{max-height:190px;height:100%;object-fit:cover}
+.tlg-overview-result-card-refined .tlg-overview-result-bottom-link{margin-top:0;padding-top:0}
+@media(max-width:760px){
+  .tlg-overview-next-dashboard-single .tlg-overview-next-opponent-card .tlg-overview-result-layout{grid-template-columns:minmax(0,1fr) minmax(110px,35%)}
+  .tlg-overview-next-dashboard-single .tlg-overview-next-tournament-summary .tlg-overview-tournament-extras{grid-template-columns:1fr}
+}
+@media(max-width:400px){
+  .tlg-overview-next-dashboard-single .tlg-overview-next-opponent-card .tlg-overview-result-layout{grid-template-columns:1fr}
+}
