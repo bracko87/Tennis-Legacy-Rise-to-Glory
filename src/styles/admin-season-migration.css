@@ -1,0 +1,34 @@
+.tlg-admin-season{display:grid;gap:17px;color:#133b54}
+.tlg-admin-season-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:20px;border:1px solid #d9e5ec;border-radius:13px;background:#fff}
+.tlg-admin-season-heading span,.tlg-admin-season-checkpoints header span{color:#1372b3;font-size:.61rem;letter-spacing:.1em;font-weight:760}
+.tlg-admin-season-heading h3{margin:7px 0;font-size:1.24rem;font-weight:680}
+.tlg-admin-season-heading p{margin:0;color:#677f90;font-size:.76rem}
+.tlg-admin-season-heading button{display:inline-flex;align-items:center;gap:6px;border:1px solid #cbdde8;border-radius:8px;padding:9px 12px;background:#fff;color:#165e94;font-size:.72rem;cursor:pointer}
+.tlg-admin-season-heading button:disabled{opacity:.55;cursor:wait}
+.tlg-admin-season-warning{display:flex;gap:12px;align-items:flex-start;padding:16px 18px;border:1px solid #eac5b2;border-radius:12px;background:#fff7f2;color:#9b4c2f}
+.tlg-admin-season-warning strong{display:block;font-size:.83rem}
+.tlg-admin-season-warning p{margin:6px 0 0;font-size:.73rem;line-height:1.6}
+.tlg-admin-season-wait,.tlg-admin-season-diagnostic{padding:11px 14px;border-radius:9px;background:#fff;color:#677e8e;font-size:.72rem;margin:0}
+.tlg-admin-season-diagnostic{border:1px solid #e5c8a8;background:#fffaf5;color:#8a541c}
+.tlg-admin-season-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+.tlg-admin-season-metrics article{min-width:0;display:flex;flex-direction:column;gap:8px;padding:18px;border:1px solid #dbe7ef;border-radius:12px;background:white}
+.tlg-admin-season-metrics svg{color:#1676b3}
+.tlg-admin-season-metrics span{font-size:.64rem;color:#647d90}
+.tlg-admin-season-metrics strong{font-size:1.5rem;font-weight:680;color:#143954;font-variant-numeric:tabular-nums}
+.tlg-admin-season-metrics small{font-size:.65rem;color:#748d9c}
+.tlg-admin-season-blockers,.tlg-admin-season-checkpoints{border:1px solid #dce6ed;border-radius:13px;background:#fff;padding:19px}
+.tlg-admin-season-blockers h4,.tlg-admin-season-checkpoints h4{margin:0;font-size:.98rem}
+.tlg-admin-season-blockers ul{margin:13px 0 0;padding-left:20px}
+.tlg-admin-season-blockers li,.tlg-admin-season-blockers p{font-size:.74rem;color:#536e80;line-height:1.65}
+.tlg-admin-season-checkpoints header{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:16px}
+.tlg-admin-season-checkpoints h4{margin-top:5px}
+.tlg-admin-season-checkpoints header small{font-size:.65rem;color:#8a7d70}
+.tlg-admin-season-checkpoint-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tlg-admin-season-checkpoint-grid article{padding:13px 15px;border:1px solid #e3ebf0;border-radius:10px;background:#fbfdfe}
+.tlg-admin-season-checkpoint-grid article>div{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.tlg-admin-season-checkpoint-grid strong{color:#173a54;font-weight:670;font-size:.75rem}
+.tlg-admin-season-pending{color:#9c6940;font-size:.6rem;padding:4px 8px;border-radius:999px;background:#fff0e2}
+.tlg-admin-season-checkpoint-grid p{margin:9px 0 0;color:#6b8292;font-size:.69rem;line-height:1.55}
+.tlg-admin-season-footnote{margin:0;color:#6a8292;font-size:.67rem;line-height:1.6}
+@media(max-width:1100px){.tlg-admin-season-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.tlg-admin-season-heading,.tlg-admin-season-checkpoints header{align-items:flex-start;flex-direction:column}.tlg-admin-season-checkpoint-grid,.tlg-admin-season-metrics{grid-template-columns:1fr}.tlg-admin-season-blockers,.tlg-admin-season-checkpoints{padding:13px}}
