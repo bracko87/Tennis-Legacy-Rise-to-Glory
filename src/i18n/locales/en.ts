@@ -45,6 +45,7 @@ export default {
     "tutorialNote": "Restart takes you to the first tutorial step. Feature-specific lessons are available through the full tutorial and Help content.",
     "accountSync": "Account-wide settings synchronize on your other devices after you sign in.",
     "categories": {
+      "player_health": "Health and recovery",
       "tournament": "Tournaments and doubles",
       "training": "Training and camps",
       "player_development": "Player development",
