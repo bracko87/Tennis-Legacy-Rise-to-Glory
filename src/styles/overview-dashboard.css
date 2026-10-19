@@ -339,3 +339,17 @@
   .tlg-overview-next-heading h3 { flex:1 1 100%; }
   .tlg-overview-game-news-card .tlg-overview-world-news { margin:8px 15px 0; }
 }
+
+/* Single-priority upcoming panel and compact latest result */
+.tlg-overview-primary-grid{align-items:start}
+.tlg-overview-next-body{flex:0 0 auto;padding:12px 16px 14px}
+.tlg-overview-next-match-featured{width:100%;margin-top:0;min-height:185px;grid-template-columns:minmax(110px,.65fr) minmax(180px,1.2fr) minmax(140px,.8fr)}
+.tlg-overview-next-actions{margin-top:0;padding-top:12px;flex-wrap:wrap}
+.tlg-overview-result-card .tlg-overview-result-body{padding:14px 16px}
+.tlg-overview-result-card .tlg-overview-result-layout{align-items:start}
+.tlg-overview-result-card .tlg-overview-result-main{display:flex;flex-direction:column;min-width:0}
+.tlg-overview-result-card .tlg-overview-result-main .tlg-overview-link.inline{margin-top:15px}
+.tlg-overview-result-card .tlg-overview-result-portrait{min-height:140px;max-height:184px}
+.tlg-overview-result-card .tlg-overview-result-portrait img{height:184px;max-height:184px;object-fit:cover}
+.tlg-overview-result-card .tlg-overview-result-body .score{margin:12px 0 9px;font-size:1.45rem}
+@media(max-width:760px){.tlg-overview-next-match-featured{grid-template-columns:1fr;min-height:0}}
