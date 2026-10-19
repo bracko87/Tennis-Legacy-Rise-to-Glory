@@ -134,7 +134,12 @@ export default function EquipmentMatchSetupsEnhancement() {
 
       if (defaultPanel) {
         const label = defaultPanel.querySelector<HTMLElement>('.tlg-equipment-panel-head span')
-        if (label?.textContent?.trim()) label.textContent = t('equipmentPage.matchSetups.defaultLabel')
+        const expectedLabel = t('equipmentPage.matchSetups.defaultLabel')
+        // MutationObserver watches childList on body: reassigning identical textContent
+        // emits another mutation and can trap the browser in a feedback loop.
+        if (label?.textContent?.trim() && label.textContent !== expectedLabel) {
+          label.textContent = expectedLabel
+        }
 
         if (!currentDefaultHost || !document.body.contains(currentDefaultHost)) {
           currentDefaultHost = document.createElement('div')
