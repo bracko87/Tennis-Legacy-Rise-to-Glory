@@ -116,7 +116,7 @@ export default function AdminSeasonMigrationPanel() {
     <div className="tlg-admin-season-warning" role="status">
       <AlertTriangle size={20} aria-hidden="true" />
       <div><strong>Migration NOT READY — clock boundary is not yet protected</strong>
-        <p>Execution is disabled. The step runner, backups and recovery rehearsal must be implemented and certified first.</p>
+        <p>Execution controls are disabled. The existing shared game clock may still advance into Season 2 automatically unless a separate boundary safeguard is deployed. Backups, runner and recovery tests are not yet ready.</p>
       </div>
     </div>
 
