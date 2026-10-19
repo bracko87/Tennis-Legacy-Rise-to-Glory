@@ -6,6 +6,8 @@
 
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useLocalization } from '../i18n/LocalizationProvider'
+import type { AppLocale } from '../i18n'
 import { Link } from 'react-router'
 import {
   Activity,
@@ -22,6 +24,7 @@ import {
   MapPin,
   Package,
   ShieldCheck,
+  Image as ImageIcon,
   Sparkles,
   Target,
   Trophy,
@@ -35,6 +38,108 @@ import MarketingFooter from '../components/layout/MarketingFooter'
 import StatCard from '../components/common/StatCard'
 import HomepagePlayerReviews from '../components/marketing/HomepagePlayerReviews'
 import { supabase } from '../lib/supabase'
+
+
+// Fill in the three image URLs when official Tennis Legacy screenshots are supplied.
+// Until then, show intentional placeholders rather than invented gameplay images.
+const gameplayScreenshots: ReadonlyArray<{ id: number; url: string | null }> = [
+  { id: 1, url: null },
+  { id: 2, url: null },
+  { id: 3, url: null },
+]
+
+const screenshotCopy: Record<AppLocale, {
+  eyebrow: string; title: string; description: string; placeholder: string; views: string[]
+}> = {
+  "en": {
+    "eyebrow": "GAME SCREENSHOTS",
+    "title": "See Tennis Legacy in action",
+    "description": "A closer look at the game experience. Official gameplay screenshots will be added here soon.",
+    "placeholder": "Game screenshot coming soon",
+    "views": [
+      "Career overview",
+      "Tournament preparation",
+      "Player development"
+    ]
+  },
+  "sr": {
+    "eyebrow": "SLIKE IZ IGRE",
+    "title": "Pogledajte Tennis Legacy u akciji",
+    "description": "Detaljniji prikaz igre. Uskoro dodajemo zvanične slike ekrana.",
+    "placeholder": "Slika ekrana stiže uskoro",
+    "views": [
+      "Pregled karijere",
+      "Priprema turnira",
+      "Razvoj igrača"
+    ]
+  },
+  "de": {
+    "eyebrow": "SPIEL-SCREENSHOTS",
+    "title": "Tennis Legacy in Aktion",
+    "description": "Ein Einblick in das Spielerlebnis. Offizielle Screenshots werden hier in Kürze ergänzt.",
+    "placeholder": "Spiel-Screenshot folgt in Kürze",
+    "views": [
+      "Karriereübersicht",
+      "Turniervorbereitung",
+      "Spielerentwicklung"
+    ]
+  },
+  "es": {
+    "eyebrow": "CAPTURAS DEL JUEGO",
+    "title": "Descubre Tennis Legacy en acción",
+    "description": "Una mirada a la experiencia de juego. Pronto añadiremos capturas oficiales.",
+    "placeholder": "Captura de juego próximamente",
+    "views": [
+      "Resumen de carrera",
+      "Preparación de torneos",
+      "Desarrollo del jugador"
+    ]
+  },
+  "it": {
+    "eyebrow": "SCHERMATE DI GIOCO",
+    "title": "Scopri Tennis Legacy in azione",
+    "description": "Uno sguardo all'esperienza di gioco. Presto aggiungeremo le schermate ufficiali.",
+    "placeholder": "Schermata di gioco in arrivo",
+    "views": [
+      "Panoramica carriera",
+      "Preparazione tornei",
+      "Sviluppo del giocatore"
+    ]
+  },
+  "fr": {
+    "eyebrow": "CAPTURES DU JEU",
+    "title": "Découvrez Tennis Legacy en action",
+    "description": "Un aperçu de l'expérience de jeu. Des captures officielles seront bientôt ajoutées.",
+    "placeholder": "Capture de jeu à venir",
+    "views": [
+      "Vue d'ensemble de carrière",
+      "Préparation des tournois",
+      "Développement du joueur"
+    ]
+  },
+  "ru": {
+    "eyebrow": "СКРИНШОТЫ ИГРЫ",
+    "title": "Tennis Legacy в действии",
+    "description": "Посмотрите, как выглядит игра. Скоро здесь появятся официальные скриншоты.",
+    "placeholder": "Скриншот скоро появится",
+    "views": [
+      "Обзор карьеры",
+      "Подготовка к турниру",
+      "Развитие игрока"
+    ]
+  },
+  "pt": {
+    "eyebrow": "IMAGENS DO JOGO",
+    "title": "Descobre Tennis Legacy em ação",
+    "description": "Uma visão mais próxima do jogo. Em breve serão adicionadas capturas de ecrã oficiais.",
+    "placeholder": "Imagem do jogo em breve",
+    "views": [
+      "Resumo da carreira",
+      "Preparação de torneios",
+      "Desenvolvimento do jogador"
+    ]
+  }
+}
 
 const statistics = [
   { labelKey: 'home.stats.activePlayers', value: '—', icon: UsersRound },
@@ -63,6 +168,8 @@ const managementFeatures = [
 
 export default function HomePage() {
   const { t } = useTranslation()
+  const { locale } = useLocalization()
+  const galleryText = screenshotCopy[locale] ?? screenshotCopy.en
   const careerDecisions = t('home.fantasy.decisions', { returnObjects: true }) as string[]
   const seasonMonths = t('home.clock.months', { returnObjects: true }) as string[]
 
@@ -201,20 +308,14 @@ export default function HomePage() {
             </div>
 
             <div className="tlg-statistics-grid">
-              {statistics.map((statistic) => {
-                const Icon = statistic.icon
-
-                return (
-                  <StatCard
-                    key={statistic.labelKey}
-                    label={t(statistic.labelKey)}
-                    value={statistic.value}
-                    helper={t('home.stats.connecting')}
-                    status={t('home.stats.liveData')}
-                    icon={<Icon size={20} />}
-                  />
-                )
-              })}
+              {statistics.map((statistic) => (
+                <StatCard
+                  key={statistic.labelKey}
+                  label={t(statistic.labelKey)}
+                  value={statistic.value}
+                  helper={t('home.stats.connecting')}
+                />
+              ))}
             </div>
           </div>
         </section>
@@ -464,48 +565,33 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="tlg-home-pricing-section" id="premium">
+        <section className="tlg-home-screenshots-section" id="game-screenshots" aria-labelledby="tlg-home-screenshots-title">
           <div className="tlg-section">
-            <div className="tlg-home-pricing-heading">
-              <span className="tlg-section-eyebrow">{t('home.premium.eyebrow')}</span>
-              <h2>{t('home.premium.title')}</h2>
-              <p>
-                {t('home.premium.description')}
-              </p>
+            <div className="tlg-home-screenshots-heading">
+              <span className="tlg-section-eyebrow">{galleryText.eyebrow}</span>
+              <h2 id="tlg-home-screenshots-title">{galleryText.title}</h2>
+              <p>{galleryText.description}</p>
             </div>
-
-            <div className="tlg-home-pricing-grid">
-              <article className="tlg-home-price-card">
-                <span>{t('home.premium.monthly')}</span>
-                <strong>€3.29</strong>
-                <small>{t('home.premium.everyMonth')}</small>
-                <p>{t('home.premium.monthlyCoins')}</p>
-                <Link to="/register" className="tlg-btn tlg-btn-secondary">{t('home.premium.startFree')}</Link>
-              </article>
-
-              <article className="tlg-home-price-card tlg-home-price-card-featured">
-                <div className="tlg-home-price-badge">{t('home.premium.mostPopular')}</div>
-                <Crown size={24} />
-                <span>{t('home.premium.threeMonths')}</span>
-                <strong>€9.49</strong>
-                <small>{t('home.premium.everyThree')}</small>
-                <p>{t('home.premium.threeCoins')}</p>
-                <Link to="/register" className="tlg-btn tlg-btn-primary">{t('home.premium.startFree')}</Link>
-              </article>
-
-              <article className="tlg-home-price-card">
-                <div className="tlg-home-price-badge tlg-home-price-badge-save">{t('home.premium.save15')}</div>
-                <span>{t('home.premium.annual')}</span>
-                <strong>€33.49</strong>
-                <small>{t('home.premium.annualPrice')}</small>
-                <p>{t('home.premium.annualCoins')}</p>
-                <Link to="/register" className="tlg-btn tlg-btn-secondary">{t('home.premium.startFree')}</Link>
-              </article>
+            <div className="tlg-home-screenshots-grid">
+              {gameplayScreenshots.map((screenshot, index) => (
+                <article className="tlg-home-screenshot-card" key={screenshot.id}>
+                  <div className="tlg-home-screenshot-frame">
+                    {screenshot.url ? (
+                      <img src={screenshot.url} alt={galleryText.views[index]} loading="lazy" />
+                    ) : (
+                      <div className="tlg-home-screenshot-placeholder">
+                        <ImageIcon size={30} aria-hidden="true" />
+                        <span>{galleryText.placeholder}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="tlg-home-screenshot-caption">
+                    <span>{String(screenshot.id).padStart(2, '0')}</span>
+                    <strong>{galleryText.views[index]}</strong>
+                  </div>
+                </article>
+              ))}
             </div>
-
-            <p className="tlg-home-pricing-note">
-              {t('home.premium.note')}
-            </p>
           </div>
         </section>
 
@@ -551,7 +637,20 @@ export default function HomePage() {
         </section>
       </main>
 
-      <MarketingFooter />
+      <MarketingFooter>
+        <div className="tlg-home-footer-premium" id="premium">
+          <div className="tlg-home-footer-premium-heading">
+            <strong>{t('home.premium.eyebrow')}</strong>
+            <p>{t('home.premium.description')}</p>
+          </div>
+          <div className="tlg-home-footer-premium-plans">
+            <div><span>{t('home.premium.monthly')}</span><strong>€3.29</strong></div>
+            <div><span>{t('home.premium.threeMonths')}</span><strong>€9.49</strong></div>
+            <div><span>{t('home.premium.annual')}</span><strong>€33.49</strong></div>
+          </div>
+          <p className="tlg-home-footer-premium-note">{t('home.premium.note')}</p>
+        </div>
+      </MarketingFooter>
     </div>
   )
 }
