@@ -550,20 +550,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      <MarketingFooter>
-        <div className="tlg-home-footer-premium" id="premium">
-          <div className="tlg-home-footer-premium-heading">
-            <strong>{t('home.premium.eyebrow')}</strong>
-            <p>{t('home.premium.description')}</p>
-          </div>
-          <div className="tlg-home-footer-premium-plans">
-            <div><span>{t('home.premium.monthly')}</span><strong>€3.29</strong></div>
-            <div><span>{t('home.premium.threeMonths')}</span><strong>€9.49</strong></div>
-            <div><span>{t('home.premium.annual')}</span><strong>€33.49</strong></div>
-          </div>
-          <p className="tlg-home-footer-premium-note">{t('home.premium.note')}</p>
-        </div>
-      </MarketingFooter>
+      <MarketingFooter />
     </div>
   )
 }
