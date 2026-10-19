@@ -45,7 +45,7 @@ export default function RealWorldTennisNews() {
     return () => { active = false }
   }, [])
 
-  return <section className="tlg-overview-panel tlg-overview-world-news">
+  return <section className="tlg-overview-world-news">
     <div className="tlg-overview-panel-head">
       <div>
         <span>{t('overviewPage.extra.newsEyebrow')}</span>
