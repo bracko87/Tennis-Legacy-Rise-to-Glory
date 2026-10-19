@@ -18,7 +18,7 @@ export const portugueseTranslations = {
     "optional": "Opcional",
     "reviewTypes": "Ver {{count}} notificações individuais",
     "trigger": "Evento",
-    "toggleType": "Alternar {{name}",
+    "toggleType": "Alternar {{name}}",
     "title": "Preferências",
     "subtitle": "Idioma, notificações e interface",
     "eyebrow": "CENTRAL DO JOGADOR",
