@@ -17,6 +17,13 @@ declare
   v_slots integer;
   v_blockers jsonb := '[]'::jsonb;
   v_seconds_left numeric;
+  v_boundary_absolute_day integer;
+  v_main_active integer;
+  v_main_due integer;
+  v_main_crossing integer;
+  v_tech_active integer;
+  v_tech_due integer;
+  v_tech_crossing integer;
 begin
   if auth.uid() is null or not public.is_app_admin_v1(auth.uid()) then
     raise exception 'Administrator access required' using errcode = '42501';
@@ -29,6 +36,18 @@ begin
   v_target := v_season + 1;
   v_day := floor(mod(v_clock.game_total_seconds::numeric, 366 * 86400) / 86400)::integer + 1;
   v_seconds_left := (366 * 86400) - mod(v_clock.game_total_seconds::numeric, 366 * 86400);
+  v_boundary_absolute_day := v_season * 366;
+  -- Read-only sponsor audit; existing crossing agreements must NOT be changed.
+  select count(*),
+         count(*) filter (where end_absolute_day <= v_boundary_absolute_day),
+         count(*) filter (where end_absolute_day > v_boundary_absolute_day)
+    into v_main_active,v_main_due,v_main_crossing
+  from public.player_sponsor_contracts where status = 'active';
+  select count(*),
+         count(*) filter (where end_absolute_day <= v_boundary_absolute_day),
+         count(*) filter (where end_absolute_day > v_boundary_absolute_day)
+    into v_tech_active,v_tech_due,v_tech_crossing
+  from public.player_technical_sponsor_contracts where status = 'active';
   select count(*) into v_editions from public.tournament_editions where season_number=v_target;
   select count(*) into v_slots
     from public.tournament_schedule_slots s
@@ -40,6 +59,7 @@ begin
   end if;
   v_blockers := v_blockers || jsonb_build_array(
     'Transition runner, backup gate, journal and tested clock lock not yet installed.',
+    'Annual sponsorship renewals and grandfathered contract registry are not yet implemented.',
     'Season N→N+1 end-to-end dry-run has not been certified.'
   );
 
@@ -59,6 +79,17 @@ begin
       'next_season_editions',v_editions,
       'next_season_slots',v_slots,
       'coverage_verified',false
+    ),
+    'sponsors',jsonb_build_object(
+      'policy','annual_new_contracts_grandfather_signed_legacy',
+      'boundary_absolute_day',v_boundary_absolute_day,
+      'main_active',v_main_active,
+      'main_due_by_boundary',v_main_due,
+      'main_crossing_existing',v_main_crossing,
+      'technical_active',v_tech_active,
+      'technical_due_by_boundary',v_tech_due,
+      'technical_crossing_existing',v_tech_crossing,
+      'compliance_verified',false
     ),
     'blockers',v_blockers
   );
