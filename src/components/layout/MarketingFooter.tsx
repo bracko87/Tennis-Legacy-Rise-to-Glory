@@ -179,13 +179,15 @@ export default function MarketingFooter({
               <p className="tlg-pricing-description">{t('home.premium.description')}</p>
               <div className="tlg-pricing-plans">
                 {[
-                  { label: t('home.premium.monthly'), price: '€3.29', period: '1', note: t('home.premium.monthlyCoins') },
-                  { label: t('home.premium.threeMonths'), price: '€9.49', period: '3', note: t('home.premium.threeCoins') },
-                  { label: t('home.premium.annual'), price: '€33.49', period: '12', note: t('home.premium.annualCoins') },
+                  { label: t('home.premium.monthly'), price: '€3.29', period: '1', note: t('home.premium.monthlyCoins'), billing: t('home.premium.everyMonth'), badge: null },
+                  { label: t('home.premium.threeMonths'), price: '€9.49', period: '3', note: t('home.premium.threeCoins'), billing: t('home.premium.everyThree'), badge: t('home.premium.mostPopular') },
+                  { label: t('home.premium.annual'), price: '€33.49', period: '12', note: t('home.premium.annualCoins'), billing: t('home.premium.annualPrice'), badge: t('home.premium.save15') },
                 ].map((plan) => (
                   <article className="tlg-pricing-plan" key={plan.period}>
+                    {plan.badge && <span className="tlg-pricing-plan-badge">{plan.badge}</span>}
                     <h3>{plan.label}</h3>
                     <strong>{plan.price}</strong>
+                    <small>{plan.billing}</small>
                     <span>{plan.note}</span>
                   </article>
                 ))}
