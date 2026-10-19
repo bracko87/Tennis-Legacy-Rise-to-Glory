@@ -302,3 +302,30 @@ html[data-tlg-reduced-motion="true"] *,html[data-tlg-reduced-motion="true"] *::b
 @media (max-width: 355px) {
   .tlg-language-grid,.tlg-pref-choice-grid { grid-template-columns: 1fr; }
 }
+
+
+/* Per-notification Preferences controls share the same catalog-backed switches. */
+.tlg-pref-notification-groups { display:grid; gap:12px; margin-top:16px; }
+.tlg-pref-notification-actions { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; }
+.tlg-pref-notification-actions p { font-size:.76rem; line-height:1.5; color:#5f788c; margin:0; }
+.tlg-pref-notification-group { border:1px solid #dce8ef; border-radius:12px; overflow:hidden; }
+.tlg-pref-notification-group-header { padding:15px; background:#f7fbfd; display:flex; align-items:center; justify-content:space-between; gap:14px; }
+.tlg-pref-notification-group-header .tlg-pref-option-copy strong { font-size:.86rem; }
+.tlg-pref-required-chip { flex:0 0 auto; display:inline-flex; gap:5px; align-items:center; font-size:.68rem; font-weight:750; padding:5px 8px; border:1px solid #d9e7df; border-radius:999px; background:#eaf7ee; color:#27714a; }
+.tlg-pref-notification-details { border-top:1px solid #e3edf2; background:#fff; }
+.tlg-pref-notification-details summary { cursor:pointer; user-select:none; min-height:44px; display:flex; align-items:center; padding:10px 15px; font-size:.76rem; font-weight:750; color:#0d6caa; }
+.tlg-pref-notification-details summary:focus-visible { outline:3px solid #ffbd51; outline-offset:-3px; }
+.tlg-pref-notification-details[open] summary { background:#f5faff; }
+.tlg-pref-notification-types { padding:0 12px 12px; }
+.tlg-pref-notification-type { padding:14px 5px; border-top:1px solid #edf1f4; display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:65px; }
+.tlg-pref-notification-type .tlg-pref-option-copy strong { font-size:.78rem; }
+.tlg-pref-notification-type .tlg-pref-option-copy small { overflow-wrap:anywhere; font-size:.71rem; }
+.tlg-pref-event-trigger { color:#7890a1; }
+.tlg-pref-severity { display:inline-flex; margin-top:1px; color:#527187; font-size:.65rem; font-weight:700; }
+@media(max-width:600px) {
+  .tlg-pref-notification-group-header { padding:12px; }
+  .tlg-pref-notification-details summary { padding:12px; }
+  .tlg-pref-notification-types { padding:0 10px 10px; }
+  .tlg-pref-notification-type { padding:12px 0; }
+  .tlg-pref-notification-actions .tlg-pref-action { width:auto; min-height:44px; }
+}
