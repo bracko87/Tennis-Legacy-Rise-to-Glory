@@ -54,6 +54,7 @@ export const portugueseTranslations = {
     "tutorialNote": "Reiniciar leva ao primeiro passo. Outros tópicos estão disponíveis no tutorial e na ajuda.",
     "accountSync": "As preferências da conta são sincronizadas em outros dispositivos após o login.",
     "categories": {
+      "player_health": "Saúde e recuperação",
       "tournament": "Torneios e duplas",
       "training": "Treinamento e períodos intensivos",
       "player_development": "Desenvolvimento do jogador",
