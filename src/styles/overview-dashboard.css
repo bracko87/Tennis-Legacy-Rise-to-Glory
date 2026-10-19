@@ -320,3 +320,22 @@
  .tlg-overview-tournament-art{min-height:140px}
  .tlg-overview-tournament-art img{max-height:160px}
 }
+
+
+/* Compact tournament header: put location/category/surface/week beside the title. */
+.tlg-overview-next-card .tlg-overview-next-title-group { flex:1 1 auto; min-width:0; }
+.tlg-overview-next-heading { display:flex; align-items:center; flex-wrap:wrap; gap:8px 16px; margin-top:6px; min-width:0; }
+.tlg-overview-next-heading h3 { margin:0; flex:0 0 auto; }
+.tlg-overview-next-heading .tlg-overview-event-meta { min-width:0; gap:6px; }
+.tlg-overview-next-heading .tlg-overview-event-meta b { padding:4px 7px; }
+.tlg-overview-next-body .tlg-overview-tournament-extras { margin-top:0; }
+
+/* Real tennis headlines follow simulated tour results INSIDE the Game News card. */
+.tlg-overview-game-news-card .tlg-overview-world-news { margin:12px 18px 0; border-top:1px solid #dbe5ec; }
+.tlg-overview-game-news-card .tlg-overview-world-news .tlg-overview-panel-head { padding:18px 0 12px; border-bottom:1px solid #edf1f4; }
+.tlg-overview-game-news-card .tlg-overview-world-news-list { padding:4px 0 12px; }
+.tlg-overview-game-news-card .tlg-overview-world-news-state { padding:18px 0; }
+@media(max-width:520px) {
+  .tlg-overview-next-heading h3 { flex:1 1 100%; }
+  .tlg-overview-game-news-card .tlg-overview-world-news { margin:8px 15px 0; }
+}
