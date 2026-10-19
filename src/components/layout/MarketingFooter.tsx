@@ -178,7 +178,7 @@ export default function MarketingFooter({
               <p className="tlg-pricing-description">{t('home.premium.description')}</p>
               <div className="tlg-pricing-plans">
                 {[
-                  { label: t('home.premium.monthly'), price: '€3.29', coins: 30, period: '1', note: t('home.premium.monthlyCoins') },
+                  { label: t('home.premium.monthly'), price: '€3.29', period: '1', note: t('home.premium.monthlyCoins') },
                   { label: t('home.premium.threeMonths'), price: '€9.49', period: '3', note: t('home.premium.threeCoins') },
                   { label: t('home.premium.annual'), price: '€33.49', period: '12', note: t('home.premium.annualCoins') },
                 ].map((plan) => (
