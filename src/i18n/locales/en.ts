@@ -3680,7 +3680,8 @@ export default {
     radarAria: 'Current nine-skill tennis radar',
     historyAria: 'Technical, physical and readiness development history',
   },
-  overviewPage: {\n    extra: {
+  overviewPage: {
+    extra: {
       "atAGlance": "Tournament at a glance",
       "prizePool": "Prize pool",
       "winnerPoints": "Winner points",
