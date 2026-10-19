@@ -9,6 +9,16 @@ type TranslationShape<T> = T extends string ? string
 
 export const portugueseTranslations = {
   preferencesCenter: {
+    "notificationInventory": "{{count}} tipos de notificação ativos",
+    "restoreDefaults": "Restaurar notificações padrão",
+    "restored": "Configurações padrão restauradas.",
+    "optionalsCount": "{{count}} opcionais",
+    "requiredCount": "{{count}} obrigatórias",
+    "required": "Obrigatória",
+    "optional": "Opcional",
+    "reviewTypes": "Ver {{count}} notificações individuais",
+    "trigger": "Evento",
+    "toggleType": "Alternar {{name}",
     "title": "Preferências",
     "subtitle": "Idioma, notificações e interface",
     "eyebrow": "CENTRAL DO JOGADOR",
