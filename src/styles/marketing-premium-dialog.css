@@ -9,7 +9,10 @@
 .tlg-pricing-plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin-top:28px}
 .tlg-pricing-plan{min-width:0;padding:21px 18px;border:1px solid #d7e5ef;border-radius:12px;background:#fbfdff}
 .tlg-pricing-plan:nth-child(2){border-color:#1884d2;box-shadow:0 0 0 1px #1884d2}
+.tlg-pricing-plan{position:relative}
+.tlg-pricing-plan-badge{position:absolute;top:10px;right:10px;padding:4px 9px;border-radius:999px;background:#eaf5fd;color:#096fb4;font-size:.59rem;font-weight:750}
 .tlg-pricing-plan h3{margin:0;color:#44647b;font-size:.78rem;font-weight:670}
+.tlg-pricing-plan>small{display:block;margin:-8px 0 13px;color:#7590a3;font-size:.7rem}
 .tlg-pricing-plan>strong{display:block;margin:12px 0 15px;color:#071e34;font-size:2rem;font-weight:700}
 .tlg-pricing-plan>span{display:block;color:#637d91;font-size:.74rem;line-height:1.6}
 .tlg-pricing-note{margin:20px 0 0;color:#647f92;font-size:.75rem;line-height:1.55}
