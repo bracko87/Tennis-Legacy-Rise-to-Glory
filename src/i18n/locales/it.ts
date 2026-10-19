@@ -1333,7 +1333,23 @@ export default {
     "radarAria": "Grafico radar delle nove abilità tennistiche attuali",
     "historyAria": "Cronologia dello sviluppo tecnico, fisico e della prontezza"
   },
-  "overviewPage": {
+  "overviewPage": {\n    extra: {
+      "atAGlance": "Il torneo in breve",
+      "prizePool": "Montepremi",
+      "winnerPoints": "Punti del vincitore",
+      "mainDraw": "Tabellone principale",
+      "environment": "Sede",
+      "status": "Stato del torneo",
+      "yourEntry": "La tua iscrizione",
+      "logoAlt": "Logo del torneo {{name}}",
+      "newsEyebrow": "TENNIS REALE",
+      "newsTitle": "Ultime notizie dal tennis reale",
+      "newsIntro": "Titoli dei media tennistici. Si apre l'articolo originale.",
+      "newsLoading": "Caricamento delle notizie sul tennis…",
+      "newsUnavailable": "Le notizie sul tennis non sono disponibili al momento. Riprova più tardi.",
+      "fullArticle": "Apri l'articolo completo",
+      "worldLabel": "{{country}} · Circuito {{world}}"
+  },
     "title": "Panoramica",
     "subtitle": "Centro di controllo della carriera",
     "kicker": "Centro di controllo della carriera",
