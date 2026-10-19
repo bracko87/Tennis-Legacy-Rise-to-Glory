@@ -523,7 +523,7 @@ function NextTournamentCard({ tournament, match }: { tournament: NextTournament;
     <article className="tlg-overview-panel tlg-overview-next-card">
       <div className="tlg-overview-panel-head">
         <div className="tlg-overview-next-title-group">
-          <span>{t('overviewPage.nextTournament')}</span>
+          <span>{t(match ? 'overviewPage.nextMatch' : 'overviewPage.nextTournament')}</span>
           <div className="tlg-overview-next-heading">
             <h3>{tournament?.tournament_name ?? t('overviewPage.noTournament')}</h3>
             {tournament && <div className="tlg-overview-event-meta">
@@ -534,16 +534,15 @@ function NextTournamentCard({ tournament, match }: { tournament: NextTournament;
         </div>
         {tournament && <Link className="tlg-overview-link" to={`/game/tournaments/${tournament.competition_id}`}>{t('overviewPage.openTournament')} <ChevronRight size={14} /></Link>}
       </div>
-      {tournament ? (
+      {tournament || match ? (
         <div className="tlg-overview-next-body">
           {match ? (
-            <div className="tlg-overview-next-match">
+            <div className="tlg-overview-next-match tlg-overview-next-match-featured">
               <div><span>{t('overviewPage.nextMatch')}</span><strong>{match.round_label}</strong></div>
               <div className="opponent"><CountryFlag countryCode={match.opponent_country_code} width={24} height={16} /><div><span>{t('overviewPage.opponent')}</span><Link to={`/game/players/${match.opponent_id}`}>{match.opponent_first_name} {match.opponent_last_name}</Link></div></div>
               <div className="match-date"><span>{t('overviewPage.tournamentDay')}</span><strong>{t('overviewPage.week', { week: match.season_week })} · {t('overviewPage.day', { day: match.day })}</strong></div>
             </div>
-          ) : null}
-          <NextTournamentExtras tournament={tournament} />
+          ) : tournament ? <NextTournamentExtras tournament={tournament} /> : null}
           <div className="tlg-overview-next-actions"><Link to="/game/schedule">{t('overviewPage.prepareTournament')}</Link><Link to="/game/calendar">{t('overviewPage.viewCalendar')}</Link></div>
         </div>
       ) : <EmptyCard text={t('overviewPage.noActiveEntry')} />}
