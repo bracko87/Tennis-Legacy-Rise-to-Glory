@@ -45,6 +45,7 @@ export default {
     "tutorialNote": "Der Neustart führt zum ersten Schritt. Einzelne Themen findest du im Tutorial und Hilfezentrum.",
     "accountSync": "Kontoeinstellungen werden nach der Anmeldung mit anderen Geräten synchronisiert.",
     "categories": {
+      "player_health": "Gesundheit und Erholung",
       "tournament": "Turniere und Doppel",
       "training": "Training und Camps",
       "player_development": "Spielerentwicklung",
