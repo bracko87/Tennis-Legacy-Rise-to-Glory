@@ -32,3 +32,26 @@
 .tlg-admin-season-footnote{margin:0;color:#6a8292;font-size:.67rem;line-height:1.6}
 @media(max-width:1100px){.tlg-admin-season-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.tlg-admin-season-heading,.tlg-admin-season-checkpoints header{align-items:flex-start;flex-direction:column}.tlg-admin-season-checkpoint-grid,.tlg-admin-season-metrics{grid-template-columns:1fr}.tlg-admin-season-blockers,.tlg-admin-season-checkpoints{padding:13px}}
+
+/* Approved policy cards and rollover contract — display only, never execution controls. */
+.tlg-admin-season-sponsor-policy,.tlg-admin-season-carryover{border:1px solid #dce6ed;border-radius:13px;background:#fff;padding:20px;min-width:0}
+.tlg-admin-season-sponsor-policy>header>span,.tlg-admin-season-carryover>header>span{display:block;color:#1875b1;font-size:.63rem;letter-spacing:.09em;font-weight:700}
+.tlg-admin-season-sponsor-policy h4,.tlg-admin-season-carryover h4{margin:7px 0 8px;color:#193e55;font-size:1.02rem;font-weight:680}
+.tlg-admin-season-sponsor-policy header p,.tlg-admin-season-carryover header p{margin:0;color:#647d90;font-size:.76rem;line-height:1.6}
+.tlg-admin-season-sponsor-counts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}
+.tlg-admin-season-sponsor-counts>div{min-width:0;display:flex;flex-direction:column;gap:10px;padding:12px 14px;border:1px solid #dfeaf1;border-radius:10px;background:#f8fbfd}
+.tlg-admin-season-sponsor-counts span{font-size:.65rem;color:#638096;line-height:1.4}
+.tlg-admin-season-sponsor-counts strong{font-size:1.18rem;color:#184b6b;font-variant-numeric:tabular-nums}
+.tlg-admin-season-sponsor-diagnostic{margin:12px 0 0;color:#a06e35;background:#fff8f0;border:1px solid #e7d5bd;border-radius:8px;padding:10px 12px;font-size:.68rem;line-height:1.55}
+.tlg-admin-season-sponsor-policy ul{margin:16px 0 10px;padding-left:21px}
+.tlg-admin-season-sponsor-policy li{margin:7px 0;color:#456c84;font-size:.73rem;line-height:1.55}
+.tlg-admin-season-sponsor-policy>small{color:#89715b;font-size:.65rem;line-height:1.5}
+.tlg-admin-season-rules-scroll{overflow-x:auto;margin-top:16px}
+.tlg-admin-season-rules-scroll table{width:100%;border-collapse:collapse;min-width:650px;text-align:left}
+.tlg-admin-season-rules-scroll th,.tlg-admin-season-rules-scroll td{padding:12px 14px;border-bottom:1px solid #e5edf2;vertical-align:top;font-size:.72rem;line-height:1.5}
+.tlg-admin-season-rules-scroll thead th{background:#f0f7fb;color:#286284;font-size:.66rem;text-transform:uppercase;letter-spacing:.03em}
+.tlg-admin-season-rules-scroll tbody th{color:#153d58;font-weight:680;width:27%}
+.tlg-admin-season-rules-scroll tbody td{color:#5c7689}
+.tlg-admin-season-rules-scroll tbody tr:last-child th,.tlg-admin-season-rules-scroll tbody tr:last-child td{border-bottom:none}
+@media(max-width:1080px){.tlg-admin-season-sponsor-counts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.tlg-admin-season-sponsor-policy,.tlg-admin-season-carryover{padding:14px}.tlg-admin-season-sponsor-counts{gap:8px}}
