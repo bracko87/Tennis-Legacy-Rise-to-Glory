@@ -22,8 +22,8 @@
 .tlg-overview-link.inline{margin-top:15px}
 .tlg-overview-muted{margin:0;color:#768a99;font-size:.7rem;line-height:1.5}
 
-.tlg-overview-next-card{background:linear-gradient(135deg,#fff 0%,#fbfdff 66%,#f0f8fd 100%)}
-.tlg-overview-next-body{padding:19px 20px 20px}
+.tlg-overview-next-card{display:flex;flex-direction:column;background:linear-gradient(135deg,#fff 0%,#fbfdff 66%,#f0f8fd 100%)}
+.tlg-overview-next-body{display:flex;flex-direction:column;flex:1;min-height:0;padding:19px 20px 20px}
 .tlg-overview-event-meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;color:#5e7385;font-size:.67rem}
 .tlg-overview-event-meta>b{padding:5px 8px;border:1px solid #dce7ee;border-radius:999px;color:#557085;background:#fff;font-size:.57rem}
 .tlg-overview-next-match{display:grid;grid-template-columns:minmax(110px,.45fr) minmax(220px,1fr) minmax(150px,.65fr);gap:12px;align-items:center;margin-top:18px;padding:16px;border:1px solid #d9e6ee;border-radius:12px;background:#fff}
@@ -32,7 +32,7 @@
 .tlg-overview-next-match .opponent div span,.tlg-overview-next-match .match-date span{display:block;color:#8192a1;font-size:.56rem;text-transform:uppercase;letter-spacing:.07em}
 .tlg-overview-next-match .opponent a{display:block;margin-top:4px;color:#18384f;font-size:.8rem;font-weight:780;text-decoration:none}
 .tlg-overview-next-match .match-date{padding-left:14px;border-left:1px solid #e6edf2}
-.tlg-overview-next-actions{display:flex;gap:8px;margin-top:26px}
+.tlg-overview-next-actions{display:flex;gap:8px;margin-top:auto;padding-top:36px}
 .tlg-overview-next-actions a{padding:8px 11px;border:1px solid #d4e3ec;border-radius:8px;color:#41647b;background:#fff;font-size:.63rem;font-weight:760;text-decoration:none}
 
 .tlg-overview-result-body{padding:20px}
@@ -284,3 +284,10 @@
 @media(max-width:1250px) and (min-width:1051px) { .tlg-overview-result-layout { grid-template-columns:minmax(0,1fr) minmax(90px,34%); } }
 @media(max-width:600px) { .tlg-overview-result-layout { grid-template-columns:minmax(0,1fr) 118px; gap:10px; } .tlg-overview-finance-trends { padding:12px; gap:6px; } .tlg-overview-finance-spark { padding:6px; } }
 @media(max-width:400px) { .tlg-overview-result-layout { grid-template-columns:1fr; } .tlg-overview-result-portrait { min-height:140px; max-height:180px; } }
+
+/* Simple finance value bars matching the Training & condition panel. */
+.tlg-overview-finance-bars{display:grid;gap:13px;padding:17px 18px 19px;border-top:1px solid #e8eef2}
+.tlg-overview-finance-bar-label{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;color:#617889;font-size:.65rem}
+.tlg-overview-finance-bar-label strong{color:#29485f;font-size:.66rem;font-variant-numeric:tabular-nums}
+.tlg-overview-finance-track{height:6px;background:#e9eef2;border-radius:999px;overflow:hidden}
+.tlg-overview-finance-track>span{display:block;height:100%;border-radius:inherit}
