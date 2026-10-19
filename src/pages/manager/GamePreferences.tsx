@@ -143,6 +143,11 @@ export default function GamePreferencesPage() {
     return template && !template.includes('{{') ? template : item.label
   }
 
+  function localizedNotificationDescription(item:NotificationType){
+    const translated=t('notifications.templates.'+notificationTemplateKey(item.code)+'.message',{defaultValue:''})
+    return translated && !translated.includes('{{') ? translated : item.description
+  }
+
   const orderedGroups=[...groups].sort((a,b)=>{
     const ia=CATEGORY_ORDER.indexOf(a.category)
     const ib=CATEGORY_ORDER.indexOf(b.category)
@@ -238,7 +243,7 @@ export default function GamePreferencesPage() {
                         <div className="tlg-pref-notification-type" key={item.code}>
                           <div className="tlg-pref-option-copy">
                             <strong>{localizedNotificationName(item)}</strong>
-                            <small>{item.description}</small>
+                            <small>{localizedNotificationDescription(item)}</small>
                             <small className="tlg-pref-event-trigger">{t('preferencesCenter.trigger')}: {item.trigger}</small>
                             <span className="tlg-pref-severity">{t('notifications.severity.'+item.severity,{defaultValue:item.severity})}
                               {' · '}{item.configurable?t('preferencesCenter.optional'):t('preferencesCenter.required')}</span>
