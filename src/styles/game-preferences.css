@@ -126,7 +126,7 @@
   min-height: 68px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 10px;
   padding: 12px 13px;
   border: 1px solid #d7e4ec;
@@ -174,6 +174,7 @@
 
 .tlg-language-option em {
   flex: 0 0 auto;
+  margin-left: auto;
   color: #0b6fc8;
   font-size: .62rem;
   font-style: normal;
@@ -232,7 +233,7 @@
 
 
 /* Preferences Center — responsive cards and accessible 44px controls */
-.tlg-preferences-page { width: 100%; max-width: 1220px; margin: 0 auto; gap: 16px; }
+.tlg-preferences-page { width: 100%; min-width: 0; gap: 16px; }
 .tlg-preferences-intro { padding: 5px 3px 7px; }
 .tlg-preferences-intro h2 { font-size: clamp(1.35rem,2vw,1.7rem); letter-spacing: -.02em; }
 .tlg-preferences-intro p { max-width: 760px; font-size: .83rem; }
@@ -245,10 +246,10 @@
 .tlg-pref-option-copy { min-width: 0; display: grid; gap: 5px; }
 .tlg-pref-option-copy strong { color: #17354b; font-size: .81rem; line-height: 1.35; }
 .tlg-pref-option-copy small { color: #6d8191; font-size: .69rem; line-height: 1.4; }
-.tlg-pref-switch { display: inline-flex; align-items: center; flex: 0 0 48px; justify-content: flex-start; height: 30px; padding: 4px; background: #d2dee7; border: 1px solid #c6d7e2; border-radius: 999px; cursor: pointer; transition: background .16s ease; }
-.tlg-pref-switch span { display: block; width: 20px; height: 20px; background: #fff; border-radius: 100%; box-shadow: 0 1px 3px #162a382a; transform: translateX(0); transition: transform .16s ease; }
+.tlg-pref-switch { display: inline-flex; align-items: center; flex: 0 0 38px; justify-content: flex-start; height: 22px; padding: 3px; background: #d2dee7; border: 1px solid #c6d7e2; border-radius: 999px; cursor: pointer; transition: background .16s ease; }
+.tlg-pref-switch span { display: block; width: 14px; height: 14px; background: #fff; border-radius: 100%; box-shadow: 0 1px 3px #162a382a; transform: translateX(0); transition: transform .16s ease; }
 .tlg-pref-switch.on { background: #0b75bb; border-color: #0b75bb; }
-.tlg-pref-switch.on span { transform: translateX(18px); }
+.tlg-pref-switch.on span { transform: translateX(16px); }
 .tlg-pref-switch:disabled { cursor: progress; opacity: .6; }
 .tlg-pref-switch:focus-visible,.tlg-pref-choice:focus-visible,.tlg-language-option:focus-visible,.tlg-pref-action:focus-visible { outline: 3px solid #ffbc4d; outline-offset: 3px; }
 .tlg-preferences-channel { display: flex; align-items: center; gap: 11px; padding: 12px 14px; background: #f1f9fc; border-radius: 10px; }
