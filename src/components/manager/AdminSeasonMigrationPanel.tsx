@@ -11,6 +11,18 @@ type Clock = {
   real_hours_remaining: number
 }
 
+type SponsorReadiness = {
+  policy: string
+  boundary_absolute_day: number
+  main_active: number
+  main_due_by_boundary: number
+  main_crossing_existing: number
+  technical_active: number
+  technical_due_by_boundary: number
+  technical_crossing_existing: number
+  compliance_verified: boolean
+}
+
 type Readiness = {
   phase: string
   execution_enabled: boolean
@@ -22,6 +34,7 @@ type Readiness = {
     coverage_verified: boolean
   }
   blockers: string[]
+  sponsors?: SponsorReadiness
 }
 
 type Milestone = { id: string; title: string; gate: string }
@@ -32,7 +45,7 @@ const CHECKPOINTS: Milestone[] = [
   { id: 'settle', title: '03 · Settle Season N', gate: 'Matches, draws, rankings, prizes and refunds reconciled' },
   { id: 'snapshot', title: '04 · Preserve snapshot & baseline', gate: 'Restorable backup, checksums and immutable records' },
   { id: 'rankings', title: '05 · Ranking continuity', gate: 'Singles and doubles expiry/defence, ATP/WTA snapshots' },
-  { id: 'contracts', title: '06 · Contracts & sponsors', gate: 'Staff/main/technical contracts carry over or expire once' },
+  { id: 'contracts', title: '06 · Contracts & sponsors', gate: 'Staff continues by term; new main/technical deals renew annually; existing cross-season contracts retain original dates, payments and equipment rights' },
   { id: 'finance', title: '07 · Finance carryover', gate: 'Reconciled USD balances, historical transactions preserved' },
   { id: 'development', title: '08 · Training & health', gate: 'Injuries, travel, camp and fatigue continue without double processing' },
   { id: 'identity', title: '09 · Player, AI & private life', gate: 'Identities, equipment, clubs, property and national teams intact' },
@@ -41,6 +54,17 @@ const CHECKPOINTS: Milestone[] = [
   { id: 'postcheck', title: '12 · Post-transition validation', gate: 'Rankings, draws, finance, players and system checks pass' },
   { id: 'close', title: '13 · Archive report & unlock', gate: 'Permanent run log, incident report and notifications' },
 ]
+
+const CARRYOVER_RULES = [
+  { system: 'Player identity and career', end: 'Current player profile, skills and achievements', start: 'Preserved; career continues without reset' },
+  { system: 'ATP/WTA rankings (singles and doubles)', end: 'Published points and active contributions', start: 'Points retained; defend/expire on official weekly publication' },
+  { system: 'Season-specific results and finance', end: 'Season 1 wins/losses, title and income totals', start: 'New Season 2 counters; career totals and cash retained' },
+  { system: 'Tournament editions and draws', end: 'Completed Season 1 draws, results and replays', start: 'New editions, slots, entries and draws; old history retained' },
+  { system: 'Main & technical sponsors', end: 'Active contracts and completed obligations', start: 'New offers renewed annually; signed legacy terms survive to original expiry' },
+  { system: 'Staff, training and medical', end: 'Current contracts, camps, fatigue and injuries', start: 'Continue without duplicate payouts or effects' },
+  { system: 'Equipment, club and private life', end: 'All owned equipment, condition and purchased assets', start: 'Preserved, no free repair or automatic ownership change' },
+  { system: 'National-team and association records', end: 'Official medals, standings and appearance history', start: 'History retained; new seasonal fixtures and grants only if applicable' },
+] as const
 
 const SEASON_SECONDS = 366 * 86400
 
@@ -129,6 +153,45 @@ export default function AdminSeasonMigrationPanel() {
       <article><ShieldCheck size={18} aria-hidden="true" /><span>Clock multiplier</span><strong>{clock?.speed_multiplier ?? '—'}×</strong><small>Shared game world</small></article>
       <article><CalendarDays size={18} aria-hidden="true" /><span>Next-season coverage</span><strong>{status ? status.calendar.next_season_editions + ' editions' : 'Not checked'}</strong><small>{status ? status.calendar.next_season_slots + ' linked slots · unverified' : 'Readiness RPC pending release'}</small></article>
     </div>
+
+    <section className="tlg-admin-season-sponsor-policy" aria-labelledby="tlg-admin-season-sponsor-title">
+      <header>
+        <span>APPROVED MIGRATION POLICY · 19 OCT 2026</span>
+        <h4 id="tlg-admin-season-sponsor-title">Annual sponsorship renewal & existing-contract protection</h4>
+        <p>New main and technical sponsorship deals must be season-bounded. A player chooses a new offer; none is auto-signed. Every contract signed before policy activation keeps its original expiration date, payment schedule and promised benefits, even into Season 2.</p>
+      </header>
+      <div className="tlg-admin-season-sponsor-counts" aria-label="Read-only sponsorship boundary audit">
+        <div><span>Main sponsors due by boundary</span><strong>{status?.sponsors?.main_due_by_boundary ?? '—'}</strong></div>
+        <div><span>Main contracts crossing boundary</span><strong>{status?.sponsors?.main_crossing_existing ?? '—'}</strong></div>
+        <div><span>Technical sponsors due by boundary</span><strong>{status?.sponsors?.technical_due_by_boundary ?? '—'}</strong></div>
+        <div><span>Technical contracts crossing boundary</span><strong>{status?.sponsors?.technical_crossing_existing ?? '—'}</strong></div>
+      </div>
+      {!status?.sponsors && <p className="tlg-admin-season-sponsor-diagnostic">Contract counts unavailable until the staged, administrator-only readiness migration is deployed. The sponsorship rules are defined; the renewal engine and compliance checks are not yet operational.</p>}
+      {status?.sponsors && <p className="tlg-admin-season-sponsor-diagnostic">Boundary: absolute game day {status.sponsors.boundary_absolute_day}. Counts show existing active agreements only. Compliance not certified; never cancel crossing contracts automatically.</p>}
+      <ul>
+        <li>End-of-season objectives, earned rewards and scheduled payments must settle exactly once.</li>
+        <li>Preserve old technical discounts, remaining free equipment/replacements and already owned items; no midnight allowance refresh.</li>
+        <li>Generate separate Season 2 offers based on the player's ranking and reputation. New contracts end by that season's boundary and require acceptance.</li>
+        <li>Verify there are no overlapping exclusive sponsors, changed legacy end dates or duplicate money/benefit transactions.</li>
+      </ul>
+      <small>Read-only policy preview · Checkpoint 06 stays pending until the sponsor reconciliation processor and dry-run tests are installed.</small>
+    </section>
+
+    <section className="tlg-admin-season-carryover" aria-labelledby="tlg-admin-season-rules-title">
+      <header>
+        <span>SEASON 1 → SEASON 2</span>
+        <h4 id="tlg-admin-season-rules-title">What stays, resets or renews</h4>
+        <p>Expected transition contract, not a report of a completed migration.</p>
+      </header>
+      <div className="tlg-admin-season-rules-scroll">
+        <table>
+          <thead><tr><th scope="col">Game system</th><th scope="col">Season 1 final state</th><th scope="col">Season 2 opening state</th></tr></thead>
+          <tbody>{CARRYOVER_RULES.map((rule) => (
+            <tr key={rule.system}><th scope="row">{rule.system}</th><td>{rule.end}</td><td>{rule.start}</td></tr>
+          ))}</tbody>
+        </table>
+      </div>
+    </section>
 
     <div className="tlg-admin-season-blockers">
       <h4>Blocking requirements</h4>
