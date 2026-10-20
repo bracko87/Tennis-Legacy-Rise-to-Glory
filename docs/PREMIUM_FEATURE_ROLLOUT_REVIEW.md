@@ -26,6 +26,7 @@ Develop in small, independently reviewable increments; no production main merge 
 | 1 (staged) | **Deep Match Analysis** | Completed match → Match Details → below Match Statistics | Side-by-side match stats, serve/break/shot/point rates, set summary, evidence-based post-match insights | **Implemented in staging**, backend access tests passed; browser/build QA pending |
 | 2 (staged) | **Player Development Intelligence — Skill History** | Skills → Player Development Intelligence | Individual attribute timelines and observed progression by technical, physical and condition skill groups | **Implemented on staging; database migration deployed and paid/Free/ownership RPC checks passed; build/UI QA pending** |
 | — | Opponent Scouting Intelligence | Staff → Performance Analyst (Free gameplay, **not Premium**) | Scouting and tactical estimates require a hired analyst, with accuracy/preparation depending on staff quality and time | **Removed from Premium backlog; existing Free staff system remains** |
+| 2A (staged) | **Development Outlook** | Skills → beneath Training Effectiveness | Verified skill trends and session comparisons; insufficient-data protections, no future guarantees | **Implemented on staging; frontend/build/browser QA pending** |
 | 4 | Tournament Planning Intelligence | Calendar / tournament page | Compare eligibility, timing, expected prizes/points and schedule conflicts | Proposed |
 | 5 | Season Planning Center | Calendar / dedicated planning view | Long-term schedule and ranking point scenarios | Proposed |
 | 6 (staged) | Training Effectiveness / Training Optimization Reports | Skills → below Player Development Intelligence | Real recorded fractional gains, level-ups, efficiency, camp vs regular training, and game-week trends; advanced optimization not yet built | **Training Effectiveness slice implemented on staging; Premium RPC deployed and backend ownership/access/data checks passed; browser/build QA pending** |
@@ -37,6 +38,17 @@ Develop in small, independently reviewable increments; no production main merge 
 | 12 | Premium Convenience Tools | Premium tools / Overview | Saved comparisons, custom dashboard reports and optional advanced alerts | Proposed |
 
 No paid report should claim unrecorded causes or hidden skills, and no Premium feature should change the match engine, core gameplay or ranking payouts. For every future module: show Free members a clear explanation and lock, serve Premium results only after server-side entitlement checks, and translate to all supported languages.
+
+### Skills UI refinement + Premium Player Development Intelligence Slice 3: Development Outlook (2026-10-20)
+
+**Staging only:** both UI adjustments and Development Outlook code are committed, without merging to `main`.
+
+- **Free Development History:** the Skills chart displays exactly 24 equal game-week slots, anchored to `get_game_clock_v1()`. Each slot has a vertical grid line, and every fourth week plus the latest has a labelled in-game Season/Week. Missing weeks do not get invented observations or connected trend lines. During Season 1's first 23 weeks, pre-game slots are left visually blank rather than labelled as fictional seasons; game weeks are 0–52 and the window rolls correctly across seasons. Historical undated snapshots remain excluded.
+- **Premium Training Effectiveness:** starts collapsed; the old chart icon is removed, replaced in the same header position with accessible Show/Hide report button. The table, summary metrics and charts are rendered only when expanded. Translated toggle controls in all eight supported languages.
+- **Development Outlook:** a separate, collapsible, fully Premium-gated report directly below Training Effectiveness. Uses existing entitlement-protected `get_premium_training_effectiveness_v1` and `get_premium_player_development_v1` RPCs, both verifying owner and subscription/trial; no new database function or game-engine change. It reports technical-vs-physical saved session gains, strongest/lowest gains among trained attributes, verified whole-level changes between documented weekly snapshots, and a conservative suggestion based only on available lowest-rated trained attributes.
+- A recent-vs-older session trend is shown **only** if at least 8 completed development sessions from 3 distinct game weeks are available; two equal 4–6-session cohorts are compared by saved mean gain per session (8% difference threshold). Otherwise a clearly labelled insufficient-data state is shown. This is descriptive, not a future projection or a causal attribution. A paid user with only 7 development sessions must see no directional recent-session trend.
+- All modules remain available to Free players as normal base gameplay; only the optional analytical interpretations require Premium. UI strings are provided in EN, SR, DE, ES, IT, FR, RU and PT. Backend reports have 120-session/240-snapshot limits and disclose truncated windows.
+- **Pending release checks:** full React/TypeScript build, dynamic game-clock boundary tests, screenshot visual review, eight-language layout review, mobile expand/collapse check and paid/trial/Free browser entitlement checks. Only merge staging → main in a user-approved manual release window.
 
 ### Premium Player Development Intelligence — Slice 2: Training Effectiveness (2026-10-20)
 
@@ -68,7 +80,7 @@ No paid report should claim unrecorded causes or hidden skills, and no Premium f
 - **Status:** frontend, migration and translations committed to staging. **Supabase migration successfully applied on 2026-10-20.** An active Premium identity returned 49 owned skill snapshots; non-Premium and other-player requests correctly returned SQLSTATE 42501. Browser rendering and frontend build remain to be confirmed.
 - **Release gate:** migration applied; authenticated-only grant and anonymous execute denial confirmed; paid owned-player, Free denied and other-player denied confirmed. Still check trial login, zero/one-snapshot handling, frontend build and responsive 8-language views.
 
-**Next slices, NOT implemented:** deeper Training Effectiveness based on completed session gains; evidence-based Development Outlook when enough longitudinal data exists. No forecasts until reliable trend checks and historical coverage are validated.
+**Further work:** richer training optimizations and longitudinal studies are not implemented. Training Effectiveness and a cautious Development Outlook are on staging; they avoid deterministic skill forecasting until longitudinal coverage supports it.
 
 ### Skill history timeline / game-date correction (2026-10-20)
 
