@@ -1,0 +1,33 @@
+/* Premium Development Outlook: compact, evidence-gated and isolated from Free Skills. */
+.tlg-outlook{margin:17px 0;border:1px solid #d8e4ef;border-radius:15px;overflow:hidden;background:#fff;color:#17394f}
+.tlg-outlook-header{padding:19px 22px;display:flex;align-items:center;justify-content:space-between;gap:15px;background:linear-gradient(110deg,#f4f9ff,#fff);border-bottom:1px solid #e0ebf4}
+.tlg-outlook-header h2{margin:7px 0 6px;font-size:1.14rem}
+.tlg-outlook-header p{margin:0;font-size:.76rem;line-height:1.5;color:#637d90}
+.tlg-outlook-kicker{display:flex;gap:8px;align-items:center;font-size:.65rem;font-weight:850;color:#226ea7}
+.tlg-outlook-toggle{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;gap:8px;border:1px solid #cbdce9;border-radius:9px;background:#f2f8fd;color:#1b537d;cursor:pointer;font-size:.75rem;font-weight:800;padding:10px 14px;white-space:nowrap}
+.tlg-outlook-toggle:hover,.tlg-outlook-toggle:focus-visible{background:#e5f2fc;border-color:#87b8d9}
+.tlg-outlook-toggle:focus-visible{outline:2px solid #287eb9;outline-offset:2px}
+.tlg-outlook-state{font-size:.8rem;color:#6b8192;padding:20px}
+.tlg-outlook-locked{display:flex;align-items:center;gap:13px;padding:20px;color:#567084;font-size:.8rem}
+.tlg-outlook-locked span{flex:1}
+.tlg-outlook-locked a{padding:9px 13px;text-decoration:none;border-radius:9px;background:#163d60;color:#fff;white-space:nowrap;font-weight:750}
+.tlg-outlook-body{padding:18px 22px}
+.tlg-outlook-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.tlg-outlook-summary>div{min-width:0;border:1px solid #e2eaf1;border-radius:10px;background:#f9fbfd;padding:13px}
+.tlg-outlook-summary span{display:block;color:#6c8092;font-size:.69rem}
+.tlg-outlook-summary strong{display:block;margin-top:6px;font-size:1rem;overflow-wrap:anywhere}
+.tlg-outlook-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:15px}
+.tlg-outlook-panel{border:1px solid #dfe9f1;border-radius:10px;padding:16px;min-width:0}
+.tlg-outlook-panel h3{display:flex;align-items:center;gap:8px;font-size:.88rem;margin:0 0 10px;color:#244a67}
+.tlg-outlook-panel p{font-size:.78rem;line-height:1.5;color:#557084;margin:7px 0}
+.tlg-outlook-panel small{display:block;color:#81909d;font-size:.7rem;margin-top:10px;line-height:1.5}
+.tlg-outlook-pairs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:15px}
+.tlg-outlook-pairs>div{padding:11px;border-radius:8px;background:#f5f9fc}
+.tlg-outlook-pairs span{display:block;font-size:.69rem;color:#617b8f}
+.tlg-outlook-pairs strong{display:block;margin-top:6px;font-size:1.08rem;font-variant-numeric:tabular-nums}
+.tlg-outlook-trend{font-size:.85rem;color:#255d82}
+.tlg-outlook-panel .tlg-outlook-advice{font-size:.73rem;line-height:1.55;padding:10px 12px;background:#f3f9fe;border:1px solid #d8eaf4;border-radius:8px;margin-top:14px}
+.tlg-outlook-disclaimer{font-size:.71rem;color:#788b9b;line-height:1.55;margin:13px 0 0}
+@media(max-width:930px){.tlg-outlook-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.tlg-outlook-grid{grid-template-columns:1fr}}
+@media(max-width:540px){.tlg-outlook-header,.tlg-outlook-body{padding:15px}.tlg-outlook-header{align-items:flex-start}.tlg-outlook-toggle{font-size:.67rem;padding:9px}.tlg-outlook-locked{flex-wrap:wrap}.tlg-outlook-pairs{grid-template-columns:1fr}}
+@media(max-width:345px){.tlg-outlook-summary{grid-template-columns:1fr}}
