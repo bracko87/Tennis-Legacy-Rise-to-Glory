@@ -219,7 +219,7 @@ export default function ProPackagesPage() {
     [t('commercePage.compareTournaments'), true, true],
     [t('commercePage.compareCore'), true, true],
     [t('commercePage.compareAccount'), true, true],
-    [t('commercePage.compareAnalysis'), false, true],
+    [t('statisticsPage.premiumInsights.title'), false, true],
     [t('commercePage.compareReward'), '—', t('commercePage.compareRewardValue')],
     [t('commercePage.compareBuyCoins'), true, true],
     [t('commercePage.compareCoinFeatures'), true, true],
@@ -270,9 +270,9 @@ export default function ProPackagesPage() {
             <h2>{t('commercePage.premiumName')}</h2>
             <div className="tlg-commerce-price"><strong>{money(mainPremiumOffer.priceCents)}</strong><span>{t('commercePage.everyThreeMonths', { monthly: money(mainPremiumOffer.monthlyEquivalentCents) })}</span></div>
             <ul className="tlg-commerce-benefits">
-              <li><Check size={15} /> {t('commercePage.benefit1')}</li>
-              <li><Check size={15} /> {t('commercePage.benefit2')}</li>
-              <li><Check size={15} /> {t('commercePage.benefit3')}</li>
+              <li><Check size={15} /> {t('statisticsPage.premiumInsights.title')}</li>
+              <li><Check size={15} /> {t('premiumTrial.rankingProtection')}</li>
+              <li><Check size={15} /> {t('premiumTrial.privateLife')}</li>
               <li><Check size={15} /> {t('commercePage.benefit4')}</li>
               <li><Check size={15} /> {t('commercePage.benefit5')}</li>
             </ul>
