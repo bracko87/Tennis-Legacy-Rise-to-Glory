@@ -931,6 +931,7 @@ export default {
       player_private_life_running_costs: { title: "Costos mensuales de Private Life", message: "Los gastos combinados de su vida privada, tanto de manutención como de mantenimiento, se dedujeron del saldo de sus finanzas profesionales." },
       player_skill_decreased: { title: "{{skill}} disminuyó", message: "{{skill}} disminuyó de {{old_value}} a {{new_value}} ({{delta}})." },
       player_skill_increased: { title: "{{skill}} mejoró", message: "{{skill}} aumentó de {{old_value}} a {{new_value}} ({{delta}})." },
+      tournament_application_watch_open: { title: 'Inscripciones abiertas en torneo guardado', message: 'Ya puedes inscribirte en {{tournament_name}}. Abre el torneo y presenta tu inscripción antes del cierre.' },
       tournament_application_submitted: { title: "Solicitud presentada", message: "Tu solicitud para el torneo ha sido enviada." },
       tournament_application_withdrawn: { title: "Solicitud retirada", message: "Tu solicitud para participar en el torneo ha sido retirada." },
       tournament_canceled: { title: "Torneo cancelado", message: "El torneo fue cancelado. Los gastos relacionados con el torneo se reembolsan automáticamente." },
