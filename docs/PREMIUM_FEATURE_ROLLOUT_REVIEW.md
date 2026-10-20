@@ -19,11 +19,11 @@ Develop in small, independently reviewable increments; no production main merge 
 | Premium subscriptions (1/3/12-month choices) | Pro Packages | Visible to Free and Premium | Checkout and entitlements coded; real purchase/renewal/refund checks not yet confirmed |
 | Paid Premium Coins reward | Pro Packages / wallet history | Paid subscribers only; trials do not receive invoice Coins | 30 monthly / 90 quarterly / 360 annually in code; payment fulfillment verification pending |
 
-### Proposed Premium gameplay/analysis modules — NOT yet implemented
+### Premium development backlog — implemented Deep Match Analysis plus remaining proposals
 
 | Priority | Module | Proposed location | Description | Status |
 | --- | --- | --- | --- | --- |
-| 1 (next) | **Deep Match Analysis** | Completed match → Match Replay/Result | Side-by-side match stats, serve/break/shot/point rates, set summary, evidence-based post-match insights | Proposed; data schema audited; implement in three slices and validate |
+| 1 (staged) | **Deep Match Analysis** | Completed match → Match Replay/Result | Side-by-side match stats, serve/break/shot/point rates, set summary, evidence-based post-match insights | **Implemented in staging**, backend access tests passed; browser/build QA pending |
 | 2 | Player Development Intelligence | Skills / player profile | Skills history, development rates and progress trends | Proposed |
 | 3 | Opponent Scouting Intelligence | Opponent profile / scouting | Previous results, surface trends, publicly recorded strengths/weaknesses | Proposed |
 | 4 | Tournament Planning Intelligence | Calendar / tournament page | Compare eligibility, timing, expected prizes/points and schedule conflicts | Proposed |
@@ -41,7 +41,7 @@ No paid report should claim unrecorded causes or hidden skills, and no Premium f
 ### Development order and release gates
 
 1. Validate Statistics Intelligence in localhost (build, visual and paid/trial/Free access, real sample comparison).
-2. Build Deep Match Analysis in three small slices: server-side completed-match data and Premium access; result/replay UI; evidence-based explanations and translations.
+2. Validate Deep Match Analysis in localhost: completed-match replay, paid/trial report, Free lock, empty-stat case, all languages and full build.
 3. Ask for review after each newly added Premium module before starting the next.
 4. Complete `npm run check:pt`, `npm run check:preferences` and `npm run build` before staging → main release; no production release without explicit approval.
 
@@ -76,11 +76,11 @@ volatility correction for already migrated databases:
 **Backend validation:** Active trial report returned 3 metrics for ATP/season and WTA/all-time; non-Premium request was rejected (SQLSTATE 42501); anonymous execute privilege denied. These checks were run on 2026-10-20 without persisting simulation/test changes.
 **Still to validate:** npm build, all eight language views, paid account UI, Free lock screen in a browser, and sample arithmetic against a known player. The hosting container cannot download the private repository to build it.
 
-## Proposed Premium feature 2 — Deep Match Analysis
+## Premium feature 2 — Deep Match Analysis
 
-**Status:** user suggested on 2026-10-20; proposal recorded, NOT IMPLEMENTED yet.
+**Status:** implemented in staging on 2026-10-20. Backend RPC migration applied to connected Tennis Legacy Supabase. Full build and user browser review are still outstanding.
 
-**Proposed location:** Tournament → completed match → Match Replay/Result view → Premium "Deep Match Analysis" section. Keep the normal final score, basic match statistics and existing replay access Free.
+**Location:** Tournament → completed match → Match Replay/Result view → Premium "Deep Match Analysis" section. Keep the normal final score, basic match statistics and existing replay access Free.
 
 For a player's own completed matches only (all stats must come from actual recorded results):
 1. Side-by-side player vs opponent comparisons: aces, double faults, first serves in/attempted, first-serve points won/played, second-serve points won/played, break points converted/chances, winners, unforced errors, total points won.
@@ -90,10 +90,13 @@ For a player's own completed matches only (all stats must come from actual recor
 5. Missing match-stat rows render "Not recorded", not zero.
 6. Paid/trial Premium members get the full analysis; Free players see a short lock explanation and link to Pro Packages. Server-side entitlement required before returning the derived report.
 
-**Implementation in three small parts after the first module is reviewed:**
-- A: Read-only Premium-gated RPC for completed matches played by the signed-in user's player; missing-data handling and test fixtures.
-- B: Match Replay/Result comparison panel with proper Free preview and responsive design.
-- C: Evidence-based post-match observations, all-eight-language localization, validation for wins/losses and absent stats.
+**Implemented in controlled slices:**
+- **A — Backend:** `get_premium_deep_match_analysis_v1(uuid)` in migration `20261020090500_premium_deep_match_analysis_v1.sql`, restricted to completed matches involving the signed-in player. Missing stat rows remain null.
+- **B — UI:** `src/components/tournament/PremiumDeepMatchAnalysis.tsx` integrated into completed `TournamentMatchReplayModal.tsx`, with responsive `src/styles/premium-deep-match.css`. Free players get a lock/upgrade explanation.
+- **C — Observations and localization:** Serve/break/shot/point comparisons with evidence-based observations and translations for EN, SR, DE, ES, IT, FR, RU and PT.
+
+**Validation completed:** paid account with a completed own match returns match stats and sets. Free account, another player's completed match, and incomplete match are denied by SQLSTATE 42501. No match outcomes or payouts changed.
+**Remaining:** `npm run build`, `npm run check:pt`, `npm run check:preferences`, browser paid/Free/trial checks, missing-row appearance, and eight-language visual QA.
 
 ## Development/release tests
 
