@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next'
 import GameLayout from '../../components/layout/GameLayout'
 import { useAuth } from '../../auth/AuthContext'
 import { useCommerce } from '../../hooks/useCommerce'
+import { trainingEffectivenessLabels } from '../../lib/trainingEffectivenessI18n'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 
@@ -87,7 +88,8 @@ const premiumOffers: readonly PremiumOffer[] = [
 ] as const
 
 export default function ProPackagesPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const trainingLabels = trainingEffectivenessLabels(i18n.resolvedLanguage ?? i18n.language)
   const { formatCurrency, formatDate } = useLocalization()
   const { user } = useAuth()
   const commerce = useCommerce()
@@ -221,6 +223,8 @@ export default function ProPackagesPage() {
     [t('commercePage.compareAccount'), true, true],
     [t('statisticsPage.premiumInsights.title'), false, true],
     [t('deepMatchAnalysis.title'), false, true],
+    [t('developmentPremium.title'), false, true],
+    [trainingLabels.title, false, true],
     [t('commercePage.compareReward'), '—', t('commercePage.compareRewardValue')],
     [t('commercePage.compareBuyCoins'), true, true],
     [t('commercePage.compareCoinFeatures'), true, true],
@@ -273,6 +277,8 @@ export default function ProPackagesPage() {
             <ul className="tlg-commerce-benefits">
               <li><Check size={15} /> {t('statisticsPage.premiumInsights.title')}</li>
               <li><Check size={15} /> {t('deepMatchAnalysis.title')}</li>
+              <li><Check size={15} /> {t('developmentPremium.title')}</li>
+              <li><Check size={15} /> {trainingLabels.title}</li>
               <li><Check size={15} /> {t('premiumTrial.rankingProtection')}</li>
               <li><Check size={15} /> {t('premiumTrial.privateLife')}</li>
               <li><Check size={15} /> {t('commercePage.benefit4')}</li>
