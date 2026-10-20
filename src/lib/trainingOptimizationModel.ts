@@ -115,6 +115,6 @@ export function suggestedFocusRotation(
 ): OptimizationSkill[] {
   const count = Math.min(4, Math.max(1, Math.floor(sessions)))
   return Array.from({ length: count }, (_, index) =>
-    mode === 'focused' ? (index % 4 === 3 ? complementary : goal)
+    mode === 'focused' ? (index === count - 1 && count > 1 ? complementary : goal)
       : (index % 2 === 1 ? complementary : goal))
 }
