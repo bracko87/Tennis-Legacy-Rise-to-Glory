@@ -24,7 +24,7 @@
 .tlg-staffa-expiry{display:grid;gap:7px}
 .tlg-staffa-expiry>div{padding:9px 11px;border-radius:8px;background:#fff8e9;display:flex;justify-content:space-between;gap:15px;color:#8b611b;font-size:.75rem}
 .tlg-staffa-table-wrap{overflow-x:auto;width:100%}
-.tlg-staffa table{border-collapse:collapse;width:100%;min-width:900px;font-size:.72rem}
+.tlg-staffa table{border-collapse:collapse;width:100%;min-width:1080px;font-size:.72rem}
 .tlg-staffa th,.tlg-staffa td{padding:12px 10px;border-bottom:1px solid #e7eef3;text-align:left;vertical-align:middle}
 .tlg-staffa thead th{font-size:.68rem;color:#617d90;background:#f7fbfe}
 .tlg-staffa tbody th strong{display:block;font-size:.76rem}
@@ -37,3 +37,8 @@
 @media(max-width:880px){.tlg-staffa-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:590px){.tlg-staffa-head,.tlg-staffa-body{padding:14px}.tlg-staffa-toggle{font-size:.69rem;padding:8px}.tlg-staffa-head h2{font-size:1rem}.tlg-staffa-metrics{grid-template-columns:1fr 1fr}.tlg-staffa-locked{flex-wrap:wrap}}
 @media(max-width:370px){.tlg-staffa-metrics{grid-template-columns:1fr}.tlg-staffa-section-heading{align-items:flex-start;flex-direction:column}}
+
+.tlg-staffa-contributions{min-width:160px;white-space:normal!important;font-size:.69rem}
+.tlg-staffa-contributions span{display:block;margin:3px 0;color:#4f7188}
+.tlg-staffa-contributions span strong{font-weight:800;color:#214b6c}
+.tlg-staffa-contributions small{display:block;color:#7791a1;font-size:.65rem;margin-top:6px}
