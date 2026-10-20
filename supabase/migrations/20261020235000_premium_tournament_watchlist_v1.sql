@@ -187,7 +187,12 @@ begin
       and wc.world=p.world and wc.status<>'canceled'
     join public.tournament_editions e on e.id=wc.tournament_edition_id and e.status<>'canceled'
     join public.tournament_series ts on ts.id=e.tournament_series_id and ts.is_active
+    join lateral public.get_competition_window_v1(tw.competition_id) win on true
     where e.season_number=floor(v_now/(366*86400))::integer+1
+      -- Only tournaments near their normal application period: prevents older
+      -- and distant starred events from starving due reminders in the batch.
+      and win.start_absolute_day between floor(v_now/86400)::integer+6
+        and floor(v_now/86400)::integer+22
       and (exists(select 1 from public.premium_memberships pm
         where pm.user_id=p.owner_user_id and pm.plan_code='premium' and pm.status='active'
           and (pm.current_period_end is null or pm.current_period_end>now()))
