@@ -46,8 +46,8 @@ test('trends require 12 regular sessions across three distinct game weeks', () =
     ...Array.from({length: 3}, () => event('serve', 0.2, 1)),
   ]
   const report = analyzeTrainingChoices([...recent, ...older], 'serve')
-  assert.equal(report.recentTrend?.recent, 0.4)
-  assert.equal(report.recentTrend?.previous, 0.2)
+  assert.ok(Math.abs((report.recentTrend?.recent ?? 0) - 0.4) < 1e-10)
+  assert.ok(Math.abs((report.recentTrend?.previous ?? 0) - 0.2) < 1e-10)
   assert.equal(analyzeTrainingChoices([...recent, ...older].map(x => ({...x, game_week: 3})), 'serve').recentTrend, null)
 })
 
