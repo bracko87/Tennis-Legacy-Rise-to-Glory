@@ -25,6 +25,7 @@ import { equipmentIntelligenceLabels } from '../../lib/equipmentIntelligenceI18n
 import { careerIntelligenceLabels } from '../../lib/careerIntelligenceI18n'
 import { developmentOutlookLabels } from '../../lib/developmentOutlookI18n'
 import { trainingOptimizationLabels } from '../../lib/trainingOptimizationI18n'
+import { tournamentWatchLabels } from '../../lib/tournamentWatchI18n'
 import PremiumBenefitsGuide from '../../components/marketing/PremiumBenefitsGuide'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
@@ -102,6 +103,7 @@ export default function ProPackagesPage() {
   const trainingLabels = trainingEffectivenessLabels(i18n.resolvedLanguage ?? i18n.language)
   const trainingOptimization = trainingOptimizationLabels(i18n.resolvedLanguage ?? i18n.language)
   const developmentOutlook = developmentOutlookLabels(i18n.resolvedLanguage ?? i18n.language)
+  const watchlistLabels = tournamentWatchLabels(i18n.resolvedLanguage ?? i18n.language)
   const plannerLabels = tournamentPlanningLabels(i18n.resolvedLanguage ?? i18n.language)
   const seasonLabels = seasonPlanningLabels(i18n.resolvedLanguage ?? i18n.language)
   const staffLabels = staffAdvisoryLabels(i18n.resolvedLanguage ?? i18n.language)
@@ -247,6 +249,7 @@ export default function ProPackagesPage() {
     [trainingLabels.title, false, true],
     [trainingOptimization.title, false, true],
     [plannerLabels.title, false, true],
+    [watchlistLabels.title, false, true],
     [seasonLabels.title, false, true],
     [staffLabels.title, false, true],
     [sponsorLabels.title, false, true],
@@ -309,6 +312,7 @@ export default function ProPackagesPage() {
               <li><Check size={15} /> {t('developmentPremium.title')} · {developmentOutlook.title}</li>
               <li><Check size={15} /> {trainingLabels.title} · {trainingOptimization.title}</li>
               <li><Check size={15} /> {seasonLabels.title} · {plannerLabels.title}</li>
+              <li><Check size={15} /> {watchlistLabels.title}</li>
               <li><Check size={15} /> {t('premiumTrial.rankingProtection')}</li>
               <li><Check size={15} /> {t('premiumTrial.privateLife')}</li>
               <li><Check size={15} /> {t('commercePage.benefit4')}</li>
