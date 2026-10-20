@@ -3652,6 +3652,7 @@ const russianTranslations = {
         "title": "Навык {{skill}} вырос",
         "message": "Навык {{skill}} вырос с {{old_value}} до {{new_value}} ({{delta}})."
       },
+      "tournament_application_watch_open": {"title": "Открыты заявки на избранный турнир", "message": "Открыт приём заявок на {{tournament_name}}. Откройте турнир и подайте заявку до закрытия."},
       "tournament_application_submitted": {
         "title": "Заявка отправлена",
         "message": "Ваша заявка на турнир отправлена."
