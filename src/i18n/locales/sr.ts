@@ -938,6 +938,7 @@ export default {
       player_private_life_running_costs: { title: 'Mesečni troškovi Privatnog života', message: 'Ukupni troškovi života i održavanja iz Privatnog života odbijeni su sa stanja Finansija karijere.' },
       player_skill_decreased: { title: '{{skill}} je smanjena', message: '{{skill}} je smanjena sa {{old_value}} na {{new_value}} ({{delta}}).' },
       player_skill_increased: { title: '{{skill}} je poboljšana', message: '{{skill}} je povećana sa {{old_value}} na {{new_value}} ({{delta}}).' },
+      tournament_application_watch_open: { title: 'Otvorene prijave za označeni turnir', message: 'Prijave za {{tournament_name}} su otvorene. Otvori turnir i prijavi se pre isteka roka.' },
       tournament_application_submitted: { title: 'Prijava je poslata', message: 'Tvoja prijava za turnir je poslata.' },
       tournament_application_withdrawn: { title: 'Prijava je povučena', message: 'Tvoja prijava za turnir je povučena.' },
       tournament_canceled: { title: 'Turnir je otkazan', message: 'Turnir je otkazan. Troškovi povezani sa turnirom biće automatski refundirani.' },
