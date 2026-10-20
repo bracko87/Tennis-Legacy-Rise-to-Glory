@@ -59,5 +59,6 @@ test('weakest-skill priorities and read-only rotations stay within available slo
     ['serve', 'serve', 'serve', 'fitness'])
   assert.deepEqual(suggestedFocusRotation('serve', 'fitness', 4, 'balanced'),
     ['serve', 'fitness', 'serve', 'fitness'])
+  assert.deepEqual(suggestedFocusRotation('serve', 'fitness', 3, 'focused'), ['serve', 'serve', 'fitness'])
   assert.equal(suggestedFocusRotation('serve', 'fitness', 99, 'focused').length, 4)
 })
