@@ -293,6 +293,23 @@ export default function StatisticsPage() {
  * statistics. No gameplay boosts or hidden opponent data. Existing statistics,
  * including the RPC output, remain Free until the user approves the model.
  */
+type PremiumInsightsMetric = {
+  key: 'winRate' | 'aces' | 'winners'
+  own: number | null
+  peers: number
+  suffix: string
+}
+
+type PremiumInsightsReport = {
+  world: TennisWorld
+  period: StatisticsPeriod
+  season: number
+  sample_players: number
+  sample_matches: number
+  own_in_sample: boolean
+  metrics: PremiumInsightsMetric[]
+}
+
 function PremiumStatisticsInsights({
   dashboard, isPremium, premiumLoading, t,
 }: {
@@ -301,16 +318,37 @@ function PremiumStatisticsInsights({
   premiumLoading: boolean
   t: TFunction
 }) {
-  const own = dashboard.players.find((entry) => entry.player_id === dashboard.career.player?.player_id && entry.matches > 0)
-  const peers = dashboard.players.filter((entry) => entry.matches > 0 && entry.player_id !== own?.player_id)
-  const totalMatches = peers.reduce((sum, entry) => sum + entry.matches, 0)
-  const peerMetrics = totalMatches > 0
-    ? [
-        { key: 'winRate', own: own ? own.wins / own.matches * 100 : null, peers: peers.reduce((sum, entry) => sum + entry.wins, 0) / totalMatches * 100, suffix: '%' },
-        { key: 'aces', own: own ? own.aces / own.matches : null, peers: peers.reduce((sum, entry) => sum + entry.aces, 0) / totalMatches, suffix: '' },
-        { key: 'winners', own: own ? own.winners / own.matches : null, peers: peers.reduce((sum, entry) => sum + entry.winners, 0) / totalMatches, suffix: '' },
-      ]
-    : []
+  const [report, setReport] = useState<PremiumInsightsReport | null>(null)
+  const [checking, setChecking] = useState(false)
+  const [reportError, setReportError] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    setReport(null)
+    setReportError(false)
+    if (!isPremium || premiumLoading) {
+      setChecking(false)
+      return () => { cancelled = true }
+    }
+
+    setChecking(true)
+    void supabase.rpc('get_premium_statistics_intelligence_v1', {
+      p_world: dashboard.world,
+      p_period: dashboard.period,
+    }).then(({ data, error }) => {
+      if (cancelled) return
+      setReport(!error && data ? data as PremiumInsightsReport : null)
+      setReportError(Boolean(error || !data))
+      setChecking(false)
+    }).catch(() => {
+      if (!cancelled) {
+        setReport(null)
+        setReportError(true)
+        setChecking(false)
+      }
+    })
+    return () => { cancelled = true }
+  }, [isPremium, premiumLoading, dashboard.world, dashboard.period])
 
   return (
     <section className="tlg-stats-premium-intelligence" aria-label={t('statisticsPage.premiumInsights.title')}>
@@ -320,9 +358,9 @@ function PremiumStatisticsInsights({
           <h2>{t('statisticsPage.premiumInsights.title')}</h2>
           <p>{t('statisticsPage.premiumInsights.intro')}</p>
         </div>
-        <span className="tlg-stats-premium-status">{premiumLoading ? t('statisticsPage.premiumInsights.checking') : isPremium ? t('statisticsPage.premiumInsights.active') : t('statisticsPage.premiumInsights.preview')}</span>
+        <span className="tlg-stats-premium-status">{premiumLoading || checking ? t('statisticsPage.premiumInsights.checking') : isPremium ? t('statisticsPage.premiumInsights.active') : t('statisticsPage.premiumInsights.preview')}</span>
       </header>
-      {premiumLoading ? (
+      {premiumLoading || (isPremium && checking) ? (
         <p className="tlg-stats-premium-empty">{t('statisticsPage.premiumInsights.checking')}</p>
       ) : !isPremium ? (
         <div className="tlg-stats-premium-locked">
@@ -330,32 +368,36 @@ function PremiumStatisticsInsights({
           <div><strong>{t('statisticsPage.premiumInsights.lockedTitle')}</strong><p>{t('statisticsPage.premiumInsights.lockedBody')}</p></div>
           <Link to="/game/pro-packages">{t('statisticsPage.premiumInsights.packages')}</Link>
         </div>
-      ) : peerMetrics.length === 0 ? (
+      ) : reportError ? (
+        <p className="tlg-stats-premium-empty" role="alert">{t('statisticsPage.loadError')}</p>
+      ) : !report || report.metrics.length === 0 ? (
         <p className="tlg-stats-premium-empty">{t('statisticsPage.premiumInsights.noSample')}</p>
       ) : (
         <>
           <p className="tlg-stats-premium-sample">
             {t('statisticsPage.premiumInsights.sample', {
-              players: peers.length,
-              matches: totalMatches,
-              period: dashboard.period === 'season' ? t('statisticsPage.season', { season: dashboard.season }) : t('statisticsPage.allTime'),
-              world: dashboard.world,
+              players: report.sample_players,
+              matches: report.sample_matches,
+              period: report.period === 'season' ? t('statisticsPage.season', { season: report.season }) : t('statisticsPage.allTime'),
+              world: report.world,
             })}
           </p>
-          {!own && <p className="tlg-stats-premium-note">{t('statisticsPage.premiumInsights.noOwnSample')}</p>}
+          {!report.own_in_sample && <p className="tlg-stats-premium-note">{t('statisticsPage.premiumInsights.noOwnSample')}</p>}
           <div className="tlg-stats-premium-comparisons">
-            {peerMetrics.map((metric) => {
-              const ceiling = Math.max(metric.key === 'winRate' ? 100 : 1, metric.own ?? 0, metric.peers) * (metric.key === 'winRate' ? 1 : 1.08)
+            {report.metrics.map((metric) => {
+              const own = metric.own === null ? null : Number(metric.own)
+              const peers = Number(metric.peers)
+              const ceiling = Math.max(metric.key === 'winRate' ? 100 : 1, own ?? 0, peers) * (metric.key === 'winRate' ? 1 : 1.08)
               return (
                 <article key={metric.key} className="tlg-stats-premium-metric">
                   <h3>{t(`statisticsPage.premiumInsights.metrics.${metric.key}`)}</h3>
                   <div className="tlg-stats-premium-line">
-                    <div><span>{t('statisticsPage.premiumInsights.yourPlayer')}</span><strong>{metric.own === null ? '—' : `${metric.own.toFixed(1)}${metric.suffix}`}</strong></div>
-                    <div className="tlg-stats-premium-track"><span className="own" style={{ width: `${metric.own === null ? 0 : Math.max(0, Math.min(100, metric.own / ceiling * 100))}%` }} /></div>
+                    <div><span>{t('statisticsPage.premiumInsights.yourPlayer')}</span><strong>{own === null ? '—' : `${own.toFixed(1)}${metric.suffix}`}</strong></div>
+                    <div className="tlg-stats-premium-track"><span className="own" style={{ width: `${own === null ? 0 : Math.max(0, Math.min(100, own / ceiling * 100))}%` }} /></div>
                   </div>
                   <div className="tlg-stats-premium-line">
-                    <div><span>{t('statisticsPage.premiumInsights.peerAverage')}</span><strong>{metric.peers.toFixed(1)}{metric.suffix}</strong></div>
-                    <div className="tlg-stats-premium-track"><span className="peer" style={{ width: `${Math.max(0, Math.min(100, metric.peers / ceiling * 100))}%` }} /></div>
+                    <div><span>{t('statisticsPage.premiumInsights.peerAverage')}</span><strong>{peers.toFixed(1)}{metric.suffix}</strong></div>
+                    <div className="tlg-stats-premium-track"><span className="peer" style={{ width: `${Math.max(0, Math.min(100, peers / ceiling * 100))}%` }} /></div>
                   </div>
                 </article>
               )
