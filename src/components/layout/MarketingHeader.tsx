@@ -25,6 +25,7 @@ const navigationItems: readonly MarketingNavigationItem[] = [
   { labelKey: 'marketing.features', sectionId: 'features' },
   { labelKey: 'marketing.howItWorks', sectionId: 'how-it-works' },
   { labelKey: 'marketing.gameWorld', sectionId: 'game-world' },
+  { labelKey: 'home.premium.eyebrow', sectionId: 'premium-features' },
 ]
 
 const LANGUAGE_META: Record<AppLocale, { label: string; shortLabel: string; countryCode: string }> = {

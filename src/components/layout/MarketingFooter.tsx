@@ -13,6 +13,7 @@ import {
 } from 'react-router'
 import { Clock3, X } from 'lucide-react'
 import '../../styles/marketing-premium-dialog.css'
+import PremiumBenefitsGuide from '../marketing/PremiumBenefitsGuide'
 
 import { useGameClock } from '../../hooks/useGameClock'
 import { supabase } from '../../lib/supabase'
@@ -195,6 +196,7 @@ export default function MarketingFooter({
                   </article>
                 ))}
               </div>
+              <PremiumBenefitsGuide placement="dialog" />
               <p className="tlg-pricing-note">{t('home.premium.note')}</p>
               <div className="tlg-pricing-actions"><Link to="/register" onClick={() => setPricingOpen(false)}>{t('home.cta.create')}</Link></div>
             </section>
