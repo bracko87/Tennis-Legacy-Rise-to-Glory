@@ -181,7 +181,8 @@ export default function PremiumDevelopmentOutlook({playerId}:{playerId:string|nu
           {expanded?<ChevronUp size={16} aria-hidden="true"/>:<ChevronDown size={16} aria-hidden="true"/>}
         </button>
       </header>
-      {expanded && <div id="tlg-development-outlook-body">
+      <div id="tlg-development-outlook-body" hidden={!expanded}>
+      {expanded && <>
         {premiumLoading||loading?<p className="tlg-outlook-state">{l.loading}</p>
         :!isPremium?<div className="tlg-outlook-locked">
           <LockKeyhole size={22} aria-hidden="true"/>
@@ -228,7 +229,8 @@ export default function PremiumDevelopmentOutlook({playerId}:{playerId:string|nu
           <p className="tlg-outlook-disclaimer">{l.disclaimer}</p>
           {(training?.window_limited || history?.window_limited)&&<p className="tlg-outlook-disclaimer">{l.scope}</p>}
         </div>}
-      </div>}
+      </>}
+      </div>
     </section>
   )
 }
