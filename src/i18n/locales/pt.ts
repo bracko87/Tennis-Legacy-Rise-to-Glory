@@ -8,6 +8,57 @@ type TranslationShape<T> = T extends string ? string
   : T
 
 export const portugueseTranslations = {
+  developmentPremium: {
+    "kicker": "PREMIUM · DESENVOLVIMENTO",
+    "title": "Inteligência de desenvolvimento do jogador",
+    "intro": "Explore tendências registradas de habilidades individuais e condicionamento.",
+    "premium": "PREMIUM",
+    "loading": "Carregando relatório…",
+    "locked": "Desbloqueie gráficos históricos detalhados com Premium. Habilidades básicas continuam gratuitas.",
+    "viewPlans": "Ver Premium",
+    "error": "Relatório indisponível. A atualização do banco de dados pode estar pendente.",
+    "noHistory": "Ainda não há registros de evolução.",
+    "snapshots": "Registros totais",
+    "window": "Registros exibidos",
+    "period": "Início do período",
+    "limited": "Somente os 240 registros mais recentes são exibidos. As alterações referem-se a este período.",
+    "chooseGroup": "Escolher categoria",
+    "selectSkill": "Escolher habilidade",
+    "biggestGain": "Maior evolução registrada",
+    "slowest": "Menor alteração registrada",
+    "attribute": "Atributo",
+    "first": "Primeiro",
+    "latest": "Último",
+    "change": "Mudança",
+    "chartAria": "Evolução de {{skill}}",
+    "oneSnapshot": "Existe apenas um registro. São necessários mais dados para uma tendência.",
+    "disclaimer": "O gráfico mostra registros históricos, não causas comprovadas ou previsões garantidas. O cansaço pode variar.",
+    "groups": {
+      "technical": "Habilidades de tênis",
+      "physical": "Atributos físicos",
+      "condition": "Condição"
+    },
+    "attributes": {
+      "serve": "Saque",
+      "forehand": "Forehand",
+      "backhand": "Backhand",
+      "return_skill": "Devolução",
+      "volley": "Voleio",
+      "slice": "Slice",
+      "drop_shot": "Deixadinha",
+      "lob": "Lob",
+      "smash": "Smash",
+      "fitness": "Condicionamento",
+      "stamina": "Resistência",
+      "recovery": "Recuperação",
+      "movement": "Movimento",
+      "fatigue": "Cansaço",
+      "sharpness": "Prontidão",
+      "morale": "Moral",
+      "confidence": "Confiança",
+      "focus": "Foco"
+    }
+  },
   preferencesCenter: {
     "notificationInventory": "{{count}} tipos de notificação ativos",
     "restoreDefaults": "Restaurar notificações padrão",
