@@ -3,6 +3,48 @@
 **Branch:** staging. **Latest reviewed:** 2026-10-20.
 Develop in small, independently reviewable increments; no production main merge without approval.
 
+## Master Premium feature tracker (2026-10-20)
+
+**Status legend:** Implemented in staging = feature code exists (not necessarily browser/production QA complete); Proposed = not built; Review pending = requires visual, paid/trial and/or build checks.
+**Production main:** unchanged by this tracker. All normal core gameplay and existing official statistics remain Free.
+
+### Existing Premium benefits and commerce
+
+| Feature | Where players find it | Access/Free visibility | Status and outstanding work |
+| --- | --- | --- | --- |
+| Private Life (assets, property, investments, marketplace and prestige) | Sidebar → Private Life | Free: menu and lock/upgrade page; paid/trial: module | Implemented; production gameplay QA remains separate |
+| Ranking Protection (upcoming singles/doubles points expiry) | Overview and Rankings | Free: locked preview; paid/trial: expandable protection data | Implemented; verify actual expiring records |
+| Statistics Intelligence (completed-match leaderboard comparison) | Statistics → near top, after filters | Free: visible locked panel; paid/trial: match win %, aces/match, winners/match | **Implemented in staging + Premium RPC deployed**; build, 8-language visual review and end-to-end paid/Free QA pending |
+| 7-real-day Premium trial | First eligible game entry, Premium welcome/expiry popups | Auto offered once to eligible players; no payment card | Implemented; full browser lifecycle QA pending |
+| Premium subscriptions (1/3/12-month choices) | Pro Packages | Visible to Free and Premium | Checkout and entitlements coded; real purchase/renewal/refund checks not yet confirmed |
+| Paid Premium Coins reward | Pro Packages / wallet history | Paid subscribers only; trials do not receive invoice Coins | 30 monthly / 90 quarterly / 360 annually in code; payment fulfillment verification pending |
+
+### Proposed Premium gameplay/analysis modules — NOT yet implemented
+
+| Priority | Module | Proposed location | Description | Status |
+| --- | --- | --- | --- | --- |
+| 1 (next) | **Deep Match Analysis** | Completed match → Match Replay/Result | Side-by-side match stats, serve/break/shot/point rates, set summary, evidence-based post-match insights | Proposed; data schema audited; implement in three slices and validate |
+| 2 | Player Development Intelligence | Skills / player profile | Skills history, development rates and progress trends | Proposed |
+| 3 | Opponent Scouting Intelligence | Opponent profile / scouting | Previous results, surface trends, publicly recorded strengths/weaknesses | Proposed |
+| 4 | Tournament Planning Intelligence | Calendar / tournament page | Compare eligibility, timing, expected prizes/points and schedule conflicts | Proposed |
+| 5 | Season Planning Center | Calendar / dedicated planning view | Long-term schedule and ranking point scenarios | Proposed |
+| 6 | Training Optimization Reports | Training | Compare fatigue, recovery, camps and outcomes from recorded data | Proposed |
+| 7 | Staff Advisory Reports | Staff | Compare contract cost, effectiveness and supported contributions | Proposed |
+| 8 | Sponsor Intelligence | Finance / Sponsors | Contract value, obligations and actual benefits | Proposed |
+| 9 | Financial Intelligence | Finance | Budget forecasts and scenario comparison | Proposed |
+| 10 | Equipment Intelligence | Equipment | Performance and equipment condition comparisons | Proposed |
+| 11 | Career Intelligence | Statistics / career | Multi-season career patterns and advanced milestones | Proposed |
+| 12 | Premium Convenience Tools | Premium tools / Overview | Saved comparisons, custom dashboard reports and optional advanced alerts | Proposed |
+
+No paid report should claim unrecorded causes or hidden skills, and no Premium feature should change the match engine, core gameplay or ranking payouts. For every future module: show Free members a clear explanation and lock, serve Premium results only after server-side entitlement checks, and translate to all supported languages.
+
+### Development order and release gates
+
+1. Validate Statistics Intelligence in localhost (build, visual and paid/trial/Free access, real sample comparison).
+2. Build Deep Match Analysis in three small slices: server-side completed-match data and Premium access; result/replay UI; evidence-based explanations and translations.
+3. Ask for review after each newly added Premium module before starting the next.
+4. Complete `npm run check:pt`, `npm run check:preferences` and `npm run build` before staging → main release; no production release without explicit approval.
+
 ## Free gameplay contract
 
 All existing Free Statistics (ATP/WTA season/all-time leaderboards, tournament statistics and career records) remain Free, as do match results, tournament participation, ordinary training, equipment, finance, rankings and other core gameplay. Premium must not modify match outcomes, hidden skills, or ranking payouts.
