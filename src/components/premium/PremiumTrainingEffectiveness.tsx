@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { BarChart3, Crown, LockKeyhole, TrendingUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, Crown, LockKeyhole, TrendingUp } from 'lucide-react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useCommerce } from '../../hooks/useCommerce'
 import { supabase } from '../../lib/supabase'
 import { trainingEffectivenessLabels } from '../../lib/trainingEffectivenessI18n'
+import { premiumToggleText } from '../../lib/premiumPanelToggleI18n'
 import '../../styles/training-effectiveness-premium.css'
 
 type TrainingSource = 'regular' | 'camp'
@@ -50,6 +51,8 @@ const asProgress = (value: number) => `+${value.toFixed(4)}`
 export default function PremiumTrainingEffectiveness({ playerId }: { playerId: string | null }) {
   const { t, i18n } = useTranslation()
   const l = trainingEffectivenessLabels(i18n.resolvedLanguage ?? i18n.language)
+  const toggle = premiumToggleText(i18n.resolvedLanguage ?? i18n.language)
+  const [expanded, setExpanded] = useState(false)
   const { isPremium, loading: checkingPremium } = useCommerce()
   const [report, setReport] = useState<TrainingReport | null>(null)
   const [loading, setLoading] = useState(false)
@@ -59,7 +62,7 @@ export default function PremiumTrainingEffectiveness({ playerId }: { playerId: s
     let cancelled = false
     setReport(null)
     setLoadError(false)
-    if (!isPremium || checkingPremium || !playerId) {
+    if (!expanded || !isPremium || checkingPremium || !playerId) {
       setLoading(false)
       return () => { cancelled = true }
     }
@@ -82,7 +85,7 @@ export default function PremiumTrainingEffectiveness({ playerId }: { playerId: s
         }
       })
     return () => { cancelled = true }
-  }, [isPremium, checkingPremium, playerId])
+  }, [expanded, isPremium, checkingPremium, playerId])
 
   const events = report?.events ?? []
   const byWeek = useMemo(() => {
@@ -145,8 +148,14 @@ export default function PremiumTrainingEffectiveness({ playerId }: { playerId: s
           <h2>{l.title}</h2>
           <p>{l.intro}</p>
         </div>
-        <BarChart3 size={23} aria-hidden="true" />
+        <button type="button" className="tlg-tep-toggle"
+          aria-expanded={expanded} aria-controls="tlg-training-effectiveness-body"
+          onClick={() => setExpanded(value => !value)}>
+          {expanded ? toggle.hide : toggle.show}
+          {expanded ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
+        </button>
       </header>
+      {expanded && <div id="tlg-training-effectiveness-body">
       {checkingPremium || loading ? <p className="tlg-tep-state">{l.loading}</p>
       : !isPremium ? (
         <div className="tlg-tep-locked">
@@ -225,6 +234,7 @@ export default function PremiumTrainingEffectiveness({ playerId }: { playerId: s
           <p className="tlg-tep-caption">{l.caution}</p>
         </div>
       )}
+      </div>}
     </section>
   )
 }
