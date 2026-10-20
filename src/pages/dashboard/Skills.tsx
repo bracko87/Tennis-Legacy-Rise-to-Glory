@@ -5,6 +5,7 @@ import { useAuth } from '../../auth/AuthContext'
 import GameLayout from '../../components/layout/GameLayout'
 import PlayerDevelopmentIntelligence from '../../components/premium/PlayerDevelopmentIntelligence'
 import PremiumTrainingEffectiveness from '../../components/premium/PremiumTrainingEffectiveness'
+import PremiumDevelopmentOutlook from '../../components/premium/PremiumDevelopmentOutlook'
 import { supabase } from '../../lib/supabase'
 import { weeklySkillSnapshots, gameWeekText } from '../../lib/skillGameWeeks'
 import '../../styles/player-skills.css'
@@ -432,6 +433,10 @@ export default function SkillsPage() {
 
       {!loading && skills && (
         <PremiumTrainingEffectiveness playerId={player?.id ?? null} />
+      )}
+
+      {!loading && skills && (
+        <PremiumDevelopmentOutlook playerId={player?.id ?? null} />
       )}
 
       {!loading && skills && (
