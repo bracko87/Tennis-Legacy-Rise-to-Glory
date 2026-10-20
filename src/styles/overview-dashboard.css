@@ -561,3 +561,27 @@
   margin-left:auto;
   flex:0 0 auto;
 }
+
+/* Inline Next Match heading with tournament flag and name. */
+.tlg-overview-match-section-heading{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:8px 10px;
+  margin-bottom:13px;
+  min-width:0;
+}
+.tlg-overview-match-section-heading .tlg-overview-upcoming-section-label{
+  margin:0;
+  flex:0 0 auto;
+}
+.tlg-overview-match-tournament-name{
+  min-width:0;
+  color:#17354b;
+  font-size:.75rem;
+  font-weight:750;
+  overflow-wrap:anywhere;
+}
+.tlg-overview-next-dashboard-text-only .tlg-overview-next-opponent-card .tlg-overview-match-box{
+  margin-top:0;
+}
