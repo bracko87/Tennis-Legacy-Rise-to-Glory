@@ -16,6 +16,7 @@ import GameLayout from '../../components/layout/GameLayout'
 import { useAuth } from '../../auth/AuthContext'
 import { useCommerce } from '../../hooks/useCommerce'
 import { trainingEffectivenessLabels } from '../../lib/trainingEffectivenessI18n'
+import { tournamentPlanningLabels } from '../../lib/tournamentPlanningI18n'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 
@@ -90,6 +91,7 @@ const premiumOffers: readonly PremiumOffer[] = [
 export default function ProPackagesPage() {
   const { t, i18n } = useTranslation()
   const trainingLabels = trainingEffectivenessLabels(i18n.resolvedLanguage ?? i18n.language)
+  const plannerLabels = tournamentPlanningLabels(i18n.resolvedLanguage ?? i18n.language)
   const { formatCurrency, formatDate } = useLocalization()
   const { user } = useAuth()
   const commerce = useCommerce()
@@ -225,6 +227,7 @@ export default function ProPackagesPage() {
     [t('deepMatchAnalysis.title'), false, true],
     [t('developmentPremium.title'), false, true],
     [trainingLabels.title, false, true],
+    [plannerLabels.title, false, true],
     [t('commercePage.compareReward'), '—', t('commercePage.compareRewardValue')],
     [t('commercePage.compareBuyCoins'), true, true],
     [t('commercePage.compareCoinFeatures'), true, true],
@@ -279,6 +282,7 @@ export default function ProPackagesPage() {
               <li><Check size={15} /> {t('deepMatchAnalysis.title')}</li>
               <li><Check size={15} /> {t('developmentPremium.title')}</li>
               <li><Check size={15} /> {trainingLabels.title}</li>
+              <li><Check size={15} /> {plannerLabels.title}</li>
               <li><Check size={15} /> {t('premiumTrial.rankingProtection')}</li>
               <li><Check size={15} /> {t('premiumTrial.privateLife')}</li>
               <li><Check size={15} /> {t('commercePage.benefit4')}</li>
