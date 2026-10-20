@@ -33,8 +33,13 @@ const positive = (value: unknown) =>
 const mean = (items: number[]) =>
   items.length ? items.reduce((sum, value) => sum + value, 0) / items.length : 0
 
+const measured = (keys: readonly OptimizationSkill[], scores: SkillScores) => {
+  const known = keys.filter(key => typeof scores[key] === 'number' && Number.isFinite(scores[key]))
+  return known.length ? known : [...keys]
+}
+
 export function weakestSkill(scores: SkillScores): OptimizationSkill {
-  return OPTIMIZATION_SKILLS.reduce((weakest, key) =>
+  return measured(OPTIMIZATION_SKILLS, scores).reduce((weakest, key) =>
     positive(scores[key]) < positive(scores[weakest]) ? key : weakest)
 }
 
@@ -42,7 +47,7 @@ export function complementarySkill(goal: OptimizationSkill, scores: SkillScores)
   const technical = OPTIMIZATION_SKILLS.slice(0, 9) as readonly OptimizationSkill[]
   const physical = OPTIMIZATION_SKILLS.slice(9) as readonly OptimizationSkill[]
   const opposite = technical.includes(goal) ? physical : technical
-  return opposite.reduce((weakest, key) =>
+  return measured(opposite, scores).reduce((weakest, key) =>
     positive(scores[key]) < positive(scores[weakest]) ? key : weakest)
 }
 
