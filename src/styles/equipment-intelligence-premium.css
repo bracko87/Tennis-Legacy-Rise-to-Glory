@@ -1,0 +1,46 @@
+/* Premium Equipment Intelligence — separate comparisons below Free inventory. */
+.tlg-ei{margin:18px 0;border:1px solid #d5e3ee;border-radius:14px;background:#fff;color:#204860;overflow:hidden}
+.tlg-ei-head{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;padding:18px 20px;background:linear-gradient(114deg,#f1f8ff,#fff)}
+.tlg-ei-kicker{display:flex;align-items:center;gap:7px;color:#2675aa;font-size:.67rem;font-weight:850;letter-spacing:.04em}
+.tlg-ei-head h2{font-size:1.08rem;margin:7px 0 5px}
+.tlg-ei-head p{font-size:.76rem;color:#658295;line-height:1.5;margin:0}
+.tlg-ei-toggle{display:flex;flex-shrink:0;align-items:center;gap:8px;border:1px solid #cadde9;border-radius:9px;background:#f4f9fe;color:#225c82;padding:10px 13px;cursor:pointer;font-size:.73rem;font-weight:800}
+.tlg-ei-toggle:hover{background:#e7f3fc}
+.tlg-ei-toggle:focus-visible{outline:2px solid #197ab8;outline-offset:2px}
+.tlg-ei-locked{border-top:1px solid #e1ecf3;padding:18px 20px;display:flex;align-items:center;gap:12px}
+.tlg-ei-locked p{margin:0;flex:1;font-size:.76rem;line-height:1.5;color:#658093}
+.tlg-ei-locked a{color:white;background:#1c466a;border-radius:8px;text-decoration:none;font-size:.74rem;font-weight:800;padding:10px 12px;white-space:nowrap}
+.tlg-ei-status{border-top:1px solid #e2edf4;padding:18px 20px;margin:0;font-size:.76rem;color:#658296}
+.tlg-ei-body{border-top:1px solid #e1ecf3;padding:16px 19px}
+.tlg-ei-block{border:1px solid #e0eaf3;border-radius:10px;padding:15px;margin-bottom:14px;min-width:0}
+.tlg-ei-block h3{margin:0 0 13px;font-size:.87rem;color:#285471;display:flex;align-items:center;gap:8px}
+.tlg-ei-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+.tlg-ei-metrics>div{background:#f7fbfe;border:1px solid #e3edf4;border-radius:8px;padding:11px;min-width:0}
+.tlg-ei-metrics span{display:block;font-size:.67rem;line-height:1.45;color:#648093}
+.tlg-ei-metrics strong{display:block;font-size:1.02rem;margin-top:6px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tlg-ei-scroll{max-width:100%;overflow-x:auto}
+.tlg-ei-scroll table{border-collapse:collapse;width:100%;min-width:960px;font-size:.72rem}
+.tlg-ei-offer-table{min-width:780px!important}
+.tlg-ei-scroll th,.tlg-ei-scroll td{border-bottom:1px solid #e6edf4;padding:10px 11px;text-align:left;vertical-align:middle}
+.tlg-ei-scroll thead{background:#f5f9fc;color:#597890}
+.tlg-ei-scroll tbody th{font-weight:750;color:#244f6a}
+.tlg-ei-scroll tbody th strong,.tlg-ei-scroll tbody th small{display:block}
+.tlg-ei-scroll tbody th small{font-size:.65rem;color:#7992a2;margin-top:4px}
+.tlg-ei-scroll td{font-variant-numeric:tabular-nums}
+.tlg-ei-scroll tbody tr:nth-child(even){background:#fafcfe}
+.tlg-ei-scroll .tlg-ei-risk{color:#a86819;font-weight:850}
+.tlg-ei-risk-row{background:#fffaf3!important}
+.tlg-ei-condition{height:6px;min-width:62px;max-width:125px;background:#e5edf3;border-radius:6px;overflow:hidden;margin-top:6px}
+.tlg-ei-condition i{display:block;height:100%;background:#3383b6;border-radius:6px}
+.tlg-ei-risk-row .tlg-ei-condition i{background:#d89b47}
+.tlg-ei-warning{display:flex;gap:8px;align-items:center;padding:11px 13px;background:#fff7e9;border:1px solid #ecd6ad;color:#875d1d;border-radius:9px;font-size:.72rem}
+.tlg-ei-note{margin:11px 0 0;font-size:.71rem;line-height:1.6;color:#768c9d}
+.tlg-ei-choice{display:grid;gap:7px;color:#648194;font-size:.73rem;max-width:500px}
+.tlg-ei-choice select{padding:9px 11px;border:1px solid #cbdde9;color:#244e6a;border-radius:8px;font-size:.76rem;background:white}
+.tlg-ei-choice select:focus-visible{outline:2px solid #267cba;outline-offset:2px}
+.tlg-ei-block h4{font-size:.78rem;color:#34637f;margin:18px 0 9px}
+.tlg-ei-market{display:inline-flex;align-items:center;gap:7px;padding:10px 13px;border:1px solid #c9dfeb;border-radius:8px;background:#eef8fd;color:#1c6186;font-size:.73rem;font-weight:800;margin-top:14px;cursor:pointer}
+.tlg-ei-market:hover{background:#e0f2fc}
+@media(max-width:1150px){.tlg-ei-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:680px){.tlg-ei-head,.tlg-ei-body{padding:14px}.tlg-ei-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.tlg-ei-head h2{font-size:1rem}.tlg-ei-toggle{padding:8px;font-size:.68rem}.tlg-ei-locked{flex-wrap:wrap}}
+@media(max-width:365px){.tlg-ei-metrics{grid-template-columns:1fr}.tlg-ei-head{flex-wrap:wrap}}
