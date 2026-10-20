@@ -28,7 +28,7 @@ Develop in small, independently reviewable increments; no production main merge 
 | — | Opponent Scouting Intelligence | Staff → Performance Analyst (Free gameplay, **not Premium**) | Scouting and tactical estimates require a hired analyst, with accuracy/preparation depending on staff quality and time | **Removed from Premium backlog; existing Free staff system remains** |
 | 2A (staged) | **Development Outlook** | Skills → beneath Training Effectiveness | Verified skill trends and session comparisons; insufficient-data protections, no future guarantees | **Implemented on staging; frontend/build/browser QA pending** |
 | 4 (staged) | **Tournament Planning Intelligence** | Calendar → Tournament Calendar, beneath month summary | Compare up to 3 tournaments: actual winner/finalist ranking points and prize amounts, entry status, health and competing-entry advisories | **Implemented on staging; read-only Premium RPC deployed and SQL access/data smoke test passed. Frontend/build/mobile/browser QA pending.** |
-| 5 (staged) | **Season Planning Center** | Calendar → Tournament Calendar, after Tournament Planning Intelligence | 52-week season map, private saved target shortlist, configurable finishing-stage ranking-point/prize scenarios, overlap warnings | **Implemented on staging; secure RLS table and Premium RPCs deployed; rollback DB checks passed. Browser/build/mobile QA pending.** |
+| 5 (staged) | **Season Planning Center** | Calendar → Calendar tab, below the monthly calendar grid | 52-week season map, private saved target shortlist, configurable finishing-stage ranking-point/prize scenarios, overlap warnings | **Implemented on staging; secure RLS table and Premium RPCs deployed; rollback DB checks passed. Browser/build/mobile QA pending.** |
 | 6 (staged) | Training Effectiveness / Training Optimization Reports | Skills → below Player Development Intelligence | Real recorded fractional gains, level-ups, efficiency, camp vs regular training, and game-week trends; advanced optimization not yet built | **Training Effectiveness slice implemented on staging; Premium RPC deployed and backend ownership/access/data checks passed; browser/build QA pending** |
 | 7 | Staff Advisory Reports | Staff | Compare contract cost, effectiveness and supported contributions | Proposed |
 | 8 | Sponsor Intelligence | Finance / Sponsors | Contract value, obligations and actual benefits | Proposed |
@@ -39,11 +39,17 @@ Develop in small, independently reviewable increments; no production main merge 
 
 No paid report should claim unrecorded causes or hidden skills, and no Premium feature should change the match engine, core gameplay or ranking payouts. For every future module: show Free members a clear explanation and lock, serve Premium results only after server-side entitlement checks, and translate to all supported languages.
 
+### Calendar Premium module placement (2026-10-20)
+
+- **Calendar tab:** normal monthly calendar first, then the collapsed **Season Planning Center**.
+- **Tournament Calendar tab:** monthly tournament information with collapsed **Tournament Planning Intelligence** in its original position.
+- Placement only. Season targets, Premium access, reports, and official Free tournament entries are unchanged. The frontend was not released to `main`.
+
 ### Season Planning Center — Slice 1 (2026-10-20)
 
 **Implemented on `staging`; database migration deployed; production `main` remains unchanged.**
 
-- Location: `Calendar → Tournament Calendar`, directly beneath Tournament Planning Intelligence. The Premium module is **collapsed by default**, with a local-language Show/Hide header toggle. The Free Tournament Calendar, tournament detail page, official application/entry, draw and rewards remain available as before and are not duplicated.
+- Location: `Calendar → Calendar` tab, below the regular monthly calendar grid and its bottom navigation. Tournament Planning Intelligence remains in the separate `Calendar → Tournament Calendar` tab. The Premium module is **collapsed by default**, with a local-language Show/Hide header toggle. The Free Tournament Calendar, tournament detail page, official application/entry, draw and rewards remain available as before and are not duplicated.
 - Full season: all 52 in-game competitive weeks for the current game season and the player's own ATP/WTA world, rather than only the calendar's selected month. Calendar buttons highlight the current week and saved targets; click a week to see scheduled tournaments. Search by name/city, filter by surface and category. Links go to ordinary tournament detail pages.
 - Target editor: **up to 20 privately saved planned tournaments**, with priority High/Medium/Low and **hypothetical** finishing-stage scenario Quarterfinal, Finalist or Winner (only options configured in the backend for that tournament). Select, edit and remove targets without registering for a tournament. A locked/past event cannot be newly selected or edited; removal remains possible. Changes persist in the database across devices/sessions.
 - Rewards and strategy: points and USD prize amount for configured finishing stages, full-season **gross illustrative** totals for saved choices; **not** expected points, net ranking changes, financial forecasts or guaranteed future results. An unavailable stage payout displays a dash; scenarios must never be interpreted as ranking replacement simulations. This report does not estimate probabilities.
