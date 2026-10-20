@@ -19,6 +19,7 @@ import { trainingEffectivenessLabels } from '../../lib/trainingEffectivenessI18n
 import { tournamentPlanningLabels } from '../../lib/tournamentPlanningI18n'
 import { seasonPlanningLabels } from '../../lib/seasonPlanningI18n'
 import { staffAdvisoryLabels } from '../../lib/staffAdvisoryI18n'
+import { sponsorIntelligenceLabels } from '../../lib/sponsorIntelligenceI18n'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 
@@ -96,6 +97,7 @@ export default function ProPackagesPage() {
   const plannerLabels = tournamentPlanningLabels(i18n.resolvedLanguage ?? i18n.language)
   const seasonLabels = seasonPlanningLabels(i18n.resolvedLanguage ?? i18n.language)
   const staffLabels = staffAdvisoryLabels(i18n.resolvedLanguage ?? i18n.language)
+  const sponsorLabels = sponsorIntelligenceLabels(i18n.resolvedLanguage ?? i18n.language)
   const { formatCurrency, formatDate } = useLocalization()
   const { user } = useAuth()
   const commerce = useCommerce()
@@ -234,6 +236,7 @@ export default function ProPackagesPage() {
     [plannerLabels.title, false, true],
     [seasonLabels.title, false, true],
     [staffLabels.title, false, true],
+    [sponsorLabels.title, false, true],
     [t('commercePage.compareReward'), '—', t('commercePage.compareRewardValue')],
     [t('commercePage.compareBuyCoins'), true, true],
     [t('commercePage.compareCoinFeatures'), true, true],
@@ -291,6 +294,7 @@ export default function ProPackagesPage() {
               <li><Check size={15} /> {plannerLabels.title}</li>
               <li><Check size={15} /> {seasonLabels.title}</li>
               <li><Check size={15} /> {staffLabels.title}</li>
+              <li><Check size={15} /> {sponsorLabels.title}</li>
               <li><Check size={15} /> {t('premiumTrial.rankingProtection')}</li>
               <li><Check size={15} /> {t('premiumTrial.privateLife')}</li>
               <li><Check size={15} /> {t('commercePage.benefit4')}</li>
