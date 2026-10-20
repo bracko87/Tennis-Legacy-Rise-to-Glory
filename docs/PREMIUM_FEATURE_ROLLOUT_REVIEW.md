@@ -24,7 +24,7 @@ Develop in small, independently reviewable increments; no production main merge 
 | Priority | Module | Proposed location | Description | Status |
 | --- | --- | --- | --- | --- |
 | 1 (staged) | **Deep Match Analysis** | Completed match → Match Details → below Match Statistics | Side-by-side match stats, serve/break/shot/point rates, set summary, evidence-based post-match insights | **Implemented in staging**, backend access tests passed; browser/build QA pending |
-| 2 | Player Development Intelligence | Skills / player profile | Skills history, development rates and progress trends | Proposed |
+| 2 (staged) | **Player Development Intelligence — Skill History** | Skills → Player Development Intelligence | Individual attribute timelines and observed progression by technical, physical and condition skill groups | **Code complete on staging; database migration not deployed; build/UI QA pending** |
 | 3 | Opponent Scouting Intelligence | Opponent profile / scouting | Previous results, surface trends, publicly recorded strengths/weaknesses | Proposed |
 | 4 | Tournament Planning Intelligence | Calendar / tournament page | Compare eligibility, timing, expected prizes/points and schedule conflicts | Proposed |
 | 5 | Season Planning Center | Calendar / dedicated planning view | Long-term schedule and ranking point scenarios | Proposed |
@@ -38,12 +38,31 @@ Develop in small, independently reviewable increments; no production main merge 
 
 No paid report should claim unrecorded causes or hidden skills, and no Premium feature should change the match engine, core gameplay or ranking payouts. For every future module: show Free members a clear explanation and lock, serve Premium results only after server-side entitlement checks, and translate to all supported languages.
 
+### Premium module 5 — Player Development Intelligence, Slice 1
+
+**User authorized implementation:** 2026-10-20.
+**Location:** /game/skills → below normal Skills workspace, immediately before the existing free Performance Centre.
+**Frontend:** src/components/premium/PlayerDevelopmentIntelligence.tsx, src/styles/player-development-intelligence.css.
+**Backend migration:** supabase/migrations/20261020114500_premium_player_development_intelligence_v1.sql.
+**Source:** the existing player_skill_history snapshots recorded by the player_skills trigger. The existing free attribute cards, development matrix and free history chart remain intact.
+
+- Premium / 7-day trial: server-entitled report for **owned player only**. Technical, physical and condition groups, selected individual-attribute history chart, earliest/latest values and point changes within the displayed period. Show strongest and smallest recorded changes without implying training causation.
+- Free: explanatory locked preview with Pro Packages link, while original skill attributes and existing free history remain available.
+- Response returns the latest 240 chronological snapshots; the UI explicitly states when this is a truncated history window. No full-career claims on a cropped timeline.
+- No gameplay advantage, development bonus, unrecorded skill prediction or inferred coach attribution.
+- Translated in EN, SR, DE, ES, IT, FR, RU, PT.
+- **Status:** frontend, migration and translations committed to staging. **Supabase SQL migration has not been applied** because the connected project currently refuses SQL permissions; this feature will show an RPC error for Premium users until the migration is deployed.
+- **Release gate:** apply migration in authorized staging Supabase environment, confirm Free and anonymous denied and paid/trial allowed for owned players, other-player IDs blocked, zero/one/many snapshots work; then frontend build and responsive 8-language checks.
+
+**Next slices, NOT implemented:** deeper Training Effectiveness based on completed session gains; evidence-based Development Outlook when enough longitudinal data exists. No forecasts until reliable trend checks and historical coverage are validated.
+
 ### Development order and release gates
 
 1. Validate Statistics Intelligence in localhost (build, visual and paid/trial/Free access, real sample comparison).
 2. Validate Deep Match Analysis in localhost: completed-match replay, paid/trial report, Free lock, empty-stat case, all languages and full build.
-3. Ask for review after each newly added Premium module before starting the next.
-4. Complete `npm run check:pt`, `npm run check:preferences` and `npm run build` before staging → main release; no production release without explicit approval.
+3. Validate and deploy the server-side Player Development Intelligence report in staging, then test owned-player scope, active membership, sample history coverage and all languages.
+4. Ask for review after each newly added Premium module before starting the next.
+5. Complete `npm run check:pt`, `npm run check:preferences` and `npm run build` before staging → main release; no production release without explicit approval.
 
 ## Free gameplay contract
 
