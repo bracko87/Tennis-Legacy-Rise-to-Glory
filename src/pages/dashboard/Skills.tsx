@@ -743,53 +743,69 @@ function MultiHistoryChart({ history, gameWeekNow }: {
   gameWeekNow: { season: number; week: number } | null
 }) {
   const { t } = useTranslation()
-  const width = 1100
-  const height = 330
-  const left = 52
-  const right = 30
-  const top = 24
-  const bottom = 72
+  const width = 1120
+  const height = 345
+  const left = 56
+  const right = 24
+  const top = 22
+  const bottom = 68
   const plotWidth = width - left - right
   const plotHeight = height - top - bottom
-  const windowSize = 24
+  const maxWeeks = 24
 
-  // 53 numbered weeks per season (week 0 through week 52).
-  // If the game has existed for fewer than 24 weeks, the older slots stay
-  // empty: do not invent pre-season weeks or forward-fill unknown snapshots.
+  // The game's authoritative calendar has weeks 0–52 every season.
   const ordinal = (season: number, week: number) => (season - 1) * 53 + week
   const toWeek = (index: number) => ({
     season: Math.floor(index / 53) + 1,
     week: index % 53,
   })
-  const latestSnapshot = history[history.length - 1]
-  const clockOrdinal = gameWeekNow ? ordinal(gameWeekNow.season,gameWeekNow.week) : -1
-  const newestDataOrdinal = latestSnapshot ? ordinal(latestSnapshot.game_season ?? 1,latestSnapshot.game_week ?? 0) : 0
-  const lastOrdinal = Math.max(0,clockOrdinal,newestDataOrdinal)
-  const windowFirst = lastOrdinal - windowSize + 1
-  const slotX = (slot: number) => left + (slot + 0.5) * plotWidth / windowSize
-  const y = (value: number) => top + (100 - Math.max(0,Math.min(100,value))) / 100 * plotHeight
-  const weeks = Array.from({length:windowSize},(_,slot)=>{
-    const index = windowFirst+slot
-    return {slot,index,valid:index>=0,week:toWeek(Math.max(0,index))}
-  })
-
-  const rows = history
-    .filter(row => row.game_season !== null && row.game_week !== null)
-    .map(row=>({
-      ordinal:ordinal(row.game_season as number,row.game_week as number),
-      date:gameWeekText(row,t),
-      technical:scoreCategory(row,'tennis'),
-      physical:scoreCategory(row,'physical'),
-      readiness:scoreCategory(row,'condition'),
+  const measurements = history
+    .filter(row => Number.isInteger(row.game_season) && Number.isInteger(row.game_week)
+      && (row.game_season as number) >= 1
+      && (row.game_week as number) >= 0 && (row.game_week as number) <= 52)
+    .map(row => ({
+      ordinal: ordinal(row.game_season as number, row.game_week as number),
+      date: gameWeekText(row, t),
+      technical: scoreCategory(row, 'tennis'),
+      physical: scoreCategory(row, 'physical'),
+      readiness: scoreCategory(row, 'condition'),
     }))
-    .filter(row => row.ordinal>=windowFirst && row.ordinal<=lastOrdinal)
+  const newestRecorded = measurements[measurements.length - 1]?.ordinal ?? 0
+  const currentWeek = gameWeekNow ? ordinal(gameWeekNow.season, gameWeekNow.week) : 0
+  const lastOrdinal = Math.max(0, currentWeek, newestRecorded)
 
-  const point = (row: typeof rows[number],key:'technical'|'physical'|'readiness') => ({
-    x:slotX(row.ordinal-windowFirst),y:y(row[key]),
+  // At the start of a career, a 24-week view would show fictitious pregame
+  // slots on the left (and squeeze all real data into the right side).
+  // Use only the elapsed/verified weeks until a full 24-week span exists.
+  // Once 24 weeks have elapsed within the known history, roll forward.
+  const oldestAllowed = Math.max(0, lastOrdinal - maxWeeks + 1)
+  const firstMeasured = measurements[0]?.ordinal
+  const firstOrdinal = firstMeasured === undefined
+    ? oldestAllowed : Math.max(oldestAllowed, Math.min(lastOrdinal, firstMeasured))
+  const weekCount = lastOrdinal - firstOrdinal + 1
+  const weekX = (slot: number) => weekCount <= 1
+    ? left + plotWidth / 2
+    : left + (slot / (weekCount - 1)) * plotWidth
+  const y = (value: number) => top + (100 - Math.max(0, Math.min(100, value))) / 100 * plotHeight
+
+  // Every integer game week gets one equally spaced vertical guide and tick.
+  // Weeks without a snapshot remain empty; no synthetic skill values.
+  const weeks = Array.from({ length: weekCount }, (_,slot) => ({
+    slot,
+    ...toWeek(firstOrdinal + slot),
+  }))
+  const visible = measurements.filter(row => row.ordinal >= firstOrdinal && row.ordinal <= lastOrdinal)
+  const point = (row: typeof visible[number], key: 'technical' | 'physical' | 'readiness') => ({
+    x: weekX(row.ordinal - firstOrdinal),
+    y: y(row[key]),
   })
-
-  // Lines connect the recorded observation points without inserting any
-  // fabricated values at the empty weekly gridlines.
+  const seasons = Array.from(new Set(weeks.map(w=>w.season))).map(season=>{
+    const slots = weeks.filter(w=>w.season===season)
+    return {
+      season,
+      x:(weekX(slots[0].slot) + weekX(slots[slots.length-1].slot))/2,
+    }
+  })
 
   return (
     <div className="tlg-multi-history-wrap">
@@ -799,34 +815,37 @@ function MultiHistoryChart({ history, gameWeekNow }: {
         <span className="readiness">{t('skillsPage.readiness')}</span>
       </div>
       <svg className="tlg-multi-history" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={t('skillsPage.historyAria')}>
-        {[100,75,50,25,0].map(value=>(
+        {[100, 75, 50, 25, 0].map(value=>(
           <g key={value}>
-            <line x1={left} x2={width-right} y1={y(value)} y2={y(value)} className="grid-line" />
+            <line x1={left} x2={width-right} y1={y(value)} y2={y(value)} className="grid-line"/>
             <text x={left-12} y={y(value)+4} textAnchor="end" className="axis-label">{value}</text>
           </g>
         ))}
-        {weeks.map(({slot,index,valid,week})=>(
-          <g key={slot}>
-            <line x1={slotX(slot)} x2={slotX(slot)}
-              y1={top} y2={height-bottom}
-              className={valid?'week-grid-line':'week-grid-line week-before-game'}>
-              {valid && <title>{gameWeekText({game_season:week.season,game_week:week.week,recorded_at:''},t)}</title>}
-            </line>
-            {valid && (slot===windowSize-1 || slot%4===0) && (
-              <text x={slotX(slot)} y={height-37}
-                textAnchor={slot===windowSize-1?'end':slot===0?'start':'middle'}
-                className="date-label">
-                {gameWeekText({game_season:week.season,game_week:week.week,recorded_at:''},t)}
+        {weeks.map(({slot,season,week})=>{
+          const x=weekX(slot)
+          const label=gameWeekText({game_season:season,game_week:week,recorded_at:''},t)
+          return (
+            <g key={`${season}-${week}`}>
+              <line x1={x} x2={x} y1={top} y2={height-bottom} className="week-grid-line"/>
+              <text x={x} y={height-41} textAnchor="middle" className="date-label week-tick">
+                {week}
+                <title>{label}</title>
               </text>
-            )}
-          </g>
+            </g>
+          )
+        })}
+        {seasons.map(item=>(
+          <text key={item.season} x={item.x} y={height-16} textAnchor="middle"
+            className="date-label season-tick">
+            {t('statisticsPage.season',{season:item.season})}
+          </text>
         ))}
         {(['technical','physical','readiness'] as const).map(key=>(
           <g key={key}>
-            {rows.length>1 && <polyline
-              points={rows.map(row=>{const p=point(row,key);return `${p.x},${p.y}`}).join(' ')}
-              className={`trend ${key}`} />}
-            {rows.map(row=>{
+            {visible.length>1 && <polyline
+              points={visible.map(row=>{const p=point(row,key);return `${p.x},${p.y}`}).join(' ')}
+              className={`trend ${key}`}/>}
+            {visible.map(row=>{
               const p=point(row,key)
               return <circle key={`${key}-${row.ordinal}`} cx={p.x} cy={p.y} r="4"
                 className={`trend-point ${key}`}>
