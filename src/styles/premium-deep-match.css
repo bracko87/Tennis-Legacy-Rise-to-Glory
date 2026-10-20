@@ -1,0 +1,26 @@
+/* Premium post-match analytics; no changes to the existing replay UI. */
+.tlg-deep-analysis{margin:18px 22px 22px;border:1px solid #d7e3ef;border-radius:14px;background:#fff;overflow:hidden;color:#17354b}
+.tlg-deep-analysis-head{padding:17px 20px;border-bottom:1px solid #e2eaf2;background:#f8fafc}
+.tlg-deep-analysis-head span{display:flex;align-items:center;gap:7px;color:#0a72b5;font-size:.72rem;font-weight:850;letter-spacing:.045em}
+.tlg-deep-analysis-head h3{margin:7px 0 5px;font-size:1.12rem}
+.tlg-deep-analysis-head p{margin:0;font-size:.78rem;color:#5a7186}
+.tlg-deep-analysis-locked{padding:18px 20px;display:flex;align-items:center;gap:12px;font-size:.78rem}
+.tlg-deep-analysis-locked p{margin:0;flex:1;color:#465e72}
+.tlg-deep-analysis-locked a{padding:8px 13px;background:#173d63;border-radius:8px;color:#fff;text-decoration:none;font-weight:750;white-space:nowrap}
+.tlg-deep-analysis-state{padding:14px 20px;font-size:.79rem;color:#667b8d}
+.tlg-deep-analysis-body{padding:16px 20px}
+.tlg-deep-analysis-players{display:grid;grid-template-columns:1fr 1fr;gap:14px;text-align:center;font-size:.85rem}
+.tlg-deep-analysis-sets{margin:12px 0;color:#43617c;font-size:.76rem;text-align:center}
+.tlg-deep-analysis-scroll{width:100%;overflow-x:auto}
+.tlg-deep-analysis-scroll table{width:100%;border-collapse:collapse;font-size:.78rem}
+.tlg-deep-analysis-scroll th,.tlg-deep-analysis-scroll td{padding:9px 12px;border-bottom:1px solid #e7edf4;text-align:left}
+.tlg-deep-analysis-scroll td{text-align:center;font-variant-numeric:tabular-nums}
+.tlg-deep-analysis-scroll thead th{background:#f6f9fd;color:#334e67}
+.tlg-deep-analysis-scroll thead th:not(:first-child){text-align:center}
+.tlg-deep-analysis-group th{padding:10px 12px;background:#edf4fa;color:#17628e;text-transform:uppercase;letter-spacing:.04em;font-size:.7rem}
+.tlg-deep-analysis-observations{margin-top:16px;border-top:1px solid #e3e9f0;padding-top:13px}
+.tlg-deep-analysis-observations h4{margin:0 0 8px;font-size:.86rem}
+.tlg-deep-analysis-observations ul{margin:6px 0 10px;padding-left:20px}
+.tlg-deep-analysis-observations li,.tlg-deep-analysis-observations p{font-size:.78rem;line-height:1.55;color:#415972}
+.tlg-deep-analysis-observations small{display:block;color:#73889a;font-size:.7rem;line-height:1.55}
+@media(max-width:690px){.tlg-deep-analysis{margin:14px 10px}.tlg-deep-analysis-locked{flex-wrap:wrap}.tlg-deep-analysis-head,.tlg-deep-analysis-body{padding:14px}.tlg-deep-analysis-scroll th,.tlg-deep-analysis-scroll td{padding:8px 6px}.tlg-deep-analysis-players{font-size:.74rem}}
