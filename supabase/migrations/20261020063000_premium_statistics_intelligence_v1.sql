@@ -6,7 +6,7 @@ create or replace function public.get_premium_statistics_intelligence_v1(
   p_period text default 'season'
 ) returns jsonb
 language plpgsql
-stable
+volatile
 security definer
 set search_path = 'public'
 as $function$
