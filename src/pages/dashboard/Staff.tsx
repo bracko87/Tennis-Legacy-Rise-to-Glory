@@ -346,7 +346,10 @@ export default function StaffPage() {
                   onHire={(nextRole) => { setRole(nextRole); setView('market') }}
                   onTerminate={(contract) => { void handleTerminateRequest(contract) }}
                 />
-                <PremiumStaffAdvisory playerId={player?.id ?? null} />
+                <PremiumStaffAdvisory
+                  playerId={player?.id ?? null}
+                  refreshKey={dashboard.contracts.map(item => `${item.contract_id}:${item.weekly_salary}:${item.end_absolute_day}`).join('|')}
+                />
               </>
             ) : (
               <>
