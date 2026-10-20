@@ -141,22 +141,16 @@ export default function PremiumCareerIntelligence({
     const percent=(v-min)/range
     return top+(metric==='rank'?percent:1-percent)*(height-top-bottom)
   }
-  const chartSegments:{path:string;key:number}[]=[]
-  let currentSegment:{coords:string[];key:number}|null=null
-  observations.forEach((point,i)=>{
-    if(!point.record){
-      if(currentSegment?.coords.length){
-        chartSegments.push({path:currentSegment.coords.join(' '),key:currentSegment.key})
-      }
-      currentSegment=null
-      return
+  const chartSegments=observations.reduce<{path:string;key:number}[]>((segments,point,i)=>{
+    if(!point.record)return segments
+    const coord=`${x(i)},${y(metric==='rank'?point.record.rank:point.record.points)}`
+    if(i>0&&observations[i-1].record&&segments.length){
+      segments[segments.length-1].path+=` ${coord}`
+    }else{
+      segments.push({path:coord,key:i})
     }
-    if(!currentSegment)currentSegment={coords:[],key:i}
-    currentSegment.coords.push(`${x(i)},${y(metric==='rank'?point.record.rank:point.record.points)}`)
-  })
-  if(currentSegment?.coords.length)chartSegments.push({
-    path:currentSegment.coords.join(' '),key:currentSegment.key,
-  })
+    return segments
+  },[])
   const bySurface=useMemo(()=>{
     const grouped=new Map<number,Surface[]>()
     for(const s of current?.surfaces_by_season??[]){
