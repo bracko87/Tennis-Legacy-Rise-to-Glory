@@ -4258,6 +4258,7 @@ const frenchTranslations = {
         "title": "Progression de {{skill}}",
         "message": "{{skill}} est passé de {{old_value}} à {{new_value}} ({{delta}})."
       },
+      "tournament_application_watch_open": {"title": "Inscriptions ouvertes pour un tournoi suivi", "message": "Les inscriptions pour {{tournament_name}} sont ouvertes. Ouvrez le tournoi et inscrivez-vous avant la clôture."},
       "tournament_application_submitted": {
         "title": "Candidature envoyée",
         "message": "Votre candidature au tournoi a été envoyée."
