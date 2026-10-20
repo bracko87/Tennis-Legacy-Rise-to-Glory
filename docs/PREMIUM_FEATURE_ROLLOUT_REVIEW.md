@@ -24,7 +24,7 @@ Develop in small, independently reviewable increments; no production main merge 
 | Priority | Module | Proposed location | Description | Status |
 | --- | --- | --- | --- | --- |
 | 1 (staged) | **Deep Match Analysis** | Completed match → Match Details → below Match Statistics | Side-by-side match stats, serve/break/shot/point rates, set summary, evidence-based post-match insights | **Implemented in staging**, backend access tests passed; browser/build QA pending |
-| 2 (staged) | **Player Development Intelligence — Skill History** | Skills → Player Development Intelligence | Individual attribute timelines and observed progression by technical, physical and condition skill groups | **Code complete on staging; database migration not deployed; build/UI QA pending** |
+| 2 (staged) | **Player Development Intelligence — Skill History** | Skills → Player Development Intelligence | Individual attribute timelines and observed progression by technical, physical and condition skill groups | **Implemented on staging; database migration deployed and paid/Free/ownership RPC checks passed; build/UI QA pending** |
 | 3 | Opponent Scouting Intelligence | Opponent profile / scouting | Previous results, surface trends, publicly recorded strengths/weaknesses | Proposed |
 | 4 | Tournament Planning Intelligence | Calendar / tournament page | Compare eligibility, timing, expected prizes/points and schedule conflicts | Proposed |
 | 5 | Season Planning Center | Calendar / dedicated planning view | Long-term schedule and ranking point scenarios | Proposed |
@@ -51,8 +51,8 @@ No paid report should claim unrecorded causes or hidden skills, and no Premium f
 - Response returns the latest 240 chronological snapshots; the UI explicitly states when this is a truncated history window. No full-career claims on a cropped timeline.
 - No gameplay advantage, development bonus, unrecorded skill prediction or inferred coach attribution.
 - Translated in EN, SR, DE, ES, IT, FR, RU, PT.
-- **Status:** frontend, migration and translations committed to staging. **Supabase SQL migration has not been applied** because the connected project currently refuses SQL permissions; this feature will show an RPC error for Premium users until the migration is deployed.
-- **Release gate:** apply migration in authorized staging Supabase environment, confirm Free and anonymous denied and paid/trial allowed for owned players, other-player IDs blocked, zero/one/many snapshots work; then frontend build and responsive 8-language checks.
+- **Status:** frontend, migration and translations committed to staging. **Supabase migration successfully applied on 2026-10-20.** An active Premium identity returned 49 owned skill snapshots; non-Premium and other-player requests correctly returned SQLSTATE 42501. Browser rendering and frontend build remain to be confirmed.
+- **Release gate:** migration applied; authenticated-only grant and anonymous execute denial confirmed; paid owned-player, Free denied and other-player denied confirmed. Still check trial login, zero/one-snapshot handling, frontend build and responsive 8-language views.
 
 **Next slices, NOT implemented:** deeper Training Effectiveness based on completed session gains; evidence-based Development Outlook when enough longitudinal data exists. No forecasts until reliable trend checks and historical coverage are validated.
 
