@@ -520,3 +520,44 @@
     grid-template-columns:minmax(0,1fr);
   }
 }
+
+/* Compact tournament metadata and match-result status alignment. */
+.tlg-overview-next-dashboard-text-only .tlg-overview-next-tournament-summary,
+.tlg-overview-next-dashboard-text-only .tlg-overview-next-opponent-card{
+  background:#fff;
+}
+.tlg-overview-tournament-section-heading{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px 12px;
+  margin-bottom:13px;
+}
+.tlg-overview-tournament-section-heading .tlg-overview-upcoming-section-label{
+  margin:0;
+  flex:0 0 auto;
+}
+.tlg-overview-tournament-section-heading .tlg-overview-event-meta{
+  flex:1 1 auto;
+  display:flex;
+  flex-wrap:wrap;
+  min-width:0;
+  gap:5px;
+}
+.tlg-overview-tournament-section-heading .tlg-overview-event-meta>b{
+  padding:3px 6px;
+}
+.tlg-overview-result-card-refined .tlg-overview-previous-tournament-row{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-width:0;
+}
+.tlg-overview-result-card-refined .tlg-overview-previous-tournament-row>div{
+  min-width:0;
+  flex:1 1 auto;
+}
+.tlg-overview-result-card-refined .tlg-overview-previous-tournament-row .tlg-overview-result-badge{
+  margin-left:auto;
+  flex:0 0 auto;
+}
