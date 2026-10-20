@@ -52,7 +52,6 @@ $body$;
 do $body$
 declare
   d text;
-  v_old text;
 begin
   select pg_get_functiondef('public.simulate_tournament_match_raw_v2(uuid,text)'::regprocedure)
     into d;
@@ -86,6 +85,10 @@ $body$;
 revoke all on function public.match_engine_ace_probability_v3_candidate(jsonb,jsonb,text,text) from public,anon,authenticated;
 revoke all on function public.match_engine_double_fault_probability_v3_candidate(jsonb,text) from public,anon,authenticated;
 revoke all on function public.simulate_tournament_match_raw_v3_candidate(uuid,text) from public,anon,authenticated;
+-- Service-only direct dry-run access; the live dispatcher still calls v2.
+grant execute on function public.match_engine_ace_probability_v3_candidate(jsonb,jsonb,text,text) to service_role;
+grant execute on function public.match_engine_double_fault_probability_v3_candidate(jsonb,text) to service_role;
+grant execute on function public.simulate_tournament_match_raw_v3_candidate(uuid,text) to service_role;
 
 comment on function public.simulate_tournament_match_raw_v3_candidate(uuid,text) is
   'INACTIVE isolated serve calibration candidate; NEVER used by production simulation dispatcher or replay';
