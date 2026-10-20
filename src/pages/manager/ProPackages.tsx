@@ -22,6 +22,7 @@ import { staffAdvisoryLabels } from '../../lib/staffAdvisoryI18n'
 import { sponsorIntelligenceLabels } from '../../lib/sponsorIntelligenceI18n'
 import { financialIntelligenceLabels } from '../../lib/financialIntelligenceI18n'
 import { equipmentIntelligenceLabels } from '../../lib/equipmentIntelligenceI18n'
+import { careerIntelligenceLabels } from '../../lib/careerIntelligenceI18n'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 
@@ -102,6 +103,7 @@ export default function ProPackagesPage() {
   const sponsorLabels = sponsorIntelligenceLabels(i18n.resolvedLanguage ?? i18n.language)
   const financialLabels = financialIntelligenceLabels(i18n.resolvedLanguage ?? i18n.language)
   const equipmentLabels = equipmentIntelligenceLabels(i18n.resolvedLanguage ?? i18n.language)
+  const careerLabels = careerIntelligenceLabels(i18n.resolvedLanguage ?? i18n.language)
   const { formatCurrency, formatDate } = useLocalization()
   const { user } = useAuth()
   const commerce = useCommerce()
@@ -243,6 +245,7 @@ export default function ProPackagesPage() {
     [sponsorLabels.title, false, true],
     [financialLabels.title, false, true],
     [equipmentLabels.title, false, true],
+    [careerLabels.title, false, true],
     [t('commercePage.compareReward'), '—', t('commercePage.compareRewardValue')],
     [t('commercePage.compareBuyCoins'), true, true],
     [t('commercePage.compareCoinFeatures'), true, true],
@@ -303,6 +306,7 @@ export default function ProPackagesPage() {
               <li><Check size={15} /> {sponsorLabels.title}</li>
               <li><Check size={15} /> {financialLabels.title}</li>
               <li><Check size={15} /> {equipmentLabels.title}</li>
+              <li><Check size={15} /> {careerLabels.title}</li>
               <li><Check size={15} /> {t('premiumTrial.rankingProtection')}</li>
               <li><Check size={15} /> {t('premiumTrial.privateLife')}</li>
               <li><Check size={15} /> {t('commercePage.benefit4')}</li>
