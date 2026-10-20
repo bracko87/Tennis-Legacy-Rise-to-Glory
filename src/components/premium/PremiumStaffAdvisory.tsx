@@ -46,7 +46,7 @@ type StaffAdvisoryReport = {
   earliest_expiry_days:number|null
 }
 
-export default function PremiumStaffAdvisory({playerId}:{playerId:string|null}) {
+export default function PremiumStaffAdvisory({playerId,refreshKey}:{playerId:string|null;refreshKey:string}) {
   const {t,i18n}=useTranslation()
   const l=staffAdvisoryLabels(i18n.resolvedLanguage??i18n.language)
   const {isPremium,loading:checkingPremium}=useCommerce()
@@ -76,7 +76,7 @@ export default function PremiumStaffAdvisory({playerId}:{playerId:string|null}) 
         if(!cancelled){setError(true);setLoading(false)}
       })
     return ()=>{cancelled=true}
-  },[expanded,isPremium,checkingPremium,playerId])
+  },[expanded,isPremium,checkingPremium,playerId,refreshKey])
 
   const validReport=report?.player_id===playerId?report:null
   const staff=useMemo(()=>validReport?.staff??[],[validReport])
