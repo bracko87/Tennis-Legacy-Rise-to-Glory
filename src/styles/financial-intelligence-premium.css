@@ -1,0 +1,54 @@
+/* Financial Intelligence: premium cash-planning analysis, separate from Free ledger. */
+.tlg-fi{border:1px solid #d6e4ee;border-radius:14px;margin:18px 0;overflow:hidden;background:#fff;color:#204761}
+.tlg-fi-head{background:linear-gradient(113deg,#f0f8ff,#fff);padding:19px 21px;display:flex;justify-content:space-between;align-items:flex-start;gap:15px}
+.tlg-fi-kicker{display:flex;align-items:center;gap:7px;font-size:.65rem;letter-spacing:.04em;font-weight:850;color:#1e70a7}
+.tlg-fi-head h2{font-size:1.11rem;margin:8px 0 5px}
+.tlg-fi-head p{color:#668295;font-size:.75rem;line-height:1.5;margin:0}
+.tlg-fi-toggle{flex-shrink:0;display:flex;align-items:center;gap:7px;font-weight:800;font-size:.74rem;border-radius:9px;border:1px solid #cbddea;background:#f3f9fc;color:#245d80;padding:10px 13px;cursor:pointer}
+.tlg-fi-toggle:hover{background:#e7f4fe}
+.tlg-fi-toggle:focus-visible{outline:2px solid #197cb9;outline-offset:2px}
+.tlg-fi-locked{display:flex;align-items:center;gap:13px;border-top:1px solid #e0eaf1;padding:18px 21px}
+.tlg-fi-locked p{font-size:.77rem;line-height:1.5;color:#627e93;flex:1;margin:0}
+.tlg-fi-locked a{font-size:.73rem;font-weight:800;color:white;background:#164368;border-radius:8px;text-decoration:none;padding:10px 12px;white-space:nowrap}
+.tlg-fi-state{border-top:1px solid #e3edf4;padding:18px 20px;color:#648195;font-size:.79rem;margin:0}
+.tlg-fi-body{padding:18px 21px;border-top:1px solid #e0eaf1}
+.tlg-fi-history,.tlg-fi-budget{border:1px solid #e3ecf3;border-radius:11px;padding:15px 16px;margin-bottom:14px;min-width:0}
+.tlg-fi-history>header,.tlg-fi-budget>header{display:flex;align-items:center;gap:12px;justify-content:space-between;margin-bottom:12px}
+.tlg-fi-history h3,.tlg-fi-budget h3{font-size:.91rem;display:flex;align-items:center;gap:8px;color:#23516d;margin:0}
+.tlg-fi-history header small{font-size:.68rem;color:#688496}
+.tlg-fi-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.tlg-fi-stats>div{border:1px solid #e2ebf3;background:#f8fbfd;border-radius:9px;padding:12px;min-width:0}
+.tlg-fi-stats span{display:block;font-size:.67rem;color:#637c90;line-height:1.4}
+.tlg-fi-stats strong{display:block;margin-top:6px;font-size:.99rem;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;color:#224e6a}
+.tlg-fi-outlook{grid-template-columns:repeat(3,minmax(0,1fr))}
+.tlg-fi-horizon{display:flex;gap:5px;flex-wrap:wrap}
+.tlg-fi-horizon button{border-radius:7px;border:1px solid #d3e1ed;padding:8px 9px;background:#f7fafc;cursor:pointer;font-size:.67rem;font-weight:750;color:#54738a}
+.tlg-fi-horizon button.active{background:#e2f2fd;border-color:#90bedb;color:#1a668f}
+.tlg-fi-horizon button:focus-visible{outline:2px solid #197cb9;outline-offset:2px}
+.tlg-fi-budget h4{font-size:.83rem;color:#285671;margin:19px 0 10px}
+.tlg-fi-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;align-items:end;gap:10px}
+.tlg-fi-controls label{font-size:.69rem;line-height:1.4;color:#658196;display:grid;gap:7px}
+.tlg-fi-controls input{border:1px solid #c9dae8;color:#1a455d;border-radius:7px;min-height:37px;width:100%;max-width:100%;min-width:0;padding:8px 9px;font-size:.75rem}
+.tlg-fi-controls input:focus-visible{outline:2px solid #2078b5;outline-offset:1px}
+.tlg-fi-reset{padding:9px 10px;min-height:37px;border-radius:7px;border:1px solid #d3e0e8;color:#315d79;background:#f6fafc;cursor:pointer;font-size:.7rem;display:flex;align-items:center;gap:6px;justify-content:center}
+.tlg-fi-note{color:#7790a1;font-size:.71rem;line-height:1.55;margin:10px 0}
+.tlg-fi-chart-wrap{max-width:100%;overflow-x:auto}
+.tlg-fi-chart{display:block;width:100%;min-width:500px;height:auto}
+.tlg-fi-axis{font-size:10px;fill:#7791a1;font-variant-numeric:tabular-nums}
+.tlg-fi-legend{display:flex;justify-content:flex-end;gap:14px;color:#57788c;font-size:.68rem;margin:17px 0 0}
+.tlg-fi-legend span{display:flex;align-items:center;gap:7px}
+.tlg-fi-legend i{width:17px;height:4px;background:#2d78b5;border-radius:3px}
+.tlg-fi-legend i.custom{background:#bb7939}
+.tlg-fi-alert{display:flex;align-items:center;gap:9px;padding:11px;border-radius:8px;font-size:.73rem;flex-wrap:wrap}
+.tlg-fi-alert.safe{background:#edf7f1;color:#27694e}
+.tlg-fi-alert.danger{background:#fff3e7;color:#90511c}
+.tlg-fi-table-wrap{margin-top:13px;overflow-x:auto}
+.tlg-fi-table-wrap table{width:100%;min-width:730px;border-collapse:collapse;font-size:.71rem;font-variant-numeric:tabular-nums}
+.tlg-fi-table-wrap th,.tlg-fi-table-wrap td{text-align:right;border-bottom:1px solid #e6edf3;padding:9px 11px;white-space:nowrap}
+.tlg-fi-table-wrap th:first-child{text-align:left}
+.tlg-fi-table-wrap thead{background:#f6fafc;color:#658095}
+.tlg-fi-table-wrap tbody tr:nth-child(even){background:#fafcfe}
+.tlg-fi-table-wrap .negative{color:#b44a35;font-weight:800}
+@media(max-width:900px){.tlg-fi-outlook{grid-template-columns:repeat(2,minmax(0,1fr))}.tlg-fi-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.tlg-fi-reset{align-self:end}}
+@media(max-width:620px){.tlg-fi-head,.tlg-fi-body{padding:14px}.tlg-fi-head h2{font-size:1rem}.tlg-fi-toggle{font-size:.69rem;padding:8px}.tlg-fi-history>header,.tlg-fi-budget>header{align-items:flex-start;flex-direction:column}.tlg-fi-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.tlg-fi-controls{grid-template-columns:1fr 1fr}.tlg-fi-locked{flex-wrap:wrap}}
+@media(max-width:390px){.tlg-fi-stats{grid-template-columns:1fr}.tlg-fi-controls{grid-template-columns:1fr}}
