@@ -36,6 +36,7 @@ import MarketingFooter from '../components/layout/MarketingFooter'
 import StatCard from '../components/common/StatCard'
 import HomepagePlayerReviews from '../components/marketing/HomepagePlayerReviews'
 import HomeScreenshotGallery from '../components/marketing/HomeScreenshotGallery'
+import PremiumBenefitsGuide from '../components/marketing/PremiumBenefitsGuide'
 import { supabase } from '../lib/supabase'
 
 
@@ -427,6 +428,10 @@ export default function HomePage() {
               })}
             </div>
           </div>
+        </section>
+
+        <section className="tlg-content-section" aria-label={t('home.premium.eyebrow')}>
+          <div className="tlg-section"><PremiumBenefitsGuide placement="homepage" /></div>
         </section>
 
         <HomepagePlayerReviews />
