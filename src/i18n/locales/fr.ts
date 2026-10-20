@@ -766,6 +766,28 @@ const frenchTranslations = {
     "back": "Retour aux classements"
   },
   "statisticsPage": {
+    "premiumInsights": {
+        "kicker": "PREMIUM · ANALYSE STATISTIQUE",
+        "title": "Analyse statistique avancée",
+        "intro": "Comparez les résultats des matchs terminés avec les joueurs du classement ATP/WTA sélectionné. Les statistiques habituelles restent gratuites.",
+        "checking": "Vérification de l'abonnement…",
+        "active": "Premium actif",
+        "preview": "Aperçu Premium",
+        "lockedTitle": "Comparaisons de performances avancées avec Premium",
+        "lockedBody": "Comparez votre taux de victoire, vos aces et vos coups gagnants par match avec l'échantillon du classement. Les classements et statistiques de base restent gratuits.",
+        "packages": "Voir Premium",
+        "noSample": "Il n'y a pas encore assez de matchs terminés pour une comparaison fiable.",
+        "noOwnSample": "Votre joueur ne figure pas dans cet échantillon : seule la moyenne des autres est affichée. Vos statistiques de carrière restent accessibles.",
+        "sample": "{{world}} · {{period}} · {{players}} joueurs comparés sur {{matches}} matchs terminés",
+        "yourPlayer": "Votre joueur",
+        "peerAverage": "Autres joueurs de l'échantillon",
+        "disclaimer": "Comparaison fondée uniquement sur les statistiques publiées des matchs terminés. Elle ne prédit pas les victoires et ne donne pas d'avantage tactique. L'échantillon ne représente pas tous les joueurs.",
+        "metrics": {
+            "winRate": "Taux de victoire",
+            "aces": "Aces par match",
+            "winners": "Coups gagnants par match"
+        }
+    },
     "title": "Statistiques",
     "subtitle": "Records mondiaux, leaders des tournois et analyses de carrière",
     "loadError": "Impossible de charger les statistiques mondiales.",
