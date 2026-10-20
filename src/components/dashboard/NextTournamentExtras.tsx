@@ -114,7 +114,8 @@ export default function NextTournamentExtras({ tournament, hideArtwork = false }
     { label: t('overviewPage.extra.winnerPoints'), value: detail?.winner_points != null ? formatNumber(detail.winner_points) : null },
     { label: t('overviewPage.extra.mainDraw'), value: detail?.main_draw_capacity != null ? formatNumber(detail.main_draw_capacity) : null },
     { label: t('overviewPage.extra.environment'), value: detail?.environment ? readableStatus(detail.environment) : null },
-    { label: t('overviewPage.extra.yourEntry'), value: readableStatus(tournament.entry_status) },
+    // Keep the homepage text-only facts compact; other artwork-enabled views retain entry status.
+    ...(!hideArtwork ? [{ label: t('overviewPage.extra.yourEntry'), value: readableStatus(tournament.entry_status) }] : []),
   ]
 
   return (
