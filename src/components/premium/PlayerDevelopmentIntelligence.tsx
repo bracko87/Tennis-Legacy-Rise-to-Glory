@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Crown, LockKeyhole, TrendingUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, Crown, LockKeyhole, TrendingUp } from 'lucide-react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useCommerce } from '../../hooks/useCommerce'
 import { supabase } from '../../lib/supabase'
 import { weeklySkillSnapshots, gameWeekText } from '../../lib/skillGameWeeks'
+import { premiumToggleText } from '../../lib/premiumPanelToggleI18n'
 import '../../styles/player-development-intelligence.css'
 
 type Group = 'technical' | 'physical' | 'condition'
@@ -68,8 +69,10 @@ function Timeline({ rows, skill, label }: { rows: HistoryRow[]; skill: SkillKey;
 }
 
 export default function PlayerDevelopmentIntelligence({ playerId }: { playerId: string | null }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const toggle = premiumToggleText(i18n.resolvedLanguage ?? i18n.language)
   const { isPremium, loading: checkingPremium } = useCommerce()
+  const [expanded, setExpanded] = useState(false)
   const [report,setReport] = useState<DevelopmentReport|null>(null)
   const [loading,setLoading] = useState(false)
   const [loadError,setLoadError] = useState(false)
@@ -80,7 +83,7 @@ export default function PlayerDevelopmentIntelligence({ playerId }: { playerId: 
     let cancelled=false
     setReport(null)
     setLoadError(false)
-    if(!isPremium || checkingPremium || !playerId){
+    if(!expanded || !isPremium || checkingPremium || !playerId){
       setLoading(false)
       return ()=>{cancelled=true}
     }
@@ -96,7 +99,7 @@ export default function PlayerDevelopmentIntelligence({ playerId }: { playerId: 
         if(!cancelled){setLoadError(true);setLoading(false)}
       })
     return ()=>{cancelled=true}
-  },[isPremium,checkingPremium,playerId])
+  },[expanded,isPremium,checkingPremium,playerId])
 
   const history=report?.history ?? []
   const weeklyHistory=useMemo(()=>weeklySkillSnapshots(history),[report])
@@ -126,8 +129,15 @@ export default function PlayerDevelopmentIntelligence({ playerId }: { playerId: 
           <h2>{t('developmentPremium.title')}</h2>
           <p>{t('developmentPremium.intro')}</p>
         </div>
-        <span className="tlg-pdi-pill">{t('developmentPremium.premium')}</span>
+        <button type="button" className="tlg-pdi-toggle"
+          aria-expanded={expanded} aria-controls="tlg-player-development-body"
+          onClick={() => setExpanded(value => !value)}>
+          {expanded ? toggle.hide : toggle.show}
+          {expanded ? <ChevronUp size={16} aria-hidden="true"/> : <ChevronDown size={16} aria-hidden="true"/>}
+        </button>
       </header>
+      <div id="tlg-player-development-body" hidden={!expanded}>
+        {expanded && <>
       {checkingPremium || loading ? <p className="tlg-pdi-state">{t('developmentPremium.loading')}</p>
       : !isPremium ? (
         <div className="tlg-pdi-lock">
@@ -185,6 +195,8 @@ export default function PlayerDevelopmentIntelligence({ playerId }: { playerId: 
           ) : <p className="tlg-pdi-state">{t('developmentPremium.oneSnapshot')}</p>}
         </div>
       )}
+        </>}
+      </div>
     </section>
   )
 }
