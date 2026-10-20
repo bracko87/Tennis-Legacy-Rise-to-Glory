@@ -25,10 +25,10 @@ Develop in small, independently reviewable increments; no production main merge 
 | --- | --- | --- | --- | --- |
 | 1 (staged) | **Deep Match Analysis** | Completed match → Match Details → below Match Statistics | Side-by-side match stats, serve/break/shot/point rates, set summary, evidence-based post-match insights | **Implemented in staging**, backend access tests passed; browser/build QA pending |
 | 2 (staged) | **Player Development Intelligence — Skill History** | Skills → Player Development Intelligence | Individual attribute timelines and observed progression by technical, physical and condition skill groups | **Implemented on staging; database migration deployed and paid/Free/ownership RPC checks passed; build/UI QA pending** |
-| 3 | Opponent Scouting Intelligence | Opponent profile / scouting | Previous results, surface trends, publicly recorded strengths/weaknesses | Proposed |
+| — | Opponent Scouting Intelligence | Staff → Performance Analyst (Free gameplay, **not Premium**) | Scouting and tactical estimates require a hired analyst, with accuracy/preparation depending on staff quality and time | **Removed from Premium backlog; existing Free staff system remains** |
 | 4 | Tournament Planning Intelligence | Calendar / tournament page | Compare eligibility, timing, expected prizes/points and schedule conflicts | Proposed |
 | 5 | Season Planning Center | Calendar / dedicated planning view | Long-term schedule and ranking point scenarios | Proposed |
-| 6 | Training Optimization Reports | Training | Compare fatigue, recovery, camps and outcomes from recorded data | Proposed |
+| 6 (staged) | Training Effectiveness / Training Optimization Reports | Skills → below Player Development Intelligence | Real recorded fractional gains, level-ups, efficiency, camp vs regular training, and game-week trends; advanced optimization not yet built | **Training Effectiveness slice implemented on staging, Premium RPC migration pending deployment, browser/build QA pending** |
 | 7 | Staff Advisory Reports | Staff | Compare contract cost, effectiveness and supported contributions | Proposed |
 | 8 | Sponsor Intelligence | Finance / Sponsors | Contract value, obligations and actual benefits | Proposed |
 | 9 | Financial Intelligence | Finance | Budget forecasts and scenario comparison | Proposed |
@@ -37,6 +37,20 @@ Develop in small, independently reviewable increments; no production main merge 
 | 12 | Premium Convenience Tools | Premium tools / Overview | Saved comparisons, custom dashboard reports and optional advanced alerts | Proposed |
 
 No paid report should claim unrecorded causes or hidden skills, and no Premium feature should change the match engine, core gameplay or ranking payouts. For every future module: show Free members a clear explanation and lock, serve Premium results only after server-side entitlement checks, and translate to all supported languages.
+
+### Premium Player Development Intelligence — Slice 2: Training Effectiveness (2026-10-20)
+
+**Status: implemented in staging, not released.** The new read-only Premium endpoint is in `supabase/migrations/20261020150500_premium_training_effectiveness_v1.sql`; UI in `src/components/premium/PremiumTrainingEffectiveness.tsx`, mounted on the existing Free Skills page beneath Player Development Intelligence. Backend migration is intentionally **not applied to the shared live Supabase project** yet, so the new report is not ready for browser testing until an isolated/staging deployment.
+
+- Includes only actual completed development sessions from `player_training_sessions` (session_role=`planned_training`) and `player_training_camp_days` (day_role=`development`). Rest, recovery and day-off sessions do not distort the improvement totals.
+- Displays recent 120 sessions and warns if earlier sessions are omitted. The total session count is returned separately. Reports recent sessions, average recorded efficiency multiplier, per-skill fractional gains, recorded whole-level increases, 12 newest game-week aggregates, and latest 10 session details. Uses actual game season/week data, never real timestamps.
+- These are *recorded* results, not predictions or an attribution model. The sum of fractional progress across different skills is **not** the player's total skill rating. Does not change Free training, gains, fatigue, career outcomes, or the match engine.
+- Premium/trial + owning player only, enforced server-side by `has_active_premium_v1()` and `players.owner_user_id=auth.uid()`; anonymous and unentitled roles have no function execute privilege. Locked preview for Free; translations provided for EN, SR, DE, ES, IT, FR, RU, PT.
+- **Outstanding release gates:** migration dry-run in isolated database, actual paid/trial/Free/other-owner SQL checks, game-week and sample-arithmetic check, TypeScript checks `npm run check:pt`, `npm run check:preferences`, `npm run build`, all eight languages and mobile visual QA. Do not merge to `main` without validation and manual release approval.
+
+### Scouting roadmap correction (2026-10-20)
+
+**Opponent Scouting Intelligence is NOT a Premium module.** Existing Free gameplay already requires an active Performance Analyst for detailed opponent scouting. Staff quality determines estimated accuracy, and preparation time determines report completeness. Public opponent identity/recent results stay Free. No Premium entitlement should be required to use the Performance Analyst. Remove scouting from Premium offers and future paid report plans.
 
 ### Premium module 5 — Player Development Intelligence, Slice 1
 
