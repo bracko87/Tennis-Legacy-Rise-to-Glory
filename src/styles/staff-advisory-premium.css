@@ -1,0 +1,39 @@
+/* Premium Staff Advisory Reports: condensed analysis, not a second Staff dashboard. */
+.tlg-staffa{border:1px solid #d4e3ed;border-radius:14px;margin:16px 0;overflow:hidden;color:#183d57;background:#fff}
+.tlg-staffa-head{padding:19px 21px;display:flex;gap:15px;justify-content:space-between;align-items:flex-start;background:linear-gradient(111deg,#f2f9ff,#fff)}
+.tlg-staffa-kicker{font-size:.65rem;font-weight:800;color:#2474a4;display:flex;gap:7px;align-items:center;letter-spacing:.04em}
+.tlg-staffa-head h2{font-size:1.1rem;margin:8px 0 6px}
+.tlg-staffa-head p{margin:0;color:#678293;line-height:1.5;font-size:.75rem}
+.tlg-staffa-toggle{border:1px solid #cbdde9;border-radius:9px;color:#235c80;background:#f4f9fd;display:flex;align-items:center;gap:8px;white-space:nowrap;cursor:pointer;padding:10px 13px;font-weight:800;font-size:.76rem}
+.tlg-staffa-toggle:hover{background:#eaf5ff}
+.tlg-staffa-toggle:focus-visible{outline:2px solid #187bbb;outline-offset:2px}
+.tlg-staffa-locked{display:flex;align-items:center;gap:12px;padding:19px 21px;border-top:1px solid #e1ebf3}
+.tlg-staffa-locked p{flex:1;color:#5e7a8c;font-size:.75rem;line-height:1.5}
+.tlg-staffa-locked a{padding:10px 13px;background:#17446b;border-radius:8px;color:#fff;font-weight:800;font-size:.74rem;text-decoration:none;white-space:nowrap}
+.tlg-staffa-state{border-top:1px solid #e3ecf3;padding:19px 21px;color:#668094;font-size:.8rem}
+.tlg-staffa-body{border-top:1px solid #e1ebf3;padding:19px 21px}
+.tlg-staffa-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tlg-staffa-metrics>div{border:1px solid #e1ebf3;border-radius:9px;background:#f9fcff;min-width:0;padding:12px 14px}
+.tlg-staffa-metrics span{font-size:.7rem;color:#627d91;display:block}
+.tlg-staffa-metrics strong{font-size:1.07rem;display:block;margin-top:5px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tlg-staffa-panel{margin-top:16px;padding:15px 16px;border:1px solid #e0eaf2;border-radius:10px;min-width:0}
+.tlg-staffa-section-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:10px}
+.tlg-staffa-section-heading h3{margin:0;display:flex;gap:8px;align-items:center;font-size:.86rem;color:#27516d}
+.tlg-staffa-section-heading>span{font-size:.72rem;color:#72889a}
+.tlg-staffa-note{margin:12px 0 0;color:#748b9a;font-size:.71rem;line-height:1.6}
+.tlg-staffa-expiry{display:grid;gap:7px}
+.tlg-staffa-expiry>div{padding:9px 11px;border-radius:8px;background:#fff8e9;display:flex;justify-content:space-between;gap:15px;color:#8b611b;font-size:.75rem}
+.tlg-staffa-table-wrap{overflow-x:auto;width:100%}
+.tlg-staffa table{border-collapse:collapse;width:100%;min-width:900px;font-size:.72rem}
+.tlg-staffa th,.tlg-staffa td{padding:12px 10px;border-bottom:1px solid #e7eef3;text-align:left;vertical-align:middle}
+.tlg-staffa thead th{font-size:.68rem;color:#617d90;background:#f7fbfe}
+.tlg-staffa tbody th strong{display:block;font-size:.76rem}
+.tlg-staffa tbody th small{font-size:.65rem;color:#6d899b;display:block;margin-top:4px;white-space:nowrap}
+.tlg-staffa td{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tlg-staffa .tlg-staffa-caution{color:#aa6818;font-weight:800}
+.tlg-staffa-share{min-width:75px;display:flex;flex-direction:column;gap:5px}
+.tlg-staffa-track{height:7px;background:#e7eef3;border-radius:10px;overflow:hidden}
+.tlg-staffa-track i{display:block;height:100%;border-radius:10px;background:#247ab2}
+@media(max-width:880px){.tlg-staffa-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:590px){.tlg-staffa-head,.tlg-staffa-body{padding:14px}.tlg-staffa-toggle{font-size:.69rem;padding:8px}.tlg-staffa-head h2{font-size:1rem}.tlg-staffa-metrics{grid-template-columns:1fr 1fr}.tlg-staffa-locked{flex-wrap:wrap}}
+@media(max-width:370px){.tlg-staffa-metrics{grid-template-columns:1fr}.tlg-staffa-section-heading{align-items:flex-start;flex-direction:column}}
