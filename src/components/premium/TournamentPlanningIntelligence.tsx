@@ -56,7 +56,7 @@ export default function TournamentPlanningIntelligence({
   month: number
   clockLoading: boolean
 }) {
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation()
   const l = tournamentPlanningLabels(i18n.resolvedLanguage ?? i18n.language)
   const { isPremium, loading: checkingPremium } = useCommerce()
   const [expanded, setExpanded] = useState(false)
@@ -140,8 +140,8 @@ export default function TournamentPlanningIntelligence({
     { label: l.finalistPrize, show: t => money(t.finalist_prize_usd) },
     { label: l.slots, show: t => String(t.main_draw_capacity) },
     { label: l.qualification, show: t => String(t.qualifying_capacity_max) },
-    { label: l.currentEntry, show: t => t.user_status.replaceAll('_', ' ') },
-    { label: l.health, show: t => t.health_blocked ? l.healthReview : l.verify },
+    { label: l.currentEntry, show: row => t(`calendarPage.tournament.userStatus.${row.user_status}`, { defaultValue: row.user_status.replaceAll('_',' ') }) },
+    { label: l.health, show: t => t.health_blocked ? l.healthReview : l.healthClear },
     { label: l.status, show: advisory },
     { label: l.risks, show: conflict },
     { label: l.otherChoices, show: t => String(t.other_calendar_choices) },
