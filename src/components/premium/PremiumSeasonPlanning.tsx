@@ -234,7 +234,7 @@ export default function PremiumSeasonPlanning({ playerId, season, clockLoading }
             <h4>{l.plannedTargets}</h4>
             <span>{planned.length}/{validReport.limit}</span>
           </div>
-          {planned.length===0?<p className="tlg-sp-empty">{l.empty}</p>
+          {planned.length===0?<p className="tlg-sp-empty">{l.noTargets}</p>
           :<div className="tlg-sp-targets">
             {[...planned].sort((a,b)=>(a.planned_priority??2)-(b.planned_priority??2)||a.start_week-b.start_week).map(item=>
               <article className="tlg-sp-target" key={item.competition_id}>
