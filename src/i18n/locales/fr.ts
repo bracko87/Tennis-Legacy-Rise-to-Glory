@@ -8,6 +8,57 @@ type TranslationShape<T> = T extends string ? string
   : T
 
 const frenchTranslations = {
+  developmentPremium: {
+    "kicker": "PREMIUM · DÉVELOPPEMENT",
+    "title": "Analyse du développement du joueur",
+    "intro": "Explorez l'évolution enregistrée des compétences et de la condition physique.",
+    "premium": "PREMIUM",
+    "loading": "Chargement du rapport…",
+    "locked": "Débloquez des courbes détaillées avec Premium. Les compétences de base restent gratuites.",
+    "viewPlans": "Voir Premium",
+    "error": "Rapport indisponible. La mise à jour de la base de données est peut-être en attente.",
+    "noHistory": "Aucun historique de compétences disponible.",
+    "snapshots": "Total de relevés",
+    "window": "Relevés affichés",
+    "period": "Début de période",
+    "limited": "Seuls les 240 derniers relevés sont affichés. Les variations concernent cette période.",
+    "chooseGroup": "Choisir une catégorie",
+    "selectSkill": "Choisir une compétence",
+    "biggestGain": "Plus grande progression",
+    "slowest": "Plus petite variation",
+    "attribute": "Attribut",
+    "first": "Premier",
+    "latest": "Dernier",
+    "change": "Variation",
+    "chartAria": "Évolution de {{skill}}",
+    "oneSnapshot": "Un seul relevé est disponible. Il faut d'autres mesures pour dégager une tendance.",
+    "disclaimer": "Les courbes montrent des valeurs enregistrées, pas des causes certaines ni des prévisions garanties. La fatigue peut varier.",
+    "groups": {
+      "technical": "Compétences tennis",
+      "physical": "Aptitudes physiques",
+      "condition": "Condition"
+    },
+    "attributes": {
+      "serve": "Service",
+      "forehand": "Coup droit",
+      "backhand": "Revers",
+      "return_skill": "Retour",
+      "volley": "Volée",
+      "slice": "Slice",
+      "drop_shot": "Amortie",
+      "lob": "Lob",
+      "smash": "Smash",
+      "fitness": "Forme",
+      "stamina": "Endurance",
+      "recovery": "Récupération",
+      "movement": "Déplacement",
+      "fatigue": "Fatigue",
+      "sharpness": "Vivacité",
+      "morale": "Moral",
+      "confidence": "Confiance",
+      "focus": "Concentration"
+    }
+  },
   preferencesCenter: {
     "notificationInventory": "{{count}} types de notification actifs",
     "restoreDefaults": "Rétablir les notifications par défaut",
