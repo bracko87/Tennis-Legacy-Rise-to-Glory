@@ -550,12 +550,12 @@ function NextTournamentCard({ tournament, match }: { tournament: NextTournament;
             )}
             {hasNextMatch && match && (
               <section className="tlg-overview-next-opponent-card" aria-label={t('overviewPage.nextMatch')}>
-                <strong className="tlg-overview-upcoming-section-label">{t('overviewPage.nextMatch')}</strong>
+                <div className="tlg-overview-match-section-heading">
+                  <strong className="tlg-overview-upcoming-section-label">{t('overviewPage.nextMatch')}</strong>
+                  <CountryFlag countryCode={match.country_code} width={24} height={16} />
+                  <strong className="tlg-overview-match-tournament-name">{match.tournament_name}</strong>
+                </div>
                 <div className="tlg-overview-upcoming-match-main">
-                  <div className="tournament">
-                    <CountryFlag countryCode={match.country_code} width={24} height={16} />
-                    <div><strong>{match.tournament_name}</strong><span>{match.round_label} · {t('overviewPage.week', { week: match.season_week })} · {t('overviewPage.day', { day: match.day })}</span></div>
-                  </div>
                   <div className="tlg-overview-match-box tlg-overview-upcoming-match-box">
                     <div className="tlg-overview-next-opponent-label">{t('overviewPage.nextMatch')} · {match.round_label}</div>
                     <div className="opponent"><span>{t('overviewPage.versus')}</span><CountryFlag countryCode={match.opponent_country_code} width={22} height={15} /><Link to={`/game/players/${match.opponent_id}`}>{match.opponent_first_name} {match.opponent_last_name}</Link></div>
