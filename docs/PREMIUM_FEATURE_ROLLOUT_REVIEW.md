@@ -31,7 +31,8 @@ volatility correction for already migrated databases:
 - UI translated in EN, SR, DE, ES, IT, FR, RU and PT.
 
 **Status:** staging UI/RPC committed; migrations applied to connected Tennis Legacy Supabase project on 2026-10-20.
-**Still to validate:** npm build, eight-language visual checks, active paid/trial users, Free lock state, and real statistics comparison for each world/period.
+**Backend validation:** Active trial report returned 3 metrics for ATP/season and WTA/all-time; non-Premium request was rejected (SQLSTATE 42501); anonymous execute privilege denied. These checks were run on 2026-10-20 without persisting simulation/test changes.
+**Still to validate:** npm build, all eight language views, paid account UI, Free lock screen in a browser, and sample arithmetic against a known player. The hosting container cannot download the private repository to build it.
 
 ## Proposed Premium feature 2 — Deep Match Analysis
 
