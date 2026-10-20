@@ -3,7 +3,7 @@
 const labels = {
   "en": {
     "title": "Training Effectiveness",
-    "intro": "Review actual fractional skill gains from completed regular training and training camps.",
+    "intro": "Review recorded development gains from completed regular training and training camps.",
     "loading": "Loading training report…",
     "locked": "Premium explains recorded training results. Training and all skill gains remain available to Free players.",
     "viewPlans": "Explore Premium",
@@ -22,7 +22,7 @@ const labels = {
     "perEvent": "Recent training sessions",
     "limited": "This analysis includes only the 120 most recent development sessions, not the entire career.",
     "scope": "All totals and comparisons below cover only the sessions shown in this report.",
-    "caution": "Fractional gains accumulate toward skill levels; adding gains across different skills is not an overall skill rating. Efficiency is the saved training multiplier, not a percent of a new level. Rest and recovery days are excluded.",
+    "caution": "Session gains are recorded estimates; staff effects and skill slowdowns may change the exact credited progress. Confirmed whole-level increases are shown separately. Gains across different skills do not equal an overall rating. Efficiency is a training multiplier; rest days are excluded.",
     "topSkills": "Attributes that gained the most progress",
     "skill": "Attribute",
     "progressValue": "Fractional gain",
@@ -58,7 +58,7 @@ const labels = {
     "perEvent": "Nedavni treninzi",
     "limited": "Prikazano je samo poslednjih 120 sesija razvoja, ne cela karijera.",
     "scope": "Zbirovi i poređenja odnose se samo na prikazane sesije.",
-    "caution": "Delimični napredak se skuplja po veštinama. Zbir različitih veština nije ukupna ocena igrača. Efikasnost je sačuvani faktor treninga. Dani odmora nisu uključeni.",
+    "caution": "Zabeleženi dobici su procene po sesiji; efekti osoblja i usporavanje razvoja mogu promeniti stvarno pripisani napredak. Potvrđena povećanja veština prikazana su posebno. Zbir veština nije ukupna ocena; odmor nije uključen.",
     "topSkills": "Veštine sa najvećim napretkom",
     "skill": "Veština",
     "progressValue": "Delimični napredak",
@@ -94,7 +94,7 @@ const labels = {
     "perEvent": "Letzte Trainingseinheiten",
     "limited": "Nur die letzten 120 Entwicklungseinheiten werden ausgewertet, nicht die gesamte Karriere.",
     "scope": "Alle Werte beziehen sich nur auf die dargestellten Einheiten.",
-    "caution": "Teilfortschritte sammeln sich für einzelne Fähigkeiten. Ihre Summe ist keine Gesamtwertung. Effizienz ist der gespeicherte Trainingsmultiplikator. Ruhetage sind ausgeschlossen.",
+    "caution": "Die protokollierten Sitzungsgewinne sind Schätzwerte; Staffeffekte und Entwicklungsbremsen können tatsächliche Gutschriften verändern. Bestätigte ganze Skillanstiege werden separat gezeigt. Die Summe ist kein Gesamtrating; Ruhetage sind ausgeschlossen.",
     "topSkills": "Fähigkeiten mit dem größten Fortschritt",
     "skill": "Fähigkeit",
     "progressValue": "Teilfortschritt",
@@ -130,7 +130,7 @@ const labels = {
     "perEvent": "Sesiones recientes",
     "limited": "Solo se muestran las 120 sesiones más recientes, no toda la carrera.",
     "scope": "Los totales abarcan únicamente las sesiones mostradas.",
-    "caution": "El progreso se acumula por habilidad; la suma no es una valoración general. La eficacia es un multiplicador registrado. Se excluyen los días de descanso.",
+    "caution": "Las ganancias registradas son estimaciones por sesión; el personal y la desaceleración de habilidades pueden alterar el crédito real. Los aumentos completos confirmados se muestran aparte. La suma no es una valoración general; se excluye el descanso.",
     "topSkills": "Habilidades con mayor progreso",
     "skill": "Habilidad",
     "progressValue": "Progreso fraccionario",
@@ -166,7 +166,7 @@ const labels = {
     "perEvent": "Allenamenti recenti",
     "limited": "Sono incluse solo le ultime 120 sessioni, non l'intera carriera.",
     "scope": "I totali riguardano solo le sessioni visualizzate.",
-    "caution": "I progressi frazionari si accumulano per abilità; la loro somma non è una valutazione complessiva. L'efficienza è un moltiplicatore registrato. I giorni di riposo sono esclusi.",
+    "caution": "I guadagni registrati sono stime per sessione; personale e rallentamenti delle abilità possono cambiare il credito effettivo. Gli aumenti completi confermati sono separati. La somma non è un voto generale; i riposi sono esclusi.",
     "topSkills": "Abilità con i maggiori progressi",
     "skill": "Abilità",
     "progressValue": "Progresso frazionario",
@@ -202,7 +202,7 @@ const labels = {
     "perEvent": "Séances récentes",
     "limited": "Seules les 120 dernières séances sont analysées, pas toute la carrière.",
     "scope": "Les totaux concernent uniquement les séances affichées.",
-    "caution": "Les progrès s'accumulent par compétence. Leur somme n'est pas une note globale. L'efficacité est un multiplicateur enregistré. Les jours de repos sont exclus.",
+    "caution": "Les gains enregistrés sont des estimations par séance; les effets du personnel et le ralentissement des compétences peuvent modifier le crédit exact. Les hausses complètes confirmées sont distinctes. La somme n'est pas une note globale; repos exclus.",
     "topSkills": "Compétences ayant le plus progressé",
     "skill": "Compétence",
     "progressValue": "Progrès fractionnaire",
@@ -238,7 +238,7 @@ const labels = {
     "perEvent": "Последние занятия",
     "limited": "Учтены только последние 120 занятий, а не вся карьера.",
     "scope": "Все итоги относятся только к показанным занятиям.",
-    "caution": "Дробный прогресс копится отдельно для каждого навыка. Сумма не равна общей оценке. Эффективность — сохранённый множитель. Дни отдыха исключены.",
+    "caution": "Записанный прирост — оценка за занятие; бонусы персонала и замедление развития влияют на фактический результат. Подтверждённые повышения показаны отдельно. Сумма не равна общему рейтингу; отдых не учитывается.",
     "topSkills": "Навыки с наибольшим прогрессом",
     "skill": "Навык",
     "progressValue": "Дробный прирост",
@@ -274,7 +274,7 @@ const labels = {
     "perEvent": "Sessões recentes",
     "limited": "São analisadas apenas as últimas 120 sessões, não toda a carreira.",
     "scope": "Os totais cobrem somente as sessões exibidas.",
-    "caution": "Ganhos fracionários acumulam por habilidade. Sua soma não é uma classificação geral. Eficiência é um multiplicador registrado. Dias de descanso ficam de fora.",
+    "caution": "Os ganhos registrados são estimativas por sessão; equipe e limites de evolução podem alterar o crédito final. Aumentos completos confirmados aparecem separados. A soma não é a nota geral; dias de descanso ficam de fora.",
     "topSkills": "Habilidades que mais evoluíram",
     "skill": "Habilidade",
     "progressValue": "Ganho fracionário",
@@ -293,8 +293,9 @@ const labels = {
 
 type Language = keyof typeof labels
 export type TrainingEffectivenessLabel = keyof typeof labels.en
+type Translation = Record<TrainingEffectivenessLabel, string>
 
-export function trainingEffectivenessLabels(language: string | undefined): typeof labels.en {
+export function trainingEffectivenessLabels(language: string | undefined): Translation {
   const code = (language ?? 'en').toLowerCase().split('-')[0] as Language
-  return (labels[code] ?? labels.en) as typeof labels.en
+  return labels[code] ?? labels.en
 }
