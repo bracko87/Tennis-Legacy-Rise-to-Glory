@@ -5,6 +5,7 @@
     "dev": "node scripts/build.mjs",
     "build": "node scripts/build.mjs --production",
     "check:pt": "node scripts/check-pt-coverage.mjs",
+    "check:serve": "node scripts/check-serve-realism-candidate.mjs",
     "check:preferences": "node scripts/check-preferences-locales.mjs",
     "check:seo": "node scripts/check-seo.mjs"
   },
