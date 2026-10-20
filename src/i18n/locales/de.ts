@@ -931,6 +931,7 @@ export default {
       player_private_life_running_costs: { title: 'Monatliche Kosten des Privatlebens', message: 'Die kombinierten Lebenshaltungs- und Wartungskosten deines Privatlebens wurden von deinem Karrierefinanz-Saldo abgezogen.' },
       player_skill_decreased: { title: '{{skill}} gesunken', message: '{{skill}} ist von {{old_value}} auf {{new_value}} gesunken ({{delta}}).' },
       player_skill_increased: { title: '{{skill}} verbessert', message: '{{skill}} ist von {{old_value}} auf {{new_value}} gestiegen ({{delta}}).' },
+      tournament_application_watch_open: { title: 'Anmeldung für gemerktes Turnier geöffnet', message: 'Die Anmeldung für {{tournament_name}} ist jetzt geöffnet. Öffne das Turnier und melde dich vor der Frist an.' },
       tournament_application_submitted: { title: 'Anmeldung eingereicht', message: 'Deine Turnieranmeldung wurde eingereicht.' },
       tournament_application_withdrawn: { title: 'Anmeldung zurückgezogen', message: 'Deine Turnieranmeldung wurde zurückgezogen.' },
       tournament_canceled: { title: 'Turnier abgesagt', message: 'Das Turnier wurde abgesagt. Turnierbezogene Kosten werden automatisch erstattet.' },
