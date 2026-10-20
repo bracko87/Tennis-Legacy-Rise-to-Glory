@@ -220,6 +220,7 @@ export default function ProPackagesPage() {
     [t('commercePage.compareCore'), true, true],
     [t('commercePage.compareAccount'), true, true],
     [t('statisticsPage.premiumInsights.title'), false, true],
+    [t('deepMatchAnalysis.title'), false, true],
     [t('commercePage.compareReward'), '—', t('commercePage.compareRewardValue')],
     [t('commercePage.compareBuyCoins'), true, true],
     [t('commercePage.compareCoinFeatures'), true, true],
@@ -271,6 +272,7 @@ export default function ProPackagesPage() {
             <div className="tlg-commerce-price"><strong>{money(mainPremiumOffer.priceCents)}</strong><span>{t('commercePage.everyThreeMonths', { monthly: money(mainPremiumOffer.monthlyEquivalentCents) })}</span></div>
             <ul className="tlg-commerce-benefits">
               <li><Check size={15} /> {t('statisticsPage.premiumInsights.title')}</li>
+              <li><Check size={15} /> {t('deepMatchAnalysis.title')}</li>
               <li><Check size={15} /> {t('premiumTrial.rankingProtection')}</li>
               <li><Check size={15} /> {t('premiumTrial.privateLife')}</li>
               <li><Check size={15} /> {t('commercePage.benefit4')}</li>
