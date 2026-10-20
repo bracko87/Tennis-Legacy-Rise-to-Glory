@@ -5,6 +5,7 @@ import { Link, useSearchParams } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
+import TournamentPlanningIntelligence from '../../components/premium/TournamentPlanningIntelligence'
 import TabbedModulePage from '../../components/game/TabbedModulePage'
 import { useGameClock } from '../../hooks/useGameClock'
 import {
@@ -568,6 +569,13 @@ function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: 
         <div><span>{monthName}</span><strong>{loading ? t('calendarPage.tournament.loadingTournaments') : t('calendarPage.tournament.tournamentCount', { count: uniqueTournamentCount })}</strong></div>
         <p>{t('calendarPage.tournament.monthSummary', { count: monthCompetitionWeeks.length, month: monthName })}</p>
       </div>
+
+      <TournamentPlanningIntelligence
+        playerId={player?.id ?? null}
+        season={clock.season}
+        month={monthIndex + 1}
+        clockLoading={clock.loading}
+      />
 
       {monthIndex === 0 && (
         <div className="tlg-tournament-month-summary">
