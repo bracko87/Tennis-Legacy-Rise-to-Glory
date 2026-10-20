@@ -8,7 +8,7 @@
 - **Offline:** a Postgres scheduled processor checks due watched events every 5 real minutes. No browser needs to be open for the entry to be created. After login the persistent notification is visible. At 2x game speed this implies up to about 10 in-game minutes of scheduling delay.
 - **Not included:** email or device push notifications; automatic application; guaranteed admission; late-entry opening alerts. Watching only future normal application windows avoids misleading reminders for events already open. Removing a watch does not erase a previously delivered notification.
 - **Limits:** 60 watches per current game season. Old-season watches are not displayed. One notification per owner+player+competition (enforced by existing `user_notifications` unique event-key index).
-- **Internationalization:** watchlist and reminder notifications in EN, DE, SR, ES, IT, RU, PT. Premium marketing's Tournament Planning description also mentions application-opening watch alerts.
+- **Internationalization:** watchlist and reminder notifications in EN, DE, SR, ES, IT, RU, PT. Premium marketing gives Tournament Watchlist its own translated named benefit in the shared homepage, public pricing dialog and signed-in Pro Packages guide; the purchase-page comparison table and plan summary also list it.
 
 ## Security and backend
 - Migration: `supabase/migrations/20261020235000_premium_tournament_watchlist_v1.sql`.
