@@ -23,7 +23,7 @@ Develop in small, independently reviewable increments; no production main merge 
 
 | Priority | Module | Proposed location | Description | Status |
 | --- | --- | --- | --- | --- |
-| 1 (staged) | **Deep Match Analysis** | Completed match → Match Replay/Result | Side-by-side match stats, serve/break/shot/point rates, set summary, evidence-based post-match insights | **Implemented in staging**, backend access tests passed; browser/build QA pending |
+| 1 (staged) | **Deep Match Analysis** | Completed match → Match Details → below Match Statistics | Side-by-side match stats, serve/break/shot/point rates, set summary, evidence-based post-match insights | **Implemented in staging**, backend access tests passed; browser/build QA pending |
 | 2 | Player Development Intelligence | Skills / player profile | Skills history, development rates and progress trends | Proposed |
 | 3 | Opponent Scouting Intelligence | Opponent profile / scouting | Previous results, surface trends, publicly recorded strengths/weaknesses | Proposed |
 | 4 | Tournament Planning Intelligence | Calendar / tournament page | Compare eligibility, timing, expected prizes/points and schedule conflicts | Proposed |
@@ -80,7 +80,7 @@ volatility correction for already migrated databases:
 
 **Status:** implemented in staging on 2026-10-20. Backend RPC migration applied to connected Tennis Legacy Supabase. Full build and user browser review are still outstanding.
 
-**Location:** Tournament → completed match → Match Replay/Result view → Premium "Deep Match Analysis" section. Keep the normal final score, basic match statistics and existing replay access Free.
+**Location:** Tournament → completed match → Match Details modal → beneath Match Statistics → Premium "Deep Match Analysis" section. Keep the normal final score, basic match statistics and existing replay access Free.
 
 For a player's own completed matches only (all stats must come from actual recorded results):
 1. Side-by-side player vs opponent comparisons: aces, double faults, first serves in/attempted, first-serve points won/played, second-serve points won/played, break points converted/chances, winners, unforced errors, total points won.
@@ -92,11 +92,22 @@ For a player's own completed matches only (all stats must come from actual recor
 
 **Implemented in controlled slices:**
 - **A — Backend:** `get_premium_deep_match_analysis_v1(uuid)` in migration `20261020090500_premium_deep_match_analysis_v1.sql`, restricted to completed matches involving the signed-in player. Missing stat rows remain null.
-- **B — UI:** `src/components/tournament/PremiumDeepMatchAnalysis.tsx` integrated into completed `TournamentMatchReplayModal.tsx`, with responsive `src/styles/premium-deep-match.css`. Free players get a lock/upgrade explanation.
+- **B — UI:** `src/components/tournament/PremiumDeepMatchAnalysis.tsx` integrated into completed `Tournament.tsx` match-details modal, removed from Replay, with responsive `src/styles/premium-deep-match.css`. Free players get a lock/upgrade explanation.
 - **C — Observations and localization:** Serve/break/shot/point comparisons with evidence-based observations and translations for EN, SR, DE, ES, IT, FR, RU and PT.
 
 **Validation completed (2026-10-20):** paid account own completed match returns match statistics and sets; successful win and loss cases each returned correctly oriented records; a historical completed match with missing stats returned null values instead of zero; Free account, non-owned match and unfinished match were rejected (SQLSTATE 42501). No match outcomes, scores or payouts changed.
 **Remaining:** `npm run build`, `npm run check:pt`, `npm run check:preferences`, browser paid/Free/trial checks, missing-row appearance, and eight-language visual QA.
+
+
+### Match-details UX corrections and historical-factor explanation (2026-10-20)
+
+- Rank, handedness and seed badges occupy one horizontal row in the player identity cards (horizontal scroll fallback on narrow screens).
+- The analysis appears **below the existing Free Match Statistics**, in the normal Match Details modal, not in the Match Replay modal.
+- Pre-match simulation snapshot is preserved in `tournament_match_simulations.metadata.profile_snapshot`. The report now returns whitelisted effective match ratings (overall, serve, return, rally, net and physical), fatigue, focus, sharpness, confidence, morale, surface adjustment, equipment, staff, tactical modifier, injury penalty, style and recorded weather. These represent the values captured at simulation time and must not be confused with the player's present attributes or double-added bonuses.
+- Premium analysis summarizes historical factor differences and match-stat contrasts with explicit uncertainty. Missing historical snapshots yield an honest unavailable state rather than invented values.
+- Backend migration `20261020094500_premium_deep_match_historical_factors_v1.sql` applied to connected Supabase and a paid completed match returned real captured ratings/fatigue/weather.
+- **Engine realism audit:** `docs/MATCH_SERVE_REALISM_AUDIT_20261020.md`. Aces/DFs low and near-identical across ATP/WTA. No match-engine probabilities changed; benchmark and controlled simulation validation must precede an engine release.
+- **Pending:** full browser QA (both badges layouts and modal), `npm run build`, translation visual checks, end-to-end trial check.
 
 ## Development/release tests
 
