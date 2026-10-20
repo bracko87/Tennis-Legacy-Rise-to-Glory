@@ -1508,6 +1508,58 @@ export default {
       "grass": "Erba"
     }
   },
+  "deepMatchAnalysis": {
+    "premium": "PREMIUM · ANALISI APPROFONDITA",
+    "title": "Analisi approfondita del match",
+    "intro": "Confronta le statistiche registrate del match concluso. Risultato e replay restano gratuiti.",
+    "loading": "Caricamento analisi…",
+    "locked": "Sblocca i confronti dettagliati del match con Premium.",
+    "viewPremium": "Scopri Premium",
+    "error": "Impossibile caricare l'analisi.",
+    "notAvailable": "Nessuna analisi disponibile per il match concluso.",
+    "won": "VITTORIA",
+    "lost": "SCONFITTA",
+    "sets": "Set",
+    "missingStats": "Alcune statistiche non sono state registrate. I dati mancanti sono —, non zero.",
+    "parameter": "Statistica",
+    "yourPlayer": "Il tuo giocatore",
+    "opponent": "Avversario",
+    "observations": "Osservazioni sulla prestazione",
+    "firstServeGap": "La percentuale di punti vinti con la prima di servizio è stata inferiore di {{value}} punti percentuali rispetto all'avversario.",
+    "secondServeGap": "La percentuale di punti vinti con la seconda è stata inferiore di {{value}} punti percentuali rispetto all'avversario.",
+    "errorGap": "Hai commesso {{value}} errori gratuiti in più dell'avversario.",
+    "breakGap": "La conversione delle palle break è stata inferiore di {{value}} punti percentuali rispetto all'avversario.",
+    "noConclusions": "Nessuna grande differenza nei dati registrati.",
+    "disclaimer": "Sono differenze statistiche, non cause dimostrate del risultato. Non vengono dedotti fattori non registrati.",
+    "groups": {
+      "serve": "Servizio",
+      "breakPoints": "Palle break",
+      "shots": "Colpi",
+      "points": "Punti totali"
+    },
+    "metrics": {
+      "aces": "Ace",
+      "doubleFaults": "Doppi falli",
+      "firstServesIn": "Prime di servizio in campo",
+      "firstServesTotal": "Prime di servizio tentate",
+      "firstServePercent": "Prime in campo %",
+      "firstServeWon": "Punti vinti con la prima",
+      "firstServePlayed": "Punti giocati con la prima",
+      "firstServeWinPercent": "Punti vinti con la prima %",
+      "secondServeWon": "Punti vinti con la seconda",
+      "secondServePlayed": "Punti giocati con la seconda",
+      "secondServeWinPercent": "Punti vinti con la seconda %",
+      "serviceWinPercent": "Punti al servizio vinti %",
+      "breakWon": "Palle break convertite",
+      "breakTotal": "Occasioni di break",
+      "breakConversion": "Conversione break %",
+      "winners": "Vincenti",
+      "errors": "Errori gratuiti",
+      "winnerErrorBalance": "Vincenti meno errori",
+      "totalPoints": "Punti totali vinti",
+      "pointShare": "Quota di punti vinti %"
+    }
+  },
   "statisticsPage": {
     "premiumInsights": {
         "kicker": "PREMIUM · ANALISI STATISTICHE",
