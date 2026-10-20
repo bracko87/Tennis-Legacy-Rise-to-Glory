@@ -908,16 +908,22 @@
   stroke-width: 1;
 }
 
-/* 24 fixed in-game week slots; gridlines do not imply missing observations. */
+/* Every shown week occupies an equal share of the plot width.
+   At career start, the chart uses the elapsed verified weeks, then rolls at 24. */
 .tlg-multi-history .week-grid-line {
   stroke: #d5e3eb;
   stroke-width: 1;
   stroke-dasharray: 3 5;
 }
-.tlg-multi-history .week-before-game {
-  stroke: #e9eef1;
-  stroke-width: .8;
-  stroke-dasharray: 2 6;
+.tlg-multi-history .week-tick {
+  font-size: 11px;
+  fill: #657e91;
+  font-variant-numeric: tabular-nums;
+}
+.tlg-multi-history .season-tick {
+  fill: #446e8c;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .tlg-multi-history .axis-label,
