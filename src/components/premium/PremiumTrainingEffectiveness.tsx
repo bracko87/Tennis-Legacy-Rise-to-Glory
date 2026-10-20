@@ -155,7 +155,8 @@ export default function PremiumTrainingEffectiveness({ playerId }: { playerId: s
           {expanded ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
         </button>
       </header>
-      {expanded && <div id="tlg-training-effectiveness-body">
+      <div id="tlg-training-effectiveness-body" hidden={!expanded}>
+        {expanded && <>
       {checkingPremium || loading ? <p className="tlg-tep-state">{l.loading}</p>
       : !isPremium ? (
         <div className="tlg-tep-locked">
@@ -234,7 +235,8 @@ export default function PremiumTrainingEffectiveness({ playerId }: { playerId: s
           <p className="tlg-tep-caption">{l.caution}</p>
         </div>
       )}
-      </div>}
+        </>}
+      </div>
     </section>
   )
 }
