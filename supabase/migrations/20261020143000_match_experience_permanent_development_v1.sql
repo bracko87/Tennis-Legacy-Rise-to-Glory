@@ -196,6 +196,10 @@ begin
   if new.status <> 'completed' or new.winner_team_id is null
      or (tg_op = 'UPDATE' and old.status = 'completed') then return new; end if;
   if new.winner_team_id not in (new.team1_id,new.team2_id) then return new; end if;
+  -- Prevent free experience for byes, forfeits or incomplete match records.
+  if coalesce(new.actual_duration_minutes,0) < 20
+     or coalesce(new.sets_played,0) < 2
+     or coalesce(new.games_played,0) < 6 then return new; end if;
   select * into t1 from public.tournament_doubles_teams where id=new.team1_id;
   if not found then return new; end if;
   select * into t2 from public.tournament_doubles_teams where id=new.team2_id;
