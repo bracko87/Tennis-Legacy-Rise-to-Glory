@@ -3960,6 +3960,28 @@ export default {
     showHistory: "Historial del programa",
   },
   statisticsPage: {
+    "premiumInsights": {
+        "kicker": "PREMIUM · ANÁLISIS ESTADÍSTICO",
+        "title": "Inteligencia estadística",
+        "intro": "Compara tus partidos completados con los jugadores de la clasificación ATP/WTA seleccionada. Las estadísticas habituales siguen siendo gratuitas.",
+        "checking": "Comprobando la suscripción…",
+        "active": "Premium activo",
+        "preview": "Vista previa Premium",
+        "lockedTitle": "Comparaciones de rendimiento más detalladas con Premium",
+        "lockedBody": "Compara el porcentaje de victorias, los aces y los golpes ganadores por partido con la muestra de la clasificación. Las clasificaciones y estadísticas básicas siguen siendo gratuitas.",
+        "packages": "Ver Premium",
+        "noSample": "Todavía no hay suficientes partidos completados para comparar.",
+        "noOwnSample": "Tu jugador no figura en esta muestra; solo se muestra la media de los demás. Tus estadísticas de carrera siguen disponibles en Récords de carrera.",
+        "sample": "{{world}} · {{period}} · {{players}} jugadores comparados en {{matches}} partidos completados",
+        "yourPlayer": "Tu jugador",
+        "peerAverage": "Otros jugadores de la muestra",
+        "disclaimer": "Solo utiliza estadísticas publicadas de partidos terminados. No predice victorias ni da ventajas tácticas. La muestra no incluye a toda la población de jugadores.",
+        "metrics": {
+            "winRate": "Porcentaje de victorias",
+            "aces": "Aces por partido",
+            "winners": "Golpes ganadores por partido"
+        }
+    },
     title: "Estadísticas",
     subtitle: "Récords mundiales, líderes de torneos y análisis de carreras",
     loadError: "No se pudieron cargar las estadísticas mundiales.",
