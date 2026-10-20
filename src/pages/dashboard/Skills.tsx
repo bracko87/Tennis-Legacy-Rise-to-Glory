@@ -3,6 +3,7 @@ import { useTranslation, type TFunction } from 'react-i18next'
 
 import { useAuth } from '../../auth/AuthContext'
 import GameLayout from '../../components/layout/GameLayout'
+import PlayerDevelopmentIntelligence from '../../components/premium/PlayerDevelopmentIntelligence'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 import '../../styles/player-skills.css'
@@ -399,6 +400,10 @@ export default function SkillsPage() {
           )}
         </div>
       </section>
+
+      {!loading && skills && (
+        <PlayerDevelopmentIntelligence playerId={player?.id ?? null} localeTag={localeTag} />
+      )}
 
       {!loading && skills && (
         <PerformanceCentre skills={skills} history={history} historyError={historyError} localeTag={localeTag} />
