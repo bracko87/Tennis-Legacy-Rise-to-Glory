@@ -6,6 +6,7 @@ import { Crown, LockKeyhole } from 'lucide-react'
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
 import PremiumCareerIntelligence from '../../components/premium/PremiumCareerIntelligence'
+import { useAuth } from '../../auth/AuthContext'
 import { useCommerce } from '../../hooks/useCommerce'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
@@ -146,6 +147,7 @@ function surfaceLabel(surface: string, t: TFunction) {
 
 export default function StatisticsPage() {
   const { t } = useTranslation()
+  const { player } = useAuth()
   const { formatNumber, formatCurrency } = useLocalization()
   const { isPremium, loading: premiumLoading } = useCommerce()
   const number = (value: number | null | undefined) => formatNumber(Math.round(Number(value) || 0))
@@ -283,7 +285,7 @@ export default function StatisticsPage() {
             {tab === 'career' && <>
               <CareerRecords career={dashboard.career} t={t} number={number} money={money} />
               <PremiumCareerIntelligence
-                playerId={dashboard.career.player?.player_id ?? null}
+                playerId={player?.id ?? null}
                 currentSeason={dashboard.season}
                 currentAbsoluteDay={dashboard.current_absolute_day}
               />
