@@ -176,16 +176,16 @@ export default function SkillsPage() {
 
       if (!active) return
 
-      // 366 in-game days per season; week 0 covers the first six days,
-      // followed by weeks 1–52. Read a fresh backend game-clock anchor
-      // when the Skills page loads, without guessing from recorded_at.
+      // Match absolute_game_day_v1(): 366 days/season, week 0 on
+      // days 0–1, week 1 on days 2–8, and weeks 2–52 thereafter.
+      // Use the backend game clock, never recorded_at wall-clock dates.
       const clockRow = Array.isArray(clockResult.data) ? clockResult.data[0] : clockResult.data
       const seconds = Number((clockRow as { game_total_seconds?: number | string } | null)?.game_total_seconds)
       if (!clockResult.error && clockRow && Number.isFinite(seconds) && seconds >= 0) {
         const day = Math.floor(seconds / 86400)
         setGameWeekNow({
           season: Math.floor(day / 366) + 1,
-          week: Math.floor(((day % 366) + 1) / 7),
+          week: (day % 366) < 2 ? 0 : Math.floor(((day % 366) - 2) / 7) + 1,
         })
       } else {
         setGameWeekNow(null)
