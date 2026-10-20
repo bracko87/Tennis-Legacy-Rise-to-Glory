@@ -587,6 +587,9 @@ function PerformanceCentre({ skills, history, historyError }: { skills: PlayerSk
         ) : (
           <>
             <MultiHistoryChart history={weeklyHistory} />
+            {history.some(row=>row.game_season===null || row.game_week===null) && (
+              <div className="tlg-performance-empty">{t('developmentPremium.undatedHistory')}</div>
+            )}
             {weeklyHistory.length <= 1 && (
               <div className="tlg-performance-empty">
                 {t('skillsPage.baselineRecorded')}
