@@ -3,6 +3,7 @@ import { useTranslation, type TFunction } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 
 import GameLayout from '../../components/layout/GameLayout'
+import PremiumFinancialIntelligence from '../../components/premium/PremiumFinancialIntelligence'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 import '../../styles/finance-v2.css'
@@ -316,6 +317,11 @@ export default function FinancePage() {
                     <CompactTransactions t={t} money={money} signedMoney={signedMoney} transactions={transactions.slice(0, 6)} />
                   </section>
                 </div>
+                <PremiumFinancialIntelligence
+                  playerId={dashboard.player_id}
+                  asOfDay={dashboard.current_absolute_day}
+                  balance={dashboard.balance}
+                />
               </div>
             )}
 
