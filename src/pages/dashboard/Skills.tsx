@@ -4,7 +4,6 @@ import { useTranslation, type TFunction } from 'react-i18next'
 import { useAuth } from '../../auth/AuthContext'
 import GameLayout from '../../components/layout/GameLayout'
 import PlayerDevelopmentIntelligence from '../../components/premium/PlayerDevelopmentIntelligence'
-import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 import { weeklySkillSnapshots, gameWeekText } from '../../lib/skillGameWeeks'
 import '../../styles/player-skills.css'
@@ -133,7 +132,6 @@ function developmentDirection(history: SkillHistoryRow[], t: TFunction) {
 
 export default function SkillsPage() {
   const { t } = useTranslation()
-  const { localeTag } = useLocalization()
   const { player } = useAuth()
   const [tab, setTab] = useState<SkillsTab>('tennis')
   const [skills, setSkills] = useState<PlayerSkillsRow | null>(null)
@@ -410,11 +408,11 @@ export default function SkillsPage() {
       </section>
 
       {!loading && skills && (
-        <PlayerDevelopmentIntelligence playerId={player?.id ?? null} localeTag={localeTag} />
+        <PlayerDevelopmentIntelligence playerId={player?.id ?? null} />
       )}
 
       {!loading && skills && (
-        <PerformanceCentre skills={skills} history={history} historyError={historyError} localeTag={localeTag} />
+        <PerformanceCentre skills={skills} history={history} historyError={historyError} />
       )}
     </GameLayout>
   )
@@ -483,7 +481,7 @@ function BuildCard({ label, value, description }: { label: string; value: string
   )
 }
 
-function PerformanceCentre({ skills, history, historyError, localeTag }: { skills: PlayerSkillsRow; history: SkillHistoryRow[]; historyError: string | null; localeTag: string }) {
+function PerformanceCentre({ skills, history, historyError }: { skills: PlayerSkillsRow; history: SkillHistoryRow[]; historyError: string | null }) {
   const { t } = useTranslation()
   const technical = scoreCategory(skills, 'tennis')
   const physical = scoreCategory(skills, 'physical')
@@ -493,6 +491,7 @@ function PerformanceCentre({ skills, history, historyError, localeTag }: { skill
   const technicalChange = baseline ? technical - scoreCategory(baseline, 'tennis') : 0
   const physicalChange = baseline ? physical - scoreCategory(baseline, 'physical') : 0
   const readinessChange = baseline ? readiness - scoreCategory(baseline, 'condition') : 0
+  const updates = Math.max(0,history.length-1)
   const direction = developmentDirection(history, t)
   const weeklyHistory = weeklySkillSnapshots(history)
 
