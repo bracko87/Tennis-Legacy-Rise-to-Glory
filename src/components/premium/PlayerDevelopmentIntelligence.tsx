@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useCommerce } from '../../hooks/useCommerce'
 import { supabase } from '../../lib/supabase'
+import { weeklySkillSnapshots, gameWeekText } from '../../lib/skillGameWeeks'
 import '../../styles/player-development-intelligence.css'
 
 type Group = 'technical' | 'physical' | 'condition'
@@ -14,6 +15,8 @@ type SkillKey =
   | 'fatigue' | 'sharpness' | 'morale' | 'confidence' | 'focus'
 type HistoryRow = {
   recorded_at: string
+  game_season: number | null
+  game_week: number | null
   source: string
 } & Record<SkillKey, number>
 
@@ -21,6 +24,7 @@ type DevelopmentReport = {
   player_id: string
   total_snapshots: number
   window_limited: boolean
+  game_dated_snapshots: number
   history: HistoryRow[]
 }
 
@@ -34,19 +38,19 @@ const safeValue = (row: HistoryRow, key: SkillKey) => {
   return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
 
-function Timeline({ rows, skill, label, locale }: { rows: HistoryRow[]; skill: SkillKey; label: string; locale: string }) {
-  const values = rows.map(row => ({ value: safeValue(row,skill), time: Date.parse(row.recorded_at) }))
-    .filter((x): x is { value: number; time: number } => x.value !== null && Number.isFinite(x.time))
-  if (values.length < 2) return null
-  const width=940, height=260, left=40, right=22, top=18, bottom=38
-  const min=Math.min(...values.map(v=>v.time)), max=Math.max(...values.map(v=>v.time))
-  const x=(time: number, index: number) => left+(max===min ? index/(values.length-1) : (time-min)/(max-min))*(width-left-right)
-  const y=(value: number) => top+(100-Math.max(0,Math.min(100,value)))/100*(height-top-bottom)
-  const points=values.map((v,i)=>`${x(v.time,i).toFixed(1)},${y(v.value).toFixed(1)}`).join(' ')
-  const stamp=(time:number)=>{
-    try { return new Intl.DateTimeFormat(locale,{month:'short',day:'numeric',year:'numeric'}).format(new Date(time)) }
-    catch { return new Date(time).toISOString().slice(0,10) }
-  }
+function Timeline({ rows, skill, label }: { rows: HistoryRow[]; skill: SkillKey; label: string }) {
+  const { t } = useTranslation()
+  const values = rows.map(row=>({
+    value:safeValue(row,skill),
+    week:(row.game_season ?? 1)*53+(row.game_week ?? 0),
+    label:gameWeekText(row,t)
+  })).filter((x): x is {value:number;week:number;label:string}=>x.value!==null)
+  if (values.length<2) return null
+  const width=940,height=260,left=70,right=70,top=18,bottom=38
+  const min=values[0].week,max=values[values.length-1].week
+  const x=(week:number,index:number)=>left+(max===min?index/(values.length-1):(week-min)/(max-min))*(width-left-right)
+  const y=(value:number)=>top+(100-Math.max(0,Math.min(100,value)))/100*(height-top-bottom)
+  const points=values.map((v,i)=>`${x(v.week,i).toFixed(1)},${y(v.value).toFixed(1)}`).join(' ')
   return (
     <div className="tlg-pdi-chart">
       <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={label}>
@@ -55,15 +59,15 @@ function Timeline({ rows, skill, label, locale }: { rows: HistoryRow[]; skill: S
           <text x={left-9} y={y(n)+4} textAnchor="end">{n}</text>
         </g>)}
         <polyline className="tlg-pdi-line" points={points} />
-        {values.length <= 100 && values.map((v,i)=><circle key={i} cx={x(v.time,i)} cy={y(v.value)} r="2.6" className="tlg-pdi-point" />)}
-        <text x={left} y={height-11} textAnchor="start">{stamp(min)}</text>
-        <text x={width-right} y={height-11} textAnchor="end">{stamp(max)}</text>
+        {values.map((v,i)=><circle key={i} cx={x(v.week,i)} cy={y(v.value)} r="3" className="tlg-pdi-point" />)}
+        <text x={left} y={height-11} textAnchor="start">{values[0].label}</text>
+        <text x={width-right} y={height-11} textAnchor="end">{values[values.length-1].label}</text>
       </svg>
     </div>
   )
 }
 
-export default function PlayerDevelopmentIntelligence({ playerId, localeTag }: { playerId: string | null; localeTag: string }) {
+export default function PlayerDevelopmentIntelligence({ playerId }: { playerId: string | null }) {
   const { t } = useTranslation()
   const { isPremium, loading: checkingPremium } = useCommerce()
   const [report,setReport] = useState<DevelopmentReport|null>(null)
@@ -95,7 +99,8 @@ export default function PlayerDevelopmentIntelligence({ playerId, localeTag }: {
   },[isPremium,checkingPremium,playerId])
 
   const history=report?.history ?? []
-  const earliest=history[0],latest=history[history.length-1]
+  const weeklyHistory=useMemo(()=>weeklySkillSnapshots(history),[report])
+  const earliest=weeklyHistory[0],latest=weeklyHistory[weeklyHistory.length-1]
   const progression=useMemo(()=>{
     if(!earliest || !latest)return []
     return groups[group].map(key=>{
@@ -136,10 +141,11 @@ export default function PlayerDevelopmentIntelligence({ playerId, localeTag }: {
         <div className="tlg-pdi-body">
           <div className="tlg-pdi-overview">
             <div><span>{t('developmentPremium.snapshots')}</span><strong>{report?.total_snapshots ?? history.length}</strong></div>
-            <div><span>{t('developmentPremium.window')}</span><strong>{history.length}</strong></div>
-            <div><span>{t('developmentPremium.period')}</span><strong>{new Intl.DateTimeFormat(localeTag,{month:'short',day:'numeric',year:'numeric'}).format(new Date(earliest.recorded_at))}</strong></div>
+            <div><span>{t('developmentPremium.weeksShown')}</span><strong>{weeklyHistory.length}</strong></div>
+            <div><span>{t('developmentPremium.period')}</span><strong>{earliest ? gameWeekText(earliest,t) : '—'}</strong></div>
           </div>
           {report?.window_limited && <p className="tlg-pdi-notice">{t('developmentPremium.limited')}</p>}
+          {(report?.game_dated_snapshots ?? 0) < history.length && <p className="tlg-pdi-notice">{t('developmentPremium.undatedHistory')}</p>}
           <div className="tlg-pdi-controls">
             <div className="tlg-pdi-tabs" role="group" aria-label={t('developmentPremium.chooseGroup')}>
               {(['technical','physical','condition'] as const).map(value=>(
@@ -153,14 +159,14 @@ export default function PlayerDevelopmentIntelligence({ playerId, localeTag }: {
               </select>
             </label>
           </div>
-          {earliest && latest && history.length>1 ? (
+          {earliest && latest && weeklyHistory.length>1 ? (
             <>
               <div className="tlg-pdi-selected">
                 <span>{skillLabel(skill)}</span>
                 <strong>{selected?.end?.toFixed(1) ?? '—'} <small>/ 100</small></strong>
                 <em className={(selected?.delta ?? 0)>=0?'positive':'negative'}>{signed(selected?.delta??null)}</em>
               </div>
-              <Timeline rows={history} skill={skill} label={t('developmentPremium.chartAria',{skill:skillLabel(skill)})} locale={localeTag} />
+              <Timeline rows={weeklyHistory} skill={skill} label={t('developmentPremium.chartAria',{skill:skillLabel(skill)})} />
               <div className="tlg-pdi-highlights">
                 <div><TrendingUp size={16} aria-hidden="true"/><span>{t('developmentPremium.biggestGain')}</span><strong>{biggest ? `${skillLabel(biggest.key)} · ${signed(biggest.delta)}` : '—'}</strong></div>
                 <div><span>{t('developmentPremium.slowest')}</span><strong>{smallest ? `${skillLabel(smallest.key)} · ${signed(smallest.delta)}` : '—'}</strong></div>
@@ -173,6 +179,7 @@ export default function PlayerDevelopmentIntelligence({ playerId, localeTag }: {
                   ))}</tbody>
                 </table>
               </div>
+              {group!=='condition' && progression.every(item=>item.delta===0) && <p className="tlg-pdi-notice">{t('developmentPremium.noLevels')}</p>}
               <p className="tlg-pdi-note">{t('developmentPremium.disclaimer')}</p>
             </>
           ) : <p className="tlg-pdi-state">{t('developmentPremium.oneSnapshot')}</p>}
