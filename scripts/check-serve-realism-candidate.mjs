@@ -149,6 +149,20 @@ function mean(world,version,metric){
   return cases.filter(c=>c.world===world).reduce((s,c)=>s+c[version][metric],0)/6
 }
 assert(mean('ATP','candidate','aces')>mean('WTA','candidate','aces'))
+const winnerChanges=Object.fromEntries(
+  ['ATP','WTA'].map(world=>{
+    const group=cases.filter(c=>c.world===world)
+    const changed=group.reduce((sum,c)=>sum+c.winnerFlips,0)
+    const sample=group.reduce((sum,c)=>sum+c.count,0)
+    return [world,{changed,sample,ratePct:Number((100*changed/sample).toFixed(2))}]
+  })
+)
+const overallWinnerChanges={
+  changed:Object.values(winnerChanges).reduce((sum,x)=>sum+x.changed,0),
+  sample:cases.length*N,
+}
+overallWinnerChanges.ratePct=Number((100*overallWinnerChanges.changed/overallWinnerChanges.sample).toFixed(2))
+assert.equal(overallWinnerChanges.sample,5040)
 const summary=['ATP','WTA'].map(world=>({world,...Object.fromEntries(
   ['aces','df','games','breakWon','firstInPct','zeroAcePct']
     .map(metric=>[metric,{
@@ -156,4 +170,4 @@ const summary=['ATP','WTA'].map(world=>({world,...Object.fromEntries(
       candidate:Number(mean(world,'candidate',metric).toFixed(2))
     }]))}))
 console.log(JSON.stringify({simulation:'independent fixed-seed point-scoring proxy, NOT official database engine',
-  seed:'tennis-serve-v3',cases:cases.length,perCase:N,totalMatches:cases.length*N,summary,casesBySurface:cases},null,2))
+  seed:'tennis-serve-v3',cases:cases.length,perCase:N,totalMatches:cases.length*N,summary,winnerChanges,overallWinnerChanges,casesBySurface:cases},null,2))
