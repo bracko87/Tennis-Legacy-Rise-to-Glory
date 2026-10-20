@@ -788,14 +788,8 @@ function MultiHistoryChart({ history, gameWeekNow }: {
     x:slotX(row.ordinal-windowFirst),y:y(row[key]),
   })
 
-  // No implied readings in missing weeks. Only connect directly adjacent
-  // measured weeks; isolated measurements are still visible as points.
-  const runs: (typeof rows)[] = []
-  for(const row of rows){
-    const previous=runs[runs.length-1]
-    if(previous && previous[previous.length-1].ordinal===row.ordinal-1) previous.push(row)
-    else runs.push([row])
-  }
+  // Lines connect the recorded observation points without inserting any
+  // fabricated values at the empty weekly gridlines.
 
   return (
     <div className="tlg-multi-history-wrap">
@@ -829,11 +823,9 @@ function MultiHistoryChart({ history, gameWeekNow }: {
         ))}
         {(['technical','physical','readiness'] as const).map(key=>(
           <g key={key}>
-            {runs.filter(run=>run.length>1).map(run=>(
-              <polyline key={`${key}-${run[0].ordinal}`}
-                points={run.map(row=>{const p=point(row,key);return `${p.x},${p.y}`}).join(' ')}
-                className={`trend ${key}`} />
-            ))}
+            {rows.length>1 && <polyline
+              points={rows.map(row=>{const p=point(row,key);return `${p.x},${p.y}`}).join(' ')}
+              className={`trend ${key}`} />}
             {rows.map(row=>{
               const p=point(row,key)
               return <circle key={`${key}-${row.ordinal}`} cx={p.x} cy={p.y} r="4"
