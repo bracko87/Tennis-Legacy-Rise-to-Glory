@@ -1,0 +1,37 @@
+/* Premium training effectiveness. All selectors scoped to this report. */
+.tlg-tep{margin:17px 0;border:1px solid #d8e4ef;border-radius:15px;overflow:hidden;background:#fff;color:#17394f}
+.tlg-tep-header{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:19px 22px;background:linear-gradient(110deg,#f4f9ff,#fff);border-bottom:1px solid #dce8f1}
+.tlg-tep-header h2{margin:7px 0 6px;font-size:1.14rem}
+.tlg-tep-header p{margin:0;font-size:.77rem;color:#667b8a}
+.tlg-tep-kicker{display:flex;align-items:center;gap:8px;font-size:.66rem;color:#276caa;font-weight:800;letter-spacing:.04em}
+.tlg-tep-state{padding:23px;color:#657f91;font-size:.8rem}
+.tlg-tep-locked{padding:22px;display:flex;align-items:center;gap:14px;color:#547189;font-size:.8rem}
+.tlg-tep-locked p{flex:1;margin:0}
+.tlg-tep-locked a{white-space:nowrap;padding:10px 14px;background:#153d66;color:#fff;text-decoration:none;border-radius:9px;font-size:.75rem;font-weight:750}
+.tlg-tep-body{padding:18px 22px}
+.tlg-tep-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tlg-tep-metrics>div{padding:12px 15px;border:1px solid #e0eaf2;background:#f9fcff;border-radius:10px;min-width:0}
+.tlg-tep-metrics span{display:block;font-size:.7rem;color:#647d91}
+.tlg-tep-metrics strong{display:block;font-size:1.14rem;font-variant-numeric:tabular-nums;margin-top:5px;overflow-wrap:anywhere}
+.tlg-tep-caption{font-size:.72rem;line-height:1.5;color:#748a99;margin:12px 0 0}
+.tlg-tep-warning{margin:12px 0 0;background:#fff8e8;color:#86631e;border-radius:9px;border:1px solid #f0ddb2;padding:10px 12px;font-size:.74rem}
+.tlg-tep-columns{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:17px}
+.tlg-tep-panel{border:1px solid #dfebf2;border-radius:11px;padding:14px;min-width:0}
+.tlg-tep-panel h3{display:flex;align-items:center;gap:8px;font-size:.83rem;color:#234d6c;margin:0 0 15px}
+.tlg-tep-week-list{display:grid;gap:12px}
+.tlg-tep-week{display:grid;grid-template-columns:minmax(90px,1.3fr) minmax(56px,2fr) 74px;gap:10px;align-items:center;font-size:.7rem}
+.tlg-tep-week>span{color:#55758a}
+.tlg-tep-week>strong{text-align:right;font-variant-numeric:tabular-nums;color:#245c80}
+.tlg-tep-bar{height:8px;border-radius:10px;background:#e7eef4;overflow:hidden}
+.tlg-tep-bar>span{display:block;height:100%;border-radius:10px;background:#2584bc}
+.tlg-tep-table-wrap{overflow-x:auto}
+.tlg-tep table{width:100%;border-collapse:collapse;font-size:.73rem}
+.tlg-tep th,.tlg-tep td{padding:10px 8px;border-bottom:1px solid #e8eef3;text-align:left;white-space:nowrap}
+.tlg-tep th{font-weight:730}
+.tlg-tep thead th{background:#f7fafc;color:#5e7788;font-size:.67rem}
+.tlg-tep td:not(:first-child){font-variant-numeric:tabular-nums}
+.tlg-tep th:not(:first-child):last-child,.tlg-tep td:last-child{text-align:right}
+.tlg-tep-recent{margin-top:13px}
+@media(max-width:950px){.tlg-tep-columns{grid-template-columns:1fr}}
+@media(max-width:600px){.tlg-tep-header,.tlg-tep-body{padding:15px}.tlg-tep-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.tlg-tep-locked{flex-wrap:wrap}.tlg-tep-week{grid-template-columns:94px 1fr 70px;gap:7px}}
+@media(max-width:360px){.tlg-tep-metrics{grid-template-columns:1fr}.tlg-tep-week{grid-template-columns:85px 1fr 64px}}
