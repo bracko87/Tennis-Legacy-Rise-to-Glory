@@ -529,10 +529,7 @@ function NextTournamentCard({ tournament, match }: { tournament: NextTournament;
           <span>{upcomingLabel}</span>
           <div className="tlg-overview-next-heading">
             <h3>{tournament?.tournament_name ?? match?.tournament_name ?? t('overviewPage.noTournament')}</h3>
-            {tournament && <div className="tlg-overview-event-meta">
-              <CountryFlag countryCode={tournament.country_code} width={24} height={16} />
-              <span>{tournament.city}</span><b>{categoryLabel(tournament.category_code)}</b><b>{surfaceLabel}</b><b>{t('overviewPage.week', { week: tournament.season_week })}</b>
-            </div>}
+
           </div>
         </div>
       </div>
@@ -541,7 +538,13 @@ function NextTournamentCard({ tournament, match }: { tournament: NextTournament;
           <div className={`tlg-overview-next-dashboard tlg-overview-next-dashboard-text-only${!tournament || !hasNextMatch ? ' is-single' : ''}`}>
             {tournament && (
               <section className="tlg-overview-next-tournament-summary" aria-label={t('overviewPage.nextTournament')}>
-                <strong className="tlg-overview-upcoming-section-label">{t('overviewPage.nextTournament')}</strong>
+                <div className="tlg-overview-tournament-section-heading">
+                  <strong className="tlg-overview-upcoming-section-label">{t('overviewPage.nextTournament')}</strong>
+                  <div className="tlg-overview-event-meta">
+                    <CountryFlag countryCode={tournament.country_code} width={24} height={16} />
+                    <span>{tournament.city}</span><b>{categoryLabel(tournament.category_code)}</b><b>{surfaceLabel}</b><b>{t('overviewPage.week', { week: tournament.season_week })}</b>
+                  </div>
+                </div>
                 <NextTournamentExtras tournament={tournament} hideArtwork />
               </section>
             )}
@@ -582,12 +585,12 @@ function LatestResultCard({ result }: { result: LatestResult }) {
 
   return (
     <article className="tlg-overview-panel tlg-overview-result-card tlg-overview-result-card-refined">
-      <div className="tlg-overview-panel-head"><div><span>{t('overviewPage.previousResult')}</span><h3>{t('overviewPage.latestMatch')}</h3></div>{result && <span className={`tlg-overview-result-badge ${result.won ? 'win' : 'loss'}`}>{result.won ? t('overviewPage.win') : t('overviewPage.loss')}</span>}</div>
+      <div className="tlg-overview-panel-head"><div><span>{t('overviewPage.previousResult')}</span><h3>{t('overviewPage.latestMatch')}</h3></div></div>
       {result ? (
         <div className="tlg-overview-result-body tlg-overview-result-body-refined">
           <div className="tlg-overview-result-layout tlg-overview-result-layout-text-only">
             <div className="tlg-overview-result-main">
-              <div className="tournament"><CountryFlag countryCode={result.country_code} width={24} height={16} /><div><strong>{result.tournament_name}</strong><span>{result.round_label} · {result.city}</span></div></div>
+              <div className="tournament tlg-overview-previous-tournament-row"><CountryFlag countryCode={result.country_code} width={24} height={16} /><div><strong>{result.tournament_name}</strong><span>{result.round_label} · {result.city}</span></div><span className={`tlg-overview-result-badge ${result.won ? 'win' : 'loss'}`}>{result.won ? t('overviewPage.win') : t('overviewPage.loss')}</span></div>
               <div className="tlg-overview-match-box">
                 <div className="score">{resultScore(result, t('overviewPage.resultRecorded'))}</div>
                 <div className="opponent"><span>{t('overviewPage.versus')}</span><CountryFlag countryCode={result.opponent_country_code} width={22} height={15} /><Link to={`/game/players/${result.opponent_id}`}>{result.opponent_first_name} {result.opponent_last_name}</Link></div>
