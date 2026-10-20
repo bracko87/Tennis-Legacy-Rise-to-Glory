@@ -6,15 +6,16 @@ import { useTranslation } from 'react-i18next'
 import { useCommerce } from '../../hooks/useCommerce'
 import { supabase } from '../../lib/supabase'
 import { staffRoleLabel, staffQualityLabel } from '../../i18n/staffLocalization'
+import type { StaffRole, StaffQuality } from '../../hooks/useStaff'
 import { staffAdvisoryLabels } from '../../lib/staffAdvisoryI18n'
 import '../../styles/staff-advisory-premium.css'
 
 type StaffReportRow = {
   contract_id:string
-  role:string
+  role:StaffRole
   name:string
   rating:number
-  quality_tier:string
+  quality_tier:StaffQuality
   days_remaining:number
   weeks_remaining:number
   duration_weeks:number
