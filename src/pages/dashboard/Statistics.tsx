@@ -5,6 +5,7 @@ import { Crown, LockKeyhole } from 'lucide-react'
 
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
+import PremiumCareerIntelligence from '../../components/premium/PremiumCareerIntelligence'
 import { useCommerce } from '../../hooks/useCommerce'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
@@ -279,7 +280,14 @@ export default function StatisticsPage() {
               </div>
             )}
 
-            {tab === 'career' && <CareerRecords career={dashboard.career} t={t} number={number} money={money} />}
+            {tab === 'career' && <>
+              <CareerRecords career={dashboard.career} t={t} number={number} money={money} />
+              <PremiumCareerIntelligence
+                playerId={dashboard.career.player?.player_id ?? null}
+                currentSeason={dashboard.season}
+                currentAbsoluteDay={dashboard.current_absolute_day}
+              />
+            </>}
           </>
         ) : null}
       </div>
