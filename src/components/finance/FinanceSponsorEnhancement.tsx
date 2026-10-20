@@ -3,6 +3,7 @@ import { useTranslation, type TFunction } from 'react-i18next'
 import { createPortal } from 'react-dom'
 
 import { useLocalization } from '../../i18n/LocalizationProvider'
+import PremiumSponsorIntelligence from '../premium/PremiumSponsorIntelligence'
 import { supabase } from '../../lib/supabase'
 import '../../styles/finance-sponsors.css'
 import '../../styles/finance-sponsor-objectives.css'
@@ -608,6 +609,19 @@ function SponsorContent({
           <p className="tlg-finance-sponsor-note standalone">{t('financeSponsorPage.market.signingNote')}</p>
         </>
       )}
+
+      <PremiumSponsorIntelligence
+        playerId={dashboard.player_id}
+        season={dashboard.season}
+        refreshKey={JSON.stringify({
+          contract: dashboard.active_contract?.id ?? null,
+          guaranteedReceived: dashboard.active_contract?.income_received ?? null,
+          earned: dashboard.active_contract?.bonus_earned ?? null,
+          objectives: dashboard.active_contract?.objectives?.map(o=>[o.id,o.status,o.current_value]) ?? [],
+          offerIds: offers.map(o=>o.id),
+          gameDay: dashboard.current_absolute_day,
+        })}
+      />
     </div>
   )
 }
