@@ -722,8 +722,13 @@ function MultiHistoryChart({ history }: { history: SkillHistoryRow[] }) {
     readiness: scoreCategory(row, 'condition'),
   }))
 
+  const gameWeekOrdinals = history.map(row => (row.game_season ?? 1) * 53 + (row.game_week ?? 0))
+  const firstGameWeek = gameWeekOrdinals[0] ?? 0
+  const lastGameWeek = gameWeekOrdinals[gameWeekOrdinals.length - 1] ?? firstGameWeek
   const coordinate = (value: number, index: number) => ({
-    x: rows.length <= 1 ? left + plotWidth / 2 : left + (index / (rows.length - 1)) * plotWidth,
+    x: lastGameWeek === firstGameWeek
+      ? left + plotWidth / 2
+      : left + ((gameWeekOrdinals[index] - firstGameWeek) / (lastGameWeek - firstGameWeek)) * plotWidth,
     y: top + ((100 - Math.max(0, Math.min(100, value))) / 100) * plotHeight,
   })
 
