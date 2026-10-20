@@ -23,6 +23,9 @@ import { sponsorIntelligenceLabels } from '../../lib/sponsorIntelligenceI18n'
 import { financialIntelligenceLabels } from '../../lib/financialIntelligenceI18n'
 import { equipmentIntelligenceLabels } from '../../lib/equipmentIntelligenceI18n'
 import { careerIntelligenceLabels } from '../../lib/careerIntelligenceI18n'
+import { developmentOutlookLabels } from '../../lib/developmentOutlookI18n'
+import { trainingOptimizationLabels } from '../../lib/trainingOptimizationI18n'
+import PremiumBenefitsGuide from '../../components/marketing/PremiumBenefitsGuide'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 
@@ -97,6 +100,8 @@ const premiumOffers: readonly PremiumOffer[] = [
 export default function ProPackagesPage() {
   const { t, i18n } = useTranslation()
   const trainingLabels = trainingEffectivenessLabels(i18n.resolvedLanguage ?? i18n.language)
+  const trainingOptimization = trainingOptimizationLabels(i18n.resolvedLanguage ?? i18n.language)
+  const developmentOutlook = developmentOutlookLabels(i18n.resolvedLanguage ?? i18n.language)
   const plannerLabels = tournamentPlanningLabels(i18n.resolvedLanguage ?? i18n.language)
   const seasonLabels = seasonPlanningLabels(i18n.resolvedLanguage ?? i18n.language)
   const staffLabels = staffAdvisoryLabels(i18n.resolvedLanguage ?? i18n.language)
@@ -238,7 +243,9 @@ export default function ProPackagesPage() {
     [t('statisticsPage.premiumInsights.title'), false, true],
     [t('deepMatchAnalysis.title'), false, true],
     [t('developmentPremium.title'), false, true],
+    [developmentOutlook.title, false, true],
     [trainingLabels.title, false, true],
+    [trainingOptimization.title, false, true],
     [plannerLabels.title, false, true],
     [seasonLabels.title, false, true],
     [staffLabels.title, false, true],
@@ -246,6 +253,8 @@ export default function ProPackagesPage() {
     [financialLabels.title, false, true],
     [equipmentLabels.title, false, true],
     [careerLabels.title, false, true],
+    [t('premiumTrial.rankingProtection'), false, true],
+    [t('premiumTrial.privateLife'), false, true],
     [t('commercePage.compareReward'), '—', t('commercePage.compareRewardValue')],
     [t('commercePage.compareBuyCoins'), true, true],
     [t('commercePage.compareCoinFeatures'), true, true],
@@ -296,21 +305,13 @@ export default function ProPackagesPage() {
             <h2>{t('commercePage.premiumName')}</h2>
             <div className="tlg-commerce-price"><strong>{money(mainPremiumOffer.priceCents)}</strong><span>{t('commercePage.everyThreeMonths', { monthly: money(mainPremiumOffer.monthlyEquivalentCents) })}</span></div>
             <ul className="tlg-commerce-benefits">
-              <li><Check size={15} /> {t('statisticsPage.premiumInsights.title')}</li>
-              <li><Check size={15} /> {t('deepMatchAnalysis.title')}</li>
-              <li><Check size={15} /> {t('developmentPremium.title')}</li>
-              <li><Check size={15} /> {trainingLabels.title}</li>
-              <li><Check size={15} /> {plannerLabels.title}</li>
-              <li><Check size={15} /> {seasonLabels.title}</li>
-              <li><Check size={15} /> {staffLabels.title}</li>
-              <li><Check size={15} /> {sponsorLabels.title}</li>
-              <li><Check size={15} /> {financialLabels.title}</li>
-              <li><Check size={15} /> {equipmentLabels.title}</li>
-              <li><Check size={15} /> {careerLabels.title}</li>
+              <li><Check size={15} /> {t('commercePage.compareAnalysis')}</li>
+              <li><Check size={15} /> {t('developmentPremium.title')} · {developmentOutlook.title}</li>
+              <li><Check size={15} /> {trainingLabels.title} · {trainingOptimization.title}</li>
+              <li><Check size={15} /> {seasonLabels.title} · {plannerLabels.title}</li>
               <li><Check size={15} /> {t('premiumTrial.rankingProtection')}</li>
               <li><Check size={15} /> {t('premiumTrial.privateLife')}</li>
               <li><Check size={15} /> {t('commercePage.benefit4')}</li>
-              <li><Check size={15} /> {t('commercePage.benefit5')}</li>
             </ul>
             <div className="tlg-commerce-free-rule">
               <strong>{commerce.isTrial ? t('premiumTrial.activeLabel') : commerce.isPaidPremium ? t('commercePage.premiumActive') : t('commercePage.freeAvailable')}</strong>
@@ -370,6 +371,8 @@ export default function ProPackagesPage() {
             <p>{t('commercePage.stripeNote')}</p>
           </aside>
         </section>
+
+        <PremiumBenefitsGuide placement="packages" />
 
         <section className="tlg-commerce-section">
           <div className="tlg-commerce-section-title">
