@@ -140,6 +140,8 @@ export default function SkillsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [historyError, setHistoryError] = useState<string | null>(null)
+  // Derived from the server's in-game clock, never the wall clock.
+  const [gameWeekNow, setGameWeekNow] = useState<{ season: number; week: number } | null>(null)
 
   useEffect(() => {
     let active = true
@@ -156,7 +158,7 @@ export default function SkillsPage() {
       setError(null)
       setHistoryError(null)
 
-      const [skillsResult, historyResult] = await Promise.all([
+      const [skillsResult, historyResult, clockResult] = await Promise.all([
         supabase
           .from('player_skills')
           .select('player_id, preferred_surface, playing_style, serve, forehand, backhand, return_skill, volley, slice, drop_shot, lob, smash, fitness, stamina, recovery, movement, fatigue, sharpness, morale, confidence, focus')
@@ -168,9 +170,25 @@ export default function SkillsPage() {
           .eq('player_id', player.id)
           .order('recorded_at', { ascending: false })
           .limit(240),
+        supabase.rpc('get_game_clock_v1'),
       ])
 
       if (!active) return
+
+      // 366 in-game days per season; week 0 covers the first six days,
+      // followed by weeks 1–52. Read a fresh backend game-clock anchor
+      // when the Skills page loads, without guessing from recorded_at.
+      const clockRow = Array.isArray(clockResult.data) ? clockResult.data[0] : clockResult.data
+      const seconds = Number((clockRow as { game_total_seconds?: number | string } | null)?.game_total_seconds)
+      if (!clockResult.error && clockRow && Number.isFinite(seconds) && seconds >= 0) {
+        const day = Math.floor(seconds / 86400)
+        setGameWeekNow({
+          season: Math.floor(day / 366) + 1,
+          week: Math.floor(((day % 366) + 1) / 7),
+        })
+      } else {
+        setGameWeekNow(null)
+      }
 
       if (skillsResult.error) {
         setError(skillsResult.error.message)
@@ -417,7 +435,7 @@ export default function SkillsPage() {
       )}
 
       {!loading && skills && (
-        <PerformanceCentre skills={skills} history={history} historyError={historyError} />
+        <PerformanceCentre skills={skills} history={history} historyError={historyError} gameWeekNow={gameWeekNow} />
       )}
     </GameLayout>
   )
@@ -486,7 +504,12 @@ function BuildCard({ label, value, description }: { label: string; value: string
   )
 }
 
-function PerformanceCentre({ skills, history, historyError }: { skills: PlayerSkillsRow; history: SkillHistoryRow[]; historyError: string | null }) {
+function PerformanceCentre({ skills, history, historyError, gameWeekNow }: {
+  skills: PlayerSkillsRow
+  history: SkillHistoryRow[]
+  historyError: string | null
+  gameWeekNow: { season: number; week: number } | null
+}) {
   const { t } = useTranslation()
   const technical = scoreCategory(skills, 'tennis')
   const physical = scoreCategory(skills, 'physical')
@@ -591,7 +614,7 @@ function PerformanceCentre({ skills, history, historyError }: { skills: PlayerSk
           <div className="tlg-performance-empty">{t('skillsPage.historyError', { error: historyError })}</div>
         ) : (
           <>
-            <MultiHistoryChart history={weeklyHistory} />
+            <MultiHistoryChart history={weeklyHistory} gameWeekNow={gameWeekNow} />
             {history.some(row=>row.game_season===null || row.game_week===null) && (
               <div className="tlg-performance-empty">{t('developmentPremium.undatedHistory')}</div>
             )}
@@ -710,41 +733,64 @@ function MatrixRow({ label, value, change }: { label: string; value: number; cha
   )
 }
 
-function MultiHistoryChart({ history }: { history: SkillHistoryRow[] }) {
+function MultiHistoryChart({ history, gameWeekNow }: {
+  history: SkillHistoryRow[]
+  gameWeekNow: { season: number; week: number } | null
+}) {
   const { t } = useTranslation()
-  const width = 1040
-  const height = 300
-  const left = 48
-  const right = 24
-  const top = 26
-  const bottom = 42
+  const width = 1100
+  const height = 330
+  const left = 52
+  const right = 30
+  const top = 24
+  const bottom = 72
   const plotWidth = width - left - right
   const plotHeight = height - top - bottom
-  const rows = history.map((row) => ({
-    date: gameWeekText(row,t),
-    technical: scoreCategory(row, 'tennis'),
-    physical: scoreCategory(row, 'physical'),
-    readiness: scoreCategory(row, 'condition'),
-  }))
+  const windowSize = 24
 
-  const gameWeekOrdinals = history.map(row => (row.game_season ?? 1) * 53 + (row.game_week ?? 0))
-  const firstGameWeek = gameWeekOrdinals[0] ?? 0
-  const lastGameWeek = gameWeekOrdinals[gameWeekOrdinals.length - 1] ?? firstGameWeek
-  const coordinate = (value: number, index: number) => ({
-    x: lastGameWeek === firstGameWeek
-      ? left + plotWidth / 2
-      : left + ((gameWeekOrdinals[index] - firstGameWeek) / (lastGameWeek - firstGameWeek)) * plotWidth,
-    y: top + ((100 - Math.max(0, Math.min(100, value))) / 100) * plotHeight,
+  // 53 numbered weeks per season (week 0 through week 52).
+  // If the game has existed for fewer than 24 weeks, the older slots stay
+  // empty: do not invent pre-season weeks or forward-fill unknown snapshots.
+  const ordinal = (season: number, week: number) => (season - 1) * 53 + week
+  const toWeek = (index: number) => ({
+    season: Math.floor(index / 53) + 1,
+    week: index % 53,
+  })
+  const latestSnapshot = history[history.length - 1]
+  const clockOrdinal = gameWeekNow ? ordinal(gameWeekNow.season,gameWeekNow.week) : -1
+  const newestDataOrdinal = latestSnapshot ? ordinal(latestSnapshot.game_season ?? 1,latestSnapshot.game_week ?? 0) : 0
+  const lastOrdinal = Math.max(0,clockOrdinal,newestDataOrdinal)
+  const windowFirst = lastOrdinal - windowSize + 1
+  const slotX = (slot: number) => left + (slot + 0.5) * plotWidth / windowSize
+  const y = (value: number) => top + (100 - Math.max(0,Math.min(100,value))) / 100 * plotHeight
+  const weeks = Array.from({length:windowSize},(_,slot)=>{
+    const index = windowFirst+slot
+    return {slot,index,valid:index>=0,week:toWeek(Math.max(0,index))}
   })
 
-  const linePoints = (key: 'technical' | 'physical' | 'readiness') => rows.map((row, index) => {
-    const point = coordinate(row[key], index)
-    return `${point.x},${point.y}`
-  }).join(' ')
+  const rows = history
+    .filter(row => row.game_season !== null && row.game_week !== null)
+    .map(row=>({
+      ordinal:ordinal(row.game_season as number,row.game_week as number),
+      date:gameWeekText(row,t),
+      technical:scoreCategory(row,'tennis'),
+      physical:scoreCategory(row,'physical'),
+      readiness:scoreCategory(row,'condition'),
+    }))
+    .filter(row => row.ordinal>=windowFirst && row.ordinal<=lastOrdinal)
 
-  const labelIndexes = rows.length <= 6
-    ? rows.map((_, index) => index)
-    : Array.from(new Set([0, Math.floor((rows.length - 1) / 4), Math.floor((rows.length - 1) / 2), Math.floor(((rows.length - 1) * 3) / 4), rows.length - 1]))
+  const point = (row: typeof rows[number],key:'technical'|'physical'|'readiness') => ({
+    x:slotX(row.ordinal-windowFirst),y:y(row[key]),
+  })
+
+  // No implied readings in missing weeks. Only connect directly adjacent
+  // measured weeks; isolated measurements are still visible as points.
+  const runs: (typeof rows)[] = []
+  for(const row of rows){
+    const previous=runs[runs.length-1]
+    if(previous && previous[previous.length-1].ordinal===row.ordinal-1) previous.push(row)
+    else runs.push([row])
+  }
 
   return (
     <div className="tlg-multi-history-wrap">
@@ -754,41 +800,45 @@ function MultiHistoryChart({ history }: { history: SkillHistoryRow[] }) {
         <span className="readiness">{t('skillsPage.readiness')}</span>
       </div>
       <svg className="tlg-multi-history" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={t('skillsPage.historyAria')}>
-        {[100, 75, 50, 25, 0].map((value) => {
-          const y = top + ((100 - value) / 100) * plotHeight
-          return (
-            <g key={value}>
-              <line x1={left} x2={width - right} y1={y} y2={y} className="grid-line" />
-              <text x={left - 10} y={y + 4} textAnchor="end" className="axis-label">{value}</text>
-            </g>
-          )
-        })}
-
-        {rows.length > 1 && <polyline points={linePoints('technical')} className="trend technical" />}
-        {rows.length > 1 && <polyline points={linePoints('physical')} className="trend physical" />}
-        {rows.length > 1 && <polyline points={linePoints('readiness')} className="trend readiness" />}
-
-        {rows.map((row, index) => {
-          const technicalPoint = coordinate(row.technical, index)
-          const physicalPoint = coordinate(row.physical, index)
-          const readinessPoint = coordinate(row.readiness, index)
-          return (
-            <g key={`${row.date}-${index}`}>
-              <circle cx={technicalPoint.x} cy={technicalPoint.y} r="4" className="trend-point technical" />
-              <circle cx={physicalPoint.x} cy={physicalPoint.y} r="4" className="trend-point physical" />
-              <circle cx={readinessPoint.x} cy={readinessPoint.y} r="4" className="trend-point readiness" />
-            </g>
-          )
-        })}
-
-        {labelIndexes.map((index) => {
-          const row = rows[index]
-          if (!row) return null
-          const point = coordinate(row.technical, index)
-          return <text key={`date-${index}`} x={point.x} y={height - 12} textAnchor="middle" className="date-label">{row.date}</text>
-        })}
+        {[100,75,50,25,0].map(value=>(
+          <g key={value}>
+            <line x1={left} x2={width-right} y1={y(value)} y2={y(value)} className="grid-line" />
+            <text x={left-12} y={y(value)+4} textAnchor="end" className="axis-label">{value}</text>
+          </g>
+        ))}
+        {weeks.map(({slot,index,valid,week})=>(
+          <g key={slot}>
+            <line x1={slotX(slot)} x2={slotX(slot)}
+              y1={top} y2={height-bottom}
+              className={valid?'week-grid-line':'week-grid-line week-before-game'}>
+              {valid && <title>{gameWeekText({game_season:week.season,game_week:week.week,recorded_at:''},t)}</title>}
+            </line>
+            {valid && (slot===windowSize-1 || slot%4===0) && (
+              <text x={slotX(slot)} y={height-37}
+                textAnchor={slot===windowSize-1?'end':slot===0?'start':'middle'}
+                className="date-label">
+                {gameWeekText({game_season:week.season,game_week:week.week,recorded_at:''},t)}
+              </text>
+            )}
+          </g>
+        ))}
+        {(['technical','physical','readiness'] as const).map(key=>(
+          <g key={key}>
+            {runs.filter(run=>run.length>1).map(run=>(
+              <polyline key={`${key}-${run[0].ordinal}`}
+                points={run.map(row=>{const p=point(row,key);return `${p.x},${p.y}`}).join(' ')}
+                className={`trend ${key}`} />
+            ))}
+            {rows.map(row=>{
+              const p=point(row,key)
+              return <circle key={`${key}-${row.ordinal}`} cx={p.x} cy={p.y} r="4"
+                className={`trend-point ${key}`}>
+                <title>{row.date}: {row[key].toFixed(1)}</title>
+              </circle>
+            })}
+          </g>
+        ))}
       </svg>
     </div>
   )
 }
-
