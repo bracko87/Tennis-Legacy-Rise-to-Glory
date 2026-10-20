@@ -12,6 +12,10 @@ declare
   v_report jsonb;
   v_item jsonb;
   v_denied boolean;
+  v_world text;
+  v_world_uid uuid;
+  v_world_player uuid;
+  v_world_report jsonb;
 begin
   select p.owner_user_id,p.id into v_uid,v_player
   from public.players p
@@ -43,6 +47,28 @@ begin
       or (v_item->>'other_calendar_choices')::integer<0
       then raise exception 'Planner result contains inconsistent tournament data'; end if;
   end loop;
+
+  -- Both tour worlds must load owned records, without exposing the opposite world.
+  foreach v_world in array array['ATP','WTA'] loop
+    select p.owner_user_id,p.id into v_world_uid,v_world_player
+    from public.players p where p.world=v_world and p.player_type='human'
+      and p.owner_user_id is not null
+      and (exists(select 1 from public.premium_memberships m
+        where m.user_id=p.owner_user_id and m.plan_code='premium' and m.status='active'
+          and (m.current_period_end is null or m.current_period_end>now()))
+       or exists(select 1 from public.tennis_premium_trials_v1 t
+         where t.user_id=p.owner_user_id and t.expires_at>now()))
+    limit 1;
+    if v_world_player is null then raise exception 'Missing % fixture',v_world; end if;
+    perform set_config('request.jwt.claim.sub',v_world_uid::text,true);
+    v_world_report:=public.get_premium_tournament_planning_v1(v_world_player,v_season,v_month);
+    if v_world_report->>'world'<>v_world or
+       (v_world_report->>'player_id')::uuid<>v_world_player
+       or (v_world_report->>'tournament_count')::integer<1 then
+      raise exception 'Wrong or empty % world report',v_world;
+    end if;
+  end loop;
+  perform set_config('request.jwt.claim.sub',v_uid::text,true);
 
   select id into v_other from public.players where owner_user_id is not null
   and owner_user_id<>v_uid limit 1;
