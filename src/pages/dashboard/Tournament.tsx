@@ -6,6 +6,7 @@ import { Link, useLocation, useParams } from 'react-router'
 import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
 import TournamentMatchReplayModal from '../../components/tournament/TournamentMatchReplayModal'
+import PremiumDeepMatchAnalysis from '../../components/tournament/PremiumDeepMatchAnalysis'
 import TournamentReplayWeatherEnhancement from '../../components/tournament/TournamentReplayWeatherEnhancement'
 import usePlayerAvatarUrl from '../../hooks/usePlayerAvatarUrl'
 import { supabase } from '../../lib/supabase'
@@ -710,6 +711,12 @@ function MatchDetailContent({ detail, drawMatches, currentPlayerId, returnPath, 
           <section className="tlg-match-stats-section"><header><span>{t('tournamentPage.match.statistics')}</span><h3>{detail.status === 'in_progress' ? t('tournamentPage.match.liveStatistics') : t('tournamentPage.match.statistics')}</h3></header>{!hasStats ? <div className="tlg-match-empty">{detail.status === 'walkover' ? t('tournamentPage.match.noWalkoverStats') : detail.status === 'completed' ? t('tournamentPage.match.noCompletedStats') : t('tournamentPage.match.statsPending')}</div> : <div className="tlg-match-stats-table"><StatRow label={t('tournamentPage.match.stats.aces')} left={detail.player1_stats.aces ?? 0} right={detail.player2_stats.aces ?? 0} /><StatRow label={t('tournamentPage.match.stats.doubleFaults')} left={detail.player1_stats.double_faults ?? 0} right={detail.player2_stats.double_faults ?? 0} /><StatRow label={t('tournamentPage.match.stats.firstServe')} left={percent(detail.player1_stats.first_serves_in, detail.player1_stats.first_serves_total)} right={percent(detail.player2_stats.first_serves_in, detail.player2_stats.first_serves_total)} /><StatRow label={t('tournamentPage.match.stats.firstServeWon')} left={ratio(detail.player1_stats.first_serve_points_won, detail.player1_stats.first_serve_points_played)} right={ratio(detail.player2_stats.first_serve_points_won, detail.player2_stats.first_serve_points_played)} /><StatRow label={t('tournamentPage.match.stats.secondServeWon')} left={ratio(detail.player1_stats.second_serve_points_won, detail.player1_stats.second_serve_points_played)} right={ratio(detail.player2_stats.second_serve_points_won, detail.player2_stats.second_serve_points_played)} /><StatRow label={t('tournamentPage.match.stats.breakPointsWon')} left={ratio(detail.player1_stats.break_points_won, detail.player1_stats.break_points_total)} right={ratio(detail.player2_stats.break_points_won, detail.player2_stats.break_points_total)} /><StatRow label={t('tournamentPage.match.stats.winners')} left={detail.player1_stats.winners ?? 0} right={detail.player2_stats.winners ?? 0} /><StatRow label={t('tournamentPage.match.stats.unforcedErrors')} left={detail.player1_stats.unforced_errors ?? 0} right={detail.player2_stats.unforced_errors ?? 0} /><StatRow label={t('tournamentPage.match.stats.totalPointsWon')} left={detail.player1_stats.total_points_won ?? 0} right={detail.player2_stats.total_points_won ?? 0} /></div>}</section>
         </>
       )}
+
+      {detail.status === 'completed' &&
+        currentPlayerId &&
+        (detail.player1?.id === currentPlayerId || detail.player2?.id === currentPlayerId) && (
+          <PremiumDeepMatchAnalysis matchId={detail.match_id} />
+        )}
 
       {detail.status === 'scheduled' && <MatchTacticPanel detail={detail} currentPlayerId={currentPlayerId} />}
     </>
