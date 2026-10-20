@@ -31,7 +31,7 @@ export default function PremiumTournamentWatchlist({
     return `${t('statisticsPage.season', { season })} · ${months[monthIndex]} ${day}`
   }
   const sorted = useMemo(() => [...watches].sort((a, b) =>
-    (a.status === 'open' ? -1 : b.status === 'open' ? 1 : 0) ||
+    Number(b.status === 'open') - Number(a.status === 'open') ||
     (a.open_game_second ?? 999999999) - (b.open_game_second ?? 999999999) ||
     a.name.localeCompare(b.name)), [watches])
   const statusLabel = (status: WatchedTournament['status']) => l[status]
