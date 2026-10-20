@@ -1463,6 +1463,28 @@ export const portugueseTranslations = {
     filters: { aria: 'Filtros de categorias de bens', all: 'Todos' },
   },
   statisticsPage: {
+    "premiumInsights": {
+        "kicker": "PREMIUM · ANÁLISE ESTATÍSTICA",
+        "title": "Análise estatística avançada",
+        "intro": "Compare partidas concluídas com os jogadores do ranking ATP/WTA selecionado. As estatísticas habituais continuam gratuitas.",
+        "checking": "Verificando assinatura…",
+        "active": "Premium ativo",
+        "preview": "Prévia Premium",
+        "lockedTitle": "Comparações de desempenho detalhadas com Premium",
+        "lockedBody": "Compare a taxa de vitórias, os aces e os winners por partida com a amostra do ranking. Rankings e estatísticas básicas continuam gratuitos.",
+        "packages": "Ver Premium",
+        "noSample": "Ainda não há partidas concluídas suficientes para uma comparação confiável.",
+        "noOwnSample": "Seu jogador não está nesta amostra; apenas a média dos outros é mostrada. Suas estatísticas continuam disponíveis no histórico da carreira.",
+        "sample": "{{world}} · {{period}} · {{players}} jogadores comparados em {{matches}} partidas concluídas",
+        "yourPlayer": "Seu jogador",
+        "peerAverage": "Outros jogadores da amostra",
+        "disclaimer": "A comparação usa apenas estatísticas publicadas de partidas concluídas. Não prevê vitórias nem oferece vantagem tática. A amostra não representa todos os jogadores.",
+        "metrics": {
+            "winRate": "Taxa de vitórias",
+            "aces": "Aces por partida",
+            "winners": "Winners por partida"
+        }
+    },
     title: 'Estatísticas', subtitle: 'Recordes mundiais, líderes de torneios e análises da carreira',
     loadError: 'Não foi possível carregar as estatísticas mundiais.',
     heroKicker: 'ANÁLISE DE DESEMPENHO', heading: 'Estatísticas mundiais',
