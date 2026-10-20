@@ -1,0 +1,30 @@
+/* Premium Tournament Planning Intelligence: a comparison, not another Free calendar */
+.tlg-plan{margin:15px 0;border:1px solid #d4e1eb;border-radius:14px;overflow:hidden;background:#fff;color:#17394f}
+.tlg-plan-header{padding:18px 19px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;background:linear-gradient(112deg,#f2f8ff,#fff)}
+.tlg-plan-header h3{font-size:1.08rem;margin:7px 0 6px;color:#183b57}
+.tlg-plan-header p{font-size:.75rem;color:#647f91;margin:0;line-height:1.5}
+.tlg-plan-kicker{display:flex;align-items:center;gap:8px;color:#216ba4;font-size:.65rem;letter-spacing:.04em;font-weight:850}
+.tlg-plan-toggle{flex-shrink:0;appearance:none;display:inline-flex;align-items:center;gap:8px;border-radius:9px;background:#f0f7fc;color:#204e71;border:1px solid #cddfeb;cursor:pointer;font-size:.74rem;font-weight:800;padding:10px 13px;white-space:nowrap}
+.tlg-plan-toggle:hover{background:#e4f1fb}
+.tlg-plan-toggle:focus-visible{outline:2px solid #2679b3;outline-offset:2px}
+.tlg-plan-state{padding:19px 20px;border-top:1px solid #e3ecf4;color:#687f91;font-size:.8rem}
+.tlg-plan-locked{display:flex;align-items:center;gap:14px;border-top:1px solid #e3ecf4;padding:19px 20px}
+.tlg-plan-locked p{font-size:.76rem;line-height:1.5;color:#597588;margin:0;flex:1}
+.tlg-plan-locked a{color:white;background:#163d62;border-radius:8px;text-decoration:none;font-size:.74rem;font-weight:800;padding:10px 13px;white-space:nowrap}
+.tlg-plan-body{border-top:1px solid #e3edf3;padding:19px 20px}
+.tlg-plan-subhead{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:0 0 13px}
+.tlg-plan-subhead strong{display:inline-flex;align-items:center;gap:8px;font-size:.87rem}
+.tlg-plan-subhead p{font-size:.72rem;color:#668094;margin:0}
+.tlg-plan-scroll{width:100%;overflow-x:auto;overscroll-behavior-x:contain;border:1px solid #dde7ef;border-radius:10px}
+.tlg-plan-comparison{border-collapse:collapse;table-layout:fixed;min-width:800px;width:100%;font-size:.74rem}
+.tlg-plan-comparison th,.tlg-plan-comparison td{padding:11px;border-bottom:1px solid #e6edf3;vertical-align:top;overflow-wrap:anywhere;text-align:left}
+.tlg-plan-comparison thead th{background:#f5f9fc;vertical-align:top}
+.tlg-plan-comparison th:first-child{width:22%;color:#496a80}
+.tlg-plan-comparison td{width:26%;font-variant-numeric:tabular-nums;color:#25445e}
+.tlg-plan-comparison tbody tr:nth-child(even){background:#fafcfe}
+.tlg-plan-comparison thead label{display:block;margin-bottom:7px;font-size:.65rem;font-weight:750;color:#5d788a}
+.tlg-plan-comparison select{display:block;width:100%;min-width:0;padding:9px 10px;background:#fff;border:1px solid #cbdce9;border-radius:8px;font-size:.74rem;color:#223f54}
+.tlg-plan-tournament-link{display:inline-flex;align-items:baseline;gap:6px;margin-top:9px;color:#1569a5;font-size:.76rem;line-height:1.4;text-decoration:none;font-weight:750}
+.tlg-plan-tournament-link:hover{text-decoration:underline}
+.tlg-plan-note{font-size:.71rem;color:#728797;line-height:1.6;margin:14px 0 0}
+@media(max-width:680px){.tlg-plan-header{padding:14px}.tlg-plan-body{padding:13px}.tlg-plan-header h3{font-size:1rem}.tlg-plan-toggle{padding:8px;font-size:.67rem}.tlg-plan-subhead{display:block}.tlg-plan-subhead p{margin-top:7px}.tlg-plan-locked{flex-wrap:wrap}}
