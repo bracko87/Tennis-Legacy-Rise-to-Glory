@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 
 import CountryFlag from '../common/CountryFlag'
 import usePlayerAvatarUrl from '../../hooks/usePlayerAvatarUrl'
+import { useAuth } from '../../auth/AuthContext'
+import PremiumDeepMatchAnalysis from './PremiumDeepMatchAnalysis'
 import { supabase } from '../../lib/supabase'
 import '../../styles/tournament-match-replay.css'
 import '../../styles/tournament-match-replay-score-v2.css'
@@ -215,6 +217,7 @@ function MatchMeta({ detail }: { detail: ReplayMatchDetail | null }) {
 }
 
 export default function TournamentMatchReplayModal({ matchId, onClose }: { matchId: string; onClose: () => void }) {
+  const { player: currentPlayer } = useAuth()
   const [data, setData] = useState<ReplayResponse | null>(null)
   const [matchDetail, setMatchDetail] = useState<ReplayMatchDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -396,6 +399,11 @@ export default function TournamentMatchReplayModal({ matchId, onClose }: { match
             )}
           </>
         )}
+        {matchDetail?.status === 'completed' &&
+          currentPlayer?.id &&
+          (matchDetail.player1?.id === currentPlayer.id || matchDetail.player2?.id === currentPlayer.id) && (
+            <PremiumDeepMatchAnalysis matchId={matchId} />
+          )}
       </section>
     </div>
   )
