@@ -432,7 +432,7 @@ export default function SkillsPage() {
       )}
 
       {!loading && skills && (
-        <PremiumTrainingEffectiveness playerId={player?.id ?? null} />
+        <PremiumTrainingEffectiveness playerId={player?.id ?? null} scores={skills} />
       )}
 
       {!loading && skills && (
