@@ -56,6 +56,15 @@ No paid report should claim unrecorded causes or hidden skills, and no Premium f
 
 **Next slices, NOT implemented:** deeper Training Effectiveness based on completed session gains; evidence-based Development Outlook when enough longitudinal data exists. No forecasts until reliable trend checks and historical coverage are validated.
 
+### Skill history timeline / game-date correction (2026-10-20)
+
+- **User screenshots:** Skills and Premium charts were showing real-world Sep/Oct 2026 dates, and Free Development History showed every change as a dot. These are now corrected to use **in-game Season / Week** and at most one representative (last-recorded) snapshot per game week.
+- **Historical provenance:** `20261020131500_skill_history_game_week_metadata_v1.sql` adds nullable game_season/game_week to `player_skill_history`, captures the in-game clock on **future** insert, and backfills legacy records only when an exact same-player training session is within ±15 seconds and already contains an authoritative season/month/day. Never reconstruct a past game week from today's game speed or real-world date.
+- **Display:** `src/lib/skillGameWeeks.ts` groups by (season,week) and retains the last snapshot. Both `Skills.tsx` and `PlayerDevelopmentIntelligence.tsx` use it for weekly charts, season/week endpoints and no calendar dates. Undated old records remain stored and are explicitly omitted from dated charts, with a visible notice.
+- **Production example audit:** matching 105-snapshot player had only **one distinct technical/physical skill profile** while condition changed 100 times. The records include **38 processed training days, 31 day_off and 7 active sessions**, with fractional development but no `level_ups`: Fitness +0.665, Serve +0.288, Forehand +0.216 and Stamina +0.366 across the active sessions. **No whole-point gain was recorded.** The previous Free sidebar "Recorded development: 104" was a snapshot counter and is now actual gained whole-level skill points (0 in this example).
+- **Migration applied and verified** in connected Tennis Legacy Supabase on 2026-10-20: 37 of the 105 snapshots have reliable game dates, covering **13 in-game weeks in Season 1** (Week 2–Week 16). The remaining old rows are not misdated. Current paid RPC returned 105 total / 37 game-dated snapshots. Authentication/owner checks and Free access restriction remain in place.
+- **Still to verify in browser:** Skills and Premium skill timelines, eight languages, small screens, and the complete `npm run build`. No training mechanics or payouts were changed.
+
 ### Development order and release gates
 
 1. Validate Statistics Intelligence in localhost (build, visual and paid/trial/Free access, real sample comparison).
