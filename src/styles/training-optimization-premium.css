@@ -1,0 +1,44 @@
+/* Training Optimization is nested inside the existing Premium Training Effectiveness panel. */
+.tlg-top{margin:18px 22px 22px;padding:19px;border:1px solid #cbdce9;border-radius:13px;background:#fbfdff;color:#17394f;min-width:0}
+.tlg-top-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:17px}
+.tlg-top-heading h3{font-size:1.04rem;margin:5px 0}
+.tlg-top-heading p,.tlg-top-card p,.tlg-top-evidence p,.tlg-top-trend p{font-size:.76rem;line-height:1.55;color:#597387;margin:6px 0 12px}
+.tlg-top-eyebrow{display:inline-flex;align-items:center;gap:6px;color:#286fa0;font-weight:800;font-size:.68rem;letter-spacing:.03em}
+.tlg-top-inputs{display:grid;grid-template-columns:1.2fr .8fr .8fr 1fr;gap:11px;align-items:end}
+.tlg-top-inputs label,.tlg-top-rating{display:grid;gap:6px;min-width:0}
+.tlg-top-inputs label>span,.tlg-top-rating>span{font-size:.71rem;font-weight:720;color:#607789}
+.tlg-top-rating{border:1px solid #dde7ef;border-radius:8px;padding:10px 12px;background:#fff}
+.tlg-top-rating strong{font-variant-numeric:tabular-nums;font-size:.87rem}
+.tlg-top-inputs select{display:block;width:100%;min-height:40px;border:1px solid #c9dae6;border-radius:8px;background:white;color:#183c57;font-size:.78rem;padding:8px 9px}
+.tlg-top-inputs select:focus-visible,.tlg-top-link:focus-visible{outline:2px solid #2383c4;outline-offset:2px}
+.tlg-top-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:13px;margin-top:17px}
+.tlg-top-card,.tlg-top-evidence,.tlg-top-trend{border:1px solid #dce7ef;background:#fff;border-radius:10px;padding:15px;min-width:0}
+.tlg-top h4{display:flex;align-items:center;gap:7px;font-size:.85rem;margin:0 0 10px;color:#25546e}
+.tlg-top-rotation{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:13px 0}
+.tlg-top-rotation>div{padding:10px 8px;border:1px solid #cfe3ef;border-radius:8px;background:#eff8ff;min-width:0}
+.tlg-top-rotation span{display:block;font-size:.65rem;color:#668298}
+.tlg-top-rotation strong{display:block;margin-top:4px;overflow-wrap:anywhere;font-size:.75rem}
+.tlg-top-footnote{color:#667e8e!important;font-size:.72rem!important;line-height:1.5}
+.tlg-top-link{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:10px 13px;border-radius:8px;background:#185b88;color:white!important;text-decoration:none;font-size:.75rem;font-weight:750}
+.tlg-top-link:hover{background:#114262}
+.tlg-top-observations{display:grid;gap:9px;margin-top:14px;font-size:.73rem;color:#4c687f}
+.tlg-top-observations strong{color:#17394f}
+.tlg-top-alert{padding:10px 12px;background:#fff8e7;border:1px solid #f0dda6;border-radius:8px;color:#795b25!important;font-size:.73rem!important}
+.tlg-top-evidence,.tlg-top-trend{margin-top:13px}
+.tlg-top-table-wrap{max-width:100%;overflow-x:auto}
+.tlg-top table{width:100%;border-collapse:collapse;font-size:.73rem}
+.tlg-top th,.tlg-top td{padding:10px 8px;text-align:left;border-bottom:1px solid #e9eff4;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tlg-top thead th{font-size:.67rem;color:#617b8e;background:#f4f9fc}
+.tlg-top tbody th{color:#244d66}
+.tlg-top tbody th small{color:#976822;font-size:.63rem;font-weight:600}
+.tlg-top-selected{background:#f2f9ff}
+.tlg-top-empty{padding:7px 0}
+.tlg-top-trend-data{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.tlg-top-trend-data>div{display:grid;gap:6px;min-width:135px;font-size:.74rem}
+.tlg-top-trend-data span{color:#72899a}
+.tlg-top-trend-data strong{font-variant-numeric:tabular-nums}
+.tlg-top-trend-label{font-size:.74rem;color:#1c678d}
+.tlg-top-disclaimer{font-size:.72rem;color:#718796;line-height:1.6;margin:16px 0 0}
+@media(max-width:1000px){.tlg-top-inputs{grid-template-columns:repeat(2,minmax(0,1fr))}.tlg-top-grid{grid-template-columns:1fr}}
+@media(max-width:620px){.tlg-top{margin:13px;padding:13px}.tlg-top-rotation{grid-template-columns:repeat(2,minmax(0,1fr))}.tlg-top-trend-data>div{min-width:100px}}
+@media(max-width:400px){.tlg-top-inputs{grid-template-columns:1fr}}
