@@ -36,6 +36,8 @@ jobs:
         run: npm run check:pt
       - name: Validate Preferences translations
         run: npm run check:preferences
+      - name: Validate Premium package descriptions in all eight languages
+        run: node --experimental-strip-types --test tests/premiumFeatureGuide.test.mjs
       - name: Build production website
         run: npm run build
       - name: Validate public SEO pages, sitemap, and private noindex protections
