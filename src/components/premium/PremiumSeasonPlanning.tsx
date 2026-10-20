@@ -60,7 +60,7 @@ export default function PremiumSeasonPlanning({ playerId, season, clockLoading }
   season:number
   clockLoading:boolean
 }) {
-  const { t, i18n } = useTranslation()
+  const { i18n } = useTranslation()
   const l=seasonPlanningLabels(i18n.resolvedLanguage ?? i18n.language)
   const { isPremium, loading: entitlementLoading } = useCommerce()
   const [expanded,setExpanded]=useState(false)
