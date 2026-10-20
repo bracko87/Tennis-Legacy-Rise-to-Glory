@@ -95,7 +95,7 @@ For a player's own completed matches only (all stats must come from actual recor
 - **B — UI:** `src/components/tournament/PremiumDeepMatchAnalysis.tsx` integrated into completed `TournamentMatchReplayModal.tsx`, with responsive `src/styles/premium-deep-match.css`. Free players get a lock/upgrade explanation.
 - **C — Observations and localization:** Serve/break/shot/point comparisons with evidence-based observations and translations for EN, SR, DE, ES, IT, FR, RU and PT.
 
-**Validation completed:** paid account with a completed own match returns match stats and sets. Free account, another player's completed match, and incomplete match are denied by SQLSTATE 42501. No match outcomes or payouts changed.
+**Validation completed (2026-10-20):** paid account own completed match returns match statistics and sets; successful win and loss cases each returned correctly oriented records; a historical completed match with missing stats returned null values instead of zero; Free account, non-owned match and unfinished match were rejected (SQLSTATE 42501). No match outcomes, scores or payouts changed.
 **Remaining:** `npm run build`, `npm run check:pt`, `npm run check:preferences`, browser paid/Free/trial checks, missing-row appearance, and eight-language visual QA.
 
 ## Development/release tests
