@@ -134,3 +134,25 @@
 .tlg-match-player-summary .identity svg{
   flex:0 0 auto;
 }
+
+/* Keep match rank, handedness and seed in a single row on both player cards. */
+.tlg-match-versus .tlg-match-player-card-polished .tlg-match-player-summary .meta {
+  display:flex !important;
+  flex-flow:row nowrap !important;
+  align-items:center !important;
+  justify-content:flex-start;
+  width:max-content;
+  max-width:100%;
+  min-width:0;
+  gap:4px !important;
+  overflow-x:auto;
+  overscroll-behavior-x:contain;
+  scrollbar-width:none;
+}
+.tlg-match-versus .tlg-match-player-card-polished .tlg-match-player-summary .meta::-webkit-scrollbar { display:none; }
+.tlg-match-versus .tlg-match-player-card-polished .tlg-match-player-summary .meta > * {
+  flex:0 0 auto !important;
+  white-space:nowrap !important;
+  font-size:clamp(.56rem,.67vw,.67rem) !important;
+  padding:5px 6px !important;
+}
