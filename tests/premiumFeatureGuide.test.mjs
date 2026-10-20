@@ -20,7 +20,7 @@ test('each of the eight languages describes every implemented Premium area', () 
     for (const module of PREMIUM_INTELLIGENCE_IDS) {
       assert.ok(copy.modules[module]?.length > 25, language + ': ' + module)
     }
-    assert.ok(copy.modules.training.includes(language === 'en' ? 'Training Optimization' : copy.modules.training.slice(-7)) || copy.modules.training.length > 40)
+    assert.ok(copy.modules.training.length > 40, language + ': training')
   }
 })
 
