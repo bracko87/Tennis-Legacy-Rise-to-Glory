@@ -1,6 +1,9 @@
 /* Premium training effectiveness. All selectors scoped to this report. */
 .tlg-tep{margin:17px 0;border:1px solid #d8e4ef;border-radius:15px;overflow:hidden;background:#fff;color:#17394f}
 .tlg-tep-header{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:19px 22px;background:linear-gradient(110deg,#f4f9ff,#fff);border-bottom:1px solid #dce8f1}
+.tlg-tep-toggle{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;flex-shrink:0;cursor:pointer;background:#f3f8fe;border:1px solid #cddfec;border-radius:9px;color:#1c4e73;font-weight:800;padding:10px 13px;font-size:.77rem;white-space:nowrap}
+.tlg-tep-toggle:hover,.tlg-tep-toggle:focus-visible{background:#e5f3ff;border-color:#8eb8dc}
+.tlg-tep-toggle:focus-visible{outline:2px solid #146eae;outline-offset:2px}
 .tlg-tep-header h2{margin:7px 0 6px;font-size:1.14rem}
 .tlg-tep-header p{margin:0;font-size:.77rem;color:#667b8a}
 .tlg-tep-kicker{display:flex;align-items:center;gap:8px;font-size:.66rem;color:#276caa;font-weight:800;letter-spacing:.04em}
@@ -35,3 +38,5 @@
 @media(max-width:950px){.tlg-tep-columns{grid-template-columns:1fr}}
 @media(max-width:600px){.tlg-tep-header,.tlg-tep-body{padding:15px}.tlg-tep-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.tlg-tep-locked{flex-wrap:wrap}.tlg-tep-week{grid-template-columns:94px 1fr 70px;gap:7px}}
 @media(max-width:360px){.tlg-tep-metrics{grid-template-columns:1fr}.tlg-tep-week{grid-template-columns:85px 1fr 64px}}
+
+@media(max-width:480px){.tlg-tep-header{align-items:flex-start}.tlg-tep-toggle{font-size:.68rem;padding:8px 9px}}
