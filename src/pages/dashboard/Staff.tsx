@@ -6,7 +6,9 @@ import CountryFlag from '../../components/common/CountryFlag'
 import GameConfirmDialog from '../../components/common/GameConfirmDialog'
 import GameLayout from '../../components/layout/GameLayout'
 import StaffTeamRoles from '../../components/staff/StaffTeamRoles'
+import PremiumStaffAdvisory from '../../components/premium/PremiumStaffAdvisory'
 import { useLocalization } from '../../i18n/LocalizationProvider'
+import { useAuth } from '../../auth/AuthContext'
 import {
   staffAttributeLabel,
   staffBackendText,
@@ -100,6 +102,7 @@ function pendingContractFromQuote(selected: StaffCandidate, quote: StaffNegotiat
 
 export default function StaffPage() {
   const { t } = useTranslation()
+  const { player } = useAuth()
   const { formatCurrency, formatNumber } = useLocalization()
   const [searchParams] = useSearchParams()
   const requestedView = searchParams.get('view')
@@ -335,13 +338,16 @@ export default function StaffPage() {
             )}
 
             {view === 'team' ? (
-              <StaffTeamRoles
-                dashboard={dashboard}
-                saving={saving || terminationLoading}
-                loadProfile={loadStaffProfile}
-                onHire={(nextRole) => { setRole(nextRole); setView('market') }}
-                onTerminate={(contract) => { void handleTerminateRequest(contract) }}
-              />
+              <>
+                <StaffTeamRoles
+                  dashboard={dashboard}
+                  saving={saving || terminationLoading}
+                  loadProfile={loadStaffProfile}
+                  onHire={(nextRole) => { setRole(nextRole); setView('market') }}
+                  onTerminate={(contract) => { void handleTerminateRequest(contract) }}
+                />
+                <PremiumStaffAdvisory playerId={player?.id ?? null} />
+              </>
             ) : (
               <>
                 <section className="tlg-staff-market-filters">
