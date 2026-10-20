@@ -1,31 +1,62 @@
-# Premium rollout proposals — Tennis Legacy
+# Tennis Legacy — Free/Premium controlled rollout
 
-**Branch:** staging. **Status:** User review required after each small feature; do not treat this as approval of the overall Free/Premium business model.
+**Branch:** staging. **Latest reviewed:** 2026-10-20.
+Develop in small, independently reviewable increments; no production main merge without approval.
 
-## Step 0: Homepage Next Match layout (2026-10-19)
+## Free gameplay contract
 
-- Put the latest match's Tournament details link at the bottom of its card.
-- Split the Next Match card: left side shows the next tournament logo, existing prize/points/draw/status data; right side mirrors Latest Match with the next opponent's flag, profile link and photo plus round/day.
-- No fabricated score is shown before the match begins. If the next opponent is not scheduled, keep a waiting state.
-- **Status:** committed on staging; browser build and layout review pending.
+All existing Free Statistics (ATP/WTA season/all-time leaderboards, tournament statistics and career records) remain Free, as do match results, tournament participation, ordinary training, equipment, finance, rankings and other core gameplay. Premium must not modify match outcomes, hidden skills, or ranking payouts.
 
-## Step 1: Statistics Intelligence (2026-10-19)
+## Homepage layout (2026-10-20)
 
-- A clearly marked *Premium preview* on the Statistics page compares completed-match win rate, aces per match and winners per match against the **currently selected world and period's displayed leaderboard sample**.
-- The comparison excludes the current player from the peer aggregate. Denominators are total completed matches; no artificial average-of-averages.
-- If a player isn't in the leaderboard sample, display the peer aggregate without inventing personal period-specific statistics. Explain that the sample is *not* the full population.
-- Trial and paid Premium members can view this UI; Free members see a description and link to Pro Packages.
-- **Important:** This is an experimental presentation-only split. `get_world_statistics_v1` still returns the existing information to all players, and all previously visible statistics and career data remain Free. **This is not an enforced backend paywall or final Premium business-model decision.**
-- No gameplay effects, access to hidden player skills, ranking bonuses, or match calculation changes.
-- English, Serbian, German strings added; other locale fallbacks follow the existing localization system.
-- **Status:** committed on staging, awaiting user review and validation of the build, visual presentation, Free/Premium eligibility, and real sample results.
+The current preview is text-only: upcoming area 70%, latest result 30%; the upcoming area divides between Next Tournament and Next Match when both are known. No large player or tournament images. This replaces the older homepage image-based proposal.
 
-## After the first review
+## Premium feature 1 — Statistics Intelligence
 
-Do not build or restrict further premium features until user accepts or requests changes. If approved, decide exactly which *new* analytics require server-side entitlement checks while keeping official ranking and match statistics and core gameplay Free. Update all locales, manual, Premium page and marketing only after the complete access contract is approved.
+**Approved for implementation by the user on 2026-10-20.**
+**Location:** /game/statistics → Statistics Intelligence, below ATP/WTA and season/all-time selectors.
+**Source:** src/pages/dashboard/Statistics.tsx; src/styles/statistics.css.
+**Backend:** get_premium_statistics_intelligence_v1(world, period), defined in
+supabase/migrations/20261020063000_premium_statistics_intelligence_v1.sql;
+volatility correction for already migrated databases:
+20261020070100_premium_statistics_intelligence_volatility_fix.sql.
 
-## Development and release guardrails
+- Compare the active player's win percentage, aces per match and winners per match with the displayed top-50 sample of completed matches in the selected world/period.
+- Exclude the user's own entry from peer totals. Use sum of wins/aces/winners divided by sum of completed matches, not averages of individual percentages.
+- If the user's player is not in the sample, display peer averages without inventing personal period statistics.
+- The sample is not the whole playing population; no predictive gameplay or hidden inputs.
+- Paid Premium and valid seven-day trial can see results. Free players see the section title, explanation, lock and Pro Packages link.
+- The dedicated RPC uses has_active_premium_v1(), which checks paid entitlement and eligible active trials, and is callable only by authenticated users.
+- Existing get_world_statistics_v1 remains available to Free accounts. The *report endpoint* is gated; raw published statistics are intentionally still public to game players.
+- UI translated in EN, SR, DE, ES, IT, FR, RU and PT.
 
-- Never edit production `main` without a reviewed staging→main release.
-- Run `npm run check:pt`, `npm run check:preferences`, `npm run build` before production release.
-- Source-level checks are not a substitute for browser or CI validation.
+**Status:** staging UI/RPC committed; migrations applied to connected Tennis Legacy Supabase project on 2026-10-20.
+**Still to validate:** npm build, eight-language visual checks, active paid/trial users, Free lock state, and real statistics comparison for each world/period.
+
+## Proposed Premium feature 2 — Deep Match Analysis
+
+**Status:** user suggested on 2026-10-20; proposal recorded, NOT IMPLEMENTED yet.
+
+**Proposed location:** Tournament → completed match → Match Replay/Result view → Premium "Deep Match Analysis" section. Keep the normal final score, basic match statistics and existing replay access Free.
+
+For a player's own completed matches only (all stats must come from actual recorded results):
+1. Side-by-side player vs opponent comparisons: aces, double faults, first serves in/attempted, first-serve points won/played, second-serve points won/played, break points converted/chances, winners, unforced errors, total points won.
+2. Calculated percentages: first-serve-in %, service points won %, first-/second-serve points won %, break-point conversion %, winner/error difference, and point share when both rows are present.
+3. Set-by-set scoring summary and ranking/court/round data *only where recorded*; never invent historical tactics, fatigue, player attributes or point causes.
+4. Evidence-based observations, e.g. "Your first-serve points won rate was 14 percentage points lower than your opponent's" and "You committed five more double faults." These highlight differences rather than claiming the actual cause of a win or loss.
+5. Missing match-stat rows render "Not recorded", not zero.
+6. Paid/trial Premium members get the full analysis; Free players see a short lock explanation and link to Pro Packages. Server-side entitlement required before returning the derived report.
+
+**Implementation in three small parts after the first module is reviewed:**
+- A: Read-only Premium-gated RPC for completed matches played by the signed-in user's player; missing-data handling and test fixtures.
+- B: Match Replay/Result comparison panel with proper Free preview and responsive design.
+- C: Evidence-based post-match observations, all-eight-language localization, validation for wins/losses and absent stats.
+
+## Development/release tests
+
+Before a production release run:
+- npm run check:pt
+- npm run check:preferences
+- npm run build
+
+Verify SQL access control (anon denied, Free denied, paid/trial authorized), and compare staging results against completed-match source data. GitHub source checks are not substitutes for the visual browser tests.
