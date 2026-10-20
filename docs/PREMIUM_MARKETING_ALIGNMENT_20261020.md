@@ -9,10 +9,10 @@ All three consumers use `PremiumBenefitsGuide` and one source of eight-language 
 
 **Not advertised:** Premium Convenience Tools (saved comparisons/custom dashboard reports/advanced alerts) is unimplemented. No claim of guaranteed sporting outcomes. Free training, official tournaments, rankings, match results, equipment, staff and finance remain visibly Free. Premium membership, trial access and optional coin payments are clearly separated.
 
-The existing checkout, subscription costs, purchase flows and entitlement checks are untouched. Copy and UI only. Changes target `staging`, not production.
+The existing checkout, subscription costs, purchase flows and entitlement checks are untouched. Copy and UI only. Changes target `main` source code only; Netlify builds are stopped and no website deployment was triggered.
 
 ## Validation
 - Verified every delivered ID has a title mapping and substantive description in all eight game languages.
 - Added regression `tests/premiumFeatureGuide.test.mjs` for module count, translation completeness and locale fallback.
 - Final QA still needs: `npm ci`, `npm run check:pt`, `npm run check:preferences`, `npm run build`, and browser review of homepage, public pricing dialog, signed-in paid/trial/Free packages page on desktop/mobile in all eight languages. GitHub source commits do not authorize Netlify deployment.
-- `main` release must follow approved manual batched staging→main validation; do not merge solely on these copy checks.
+- Website publication requires separately authorized Netlify deployment after the complete source build, CI checks, browser QA and security review. Source commits alone are not release approval.
