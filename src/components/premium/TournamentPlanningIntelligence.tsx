@@ -98,7 +98,11 @@ export default function TournamentPlanningIntelligence({
     return () => { cancelled = true }
   }, [expanded, isPremium, checkingPremium, clockLoading, playerId, season, month])
 
-  const available = report?.tournaments ?? []
+  // Never display another month/player's report while the new request is loading.
+  const reportCurrent = report?.player_id === playerId
+    && report?.season === season && report?.month === month
+  const available = reportCurrent ? (report?.tournaments ?? []) : []
+  const waitingForCurrentReport = !!(isPremium && playerId && !error && !reportCurrent)
   const selected = chosen.map(id => available.find(item => item.competition_id === id) ?? null)
   const displayColumns = Array.from({ length: visibleChoices }, (_, index) => selected[index] ?? null)
   const money = (value: number | null) => value === null ? '—'
@@ -163,7 +167,7 @@ export default function TournamentPlanningIntelligence({
         </button>
       </header>
       <div id="tlg-plan-content" hidden={!expanded}>
-        {expanded && (checkingPremium || clockLoading || loading
+        {expanded && (checkingPremium || clockLoading || loading || waitingForCurrentReport
           ? <p className="tlg-plan-state">{l.loading}</p>
           : !isPremium
             ? <div className="tlg-plan-locked">
