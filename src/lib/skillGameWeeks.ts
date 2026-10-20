@@ -1,3 +1,5 @@
+import type { TFunction } from 'react-i18next'
+
 // All Skills charts use recorded in-game season/week data, never wall-clock
 // recorded_at for display or inferred game dates. Unknown historic weeks are
 // intentionally omitted from the weekly series (not silently backdated).
@@ -26,7 +28,7 @@ export function weeklySkillSnapshots<T extends GameWeekSnapshot>(history: T[]): 
 
 export function gameWeekText(
   row: GameWeekSnapshot,
-  translate: (key: string, values: { season?: number; week?: number }) => string,
+  translate: TFunction,
 ): string {
   if (!Number.isInteger(row.game_season) || !Number.isInteger(row.game_week)) return '—'
   return `${translate('statisticsPage.season',{season:row.game_season as number})} · ${translate('overviewPage.week',{week:row.game_week as number})}`
