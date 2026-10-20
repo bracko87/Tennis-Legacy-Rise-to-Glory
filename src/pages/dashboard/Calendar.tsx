@@ -6,6 +6,7 @@ import { Link, useSearchParams } from 'react-router'
 import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
 import TournamentPlanningIntelligence from '../../components/premium/TournamentPlanningIntelligence'
+import PremiumSeasonPlanning from '../../components/premium/PremiumSeasonPlanning'
 import TabbedModulePage from '../../components/game/TabbedModulePage'
 import { useGameClock } from '../../hooks/useGameClock'
 import {
@@ -574,6 +575,11 @@ function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: 
         playerId={player?.id ?? null}
         season={clock.season}
         month={monthIndex + 1}
+        clockLoading={clock.loading}
+      />
+      <PremiumSeasonPlanning
+        playerId={player?.id ?? null}
+        season={clock.season}
         clockLoading={clock.loading}
       />
 
