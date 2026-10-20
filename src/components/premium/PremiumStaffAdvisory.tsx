@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useCommerce } from '../../hooks/useCommerce'
 import { supabase } from '../../lib/supabase'
-import { staffRoleLabel, staffQualityLabel } from '../../i18n/staffLocalization'
+import { staffEffectLabel, staffRoleLabel, staffQualityLabel } from '../../i18n/staffLocalization'
 import type { StaffRole, StaffQuality } from '../../hooks/useStaff'
 import { staffAdvisoryLabels } from '../../lib/staffAdvisoryI18n'
 import '../../styles/staff-advisory-premium.css'
@@ -151,6 +151,7 @@ export default function PremiumStaffAdvisory({playerId}:{playerId:string|null}) 
                   <th scope="col">{l.remainingCost}</th>
                   <th scope="col">{l.postedCosts}</th>
                   <th scope="col">{l.costIndex}</th>
+                  <th scope="col">{l.coverage}</th>
                 </tr></thead>
                 <tbody>{staff.map(member=>{
                   const portion=share(member.weekly_salary)
@@ -170,6 +171,15 @@ export default function PremiumStaffAdvisory({playerId}:{playerId:string|null}) 
                     <td>{money(member.estimated_remaining_salaries)}</td>
                     <td>{money(member.posted_cost_all_time)}</td>
                     <td>{member.rating_per_1000_weekly_usd===null?'—':member.rating_per_1000_weekly_usd.toFixed(2)}</td>
+                    <td className="tlg-staffa-contributions">
+                      {(member.current_role_effects??[]).slice(0,2).map(effect=>
+                        <span key={effect.label}>
+                          {staffEffectLabel(t,effect.label)}: <strong>{effect.current_display}</strong>
+                        </span>
+                      )}
+                      {(member.current_role_effects??[]).length>2&&
+                        <small>+{member.current_role_effects.length-2} {l.contribution.toLowerCase()}</small>}
+                    </td>
                   </tr>
                 })}</tbody>
               </table>
