@@ -24,3 +24,14 @@
 .tlg-deep-analysis-observations li,.tlg-deep-analysis-observations p{font-size:.78rem;line-height:1.55;color:#415972}
 .tlg-deep-analysis-observations small{display:block;color:#73889a;font-size:.7rem;line-height:1.55}
 @media(max-width:690px){.tlg-deep-analysis{margin:14px 10px}.tlg-deep-analysis-locked{flex-wrap:wrap}.tlg-deep-analysis-head,.tlg-deep-analysis-body{padding:14px}.tlg-deep-analysis-scroll th,.tlg-deep-analysis-scroll td{padding:8px 6px}.tlg-deep-analysis-players{font-size:.74rem}}
+
+/* Explain match outcomes using preserved pre-match inputs rather than repeating Free statistics. */
+.tlg-deep-analysis-summary{display:flex;align-items:start;justify-content:space-between;gap:15px;border:1px solid #dce9f3;border-radius:11px;padding:14px 16px;background:#f5faff}
+.tlg-deep-analysis-summary>div{display:flex;flex-direction:column;gap:5px;flex:0 0 auto}
+.tlg-deep-analysis-summary>div>span{color:#246d9c;font-size:.7rem;font-weight:800}
+.tlg-deep-analysis-summary>div>strong{font-size:1.15rem;color:#193c59}
+.tlg-deep-analysis-summary>p{margin:0;max-width:520px;font-size:.76rem;color:#526f85;line-height:1.6}
+.tlg-deep-analysis-snapshot-note{font-size:.74rem;color:#61788a;line-height:1.55;margin:15px 0 9px}
+.tlg-deep-analysis-context{border-top:1px solid #e2eaf1;margin:12px 0 0;padding-top:12px;font-size:.75rem;color:#536e82}
+.tlg-deep-analysis-group th{text-align:left!important}
+@media(max-width:650px){.tlg-deep-analysis-summary{flex-direction:column}.tlg-deep-analysis-scroll table{min-width:450px}}
