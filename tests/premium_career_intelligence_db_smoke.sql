@@ -54,6 +54,26 @@ begin
    if v_count>0 then raise exception 'Milestone game week invalid';end if;
  end loop;
 
+ -- A new career with no completed singles matches must not invent wins or trophies.
+ select p.id,p.owner_user_id into v_player,v_user
+ from public.players p where p.player_type='human' and p.owner_user_id is not null
+   and not exists(select 1 from public.statistics_player_match_facts_v1 facts
+     where facts.player_id=p.id)
+   and (exists(select 1 from public.premium_memberships m
+      where m.user_id=p.owner_user_id and m.status='active' and m.plan_code='premium'
+       and (m.current_period_end is null or m.current_period_end>now()))
+    or exists(select 1 from public.tennis_premium_trials_v1 t
+      where t.user_id=p.owner_user_id and t.expires_at>now()))
+ limit 1;
+ if v_player is null then raise exception 'Missing no-match Premium fixture';end if;
+ perform set_config('request.jwt.claim.sub',v_user::text,true);
+ v_report:=public.get_premium_career_intelligence_v1(v_player);
+ if exists(select 1 from jsonb_array_elements(v_report->'seasons') rec
+    where (rec->>'matches')::int>0 or (rec->>'wins')::int>0)
+   or exists(select 1 from jsonb_array_elements(v_report->'milestones') rec
+    where rec->>'kind' in ('first_match','first_win','first_final','first_title'))
+ then raise exception 'No-match career produced phantom statistics or milestones';end if;
+
  select id into v_other from public.players p
  where p.owner_user_id is not null and p.owner_user_id<>v_user limit 1;
  v_denied:=false;
