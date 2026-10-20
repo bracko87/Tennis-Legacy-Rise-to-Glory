@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next'
 import { useCommerce } from '../../hooks/useCommerce'
 import { supabase } from '../../lib/supabase'
 import { trainingEffectivenessLabels } from '../../lib/trainingEffectivenessI18n'
+import type { SkillScores } from '../../lib/trainingOptimizationModel'
+import PremiumTrainingOptimization from './PremiumTrainingOptimization'
 import { premiumToggleText } from '../../lib/premiumPanelToggleI18n'
 import '../../styles/training-effectiveness-premium.css'
 
@@ -48,7 +50,7 @@ const asNumber = (value: unknown) =>
 
 const asProgress = (value: number) => `+${value.toFixed(4)}`
 
-export default function PremiumTrainingEffectiveness({ playerId }: { playerId: string | null }) {
+export default function PremiumTrainingEffectiveness({ playerId, scores }: { playerId: string | null; scores: SkillScores }) {
   const { t, i18n } = useTranslation()
   const l = trainingEffectivenessLabels(i18n.resolvedLanguage ?? i18n.language)
   const toggle = premiumToggleText(i18n.resolvedLanguage ?? i18n.language)
@@ -234,6 +236,9 @@ export default function PremiumTrainingEffectiveness({ playerId }: { playerId: s
           </section>
           <p className="tlg-tep-caption">{l.caution}</p>
         </div>
+      )}
+      {isPremium && report && !loadError && !loading && (
+        <PremiumTrainingOptimization events={events} scores={scores} windowLimited={report.window_limited} />
       )}
         </>}
       </div>
