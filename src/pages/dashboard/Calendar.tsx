@@ -413,6 +413,12 @@ function SeasonCalendarView() {
       <div className="tlg-season-calendar-bottom-nav">
         {monthNavigation(t('calendarPage.calendarNavBottom'))}
       </div>
+
+      <PremiumSeasonPlanning
+        playerId={player?.id ?? null}
+        season={clock.season}
+        clockLoading={clock.loading}
+      />
     </div>
   )
 }
@@ -575,11 +581,6 @@ function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: 
         playerId={player?.id ?? null}
         season={clock.season}
         month={monthIndex + 1}
-        clockLoading={clock.loading}
-      />
-      <PremiumSeasonPlanning
-        playerId={player?.id ?? null}
-        season={clock.season}
         clockLoading={clock.loading}
       />
 
