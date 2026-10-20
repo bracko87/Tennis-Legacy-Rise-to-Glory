@@ -6,6 +6,7 @@ import GameLayout from '../../components/layout/GameLayout'
 import PlayerDevelopmentIntelligence from '../../components/premium/PlayerDevelopmentIntelligence'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
+import { weeklySkillSnapshots, gameWeekText } from '../../lib/skillGameWeeks'
 import '../../styles/player-skills.css'
 
 type SkillsTab = 'tennis' | 'physical' | 'condition'
@@ -40,6 +41,8 @@ interface SkillHistoryRow {
   id: string
   player_id: string
   recorded_at: string
+  game_season: number | null
+  game_week: number | null
   source: string
   serve: number
   forehand: number
@@ -162,10 +165,10 @@ export default function SkillsPage() {
           .maybeSingle(),
         supabase
           .from('player_skill_history')
-          .select('id, player_id, recorded_at, source, serve, forehand, backhand, return_skill, volley, slice, drop_shot, lob, smash, fitness, stamina, recovery, movement, fatigue, sharpness, morale, confidence, focus')
+          .select('id, player_id, recorded_at, game_season, game_week, source, serve, forehand, backhand, return_skill, volley, slice, drop_shot, lob, smash, fitness, stamina, recovery, movement, fatigue, sharpness, morale, confidence, focus')
           .eq('player_id', player.id)
-          .order('recorded_at', { ascending: true })
-          .limit(120),
+          .order('recorded_at', { ascending: false })
+          .limit(240),
       ])
 
       if (!active) return
@@ -181,7 +184,7 @@ export default function SkillsPage() {
         setHistoryError(historyResult.error.message)
         setHistory([])
       } else {
-        setHistory((historyResult.data ?? []) as SkillHistoryRow[])
+        setHistory([...(historyResult.data ?? [])].reverse() as SkillHistoryRow[])
       }
 
       setLoading(false)
@@ -263,7 +266,12 @@ export default function SkillsPage() {
     : tennisTotal
   const technicalChange = baseline && skills ? technical - scoreCategory(baseline, 'tennis') : 0
   const physicalChange = baseline && skills ? physicalScore - scoreCategory(baseline, 'physical') : 0
-  const updates = Math.max(0, history.length - 1)
+  const recordedGains = history.reduce((total, row, index) => {
+    if (!index) return total
+    const previous = history[index - 1]
+    const skillsToCount = ['serve','forehand','backhand','return_skill','volley','slice','drop_shot','lob','smash','fitness','stamina','recovery','movement'] as const
+    return total + skillsToCount.reduce((gain,key)=>gain+Math.max(0,row[key]-previous[key]),0)
+  },0)
   const direction = developmentDirection(history, t)
 
   return (
@@ -330,7 +338,7 @@ export default function SkillsPage() {
                 <SidebarMetric label={t('skillsPage.technical')} value={technical.toFixed(1)} detail={t('skillsPage.sinceStart', { change: signed(technicalChange) })} />
                 <SidebarMetric label={t('skillsPage.physical')} value={physicalScore.toFixed(1)} detail={t('skillsPage.sinceStart', { change: signed(physicalChange) })} />
                 <SidebarMetric label={t('skillsPage.readiness')} value={readiness.toFixed(1)} detail={readinessLabel(readiness, t)} />
-                <SidebarMetric label={t('skillsPage.recordedDevelopment')} value={String(updates)} detail={direction} />
+                <SidebarMetric label={t('skillsPage.recordedDevelopment')} value={String(recordedGains)} detail={direction} />
               </div>
             </div>
           )}
@@ -485,8 +493,8 @@ function PerformanceCentre({ skills, history, historyError, localeTag }: { skill
   const technicalChange = baseline ? technical - scoreCategory(baseline, 'tennis') : 0
   const physicalChange = baseline ? physical - scoreCategory(baseline, 'physical') : 0
   const readinessChange = baseline ? readiness - scoreCategory(baseline, 'condition') : 0
-  const updates = Math.max(0, history.length - 1)
   const direction = developmentDirection(history, t)
+  const weeklyHistory = weeklySkillSnapshots(history)
 
   const tennisValues = [
     { label: t('skillsPage.attributes.serve.label'), value: skills.serve },
@@ -579,15 +587,15 @@ function PerformanceCentre({ skills, history, historyError, localeTag }: { skill
           <div className="tlg-performance-empty">{t('skillsPage.historyError', { error: historyError })}</div>
         ) : (
           <>
-            <MultiHistoryChart history={history} localeTag={localeTag} />
-            {history.length <= 1 && (
+            <MultiHistoryChart history={weeklyHistory} />
+            {weeklyHistory.length <= 1 && (
               <div className="tlg-performance-empty">
                 {t('skillsPage.baselineRecorded')}
               </div>
             )}
             <div className="tlg-history-meta">
-              <span>{history.length ? t('skillsPage.firstSnapshot', { date: formatHistoryDate(history[0].recorded_at, localeTag) }) : t('skillsPage.noSnapshots')}</span>
-              <span>{history.length ? t('skillsPage.latestSnapshot', { date: formatHistoryDate(history[history.length - 1].recorded_at, localeTag) }) : t('skillsPage.scale')}</span>
+              <span>{weeklyHistory.length ? t('skillsPage.firstSnapshot', { date: gameWeekText(weeklyHistory[0],t) }) : t('skillsPage.noSnapshots')}</span>
+              <span>{weeklyHistory.length ? t('skillsPage.latestSnapshot', { date: gameWeekText(weeklyHistory[weeklyHistory.length - 1],t) }) : t('skillsPage.scale')}</span>
             </div>
           </>
         )}
@@ -695,7 +703,7 @@ function MatrixRow({ label, value, change }: { label: string; value: number; cha
   )
 }
 
-function MultiHistoryChart({ history, localeTag }: { history: SkillHistoryRow[]; localeTag: string }) {
+function MultiHistoryChart({ history }: { history: SkillHistoryRow[] }) {
   const { t } = useTranslation()
   const width = 1040
   const height = 300
@@ -706,7 +714,7 @@ function MultiHistoryChart({ history, localeTag }: { history: SkillHistoryRow[];
   const plotWidth = width - left - right
   const plotHeight = height - top - bottom
   const rows = history.map((row) => ({
-    date: row.recorded_at,
+    date: gameWeekText(row,t),
     technical: scoreCategory(row, 'tennis'),
     physical: scoreCategory(row, 'physical'),
     readiness: scoreCategory(row, 'condition'),
@@ -765,19 +773,10 @@ function MultiHistoryChart({ history, localeTag }: { history: SkillHistoryRow[];
           const row = rows[index]
           if (!row) return null
           const point = coordinate(row.technical, index)
-          return <text key={`date-${index}`} x={point.x} y={height - 12} textAnchor="middle" className="date-label">{formatHistoryDate(row.date, localeTag, true)}</text>
+          return <text key={`date-${index}`} x={point.x} y={height - 12} textAnchor="middle" className="date-label">{row.date}</text>
         })}
       </svg>
     </div>
   )
 }
 
-function formatHistoryDate(value: string, localeTag: string, short = false) {
-  try {
-    return new Intl.DateTimeFormat(localeTag, short
-      ? { month: 'short', day: 'numeric' }
-      : { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value))
-  } catch {
-    return value
-  }
-}
