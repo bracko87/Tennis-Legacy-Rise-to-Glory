@@ -55,16 +55,18 @@ The candidate functions are inaccessible to ordinary players (service role only)
 ### Reproducible tests
 
 - `npm run check:serve` runs `scripts/check-serve-realism-candidate.mjs`: 12 deterministic cohorts (ATP/WTA × hard/clay/grass × elite/Futures), 420 paired match-score simulations per cohort = **5,040 matched seeds**, compares source-equivalent v2 serving probabilities with proposed v3 rates. It checks valid first/second serve point accounting, zero-event rates, aces/DFs, break outcomes, and score length. This is an **independent model-level simulator**, not a live game-engine run.
-- Independent 5,040-match MD5-seeded proxy execution in the working environment passed all sample assertions (2026-10-20):
+- **User-local Windows CMD validation (2026-10-20):** `git pull --ff-only origin staging` fast-forwarded successfully to commit `0f54f92`; `npm run check:serve` completed and printed all 12 cohorts / 5,040 seeded matches with no assertion failure. The numbers below are taken from that completed local run, not an earlier exploratory run.
 
 | Metric per player per match | ATP baseline | ATP v3 candidate | WTA baseline | WTA v3 candidate |
 | --- | ---: | ---: | ---: | ---: |
-| Aces | 1.94 | 4.42 | 1.85 | 3.36 |
-| Double faults | 1.42 | 2.04 | 1.39 | 2.23 |
-| First serves in | 69.21% | 69.11% | 69.20% | 69.31% |
-| Zero-ace matches | 29.01% | 3.81% | 30.46% | 9.31% |
-| Average total games per match | 23.78 | 23.77 | 23.35 | 23.56 |
-| Breaks per player per match | 2.58 | 2.47 | 2.62 | 2.61 |
+| Aces | 1.89 | 4.32 | 1.84 | 3.33 |
+| Double faults | 1.43 | 2.06 | 1.40 | 2.20 |
+| First serves in | 69.12% | 69.14% | 69.19% | 69.25% |
+| Zero-ace matches | 29.84% | 4.25% | 31.07% | 8.69% |
+| Average total games per match | 23.73 | 23.78 | 23.59 | 23.40 |
+| Breaks per player per match | 2.62 | 2.50 | 2.66 | 2.65 |
+
+**Important winner-change observation:** the output reports 687 / 2,520 ATP matches (27.26%) and 599 / 2,520 WTA matches (23.77%) with a different winner in v3. Combined: **1,286 / 5,040 = 25.52%**. Some changes are expected when point probabilities differ and random draws are consumed differently. Nevertheless, average game length alone is insufficient to certify gameplay balance. Before any v3 activation, compare win probability by absolute effective skill gap, first-/second-serve point conversion, break rates, upset rates, scoreline distributions, best-of-five matches, and replay event consistency across both versions. A large number of flipped outcomes should never be dismissed solely because means look plausible.
 
 **These proxy baselines are not the same as the actual historical database averages above:** they use synthetic player profiles, a fixed-seed point-scoring proxy and 50/50 Futures/elite fixture balance. Do not infer that the candidate has reached real-tour calibration targets or passed the deployed point engine.
 
