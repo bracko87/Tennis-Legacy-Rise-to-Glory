@@ -9,7 +9,7 @@ declare
  r public.referrals%rowtype;
  v_base bigint;v_other bigint;v_paid_coin uuid;v_paid_premium uuid;
  v_refund_event text;v_repeat_event text;v_partial_event text;
- v_pi_coin text;v_pi_premium text;v_customer text;
+ v_pi_coin text;v_pi_premium text;v_customer text;v_invoice text;v_invoice_event text;
  v_wallet bigint;v_count int;v_due int;v_recovered int;v_gross int;v_amount int;
  v_dashboard jsonb;v_admin jsonb;v_admin_user uuid;
 begin
@@ -31,6 +31,7 @@ begin
   v_pi_coin:='pi_refund_qa_'||replace(gen_random_uuid()::text,'-','');
   v_pi_premium:='pi_refund_qa_'||replace(gen_random_uuid()::text,'-','');
   v_customer:='cus_refund_qa_'||replace(gen_random_uuid()::text,'-','');
+  v_invoice:='in_refund_qa_'||replace(gen_random_uuid()::text,'-','');
 
   -- No reward on pending / failed / canceled.
   insert into public.billing_transactions(user_id,kind,status,amount_eur_cents,coins_amount)
@@ -47,9 +48,23 @@ begin
   values (r.referred_user_id,'coin_pack_purchase','paid',100,10,v_pi_coin,v_customer)
   returning id into v_paid_coin;
   insert into public.billing_transactions(user_id,kind,status,amount_eur_cents,coins_amount,
-    stripe_payment_intent_id,stripe_customer_id)
-  values (r.referred_user_id,'premium_invoice','paid',500,30,v_pi_premium,v_customer)
+    stripe_invoice_id,stripe_customer_id)
+  values (r.referred_user_id,'premium_invoice','paid',500,30,v_invoice,v_customer)
   returning id into v_paid_premium;
+  -- Realistic subscription case: invoice billing initially knows only invoice
+  -- ID. A verified invoice_payment.paid event supplies the PaymentIntent link.
+  v_invoice_event:='evt_refund_qa_invoice_payment_'||gen_random_uuid()::text;
+  insert into public.stripe_webhook_events(event_id,event_type,payload)
+  values(v_invoice_event,'invoice_payment.paid',
+    jsonb_build_object('id',v_invoice_event,'type','invoice_payment.paid',
+      'data',jsonb_build_object('object',jsonb_build_object(
+        'object','invoice_payment','invoice',v_invoice,'status','paid',
+        'payment',jsonb_build_object('payment_intent',v_pi_premium)))));
+  if not public.try_process_tennis_stripe_event_v3(v_invoice_event) then
+    raise exception 'Verified invoice payment mapping failed'; end if;
+  if (select stripe_payment_intent_id from public.billing_transactions
+      where id=v_paid_premium) is distinct from v_pi_premium then
+    raise exception 'Premium invoice PaymentIntent not linked'; end if;
   insert into public.billing_transactions(user_id,kind,status,amount_eur_cents,coins_amount)
   values (r.referred_user_id,'coin_pack_purchase','paid',100,10),
     (r.referred_user_id,'premium_invoice','paid',500,30);
