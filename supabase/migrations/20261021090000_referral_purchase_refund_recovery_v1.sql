@@ -191,7 +191,7 @@ begin
                )
            )))
   )
-  select count(*),min(id) into v_bill_count,v_bill_id from matches;
+  select count(*),min(id::text)::uuid into v_bill_count,v_bill_id from matches;
   if v_bill_count<>1 then
     update public.stripe_webhook_events
       set process_note=case when v_bill_count=0
