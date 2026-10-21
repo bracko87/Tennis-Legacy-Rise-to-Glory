@@ -268,3 +268,156 @@ left join public.billing_transactions bt on bt.id=rr.billing_transaction_id
 left join public.referral_reward_reversals rev on rev.referral_reward_id=rr.id
 where rr.reward_type in('coin_purchase','premium_purchase');
 revoke all on public.referral_purchase_refund_audit_v1 from PUBLIC,anon,authenticated;
+
+
+-- Keep Invite Friends totals NET of refunds while retaining payout history;
+-- expose per-payment refund/recovery details in the existing admin dashboard.
+CREATE OR REPLACE FUNCTION public.get_referral_dashboard_v1()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_uid uuid := auth.uid();
+  v_code text;
+  v_settings public.referral_program_settings%rowtype;
+  v_total int;
+  v_pending int;
+  v_active int;
+  v_rewarded int;
+  v_coins bigint;
+  v_activity jsonb;
+  v_contests jsonb;
+begin
+  if v_uid is null then raise exception 'Authentication required'; end if;
+  v_code := public.ensure_referral_code_v1(v_uid);
+  select * into v_settings from public.referral_program_settings where id=1;
+  select count(*)::int,
+         count(*) filter(where status in ('registered','pending_activation'))::int,
+         count(*) filter(where status in ('active','rewarded'))::int,
+         count(*) filter(where exists(select 1 from public.referral_rewards rr where rr.referral_id=r.id and rr.reward_type='base_referral'))::int
+  into v_total,v_pending,v_active,v_rewarded
+  from public.referrals r where referrer_user_id=v_uid;
+  select coalesce(sum(rr.coins-case when rev.id is null then 0 else rev.coins_to_recover end),0)
+  into v_coins from public.referral_rewards rr
+  left join public.referral_reward_reversals rev on rev.referral_reward_id=rr.id
+  where rr.referrer_user_id=v_uid;
+  select coalesce(jsonb_agg(jsonb_build_object(
+      'id',q.id,'registered_at',q.registered_at,'status',q.status,'review_required',q.review_required,'reward_slot',q.reward_slot,
+      'reward_coins',q.reward_coins,'base_rewarded',q.base_rewarded,'coin_purchase_rewarded',q.coin_purchase_rewarded,'premium_purchase_rewarded',q.premium_purchase_rewarded,'coin_purchase_reversed',q.coin_purchase_reversed,'premium_purchase_reversed',q.premium_purchase_reversed,'pending_recovery_coins',q.pending_recovery_coins
+    ) order by q.registered_at desc),'[]'::jsonb)
+  into v_activity
+  from (
+    select r.id,r.registered_at,r.status,r.review_required,r.reward_slot,
+      coalesce(sum(rr.coins-case when rev.id is null then 0 else rev.coins_to_recover end),0) as reward_coins,
+      bool_or(rr.reward_type='base_referral') as base_rewarded,
+      bool_or(rr.reward_type='coin_purchase' and rev.id is null) as coin_purchase_rewarded,
+      bool_or(rr.reward_type='premium_purchase' and rev.id is null) as premium_purchase_rewarded,
+      bool_or(rr.reward_type='coin_purchase' and rev.id is not null) as coin_purchase_reversed,
+      bool_or(rr.reward_type='premium_purchase' and rev.id is not null) as premium_purchase_reversed,
+      coalesce(sum(rev.coins_to_recover-rev.coins_recovered),0) as pending_recovery_coins
+    from public.referrals r
+    left join public.referral_rewards rr on rr.referral_id=r.id
+    left join public.referral_reward_reversals rev on rev.referral_reward_id=rr.id
+    where r.referrer_user_id=v_uid
+    group by r.id
+    order by r.registered_at desc
+    limit 50
+  ) q;
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'id',c.id,'name',c.name,'description',c.description,'starts_at',c.starts_at,'ends_at',c.ends_at,
+    'validation_deadline',c.validation_deadline,'status',c.status,
+    'your_rank',(select x.rank_no from public.referral_contest_leaderboard_rows_v1(c.id) x where x.referrer_user_id=v_uid),
+    'your_valid_referrals',(select x.valid_referrals from public.referral_contest_leaderboard_rows_v1(c.id) x where x.referrer_user_id=v_uid),
+    'prizes',(select coalesce(jsonb_agg(jsonb_build_object('rank_from',p.rank_from,'rank_to',p.rank_to,'title',p.title,'coins',p.coins,'premium_days',p.premium_days,'badge_code',p.badge_code) order by p.rank_from),'[]'::jsonb) from public.referral_contest_prizes p where p.contest_id=c.id)
+  ) order by c.starts_at desc),'[]'::jsonb)
+  into v_contests
+  from public.referral_contests c
+  where c.status in ('active','validation','finalized') and c.ends_at >= now()-interval '30 days';
+  return jsonb_build_object(
+    'code',v_code,
+    'is_admin',public.is_referral_admin_v1(v_uid),
+    'stats',jsonb_build_object('total',v_total,'pending',v_pending,'active',v_active,'rewarded',v_rewarded,'coins',v_coins),
+    'rules',jsonb_build_object('base_reward_coins',v_settings.base_reward_coins,'coin_purchase_reward_coins',v_settings.coin_purchase_reward_coins,'premium_purchase_reward_coins',v_settings.premium_purchase_reward_coins,'max_rewardable_referrals',v_settings.max_rewardable_referrals,'minimum_account_age_hours',v_settings.minimum_account_age_hours,'minimum_active_days',v_settings.minimum_active_days),
+    'activity',v_activity,
+    'contests',v_contests
+  );
+end;
+$function$
+
+CREATE OR REPLACE FUNCTION public.get_referral_admin_dashboard_v1()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_uid uuid:=auth.uid();
+  v_settings jsonb;
+  v_summary jsonb;
+  v_reviews jsonb;
+  v_recent jsonb;
+  v_contests jsonb;
+begin
+  if v_uid is null or not public.is_referral_admin_v1(v_uid) then raise exception 'Referral admin access required'; end if;
+  select to_jsonb(s) into v_settings from public.referral_program_settings s where id=1;
+  select jsonb_build_object(
+    'total_referrals',count(*),
+    'review_required',count(*) filter(where review_required),
+    'active',count(*) filter(where status in ('active','rewarded')),
+    'rejected',count(*) filter(where status in ('rejected','invalid')),
+    'coins_paid',(select coalesce(sum(rr.coins-case when rev.id is null then 0 else rev.coins_to_recover end),0)
+      from public.referral_rewards rr left join public.referral_reward_reversals rev on rev.referral_reward_id=rr.id),
+    'refund_recovery_pending_coins',(select coalesce(sum(coins_to_recover-coins_recovered),0) from public.referral_reward_reversals)
+  ) into v_summary from public.referrals;
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'id',r.id,'referrer_username',coalesce(pr.username,'Player'),'referred_username',coalesce(pd.username,'Pending account'),
+    'status',r.status,'registered_at',r.registered_at,'review_reason',r.review_reason,'browser_hash_present',r.browser_hash is not null,
+    'reward_slot',r.reward_slot,'admin_approved',r.admin_approved
+  ) order by r.registered_at desc),'[]'::jsonb)
+  into v_reviews
+  from public.referrals r
+  left join public.profiles pr on pr.id=r.referrer_user_id
+  left join public.profiles pd on pd.id=r.referred_user_id
+  where r.review_required
+  limit 100;
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'id',r.id,'referrer_username',coalesce(pr.username,'Player'),'referred_username',coalesce(pd.username,'Pending account'),
+    'status',r.status,'registered_at',r.registered_at,'activated_at',r.activated_at,'reward_slot',r.reward_slot,'review_required',r.review_required,
+    'reward_coins',(select coalesce(sum(x.coins-case when rev.id is null then 0 else rev.coins_to_recover end),0)
+      from public.referral_rewards x left join public.referral_reward_reversals rev on rev.referral_reward_id=x.id where x.referral_id=r.id),
+    'reward_history',(select coalesce(jsonb_agg(jsonb_build_object(
+      'reward_id',x.id,'reward_type',x.reward_type,'coins',x.coins,
+      'billing_transaction_id',x.billing_transaction_id,
+      'payment_status',b.status,'referrer_user_id',x.referrer_user_id,
+      'referred_user_id',x.referred_user_id,
+      'awarded_at',x.created_at,'reversed_at',rev.created_at,
+      'coins_recovered',coalesce(rev.coins_recovered,0),
+      'pending_recovery_coins',coalesce(rev.coins_to_recover-rev.coins_recovered,0),
+      'reward_status',case when rev.id is null then 'awarded'
+        when rev.coins_to_recover=rev.coins_recovered then 'reversed'
+        else 'recovery_pending' end
+      ) order by x.created_at),'[]'::jsonb)
+      from public.referral_rewards x
+      left join public.billing_transactions b on b.id=x.billing_transaction_id
+      left join public.referral_reward_reversals rev on rev.referral_reward_id=x.id
+      where x.referral_id=r.id)
+  ) order by r.registered_at desc),'[]'::jsonb)
+  into v_recent
+  from public.referrals r
+  left join public.profiles pr on pr.id=r.referrer_user_id
+  left join public.profiles pd on pd.id=r.referred_user_id
+  where r.registered_at >= now()-interval '90 days'
+  limit 200;
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'id',c.id,'name',c.name,'description',c.description,'starts_at',c.starts_at,'ends_at',c.ends_at,'validation_deadline',c.validation_deadline,
+    'status',c.status,'max_counted_referrals',c.max_counted_referrals,'finalized_at',c.finalized_at,
+    'prizes',(select coalesce(jsonb_agg(to_jsonb(p)-'contest_id'-'created_at'-'id' order by p.rank_from),'[]'::jsonb) from public.referral_contest_prizes p where p.contest_id=c.id),
+    'leaderboard',(select coalesce(jsonb_agg(jsonb_build_object('rank',x.rank_no,'username',coalesce(x.username,'Player'),'valid_referrals',x.valid_referrals,'reached_count_at',x.reached_count_at) order by x.rank_no),'[]'::jsonb) from public.referral_contest_leaderboard_rows_v1(c.id) x where x.rank_no<=20)
+  ) order by c.created_at desc),'[]'::jsonb)
+  into v_contests from public.referral_contests c;
+  return jsonb_build_object('settings',v_settings,'summary',v_summary,'review_queue',v_reviews,'recent_referrals',v_recent,'contests',v_contests);
+end;
+$function$
+
