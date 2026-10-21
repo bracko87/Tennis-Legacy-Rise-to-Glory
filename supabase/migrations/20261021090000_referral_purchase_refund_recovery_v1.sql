@@ -124,6 +124,41 @@ begin
   where event_id=p_event_id for update;
   if not found or v_event.processed then return true; end if;
 
+  -- Stripe's InvoicePayment resource links subscription invoices to their
+  -- underlying PaymentIntent even when invoice.paid omits that identifier.
+  if v_event.event_type='invoice_payment.paid' then
+    v_obj:=v_event.payload->'data'->'object';
+    v_invoice:=nullif(v_obj->>'invoice','');
+    v_pi:=coalesce(nullif(v_obj#>>'{payment,payment_intent}',''),
+      nullif(v_obj->>'payment_intent',''));
+    if v_obj->>'object' is distinct from 'invoice_payment'
+       or v_obj->>'status' is distinct from 'paid'
+       or v_invoice is null or v_pi is null or v_pi not like 'pi_%' then
+      update public.stripe_webhook_events set processed=true,
+        processed_at=now(),process_note='ignored_unmatched_invoice_payment'
+      where event_id=p_event_id;
+      return true;
+    end if;
+    update public.billing_transactions
+      set stripe_payment_intent_id=v_pi
+      where kind='premium_invoice' and status='paid'
+        and stripe_invoice_id=v_invoice
+        and (stripe_payment_intent_id is null or stripe_payment_intent_id=v_pi)
+        and not exists(select 1 from public.billing_transactions other
+          where other.stripe_payment_intent_id=v_pi
+            and other.stripe_invoice_id is distinct from v_invoice);
+    if found then
+      update public.stripe_webhook_events set processed=true,
+        processed_at=now(),process_note='premium_invoice_payment_linked'
+      where event_id=p_event_id;
+      return true;
+    end if;
+    update public.stripe_webhook_events
+      set process_note='waiting_for_invoice_billing_mapping'
+    where event_id=p_event_id;
+    return false;
+  end if;
+
   if v_event.event_type<>'charge.refunded' then
     -- Normal, previously existing paid/payment-failed/subscription paths.
     perform public.try_process_tennis_stripe_event_v2(p_event_id);
