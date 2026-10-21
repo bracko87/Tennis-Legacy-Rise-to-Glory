@@ -344,7 +344,7 @@ begin
     'contests',v_contests
   );
 end;
-$function$
+$function$;
 
 CREATE OR REPLACE FUNCTION public.get_referral_admin_dashboard_v1()
  RETURNS jsonb
@@ -419,5 +419,5 @@ begin
   into v_contests from public.referral_contests c;
   return jsonb_build_object('settings',v_settings,'summary',v_summary,'review_queue',v_reviews,'recent_referrals',v_recent,'contests',v_contests);
 end;
-$function$
+$function$;
 
