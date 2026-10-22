@@ -38,6 +38,8 @@ jobs:
         run: npm run check:preferences
       - name: Validate Premium package descriptions in all eight languages
         run: node --experimental-strip-types --test tests/premiumFeatureGuide.test.mjs
+      - name: Verify sidebar collapse preference persists across navigation
+        run: node --experimental-strip-types --test tests/sidebarPreference.test.mjs
       - name: Build production website
         run: npm run build
       - name: Validate public SEO pages, sitemap, and private noindex protections
