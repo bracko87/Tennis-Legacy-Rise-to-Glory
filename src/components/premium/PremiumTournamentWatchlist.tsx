@@ -44,15 +44,15 @@ export default function PremiumTournamentWatchlist({
           <h3><BellRing size={19} aria-hidden="true" /> {l.title}</h3>
           <p>{l.intro}</p>
         </div>
-        {isPremium && <strong className="tlg-twatch-count">{watches.length} / 60</strong>}
+        {isPremium && !error && <strong className="tlg-twatch-count">{watches.length} / 60</strong>}
       </header>
       {premiumLoading ? <p className="tlg-twatch-state">{l.loading}</p>
         : !isPremium ? <div className="tlg-twatch-locked"><LockKeyhole size={18} /><span>{l.locked}</span><Link to="/game/pro-packages">{l.plans}</Link></div>
         : <>
           {loading && <p className="tlg-twatch-state">{l.loading}</p>}
-          {error && <p role="alert" className="tlg-twatch-error">{l.error} <small>{error}</small></p>}
-          {!loading && sorted.length === 0 && <p className="tlg-twatch-state">{l.empty}</p>}
-          {sorted.length > 0 && <div className="tlg-twatch-list">
+          {error && <p role="alert" className="tlg-twatch-error">{l.error}</p>}
+          {!loading && !error && sorted.length === 0 && <p className="tlg-twatch-state">{l.empty}</p>}
+          {!error && sorted.length > 0 && <div className="tlg-twatch-list">
             {sorted.map(item => <div className="tlg-twatch-item" key={item.competition_id}>
               <span className={`tlg-twatch-star tlg-twatch-${item.status}`}><Star size={17} fill="currentColor" aria-hidden="true" /></span>
               <div className="tlg-twatch-item-copy">
