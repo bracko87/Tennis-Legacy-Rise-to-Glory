@@ -8,6 +8,7 @@ import '../../styles/dashboard-v6.css'
 import '../../styles/commerce.css'
 import '../../styles/cpx-rewards.css'
 import { getReferralBrowserHash } from '../../lib/referrals'
+import { readSidebarCollapsed, saveSidebarCollapsed } from '../../lib/sidebarPreference'
 import { supabase } from '../../lib/supabase'
 import EarnCoinsDialog from '../rewards/EarnCoinsDialog'
 import WelcomePremiumTrial from '../premium/WelcomePremiumTrial'
@@ -22,9 +23,13 @@ export interface GameLayoutProps {
 }
 
 export default function GameLayout({ title, subtitle, children }: GameLayoutProps) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarCollapsed)
   const [sidebarMobileOpen, setSidebarMobileOpen] = useState(false)
   const [earnCoinsOpen, setEarnCoinsOpen] = useState(false)
+
+  useEffect(() => {
+    saveSidebarCollapsed(sidebarCollapsed)
+  }, [sidebarCollapsed])
 
   useEffect(() => {
     const openCoins = () => setEarnCoinsOpen(true)
