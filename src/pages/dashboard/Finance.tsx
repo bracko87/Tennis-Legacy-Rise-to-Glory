@@ -246,6 +246,14 @@ export default function FinancePage() {
           <>
             {error && <div className="tlg-finance-v2-inline-error">{error}</div>}
 
+            <nav className="tlg-finance-v2-tabs" aria-label={t('financePage.tabsAria')}>
+              {(['overview', 'transactions', 'tax', 'sponsors'] as FinanceTab[]).map((tab) => (
+                <button key={tab} type="button" className={activeTab === tab ? 'active' : ''} onClick={() => setActiveTab(tab)}>
+                  {t(`financePage.tabs.${tab}`)}
+                </button>
+              ))}
+            </nav>
+
             <section className="tlg-finance-v2-summary">
               <div className={`balance ${dashboard.balance < 0 ? 'negative-balance' : ''}`}>
                 <span>{t('financePage.balance')}</span>
@@ -257,14 +265,6 @@ export default function FinancePage() {
               <MetricCard label={t('financePage.seasonNet')} value={signedMoney(dashboard.season_net, 'USD')} tone={dashboard.season_net >= 0 ? 'positive' : 'negative'} />
               <MetricCard label={t('financePage.estimatedTax')} value={money(dashboard.tax?.current_month_estimated_tax ?? 0, 'USD')} detail={t('financePage.monthlyRate', { rate: Math.round((dashboard.tax?.rate ?? 0.18) * 100) })} />
             </section>
-
-            <nav className="tlg-finance-v2-tabs" aria-label={t('financePage.tabsAria')}>
-              {(['overview', 'transactions', 'tax', 'sponsors'] as FinanceTab[]).map((tab) => (
-                <button key={tab} type="button" className={activeTab === tab ? 'active' : ''} onClick={() => setActiveTab(tab)}>
-                  {t(`financePage.tabs.${tab}`)}
-                </button>
-              ))}
-            </nav>
 
             {activeTab === 'overview' && (
               <div className="tlg-finance-v2-overview">
