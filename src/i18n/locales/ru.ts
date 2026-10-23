@@ -1,5 +1,5 @@
 // Russian locale — full English-key parity; in-game visual QA required before public release.
-import en from './en'
+import en from './en.ts'
 
 type TranslationShape<T> = T extends string ? string
   : T extends readonly (infer U)[] ? TranslationShape<U>[]

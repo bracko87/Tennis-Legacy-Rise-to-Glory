@@ -1,6 +1,6 @@
 // Brazilian Portuguese (pt-BR) localization — full English source-key coverage.
 // Keep English fallback for new keys added in future; visual in-game QA is still recommended.
-import en from './en'
+import en from './en.ts'
 
 type TranslationShape<T> = T extends string ? string
   : T extends readonly (infer U)[] ? TranslationShape<U>[]

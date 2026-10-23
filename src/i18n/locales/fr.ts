@@ -1,5 +1,5 @@
 // French locale — all English source keys and placeholders checked; visual in-game QA required before public enablement.
-import en from './en'
+import en from './en.ts'
 
 // Ensure translated keys, nested sections and string lists match the English source.
 type TranslationShape<T> = T extends string ? string
