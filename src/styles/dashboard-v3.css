@@ -29,7 +29,9 @@
 .tlg-v2-shell {
   min-height: 100vh;
   display: flex;
-  overflow: hidden;
+  /* clip retains the shell's horizontal containment without creating a
+     non-scrolling overflow ancestor that disables the sticky game header. */
+  overflow: clip;
   color: var(--tl3-ink);
   background: var(--tl3-canvas);
 }

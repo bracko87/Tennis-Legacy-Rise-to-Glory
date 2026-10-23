@@ -65,7 +65,8 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  overflow-x: hidden;
+  /* Unlike hidden, clip does not intercept the document's sticky scroll. */
+  overflow-x: clip;
 
   font-family:
     Inter,
