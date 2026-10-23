@@ -332,7 +332,7 @@ export default function TournamentPage() {
       <TournamentPageV3 />
 
       {showRealLogo && logoTarget && logoUrl && createPortal(
-        <img className={`tlg-tournament-logo-image ${logoStatus === 'ready' ? 'tlg-tournament-logo-image-ready' : ''}`} src={logoUrl} alt={t('tournamentPage.logoAlt', { name: tournamentName })} decoding="async" fetchPriority="high" onLoad={() => setLogoStatus('ready')} onError={() => setLogoStatus('error')} />,
+        <img className={`tlg-tournament-logo-image ${logoStatus === 'ready' ? 'tlg-tournament-logo-image-ready' : ''}`} src={logoUrl} alt={t('tournamentPage.logoAlt', { name: tournamentName })} decoding="async" onLoad={() => setLogoStatus('ready')} onError={() => setLogoStatus('error')} />,
         logoTarget,
       )}
 
