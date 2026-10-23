@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 
 const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8')
 const matrix = JSON.parse(readFileSync(new URL('../docs/mobile-route-audit.json', import.meta.url), 'utf8'))
-const configured = [...app.matchAll(/<Route\\s+path="([^"]+)"/g)].map((match) => match[1])
+const configured = [...app.matchAll(/<Route\s+path="([^"]+)"/g)].map((match) => match[1])
 const inventoried = matrix.routes.map((entry) => entry.path)
 
 assert.equal(configured.length, new Set(configured).size, 'App.tsx contains duplicate routes')
