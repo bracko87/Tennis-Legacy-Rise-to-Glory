@@ -1,0 +1,413 @@
+/*
+ * Mobile tournament page containment (Issue #11).
+ *
+ * Mobile-only. Do not hide document overflow: all tournament cards, labels,
+ * entry stages and schedules must reflow within the actual viewport.
+ * The knockout/draw bracket is the ONLY section retaining its own horizontal
+ * touch-scroll surface on this page.
+ */
+
+@media (max-width: 760px) {
+  /* A grid child with the default min-width:auto can grow to match a 6-column
+     entry timeline. Explicitly allow the entire page and every direct section
+     (including dynamically portaled sections) to shrink to the mobile track. */
+  .tlg-v2-content .tlg-detail-page {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .tlg-v2-content .tlg-detail-page > *,
+  .tlg-detail-page .tlg-entry-lifecycle-host,
+  .tlg-detail-page .tlg-detail-panel,
+  .tlg-detail-page .tlg-detail-stats-grid,
+  .tlg-detail-page .tlg-detail-schedule-list,
+  .tlg-detail-page .tlg-detail-schedule-card,
+  .tlg-detail-page .tlg-entry-lifecycle-panel,
+  .tlg-detail-page .tlg-entry-content-grid,
+  .tlg-detail-page .tlg-entry-personal-card,
+  .tlg-detail-page .tlg-entry-deadlines-card {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .tlg-detail-page :where(p, h1, h2, h3, strong, small, span, a, button) {
+    overflow-wrap: anywhere;
+  }
+
+  /* The image/logo are a short first row. Tournament information gets its
+     OWN full-width row: long title, dates and description cannot be cropped
+     in the narrow column beside the clay image. */
+  .tlg-detail-page > .tlg-detail-hero {
+    display: grid;
+    grid-template-columns: 100px minmax(0, 1fr);
+    gap: 12px;
+    width: 100%;
+    padding: 12px;
+    align-items: start;
+  }
+
+  .tlg-detail-page > .tlg-detail-hero > .tlg-detail-surface-card {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    height: 100px;
+    min-height: 100px;
+  }
+
+  .tlg-detail-page > .tlg-detail-hero > .tlg-detail-logo-slot {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    width: 100%;
+    height: 100px;
+    min-height: 100px;
+    padding: 6px;
+  }
+
+  .tlg-detail-page > .tlg-detail-hero > .tlg-detail-hero-copy {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .tlg-detail-page .tlg-detail-hero-copy h1,
+  .tlg-detail-page .tlg-detail-hero-copy > p {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .tlg-detail-page .tlg-detail-hero-copy > p {
+    margin-top: 9px;
+    line-height: 1.5;
+  }
+
+  .tlg-detail-page .tlg-detail-location-line {
+    max-width: 100%;
+  }
+
+  .tlg-detail-page .tlg-detail-tags,
+  .tlg-detail-page .tlg-hero-entry-host,
+  .tlg-detail-page .tlg-hero-entry-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    min-width: 0;
+    max-width: 100%;
+    width: auto;
+    margin-left: 0;
+    gap: 6px;
+  }
+
+  .tlg-detail-page .tlg-hero-entry-dates {
+    display: contents;
+  }
+
+  .tlg-detail-page .tlg-hero-entry-dates article,
+  .tlg-detail-page .tlg-hero-entry-status,
+  .tlg-detail-page .tlg-detail-tags span {
+    min-width: 0;
+    max-width: 100%;
+    height: auto;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    line-height: 1.4;
+  }
+
+  .tlg-detail-page .tlg-hero-entry-dates article span,
+  .tlg-detail-page .tlg-hero-entry-dates article strong,
+  .tlg-detail-page .tlg-hero-entry-status > span,
+  .tlg-detail-page .tlg-hero-entry-status strong,
+  .tlg-detail-page .tlg-hero-entry-status strong b {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
+  }
+
+  /* Real two-by-two summary instead of four full-width statistic cards. */
+  .tlg-detail-page > .tlg-detail-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .tlg-detail-page > .tlg-detail-stats-grid > article {
+    min-width: 0;
+    max-width: 100%;
+    min-height: 90px;
+    padding: 11px;
+  }
+
+  .tlg-detail-page > .tlg-detail-stats-grid > article strong {
+    font-variant-numeric: tabular-nums;
+    word-break: break-word;
+  }
+
+  /* Entry stages: previously repeat(6,145px) exceeded every phone width.
+     Preserve the numbered milestone sequence in a two-column grid. */
+  .tlg-entry-lifecycle-panel .tlg-entry-milestones {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow: visible;
+    gap: 0;
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-entry-milestones article {
+    min-width: 0;
+    max-width: 100%;
+    width: auto;
+    align-items: flex-start;
+    padding: 10px 8px;
+    border-right: 0;
+    border-bottom: 1px solid #e8eef2;
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-entry-milestones article:nth-child(odd) {
+    border-right: 1px solid #e8eef2;
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-entry-milestones article div,
+  .tlg-entry-lifecycle-panel .tlg-entry-milestones article strong,
+  .tlg-entry-lifecycle-panel .tlg-entry-milestones article small {
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-entry-personal-card,
+  .tlg-entry-lifecycle-panel .tlg-entry-personal-head,
+  .tlg-entry-lifecycle-panel .tlg-entry-current-application,
+  .tlg-entry-lifecycle-panel .tlg-entry-application-controls,
+  .tlg-entry-lifecycle-panel .tlg-entry-deadlines-card {
+    min-width: 0;
+    width: auto;
+    max-width: 100%;
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-entry-personal-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-entry-personal-head > div:first-child {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-entry-vacancy-mini {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 100%;
+    justify-content: flex-start;
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-entry-vacancy-mini span {
+    white-space: normal;
+    max-width: 100%;
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-entry-application-controls,
+  .tlg-entry-lifecycle-panel .tlg-entry-late-box {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-entry-actions {
+    grid-column: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-entry-actions button,
+  .tlg-entry-lifecycle-panel .tlg-entry-late-box button {
+    min-height: 44px;
+    white-space: normal;
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-entry-deadlines-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    margin: 12px;
+    padding: 12px;
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-entry-deadlines-card > div,
+  .tlg-entry-lifecycle-panel .tlg-entry-deadlines-card > div + div {
+    min-width: 0;
+    max-width: 100%;
+    padding: 9px 0;
+    border-right: 0;
+    border-bottom: 1px solid #e9eff3;
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-entry-deadlines-card > div:last-child {
+    border-bottom: 0;
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-entry-deadlines-card small,
+  .tlg-entry-lifecycle-panel .tlg-entry-deadlines-card strong,
+  .tlg-entry-lifecycle-panel .tlg-entry-passive-note {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.5;
+  }
+
+  /* Expanded application list keeps a full row readable, never creates an
+     invisible fifth column off the screen. */
+  .tlg-entry-lifecycle-panel .tlg-applicant-field,
+  .tlg-entry-lifecycle-panel .tlg-applicant-field-host,
+  .tlg-entry-lifecycle-panel .tlg-applicant-field-head {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-applicant-field-head,
+  .tlg-entry-lifecycle-panel .tlg-applicant-field-head-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-applicant-row {
+    display: grid;
+    grid-template-columns: 32px 20px minmax(0, 1fr) 60px;
+    min-width: 0;
+    gap: 5px;
+    padding: 7px;
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-applicant-row > strong,
+  .tlg-entry-lifecycle-panel .tlg-applicant-row > .tlg-applicant-player-link {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    text-overflow: clip;
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-applicant-row > small {
+    grid-column: 3 / -1;
+    min-width: 0;
+    max-width: 100%;
+    text-align: left;
+    white-space: normal;
+  }
+
+  /* All tournament day tiles become a legible date/activity agenda rather
+     than a separate sideways-scrolling seven-day table. */
+  .tlg-detail-page .tlg-detail-schedule-list-expanded {
+    min-width: 0;
+    width: 100%;
+    padding: 12px;
+  }
+
+  .tlg-detail-page .tlg-detail-schedule-card-head {
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tlg-detail-page .tlg-detail-schedule-card-head > p {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .tlg-detail-page .tlg-detail-day-strip {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: visible;
+  }
+
+  .tlg-detail-page .tlg-detail-day-tile {
+    display: grid;
+    grid-template-columns: minmax(65px, 80px) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: start;
+    gap: 3px 10px;
+    min-width: 0;
+    min-height: 54px;
+    padding: 10px;
+    border-right: 0;
+    border-bottom: 1px solid #e5edf3;
+  }
+
+  .tlg-detail-page .tlg-detail-day-tile > span {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .tlg-detail-page .tlg-detail-day-tile > strong {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .tlg-detail-page .tlg-detail-day-tile > p {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    min-width: 0;
+    margin: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .tlg-detail-page .tlg-detail-day-tile > small {
+    grid-column: 2;
+    grid-row: 3;
+    margin: 0;
+  }
+
+  /* Keep only the actual draw / qualification bracket horizontally scrollable. */
+  .tlg-detail-page .tlg-detail-bracket-scroll,
+  .tlg-detail-page .tlg-live-bracket-scroll,
+  .tlg-detail-page .tlg-qualification-columns,
+  .tlg-detail-page .tlg-doubles-bracket-scroll {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tlg-detail-page .tlg-draw-view-switch {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .tlg-detail-page .tlg-draw-view-switch select {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 359px) {
+  .tlg-entry-lifecycle-panel .tlg-entry-milestones {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tlg-entry-lifecycle-panel .tlg-entry-milestones article:nth-child(odd) {
+    border-right: 0;
+  }
+}
