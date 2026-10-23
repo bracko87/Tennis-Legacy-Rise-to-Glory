@@ -14,6 +14,7 @@ import '../../styles/equipment.css'
 import '../../styles/equipment-marketplace-v2.css'
 import '../../styles/equipment-gear-room-inventory.css'
 import '../../styles/equipment-technical-sponsor.css'
+import '../../styles/equipment-mobile-dialog.css'
 
 type EquipmentTab = 'gear' | 'inventory' | 'market' | 'sponsors'
 type EquipmentType = 'racket' | 'shoes' | 'apparel' | 'accessory'
