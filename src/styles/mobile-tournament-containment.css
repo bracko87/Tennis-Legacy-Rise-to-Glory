@@ -383,7 +383,6 @@
   .tlg-detail-page .tlg-live-bracket-scroll,
   .tlg-detail-page .tlg-qualification-columns,
   .tlg-detail-page .tlg-doubles-bracket-scroll {
-    display: block;
     min-width: 0;
     max-width: 100%;
     overflow-x: auto;
