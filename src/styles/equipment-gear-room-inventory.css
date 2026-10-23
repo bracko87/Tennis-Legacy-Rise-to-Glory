@@ -168,3 +168,20 @@
     transform-origin: center;
   }
 }
+
+/* Screenshot follow-up: stronger mobile-only focal crop of owned items;
+   market and desktop image positioning are not changed. */
+@media (max-width: 760px) {
+  .tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card > .tlg-equipment-product-image.large {
+    overflow: hidden;
+  }
+  .tlg-equipment-inventory-panel-v3 .tlg-equipment-owned-card > .tlg-equipment-product-image.large img {
+    width: 100% !important;
+    height: 175% !important;
+    max-height: none !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    transform: translateY(-42%) !important;
+    transform-origin: top center;
+  }
+}

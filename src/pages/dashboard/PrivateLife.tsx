@@ -1,11 +1,12 @@
 import {
   Crown,
+  ChevronDown,
   LockKeyhole,
   RefreshCw,
   TrendingDown,
   TrendingUp,
 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation, type TFunction } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
@@ -18,6 +19,7 @@ import { supabase } from '../../lib/supabase'
 import '../../styles/private-life.css'
 import '../../styles/private-life-marketplace.css'
 import '../../styles/private-life-history.css'
+import '../../styles/private-life-mobile-compact.css'
 
 type AssetCategory = 'watch' | 'jewelry' | 'car' | 'apartment' | 'house_villa' | 'yacht' | 'private_jet' | 'art' | 'collectible'
 type MainTab = 'overview' | 'assets' | 'investments' | 'marketplace'
@@ -955,9 +957,12 @@ export default function PrivateLifePage() {
                     <article className="private-life-owned-card" key={asset.id}>
                       <div className="private-life-card-image"><AssetImage src={ownedImageUrl} name={asset.name} /><div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(t, asset.rarity)}</span><span className="private-life-badge level">+{asset.prestige} {t('privateLifePage.purchase.prestige')}</span></div></div>
                       <div className="private-life-card-body">
+                        <div className="private-life-card-compact-summary">
                         <div className="private-life-card-title-row"><div>{catalogAsset && yachtBuilder(catalogAsset) ? <div className="private-life-yacht-builder">{yachtBuilder(catalogAsset)}</div> : null}<h4>{asset.name}</h4></div><div className="private-life-price">{money(asset.current_market_value, currency)}</div></div>
                         {asset.acquisition_type === 'starter_home' ? <div className="private-life-starter-home-label">{t('privateLifePage.assets.startingHome')}</div> : null}
                         <p className="private-life-description">{asset.description}</p>
+                        </div>
+                        <MobileAssetDisclosure>
                         <div className="private-life-owned-value-grid">
                           <div className="private-life-owned-value-row"><span>{t('privateLifePage.purchase.originalValue')}</span><strong>{money(asset.purchase_price, currency)}</strong></div>
                           <div className="private-life-owned-value-row"><span>{t('privateLifePage.purchase.currentValue')}</span><strong>{money(asset.current_market_value, currency)}</strong></div>
@@ -986,6 +991,7 @@ export default function PrivateLifePage() {
                         ) : (
                           <div className="private-life-residence-lock"><strong>{t('privateLifePage.assets.primary')}</strong><span>{t('privateLifePage.assets.primaryBody')}</span></div>
                         )}
+                        </MobileAssetDisclosure>
                       </div>
                     </article>
                   )
@@ -1036,9 +1042,12 @@ export default function PrivateLifePage() {
                     <article className="private-life-card" key={`${listing.code}:${listing.location?.code ?? 'global'}`}>
                       <div className="private-life-card-image"><AssetImage src={listing.image_url} name={listing.name} /><div className="private-life-image-badges"><span className="private-life-badge">{rarityLabel(t, listing.rarity)}</span><span className="private-life-badge new">{t('privateLifePage.marketplace.new')}</span></div></div>
                       <div className="private-life-card-body">
+                        <div className="private-life-card-compact-summary">
                         <div className="private-life-card-title-row"><div>{yachtBuilder(listing) ? <div className="private-life-yacht-builder">{yachtBuilder(listing)}</div> : null}<h4>{listing.name}</h4></div><div className="private-life-price">{money(listing.effective_price, currency)}</div></div>
                         {listing.location ? <div className="private-life-property-location">{listing.location.city}, {listing.location.country_name}</div> : null}
                         <p className="private-life-description">{listing.description}</p>
+                        </div>
+                        <MobileAssetDisclosure>
                         <div className="private-life-card-stats">
                           <div className="private-life-card-stat"><span>{t('privateLifePage.purchase.prestige')}</span><strong>+{listing.prestige}</strong></div>
                           <div className="private-life-card-stat"><span>{ownershipCostLabel(t, listing.category)}</span><strong>{listing.effective_annual_cost > 0 ? money(listing.effective_annual_cost / 12, currency) : t('privateLifePage.costs.none')}</strong></div>
@@ -1049,6 +1058,7 @@ export default function PrivateLifePage() {
                           <button type="button" className="private-life-action details" onClick={() => setDetailTarget({ type: 'market', listing })}>{t('privateLifePage.assets.details')}</button>
                           <button type="button" className="private-life-action" disabled={!canBuy} onClick={() => setPendingAction({ type: 'buy', listing })}>{listing.effective_owned ? t('privateLifePage.marketplace.owned') : !listing.effective_affordable ? t('privateLifePage.marketplace.insufficient') : t('privateLifePage.marketplace.purchase')}</button>
                         </div>
+                        </MobileAssetDisclosure>
                       </div>
                     </article>
                   )
@@ -1083,9 +1093,43 @@ export default function PrivateLifePage() {
 function CategoryFilters({ value, onChange }: { value: CategoryFilter; onChange: (value: CategoryFilter) => void }) {
   const { t } = useTranslation()
   return (
-    <div className="private-life-filter-bar" aria-label={t('privateLifePage.filters.aria')}>
-      <button type="button" className={value === 'all' ? 'active' : ''} onClick={() => onChange('all')}>{t('privateLifePage.filters.all')}</button>
-      {(ASSET_CATEGORIES).map((category) => <button key={category} type="button" className={value === category ? 'active' : ''} onClick={() => onChange(category)}>{categoryLabel(t, category)}</button>)}
+    <>
+      <label className="private-life-category-select">
+        <span>{t('privateLifePage.filters.aria')}</span>
+        <select
+          value={value}
+          onChange={(event) => onChange(event.target.value as CategoryFilter)}
+          aria-label={t('privateLifePage.filters.aria')}
+        >
+          <option value="all">{t('privateLifePage.filters.all')}</option>
+          {ASSET_CATEGORIES.map((category) => <option key={category} value={category}>{categoryLabel(t, category)}</option>)}
+        </select>
+      </label>
+      <div className="private-life-filter-bar" aria-label={t('privateLifePage.filters.aria')}>
+        <button type="button" className={value === 'all' ? 'active' : ''} onClick={() => onChange('all')}>{t('privateLifePage.filters.all')}</button>
+        {ASSET_CATEGORIES.map((category) => <button key={category} type="button" className={value === category ? 'active' : ''} onClick={() => onChange(category)}>{categoryLabel(t, category)}</button>)}
+      </div>
+    </>
+  )
+}
+
+/** Desktop keeps full cards; on phones asset values and purchase/sale actions
+ * are available by expanding the compact summary. */
+function MobileAssetDisclosure({ children }: { children: ReactNode }) {
+  const { t } = useTranslation()
+  const [expanded, setExpanded] = useState(false)
+  return (
+    <div className={`private-life-card-disclosure${expanded ? ' is-expanded' : ''}`}>
+      <button
+        type="button"
+        className="private-life-card-disclosure-trigger"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((current) => !current)}
+      >
+        <span>{expanded ? t('privateLifePage.dialogs.close') : t('privateLifePage.assets.details')}</span>
+        <ChevronDown size={16} aria-hidden="true" />
+      </button>
+      <div className="private-life-card-disclosure-content">{children}</div>
     </div>
   )
 }
