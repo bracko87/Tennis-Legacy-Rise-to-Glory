@@ -8,6 +8,7 @@ import '../../styles/dashboard-v6.css'
 import '../../styles/commerce.css'
 import '../../styles/cpx-rewards.css'
 import { getReferralBrowserHash } from '../../lib/referrals'
+import { lockBodyScroll } from '../../lib/bodyScrollLock'
 import { readSidebarCollapsed, saveSidebarCollapsed } from '../../lib/sidebarPreference'
 import { supabase } from '../../lib/supabase'
 import EarnCoinsDialog from '../rewards/EarnCoinsDialog'
@@ -30,6 +31,26 @@ export default function GameLayout({ title, subtitle, children }: GameLayoutProp
   useEffect(() => {
     saveSidebarCollapsed(sidebarCollapsed)
   }, [sidebarCollapsed])
+
+  useEffect(() => {
+    if (!sidebarMobileOpen) return
+
+    const releaseScrollLock = lockBodyScroll()
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSidebarMobileOpen(false)
+    }
+    const onResize = () => {
+      if (window.innerWidth > 980) setSidebarMobileOpen(false)
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('resize', onResize)
+      releaseScrollLock()
+    }
+  }, [sidebarMobileOpen])
 
   useEffect(() => {
     const openCoins = () => setEarnCoinsOpen(true)
@@ -68,6 +89,7 @@ export default function GameLayout({ title, subtitle, children }: GameLayoutProp
           title={title}
           subtitle={subtitle}
           onToggleSidebarMobile={() => setSidebarMobileOpen((value) => !value)}
+          mobileNavigationOpen={sidebarMobileOpen}
         />
 
         <main

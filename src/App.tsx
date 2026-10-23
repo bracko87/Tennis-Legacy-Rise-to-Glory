@@ -13,6 +13,7 @@ import './styles/onboarding-enhancements.css'
 import './styles/commerce.css'
 import './styles/dashboard-modules.css'
 import './styles/typography-sharp.css'
+import './styles/mobile-phone-foundations.css'
 
 import {
   BrowserRouter,
