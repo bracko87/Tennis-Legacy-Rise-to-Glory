@@ -67,3 +67,12 @@ test('Private Life jet booking stays Premium-only and summary identifies real fl
  assert.match(schedule,/staff_on_jet/)
  assert.match(schedule,/staff_commercial/)
 })
+
+test('jet booking requires real route range and reposition checks, with persistent aircraft location',()=>{
+ assert.match(jet,/v_route_jet:=public\.quote_private_jet_leg_v1/)
+ assert.match(jet,/Selected private jet is unavailable for this itinerary/)
+ assert.match(jet,/trg_initialize_private_jet_position/)
+ assert.match(jet,/on conflict\(owned_asset_id\) do nothing/)
+ assert.match(jet,/join public\.player_location_state|left join public\.player_location_state/)
+ assert.match(jet,/select city,country_code into v_origin_city,v_origin_country from public\.player_private_jet_positions/)
+})
