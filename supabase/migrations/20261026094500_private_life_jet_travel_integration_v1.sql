@@ -222,15 +222,24 @@ begin
       select case when preferred_travel_mode='best_owned_jet' then 'private_jet' when preferred_travel_mode='cheapest' then 'cheapest' else 'commercial' end
       into v_mode from public.player_lifestyle_state where player_id=p_player_id;
     end if;
-    select coalesce(array_length(selected_staff_contract_ids,1),0) into v_staff_count
+    select coalesce(array_length(selected_staff_contract_ids,1),0),coalesce(staff_travel_class,'Economy')
+      into v_staff_count,v_staff_class
     from public.player_tournament_preparation_plans where player_id=p_player_id and competition_id=v_comp;
+    if coalesce(v_staff_count,0)>0 then
+      v_staff_quote:=public.quote_travel_v2(p_source_city,p_source_country,p_source_lat,p_source_lon,
+       p_dest_city,p_dest_country,p_dest_lat,p_dest_lon,coalesce(v_staff_class,'Economy'),'one_way');
+    end if;
   end if;
   v_mode:=coalesce(v_mode,'commercial');
   if v_mode in ('private_jet','cheapest') and coalesce(q->>'band','')<>'same_city' then
     v_jet:=public.quote_private_jet_leg_v1(p_player_id,p_source_city,p_source_country,p_dest_city,p_dest_country,
      coalesce((q->>'distance_km')::integer,0),coalesce(v_staff_count,0),v_selected,p_departure);
     v_jet_applies:=coalesce((v_jet->>'active')::boolean,false)
-      and (v_mode='private_jet' or (v_jet->>'cost_one_way')::integer < (q->>'cost')::integer);
+      and (v_mode='private_jet' or (
+         (v_jet->>'cost_one_way')::integer
+         +coalesce((v_jet->>'staff_commercial')::integer,0)*coalesce((v_staff_quote->>'cost')::integer,0)
+         < (q->>'cost')::integer+coalesce(v_staff_count,0)*coalesce((v_staff_quote->>'cost')::integer,0)
+      ));
     if v_jet_applies then
       v_reduction:=least(5000,coalesce((v_jet->>'reduction_bps')::integer,0));
       v_base_gross:=greatest(1,coalesce((q->>'gross_arrival_fatigue')::integer,1));
