@@ -29,10 +29,13 @@ begin
  v:=public.quote_private_jet_leg_v1(p,'Belgrade','RS','Paris','FR',1600,5,j,394);
  if v->>'active'<>'true' then raise exception 'In-range flight should succeed: %',v; end if;
  if (v->>'reduction_bps')::integer<>5000 then raise exception 'Fatigue benefit must be capped to 50%%'; end if;
- if (v->>'staff_on_jet')::integer<>3 or (v->>'staff_commercial')::integer<>2 then
+ if (v->>'staff_on_jet')::integer<>5 or (v->>'staff_commercial')::integer<>0 then
   raise exception 'Staff seating overflow invalid: %',v; end if;
  if (v->>'cost_one_way')::integer<>7800 then
   raise exception 'Unexpected paid flight cost: %',v->>'cost_one_way'; end if;
+ v:=public.quote_private_jet_leg_v1(p,'Belgrade','RS','Paris','FR',1600,7,j,394);
+ if v->>'active'<>'false' or v->>'reason'<>'insufficient_passenger_seats' then
+  raise exception 'Player and staff may not overflow passenger capacity: %',v; end if;
  v:=public.quote_private_jet_leg_v1(p,'Belgrade','RS','Paris','FR',2200,0,j,394);
  if v->>'active'<>'false' or v->>'reason'<>'no_eligible_owned_jet_for_range' then
   raise exception 'Out-of-range flight incorrectly offered: %',v; end if;
