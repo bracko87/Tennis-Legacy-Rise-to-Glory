@@ -10,6 +10,14 @@
 - The instructions below explain the intended local setup, but **do not currently produce a full playable Private Life environment from a fresh clone**. Please do not mistake a successful `npm run dev` frontend build for a complete functional test.
 - We are not rewriting already-applied historic migration files or applying private-life DDL to the live project as a shortcut. A production-based **isolated Supabase development branch** can avoid the missing historical bootstrap, but requires explicit billing approval (see below).
 
+## Alternative: existing-schema local test environment (no new paid Supabase branch)
+
+The repository now provides a schema-only local sandbox generator and Windows instructions: **[Private Life schema-only local sandbox](PRIVATE_LIFE_SCHEMA_ONLY_LOCAL_SANDBOX.md)**.
+
+This avoids replaying all 591 historical migrations. Export only the **existing schema** with the read-only Supabase CLI dump command, keep the dump in the ignored local folder, and generate a separate Docker stack that applies just the three new Private Life migrations. Nothing is pushed to live Supabase.
+
+**Important:** This preparation has passed unit tests and the underlying game functions have passed disposable PostgreSQL integration tests, but the actual full production-schema dump → restore → browser workflow has not yet been verified. Stop if the schema restore reports an error; never run remote database reset or migrations to fix local testing.
+
 ## Prerequisites
 
 - Node.js 22 and npm
