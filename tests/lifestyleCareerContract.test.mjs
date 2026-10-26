@@ -70,7 +70,8 @@ test('Private Life jet booking stays Premium-only and summary identifies real fl
 
 test('jet booking requires real route range and reposition checks, with persistent aircraft location',()=>{
  assert.match(jet,/v_route_jet:=public\.quote_private_jet_leg_v1/)
- assert.match(jet,/Selected private jet is unavailable for this itinerary/)
+ assert.match(jet,/p_mode:='commercial'/)
+ assert.match(jet,/'commercial_fallback'/)
  assert.match(jet,/trg_initialize_private_jet_position/)
  assert.match(jet,/on conflict\(owned_asset_id\) do nothing/)
  assert.match(jet,/join public\.player_location_state|left join public\.player_location_state/)
@@ -98,3 +99,13 @@ test('only nine screenshot airplanes get whole-team fares and quick-flight quote
  assert.match(picker,/fullPartyCostNote/)
 })
 
+
+test('out-of-range private flights automatically use normal commercial travel',()=>{
+ assert.match(jet,/v_fallback_reason:=coalesce\(v_route_jet->>'reason','jet_out_of_range'\)/)
+ assert.match(jet,/p_mode:='commercial'/)
+ assert.match(jet,/p_owned_jet_asset_id:=null/)
+ assert.match(picker,/requestedMode = choice==='private_jet' && !supported \? 'commercial' : choice/)
+ assert.match(picker,/saveData\?\.travel_mode==='commercial'/)
+ assert.match(picker,/commercialFallback/)
+ assert.doesNotMatch(jet,/private_jet_refuel_route_v1/)
+})
