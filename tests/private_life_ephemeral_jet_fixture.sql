@@ -29,10 +29,3 @@ insert into public.private_life_asset_catalog(code,category,name,tier,metadata)
  '{"tournament_travel_eligible":true,"max_range_km":2000,"passenger_capacity":4,"base_trip_cost":2000,"cost_per_km":3,"travel_fatigue_reduction_bps":9000}'::jsonb),
  ('test_prop_plane','private_jet','Test propeller plane',2,
  '{"tournament_travel_eligible":false,"max_range_km":1000,"passenger_capacity":4,"base_trip_cost":1000,"cost_per_km":2,"travel_fatigue_reduction_bps":1000}'::jsonb);
--- The test jet is purchased at the current real player location (Belgrade).
-insert into public.private_life_player_assets(id,player_id,catalog_code,acquisition_type,purchase_absolute_day)
-values
- ('22222222-2222-2222-2222-222222222225',
-  '11111111-1111-1111-1111-111111111111','test_real_jet','purchase',391),
- ('22222222-2222-2222-2222-222222222226',
-  '11111111-1111-1111-1111-111111111111','test_prop_plane','purchase',391);
