@@ -150,10 +150,10 @@ export default function TournamentJetPicker({
       <strong>{c.commercialFallback}</strong>
       <span>{c.commercialRoundTrip}: {money(commercialTotal)} ({c.playerAndStaff})</span>
       <small>{c.commercialFatigueNote}</small>
-     </div>
+     </div>}
      {supported && <small>{c.fullPartyCostNote} {c.overnightDisclaimer}</small>}
     </>}
-    {choice === 'commercial' && <p className="tlg-jet-commercial">{c.commercialRoundTrip}: {money(commercialTotal)} ({c.playerAndStaff})</p>
+    {choice === 'commercial' && <p className="tlg-jet-commercial">{c.commercialRoundTrip}: {money(commercialTotal)} ({c.playerAndStaff})</p>}
     <button type="button" className="tlg-jet-save" onClick={()=>void save()}
       disabled={busy || (choice==='private_jet' && jetPreviewLoading)}>{busy ? c.loading : choice==='private_jet' && !supported ? c.bookCommercial : c.save}</button>
     {notice && <p className="tlg-jet-success" role="status">{notice}</p>}
