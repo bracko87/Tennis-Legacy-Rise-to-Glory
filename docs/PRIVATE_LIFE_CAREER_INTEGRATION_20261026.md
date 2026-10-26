@@ -82,6 +82,20 @@ Only the nine screenshot-approved private jets remain eligible for tournament tr
 
 Disposable PostgreSQL regression tests exercise both an allowed direct flight and the Belgrade-to-Australia fallback. No Netlify deployment or production Supabase schema changes have been authorized.
 
+## Full travel-day settlement and ownership checks (2026-10-26)
+
+The automated GitHub Actions disposable PostgreSQL job now executes the **actual migration versions** of \`insert_planned_travel_leg_v1\` and \`process_travel_leg_v1\`, using synthetic players and an approved Citation M3 from the nine-aircraft catalog. It verifies:
+
+- Booking a direct 1,600 km Citation M3 leg with **six accompanying staff members**, charging exactly one **$10,200** aircraft fare (including all staff), without additional air tickets.
+- Arrival processing adds **13 fatigue** to the synthetic player after the aircraft-specific reduction, updates the player's destination and aircraft location, posts precisely one travel ledger transaction, and returns \`already_processed\` without a second debit on retry.
+- Travelling onward commercially from Paris to Sydney charges the player and six staff **$3,500** in synthetic ticket fares, adds **17 normal travel fatigue**, updates the player's location to Sydney, and leaves the owned jet in Paris. It also remains idempotent.
+- The test deliberately uses a **whitelisted Citation M3**, not the old synthetic test jet that the whitelist correctly marks ineligible. No legacy/hobby model was whitelisted to make the test pass.
+- A second synthetic account with an entered tournament cannot quote or book the first player's aircraft through the actual authenticated \`quote_my_private_life_jet_v1\` and \`set_private_life_tournament_travel_v1\` RPCs. Denied attempts leave the legitimate player's selection unchanged.
+
+**Verified GitHub source/build + disposable PostgreSQL run:** https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/40325930372
+
+These are genuine function executions, but they **do not prove** the complete migrations work against the full production schema, real Supabase Auth/RLS role behavior, all tournament transitions, browser interactions, or actual payment provider integration. All production release gates remain.
+
 ## Database verification on an isolated non-production database
 
 Supabase Branching requires separate compute charges and cost approval. Do not run these DDL migrations against production as a substitute for a development database. Once an isolated test database is available:
@@ -107,11 +121,11 @@ Check desktop/mobile Private Life Assets and Marketplace, residence selection an
 
 ## Release constraints
 
-Do **not** push to \`main\` or change the production Supabase schema until isolated QA passes. Release in the established manually approved staging → main window with coordinated frontend and Supabase migrations. Existing unrelated staging commits must remain included. Do not claim deployed before the production release is actually verified.
+The active development branch is **\`main\` only**; \`staging\` is an inactive historical backup. GitHub commits are **not production releases**, and Netlify builds must remain stopped. Do **not** deploy Supabase migrations, resume Netlify builds, or perform live Stripe/payment changes until the owner explicitly approves a coordinated release after full isolated-environment QA. Do not claim deployment before production verification.
 
 ## Balancing parameters to tune with economy data
 
 - Morale: maximum +3, 14-day category cooldown, -1 point per 7 days per purchase
 - Relocation: 2-game-day move, 30-day cooldown, $5,000 + travel
-- Jets: tier-based range (2,600–12,500 km), passenger capacity and travel fatigue savings (22–50%), operating cost (fixed + distance + handling + repositioning)
+- Jets: nine approved models with direct-flight range (3,000–13,500 km), passenger capacity and travel fatigue savings (24–50%), operating cost (fixed + distance + handling + repositioning)
 - Avoid pay-to-win: no direct skill boost; evaluate whether even a +3 temporary morale and 50% travel-specific fatigue reduction are sufficiently small before release
