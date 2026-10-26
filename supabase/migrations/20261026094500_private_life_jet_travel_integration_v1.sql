@@ -196,6 +196,7 @@ declare
   q jsonb; v_id uuid; gd record; v_existing text; v_class text:='Economy';
   v_jet jsonb; v_reduction integer:=0; v_base_gross integer; v_base_net integer; v_jet_gross integer; v_jet_net integer; v_jet_recovery integer;
   v_jet_applies boolean:=false; v_mode text:='commercial'; v_comp uuid; v_staff_count integer:=0; v_selected uuid;
+  v_staff_class text:='Economy';v_staff_commercial integer:=0;v_staff_quote jsonb;
 begin
   if upper(coalesce(p_source_country,''))=upper(coalesce(p_dest_country,'')) and lower(trim(coalesce(p_source_city,'')))<>'' and lower(trim(coalesce(p_source_city,'')))=lower(trim(coalesce(p_dest_city,''))) then return null; end if;
   if p_dest_type='tournament' and coalesce(p_dest_ref,'')~*'^[0-9a-f-]{36}$' then
@@ -235,6 +236,24 @@ begin
       q:=q||jsonb_build_object('gross_arrival_fatigue',v_jet_gross,
         'travel_day_recovery',v_jet_recovery,'arrival_fatigue',v_jet_net,
         'cost',(v_jet->>'cost_one_way')::integer);
+    end if;
+  end if;
+
+  -- Staff sharing an owned jet do not purchase separate tickets. Overflow staff
+  -- and all commercially flying staff pay their one-way fare exactly once.
+  if v_comp is not null and coalesce(v_staff_count,0)>0 then
+    select staff_travel_class into v_staff_class from public.player_tournament_preparation_plans
+    where player_id=p_player_id and competition_id=v_comp;
+    v_staff_class:=coalesce(v_staff_class,'Economy');
+    v_staff_commercial:=case when v_jet_applies then coalesce((v_jet->>'staff_commercial')::integer,0)
+                       else v_staff_count end;
+    if v_staff_commercial>0 then
+      v_staff_quote:=public.quote_travel_v2(p_source_city,p_source_country,p_source_lat,p_source_lon,
+       p_dest_city,p_dest_country,p_dest_lat,p_dest_lon,v_staff_class,'one_way');
+      q:=q||jsonb_build_object('cost',(q->>'cost')::integer+
+        ((v_staff_quote->>'cost')::integer*v_staff_commercial),
+        'staff_ticket_count',v_staff_commercial,
+        'staff_ticket_cost',(v_staff_quote->>'cost')::integer*v_staff_commercial);
     end if;
   end if;
 
