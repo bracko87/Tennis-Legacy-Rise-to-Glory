@@ -104,3 +104,8 @@ jobs:
             -f tests/private_life_ephemeral_jet_fixture.sql \
             -f /tmp/private_life_jet_routines.sql \
             -f tests/private_life_ephemeral_jet_assertions.sql
+          python3 scripts/extract-private-life-aircraft-catalog.py > /tmp/private_life_aircraft_catalog.sql
+          psql -v ON_ERROR_STOP=1 \
+            -f tests/private_life_ephemeral_catalog_fixture.sql \
+            -f /tmp/private_life_aircraft_catalog.sql \
+            -f tests/private_life_ephemeral_catalog_assertions.sql
