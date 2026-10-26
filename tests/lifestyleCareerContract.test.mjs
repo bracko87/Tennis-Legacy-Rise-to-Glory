@@ -109,3 +109,13 @@ test('out-of-range private flights automatically use normal commercial travel',(
  assert.match(picker,/commercialFallback/)
  assert.doesNotMatch(jet,/private_jet_refuel_route_v1/)
 })
+
+test('commercial fallback clearly shows full party fare and ordinary fatigue in tournament UI',()=>{
+ assert.match(picker,/commercialTotal = Number\(quote\?\.commercial_player_cost/)
+ assert.match(picker,/quote\?\.commercial_staff_cost/)
+ assert.match(picker,/c\.commercialRoundTrip/)
+ assert.match(picker,/c\.commercialFatigueNote/)
+ assert.match(picker,/choice==='private_jet' && !supported \? c\.bookCommercial : c\.save/)
+ assert.match(i18n,/commercialFallback: string/)
+ assert.match(i18n,/Normal commercial travel costs and fatigue apply/)
+})
