@@ -179,6 +179,7 @@ create or replace function public.set_private_life_tournament_travel_v1(
 returns jsonb language plpgsql security definer set search_path='public','pg_temp' as $$
 declare v_player uuid; v_exists boolean; v_preparation jsonb; v_route_jet jsonb;
  v_staff_count integer:=0; v_arrive integer;
+ v_requested_mode text:=p_mode; v_fallback_reason text;
 begin
  v_player:=public.private_life_current_player_v1();
  if p_mode not in ('commercial','private_jet') then raise exception 'Invalid travel mode.'; end if;
@@ -202,8 +203,11 @@ begin
     coalesce((v_preparation->'player_travel'->>'distance_km')::integer,0),
     coalesce(v_staff_count,0),p_owned_jet_asset_id,v_arrive-1);
   if not coalesce((v_route_jet->>'active')::boolean,false) then
-    raise exception 'Selected private jet is unavailable for this itinerary: %.',
-      coalesce(v_route_jet->>'reason','range or repositioning restriction');
+    -- If an owned plane cannot make this trip directly, use normal flights.
+    -- Never invent a fuel stop or charge any private-jet operating costs.
+    v_fallback_reason:=coalesce(v_route_jet->>'reason','jet_out_of_range');
+    p_mode:='commercial';
+    p_owned_jet_asset_id:=null;
   end if;
  end if;
  insert into public.player_tournament_travel_selection(player_id,competition_id,travel_mode,owned_jet_asset_id)
@@ -211,7 +215,10 @@ begin
  on conflict(player_id,competition_id) do update set travel_mode=excluded.travel_mode,
  owned_jet_asset_id=excluded.owned_jet_asset_id,updated_at=now();
  perform public.rebuild_player_travel_plan_v1(v_player);
- return jsonb_build_object('status','saved','travel_mode',p_mode,'owned_jet_asset_id',
+ return jsonb_build_object('status',
+ case when v_requested_mode='private_jet' and p_mode='commercial'
+      then 'commercial_fallback' else 'saved' end,
+ 'travel_mode',p_mode,'fallback_reason',v_fallback_reason,'owned_jet_asset_id',
  case when p_mode='private_jet' then p_owned_jet_asset_id else null end);
 end; $$;
 revoke all on function public.set_private_life_tournament_travel_v1(uuid,text,uuid) from public,anon;
