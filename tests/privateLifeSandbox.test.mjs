@@ -72,3 +72,23 @@ test('sandbox builder rejects data dumps or missing game schema',()=>{
   assert.equal(fs.existsSync(out),false)
  })
 })
+
+
+test('Windows setup uses only read-only remote schema export and local migration commands',()=>{
+ const cmd=fs.readFileSync(path.join(root,'scripts/setup-private-life-sandbox.cmd'),'utf8')
+ assert.match(cmd,/supabase link --project-ref cwfznmroiqcyhfkfcrow/)
+ assert.match(cmd,/supabase db dump --linked --schema public -f/)
+ assert.match(cmd,/prepare-private-life-sandbox\.mjs/)
+ assert.match(cmd,/pushd "\.private-life-sandbox"/)
+ assert.match(cmd,/call npx supabase start/)
+ assert.match(cmd,/supabase status -o env/)
+ assert.match(cmd,/TL_SUPABASE_URL=http:\/\/127\.0\.0\.1:54331/)
+ assert.match(cmd,/TL_DEV_PORT=8001/)
+ // Ignore comments, warning strings and the explicit no-dangerous-commands guard.
+ const executable=cmd.split(/\r?\n/).map(x=>x.trim()).filter(x=>x &&
+   !/^(rem\b|echo\b|::|if\b.*echo\b)/i.test(x)).join('\n')
+ assert.doesNotMatch(executable,/^\s*(?:call\s+)?(?:npx\s+)?supabase\s+db\s+(?:push|reset)\b/im)
+ assert.doesNotMatch(executable,/^\s*(?:call\s+)?(?:npx\s+)?supabase\s+db\s+dump\b[^\n]*--data-only/im)
+ assert.doesNotMatch(executable,/^\s*(?:call\s+)?(?:npx\s+)?supabase\s+functions\s+deploy\b/im)
+ assert.doesNotMatch(executable,/^\s*(?:call\s+)?(?:npx\s+)?supabase\s+start\b[^\n]*--linked/im)
+})
