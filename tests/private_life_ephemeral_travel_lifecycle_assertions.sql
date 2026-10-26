@@ -8,6 +8,10 @@ declare
  v_leg uuid;v_flight public.player_travel_legs%rowtype;v_result jsonb;
  v_cost integer;v_fatigue integer;v_count integer;v_city text;
 begin
+ raise notice 'Selected Paris mode and jet: %',
+   (select row_to_json(x) from (select travel_mode,owned_jet_asset_id from public.player_tournament_travel_selection where player_id=p and competition_id=paris_comp) x);
+ raise notice 'Direct-jet preflight: %',
+   public.quote_private_jet_leg_v1(p,'Belgrade','RS','Paris','FR',1600,6,j,394);
  select public.insert_planned_travel_leg_v1(
   p,'tournament','home','Belgrade','RS',null,null,null,
   'tournament','Paris','FR',null,null,paris_comp::text,394,395,false)
