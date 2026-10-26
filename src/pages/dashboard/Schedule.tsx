@@ -14,6 +14,7 @@ import { useTranslation, type TFunction } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
+import { useCommerce } from '../../hooks/useCommerce'
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
 import TournamentJetPicker from '../../components/private-life/TournamentJetPicker'
@@ -285,6 +286,7 @@ export default function SchedulePage() {
   const { formatCurrency, formatNumber } = useLocalization()
   const money = (value: number) => formatCurrency(Math.round(value), 'USD')
   const { player, playerLoading } = useAuth()
+  const { isPremium, loading: membershipLoading } = useCommerce()
   const { dashboard: staffDashboard, loading: staffLoading } = useStaff()
   const [searchParams, setSearchParams] = useSearchParams()
   const requestedCompetitionId = searchParams.get('competition')
@@ -664,7 +666,7 @@ export default function SchedulePage() {
                 <div className="tlg-prep-stack">
                   <div className="tlg-prep-rule"><Plane size={18} /><div><strong>{t('schedulePage.preparation.automaticTiming')}</strong><p>{t('schedulePage.preparation.automaticTimingBody')}</p></div></div>
                   {estimate && <div className="tlg-prep-copy"><h3>{estimate.origin.city ?? t('schedulePage.preparation.currentLocation')} → {estimate.destination.city}</h3><p>{t('schedulePage.preparation.oneWay', { distance: distance(estimate.player_travel.distance_km, t, formatNumber), hours: estimate.player_travel.estimated_hours_one_way })}</p></div>}
-                  {nextTournament && <TournamentJetPicker
+                  {nextTournament && !membershipLoading && isPremium && <TournamentJetPicker
                      competitionId={nextTournament.competition_id}
                      staffCount={selectedStaff.length}
                      distanceKm={Number(estimate?.player_travel.distance_km ?? 0)}
