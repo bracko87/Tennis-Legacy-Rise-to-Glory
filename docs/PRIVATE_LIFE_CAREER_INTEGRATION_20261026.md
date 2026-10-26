@@ -74,6 +74,14 @@ Server-side preview RPC \`quote_my_private_life_jet_v1\` recalculates actual sel
 
 Disposable PostgreSQL regression tests execute the nine-model catalog allowlist, the authenticated group quote function, full-team seating, prices, fatigue and range; those tests do not represent complete Supabase schema execution. Production database changes and Netlify deployments remain blocked pending explicit approval.
 
+## Owner decision — simpler direct-flight rule (2026-10-26)
+
+The owner rejected the proposed refuelling-stop system. It has been **removed from source**: no new airport-network table, route-finding SQL migration, multi-stop booking logic, refuelling UI or multi-stop test fixtures remain on the current `main` branch.
+
+Only the nine screenshot-approved private jets remain eligible for tournament transport, and only when the flight is directly within the selected aircraft's range and the whole player/staff party fits. If an otherwise owned eligible jet cannot fly directly (range, staff seats or aircraft repositioning restriction), the **server and UI select normal commercial travel** instead of an error or an invented intermediate landing. The player/staff pay the usual airline fares and receive standard commercial travel fatigue; jet operational costs and discounts apply only to actual direct jet travel.
+
+Disposable PostgreSQL regression tests exercise both an allowed direct flight and the Belgrade-to-Australia fallback. No Netlify deployment or production Supabase schema changes have been authorized.
+
 ## Database verification on an isolated non-production database
 
 Supabase Branching requires separate compute charges and cost approval. Do not run these DDL migrations against production as a substitute for a development database. Once an isolated test database is available:
