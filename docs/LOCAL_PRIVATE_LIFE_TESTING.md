@@ -3,6 +3,13 @@
 **Development source:** `main` (the old `staging` branch is inactive).  
 **Production safety:** Netlify builds remain stopped. Never apply these unfinished migrations to live Supabase `cwfznmroiqcyhfkfcrow` merely to test localhost.
 
+## Current integration status — 2026-10-26
+
+- **Code is already committed to GitHub `main`** and the normal website build, Private Life booking/settlement/fatigue and cross-player ownership regression tests have passed.
+- **Full fresh local database boot is currently BLOCKED** by an older migration, `supabase/migrations/20260903081216_remove_staff_ranking_requirements.sql`, which calls `update public.staff_members` before that table exists in a newly initialized database. The isolated end-to-end `supabase start` GitHub job failed at that migration, **before reaching the three October 26 Private Life migrations**: [full-stack failure log](https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/40328987767).
+- The instructions below explain the intended local setup, but **do not currently produce a full playable Private Life environment from a fresh clone**. Please do not mistake a successful `npm run dev` frontend build for a complete functional test.
+- We are not rewriting already-applied historic migration files or applying private-life DDL to the live project as a shortcut. A production-based **isolated Supabase development branch** can avoid the missing historical bootstrap, but requires explicit billing approval (see below).
+
 ## Prerequisites
 
 - Node.js 22 and npm
@@ -34,7 +41,7 @@ npx supabase start
 npx supabase status
 ```
 
-The Supabase CLI should run the repository's migration chain **locally** against a Docker database. This repository currently contains **591 migrations**, so the first initialization can be substantial; do not assume everything is ready unless the command finishes without errors. Local services normally use:
+The Supabase CLI attempts the repository's migration chain **locally** against a Docker database. This repository currently contains **591 migrations**, and as of October 26 **a fresh run is known to fail** at the September 3 `public.staff_members` dependency described above. Do not proceed to functional gameplay testing unless this historical schema bootstrap is fixed and `supabase start` completes successfully. Local services normally use:
 
 - API: `http://127.0.0.1:54321`
 - Database: `127.0.0.1:54322`
@@ -43,7 +50,7 @@ The Supabase CLI should run the repository's migration chain **locally** against
 
 Run `npx supabase status -o env` to get the **local** `ANON_KEY` (or the locally generated publishable key if your CLI provides one). Do **not** use the production project's key for an isolated local test.
 
-If the 591 migrations fail, **stop and share that error**. Do not run `supabase db push`, `supabase link`, or any production SQL operation as a workaround. `supabase db reset --local` destroys **only your local** data; do not run that command if you have created local test accounts you need to keep.
+If the 591 migrations fail, **stop and report the error**; the missing early staff table is already tracked. Do not run `supabase db push`, `supabase link`, or any production SQL operation as a workaround. `supabase db reset --local` destroys **only your local** data; do not run that command if you have created local test accounts you need to keep.
 
 ## 3. Point the website at local Supabase
 
@@ -86,7 +93,7 @@ GitHub Actions runs the application build, syntax checks, purchase/travel settle
 
 ## If you cannot run Docker
 
-A hosted **Supabase development branch** would be required for equivalent backend testing. The project-specific branch estimate obtained on October 26, 2026 was **$0.01344 per hour**, subject to service billing conditions. I have **not** created or authorized a billable branch. Ask for an isolated branch explicitly, approve that cost, and use its **development** API URL and publishable key with the same build overrides.
+A hosted **Supabase development branch**, created from the existing full production schema without user data where supported, is the recommended alternative while the historical local migration chain is broken. The project-specific branch estimate obtained on October 26, 2026 was **$0.01344 per hour**, subject to service billing conditions. I have **not** created or authorized a billable branch. Ask for an isolated branch explicitly, approve that cost, and use its **development** API URL and publishable key with the same build overrides.
 
 ## Release boundary
 
