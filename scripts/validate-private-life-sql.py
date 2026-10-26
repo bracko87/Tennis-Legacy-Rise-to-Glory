@@ -18,7 +18,6 @@ FILES = (
     "supabase/migrations/20261026093000_private_life_career_foundation_v1.sql",
     "supabase/migrations/20261026094500_private_life_jet_travel_integration_v1.sql",
     "supabase/migrations/20261026095500_private_life_profile_residence_v1.sql",
-    "supabase/migrations/20261026123000_private_jet_multistop_v1.sql",
     "tests/private_life_career_db_smoke.sql",
 )
 
