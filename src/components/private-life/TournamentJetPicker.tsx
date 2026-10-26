@@ -101,14 +101,17 @@ export default function TournamentJetPicker({
  const supported = supportedBySeats && supportedByRange && jetPreview?.active === true && !jetPreviewLoading
  const staffOnBoard = supported ? Math.max(0,staffCount) : 0
  async function save() {
-  if(choice==='private_jet' && !supported) return
+  if(choice==='private_jet' && jetPreviewLoading) return
+  const requestedMode = choice==='private_jet' && !supported ? 'commercial' : choice
   setBusy(true);setError(null);setNotice(null)
-  const {error:saveError} = await supabase.rpc('set_private_life_tournament_travel_v1',{
-   p_competition_id:competitionId,p_mode:choice,p_owned_jet_asset_id:choice==='private_jet'?assetId:null,
+  const {data:saveData,error:saveError} = await supabase.rpc('set_private_life_tournament_travel_v1',{
+   p_competition_id:competitionId,p_mode:requestedMode,
+   p_owned_jet_asset_id:requestedMode==='private_jet'?assetId:null,
   })
   if(saveError){setError(saveError.message);setBusy(false);return}
   await reload()
-  setNotice(choice==='private_jet' ? c.bookJet : c.bookCommercial)
+  const usedCommercial = requestedMode==='commercial' || saveData?.travel_mode==='commercial'
+  setNotice(choice==='private_jet' && usedCommercial ? c.commercialFallback : usedCommercial ? c.bookCommercial : c.bookJet)
   onChanged()
   setBusy(false)
  }
@@ -142,12 +145,12 @@ export default function TournamentJetPicker({
       {supported && <div><span>{c.overnightTransfer}</span><strong>{jetPreview?.overnight_transfer_possible ? c.overnightCandidate : c.overnightTooLong}</strong></div>}
      </div>}
      {jetPreviewLoading && <p>{c.loading}</p>}
-     {!jetPreviewLoading && !supported && <p className="tlg-jet-error">{c.jetNotAvailable}{jetPreview?.reason ? ` (${jetPreview.reason})` : ''}</p>}
+     {!jetPreviewLoading && !supported && <p className="tlg-jet-commercial">{c.commercialFallback}</p>}
      {supported && <small>{c.fullPartyCostNote} {c.overnightDisclaimer}</small>}
     </>}
-    {choice === 'commercial' && <p className="tlg-jet-commercial">{c.commercial} · {money(Number(quote?.commercial_player_cost ?? 0))}</p>}
+    {choice === 'commercial' && <p className="tlg-jet-commercial">{c.commercial} · {money(Number(quote?.commercial_player_cost ?? 0)+Number(quote?.commercial_staff_cost ?? 0))} ({c.playerAndStaff})</p>}
     <button type="button" className="tlg-jet-save" onClick={()=>void save()}
-      disabled={busy || (choice==='private_jet' && !supported)}>{busy ? c.loading : c.save}</button>
+      disabled={busy || (choice==='private_jet' && jetPreviewLoading)}>{busy ? c.loading : c.save}</button>
     {notice && <p className="tlg-jet-success" role="status">{notice}</p>}
    </>}
   </div>
