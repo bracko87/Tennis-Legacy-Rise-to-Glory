@@ -60,5 +60,20 @@ begin
  v:=public.quote_private_jet_leg_v1(p,'Madrid','ES','Paris','FR',1600,0,j,396);
  if (v->>'reposition_cost')::integer<>0 then
   raise exception 'Projected aircraft position in planned journey not applied: %',v; end if;
- raise notice 'PASS: authenticated group quote, jet position, prop exclusion, range, fare, fatigue cap, staff overflow, reposition and planned continuation';
+ v:=public.set_private_life_tournament_travel_v1(
+    '66666666-6666-6666-6666-666666666666','private_jet',j);
+ if v->>'status'<>'commercial_fallback' or v->>'travel_mode'<>'commercial'
+   or v->>'owned_jet_asset_id' is not null then
+  raise exception 'Out-of-range jet must automatically switch to commercial travel: %',v;
+ end if;
+ select count(*) into v_total from public.player_tournament_travel_selection
+  where player_id=p and competition_id='66666666-6666-6666-6666-666666666666'
+   and travel_mode='commercial' and owned_jet_asset_id is null;
+ if v_total<>1 then raise exception 'Commercial fallback was not saved';end if;
+ v:=public.set_private_life_tournament_travel_v1(
+    '44444444-4444-4444-4444-444444444444','private_jet',j);
+ if v->>'status'<>'saved' or v->>'travel_mode'<>'private_jet' then
+   raise exception 'In-range jet must still be bookable: %',v;
+ end if;
+ raise notice 'PASS: direct jet booking and automatic commercial fallback for Serbia–Australia';
 end $$;
