@@ -119,6 +119,7 @@ declare v_jet record; v_position record; v_home jsonb; v_last record;
  v_range integer; v_capacity integer; v_base integer; v_rate numeric;
  v_reduction integer; v_reposition integer:=0; v_distance integer:=0;
  v_origin_city text; v_origin_country text; v_reposition_quote jsonb;
+ v_speed numeric; v_handling numeric; v_hours numeric; v_overnight_limit numeric;
 begin
  if coalesce(p_distance_km,0)<1 then return jsonb_build_object('active',false,'reason','no_flight'); end if;
  select o.id,c.name,c.code,c.tier,c.metadata into v_jet
@@ -134,6 +135,14 @@ begin
  v_base:=(v_jet.metadata->>'base_trip_cost')::integer;
  v_rate:=(v_jet.metadata->>'cost_per_km')::numeric;
  v_reduction:=least(5000,greatest(0,(v_jet.metadata->>'travel_fatigue_reduction_bps')::integer));
+ if v_capacity<1+greatest(0,coalesce(p_staff_count,0)) then
+   return jsonb_build_object('active',false,'reason','insufficient_passenger_seats',
+     'required_seats',1+greatest(0,coalesce(p_staff_count,0)),'passenger_capacity',v_capacity);
+ end if;
+ v_speed:=greatest(400,coalesce((v_jet.metadata->>'cruise_speed_kmh')::numeric,750));
+ v_handling:=greatest(0,coalesce((v_jet.metadata->>'airport_handling_hours')::numeric,1.5));
+ v_hours:=round(p_distance_km::numeric/v_speed+v_handling,1);
+ v_overnight_limit:=coalesce((v_jet.metadata->>'overnight_transfer_limit_hours')::numeric,10);
  select city,country_code into v_origin_city,v_origin_country from public.player_private_jet_positions where owned_asset_id=v_jet.id;
  -- Later booked legs inherit the aircraft's projected position, avoiding false repositioning on returns.
  if p_departure_day is not null then
@@ -155,12 +164,13 @@ begin
  end if;
  return jsonb_build_object('active',true,'owned_asset_id',v_jet.id,'name',v_jet.name,
    'catalog_code',v_jet.code,'distance_km',p_distance_km,'max_range_km',v_range,
-   'passenger_capacity',v_capacity,'staff_on_jet',least(greatest(0,p_staff_count),greatest(0,v_capacity-1)),
-   'staff_commercial',greatest(0,p_staff_count-greatest(0,v_capacity-1)),
+   'passenger_capacity',v_capacity,'party_size',1+greatest(0,coalesce(p_staff_count,0)),
+   'staff_on_jet',greatest(0,coalesce(p_staff_count,0)),'staff_commercial',0,
    'reduction_bps',v_reduction,'reduction_percent',round(v_reduction::numeric/100),
    'reposition_cost',v_reposition,'base_trip_cost',v_base,'cost_per_km',v_rate,
    'cost_one_way',v_base+ceil(p_distance_km*v_rate)::integer+1000+v_reposition,
-   'estimated_hours',round((p_distance_km::numeric/750)+1.5,1));
+   'estimated_hours',v_hours,'overnight_transfer_possible',v_hours<=v_overnight_limit,
+   'single_party_charge',true);
 end; $$;
 revoke all on function public.quote_private_jet_leg_v1(uuid,text,text,text,text,integer,integer,uuid,integer) from public,anon,authenticated;
 
@@ -224,7 +234,9 @@ begin
  'passenger_capacity',(c.metadata->>'passenger_capacity')::integer,
  'cost_per_km',(c.metadata->>'cost_per_km')::numeric,
  'base_trip_cost',(c.metadata->>'base_trip_cost')::integer,
- 'reduction_percent',round((c.metadata->>'travel_fatigue_reduction_bps')::numeric/100))
+ 'reduction_percent',round((c.metadata->>'travel_fatigue_reduction_bps')::numeric/100),
+ 'cruise_speed_kmh',(c.metadata->>'cruise_speed_kmh')::integer,
+ 'overnight_transfer_limit_hours',(c.metadata->>'overnight_transfer_limit_hours')::numeric)
  order by c.tier desc,o.purchase_price desc),'[]'::jsonb) into v_jets
  from public.private_life_player_assets o join public.private_life_asset_catalog c on c.code=o.catalog_code
  where o.player_id=v_player and o.sold_absolute_day is null
@@ -337,7 +349,6 @@ begin
     v_jet_applies:=coalesce((v_jet->>'active')::boolean,false)
       and (v_mode='private_jet' or (
          (v_jet->>'cost_one_way')::integer
-         +coalesce((v_jet->>'staff_commercial')::integer,0)*coalesce((v_staff_quote->>'cost')::integer,0)
          < (q->>'cost')::integer+coalesce(v_staff_count,0)*coalesce((v_staff_quote->>'cost')::integer,0)
       ));
     if v_jet_applies then
@@ -872,10 +883,11 @@ begin
   if v_mode in ('private_jet','cheapest') then
     v_jet:=public.quote_private_jet_leg_v1(p_player_id,v_origin->>'city',v_origin->>'country_code',v_city,v_country,
       (v_travel->>'distance_km')::integer,v_staff_count,v_jet_id,v_arrival_abs-1);
-    if coalesce((v_jet->>'active')::boolean,false) and (v_mode='private_jet' or 2*(v_jet->>'cost_one_way')::integer-(v_jet->>'reposition_cost')::integer + (v_staff_travel->>'cost')::integer * (v_jet->>'staff_commercial')::integer < v_player_cost + v_staff_cost) then
+    if coalesce((v_jet->>'active')::boolean,false) and (v_mode='private_jet' or 2*(v_jet->>'cost_one_way')::integer-(v_jet->>'reposition_cost')::integer < v_player_cost + v_staff_cost) then
       v_player_cost:=2*(v_jet->>'cost_one_way')::integer-(v_jet->>'reposition_cost')::integer;
-      v_jet_extra_staff:=(v_jet->>'staff_commercial')::integer;
-      v_staff_cost:=(v_staff_travel->>'cost')::integer*v_jet_extra_staff;
+      -- One aircraft operating charge includes every selected staff member.
+      v_jet_extra_staff:=0;
+      v_staff_cost:=0;
       v_travel:=v_travel||jsonb_build_object('private_jet',v_jet,
          'arrival_fatigue',greatest(1,round((v_travel->>'arrival_fatigue')::numeric*
          (10000-(v_jet->>'reduction_bps')::numeric)/10000)::integer));
