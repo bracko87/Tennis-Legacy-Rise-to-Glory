@@ -11,6 +11,8 @@ export type OwnedTravelJet = {
   cost_per_km: number
   base_trip_cost: number
   reduction_percent: number
+  cruise_speed_kmh?: number
+  overnight_transfer_limit_hours?: number
 }
 
 export type LifestyleCareer = {
