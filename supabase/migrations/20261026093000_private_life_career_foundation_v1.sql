@@ -89,6 +89,24 @@ drop trigger if exists trg_lifestyle_prevent_active_home_sale on public.private_
 create trigger trg_lifestyle_prevent_active_home_sale before update of sold_absolute_day on public.private_life_player_assets
  for each row execute function public.lifestyle_prevent_active_home_sale_v1();
 
+
+-- Reject a sale at listing time instead of letting the settlement cron repeatedly fail.
+create or replace function public.lifestyle_prevent_home_listing_v1()
+returns trigger language plpgsql security definer set search_path='public','pg_temp' as $
+begin
+ if new.status='pending' and exists(
+  select 1 from public.player_lifestyle_state s
+  where s.player_id=new.player_id and
+   (s.active_residence_asset_id=new.player_asset_id or s.pending_residence_asset_id=new.player_asset_id)
+ ) then raise exception 'Select a different Home Base before listing this property.'; end if;
+ return new;
+end; $;
+revoke all on function public.lifestyle_prevent_home_listing_v1() from public,anon,authenticated;
+drop trigger if exists trg_lifestyle_prevent_home_listing on public.private_life_asset_sale_listings;
+create trigger trg_lifestyle_prevent_home_listing
+ before insert or update of status,player_asset_id on public.private_life_asset_sale_listings
+ for each row execute function public.lifestyle_prevent_home_listing_v1();
+
 create or replace function public.set_private_life_home_base_v1(p_owned_asset_id uuid)
 returns jsonb language plpgsql security definer set search_path='public','pg_temp' as $$
 declare v_player uuid; v_asset record; v_state public.player_location_state%rowtype;
@@ -102,6 +120,7 @@ begin
  where a.id=p_owned_asset_id and a.player_id=v_player and a.sold_absolute_day is null
  and c.category in ('apartment','house_villa');
  if v_asset.id is null then raise exception 'Select a residential property you currently own.'; end if;
+ if exists(select 1 from public.private_life_asset_sale_listings x where x.player_asset_id=p_owned_asset_id and x.status='pending') then raise exception 'Cancel the sale listing before selecting this residence.'; end if;
  select public.game_day_absolute_v1(season,month,day) into v_current from public.get_current_game_day_internal_v1();
  insert into public.player_lifestyle_state(player_id) values(v_player) on conflict do nothing;
  select last_relocation_absolute_day,pending_residence_asset_id into v_last,v_pending from public.player_lifestyle_state where player_id=v_player for update;
