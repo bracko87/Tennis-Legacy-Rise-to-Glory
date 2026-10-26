@@ -40,5 +40,6 @@ begin
  if coalesce((r->>'active')::boolean,false) then
   raise exception 'Unsupported ocean gap should never teleport: %',r;
  end if;
+ raise notice 'REFUEL_AIRPORTS: %',q->'refuel_stops';
  raise notice 'PASS: Serbia-Australia private jet with % refuelling stops, % game travel days and % km, no staff extra fares',v_stops,v_days,v_total;
 end;$multistop_tests$;
