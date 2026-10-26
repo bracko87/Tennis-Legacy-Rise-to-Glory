@@ -170,6 +170,11 @@ begin
  then raise exception 'This tournament is not entered.'; end if;
  select * into v_selection from public.player_tournament_travel_selection
  where player_id=v_player and competition_id=p_competition_id;
+ if v_selection.travel_mode is null then
+   select case when preferred_travel_mode='best_owned_jet' then 'private_jet'
+          else 'commercial' end as travel_mode,null::uuid as owned_jet_asset_id
+     into v_selection from public.player_lifestyle_state where player_id=v_player;
+ end if;
  select public.quote_tournament_preparation_v1(v_player,p_competition_id) into v_base;
  select coalesce(array_length(selected_staff_contract_ids,1),0) into v_staff
  from public.player_tournament_preparation_plans where player_id=v_player and competition_id=p_competition_id;
@@ -177,8 +182,8 @@ begin
  v_base->'origin'->>'country_code',v_base->'destination'->>'city',
  v_base->'destination'->>'country_code',coalesce((v_base->'player_travel'->>'distance_km')::integer,0),
  coalesce(v_staff,0),v_selection.owned_jet_asset_id,coalesce((v_base->>'arrival_absolute_day')::integer,0)-1);
- return jsonb_build_object('selected_mode',coalesce(v_selection.travel_mode,'default'),
- 'selected_asset_id',v_selection.owned_jet_asset_id,
+ return jsonb_build_object('selected_mode',coalesce(v_selection.travel_mode,'commercial'),
+ 'selected_asset_id',coalesce(v_selection.owned_jet_asset_id,(v_quote->>'owned_asset_id')::uuid),
  'private_jet_quote',v_quote,'commercial_player_cost',v_base->'player_travel_cost',
  'commercial_staff_cost',v_base->'staff_travel_cost');
 end; $$;
@@ -765,6 +770,8 @@ begin
       v_travel:=v_travel||jsonb_build_object('private_jet',v_jet,
          'arrival_fatigue',greatest(1,round((v_travel->>'arrival_fatigue')::numeric*
          (10000-(v_jet->>'reduction_bps')::numeric)/10000)::integer));
+    else
+      v_jet:=jsonb_build_object('active',false,'reason','commercial_cheaper_or_unavailable');
     end if;
   end if;
   v_total_min:=v_player_cost+v_staff_cost+(v_hotel_min->>'total')::integer;
