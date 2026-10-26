@@ -50,7 +50,7 @@ where c.category='private_jet';
 -- An aircraft's physical position is fixed at purchase. Moving Home Base must
 -- not teleport an already-owned jet to another country for free.
 create or replace function public.initialize_private_jet_position_v1()
-returns trigger language plpgsql security definer set search_path='public','pg_temp' as $
+returns trigger language plpgsql security definer set search_path='public','pg_temp' as $$
 declare v_city text;v_country text;
 begin
  if new.sold_absolute_day is not null then return new; end if;
@@ -68,7 +68,7 @@ begin
   values(new.id,new.player_id,v_city,v_country) on conflict(owned_asset_id) do nothing;
  end if;
  return new;
-end; $;
+end; $$;
 revoke all on function public.initialize_private_jet_position_v1() from public,anon,authenticated;
 drop trigger if exists trg_initialize_private_jet_position on public.private_life_player_assets;
 create trigger trg_initialize_private_jet_position after insert on public.private_life_player_assets
