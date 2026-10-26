@@ -61,6 +61,12 @@ begin
     if SQLERRM='Cooldown unexpectedly allowed another move' then raise; end if;
     if SQLERRM not like '%30 game days%' then raise; end if;
   end;
+  select count(*) into v_count from public.test_plan_rebuild_calls where player_id=p;
+  if v_count<>1 then raise exception 'Relocation should rebuild once, got %',v_count; end if;
+  v_result:=public.set_private_life_travel_preference_v1('best_owned_jet');
+  if v_result->>'preferred_travel_mode'<>'best_owned_jet' then raise exception 'New preference was not saved'; end if;
+  select count(*) into v_count from public.test_plan_rebuild_calls where player_id=p;
+  if v_count<>2 then raise exception 'Changing travel preference must rebuild pending journeys, got %',v_count; end if;
   raise notice 'PASS: purchases, cap, 14-day cooldown, decay, two-day move, nationality, fee idempotency, listing and 30-day cooldown';
 end $$;
 rollback;
