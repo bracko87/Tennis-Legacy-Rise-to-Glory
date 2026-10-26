@@ -5,8 +5,12 @@ import { createClient } from '@supabase/supabase-js'
  * The publishable key is intentionally safe for browser use; database access
  * remains protected by Row Level Security.
  */
-const SUPABASE_URL = 'https://cwfznmroiqcyhfkfcrow.supabase.co'
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_FpDi8rEB6r1Ai49UMS_R2Q__UAGburi'
+// These values are supplied by esbuild's compile-time define. Test builds can
+// point to an isolated local Supabase stack without affecting production.
+declare const __TL_SUPABASE_URL__: string
+declare const __TL_SUPABASE_PUBLISHABLE_KEY__: string
+const SUPABASE_URL = __TL_SUPABASE_URL__
+const SUPABASE_PUBLISHABLE_KEY = __TL_SUPABASE_PUBLISHABLE_KEY__
 const SUPABASE_REQUEST_TIMEOUT_MS = 15_000
 
 /**
