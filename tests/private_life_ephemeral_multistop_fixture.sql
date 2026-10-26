@@ -31,3 +31,10 @@ insert into public.private_life_player_assets(id,player_id,catalog_code,acquisit
 values ('55555555-5555-5555-5555-555555555555',
  '11111111-1111-1111-1111-111111111111',
  'air_cessaro_citation_m3','purchase',391);
+
+-- Production scheduling routine uses this rowtype; the synthetic DB models only the columns it accesses.
+create table public.tournament_match_scheduling_rules (
+ category_code text primary key,
+ pre_match_arrival_buffer_minutes integer default 90,
+ post_match_departure_buffer_minutes integer default 60
+);
