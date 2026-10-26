@@ -31,6 +31,19 @@ begin
     'player_private_jet_positions','player_tournament_travel_selection') and c.relrowsecurity;
   if v_count<>4 then raise exception 'One or more private data tables missing RLS'; end if;
 
+  -- The empty-schema sandbox has local-only catalog fixtures. These nine
+  -- specific model codes must have been seeded BEFORE the feature migration,
+  -- then enabled by that migration; avoid false-positive vacuous checks.
+  select count(*) into v_count from public.private_life_asset_catalog
+  where code in (
+    'air_cessaro_citation_m3','air_emborgier_phenom_350e',
+    'air_bombara_challenger_420','air_cessaro_citation_latitude_x',
+    'air_emborgier_praetor_680','air_dassier_falcon_9x',
+    'air_gulfstar_g650_lx','air_bombara_global_8000x',
+    'air_gulfstar_g900_sovereign')
+    and coalesce((metadata->>'tournament_travel_eligible')::boolean,false);
+  if v_count<>9 then raise exception 'Expected 9 enabled tournament jet models, found %',v_count; end if;
+
   select count(*) into v_count from public.private_life_asset_catalog
   where category='private_jet' and
     (metadata->>'tournament_travel_eligible')::boolean=true and
