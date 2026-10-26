@@ -68,7 +68,7 @@ if errorlevel 1 goto :failed
 if not exist ".private-life-schema\existing.sql" goto :failed
 
 echo.
-echo [5/5] Build the separate local migration stack...
+echo [5/6] Build the separate local migration stack...
 node scripts\prepare-private-life-sandbox.mjs ".private-life-schema\existing.sql"
 if errorlevel 1 goto :failed
 
@@ -91,10 +91,33 @@ if errorlevel 1 (
   popd
   goto :failed
 )
+echo.
+echo [6/6] Verify Private Life schema and scheduled job in LOCAL Docker...
+rem Only the isolated sandbox database container is accepted here.
+set "LOCAL_DB_CONTAINER="
+for /f "delims=" %%D in ('docker ps --filter "name=^/supabase_db_tennis_private_life_sandbox$" --format "{{.ID}}"') do set "LOCAL_DB_CONTAINER=%%D"
+if not defined LOCAL_DB_CONTAINER (
+  echo ERROR: Cannot identify the local Private Life sandbox PostgreSQL container.
+  popd
+  exit /b 1
+)
+if not exist "..\tests\private_life_career_db_smoke.sql" (
+  echo ERROR: Private Life schema smoke test file was not found.
+  popd
+  exit /b 1
+)
+type "..\tests\private_life_career_db_smoke.sql" | docker exec -i "%LOCAL_DB_CONTAINER%" psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 -f -
+if errorlevel 1 (
+  echo ERROR: Private Life LOCAL schema smoke test FAILED.
+  echo Stop here. Do not test gameplay or modify the live database.
+  popd
+  exit /b 1
+)
 popd
 echo.
 echo ============================================================
-echo  Local sandbox startup succeeded.
+echo  Local schema integration smoke test PASSED.
+echo  This does NOT certify logged-in gameplay or catalog seed data.
 echo  In a second CMD window, FROM THE GAME REPOSITORY, enter:
 echo    set TL_SUPABASE_URL=http://127.0.0.1:54331
 echo    set TL_SUPABASE_PUBLISHABLE_KEY=YOUR_LOCAL_ANON_KEY
