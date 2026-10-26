@@ -1,6 +1,9 @@
 -- Runtime test of the real booked-flight creation and travel-day processing.
 -- Applied only after the earlier synthetic foundation/jet/whitelist assertions.
 -- No production Supabase connection or real player data.
+select set_config('app.test_uid','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',false);
+select set_config('app.month','1',false);
+select set_config('app.day','1',false);
 alter table public.player_skills add column fatigue smallint not null default 0;
 alter table public.player_location_state
   add column current_continent text,
