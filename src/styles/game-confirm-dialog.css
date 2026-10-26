@@ -13,6 +13,10 @@
 .tlg-game-confirm-dialog {
   width: min(470px, calc(100vw - 32px));
   position: relative;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
   overflow: hidden;
   border: 1px solid #d9e5ec;
   border-left: 5px solid #d69721;
@@ -24,6 +28,21 @@
 
 .tlg-game-confirm-dialog.wide {
   width: min(760px, calc(100vw - 32px));
+}
+
+/* Keep close and action buttons reachable while tall images and details scroll. */
+.tlg-game-confirm-head, .tlg-game-confirm-actions { flex: 0 0 auto; }
+.tlg-game-confirm-scroll-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.tlg-game-confirm-scroll-area:focus-visible {
+  outline: 2px solid #0d79bd;
+  outline-offset: -3px;
 }
 
 .tlg-game-confirm-dialog.danger {
@@ -236,7 +255,8 @@
   .tlg-game-confirm-dialog.wide {
     width: 100%;
     max-height: calc(100vh - 24px);
-    overflow-y: auto;
+    max-height: calc(100dvh - 24px);
+    overflow: hidden;
   }
 
   .tlg-game-confirm-hero {
