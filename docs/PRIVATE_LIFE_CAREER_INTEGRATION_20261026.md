@@ -2,6 +2,15 @@
 
 **Branch:** `main` (source-only development; Netlify builds remain stopped). **Status:** source committed and GitHub build validated; database migrations **not applied to production**. Isolated DB integration tests and browser QA remain required. **Date:** 2026-10-26.
 
+## Windows database-test bootstrap — 2026-10-26
+
+The initial schema-only local sandbox is now accessible through `scripts/setup-private-life-sandbox.cmd`. It validates Docker/Node, runs Supabase CLI login and link, performs the **read-only `supabase db dump --linked --schema public`**, generates a distinct local Supabase migration stack, starts Docker Supabase on 54331 and prints the **local** anon key for localhost testing. The script never performs a remote reset, push or deployment. Source control ignores all generated schema and sandbox files.
+
+GitHub's source checks passed after adding the launcher and a negative test that rejects remote-writing CLI commands:
+https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/40374923014
+
+**Still outstanding:** a person with authenticated Supabase CLI access must run the script on a computer with Docker Desktop; the connected Supabase tool cannot generate a complete `pg_dump` archive itself. The actual full-schema restore, three-migration execution and browser tests are not yet certified. This step is not a production deployment approval.
+
 ## Release-critical direct-RPC permission audit (2026-10-26)
 
 Read-only production inspection uncovered that seven legacy internal travel functions were `SECURITY DEFINER` and still directly executable by both `anon` and `authenticated`. Some functions accepted an arbitrary player ID or travel-leg ID and could mutate travel plans, apply a travel settlement, or reveal travel origins; ownership checks in higher-level public RPCs do not protect direct invocation of these internal helpers.
