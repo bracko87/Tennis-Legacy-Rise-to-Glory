@@ -89,6 +89,13 @@ returns jsonb language sql stable as $quote_lifecycle$
    'basis','fixture-quote')
 $quote_lifecycle$;
 
+-- Buy the approved Citation M3 after catalog whitelist enforcement.
+-- The retired synthetic 'test_real_jet' must NEVER be made eligible again.
+insert into public.private_life_player_assets(
+ id,player_id,catalog_code,acquisition_type,purchase_absolute_day,purchase_price)
+values('77777777-7777-7777-7777-777777777777',
+ '11111111-1111-1111-1111-111111111111',
+ 'air_cessaro_citation_m3','purchase',391,100000);
 -- All six selected coaches accompany the player. No extra jet air tickets.
 update public.player_tournament_preparation_plans
  set selected_staff_contract_ids=array[
@@ -104,3 +111,8 @@ update public.player_tournament_preparation_plans
 -- before the journey lifecycle to avoid modeling two simultaneous trips.
 delete from public.player_travel_legs
 where id='33333333-3333-3333-3333-333333333333';
+-- Explicitly book the approved jet for the feasible Paris tournament.
+select public.set_private_life_tournament_travel_v1(
+ '44444444-4444-4444-4444-444444444444','private_jet',
+ '77777777-7777-7777-7777-777777777777');
+
