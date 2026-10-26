@@ -275,6 +275,9 @@ begin
  v_hours:=round(v_route_distance::numeric/v_speed+v_handling+v_stop_count*1.8,1);
  -- Cap of 18 flight/handling hours in one game day; longer routes need days.
  v_days:=greatest(1,ceil(v_hours/18.0)::integer);
+ -- For very long journeys, add crew/passenger rest between game travel
+ -- days. The quoted elapsed duration is what the match-time scheduler uses.
+ v_hours:=round(v_hours+6*greatest(0,v_days-1),1);
 
  select pos.city,pos.country_code into v_aircraft_city,v_aircraft_country
  from public.player_private_jet_positions pos where pos.owned_asset_id=v_jet.id;
