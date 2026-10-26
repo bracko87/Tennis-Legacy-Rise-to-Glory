@@ -1,6 +1,6 @@
 # Tennis Legacy — Private Life ↔ career integration
 
-**Branch:** staging only. **Status:** implementation staged; database migrations **not applied to production**. Manual staging DB and browser QA required before release. **Date:** 2026-10-26.
+**Branch:** `main` (source-only development; Netlify builds remain stopped). **Status:** source committed and GitHub build validated; database migrations **not applied to production**. Isolated DB integration tests and browser QA remain required. **Date:** 2026-10-26.
 
 ## Design rules
 
@@ -29,9 +29,9 @@ Frontend:
 - Updated \`PrivateLife.tsx\`, \`Schedule.tsx\`, \`Overview.tsx\`, \`PlayerProfile.tsx\`, \`GamePreferences.tsx\`
 - \`src/styles/private-life-career.css\`
 
-## Database verification on an isolated non-production branch
+## Database verification on an isolated non-production database
 
-Supabase Branching requires separate compute charges and cost approval. Do not run these DDL migrations against production as a substitute for a development database. Once an isolated staging database is available:
+Supabase Branching requires separate compute charges and cost approval. Do not run these DDL migrations against production as a substitute for a development database. Once an isolated test database is available:
 
 1. Apply all three migrations in order. Ensure function replacements preserve existing grants and don't regress established travel jobs.
 2. Run \`tests/private_life_career_db_smoke.sql\` in the **development** database.
@@ -43,7 +43,7 @@ Supabase Branching requires separate compute charges and cost approval. Do not r
 
 ## Frontend/build checks
 
-From repository root on staging:
+From repository root on main:
 - \`node --test tests/lifestyleCareerContract.test.mjs\`
 - \`npm ci\`
 - \`npm run check:pt\`
