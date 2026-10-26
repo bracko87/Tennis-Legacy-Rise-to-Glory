@@ -223,6 +223,8 @@ grant execute on function public.get_my_private_life_career_v1() to authenticate
 create or replace function public.get_private_life_tournament_travel_v1(p_competition_id uuid)
 returns jsonb language plpgsql stable security definer set search_path='public','pg_temp' as $$
 declare v_player uuid;v_selection record;v_quote jsonb;v_base jsonb;v_staff integer:=0;
+ v_plan public.player_tournament_preparation_plans%rowtype;
+ v_commercial_player jsonb;v_commercial_staff jsonb;
 begin
  v_player:=public.private_life_current_player_v1();
  if not exists(select 1 from public.tournament_entries where player_id=v_player and competition_id=p_competition_id)
@@ -234,17 +236,35 @@ begin
           else 'commercial' end as travel_mode,null::uuid as owned_jet_asset_id
      into v_selection from public.player_lifestyle_state where player_id=v_player;
  end if;
- select public.quote_tournament_preparation_v1(v_player,p_competition_id) into v_base;
- select coalesce(array_length(selected_staff_contract_ids,1),0) into v_staff
- from public.player_tournament_preparation_plans where player_id=v_player and competition_id=p_competition_id;
+ select * into v_plan from public.player_tournament_preparation_plans
+ where player_id=v_player and competition_id=p_competition_id;
+ v_staff:=coalesce(array_length(v_plan.selected_staff_contract_ids,1),0);
+ v_base:=public.quote_tournament_preparation_v1(
+  v_player,p_competition_id,coalesce(v_plan.player_travel_class,'Economy'),
+  coalesce(v_plan.staff_travel_class,'Economy'),coalesce(v_plan.hotel_tier,'Standard'),
+  coalesce(v_plan.selected_staff_contract_ids,'{}'::uuid[]));
+ -- Always compute a separate commercial baseline, even when the selected
+ -- itinerary currently uses the owned jet.
+ v_commercial_player:=public.quote_travel_v2(
+  v_base->'origin'->>'city',v_base->'origin'->>'country_code',
+  nullif(v_base->'origin'->>'latitude','')::double precision,
+  nullif(v_base->'origin'->>'longitude','')::double precision,
+  v_base->'destination'->>'city',v_base->'destination'->>'country_code',
+  null,null,coalesce(v_plan.player_travel_class,'Economy'),'round_trip');
+ v_commercial_staff:=public.quote_travel_v2(
+  v_base->'origin'->>'city',v_base->'origin'->>'country_code',
+  nullif(v_base->'origin'->>'latitude','')::double precision,
+  nullif(v_base->'origin'->>'longitude','')::double precision,
+  v_base->'destination'->>'city',v_base->'destination'->>'country_code',
+  null,null,coalesce(v_plan.staff_travel_class,'Economy'),'round_trip');
  v_quote:=public.quote_private_jet_leg_v1(v_player,v_base->'origin'->>'city',
  v_base->'origin'->>'country_code',v_base->'destination'->>'city',
  v_base->'destination'->>'country_code',coalesce((v_base->'player_travel'->>'distance_km')::integer,0),
  coalesce(v_staff,0),v_selection.owned_jet_asset_id,coalesce((v_base->>'arrival_absolute_day')::integer,0)-1);
  return jsonb_build_object('selected_mode',coalesce(v_selection.travel_mode,'commercial'),
  'selected_asset_id',coalesce(v_selection.owned_jet_asset_id,(v_quote->>'owned_asset_id')::uuid),
- 'private_jet_quote',v_quote,'commercial_player_cost',v_base->'player_travel_cost',
- 'commercial_staff_cost',v_base->'staff_travel_cost');
+ 'private_jet_quote',v_quote,'commercial_player_cost',(v_commercial_player->>'cost')::integer,
+ 'commercial_staff_cost',coalesce(v_staff,0)*(v_commercial_staff->>'cost')::integer);
 end; $$;
 revoke all on function public.get_private_life_tournament_travel_v1(uuid) from public,anon;
 grant execute on function public.get_private_life_tournament_travel_v1(uuid) to authenticated;
