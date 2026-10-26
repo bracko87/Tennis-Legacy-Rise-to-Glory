@@ -11,7 +11,7 @@ export type LifestyleCopy = {
  staffIncluded: string; includedInFare: string; fullPartyCostNote: string;
  overnightTransfer: string; overnightCandidate: string; overnightTooLong: string; overnightDisclaimer: string;
  commercialFallback: string; playerAndStaff: string;
- commercialRoundTrip: string; commercialFatigueNote: string
+ commercialRoundTrip: string; commercialFatigueNote: string; backendPending: string
 }
 
 const english: LifestyleCopy = {
@@ -42,6 +42,7 @@ const english: LifestyleCopy = {
  playerAndStaff: 'player and staff',
  commercialRoundTrip: 'Estimated commercial return flights',
  commercialFatigueNote: 'Normal commercial travel costs and fatigue apply. No private-jet fatigue reduction or operating charge.',
+ backendPending: 'Unavailable until the Private Life career database update is deployed. This section is a preview; morale, Home Base changes and jet booking are not active here.',
 }
 const overrides: Record<string, Partial<LifestyleCopy>> = {
  de: {
@@ -72,6 +73,7 @@ const overrides: Record<string, Partial<LifestyleCopy>> = {
   playerAndStaff:'Spieler und Team',
   commercialRoundTrip:'Geschätzte Kosten für Hin- und Rückflug',
   commercialFatigueNote:'Es gelten normale Flugkosten und Reisemüdigkeit. Kein Privatjet-Bonus und keine Jet-Betriebskosten.',
+  backendPending:'Datenbank-Update erforderlich. Moralbonus, Wohnsitzwechsel und Privatjet-Reisen sind hier noch nicht aktiv.',
  },
  sr: {
   title:'Privatni život i karijera',subtitle:'Luksuz povećava udobnost, a ne teniske veštine.',
@@ -94,6 +96,7 @@ const overrides: Record<string, Partial<LifestyleCopy>> = {
   playerAndStaff:'igrač i stručni štab',
   commercialRoundTrip:'Procenjena cena povratnih komercijalnih letova',
   commercialFatigueNote:'Važe redovni troškovi i umor od putovanja. Nema bonusa niti operativnih troškova privatnog aviona.',
+  backendPending:'Potrebno je ažuriranje baze. Bonus morala, preseljenje i privatni letovi još nisu aktivni.',
  },
  es: {title:'Vida privada y carrera',nationality:'Nacionalidad',homeBase:'Residencia',currentLocation:'Ubicación actual',
   morale:'Moral por estilo de vida',ownedJets:'Aviones aptos para viajar',none:'Ninguno',range:'Autonomía',
