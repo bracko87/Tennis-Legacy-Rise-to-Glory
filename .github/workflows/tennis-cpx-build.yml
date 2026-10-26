@@ -99,3 +99,8 @@ jobs:
             -f tests/private_life_ephemeral_fixture.sql \
             -f supabase/migrations/20261026093000_private_life_career_foundation_v1.sql \
             -f tests/private_life_ephemeral_assertions.sql
+          python3 scripts/extract-private-life-jet-routines.py > /tmp/private_life_jet_routines.sql
+          psql -v ON_ERROR_STOP=1 \
+            -f tests/private_life_ephemeral_jet_fixture.sql \
+            -f /tmp/private_life_jet_routines.sql \
+            -f tests/private_life_ephemeral_jet_assertions.sql
