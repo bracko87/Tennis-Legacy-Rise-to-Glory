@@ -74,6 +74,18 @@ Server-side preview RPC \`quote_my_private_life_jet_v1\` recalculates actual sel
 
 Disposable PostgreSQL regression tests execute the nine-model catalog allowlist, the authenticated group quote function, full-team seating, prices, fatigue and range; those tests do not represent complete Supabase schema execution. Production database changes and Netlify deployments remain blocked pending explicit approval.
 
+## Multi-stop refuelling travel — source implementation complete, not released
+
+The owner approved extending the nine authorised private jets to longer routes using explicit refuelling stops. The additive migration \`supabase/migrations/20261026123000_private_jet_multistop_v1.sql\` seeds a bounded game airport network, restricts each flight leg to **94% of the selected aircraft's range**, and calculates one whole-party operating fare with routed distance and $1,800 per refuelling stop (plus any repositioning charge). Additional stops consume hours and reduce the travel-fatigue discount by 3.5 percentage points each, with a 5% floor. A missing/unsupported route returns unavailable rather than allowing a teleport.
+
+The existing quote, booking and travel-plan interfaces are extended rather than replaced by a separate wallet. The match-time travel synchronizer now uses private-jet duration (including stops and multi-day rests), schedules an earlier departure where feasible, and reserves travel activity across the required game days. Explicit private-jet booking checks for a sufficient date window and refuses a connection already marked \`at_risk\`. Overnight fast transfers still depend on previous and next match start/end times.
+
+The tournament flight picker shows the **refuel airports, number of stops, total one-way journey cost, stop charges, journey hours, and game travel days**. Base aircraft eligibility and staff seating constraints remain unchanged.
+
+**Verified in disposable PostgreSQL:** A purchased Citation M3 can plan Belgrade → Cairo → Muscat → Chennai → Kuala Lumpur → Denpasar → Darwin → Cairns → Sydney, with seven refuelling stops, around **17,250 km**, and **three game travel days**, one flight fare for player plus six staff and less fatigue advantage than a non-stop flight. Full CI passed on [GitHub run 40318499323](https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/40318499323), including the existing application build, migration grammar, source contracts and isolated finance/fatigue/jet quote tests.
+
+**Still unverified:** Executing all migrations against a full copy of the production Supabase schema, true staff/jet booking finance through tournament day changes, overlapping commitments, live time-zone rules, RLS under real auth sessions, and browser click-through. The curated airport network is a game abstraction, not a certified flight-plan or refuelling-rights database. Source code on \`main\` is not authorization to publish any feature.
+
 ## Database verification on an isolated non-production database
 
 Supabase Branching requires separate compute charges and cost approval. Do not run these DDL migrations against production as a substitute for a development database. Once an isolated test database is available:
