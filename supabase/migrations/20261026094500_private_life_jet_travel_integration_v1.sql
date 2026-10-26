@@ -1052,6 +1052,29 @@ $function$
 ;
 
 
+-- SECURITY BOUNDARY: the existing travel helpers are SECURITY DEFINER and
+-- accept arbitrary player/travel IDs. On the previous schema some inherited
+-- EXECUTE from PUBLIC, allowing direct anon/authenticated calls. The only
+-- public entry points must be ownership-checking, authenticated career RPCs.
+-- Internal call chains and trusted clock jobs run as the function owner.
+-- These explicit revokes do not modify live permissions until release.
+revoke all on function public.insert_planned_travel_leg_v1(
+ uuid,text,text,text,text,double precision,double precision,text,
+ text,text,text,double precision,double precision,text,integer,integer,boolean)
+ from public,anon,authenticated;
+revoke all on function public.process_travel_leg_v1(uuid)
+ from public,anon,authenticated;
+revoke all on function public.rebuild_player_travel_plan_core_v1(uuid)
+ from public,anon,authenticated;
+revoke all on function public.resolve_player_origin_before_day_v1(uuid,integer)
+ from public,anon,authenticated;
+revoke all on function public.rebuild_player_travel_plan_v1(uuid)
+ from public,anon,authenticated;
+revoke all on function public.apply_training_camp_split_travel_v1(uuid)
+ from public,anon,authenticated;
+revoke all on function public.process_due_travel_legs_v1(uuid,integer)
+ from public,anon,authenticated;
+
 -- Defensive compatibility: legacy code must never grant the previous
 -- 90% automatic reduction merely for owning an aircraft.
 create or replace function public.private_life_private_jet_travel_benefit_v1(p_player_id uuid)
