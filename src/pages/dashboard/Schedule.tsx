@@ -669,7 +669,7 @@ export default function SchedulePage() {
                      staffCount={selectedStaff.length}
                      distanceKm={Number(estimate?.player_travel.distance_km ?? 0)}
                      money={money}
-                     onChanged={() => { setTravelModeRevision((revision) => revision + 1); markPlanDirty() }}
+                     onChanged={() => setTravelModeRevision((revision) => revision + 1)}
                    />}
                    <ChoiceSection title={t('schedulePage.preparation.playerClass')} subtitle={t('schedulePage.preparation.playerClassBody')}><ChoiceGrid values={TRAVEL_CLASSES} selected={playerTravelClass} onSelect={(value) => { markPlanDirty(); setPlayerTravelClass(value as TravelClass) }} /></ChoiceSection>
                   <PlanImpact label={t('schedulePage.preparation.playerTravelEffect')} value={estimate ? `${travelClassEffect(playerTravelClass, t)} · ${t('schedulePage.preparation.fatigueArrival', { fatigue: estimate.player_travel.arrival_fatigue })}` : travelClassEffect(playerTravelClass, t)} cost={estimate ? t('schedulePage.preparation.roundTrip', { amount: money(estimate.player_travel_cost) }) : '—'} />
