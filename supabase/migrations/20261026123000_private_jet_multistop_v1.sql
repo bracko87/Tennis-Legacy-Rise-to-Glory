@@ -338,3 +338,199 @@ begin
 end;$multistop_quote$;
 revoke all on function public.quote_private_jet_leg_v1(uuid,text,text,text,text,integer,integer,uuid,integer)
  from public,anon,authenticated;
+
+-- Time-aware jet scheduling: same existing public RPC signature.
+CREATE OR REPLACE FUNCTION public.sync_player_tournament_travel_timing_v1(p_player_id uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  l record;
+  fm record;
+  pm record;
+  rule public.tournament_match_scheduling_rules%rowtype;
+  q jsonb;
+  v_first_day integer;
+  v_first_abs bigint;
+  v_pref_day integer;
+  v_depart bigint;
+  v_prev_end bigint;
+  v_travel integer;
+  v_arrive bigint;
+  v_ready bigint;
+  v_status text;
+  v_count integer:=0;
+  gd record;
+  v_existing text;
+  v_jet_days integer;
+  v_daily_absolute integer;
+  v_last_travel_day integer;
+begin
+  for l in
+    select *
+    from public.player_travel_legs
+    where player_id=p_player_id
+      and status='planned'
+      and destination_location_type='tournament'
+      and destination_reference_id~*'^[0-9a-f-]{36}$'
+    order by departure_absolute_day,id
+  loop
+    select
+      m.id,m.competition_id,m.scheduled_start_minute,m.scheduled_season_week,m.scheduled_day,
+      ed.season_number,s.category_code
+    into fm
+    from public.tournament_matches m
+    join public.tournament_world_competitions wc on wc.id=m.competition_id
+    join public.tournament_editions ed on ed.id=wc.tournament_edition_id
+    join public.tournament_series s on s.id=ed.tournament_series_id
+    where m.competition_id=l.destination_reference_id::uuid
+      and (m.player1_id=p_player_id or m.player2_id=p_player_id)
+      and m.status not in ('bye','cancelled')
+    order by ed.season_number,m.scheduled_season_week,m.scheduled_day,
+             coalesce(m.scheduled_start_minute,600),m.match_number
+    limit 1;
+
+    if fm.id is null then continue; end if;
+
+    v_first_day:=(((fm.season_number-1)*366)+2+((fm.scheduled_season_week-1)*7)+(fm.scheduled_day-1))::integer;
+    v_first_abs:=v_first_day::bigint*1440+coalesce(fm.scheduled_start_minute,600);
+
+    if l.split_day_transition then
+      v_arrive:=l.arrival_absolute_day::bigint*1440+coalesce(l.arrival_minute_of_day,1439);
+      select * into rule
+      from public.tournament_match_scheduling_rules
+      where category_code=fm.category_code;
+      v_ready:=v_arrive+coalesce(rule.pre_match_arrival_buffer_minutes,90);
+      v_status:=case when v_ready>v_first_abs then 'at_risk' else 'tight' end;
+
+      update public.player_travel_legs
+      set first_match_id=fm.id,
+          connection_status=v_status,
+          updated_at=now()
+      where id=l.id;
+
+      v_count:=v_count+1;
+      continue;
+    end if;
+
+    select * into rule
+    from public.tournament_match_scheduling_rules
+    where category_code=fm.category_code;
+
+    v_pref_day:=v_first_day-1;
+    v_depart:=v_pref_day::bigint*1440+540;
+
+    select
+      m.id match_id,m.scheduled_start_minute,
+      coalesce(m.actual_duration_minutes,m.estimated_duration_minutes,150) duration_minutes,
+      (((ed.season_number-1)*366)+2+((m.scheduled_season_week-1)*7)+(m.scheduled_day-1))::integer abs_day
+    into pm
+    from public.tournament_matches m
+    join public.tournament_world_competitions wc on wc.id=m.competition_id
+    join public.tournament_editions ed on ed.id=wc.tournament_edition_id
+    where m.competition_id<>fm.competition_id
+      and (m.player1_id=p_player_id or m.player2_id=p_player_id)
+      and m.status not in ('bye','cancelled')
+      and ((((ed.season_number-1)*366)+2+((m.scheduled_season_week-1)*7)+(m.scheduled_day-1))::bigint*1440
+           +coalesce(m.scheduled_start_minute,600))<v_first_abs
+    order by abs_day desc,coalesce(m.scheduled_start_minute,600) desc
+    limit 1;
+
+    if pm.match_id is not null and pm.abs_day>=v_pref_day then
+      v_prev_end:=pm.abs_day::bigint*1440+coalesce(pm.scheduled_start_minute,600)
+        +pm.duration_minutes+coalesce(rule.post_match_departure_buffer_minutes,60);
+      v_depart:=greatest(v_depart,v_prev_end);
+    end if;
+
+    q:=public.quote_travel_v2(
+      l.source_city,l.source_country_code,l.source_latitude,l.source_longitude,
+      l.destination_city,l.destination_country_code,l.destination_latitude,l.destination_longitude,
+      l.travel_class,'one_way'
+    );
+    v_travel:=greatest(30,ceil(coalesce((q->>'estimated_hours_one_way')::numeric,1)*60)::integer);
+    if l.travel_mode='private_jet'
+       and coalesce((l.jet_quote->>'active')::boolean,false) then
+      -- Multi-stop jets consume their actual estimated flight + refuelling
+      -- duration, not the old commercial-flight estimate.
+      v_travel:=greatest(30,ceil(coalesce((l.jet_quote->>'estimated_hours')::numeric,1)*60)::integer);
+      v_jet_days:=greatest(1,coalesce((l.jet_quote->>'estimated_travel_days')::integer,1));
+      -- Start the trip early enough for all required game travel days.
+      v_depart:=least(v_depart,(v_first_day-v_jet_days)::bigint*1440+540);
+      if pm.match_id is not null then
+        -- A previous match is a hard earliest possible departure; a clash
+        -- remains at_risk rather than silently teleporting the player.
+        v_prev_end:=pm.abs_day::bigint*1440+coalesce(pm.scheduled_start_minute,600)
+          +pm.duration_minutes+coalesce(rule.post_match_departure_buffer_minutes,60);
+        v_depart:=greatest(v_depart,v_prev_end);
+      end if;
+    end if;
+    v_arrive:=v_depart+v_travel;
+    v_ready:=v_arrive+coalesce(rule.pre_match_arrival_buffer_minutes,90);
+    v_status:=case
+      when v_ready>v_first_abs then 'at_risk'
+      when (v_arrive/1440)::integer>=v_first_day
+        or v_depart>v_pref_day::bigint*1440+540 then 'tight'
+      else 'normal'
+    end;
+
+    update public.player_travel_legs
+    set departure_absolute_day=(v_depart/1440)::integer,
+        departure_minute_of_day=(v_depart%1440)::smallint,
+        arrival_absolute_day=(v_arrive/1440)::integer,
+        arrival_minute_of_day=(v_arrive%1440)::smallint,
+        estimated_travel_minutes=v_travel,
+        connection_status=v_status,
+        first_match_id=fm.id,
+        embedded_transition=(pm.match_id is not null and pm.abs_day>=v_pref_day),
+        updated_at=now()
+    where id=l.id;
+
+    delete from public.player_daily_activity
+    where player_id=p_player_id
+      and source='travel_plan'
+      and reference_id=l.id::text
+      and effects_applied_at is null;
+
+    if not (pm.match_id is not null and pm.abs_day>=v_pref_day) then
+      -- Reserve every multi-stop travel day, not just the first departure day.
+      -- Never overwrite matches, camps or other non-home commitments.
+      v_last_travel_day:=least((v_arrive/1440)::integer,v_first_day-1);
+      if (v_depart/1440)::integer<=v_last_travel_day then
+       for v_daily_absolute in (v_depart/1440)::integer..v_last_travel_day loop
+        select * into gd from public.absolute_game_day_v1(v_daily_absolute);
+        select activity_type into v_existing
+        from public.player_daily_activity
+        where player_id=p_player_id and season=gd.season and month=gd.month and day=gd.day;
+
+        if v_existing is null or v_existing='home' then
+          insert into public.player_daily_activity(
+            player_id,season,month,day,activity_type,source,reference_id,note
+          )
+          values(
+            p_player_id,gd.season,gd.month,gd.day,
+            'travel','travel_plan',l.id::text,
+            format('Travel to %s%s',coalesce(l.destination_city,l.destination_country_code),
+               case when l.travel_mode='private_jet' then ' · refuelling flight' else '' end)
+          )
+          on conflict(player_id,season,month,day) do update set
+            activity_type='travel',
+            source='travel_plan',
+            reference_id=l.id::text,
+            note=excluded.note,
+            updated_at=now()
+          where public.player_daily_activity.effects_applied_at is null
+            and public.player_daily_activity.activity_type='home';
+        end if;
+       end loop;
+      end if;
+    end if;
+
+    v_count:=v_count+1;
+  end loop;
+
+  return jsonb_build_object('status','synced','tournament_legs',v_count);
+end;
+$function$
+
