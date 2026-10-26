@@ -76,3 +76,7 @@ test('jet booking requires real route range and reposition checks, with persiste
  assert.match(jet,/join public\.player_location_state|left join public\.player_location_state/)
  assert.match(jet,/select city,country_code into v_origin_city,v_origin_country from public\.player_private_jet_positions/)
 })
+
+test('travel-mode changes rebuild unfinished journeys', () => {
+ assert.match(foundation, /perform public\.rebuild_player_travel_plan_v1\(v_player\)/)
+})
