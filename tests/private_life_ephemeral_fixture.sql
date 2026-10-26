@@ -141,11 +141,12 @@ create table public.test_plan_rebuild_calls(
  happened_at timestamptz default now()
 );
 create or replace function public.rebuild_player_travel_plan_v1(p_player_id uuid)
-returns jsonb language plpgsql as $
+returns jsonb language plpgsql as $test_rebuild$
 begin
+ -- Track every requested itinerary rebuild in this synthetic database.
  insert into public.test_plan_rebuild_calls(player_id) values(p_player_id);
  return jsonb_build_object('status','reconstructed');
-end $;
+end $test_rebuild$;
 
 insert into public.players(id,owner_user_id,country_code,home_city)
  values('11111111-1111-1111-1111-111111111111','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','RS','Belgrade');
