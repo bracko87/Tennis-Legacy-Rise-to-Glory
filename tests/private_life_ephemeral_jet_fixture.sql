@@ -46,8 +46,22 @@ create table public.player_tournament_preparation_plans(
 );
 insert into public.tournament_entries(player_id,competition_id)
  values('11111111-1111-1111-1111-111111111111','44444444-4444-4444-4444-444444444444');
+insert into public.tournament_entries(player_id,competition_id)
+ values('11111111-1111-1111-1111-111111111111','66666666-6666-6666-6666-666666666666');
+create table public.player_tournament_travel_selection(
+ player_id uuid references public.players(id),
+ competition_id uuid not null,
+ travel_mode text not null check(travel_mode in ('commercial','private_jet')),
+ owned_jet_asset_id uuid references public.private_life_player_assets(id),
+ updated_at timestamptz default now(),
+ primary key(player_id,competition_id)
+);
+
 insert into public.player_tournament_preparation_plans(player_id,competition_id)
  values('11111111-1111-1111-1111-111111111111','44444444-4444-4444-4444-444444444444');
+insert into public.player_tournament_preparation_plans(player_id,competition_id)
+ values('11111111-1111-1111-1111-111111111111','66666666-6666-6666-6666-666666666666');
+
 create or replace function public.quote_tournament_preparation_v1(
  p_player_id uuid,p_competition_id uuid,p_player_travel_class text default 'Economy',
  p_staff_travel_class text default 'Economy',p_hotel_tier text default 'Standard',
@@ -55,7 +69,8 @@ create or replace function public.quote_tournament_preparation_v1(
 returns jsonb language sql stable as $quote_prep$
  select jsonb_build_object(
   'origin',jsonb_build_object('city','Belgrade','country_code','RS'),
-  'destination',jsonb_build_object('city','Paris','country_code','FR'),
+  'destination',jsonb_build_object('city',case when p_competition_id='66666666-6666-6666-6666-666666666666'::uuid then 'Sydney' else 'Paris' end,
+    'country_code',case when p_competition_id='66666666-6666-6666-6666-666666666666'::uuid then 'AU' else 'FR' end),
   'arrival_absolute_day',395,
-  'player_travel',jsonb_build_object('distance_km',1600))
+  'player_travel',jsonb_build_object('distance_km',case when p_competition_id='66666666-6666-6666-6666-666666666666'::uuid then 16000 else 1600 end))
 $quote_prep$;
