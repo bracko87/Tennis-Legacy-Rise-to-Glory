@@ -16,6 +16,21 @@ This optional workflow uses a **read-only schema export** of the *existing game 
 - Take care with production credentials. Never post a database password or full dump in chat, GitHub or a public repository.
 - Only use the Supabase CLI commands shown below. In particular, **never run `supabase db push` or `supabase db reset --linked`** on the production project.
 
+## One-command Windows setup (recommended)
+
+I added an interactive, guarded Windows command script that does Steps 1 and 2 in order. In a Windows **Command Prompt** at the Tennis Legacy repository root:
+
+```cmd
+git pull origin main
+scripts\setup-private-life-sandbox.cmd
+```
+
+**What the script does:** checks Docker Desktop and Node.js; authenticates Supabase CLI; links to the existing project; runs a **read-only schema-only dump**; creates an isolated local project; starts local Supabase on port 54331; attempts to apply the three Private Life migrations; prints its own local anon key at the end. It does not run any remote reset or deploy. **Supabase login and linking may still require you to approve access or provide your database password locally. Never paste credentials into chat.** Stop and share only the first non-secret error if setup fails.
+
+This is **not yet a certified end-to-end workflow**: the actual current production-schema dump has not been restored successfully into Docker, and local player creation/seed data may still require fixes. A successful preparatory source check does not mean the gameplay ticket is complete.
+
+If you prefer running commands individually, follow the manual instructions below.
+
 ## Step 1: download schema only (Windows CMD in Tennis Legacy root)
 
 ```cmd
@@ -75,4 +90,4 @@ Stop the frontend with Ctrl+C; in the sandbox directory run `npx supabase stop`.
 
 ## Alternative
 
-A hosted development branch may be easier to test against the complete existing Supabase schema, but creates hourly compute charges and needs your explicit approval. No paid branch has been created.
+A paid development branch was approved, briefly created and **deleted on 2026-10-26** after repeatedly failing historical, data-dependent migrations. No paid QA branch remains. Avoid recreating it until the historical migration chain is made replayable.
