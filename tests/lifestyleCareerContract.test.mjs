@@ -156,10 +156,10 @@ test('large private life dialogs scroll images and details without hiding contro
  assert.match(dialogCss,/\.tlg-game-confirm-scroll-area\s*\{[^}]*overflow-y: auto/s)
  assert.match(dialogCss,/\.tlg-game-confirm-head, \.tlg-game-confirm-actions \{ flex: 0 0 auto; \}/)
 })
-test('marketplace filters stay horizontal on desktop and mobile selector remains intact',()=>{
+test('marketplace categories share desktop width equally and mobile selector stays intact',()=>{
  assert.match(privateLifeCss,/@media \(min-width: 761px\)/)
- assert.match(privateLifeCss,/\.private-life-page \.private-life-section \.private-life-filter-bar\s*\{[^}]*flex-direction: row;[^}]*flex-wrap: nowrap/s)
- assert.match(privateLifeCss,/\.private-life-page \.private-life-section \.private-life-filter-bar > button\s*\{[^}]*flex: 0 0 auto/s)
+ assert.match(privateLifeCss,/\.private-life-page \.private-life-section \.private-life-filter-bar\s*\{[^}]*display: grid;[^}]*grid-template-columns: repeat\(10, minmax\(110px, 1fr\)\);[^}]*width: 100%;/s)
+ assert.match(privateLifeCss,/\.private-life-page \.private-life-section \.private-life-filter-bar > button\s*\{[^}]*width: 100%;[^}]*text-align: center;/s)
  const mobileCss=read('src/styles/private-life-mobile-compact.css')
  assert.match(mobileCss,/\.private-life-section \.private-life-filter-bar \{ display: none; \}/)
 })
