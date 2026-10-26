@@ -645,8 +645,7 @@ export default function PrivateLifePage() {
     setCareerBusy(true);setError(null);setNotice(null)
     const { error: rpcError } = await supabase.rpc('set_private_life_home_base_v1', { p_owned_asset_id: asset.id })
     if (rpcError) setError(rpcError.message)
-    else setNotice(careerCopy.relocationScheduled)
-    await loadDashboard()
+    else { setNotice(careerCopy.relocationScheduled); await loadDashboard() }
     setCareerBusy(false)
   }
 
@@ -655,8 +654,7 @@ export default function PrivateLifePage() {
     setCareerBusy(true);setError(null);setNotice(null)
     const { error: rpcError } = await supabase.rpc('set_private_life_travel_preference_v1', { p_mode: mode })
     if (rpcError) setError(rpcError.message)
-    else setNotice(careerCopy.preferenceSaved)
-    await loadDashboard()
+    else { setNotice(careerCopy.preferenceSaved); await loadDashboard() }
     setCareerBusy(false)
   }
 
@@ -999,10 +997,10 @@ export default function PrivateLifePage() {
                           <small className="tlg-jet-catalog-meta">
                             {catalogAsset.metadata?.tournament_travel_eligible
                               ? careerCopy.jetEligible : careerCopy.jetIneligible}
-                            {catalogAsset.metadata?.tournament_travel_eligible &&
-                              <> · {careerCopy.range}: {Number(catalogAsset.metadata.max_range_km ?? 0).toLocaleString()} km
-                               · {careerCopy.capacity}: {Number(catalogAsset.metadata.passenger_capacity ?? 0)}
-                               · {careerCopy.operating}: {money(Number(catalogAsset.metadata.base_trip_cost ?? 0))} + {money(Number(catalogAsset.metadata.cost_per_km ?? 0))}/km</>}
+                            {Boolean(catalogAsset.metadata?.tournament_travel_eligible) &&
+                              <> · {careerCopy.range}: {Number(catalogAsset.metadata?.max_range_km ?? 0).toLocaleString()} km
+                               · {careerCopy.capacity}: {Number(catalogAsset.metadata?.passenger_capacity ?? 0)}
+                               · {careerCopy.operating}: {money(Number(catalogAsset.metadata?.base_trip_cost ?? 0))} + {money(Number(catalogAsset.metadata?.cost_per_km ?? 0))}/km</>}
                           </small>
                         )}
                         </div>
