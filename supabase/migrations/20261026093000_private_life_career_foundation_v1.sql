@@ -157,6 +157,8 @@ begin
  insert into public.player_lifestyle_state(player_id,preferred_travel_mode)
  values(v_player,p_mode) on conflict(player_id) do update
  set preferred_travel_mode=excluded.preferred_travel_mode,updated_at=now();
+ -- Reprice only unfinished journeys so this preference takes effect immediately.
+ perform public.rebuild_player_travel_plan_v1(v_player);
  return jsonb_build_object('status','saved','preferred_travel_mode',p_mode);
 end; $$;
 revoke all on function public.set_private_life_travel_preference_v1(text) from public,anon;
