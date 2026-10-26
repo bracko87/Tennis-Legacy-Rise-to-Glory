@@ -10,5 +10,5 @@ src=(root/"supabase/migrations/20261026094500_private_life_jet_travel_integratio
 low=src.lower()
 for name in ("insert_planned_travel_leg_v1","process_travel_leg_v1"):
     start=low.index("create or replace function public."+name+"(")
-    end=low.index("\n-- ",start+35)
+    end=low.index("\n$function$\n;",start)+len("\n$function$\n;")
     print(src[start:end].strip()+"\n")
