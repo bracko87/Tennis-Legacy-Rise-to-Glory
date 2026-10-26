@@ -19,6 +19,7 @@ type JetQuote = {
  staff_commercial?: number
  reduction_percent?: number
  estimated_hours?: number
+ overnight_transfer_possible?: boolean
 }
 type TravelQuote = {
  selected_mode: 'default' | 'commercial' | 'private_jet'
@@ -44,6 +45,8 @@ export default function TournamentJetPicker({
  const [choice,setChoice] = useState<'commercial' | 'private_jet'>('commercial')
  const [assetId,setAssetId] = useState('')
  const [quote,setQuote] = useState<TravelQuote | null>(null)
+ const [jetPreview,setJetPreview] = useState<JetQuote | null>(null)
+ const [jetPreviewLoading,setJetPreviewLoading] = useState(false)
  const [busy,setBusy] = useState(false)
  const [error,setError] = useState<string | null>(null)
  const [notice,setNotice] = useState<string | null>(null)
@@ -74,13 +77,29 @@ export default function TournamentJetPicker({
  useEffect(() => { if (quoteRevision) void reload() }, [quoteRevision,reload])
  const jets: OwnedTravelJet[] = career?.eligible_jets ?? []
  const selectedJet = jets.find(jet => jet.owned_asset_id === assetId)
- const supported = selectedJet && distanceKm>0 && distanceKm<=selectedJet.max_range_km
- const estimate = supported && selectedJet
-  ? selectedJet.base_trip_cost + Math.ceil(distanceKm*selectedJet.cost_per_km) + 1000
-  : null
- const staffOnBoard = selectedJet ? Math.min(Math.max(0,selectedJet.passenger_capacity-1),staffCount) : 0
- const staffCommercial = staffCount - staffOnBoard
- const quoteJet = quote?.selected_asset_id===assetId ? quote.private_jet_quote : null
+ const seatCount = 1 + Math.max(0,staffCount)
+ const supportedBySeats = Boolean(selectedJet && selectedJet.passenger_capacity >= seatCount)
+ const supportedByRange = Boolean(selectedJet && distanceKm>0 && distanceKm<=selectedJet.max_range_km)
+ useEffect(() => {
+  let active = true
+  if(!assetId || !supportedBySeats || !supportedByRange) {
+   setJetPreview(null)
+   setJetPreviewLoading(false)
+   return () => { active = false }
+  }
+  setJetPreview(null)
+  setJetPreviewLoading(true)
+  void supabase.rpc('quote_my_private_life_jet_v1',{
+   p_competition_id:competitionId,p_owned_jet_asset_id:assetId,p_staff_count:Math.max(0,staffCount),
+  }).then(({data,error})=>{
+   if(!active) return
+   setJetPreview(error ? {active:false,reason:error.message} : data as JetQuote)
+   setJetPreviewLoading(false)
+  })
+  return () => { active = false }
+ },[assetId,competitionId,staffCount,quoteRevision,supportedBySeats,supportedByRange])
+ const supported = supportedBySeats && supportedByRange && jetPreview?.active === true && !jetPreviewLoading
+ const staffOnBoard = supported ? Math.max(0,staffCount) : 0
  async function save() {
   if(choice==='private_jet' && !supported) return
   setBusy(true);setError(null);setNotice(null)
@@ -116,13 +135,15 @@ export default function TournamentJetPicker({
       <div><span>{c.capacity}</span><strong>{selectedJet.passenger_capacity}</strong></div>
       <div><span>{c.fatigueBenefit}</span><strong>{selectedJet.reduction_percent}%</strong></div>
       <div><span>{c.staffOnBoard}</span><strong>{staffOnBoard}</strong></div>
-      <div><span>{c.staffCommercial}</span><strong>{staffCommercial}</strong></div>
-      <div><span>{c.travelCost}</span><strong>{estimate!==null ? money(estimate) : '—'}</strong></div>
-      {quoteJet?.active && <div><span>{c.reposition}</span><strong>{money(Number(quoteJet.reposition_cost ?? 0))}</strong></div>}
-      {quoteJet?.active && <div><span>{c.travelHours}</span><strong>{quoteJet.estimated_hours ?? '—'}</strong></div>}
+      <div><span>{c.staffIncluded}</span><strong>{supported ? c.includedInFare : '—'}</strong></div>
+      <div><span>{c.travelCost}</span><strong>{supported ? money(Number(jetPreview?.cost_one_way ?? 0)) : '—'}</strong></div>
+      {supported && <div><span>{c.reposition}</span><strong>{money(Number(jetPreview?.reposition_cost ?? 0))}</strong></div>}
+      {supported && <div><span>{c.travelHours}</span><strong>{jetPreview?.estimated_hours ?? '—'}</strong></div>}
+      {supported && <div><span>{c.overnightTransfer}</span><strong>{jetPreview?.overnight_transfer_possible ? c.overnightCandidate : c.overnightTooLong}</strong></div>}
      </div>}
-     {!supported && <p className="tlg-jet-error">{c.jetNotAvailable}</p>}
-     {supported && <small>{c.operating} · {c.reposition}: {c.quote} {c.selectedJet} + {c.travelCost}; final charge is calculated by the travel engine.</small>}
+     {jetPreviewLoading && <p>{c.loading}</p>}
+     {!jetPreviewLoading && !supported && <p className="tlg-jet-error">{c.jetNotAvailable}{jetPreview?.reason ? ` (${jetPreview.reason})` : ''}</p>}
+     {supported && <small>{c.fullPartyCostNote} {c.overnightDisclaimer}</small>}
     </>}
     {choice === 'commercial' && <p className="tlg-jet-commercial">{c.commercial} · {money(Number(quote?.commercial_player_cost ?? 0))}</p>}
     <button type="button" className="tlg-jet-save" onClick={()=>void save()}
