@@ -80,3 +80,20 @@ test('jet booking requires real route range and reposition checks, with persiste
 test('travel-mode changes rebuild unfinished journeys', () => {
  assert.match(foundation, /perform public\.rebuild_player_travel_plan_v1\(v_player\)/)
 })
+
+test('only nine screenshot airplanes get whole-team fares and quick-flight quotes',()=>{
+ const approved=[
+  'air_cessaro_citation_m3','air_emborgier_phenom_350e','air_bombara_challenger_420',
+  'air_cessaro_citation_latitude_x','air_emborgier_praetor_680','air_dassier_falcon_9x',
+  'air_gulfstar_g650_lx','air_bombara_global_8000x','air_gulfstar_g900_sovereign'
+ ]
+ for(const code of approved)assert.ok(jet.includes(code),'Missing screenshot model '+code)
+ assert.match(jet,/tournament_travel_eligible',false/)
+ assert.match(jet,/insufficient_passenger_seats/)
+ assert.match(jet,/'staff_on_jet',greatest\(0,coalesce\(p_staff_count,0\)\),'staff_commercial',0/)
+ assert.match(jet,/v_staff_cost:=0;/)
+ assert.match(jet,/overnight_transfer_possible/)
+ assert.match(jet,/quote_my_private_life_jet_v1/)
+ assert.match(picker,/quote_my_private_life_jet_v1/)
+ assert.match(picker,/fullPartyCostNote/)
+})
