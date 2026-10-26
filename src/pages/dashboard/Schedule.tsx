@@ -16,6 +16,7 @@ import { Link, useSearchParams } from 'react-router'
 import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
+import TournamentJetPicker from '../../components/private-life/TournamentJetPicker'
 import { useStaff, type StaffRole } from '../../hooks/useStaff'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { staffEffectLabel, staffRoleLabel } from '../../i18n/staffLocalization'
@@ -306,6 +307,7 @@ export default function SchedulePage() {
   const [planMessage, setPlanMessage] = useState<string | null>(null)
   const [engineQuote, setEngineQuote] = useState<TournamentPreparationQuote | null>(null)
   const [quoteLoading, setQuoteLoading] = useState(false)
+  const [travelModeRevision, setTravelModeRevision] = useState(0)
   const [applicationHistory, setApplicationHistory] = useState<TournamentApplicationHistory>({ singles: [], doubles: [] })
   const [applicationsLoading, setApplicationsLoading] = useState(true)
   const [applicationsError, setApplicationsError] = useState<string | null>(null)
@@ -469,7 +471,7 @@ export default function SchedulePage() {
       cancelled = true
       window.clearTimeout(timer)
     }
-  }, [prepareOpen, planLoading, player?.id, nextTournament?.competition_id, playerTravelClass, staffTravelClass, hotelTier, selectedStaff])
+  }, [prepareOpen, planLoading, player?.id, nextTournament?.competition_id, playerTravelClass, staffTravelClass, hotelTier, selectedStaff, travelModeRevision])
 
   const selectedStaffNames = useMemo(
     () => activeStaff.filter((contract) => selectedStaff.includes(contract.contract_id)).map((contract) => `${contract.staff.first_name} ${contract.staff.last_name}`),
@@ -662,7 +664,14 @@ export default function SchedulePage() {
                 <div className="tlg-prep-stack">
                   <div className="tlg-prep-rule"><Plane size={18} /><div><strong>{t('schedulePage.preparation.automaticTiming')}</strong><p>{t('schedulePage.preparation.automaticTimingBody')}</p></div></div>
                   {estimate && <div className="tlg-prep-copy"><h3>{estimate.origin.city ?? t('schedulePage.preparation.currentLocation')} → {estimate.destination.city}</h3><p>{t('schedulePage.preparation.oneWay', { distance: distance(estimate.player_travel.distance_km, t, formatNumber), hours: estimate.player_travel.estimated_hours_one_way })}</p></div>}
-                  <ChoiceSection title={t('schedulePage.preparation.playerClass')} subtitle={t('schedulePage.preparation.playerClassBody')}><ChoiceGrid values={TRAVEL_CLASSES} selected={playerTravelClass} onSelect={(value) => { markPlanDirty(); setPlayerTravelClass(value as TravelClass) }} /></ChoiceSection>
+                  {nextTournament && <TournamentJetPicker
+                     competitionId={nextTournament.competition_id}
+                     staffCount={selectedStaff.length}
+                     distanceKm={Number(estimate?.player_travel.distance_km ?? 0)}
+                     money={money}
+                     onChanged={() => { setTravelModeRevision((revision) => revision + 1); markPlanDirty() }}
+                   />}
+                   <ChoiceSection title={t('schedulePage.preparation.playerClass')} subtitle={t('schedulePage.preparation.playerClassBody')}><ChoiceGrid values={TRAVEL_CLASSES} selected={playerTravelClass} onSelect={(value) => { markPlanDirty(); setPlayerTravelClass(value as TravelClass) }} /></ChoiceSection>
                   <PlanImpact label={t('schedulePage.preparation.playerTravelEffect')} value={estimate ? `${travelClassEffect(playerTravelClass, t)} · ${t('schedulePage.preparation.fatigueArrival', { fatigue: estimate.player_travel.arrival_fatigue })}` : travelClassEffect(playerTravelClass, t)} cost={estimate ? t('schedulePage.preparation.roundTrip', { amount: money(estimate.player_travel_cost) }) : '—'} />
                   <ChoiceSection title={t('schedulePage.preparation.staffClass')} subtitle={t('schedulePage.preparation.staffClassBody')}><ChoiceGrid values={TRAVEL_CLASSES} selected={staffTravelClass} onSelect={(value) => { markPlanDirty(); setStaffTravelClass(value as TravelClass) }} /></ChoiceSection>
                   <PlanImpact label={t('schedulePage.preparation.staffTravelEffect')} value={selectedStaff.length > 0 && estimate ? `${travelClassEffect(staffTravelClass, t)} · ${t('schedulePage.preparation.fatigueTraveller', { fatigue: estimate.staff_travel.arrival_fatigue, count: selectedStaff.length })}` : t('schedulePage.preparation.noStaffSelected')} cost={estimate ? money(estimate.staff_travel_cost) : '—'} />
