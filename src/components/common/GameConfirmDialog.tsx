@@ -94,11 +94,12 @@ export default function GameConfirmDialog({
           </div>
         </div>
 
-        {hero ? <div className="tlg-game-confirm-hero">{hero}</div> : null}
-
-        <div className="tlg-game-confirm-body">
-          <div className="tlg-game-confirm-message">{message}</div>
-          {detail ? <div className="tlg-game-confirm-detail">{detail}</div> : null}
+        <div className="tlg-game-confirm-scroll-area" tabIndex={0} aria-label="Dialog content">
+          {hero ? <div className="tlg-game-confirm-hero">{hero}</div> : null}
+          <div className="tlg-game-confirm-body">
+            <div className="tlg-game-confirm-message">{message}</div>
+            {detail ? <div className="tlg-game-confirm-detail">{detail}</div> : null}
+          </div>
         </div>
 
         <footer className="tlg-game-confirm-actions">
