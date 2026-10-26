@@ -6,6 +6,8 @@ import { Link } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import GameLayout from '../../components/layout/GameLayout'
+import TravelPreferenceSettings from '../../components/private-life/TravelPreferenceSettings'
+import '../../styles/private-life-career.css'
 import CountryFlag from '../../components/common/CountryFlag'
 import { ENABLED_LOCALES, type AppLocale } from '../../i18n'
 import { useLocalization } from '../../i18n/LocalizationProvider'
@@ -170,6 +172,8 @@ export default function GamePreferencesPage() {
             {notice.kind==='success'&&<Check size={15} aria-hidden="true"/>}{notice.message}
           </div>}
         </header>
+
+        <TravelPreferenceSettings />
 
         <section className="tlg-preferences-section">
           <header className="tlg-preferences-section-head">
