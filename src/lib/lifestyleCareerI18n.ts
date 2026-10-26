@@ -9,7 +9,8 @@ export type LifestyleCopy = {
  staffCommercial: string; reposition: string; bookCommercial: string; bookJet: string;
  jetNotAvailable: string; save: string; loading: string; travelHours: string;
  staffIncluded: string; includedInFare: string; fullPartyCostNote: string;
- overnightTransfer: string; overnightCandidate: string; overnightTooLong: string; overnightDisclaimer: string
+ overnightTransfer: string; overnightCandidate: string; overnightTooLong: string; overnightDisclaimer: string;
+ travelDays: string; refuelStops: string; refuelFees: string; routeStops: string; refuelDisclaimer: string
 }
 
 const english: LifestyleCopy = {
@@ -36,6 +37,8 @@ const english: LifestyleCopy = {
  fullPartyCostNote: 'One total flight charge covers the player and all selected staff; aircraft repositioning is included in the quote.',
  overnightTransfer: 'Overnight flight',overnightCandidate:'Flight time within 10h',overnightTooLong:'Flight time over 10h',
  overnightDisclaimer: 'Sunday-to-Monday scheduling still depends on actual tournament and match timing.',
+ travelDays: 'Travel days', refuelStops: 'Refuelling stops', refuelFees: 'Refuelling fees',
+ routeStops: 'Refuelling airports', refuelDisclaimer: 'Long routes require all flight legs to be within aircraft range. Extra stops increase travel time and reduce the fatigue advantage.',
 }
 const overrides: Record<string, Partial<LifestyleCopy>> = {
  de: {
@@ -62,6 +65,8 @@ const overrides: Record<string, Partial<LifestyleCopy>> = {
   fullPartyCostNote:'Ein Flugpreis für Spieler und Team, inklusive nötiger Überführung.',
   overnightTransfer:'Nachtflug',overnightCandidate:'Flugzeit innerhalb von 10 Std.',overnightTooLong:'Flugzeit über 10 Std.',
   overnightDisclaimer:'Sonntag-auf-Montag hängt weiterhin von den tatsächlichen Spielzeiten ab.',
+  travelDays:'Reisetage',refuelStops:'Tankstopps',refuelFees:'Tankstoppgebühren',
+  routeStops:'Zwischenlandungen',refuelDisclaimer:'Jede Teilstrecke muss innerhalb der Reichweite liegen; mehr Stopps kosten Zeit und verringern den Müdigkeitsvorteil.',
  },
  sr: {
   title:'Privatni život i karijera',subtitle:'Luksuz povećava udobnost, a ne teniske veštine.',
@@ -80,6 +85,8 @@ const overrides: Record<string, Partial<LifestyleCopy>> = {
   fullPartyCostNote:'Jedna cena leta pokriva igrača i odabrani stručni štab.',
   overnightTransfer:'Noćni let',overnightCandidate:'Let do 10 sati',overnightTooLong:'Let duži od 10 sati',
   overnightDisclaimer:'Prelaz nedelja–ponedeljak zavisi i od termina mečeva.',
+  travelDays:'Dani putovanja',refuelStops:'Zaustavljanja za gorivo',refuelFees:'Trošak zaustavljanja',
+  routeStops:'Aerodromi za dopunu goriva',refuelDisclaimer:'Svaka deonica mora biti u dometu aviona. Više stajanja znači više vremena i umora.',
  },
  es: {title:'Vida privada y carrera',nationality:'Nacionalidad',homeBase:'Residencia',currentLocation:'Ubicación actual',
   morale:'Moral por estilo de vida',ownedJets:'Aviones aptos para viajar',none:'Ninguno',range:'Autonomía',
