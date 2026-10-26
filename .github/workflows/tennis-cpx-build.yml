@@ -135,3 +135,10 @@ jobs:
             -f tests/private_life_ephemeral_travel_lifecycle_assertions.sql
           psql -v ON_ERROR_STOP=1 \
             -f tests/private_life_ephemeral_security_assertions.sql
+          # Check the actual unreleased SQL hardening against disposable
+          # PostgreSQL functions; no production DB or credentials involved.
+          python3 scripts/extract-private-life-travel-permissions.py > /tmp/private_life_travel_permissions.sql
+          psql -v ON_ERROR_STOP=1 \
+            -f tests/private_life_ephemeral_travel_permission_fixture.sql \
+            -f /tmp/private_life_travel_permissions.sql \
+            -f tests/private_life_ephemeral_travel_permission_assertions.sql
