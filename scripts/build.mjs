@@ -70,9 +70,14 @@ if (isProd) {
 } else {
   const ctx = await esbuild.context(esbuildOpts)
   await ctx.watch()
+  const localPort = Number(process.env.TL_DEV_PORT || '8000')
+  if (!Number.isInteger(localPort) || localPort < 1 || localPort > 65535) {
+    throw new Error('TL_DEV_PORT must be a valid port between 1 and 65535.')
+  }
   const { hosts, port } = await ctx.serve({
     servedir: 'dist',
     fallback: 'index.html',
+    port: localPort,
   })
   console.log(`Running on:`)
   hosts.forEach((host) => {
