@@ -136,8 +136,16 @@ begin
  on conflict(idempotency_key) do nothing;
  return jsonb_build_object('status','recorded');
 end $$;
+create table public.test_plan_rebuild_calls(
+ player_id uuid not null references public.players(id),
+ happened_at timestamptz default now()
+);
 create or replace function public.rebuild_player_travel_plan_v1(p_player_id uuid)
-returns jsonb language sql as $$ select jsonb_build_object('status','unchanged') $$;
+returns jsonb language plpgsql as $
+begin
+ insert into public.test_plan_rebuild_calls(player_id) values(p_player_id);
+ return jsonb_build_object('status','reconstructed');
+end $;
 
 insert into public.players(id,owner_user_id,country_code,home_city)
  values('11111111-1111-1111-1111-111111111111','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','RS','Belgrade');
