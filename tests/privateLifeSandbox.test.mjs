@@ -34,11 +34,18 @@ test('sandbox copies only existing-schema baseline and three pending migrations'
   assert.deepEqual(migrations,[
    '20260827000000_existing_schema_baseline.sql',
    '20260827001000_restore_local_auth_triggers.sql',
+   '20261026090000_sandbox_reference_seed.sql',
    '20261026093000_private_life_career_foundation_v1.sql',
    '20261026094500_private_life_jet_travel_integration_v1.sql',
    '20261026095500_private_life_profile_residence_v1.sql',
   ])
   assert.equal(fs.readFileSync(path.join(dir,migrations[0]),'utf8'),fs.readFileSync(src,'utf8'))
+  const seed=fs.readFileSync(path.join(dir,'20261026090000_sandbox_reference_seed.sql'),'utf8')
+  assert.match(seed,/air_cessaro_citation_m3/)
+  assert.match(seed,/air_gulfstar_g900_sovereign/)
+  assert.match(seed,/sandbox_hobby_propeller/)
+  assert.match(seed,/rs_belgrade/)
+  assert.doesNotMatch(seed,/insert\\s+into\\s+(?:auth\\.|public\\.players\\b)/i)
   const config=fs.readFileSync(path.join(out,'supabase','config.toml'),'utf8')
   assert.match(config,/54331/)
   assert.match(config,/54332/)
