@@ -99,6 +99,7 @@ export default function TournamentJetPicker({
   return () => { active = false }
  },[assetId,competitionId,staffCount,quoteRevision,supportedBySeats,supportedByRange])
  const supported = supportedBySeats && supportedByRange && jetPreview?.active === true && !jetPreviewLoading
+ const commercialTotal = Number(quote?.commercial_player_cost ?? 0) + Number(quote?.commercial_staff_cost ?? 0)
  const staffOnBoard = supported ? Math.max(0,staffCount) : 0
  async function save() {
   if(choice==='private_jet' && jetPreviewLoading) return
@@ -145,12 +146,16 @@ export default function TournamentJetPicker({
       {supported && <div><span>{c.overnightTransfer}</span><strong>{jetPreview?.overnight_transfer_possible ? c.overnightCandidate : c.overnightTooLong}</strong></div>}
      </div>}
      {jetPreviewLoading && <p>{c.loading}</p>}
-     {!jetPreviewLoading && !supported && <p className="tlg-jet-commercial">{c.commercialFallback}</p>}
+     {!jetPreviewLoading && !supported && <div className="tlg-jet-commercial tlg-jet-fallback" role="status">
+      <strong>{c.commercialFallback}</strong>
+      <span>{c.commercialRoundTrip}: {money(commercialTotal)} ({c.playerAndStaff})</span>
+      <small>{c.commercialFatigueNote}</small>
+     </div>
      {supported && <small>{c.fullPartyCostNote} {c.overnightDisclaimer}</small>}
     </>}
-    {choice === 'commercial' && <p className="tlg-jet-commercial">{c.commercial} · {money(Number(quote?.commercial_player_cost ?? 0)+Number(quote?.commercial_staff_cost ?? 0))} ({c.playerAndStaff})</p>}
+    {choice === 'commercial' && <p className="tlg-jet-commercial">{c.commercialRoundTrip}: {money(commercialTotal)} ({c.playerAndStaff})</p>
     <button type="button" className="tlg-jet-save" onClick={()=>void save()}
-      disabled={busy || (choice==='private_jet' && jetPreviewLoading)}>{busy ? c.loading : c.save}</button>
+      disabled={busy || (choice==='private_jet' && jetPreviewLoading)}>{busy ? c.loading : choice==='private_jet' && !supported ? c.bookCommercial : c.save}</button>
     {notice && <p className="tlg-jet-success" role="status">{notice}</p>}
    </>}
   </div>
