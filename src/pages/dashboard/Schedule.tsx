@@ -18,6 +18,7 @@ import { useCommerce } from '../../hooks/useCommerce'
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
 import TournamentJetPicker from '../../components/private-life/TournamentJetPicker'
+import { lifestyleCopy } from '../../lib/lifestyleCareerI18n'
 import { useStaff, type StaffRole } from '../../hooks/useStaff'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { staffEffectLabel, staffRoleLabel } from '../../i18n/staffLocalization'
@@ -142,6 +143,7 @@ interface TournamentPreparationQuote {
   staff_travel: TravelEngineLeg
   player_travel_cost: number
   staff_travel_cost: number
+  private_jet?: { active?: boolean; name?: string; staff_on_jet?: number; staff_commercial?: number }
   staff_effects?: TournamentStaffEffects
   minimum_total: number
   maximum_total: number
@@ -282,7 +284,8 @@ function TournamentApplicationList({
 }
 
 export default function SchedulePage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lifestyleLabels = lifestyleCopy(i18n.resolvedLanguage ?? i18n.language)
   const { formatCurrency, formatNumber } = useLocalization()
   const money = (value: number) => formatCurrency(Math.round(value), 'USD')
   const { player, playerLoading } = useAuth()
@@ -674,7 +677,7 @@ export default function SchedulePage() {
                      onChanged={() => setTravelModeRevision((revision) => revision + 1)}
                    />}
                    <ChoiceSection title={t('schedulePage.preparation.playerClass')} subtitle={t('schedulePage.preparation.playerClassBody')}><ChoiceGrid values={TRAVEL_CLASSES} selected={playerTravelClass} onSelect={(value) => { markPlanDirty(); setPlayerTravelClass(value as TravelClass) }} /></ChoiceSection>
-                  <PlanImpact label={t('schedulePage.preparation.playerTravelEffect')} value={estimate ? `${travelClassEffect(playerTravelClass, t)} · ${t('schedulePage.preparation.fatigueArrival', { fatigue: estimate.player_travel.arrival_fatigue })}` : travelClassEffect(playerTravelClass, t)} cost={estimate ? t('schedulePage.preparation.roundTrip', { amount: money(estimate.player_travel_cost) }) : '—'} />
+                  <PlanImpact label={t('schedulePage.preparation.playerTravelEffect')} value={estimate ? `${estimate.private_jet?.active ? `${lifestyleLabels.jetMode} · ${estimate.private_jet.name ?? lifestyleLabels.selectedJet}` : travelClassEffect(playerTravelClass, t)} · ${t('schedulePage.preparation.fatigueArrival', { fatigue: estimate.player_travel.arrival_fatigue })}` : travelClassEffect(playerTravelClass, t)} cost={estimate ? t('schedulePage.preparation.roundTrip', { amount: money(estimate.player_travel_cost) }) : '—'} />
                   <ChoiceSection title={t('schedulePage.preparation.staffClass')} subtitle={t('schedulePage.preparation.staffClassBody')}><ChoiceGrid values={TRAVEL_CLASSES} selected={staffTravelClass} onSelect={(value) => { markPlanDirty(); setStaffTravelClass(value as TravelClass) }} /></ChoiceSection>
                   <PlanImpact label={t('schedulePage.preparation.staffTravelEffect')} value={selectedStaff.length > 0 && estimate ? `${travelClassEffect(staffTravelClass, t)} · ${t('schedulePage.preparation.fatigueTraveller', { fatigue: estimate.staff_travel.arrival_fatigue, count: selectedStaff.length })}` : t('schedulePage.preparation.noStaffSelected')} cost={estimate ? money(estimate.staff_travel_cost) : '—'} />
                   <ChoiceSection title={t('schedulePage.preparation.hotel')} subtitle={t('schedulePage.preparation.hotelBody')}>
@@ -718,8 +721,8 @@ export default function SchedulePage() {
                 <div className="tlg-prep-stack">
                   <div className="tlg-prep-summary-grid">
                     <SummaryItem label={t('schedulePage.preparation.route')} value={`${estimate.origin.city ?? t('schedulePage.preparation.currentLocation')} → ${estimate.destination.city} · ${distance(estimate.player_travel.distance_km, t, formatNumber)}`} />
-                    <SummaryItem label={t('schedulePage.preparation.playerFlight')} value={`${travelClassLabel(playerTravelClass, t)} · ${money(estimate.player_travel_cost)} · ${t('schedulePage.preparation.summaryFatigue', { value: estimate.player_travel.arrival_fatigue })}`} />
-                    <SummaryItem label={t('schedulePage.preparation.staffFlight')} value={selectedStaff.length === 0 ? t('schedulePage.preparation.noStaffTravel') : `${travelClassLabel(staffTravelClass, t)} · ${money(estimate.staff_travel_cost)}`} />
+                    <SummaryItem label={t('schedulePage.preparation.playerFlight')} value={`${estimate.private_jet?.active ? `${lifestyleLabels.selectedJet}: ${estimate.private_jet.name ?? '—'}` : travelClassLabel(playerTravelClass, t)} · ${money(estimate.player_travel_cost)} · ${t('schedulePage.preparation.summaryFatigue', { value: estimate.player_travel.arrival_fatigue })}`} />
+                    <SummaryItem label={t('schedulePage.preparation.staffFlight')} value={selectedStaff.length === 0 ? t('schedulePage.preparation.noStaffTravel') : `${estimate.private_jet?.active ? `${lifestyleLabels.staffOnBoard}: ${estimate.private_jet.staff_on_jet ?? 0} · ${lifestyleLabels.staffCommercial}: ${estimate.private_jet.staff_commercial ?? 0}` : travelClassLabel(staffTravelClass, t)} · ${money(estimate.staff_travel_cost)}`} />
                     <SummaryItem label={t('schedulePage.preparation.hotelLabel')} value={`${hotelCopy.label} · ${t('schedulePage.preparation.perPersonNight', { amount: money(estimate.hotel.minimum.adjusted_unit_cost) })} · ${hotelCopy.effect}`} />
                     <SummaryItem label={t('schedulePage.preparation.travellingStaff')} value={selectedStaff.length === 0 ? t('schedulePage.preparation.playerOnly') : t('schedulePage.preparation.staffCount', { count: selectedStaff.length })} />
                     {estimate.staff_effects && estimate.staff_effects.match_execution_bonus_pct > 0 && <SummaryItem label={t('schedulePage.preparation.matchExecution')} value={`+${estimate.staff_effects.match_execution_bonus_pct}%`} />}
