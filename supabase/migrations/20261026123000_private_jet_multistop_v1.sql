@@ -575,6 +575,9 @@ begin
   -- Refuelling routes may need several days. Require a real free window
   -- after the previous commitment and before tournament arrival.
   v_days:=greatest(1,coalesce((v_route_jet->>'estimated_travel_days')::integer,1));
+  -- One-day Sunday-evening transfers are evaluated by real match minutes
+  -- below, not blocked just because the previous tournament ended Sunday.
+  if v_days>1 then
   select public.game_day_absolute_v1(season,month,day) into v_today
     from public.get_current_game_day_internal_v1();
   select max(x.end_absolute_day) into v_prior_end
@@ -587,6 +590,7 @@ begin
   if v_days>v_available then
     raise exception 'Jet journey needs % travel days, only % are available before this tournament.',
       v_days,v_available;
+  end if;
   end if;
  end if;
  insert into public.player_tournament_travel_selection(player_id,competition_id,travel_mode,owned_jet_asset_id)
