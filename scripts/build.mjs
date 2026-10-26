@@ -7,6 +7,7 @@ import tailwindcss from 'tailwindcss'
 
 const args = process.argv.slice(2)
 const isProd = args[0] === '--production'
+const compileLocal = args[0] === '--compile-local'
 
 const configuredUrl = process.env.TL_SUPABASE_URL?.trim() ?? ''
 const configuredKey = process.env.TL_SUPABASE_PUBLISHABLE_KEY?.trim() ?? ''
@@ -65,7 +66,7 @@ const esbuildOpts = {
   ],
 }
 
-if (isProd) {
+if (isProd || compileLocal) {
   await esbuild.build(esbuildOpts)
 } else {
   const ctx = await esbuild.context(esbuildOpts)
