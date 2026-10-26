@@ -73,6 +73,20 @@ begin
   if not exists(select 1 from pg_constraint where conrelid='public.player_tournament_travel_selection'::regclass
     and contype='p') then raise exception 'Missing unique tournament selection constraint'; end if;
 
+  -- Internal privileged travel helpers must not be exposed as direct RPCs.
+  -- Caller-facing career methods remain independently granted to users.
+  select count(*) into v_count from pg_proc p
+  join pg_namespace n on n.oid=p.pronamespace
+  where n.nspname='public'
+    and p.proname in (
+      'insert_planned_travel_leg_v1','process_travel_leg_v1',
+      'rebuild_player_travel_plan_core_v1','resolve_player_origin_before_day_v1',
+      'rebuild_player_travel_plan_v1','apply_training_camp_split_travel_v1',
+      'process_due_travel_legs_v1')
+    and (has_function_privilege('anon',p.oid,'EXECUTE')
+         or has_function_privilege('authenticated',p.oid,'EXECUTE'));
+  if v_count<>0 then raise exception 'Unsafe direct access to % privileged travel helpers',v_count; end if;
+
   -- A missing cron schedule must fail smoke validation, not silently show
   -- an empty SQL result at the end of setup.
   select count(*) into v_count from cron.job
