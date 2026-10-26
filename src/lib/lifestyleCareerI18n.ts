@@ -7,7 +7,9 @@ export type LifestyleCopy = {
  jetEligible: string; jetIneligible: string; relocateNote: string; jetMode: string;
  selectedJet: string; selectJet: string; quote: string; travelCost: string; staffOnBoard: string;
  staffCommercial: string; reposition: string; bookCommercial: string; bookJet: string;
- jetNotAvailable: string; save: string; loading: string; travelHours: string
+ jetNotAvailable: string; save: string; loading: string; travelHours: string;
+ staffIncluded: string; includedInFare: string; fullPartyCostNote: string;
+ overnightTransfer: string; overnightCandidate: string; overnightTooLong: string; overnightDisclaimer: string
 }
 
 const english: LifestyleCopy = {
@@ -30,6 +32,10 @@ const english: LifestyleCopy = {
  reposition: 'Aircraft repositioning', bookCommercial: 'Use commercial flight',
  bookJet: 'Use this private jet', jetNotAvailable: 'This aircraft cannot fly this route.',
  save: 'Save travel choice', loading: 'Checking flight options…', travelHours: 'Estimated flight hours',
+ staffIncluded: 'Staff airfare', includedInFare: 'Included in one jet flight cost',
+ fullPartyCostNote: 'One total flight charge covers the player and all selected staff; aircraft repositioning is included in the quote.',
+ overnightTransfer: 'Overnight flight',overnightCandidate:'Flight time within 10h',overnightTooLong:'Flight time over 10h',
+ overnightDisclaimer: 'Sunday-to-Monday scheduling still depends on actual tournament and match timing.',
 }
 const overrides: Record<string, Partial<LifestyleCopy>> = {
  de: {
@@ -52,6 +58,10 @@ const overrides: Record<string, Partial<LifestyleCopy>> = {
   reposition:'Jet-Überführung',bookCommercial:'Linienflug wählen',bookJet:'Diesen Privatjet nutzen',
   jetNotAvailable:'Dieses Flugzeug kann diese Strecke nicht fliegen.',save:'Reiseauswahl speichern',
   loading:'Flüge werden geprüft…',travelHours:'Geschätzte Flugstunden',
+  staffIncluded:'Flugkosten für das Team', includedInFare:'Im Gesamtpreis enthalten',
+  fullPartyCostNote:'Ein Flugpreis für Spieler und Team, inklusive nötiger Überführung.',
+  overnightTransfer:'Nachtflug',overnightCandidate:'Flugzeit innerhalb von 10 Std.',overnightTooLong:'Flugzeit über 10 Std.',
+  overnightDisclaimer:'Sonntag-auf-Montag hängt weiterhin von den tatsächlichen Spielzeiten ab.',
  },
  sr: {
   title:'Privatni život i karijera',subtitle:'Luksuz povećava udobnost, a ne teniske veštine.',
@@ -66,6 +76,10 @@ const overrides: Record<string, Partial<LifestyleCopy>> = {
   jetEligible:'Dostupan za turnirska putovanja',jetIneligible:'Samo privatna upotreba',
   jetMode:'Let za turnir',selectJet:'Izaberi privatni avion',bookJet:'Koristi ovaj avion',
   bookCommercial:'Komercijalni let',save:'Sačuvaj izbor',
+  staffIncluded:'Let stručnog štaba',includedInFare:'Uključeno u ukupnu cenu',
+  fullPartyCostNote:'Jedna cena leta pokriva igrača i odabrani stručni štab.',
+  overnightTransfer:'Noćni let',overnightCandidate:'Let do 10 sati',overnightTooLong:'Let duži od 10 sati',
+  overnightDisclaimer:'Prelaz nedelja–ponedeljak zavisi i od termina mečeva.',
  },
  es: {title:'Vida privada y carrera',nationality:'Nacionalidad',homeBase:'Residencia',currentLocation:'Ubicación actual',
   morale:'Moral por estilo de vida',ownedJets:'Aviones aptos para viajar',none:'Ninguno',range:'Autonomía',
