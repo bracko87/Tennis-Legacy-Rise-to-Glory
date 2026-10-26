@@ -173,6 +173,7 @@ begin
  join public.private_life_player_assets a on a.id=s.pending_residence_asset_id and a.sold_absolute_day is null
  join public.private_life_property_locations l on l.code=a.location_code
  where s.pending_effective_absolute_day<=v_current
+ for update of s skip locked
  loop
  select * into v_state from public.player_location_state where player_id=x.player_id;
  if v_state.location_type<>'home' or exists(
