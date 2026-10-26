@@ -60,6 +60,12 @@ begin
   if not exists(select 1 from pg_constraint where conrelid='public.player_tournament_travel_selection'::regclass
     and contype='p') then raise exception 'Missing unique tournament selection constraint'; end if;
 
+  -- A missing cron schedule must fail smoke validation, not silently show
+  -- an empty SQL result at the end of setup.
+  select count(*) into v_count from cron.job
+  where jobname='tennis-private-life-career-hourly' and schedule='0 * * * *';
+  if v_count<>1 then raise exception 'Expected exactly one hourly Private Life settlement job, found %',v_count; end if;
+
   raise notice 'PASS: lifestyle schema, RLS, tenure, flight eligibility and fatigue limits';
 end $$;
 
