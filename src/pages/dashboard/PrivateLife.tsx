@@ -14,6 +14,7 @@ import GameConfirmDialog from '../../components/common/GameConfirmDialog'
 import GameLayout from '../../components/layout/GameLayout'
 import PrivateLifeInvestments from '../../components/private-life/PrivateLifeInvestments'
 import { LifestyleCareerPanel, type LifestyleCareer } from '../../components/private-life/LifestyleCareerPanel'
+import PrivateJetTravelPreview from '../../components/private-life/PrivateJetTravelPreview'
 import { lifestyleCopy } from '../../lib/lifestyleCareerI18n'
 import { useCommerce } from '../../hooks/useCommerce'
 import { useLocalization } from '../../i18n/LocalizationProvider'
@@ -827,6 +828,7 @@ export default function PrivateLifePage() {
                 <div><span>{t('privateLifePage.purchase.annualTrend')}</span><strong className={detailTarget.listing.effective_value_rate_bps < 0 ? 'private-life-trend-negative' : detailTarget.listing.effective_value_rate_bps > 0 ? 'private-life-trend-positive' : ''}>{trendText(t, detailTarget.listing.effective_value_rate_bps)}</strong></div>
                 <div><span>{t('privateLifePage.purchase.financeAfter')}</span><strong>{money(dashboard.cash_balance - detailTarget.listing.effective_price, currency)}</strong></div>
               </div>
+              {detailTarget.listing.category === 'private_jet' && <PrivateJetTravelPreview catalogCode={detailTarget.listing.code} connectedBackendActive={Boolean(dashboard.career_lifestyle)} formatMoney={(value) => money(value, currency)} />}
             </div>
           ),
         }
@@ -867,6 +869,7 @@ export default function PrivateLifePage() {
                 <div><span>{t('privateLifePage.purchase.annualTrend')}</span><strong className={detailTarget.asset.annual_value_rate_bps < 0 ? 'private-life-trend-negative' : detailTarget.asset.annual_value_rate_bps > 0 ? 'private-life-trend-positive' : ''}>{trendText(t, detailTarget.asset.annual_value_rate_bps)}</strong></div>
                 <div><span>{t('privateLifePage.purchase.estimatedSale')}</span><strong>{money(detailTarget.asset.estimated_sale_price, currency)}</strong></div>
               </div>
+              {detailTarget.asset.category === 'private_jet' && <PrivateJetTravelPreview catalogCode={detailTarget.asset.catalog_code} connectedBackendActive={Boolean(dashboard.career_lifestyle)} formatMoney={(value) => money(value, currency)} />}
             </div>
           ),
         }
@@ -993,16 +996,7 @@ export default function PrivateLifePage() {
                         <div className="private-life-card-title-row"><div>{catalogAsset && yachtBuilder(catalogAsset) ? <div className="private-life-yacht-builder">{yachtBuilder(catalogAsset)}</div> : null}<h4>{asset.name}</h4></div><div className="private-life-price">{money(asset.current_market_value, currency)}</div></div>
                         {asset.acquisition_type === 'starter_home' ? <div className="private-life-starter-home-label">{t('privateLifePage.assets.startingHome')}</div> : null}
                         <p className="private-life-description">{asset.description}</p>
-                        {asset.category === 'private_jet' && catalogAsset && (
-                          <small className="tlg-jet-catalog-meta">
-                            {catalogAsset.metadata?.tournament_travel_eligible
-                              ? careerCopy.jetEligible : careerCopy.jetIneligible}
-                            {Boolean(catalogAsset.metadata?.tournament_travel_eligible) &&
-                              <> · {careerCopy.range}: {Number(catalogAsset.metadata?.max_range_km ?? 0).toLocaleString()} km
-                               · {careerCopy.capacity}: {Number(catalogAsset.metadata?.passenger_capacity ?? 0)}
-                               · {careerCopy.operating}: {money(Number(catalogAsset.metadata?.base_trip_cost ?? 0))} + {money(Number(catalogAsset.metadata?.cost_per_km ?? 0))}/km</>}
-                          </small>
-                        )}
+                        {asset.category === 'private_jet' && <PrivateJetTravelPreview catalogCode={asset.catalog_code} connectedBackendActive={Boolean(dashboard.career_lifestyle)} formatMoney={(value) => money(value, currency)} compact />}
                         </div>
                         <MobileAssetDisclosure>
                         <div className="private-life-owned-value-grid">
@@ -1101,6 +1095,7 @@ export default function PrivateLifePage() {
                         <div className="private-life-card-title-row"><div>{yachtBuilder(listing) ? <div className="private-life-yacht-builder">{yachtBuilder(listing)}</div> : null}<h4>{listing.name}</h4></div><div className="private-life-price">{money(listing.effective_price, currency)}</div></div>
                         {listing.location ? <div className="private-life-property-location">{listing.location.city}, {listing.location.country_name}</div> : null}
                         <p className="private-life-description">{listing.description}</p>
+                        {listing.category === 'private_jet' && <PrivateJetTravelPreview catalogCode={listing.code} connectedBackendActive={Boolean(dashboard.career_lifestyle)} formatMoney={(value) => money(value, currency)} compact />}
                         </div>
                         <MobileAssetDisclosure>
                         <div className="private-life-card-stats">
