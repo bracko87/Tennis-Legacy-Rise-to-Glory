@@ -57,11 +57,12 @@ In addition to static grammar and React build validation, the consolidated GitHu
 
 - `tests/private_life_ephemeral_fixture.sql`: creates synthetic players, clock, locations, asset catalog and stubbed dependencies.
 - `tests/private_life_ephemeral_assertions.sql`: applies the **actual first migration** and exercises purchase-based morale boosts, maximum +3, category purchase cooldown, expiry after game days, owned-residence relocation, two-game-day settlement, fee idempotency, nationality preservation, active-home sale protection, relocation cooldown and future travel-plan rebuilding on preference changes.
+- The fixture now verifies that changing the global travel mode causes an immediate rebuild of unfinished player itineraries; the migration uses the existing plan builder.
 - `tests/private_life_ephemeral_jet_fixture.sql` and `tests/private_life_ephemeral_jet_assertions.sql`: create synthetic owned aircraft and execute **the unchanged aircraft purchase-positioning and jet quote functions extracted directly from the second migration**. Validate jet/non-jet eligibility, maximum range, operating costs, staff capacity/overflow, fatigue cap, aircraft repositioning, and planned-flight positioning.
 - `scripts/extract-private-life-jet-routines.py`: extracts exactly those two business routines for execution. The entire second migration is **not** applied in this isolated fixture.
 - The workflow does not exercise every production table/RLS combination, the full scheduler, private-jet debit path, multiplayer permissions, Netlify frontend or the production Supabase environment. This runtime harness is valuable but is **not a substitute for a full isolated Supabase integration test**.
 
-Runtime integration CI: https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/40310128704
+Latest passing runtime + source CI: https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/40310906699
 
 ## Database verification on an isolated non-production database
 
