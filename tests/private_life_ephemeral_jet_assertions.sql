@@ -26,6 +26,12 @@ begin
  select count(*) into v_total from public.player_private_jet_positions where owned_asset_id=prop;
  if v_total<>0 then raise exception 'Propeller aircraft should not be positioned as bookable jet'; end if;
 
+ v:=public.quote_my_private_life_jet_v1('44444444-4444-4444-4444-444444444444',j,5);
+ if v->>'active'<>'true' or (v->>'staff_on_jet')::integer<>5
+   or (v->>'staff_commercial')::integer<>0 or (v->>'cost_one_way')::integer<>7800
+   or (v->>'overnight_transfer_possible')::boolean<>true then
+  raise exception 'Authenticated whole-team quote / overnight estimate is wrong: %',v;
+ end if;
  v:=public.quote_private_jet_leg_v1(p,'Belgrade','RS','Paris','FR',1600,5,j,394);
  if v->>'active'<>'true' then raise exception 'In-range flight should succeed: %',v; end if;
  if (v->>'reduction_bps')::integer<>5000 then raise exception 'Fatigue benefit must be capped to 50%%'; end if;
@@ -54,5 +60,5 @@ begin
  v:=public.quote_private_jet_leg_v1(p,'Madrid','ES','Paris','FR',1600,0,j,396);
  if (v->>'reposition_cost')::integer<>0 then
   raise exception 'Projected aircraft position in planned journey not applied: %',v; end if;
- raise notice 'PASS: jet position, prop exclusion, range, fare, fatigue cap, staff overflow, reposition and planned continuation';
+ raise notice 'PASS: authenticated group quote, jet position, prop exclusion, range, fare, fatigue cap, staff overflow, reposition and planned continuation';
 end $$;
