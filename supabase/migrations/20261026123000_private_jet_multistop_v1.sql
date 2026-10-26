@@ -197,3 +197,144 @@ begin
   'range_margin_percent',6);
 end;$route$;
 revoke all on function public.private_jet_refuel_route_v1(text,text,text,text,integer,integer) from public,anon,authenticated;
+
+
+-- Override the same booking quote signature consumed by selection, itinerary,
+-- staff fare, finance, player fatigue and UI. No new payment path is created.
+create or replace function public.quote_private_jet_leg_v1(
+ p_player_id uuid,p_source_city text,p_source_country text,
+ p_destination_city text,p_destination_country text,
+ p_distance_km integer,p_staff_count integer default 0,
+ p_requested_asset_id uuid default null,p_departure_day integer default null
+) returns jsonb language plpgsql stable security definer
+set search_path='public','pg_temp' as $multistop_quote$
+declare
+ v_jet record;v_home jsonb;v_last record;v_route jsonb;v_reposition_route jsonb;
+ v_aircraft_city text;v_aircraft_country text;v_reposition_quote jsonb;
+ v_range integer;v_capacity integer;v_base integer;v_rate numeric;
+ v_comfort_bps integer;v_effective_bps integer;
+ v_speed numeric;v_handling numeric;v_hours numeric;v_days integer;
+ v_leg_distance integer;v_stop_count integer:=0;v_route_distance integer;
+ v_reposition_distance integer:=0;v_reposition_stops integer:=0;v_reposition_cost integer:=0;
+ v_route_legs jsonb:='[]'::jsonb;v_refuel_stops jsonb:='[]'::jsonb;
+begin
+ if coalesce(p_distance_km,0)<1 then
+  return jsonb_build_object('active',false,'reason','no_flight');
+ end if;
+ if p_staff_count<0 or p_staff_count>6 then
+  return jsonb_build_object('active',false,'reason','invalid_staff_count');
+ end if;
+ select a.id,c.name,c.code,c.metadata,a.purchase_price into v_jet
+ from public.private_life_player_assets a
+ join public.private_life_asset_catalog c on c.code=a.catalog_code
+ where a.player_id=p_player_id and a.sold_absolute_day is null
+   and c.category='private_jet'
+   and coalesce((c.metadata->>'tournament_travel_eligible')::boolean,false)
+   and (p_requested_asset_id is null or a.id=p_requested_asset_id)
+ order by coalesce((c.metadata->>'travel_fatigue_reduction_bps')::integer,0) desc,
+          a.purchase_price desc limit 1;
+ if v_jet.id is null then
+  return jsonb_build_object('active',false,'reason','no_approved_owned_jet');
+ end if;
+ v_range:=coalesce((v_jet.metadata->>'max_range_km')::integer,0);
+ v_capacity:=coalesce((v_jet.metadata->>'passenger_capacity')::integer,0);
+ if v_capacity<1+coalesce(p_staff_count,0) then
+  return jsonb_build_object('active',false,'reason','insufficient_passenger_seats',
+   'required_seats',1+coalesce(p_staff_count,0),'passenger_capacity',v_capacity);
+ end if;
+ v_base:=coalesce((v_jet.metadata->>'base_trip_cost')::integer,0);
+ v_rate:=coalesce((v_jet.metadata->>'cost_per_km')::numeric,0);
+ v_speed:=greatest(400,coalesce((v_jet.metadata->>'cruise_speed_kmh')::numeric,750));
+ v_handling:=greatest(0,coalesce((v_jet.metadata->>'airport_handling_hours')::numeric,1.5));
+ v_comfort_bps:=least(5000,greatest(0,coalesce((v_jet.metadata->>'travel_fatigue_reduction_bps')::integer,0)));
+ if v_range<500 or v_base<1 or v_rate<=0 then
+  return jsonb_build_object('active',false,'reason','invalid_jet_specification');
+ end if;
+
+ if p_distance_km<=floor(v_range*0.94) then
+  -- For known direct routes retain existing game distance/pricing exactly.
+  v_route_distance:=p_distance_km;
+  v_stop_count:=0;
+  v_route_legs:=jsonb_build_array(jsonb_build_object(
+   'from',p_source_city,'to',p_destination_city,'distance_km',p_distance_km));
+ else
+  v_route:=public.private_jet_refuel_route_v1(
+    p_source_city,p_source_country,p_destination_city,p_destination_country,v_range,18);
+  if not coalesce((v_route->>'active')::boolean,false) then
+   return jsonb_build_object('active',false,'reason',coalesce(v_route->>'reason','no_refuel_route'),
+    'aircraft',v_jet.name,'max_range_km',v_range);
+  end if;
+  v_route_distance:=(v_route->>'route_distance_km')::integer;
+  v_stop_count:=(v_route->>'stop_count')::integer;
+  v_route_legs:=v_route->'legs';
+  v_refuel_stops:=v_route->'refuel_stops';
+ end if;
+ -- A few short legs can be longer than a straight-line distance; charging by
+ -- actual planned distance prevents a very small jet becoming a cheap shortcut.
+ v_effective_bps:=greatest(500,v_comfort_bps-v_stop_count*350);
+ v_hours:=round(v_route_distance::numeric/v_speed+v_handling+v_stop_count*1.8,1);
+ -- Cap of 18 flight/handling hours in one game day; longer routes need days.
+ v_days:=greatest(1,ceil(v_hours/18.0)::integer);
+
+ select pos.city,pos.country_code into v_aircraft_city,v_aircraft_country
+ from public.player_private_jet_positions pos where pos.owned_asset_id=v_jet.id;
+ if p_departure_day is not null then
+  select destination_city,destination_country_code into v_last
+  from public.player_travel_legs
+  where jet_asset_id=v_jet.id and status='planned'
+    and departure_absolute_day<=p_departure_day
+  order by departure_absolute_day desc,created_at desc limit 1;
+  if v_last.destination_city is not null then
+   v_aircraft_city:=v_last.destination_city;
+   v_aircraft_country:=v_last.destination_country_code;
+  end if;
+ end if;
+ if v_aircraft_city is null then
+  v_home:=public.get_player_home_base_v1(p_player_id);
+  v_aircraft_city:=v_home->>'city';
+  v_aircraft_country:=v_home->>'country_code';
+ end if;
+ if lower(coalesce(v_aircraft_city,''))<>lower(coalesce(p_source_city,'')) or
+    upper(coalesce(v_aircraft_country,''))<>upper(coalesce(p_source_country,'')) then
+  v_reposition_quote:=public.quote_travel_v2(
+    v_aircraft_city,v_aircraft_country,null,null,
+    p_source_city,p_source_country,null,null,'Economy','one_way');
+  v_leg_distance:=coalesce((v_reposition_quote->>'distance_km')::integer,0);
+  if v_leg_distance>floor(v_range*0.94) then
+   v_reposition_route:=public.private_jet_refuel_route_v1(
+    v_aircraft_city,v_aircraft_country,p_source_city,p_source_country,v_range,18);
+   if not coalesce((v_reposition_route->>'active')::boolean,false) then
+    return jsonb_build_object('active',false,'reason','jet_reposition_route_unavailable');
+   end if;
+   v_reposition_distance:=(v_reposition_route->>'route_distance_km')::integer;
+   v_reposition_stops:=(v_reposition_route->>'stop_count')::integer;
+  else
+   v_reposition_distance:=v_leg_distance;
+  end if;
+  -- Same existing base + distance fee for repositioning, plus stop fees.
+  v_reposition_cost:=v_base+ceil(v_reposition_distance*v_rate)::integer
+       +v_reposition_stops*1800;
+ end if;
+
+ return jsonb_build_object(
+  'active',true,'owned_asset_id',v_jet.id,'catalog_code',v_jet.code,
+  'name',v_jet.name,'max_range_km',v_range,'distance_km',p_distance_km,
+  'route_distance_km',v_route_distance,'leg_count',v_stop_count+1,
+  'stop_count',v_stop_count,'refuel_stops',v_refuel_stops,'route_legs',v_route_legs,
+  'passenger_capacity',v_capacity,'party_size',1+coalesce(p_staff_count,0),
+  'staff_on_jet',coalesce(p_staff_count,0),'staff_commercial',0,
+  'base_fatigue_reduction_bps',v_comfort_bps,
+  'reduction_bps',v_effective_bps,'reduction_percent',round(v_effective_bps::numeric/100),
+  'refuel_fatigue_penalty_bps',v_comfort_bps-v_effective_bps,
+  'base_trip_cost',v_base,'cost_per_km',v_rate,
+  'refuel_stop_cost',v_stop_count*1800,'reposition_cost',v_reposition_cost,
+  'reposition_distance_km',v_reposition_distance,
+  'reposition_stop_count',v_reposition_stops,
+  'cost_one_way',v_base+ceil(v_route_distance*v_rate)::integer+1000+
+      v_stop_count*1800+v_reposition_cost,
+  'estimated_hours',v_hours,'estimated_travel_days',v_days,
+  'overnight_transfer_possible',v_days=1 and v_hours<=10,
+  'single_party_charge',true);
+end;$multistop_quote$;
+revoke all on function public.quote_private_jet_leg_v1(uuid,text,text,text,text,integer,integer,uuid,integer)
+ from public,anon,authenticated;
