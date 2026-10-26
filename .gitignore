@@ -27,3 +27,10 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Database schema-only copies for isolated Private Life test environments.
+# May contain SQL function configuration; never commit publicly.
+.private-life-sandbox/
+.private-life-schema/
+supabase/.temp/
+supabase/.branches/
