@@ -25,9 +25,9 @@ git pull origin main
 scripts\setup-private-life-sandbox.cmd
 ```
 
-**What the script does:** checks Docker Desktop and Node.js; authenticates Supabase CLI; links to the existing project; runs a **read-only schema-only dump**; creates an isolated local project; starts local Supabase on port 54331; attempts to apply the three Private Life migrations; runs `tests/private_life_career_db_smoke.sql` against the **local Docker database only** to verify the new schema/RLS and hourly job; prints its own local anon key on success. It does not run any remote reset or deploy. **Supabase login and linking may still require you to approve access or provide your database password locally. Never paste credentials into chat.** Stop and share only the first non-secret error if setup fails.
+**What the script does:** checks Docker Desktop and Node.js; authenticates Supabase CLI; links to the existing project; runs a **read-only schema-only dump**; creates an isolated local project; inserts minimal **local-only reference data before** the three Private Life migrations; starts local Supabase on port 54331; attempts to apply those migrations; runs `tests/private_life_career_db_smoke.sql` against the **local Docker database only** to verify the new schema/RLS and hourly job; prints its own local anon key on success. It does not run any remote reset or deploy. **Supabase login and linking may still require you to approve access or provide your database password locally. Never paste credentials into chat.** Stop and share only the first non-secret error if setup fails.
 
-This is **not yet a certified end-to-end workflow**: the actual current production-schema dump has not been restored successfully into Docker, and local player creation/seed data may still require fixes. Passing the new local SQL smoke test does not mean the gameplay ticket is complete: the dump has schema only and contains no aircraft catalog rows, property locations, real player accounts, premium entitlements or tournament fixtures. Separate synthetic reference data and authenticated UI testing are still necessary.
+This is **not yet a certified end-to-end workflow**: the actual current production-schema dump has not been restored successfully into Docker, and local player creation/seed data may still require fixes. Passing the new local SQL smoke test does not mean the gameplay ticket is complete: the dump has schema only; the sandbox now adds a **small local-only synthetic reference seed** (nine approved jet models, one noneligible propeller plane, a watch, car, house and three cities). It still has no real player accounts, Premium entitlements, uploaded catalog images or tournament fixtures. Separate synthetic reference data and authenticated UI testing are still necessary.
 
 If you prefer running commands individually, follow the manual instructions below.
 
@@ -54,7 +54,7 @@ npx supabase start
 npx supabase status -o env
 ```
 
-The generator creates a **separate** project with API `http://127.0.0.1:54331`, database `54332`, Studio `54333`, and mail UI `54334`. It loads the schema-only snapshot, restores the five current custom authentication triggers against the **local auth.users table**, and attempts the three new Private Life migrations.
+The generator creates a **separate** project and copies `tests/private_life_sandbox_reference_seed.sql` as a LOCAL migration ahead of the three feature migrations. The file does not belong in the real production migration history. This sandbox has API `http://127.0.0.1:54331`, database `54332`, Studio `54333`, and mail UI `54334`. It loads the schema-only snapshot, restores the five current custom authentication triggers against the **local auth.users table**, and attempts the three new Private Life migrations.
 
 If `supabase start` or the subsequent local SQL smoke test reports any error, do not proceed with gameplay testing or apply those migrations to production. Fix the sandbox schema mismatch first. The snapshot is a test artifact, not a replacement for a correct historical migration chain.
 
@@ -71,7 +71,7 @@ npm run dev
 
 Open **http://localhost:8001**. Do not use the live production key for this local database.
 
-The new local database contains **no real user data**. You must create a *local-only* account and may need valid registration invites, seeded tournaments and local career funds to test all game interactions. Production player accounts, purchases and balances will not appear.
+The new local database contains **no real user data**. You must create a *local-only* account and may need valid registration invites, seeded tournaments, local Premium access and test career funds to test all game interactions. The seeded catalog images are intentionally absent, and tests must never reuse real production accounts or balances. Production player accounts, purchases and balances will not appear.
 
 ## What to verify after successful startup
 
