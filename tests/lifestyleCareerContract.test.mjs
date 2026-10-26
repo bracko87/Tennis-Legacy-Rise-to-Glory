@@ -10,6 +10,7 @@ const foundation=read('supabase/migrations/20261026093000_private_life_career_fo
 const jet=read('supabase/migrations/20261026094500_private_life_jet_travel_integration_v1.sql')
 const profile=read('supabase/migrations/20261026095500_private_life_profile_residence_v1.sql')
 const privateLife=read('src/pages/dashboard/PrivateLife.tsx')
+const jetPreview=read('src/components/private-life/PrivateJetTravelPreview.tsx')
 const schedule=read('src/pages/dashboard/Schedule.tsx')
 const overview=read('src/pages/dashboard/Overview.tsx')
 const settings=read('src/pages/manager/GamePreferences.tsx')
@@ -118,4 +119,23 @@ test('commercial fallback clearly shows full party fare and ordinary fatigue in 
  assert.match(picker,/choice==='private_jet' && !supported \? c\.bookCommercial : c\.save/)
  assert.match(i18n,/commercialFallback: string/)
  assert.match(i18n,/Normal commercial travel costs and fatigue apply/)
+})
+
+test('nine private airplane marketplace previews match their SQL travel specifications',()=>{
+ const models=[...jetPreview.matchAll(/^\s*(air_[a-z0-9_]+):\s*\{\s*seats:\s*(\d+),\s*rangeKm:\s*(\d+),\s*fatigueReduction:\s*(\d+),\s*baseCost:\s*(\d+),\s*costPerKm:\s*(\d+)\s*\}/gm)]
+ assert.equal(models.length,9,'Preview must cover exactly the nine approved aircraft')
+ const ids=new Set()
+ for(const [,code,seats,range,reduction,base,rate] of models){
+  assert.ok(!ids.has(code),'Duplicate preview aircraft '+code);ids.add(code)
+  const db=jet.match(new RegExp("'"+code+"'\\s*,\\s*(\\d+),\\s*(\\d+),\\s*(\\d+),\\s*(\\d+),\\s*(\\d+)"))
+  assert.ok(db,'SQL migration does not approve '+code)
+  assert.deepEqual([+seats,+range,+base,+rate,+reduction],db.slice(1,6).map(Number),'Preview specifications mismatch '+code)
+ }
+ assert.match(privateLife,/PrivateJetTravelPreview/)
+ assert.match(privateLife,/listing\.category === 'private_jet'/)
+ assert.match(privateLife,/detailTarget\.listing\.category === 'private_jet'/)
+ assert.match(privateLife,/detailTarget\.asset\.category === 'private_jet'/)
+ assert.match(privateLife,/connectedBackendActive=\{Boolean\(dashboard\.career_lifestyle\)\}/)
+ assert.match(jetPreview,/Preview only/)
+ assert.match(jetPreview,/If out of range, player and staff fly commercially/)
 })
