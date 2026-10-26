@@ -8,7 +8,7 @@ The game repository contains 591 historical migrations, but its early staff migr
 
 This optional workflow uses a **read-only schema export** of the *existing game database*, then applies only the three unreleased Private Life migrations in a **separate local Docker database**. It does not copy player accounts, career balances or purchases, and it does not execute a DDL statement on production.
 
-**Status: preparation script is implemented and unit-tested. The complete real schema restore is NOT yet verified.** Do not interpret these instructions as a guarantee that existing account registration or tournament seed data works locally.
+**Status: the setup script now runs an automated read-only structural SQL smoke test against the isolated LOCAL Docker database after migrations. A complete real schema restore and logged-in browser playthrough remain UNVERIFIED.** Do not interpret these instructions as a guarantee that existing account registration or tournament seed data works locally.
 
 ## Before starting
 
@@ -25,9 +25,9 @@ git pull origin main
 scripts\setup-private-life-sandbox.cmd
 ```
 
-**What the script does:** checks Docker Desktop and Node.js; authenticates Supabase CLI; links to the existing project; runs a **read-only schema-only dump**; creates an isolated local project; starts local Supabase on port 54331; attempts to apply the three Private Life migrations; prints its own local anon key at the end. It does not run any remote reset or deploy. **Supabase login and linking may still require you to approve access or provide your database password locally. Never paste credentials into chat.** Stop and share only the first non-secret error if setup fails.
+**What the script does:** checks Docker Desktop and Node.js; authenticates Supabase CLI; links to the existing project; runs a **read-only schema-only dump**; creates an isolated local project; starts local Supabase on port 54331; attempts to apply the three Private Life migrations; runs `tests/private_life_career_db_smoke.sql` against the **local Docker database only** to verify the new schema/RLS and hourly job; prints its own local anon key on success. It does not run any remote reset or deploy. **Supabase login and linking may still require you to approve access or provide your database password locally. Never paste credentials into chat.** Stop and share only the first non-secret error if setup fails.
 
-This is **not yet a certified end-to-end workflow**: the actual current production-schema dump has not been restored successfully into Docker, and local player creation/seed data may still require fixes. A successful preparatory source check does not mean the gameplay ticket is complete.
+This is **not yet a certified end-to-end workflow**: the actual current production-schema dump has not been restored successfully into Docker, and local player creation/seed data may still require fixes. Passing the new local SQL smoke test does not mean the gameplay ticket is complete: the dump has schema only and contains no aircraft catalog rows, property locations, real player accounts, premium entitlements or tournament fixtures. Separate synthetic reference data and authenticated UI testing are still necessary.
 
 If you prefer running commands individually, follow the manual instructions below.
 
@@ -56,7 +56,7 @@ npx supabase status -o env
 
 The generator creates a **separate** project with API `http://127.0.0.1:54331`, database `54332`, Studio `54333`, and mail UI `54334`. It loads the schema-only snapshot, restores the five current custom authentication triggers against the **local auth.users table**, and attempts the three new Private Life migrations.
 
-If `supabase start` reports any SQL error, do not proceed with gameplay testing or apply those migrations to production. Fix the sandbox schema mismatch first. The snapshot is a test artifact, not a replacement for a correct historical migration chain.
+If `supabase start` or the subsequent local SQL smoke test reports any error, do not proceed with gameplay testing or apply those migrations to production. Fix the sandbox schema mismatch first. The snapshot is a test artifact, not a replacement for a correct historical migration chain.
 
 ## Step 3: point the frontend at the local database (second CMD window, game root)
 
