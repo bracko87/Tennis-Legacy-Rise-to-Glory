@@ -536,7 +536,7 @@ begin
 
   return jsonb_build_object('status','synced','tournament_legs',v_count);
 end;
-$function$
+$function$;
 
 
 -- Server-enforced travel-day availability for multi-stop private journeys.
