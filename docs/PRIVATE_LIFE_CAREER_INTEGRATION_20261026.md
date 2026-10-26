@@ -2,6 +2,16 @@
 
 **Branch:** `main` (source-only development; Netlify builds remain stopped). **Status:** source committed and GitHub build validated; database migrations **not applied to production**. Isolated DB integration tests and browser QA remain required. **Date:** 2026-10-26.
 
+## Release-critical direct-RPC permission audit (2026-10-26)
+
+Read-only production inspection uncovered that seven legacy internal travel functions were `SECURITY DEFINER` and still directly executable by both `anon` and `authenticated`. Some functions accepted an arbitrary player ID or travel-leg ID and could mutate travel plans, apply a travel settlement, or reveal travel origins; ownership checks in higher-level public RPCs do not protect direct invocation of these internal helpers.
+
+The **unreleased** `20261026094500_private_life_jet_travel_integration_v1.sql` migration now revokes direct `PUBLIC`, `anon`, and `authenticated` execution for the seven helpers: `insert_planned_travel_leg_v1`, `process_travel_leg_v1`, `rebuild_player_travel_plan_core_v1`, `resolve_player_origin_before_day_v1`, `rebuild_player_travel_plan_v1`, `apply_training_camp_split_travel_v1`, and `process_due_travel_legs_v1`. The intended high-level authenticated career RPCs remain callable. A read-only reference search of the live database found that the functions invoking these internal helpers are themselves `SECURITY DEFINER`, so owner-level internal calls can still execute them.
+
+A new disposable PostgreSQL test checks **all seven privilege signatures** using the actual proposed migration statements. The application build and permission/integration test jobs both passed: https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/40359220098
+
+**Security status:** These revocations are **source-only** and have **not** changed live Supabase privileges. Because this is an existing publicly exposed internal-function issue, a separate production security fix deserves priority, but any live deployment still requires explicit production authorization and review. Complete full-schema/real-browser Private Life tests are also still pending.
+
 ## Supabase QA branch attempt — 2026-10-26
 
 **Outcome: BLOCKED by historical migration/data dependencies; no Private Life migrations applied.** The owner approved a temporary branch at **$0.01344/hour** (plus possible provider usage). A nonpersistent, data-free Supabase development branch named `private-life-integration-qa-20261026` was created, then **deleted after repeated migration failures** to avoid ongoing charges. Post-deletion `list_branches` confirmed only the production `main` branch remains.
