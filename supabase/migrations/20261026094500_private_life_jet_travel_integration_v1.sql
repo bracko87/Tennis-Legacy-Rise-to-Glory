@@ -302,6 +302,36 @@ end; $$;
 revoke all on function public.get_private_life_tournament_travel_v1(uuid) from public,anon;
 grant execute on function public.get_private_life_tournament_travel_v1(uuid) to authenticated;
 
+-- Authenticated read-only quote for the currently chosen owned jet; recomputes
+-- the FULL player-and-staff group fare and aircraft repositioning in one amount.
+create or replace function public.quote_my_private_life_jet_v1(
+ p_competition_id uuid,p_owned_jet_asset_id uuid,p_staff_count integer default null)
+returns jsonb language plpgsql stable security definer set search_path='public','pg_temp' as $quote_jet$
+declare v_player uuid;v_base jsonb;v_plan public.player_tournament_preparation_plans%rowtype;
+ v_staff integer;
+begin
+ v_player:=public.private_life_current_player_v1();
+ if not exists(select 1 from public.tournament_entries e
+   where e.player_id=v_player and e.competition_id=p_competition_id) then
+  raise exception 'This tournament is not entered.';
+ end if;
+ select * into v_plan from public.player_tournament_preparation_plans
+   where player_id=v_player and competition_id=p_competition_id;
+ v_staff:=coalesce(p_staff_count,coalesce(array_length(v_plan.selected_staff_contract_ids,1),0));
+ if v_staff<0 or v_staff>6 then raise exception 'A maximum of six staff can accompany the player.'; end if;
+ v_base:=public.quote_tournament_preparation_v1(
+  v_player,p_competition_id,coalesce(v_plan.player_travel_class,'Economy'),
+  coalesce(v_plan.staff_travel_class,'Economy'),coalesce(v_plan.hotel_tier,'Standard'),
+  coalesce(v_plan.selected_staff_contract_ids,'{}'::uuid[]));
+ return public.quote_private_jet_leg_v1(
+  v_player,v_base->'origin'->>'city',v_base->'origin'->>'country_code',
+  v_base->'destination'->>'city',v_base->'destination'->>'country_code',
+  coalesce((v_base->'player_travel'->>'distance_km')::integer,0),v_staff,
+  p_owned_jet_asset_id,coalesce((v_base->>'arrival_absolute_day')::integer,0)-1);
+end; $quote_jet$;
+revoke all on function public.quote_my_private_life_jet_v1(uuid,uuid,integer) from public,anon;
+grant execute on function public.quote_my_private_life_jet_v1(uuid,uuid,integer) to authenticated;
+
 -- Override existing plan insert with paid, selected jet booking.
 CREATE OR REPLACE FUNCTION public.insert_planned_travel_leg_v1(p_player_id uuid, p_purpose text, p_source_type text, p_source_city text, p_source_country text, p_source_lat double precision, p_source_lon double precision, p_source_ref text, p_dest_type text, p_dest_city text, p_dest_country text, p_dest_lat double precision, p_dest_lon double precision, p_dest_ref text, p_departure integer, p_arrival integer, p_embedded boolean DEFAULT false)
  RETURNS uuid
