@@ -129,7 +129,7 @@ test('nine private airplane marketplace previews match their SQL travel specific
   assert.ok(!ids.has(code),'Duplicate preview aircraft '+code);ids.add(code)
   const db=jet.match(new RegExp("'"+code+"'\\s*,\\s*(\\d+),\\s*(\\d+),\\s*(\\d+),\\s*(\\d+),\\s*(\\d+)"))
   assert.ok(db,'SQL migration does not approve '+code)
-  assert.deepEqual([+seats,+range,+base,+rate,+reduction],db.slice(1,6).map(Number),'Preview specifications mismatch '+code)
+  assert.deepEqual([+seats,+range,+base,+rate,+reduction*100],db.slice(1,6).map(Number),'Preview specifications mismatch '+code)
  }
  assert.match(privateLife,/PrivateJetTravelPreview/)
  assert.match(privateLife,/listing\.category === 'private_jet'/)
