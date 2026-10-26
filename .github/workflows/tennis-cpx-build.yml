@@ -44,6 +44,14 @@ jobs:
         run: npm run check:mobile-routes
       - name: Validate Private Life career integration contracts
         run: node --test tests/lifestyleCareerContract.test.mjs
+      - name: Set up Python for offline database migration syntax validation
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate Private Life SQL and PL/pgSQL syntax (no database connection)
+        run: |
+          python -m pip install --disable-pip-version-check pglast==8.7
+          python scripts/validate-private-life-sql.py
       - name: Build production website
         run: npm run build
       - name: Validate public SEO pages, sitemap, and private noindex protections
