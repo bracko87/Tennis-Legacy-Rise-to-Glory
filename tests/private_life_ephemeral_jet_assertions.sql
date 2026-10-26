@@ -1,4 +1,17 @@
 \set ON_ERROR_STOP on
+select set_config('app.test_uid','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',false);
+select set_config('app.month','1',false);
+select set_config('app.day','1',false);
+create trigger trg_initialize_private_jet_position after insert on public.private_life_player_assets
+ for each row execute function public.initialize_private_jet_position_v1();
+-- The test jet is purchased at the current real player location (Belgrade).
+insert into public.private_life_player_assets(id,player_id,catalog_code,acquisition_type,purchase_absolute_day)
+values
+ ('22222222-2222-2222-2222-222222222225',
+  '11111111-1111-1111-1111-111111111111','test_real_jet','purchase',391),
+ ('22222222-2222-2222-2222-222222222226',
+  '11111111-1111-1111-1111-111111111111','test_prop_plane','purchase',391);
+
 do $$
 declare p uuid:='11111111-1111-1111-1111-111111111111';
  j uuid:='22222222-2222-2222-2222-222222222225';
