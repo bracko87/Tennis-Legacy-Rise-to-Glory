@@ -31,8 +31,10 @@ if (schema.length < 500 || !schema.includes('public.players') ||
     !schema.includes('public.player_travel_legs')) {
   stop('Not a complete Tennis Legacy public-schema baseline. No files changed.')
 }
-if (/^\s*(?:COPY\s+|INSERT\s+INTO\s+)/im.test(schema)) {
-  stop('Data COPY/INSERT detected. Export SCHEMA ONLY, never player records.')
+// A schema dump contains functions with INSERT statements in their bodies.
+// Reject pg_dump DATA sections, not legitimate stored-function source code.
+if (/^-- Data for Name:|^COPY\s+\S+[^\n]*\sFROM stdin;|^INSERT INTO public\.[^\s]+ \([^\n]+\) VALUES \(/im.test(schema)) {
+  stop('pg_dump DATA section detected. Export SCHEMA ONLY, never player records.')
 }
 if (/(?:CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:public\.)?player_lifestyle_state\b|CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:public\.)?player_tournament_travel_selection\b)/i.test(schema)) {
   stop('Snapshot already includes the new Private Life schema. Do not reapply.')
