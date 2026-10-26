@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router'
+import { useTranslation } from 'react-i18next'
 
 import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
@@ -421,6 +422,7 @@ function RewardInfoPopover({ rewards, mode }: { rewards: TournamentRewards | nul
 }
 
 export default function TournamentPage() {
+  const { t } = useTranslation()
   const { competitionId } = useParams()
   const location = useLocation()
   const [searchParams] = useSearchParams()
