@@ -356,28 +356,30 @@
   box-shadow: 0 1px 4px rgba(24, 45, 78, 0.12);
 }
 
-/* Restore the original horizontal desktop category navigation. Each filter
-   sizes to its label instead of growing to a full-width vertical row. */
+/* Fill the complete desktop filter row with ten equally sized categories.
+   At narrower desktop widths the bar scrolls horizontally instead of
+   squeezing or stacking buttons; phones keep the native category selector. */
 @media (min-width: 761px) {
   .private-life-page .private-life-section .private-life-filter-bar {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: center;
+    display: grid;
+    grid-template-columns: repeat(10, minmax(110px, 1fr));
+    align-items: stretch;
     width: 100%;
     min-width: 0;
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: thin;
+    box-sizing: border-box;
   }
   .private-life-page .private-life-section .private-life-filter-bar > button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 auto;
-    width: auto;
-    min-width: max-content;
-    white-space: nowrap;
+    width: 100%;
+    min-width: 0;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
   }
 }
 
