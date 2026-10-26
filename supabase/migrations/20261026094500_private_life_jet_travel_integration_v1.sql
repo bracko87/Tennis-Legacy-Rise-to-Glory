@@ -892,3 +892,13 @@ begin
 end;
 $function$
 ;
+
+
+-- Defensive compatibility: legacy code must never grant the previous
+-- 90% automatic reduction merely for owning an aircraft.
+create or replace function public.private_life_private_jet_travel_benefit_v1(p_player_id uuid)
+returns jsonb language sql stable security definer set search_path='public','pg_temp' as $$
+ select jsonb_build_object('active',false,'reduction_bps',0,'reduction_percent',0,
+  'reason','book_and_pay_for_tournament_flight');
+$$;
+revoke all on function public.private_life_private_jet_travel_benefit_v1(uuid) from public,anon,authenticated;
