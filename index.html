@@ -54,6 +54,13 @@
       ]
     }
     </script>
+    <!-- Keep the static SEO fallback available without JavaScript, but do not
+         flash raw HTML to players during SPA hydration. -->
+    <style>
+      html.tlg-client #tlg-seo-fallback { visibility: hidden; }
+      html.tlg-client #app:has(> #tlg-seo-fallback) { background: #061527; min-height: 100vh; }
+    </style>
+    <script>document.documentElement.classList.add('tlg-client')</script>
     <link href="/main.css" rel="stylesheet">
   </head>
   <body>
