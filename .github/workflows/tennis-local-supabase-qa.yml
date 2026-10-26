@@ -1,0 +1,39 @@
+name: Tennis Legacy full local Supabase migration QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/tennis-local-supabase-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Safe, isolated Docker database only. No remote Supabase connection or keys.
+jobs:
+  complete-local-schema:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout main migrations
+        uses: actions/checkout@v4
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start complete isolated Supabase stack and apply all versioned migrations
+        run: supabase start
+      - name: Verify all Private Life migrations, RLS and scheduled job on local DB
+        env:
+          PGPASSWORD: postgres
+          PGHOST: 127.0.0.1
+          PGPORT: '54322'
+          PGUSER: postgres
+          PGDATABASE: postgres
+        run: |
+          psql -v ON_ERROR_STOP=1 -f tests/private_life_career_db_smoke.sql
+          psql -v ON_ERROR_STOP=1 -c "select count(*) as applied_migrations from supabase_migrations.schema_migrations;"
+      - name: Shut down disposable Supabase stack
+        if: always()
+        run: supabase stop || true
