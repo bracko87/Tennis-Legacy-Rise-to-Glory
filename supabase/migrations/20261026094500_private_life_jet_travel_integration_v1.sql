@@ -30,22 +30,43 @@ drop policy if exists player_tournament_mode_owner_read on public.player_tournam
 create policy player_tournament_mode_owner_read on public.player_tournament_travel_selection
  for select to authenticated using(exists(select 1 from public.players p where p.id=player_id and p.owner_user_id=(select auth.uid())));
 
--- Small hobby planes remain lifestyle-only; never infer eligibility from category alone.
+-- APPROVED TOURNAMENT FLEET (owner-confirmed screenshot, 2026-10-26).
+-- All other private-airplane catalog items are lifestyle-only, regardless of
+-- propulsion or legacy jet_% code. These numbers are GAME-BALANCE VALUES,
+-- not aviation performance certifications or real aircraft operating costs.
 update public.private_life_asset_catalog c
-set metadata=coalesce(c.metadata,'{}'::jsonb) || jsonb_build_object(
- 'tournament_travel_eligible', (c.metadata->>'propulsion'='jet' or c.code like 'jet_%'),
- 'passenger_capacity',coalesce(nullif(c.metadata->>'aircraft_seats','')::integer,
-   case when c.tier>=6 then 13 when c.tier=5 then 10 when c.tier=4 then 7 else 4 end),
- 'max_range_km',case when c.tier>=6 then 12500 when c.tier=5 then 7000 when c.tier=4 then 4000 else 2600 end,
- 'base_trip_cost',case when c.tier>=6 then 9500 when c.tier=5 then 6500 when c.tier=4 then 4000 else 2500 end,
- 'cost_per_km',case when c.tier>=6 then 13 when c.tier=5 then 9 when c.tier=4 then 6 else 4 end,
- 'travel_fatigue_reduction_bps',case when c.tier>=6 then 5000 when c.tier=5 then 4300 when c.tier=4 then 3200 else 2200 end
- ),description=replace(c.description,
- 'Ownership reduces tournament travel fatigue by 90% while the jet is owned.',
- 'Tournament flights require a booking and payment of operating costs.'),
+set metadata=coalesce(c.metadata,'{}'::jsonb) ||
+ jsonb_build_object('tournament_travel_eligible',false),
+ description=replace(c.description,
+  'Ownership reduces tournament travel fatigue by 90% while the jet is owned.',
+  'Flight benefits require an eligible aircraft, booked travel and an operating charge.'),
  updated_at=now()
 where c.category='private_jet';
 
+update public.private_life_asset_catalog c
+set metadata=coalesce(c.metadata,'{}'::jsonb) || jsonb_build_object(
+ 'tournament_travel_eligible',true,
+ 'passenger_capacity',spec.seats,
+ 'max_range_km',spec.range_km,
+ 'base_trip_cost',spec.trip_base,
+ 'cost_per_km',spec.km_rate,
+ 'travel_fatigue_reduction_bps',spec.fatigue_bps,
+ 'cruise_speed_kmh',spec.speed_kmh,
+ 'airport_handling_hours',spec.handling_hours,
+ 'overnight_transfer_limit_hours',10
+ ), updated_at=now()
+from (values
+ ('air_cessaro_citation_m3',          7, 3000, 2800,  4, 2400, 720, 1.2::numeric),
+ ('air_emborgier_phenom_350e',        8, 3600, 3300,  5, 2700, 740, 1.1::numeric),
+ ('air_bombara_challenger_420',       9, 4500, 4500,  7, 3000, 760, 1.0::numeric),
+ ('air_cessaro_citation_latitude_x',  9, 5000, 5800,  8, 3400, 780, 1.0::numeric),
+ ('air_emborgier_praetor_680',       10, 6200, 6800, 10, 3800, 800, 0.9::numeric),
+ ('air_dassier_falcon_9x',           14, 7600, 8900, 13, 4200, 830, 0.9::numeric),
+ ('air_gulfstar_g650_lx',            16, 9500,11000, 16, 4500, 860, 0.8::numeric),
+ ('air_bombara_global_8000x',        17,11500,14000, 19, 4800, 885, 0.8::numeric),
+ ('air_gulfstar_g900_sovereign',     19,13500,17000, 23, 5000, 900, 0.8::numeric)
+) as spec(code,seats,range_km,trip_base,km_rate,fatigue_bps,speed_kmh,handling_hours)
+where c.code=spec.code and c.category='private_jet';
 
 -- An aircraft's physical position is fixed at purchase. Moving Home Base must
 -- not teleport an already-owned jet to another country for free.
