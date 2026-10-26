@@ -33,3 +33,55 @@
 .private-life-purchase-copy{display:grid;gap:8px}.private-life-purchase-copy p{margin:0;color:#4e697d;font-size:.74rem;line-height:1.55}.private-life-purchase-location{display:inline-flex;width:max-content;max-width:100%;padding:5px 8px;border-radius:999px;background:#eef4f8;color:#4d6578;font-size:.62rem;font-weight:600}.private-life-purchase-summary{display:grid;gap:11px}.private-life-purchase-price-row{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;padding-bottom:10px;border-bottom:1px solid #dfe7ed}.private-life-purchase-price-row span{color:#6c8293;font-size:.64rem;text-transform:uppercase;letter-spacing:.05em}.private-life-purchase-price-row strong{color:#173149;font-size:1.08rem;font-weight:650}.private-life-purchase-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.private-life-purchase-info-grid>div{display:grid;gap:4px;min-width:0;padding:9px 10px;border:1px solid #e1e8ee;border-radius:8px;background:#fff}.private-life-purchase-info-grid span{color:#748698;font-size:.58rem;text-transform:uppercase;letter-spacing:.045em}.private-life-purchase-info-grid strong{color:#203c52;font-size:.68rem;font-weight:600;line-height:1.35}.private-life-purchase-finance-note{padding:9px 10px;border-radius:8px;background:#eef6fc;color:#47657a;font-size:.64rem;line-height:1.5}.tlg-game-confirm-dialog.wide .tlg-game-confirm-detail{padding:11px;background:#f8fafc}
 
 @media(max-width:620px){.private-life-purchase-info-grid{grid-template-columns:1fr}.private-life-purchase-price-row{align-items:flex-start;flex-direction:column;gap:4px}.private-life-purchase-price-row strong{font-size:1rem}}
+
+
+/* Approved private-aircraft specification preview; this is informative even
+   when the connected database has not received the new travel functions. */
+.tlg-aircraft-preview {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #d2e0ec;
+  border-radius: 10px;
+  background: #f5f9fd;
+  font-size: .73rem;
+  line-height: 1.5;
+  color: #35516a;
+}
+.tlg-aircraft-preview-title {
+  color: #153d65;
+  font-size: .72rem;
+  font-weight: 700;
+}
+.tlg-aircraft-preview-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 14px;
+  row-gap: 4px;
+}
+.tlg-aircraft-preview-facts > span { min-width: 0; }
+.tlg-aircraft-preview-facts b { color: #162f48; font-weight: 700; }
+.tlg-aircraft-preview small { font-size: .68rem; color: #4c6a7e; }
+.tlg-aircraft-preview .tlg-aircraft-preview-pending {
+  color: #87602b;
+  padding-top: 5px;
+  border-top: 1px solid #e6d9c5;
+}
+.tlg-aircraft-preview.is-compact {
+  margin-top: 6px;
+  padding: 9px 10px;
+  gap: 4px;
+}
+.tlg-aircraft-preview.is-compact .tlg-aircraft-preview-title { font-size: .67rem; }
+.tlg-aircraft-preview.is-compact .tlg-aircraft-preview-facts {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.tlg-aircraft-preview.is-compact .tlg-aircraft-preview-facts span { font-size: .63rem; }
+.tlg-aircraft-preview.is-compact small { font-size: .61rem; }
+.tlg-aircraft-lifestyle { border-color: #e0e4e9; background: #f6f7f9; }
+@media(max-width: 480px) {
+  .tlg-aircraft-preview.is-compact .tlg-aircraft-preview-facts {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+}
