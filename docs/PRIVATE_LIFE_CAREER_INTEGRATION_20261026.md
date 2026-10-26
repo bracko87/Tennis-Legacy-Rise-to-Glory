@@ -51,6 +51,18 @@ https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/40305723957
 - A new contract test covers server flight eligibility and persistent aircraft position.
 - **Important limitation:** Source CI verifies SQL and PL/pgSQL grammar, not actual execution against the Supabase schema or end-to-end gameplay. Isolated database validation remains mandatory.
 
+## Disposable PostgreSQL runtime integration — 2026-10-26
+
+In addition to static grammar and React build validation, the consolidated GitHub Actions pipeline now starts a temporary **PostgreSQL 16 container**. This consumes standard public-repository GitHub CI resources and does **not** connect to production or require a billable Supabase branch.
+
+- `tests/private_life_ephemeral_fixture.sql`: creates synthetic players, clock, locations, asset catalog and stubbed dependencies.
+- `tests/private_life_ephemeral_assertions.sql`: applies the **actual first migration** and exercises purchase-based morale boosts, maximum +3, category purchase cooldown, expiry after game days, owned-residence relocation, two-game-day settlement, fee idempotency, nationality preservation, active-home sale protection, relocation cooldown and future travel-plan rebuilding on preference changes.
+- `tests/private_life_ephemeral_jet_fixture.sql` and `tests/private_life_ephemeral_jet_assertions.sql`: create synthetic owned aircraft and execute **the unchanged aircraft purchase-positioning and jet quote functions extracted directly from the second migration**. Validate jet/non-jet eligibility, maximum range, operating costs, staff capacity/overflow, fatigue cap, aircraft repositioning, and planned-flight positioning.
+- `scripts/extract-private-life-jet-routines.py`: extracts exactly those two business routines for execution. The entire second migration is **not** applied in this isolated fixture.
+- The workflow does not exercise every production table/RLS combination, the full scheduler, private-jet debit path, multiplayer permissions, Netlify frontend or the production Supabase environment. This runtime harness is valuable but is **not a substitute for a full isolated Supabase integration test**.
+
+Runtime integration CI: https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/40310128704
+
 ## Database verification on an isolated non-production database
 
 Supabase Branching requires separate compute charges and cost approval. Do not run these DDL migrations against production as a substitute for a development database. Once an isolated test database is available:
