@@ -44,6 +44,8 @@ jobs:
         run: npm run check:mobile-routes
       - name: Validate Private Life career integration contracts
         run: node --test tests/lifestyleCareerContract.test.mjs
+      - name: Validate schema-only Private Life sandbox safety
+        run: node --test tests/privateLifeSandbox.test.mjs
       - name: Set up Python for offline database migration syntax validation
         uses: actions/setup-python@v5
         with:
