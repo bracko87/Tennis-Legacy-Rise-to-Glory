@@ -931,6 +931,7 @@ export default {
       player_private_life_running_costs: { title: 'Private Life monthly costs', message: 'Your combined Private Life living and maintenance costs were deducted from your career Finance balance.' },
       player_skill_decreased: { title: '{{skill}} decreased', message: '{{skill}} decreased from {{old_value}} to {{new_value}} ({{delta}}).' },
       player_skill_increased: { title: '{{skill}} improved', message: '{{skill}} increased from {{old_value}} to {{new_value}} ({{delta}}).' },
+      tournament_application_watch_open: { title: 'Watched tournament applications open', message: 'Applications are now open for {{tournament_name}}. Open the tournament and apply before the deadline.' },
       tournament_application_submitted: { title: 'Application submitted', message: 'Your tournament application has been submitted.' },
       tournament_application_withdrawn: { title: 'Application withdrawn', message: 'Your tournament application has been withdrawn.' },
       tournament_canceled: { title: 'Tournament canceled', message: 'The tournament was canceled. Tournament-related costs are refunded automatically.' },

@@ -1114,10 +1114,10 @@ export default function TournamentDoublesPage() {
             </div>
             {(core.reward_rows ?? []).map((row) => (
               <div key={row.stage_code} className="tlg-detail-rewards-row">
-                <strong>{row.stage_label}</strong>
-                <span>{formatNumber(row.ranking_points)}</span>
-                <span>{formatCurrency(row.team_prize_usd, 'USD')}</span>
-                <span>{formatCurrency(row.player_prize_usd, 'USD')}</span>
+                <strong data-mobile-label={t('tournamentDoublesPage.finishingStage')}>{row.stage_label}</strong>
+                <span data-mobile-label={t('tournamentDoublesPage.pointsColumn')}>{formatNumber(row.ranking_points)}</span>
+                <span data-mobile-label={t('tournamentDoublesPage.teamPrize')}>{formatCurrency(row.team_prize_usd, 'USD')}</span>
+                <span data-mobile-label={t('tournamentDoublesPage.perPlayer')}>{formatCurrency(row.player_prize_usd, 'USD')}</span>
               </div>
             ))}
           </div>

@@ -20,6 +20,7 @@ export interface GameHeaderProps {
   title: string
   subtitle?: string
   onToggleSidebarMobile?: () => void
+  mobileNavigationOpen?: boolean
 }
 
 function getCountryName(code: string | undefined, localeTag: string, fallback: string) {
@@ -33,6 +34,7 @@ function getCountryName(code: string | undefined, localeTag: string, fallback: s
 
 export default function GameHeader({
   onToggleSidebarMobile,
+  mobileNavigationOpen = false,
 }: GameHeaderProps) {
   const { t } = useTranslation()
   const { localeTag, formatNumber } = useLocalization()
@@ -118,6 +120,8 @@ export default function GameHeader({
           type="button"
           className="tlg-v2-mobile-menu"
           onClick={onToggleSidebarMobile}
+          aria-controls="tlg-game-sidebar"
+          aria-expanded={mobileNavigationOpen}
           aria-label={t('header.openNavigation')}
         >
           <Menu size={18} />

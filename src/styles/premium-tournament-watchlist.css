@@ -1,0 +1,36 @@
+/* Premium Tournament Watchlist is independent from Free tournament actions. */
+.tlg-twatch{margin:16px 0 20px;border:1px solid #d5e4ed;border-radius:13px;background:#fbfdff;color:#16394f;padding:17px;min-width:0}
+.tlg-twatch-head{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.tlg-twatch-kicker{display:inline-flex;align-items:center;gap:7px;color:#18689c;font-size:.67rem;font-weight:800}
+.tlg-twatch-head h3{display:flex;align-items:center;gap:8px;font-size:1rem;font-weight:780;margin:5px 0 8px;color:#1b4b6a}
+.tlg-twatch-head p,.tlg-twatch-foot{margin:6px 0 0;color:#657f8e;font-size:.75rem;line-height:1.55}
+.tlg-twatch-count{white-space:nowrap;font-size:.76rem;color:#185f90;background:#eaf5fc;border-radius:999px;padding:7px 11px}
+.tlg-twatch-locked{display:flex;align-items:center;flex-wrap:wrap;gap:12px;border-top:1px solid #e1e9ef;margin-top:15px;padding-top:15px;font-size:.78rem;color:#5a7588}
+.tlg-twatch-locked span{flex:1}
+.tlg-twatch-locked a{color:#176b9c;font-weight:800;white-space:nowrap}
+.tlg-twatch-state,.tlg-twatch-error{font-size:.78rem;padding:14px 0;color:#5d7a8b}
+.tlg-twatch-error{color:#a0432e}
+.tlg-twatch-error small{display:block;overflow-wrap:anywhere;font-size:.7rem}
+.tlg-twatch-list{display:grid;gap:9px;margin-top:16px}
+.tlg-twatch-item{display:flex;align-items:flex-start;gap:12px;padding:12px;border:1px solid #dce8ef;border-radius:9px;background:#fff}
+.tlg-twatch-star{flex:none;color:#a37d13;margin-top:4px}
+.tlg-twatch-item-copy{display:flex;flex:1;flex-wrap:wrap;align-items:center;gap:6px 10px;min-width:0}
+.tlg-twatch-item-copy>strong{font-size:.81rem;color:#20465f;flex-basis:100%}
+.tlg-twatch-item-copy>small{font-size:.7rem;color:#6d8391;flex-basis:100%}
+.tlg-twatch-status{font-size:.68rem;color:#446d86;border:1px solid #d3e5f2;background:#f0f8fe;border-radius:6px;padding:3px 7px}
+.tlg-twatch-status.tlg-twatch-open{color:#156b39;border-color:#c7e5d0;background:#effaf0}
+.tlg-twatch-status.tlg-twatch-closed,.tlg-twatch-status.tlg-twatch-canceled{color:#856e63;border-color:#eaded7;background:#faf7f5}
+.tlg-twatch-date{font-size:.7rem;color:#687f91}
+.tlg-twatch-actions{display:flex;align-items:center;gap:9px;flex:none}
+.tlg-twatch-actions>a{font-size:.72rem;font-weight:800;text-decoration:none;color:#1973a9}
+.tlg-twatch-actions button{border:1px solid #d0e0eb;color:#526e83;background:#fff;padding:7px;border-radius:7px;cursor:pointer;display:grid;place-items:center}
+.tlg-twatch-actions button:hover{background:#f2f7fb}
+.tlg-twatch-actions button:focus-visible,.tlg-twatch-entry button:focus-visible{outline:2px solid #2187bc;outline-offset:2px}
+.tlg-twatch-foot{margin-top:13px;font-size:.71rem}
+.tlg-twatch-entry{display:grid;grid-template-columns:45px minmax(0,1fr);align-items:stretch;border-bottom:1px solid #edf1f4}
+.tlg-twatch-entry>.tlg-tournament-row{border-bottom:0;min-width:0}
+.tlg-twatch-entry button{border:0;border-right:1px solid #e3edf3;display:grid;place-items:center;cursor:pointer;color:#7890a2;background:#f9fbfd;min-width:40px}
+.tlg-twatch-entry button[aria-pressed="true"]{color:#bf890e;background:#fff9e7}
+.tlg-twatch-entry button:disabled{opacity:.55;cursor:not-allowed}
+.tlg-twatch-entry button:not(:disabled):hover{background:#eaf5fc;color:#126ca6}
+@media(max-width:640px){.tlg-twatch{padding:12px}.tlg-twatch-item{flex-wrap:wrap}.tlg-twatch-actions{width:100%;justify-content:flex-end}.tlg-twatch-entry{grid-template-columns:40px minmax(0,1fr)}}

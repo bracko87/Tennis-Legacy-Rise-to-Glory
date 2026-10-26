@@ -1,4 +1,4 @@
-import { Check, Crown, ShieldCheck, Sparkles } from 'lucide-react'
+import { Check, Crown, ShieldCheck, Sparkles, Star } from 'lucide-react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
@@ -11,6 +11,7 @@ import { sponsorIntelligenceLabels } from '../../lib/sponsorIntelligenceI18n'
 import { financialIntelligenceLabels } from '../../lib/financialIntelligenceI18n'
 import { equipmentIntelligenceLabels } from '../../lib/equipmentIntelligenceI18n'
 import { careerIntelligenceLabels } from '../../lib/careerIntelligenceI18n'
+import { tournamentWatchLabels } from '../../lib/tournamentWatchI18n'
 import '../../styles/premium-benefits-guide.css'
 
 type Placement = 'homepage' | 'dialog' | 'packages'
@@ -19,6 +20,7 @@ export default function PremiumBenefitsGuide({ placement }: { placement: Placeme
   const { t, i18n } = useTranslation()
   const language = i18n.resolvedLanguage ?? i18n.language
   const l = premiumGuideCopy(language)
+  const watchCopy = tournamentWatchLabels(language)
   const titleId = `tlg-premium-benefits-title-${placement}`
 
   // The same feature labels used inside the actual game, in the active language.
@@ -71,6 +73,7 @@ export default function PremiumBenefitsGuide({ placement }: { placement: Placeme
       <div className="tlg-premium-guide-extra">
         <h3>{l.extrasTitle}</h3>
         <ul>
+          <li><Star size={16} aria-hidden="true" /><span><strong>{watchCopy.title}</strong> — {watchCopy.intro}</span></li>
           <li><Check size={16} aria-hidden="true" /><span>{l.ranking}</span></li>
           <li><Check size={16} aria-hidden="true" /><span>{l.privateLife}</span></li>
         </ul>

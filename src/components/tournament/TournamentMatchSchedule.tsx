@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom'
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 
@@ -294,20 +294,48 @@ export default function TournamentMatchSchedule() {
                 const weather = match.discipline === 'singles' ? weatherLabel(weatherByMatch[match.match_id]) : ''
                 const note = weather ? `${scheduleNote} · ${weather}` : scheduleNote
                 return (
-                  <div key={match.match_id} className={`tlg-match-schedule-row ${match.schedule_reason} status-${match.match_status}`}>
-                    <strong>{timeLabel(match.scheduled_start_minute)}</strong>
-                    <span>{match.court_number ? `Court ${match.court_number}` : 'TBD'}</span>
-                    <span>{match.discipline === 'doubles' ? 'Doubles' : match.draw_type === 'qualification' ? 'Qualifying' : 'Singles'}</span>
-                    <span>{match.round_label}</span>
-                    <span>#{match.match_number}</span>
-                    <span className="players">{match.side1_label} <b>vs</b> {match.side2_label}</span>
-                    <span className="note">{note}</span>
+                  <Fragment key={match.match_id}>
+                  <div className={`tlg-match-schedule-row ${match.schedule_reason} status-${match.match_status}`}>
+                    <strong data-mobile-label={t('tournamentPage.enhancements.matchSchedule.time')}>{timeLabel(match.scheduled_start_minute)}</strong>
+                    <span data-mobile-label={t('tournamentPage.enhancements.matchSchedule.court')}>{match.court_number ? `Court ${match.court_number}` : 'TBD'}</span>
+                    <span data-mobile-label={t('tournamentPage.enhancements.matchSchedule.draw')}>{match.discipline === 'doubles' ? 'Doubles' : match.draw_type === 'qualification' ? 'Qualifying' : 'Singles'}</span>
+                    <span data-mobile-label={t('tournamentPage.enhancements.matchSchedule.round')}>{match.round_label}</span>
+                    <span data-mobile-label={t('tournamentPage.enhancements.matchSchedule.match')}>#{match.match_number}</span>
+                    <span className="players" data-mobile-label={t('tournamentPage.enhancements.matchSchedule.players')}>{match.side1_label} <b>vs</b> {match.side2_label}</span>
+                    <span className="note" data-mobile-label={t('tournamentPage.enhancements.matchSchedule.noteWeather')}>{note}</span>
                     {match.replay_available ? (
-                      <button type="button" className={`replay-action ${match.match_status}`} onClick={() => setReplayMatchId(match.match_id)}>{replayActionLabel(match.match_status)}</button>
+                      <button type="button" className={`replay-action ${match.match_status}`} data-mobile-label={t('tournamentPage.enhancements.matchSchedule.replay')} onClick={() => setReplayMatchId(match.match_id)}>{replayActionLabel(match.match_status)}</button>
                     ) : (
-                      <span className="tlg-match-schedule-no-replay">—</span>
+                      <span className="tlg-match-schedule-no-replay" data-mobile-label={t('tournamentPage.enhancements.matchSchedule.replay')}>—</span>
                     )}
                   </div>
+                  <article
+                    className={`tlg-match-schedule-mobile-card ${match.schedule_reason} status-${match.match_status}`}
+                    aria-label={`${match.side1_label} vs ${match.side2_label}`}
+                  >
+                    <div className="tlg-match-schedule-mobile-meta">
+                      <strong>{timeLabel(match.scheduled_start_minute)}</strong>
+                      <span>{match.court_number ? `Court ${match.court_number}` : 'Court TBD'}</span>
+                      <span>{match.discipline === 'doubles' ? 'Doubles' : match.draw_type === 'qualification' ? 'Qualifying' : 'Singles'}</span>
+                      <span>{match.round_label} · #{match.match_number}</span>
+                    </div>
+                    <div className="tlg-match-schedule-mobile-players">
+                      <strong>{match.side1_label}</strong><span>vs</span><strong>{match.side2_label}</strong>
+                    </div>
+                    <p className="tlg-match-schedule-mobile-note">{note}</p>
+                    {match.replay_available ? (
+                      <button
+                        type="button"
+                        className={`tlg-match-schedule-mobile-replay ${match.match_status}`}
+                        onClick={() => setReplayMatchId(match.match_id)}
+                      >
+                        {replayActionLabel(match.match_status)}
+                      </button>
+                    ) : (
+                      <span className="tlg-match-schedule-mobile-unavailable">Replay unavailable</span>
+                    )}
+                  </article>
+                  </Fragment>
                 )
               })}
             </div>

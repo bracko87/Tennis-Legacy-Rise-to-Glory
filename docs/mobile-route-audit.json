@@ -1,0 +1,286 @@
+{
+  "source": "src/App.tsx",
+  "created": "2026-10-23",
+  "meaning": "Static route inventory only. pending_device_validation is NOT a pass or a device test.",
+  "viewports": [
+    320,
+    360,
+    375,
+    390,
+    414,
+    430
+  ],
+  "platforms": [
+    "iOS Safari",
+    "Android Chrome"
+  ],
+  "locales": [
+    "en",
+    "de",
+    "sr",
+    "fr",
+    "ru"
+  ],
+  "routes": [
+    {
+      "path": "/",
+      "audience": "public/onboarding",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/r/:code",
+      "audience": "public/onboarding",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/reviews/add",
+      "audience": "public/onboarding",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/login",
+      "audience": "public/onboarding",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/register",
+      "audience": "public/onboarding",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/forgot-password",
+      "audience": "public/onboarding",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/reset-password",
+      "audience": "public/onboarding",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/create-player",
+      "audience": "public/onboarding",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/overview",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/skills",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/training",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/staff",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/calendar",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/tournaments/:competitionId",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/tournaments/:competitionId/doubles",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/rankings",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/national-team",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/players/:playerId",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/schedule",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/equipment",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/finance",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/injuries",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/private-life",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/tennis-club",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/statistics",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/notifications",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/player-account",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/preferences",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/inbox",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/help",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/manual",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/manual/:chapterId",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/forum",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/pro-packages",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/contact",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/invite-friends",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/referral-admin",
+      "audience": "player",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/admin/system-health",
+      "audience": "admin",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/admin/analytics",
+      "audience": "admin",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/admin/bug-reports",
+      "audience": "admin",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "/game/admin/reviews",
+      "audience": "admin",
+      "status": "pending_device_validation"
+    },
+    {
+      "path": "*",
+      "audience": "fallback",
+      "status": "not_applicable"
+    }
+  ],
+  "workflows": [
+    {
+      "name": "Login, registration redirect, recovery, player creation and keyboard handling",
+      "status": "pending_device_validation"
+    },
+    {
+      "name": "Overview navigation, sidebar memory, notification badge and settings",
+      "status": "pending_device_validation"
+    },
+    {
+      "name": "Calendar + tournament calendar date, travel, application, withdraw and scheduling",
+      "status": "pending_device_validation"
+    },
+    {
+      "name": "Singles and doubles draw round-switching, tap targets, horizontal touch gestures and current-player focus",
+      "status": "pending_device_validation"
+    },
+    {
+      "name": "Training setup, training camps date booking, payment, confirmation and modal keyboard avoidance",
+      "status": "pending_device_validation"
+    },
+    {
+      "name": "Staff/advisory list, staff market, hiring and negotiation",
+      "status": "pending_device_validation"
+    },
+    {
+      "name": "Equipment marketplace/technical sponsors, cart/purchase, inventory, gear room and equip",
+      "status": "pending_device_validation"
+    },
+    {
+      "name": "Finance, sponsorship agreements, charts, rankings/statistics tables",
+      "status": "pending_device_validation"
+    },
+    {
+      "name": "Private Life market and assets (watches, vehicles, homes, yachts), buy/sell and asset images",
+      "status": "pending_device_validation"
+    },
+    {
+      "name": "Premium/Coins checkout and Earn Free Coins; invitations and referrals",
+      "status": "pending_device_validation"
+    },
+    {
+      "name": "Notifications/inbox, Help/manual/forum, player settings, errors and empty states",
+      "status": "pending_device_validation"
+    },
+    {
+      "name": "Admin routes (authorized administrator account only)",
+      "status": "pending_device_validation"
+    }
+  ]
+}

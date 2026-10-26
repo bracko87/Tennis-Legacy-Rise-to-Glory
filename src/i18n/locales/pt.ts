@@ -1,6 +1,6 @@
 // Brazilian Portuguese (pt-BR) localization — full English source-key coverage.
 // Keep English fallback for new keys added in future; visual in-game QA is still recommended.
-import en from './en'
+import en from './en.ts'
 
 type TranslationShape<T> = T extends string ? string
   : T extends readonly (infer U)[] ? TranslationShape<U>[]
@@ -544,6 +544,7 @@ export const portugueseTranslations = {
       player_private_life_running_costs: { title: 'Custos mensais da Vida pessoal', message: 'Os custos de moradia e manutenção da Vida pessoal foram descontados do saldo financeiro da carreira.' },
       player_skill_decreased: { title: '{{skill}} diminuiu', message: '{{skill}} diminuiu de {{old_value}} para {{new_value}} ({{delta}}).' },
       player_skill_increased: { title: '{{skill}} melhorou', message: '{{skill}} aumentou de {{old_value}} para {{new_value}} ({{delta}}).' },
+      tournament_application_watch_open: { title: "Inscrições abertas para torneio guardado", message: "As inscrições para {{tournament_name}} estão abertas. Abre o torneio e inscreve-te antes do prazo." },
       tournament_application_submitted: { title: 'Inscrição enviada', message: 'Sua inscrição no torneio foi enviada.' },
       tournament_application_withdrawn: { title: 'Inscrição retirada', message: 'Sua inscrição no torneio foi retirada.' },
       tournament_canceled: { title: 'Torneio cancelado', message: 'O torneio foi cancelado. Os custos relacionados são reembolsados automaticamente.' },

@@ -34,6 +34,8 @@ import './styles/login-input-visibility.css'
 import './styles/equipment-detail-media-fill.css'
 /* Keep typography last so page-specific styles cannot reintroduce another font. */
 import './styles/font-standard.css'
+import './styles/mobile-gameplay-round2.css'
+import './styles/mobile-tournament-containment.css'
 import App from './App'
 
 const appElement =

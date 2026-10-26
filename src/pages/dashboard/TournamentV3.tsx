@@ -642,7 +642,9 @@ export default function TournamentPage() {
 
         <nav className="tlg-tournament-discipline-tabs tlg-standard-tabs" aria-label="Tournament competition">
           <Link to={`/game/tournaments/${competitionId}`} className="active" aria-current="page">Singles</Link>
-          {doublesCore?.enabled && <Link to={`/game/tournaments/${competitionId}/doubles`}>Doubles</Link>}
+          {doublesCore?.enabled
+            ? <Link to={`/game/tournaments/${competitionId}/doubles`}>Doubles</Link>
+            : <span className="tlg-tournament-discipline-unavailable" aria-disabled="true" title={t('tournamentDoublesPage.unavailable', { defaultValue: 'Doubles are not available for this tournament' })}>Doubles</span>}
         </nav>
 
         <section className="tlg-detail-hero">

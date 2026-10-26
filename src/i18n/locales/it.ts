@@ -1127,6 +1127,7 @@ export default {
         "title": "{{skill}} migliorata",
         "message": "{{skill}} è passata da {{old_value}} a {{new_value}} ({{delta}})."
       },
+      "tournament_application_watch_open": {"title": "Iscrizioni aperte per il torneo seguito", "message": "Le iscrizioni a {{tournament_name}} sono aperte. Apri il torneo e iscriviti prima della scadenza."},
       "tournament_application_submitted": {
         "title": "Iscrizione inviata",
         "message": "La tua richiesta di iscrizione al torneo è stata inviata."

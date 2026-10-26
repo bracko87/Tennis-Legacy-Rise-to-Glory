@@ -1,0 +1,478 @@
+
+/* Mobile Gameplay: targeted fixes from actual narrow-phone screenshots.
+   All desktop screens retain their existing layouts. */
+@media (max-width: 760px) {
+  /* Footer: clock first, studio link and coin balance on one deliberate row. */
+  .tlg-v2-footer.tlg-commerce-footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px 12px;
+    padding: 14px max(12px, env(safe-area-inset-right, 0px)) calc(14px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
+    min-width: 0;
+  }
+  .tlg-v2-footer .tlg-v4-game-clock {
+    grid-column: 1 / -1;
+    min-width: 0;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 5px 7px;
+    line-height: 1.5;
+    text-align: center;
+    font-size: .72rem;
+  }
+  .tlg-v2-footer a[href*="propelotonmanager.com"] {
+    grid-column: 1;
+    min-width: 0;
+    margin-left: 0 !important;
+    white-space: normal !important;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    font-size: .68rem !important;
+  }
+  .tlg-v2-footer .tlg-commerce-coin-balance {
+    grid-column: 2;
+    min-height: 44px;
+    min-width: 0;
+    justify-self: end;
+    white-space: nowrap;
+  }
+
+  /* SVG radar must size to the card, not force a 520px horizontal slider. */
+  .tlg-analysis-panel,
+  .tlg-analysis-panel .tlg-analysis-body {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .tlg-analysis-body:has(.tlg-tennis-radar) {
+    display: grid;
+    place-items: center;
+    overflow-x: visible;
+    padding-inline: 8px;
+  }
+  .tlg-analysis-body .tlg-tennis-radar {
+    width: 100%;
+    max-width: 470px;
+    min-width: 0;
+    height: auto;
+    aspect-ratio: 470 / 350;
+    margin-inline: auto;
+  }
+
+  /* Market candidates open an immediate mobile negotiation overlay. */
+  .tlg-staff-market-layout {
+    display: block;
+    min-width: 0;
+  }
+  .tlg-staff-market-layout .tlg-staff-candidate-detail {
+    display: none;
+  }
+  .tlg-staff-market-layout .tlg-staff-candidate-detail.mobile-open {
+    position: fixed;
+    display: grid;
+    inset: max(12px, env(safe-area-inset-top, 0px)) 12px max(12px, env(safe-area-inset-bottom, 0px));
+    z-index: 1391;
+    top: max(12px, env(safe-area-inset-top, 0px));
+    width: auto;
+    height: auto;
+    min-width: 0;
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    gap: 12px;
+    padding: 14px;
+    align-content: start;
+    box-shadow: 0 20px 64px rgba(0, 20, 40, .35);
+  }
+  .tlg-staff-market-detail-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1390;
+    background: rgba(5, 20, 35, .62);
+  }
+  .tlg-staff-mobile-detail-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    justify-self: end;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 12px;
+    border: 1px solid #d3e2ed;
+    border-radius: 8px;
+    background: #fff;
+    color: #24465d;
+    font-size: .86rem;
+    cursor: pointer;
+  }
+  .tlg-staff-candidate-detail.mobile-open .tlg-staff-hire {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    min-height: 48px;
+    width: 100%;
+    box-shadow: 0 -4px 10px rgba(255,255,255,.95);
+  }
+  .tlg-staff-market-list-panel,
+  .tlg-staff-market-list,
+  .tlg-staff-market-list > button {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .tlg-staff-market-list > button {
+    grid-template-columns: minmax(0, 1fr) minmax(93px, auto);
+    gap: 8px;
+    min-height: 66px;
+    padding: 10px 12px;
+  }
+  .tlg-staff-market-list > button .quality {
+    display: none;
+  }
+  .tlg-staff-market-list > button .cost {
+    min-width: 0;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+  .tlg-staff-market-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .tlg-staff-market-filters label.salary {
+    grid-column: 1 / -1;
+  }
+
+  /* Monthly calendar becomes a date-by-date agenda, with activity beside
+     the date instead of a 7-column month that gets clipped on phones. */
+  .tlg-season-calendar-toolbar {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .tlg-season-calendar-nav {
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: minmax(0, 1fr) minmax(60px, auto) minmax(0, 1fr);
+  }
+  .tlg-season-calendar-nav strong {
+    min-width: 0;
+    padding-inline: 8px;
+  }
+  .tlg-season-calendar-nav button {
+    min-width: 0;
+    padding-inline: 6px;
+    font-size: .7rem;
+  }
+  .tlg-season-calendar .tlg-calendar-weekdays,
+  .tlg-season-calendar .tlg-calendar-day-empty {
+    display: none;
+  }
+  .tlg-season-calendar .tlg-calendar-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px;
+    min-width: 0;
+  }
+  .tlg-season-calendar .tlg-calendar-day {
+    display: grid;
+    grid-template-columns: minmax(76px, .32fr) minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+    min-width: 0;
+    min-height: 62px;
+    padding: 10px 12px;
+    overflow: visible;
+  }
+  .tlg-season-calendar .tlg-calendar-day-number {
+    grid-column: 1;
+    font-size: .77rem;
+    line-height: 1.4;
+  }
+  .tlg-season-calendar .tlg-calendar-today-badge {
+    position: static;
+    grid-column: 1;
+    width: fit-content;
+    margin-top: 2px;
+  }
+  .tlg-season-calendar .tlg-calendar-player-activities {
+    position: static;
+    inset: auto;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    display: grid;
+    min-width: 0;
+    gap: 6px;
+  }
+  .tlg-season-calendar .tlg-calendar-player-activity {
+    min-width: 0;
+    padding: 2px 0;
+  }
+  .tlg-season-calendar .tlg-calendar-player-activity > span,
+  .tlg-season-calendar .tlg-calendar-player-activity > strong {
+    overflow: visible;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+  }
+
+  /* Tournament calendar: four compact information rows (title; city +
+     category; surface + draw; status). No clipped single-column labels. */
+  .tlg-tournament-week-list,
+  .tlg-tournament-row-link,
+  .tlg-twatch-entry {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .tlg-tournament-row.tlg-tournament-row-link {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 7px 10px;
+    min-width: 0;
+    padding: 12px;
+    align-items: center;
+  }
+  .tlg-tournament-row-link > .tlg-tournament-name-cell {
+    grid-column: 1 / -1;
+    min-width: 0;
+    gap: 5px 8px;
+  }
+  .tlg-tournament-row-link > .tlg-tournament-location-cell {
+    grid-column: 1;
+  }
+  .tlg-tournament-row-link > div:nth-child(3) {
+    grid-column: 2;
+    justify-self: start;
+    min-width: 0;
+  }
+  .tlg-tournament-row-link > .tlg-tournament-surface-cell {
+    grid-column: 1;
+  }
+  .tlg-tournament-row-link > .tlg-tournament-draw-cell {
+    grid-column: 2;
+  }
+  .tlg-tournament-row-link > .tlg-tournament-status-cell {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    min-width: 0;
+  }
+  .tlg-tournament-row-link .tlg-tournament-name-cell > strong {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: .81rem;
+  }
+  .tlg-tournament-row-link .tlg-tournament-location-cell small,
+  .tlg-tournament-row-link .tlg-tournament-draw-cell small {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* The single/doubles switch stays in the viewport, while long tournament
+     introduction and tags wrap instead of widening the page. */
+  .tlg-detail-page,
+  .tlg-detail-panel,
+  .tlg-detail-hero,
+  .tlg-detail-hero-copy {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .tlg-tournament-discipline-tabs {
+    display: grid;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+  }
+  .tlg-tournament-discipline-tabs:has(a:only-child) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tlg-tournament-discipline-tabs a {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 8px;
+    font-size: .76rem;
+  }
+  .tlg-detail-hero {
+    grid-template-columns: 104px minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+    padding: 13px;
+  }
+  .tlg-detail-surface-card {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    min-height: 130px;
+    height: 130px;
+  }
+  .tlg-detail-hero-copy {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+  .tlg-detail-hero-copy h1 {
+    font-size: clamp(1.4rem, 6vw, 2rem);
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+  }
+  .tlg-detail-hero-copy > p {
+    max-width: 100%;
+    margin-top: 10px;
+    font-size: .7rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+  .tlg-detail-logo-slot {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+    height: 90px;
+    min-height: 90px;
+    padding: 5px;
+  }
+  .tlg-detail-logo-slot > span {
+    font-size: 1.3rem;
+  }
+  .tlg-detail-logo-slot small {
+    font-size: .52rem;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .tlg-detail-location-line {
+    align-items: flex-start;
+    gap: 6px;
+    margin-top: 9px;
+  }
+  .tlg-detail-location-line > div {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .tlg-detail-tags {
+    gap: 5px;
+    margin-top: 10px;
+  }
+  .tlg-detail-tags span {
+    min-height: 27px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .tlg-detail-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .tlg-detail-stats-grid article {
+    min-height: 80px;
+    padding: 10px;
+  }
+  .tlg-detail-day-strip,
+  .tlg-detail-bracket-scroll {
+    max-width: 100%;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tlg-detail-draw-head,
+  .tlg-detail-panel-head {
+    min-width: 0;
+  }
+  .tlg-detail-draw-select,
+  .tlg-detail-draw-select select {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* Match schedule is a mobile list of cards, not a 1020px desktop table.
+     Each value retains a visible localized label. */
+  .tlg-match-schedule-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: visible;
+  }
+  .tlg-match-schedule-table {
+    min-width: 0;
+    width: 100%;
+    display: grid;
+    gap: 10px;
+    padding: 10px;
+  }
+  .tlg-match-schedule-row.head {
+    display: none;
+  }
+  .tlg-match-schedule-row:not(.head) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+    min-width: 0;
+    padding: 9px;
+    border: 1px solid #dce6ed;
+    border-radius: 9px;
+    align-items: start;
+  }
+  .tlg-match-schedule-row:not(.head) > * {
+    min-width: 0;
+    padding: 5px;
+    border-right: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .tlg-match-schedule-row:not(.head) > [data-mobile-label]::before {
+    content: attr(data-mobile-label);
+    display: block;
+    color: #72889a;
+    font-size: .57rem;
+    line-height: 1.4;
+    font-weight: 650;
+    margin-bottom: 3px;
+  }
+  .tlg-match-schedule-row:not(.head) > .players,
+  .tlg-match-schedule-row:not(.head) > .note {
+    grid-column: 1 / -1;
+    white-space: normal;
+    overflow: visible;
+  }
+  .tlg-match-schedule-row:not(.head) > .replay-action {
+    min-height: 44px;
+    margin: 0;
+  }
+  .tlg-match-schedule-summary {
+    flex-wrap: wrap;
+  }
+  .tlg-match-schedule-day-select,
+  .tlg-match-schedule-day-select select {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 44px;
+  }
+}
+
+@media (min-width: 761px) {
+  .tlg-staff-mobile-detail-close,
+  .tlg-staff-market-detail-backdrop {
+    display: none;
+  }
+}
+
+/* The mobile dialog is a fixed overlay inside <main>; raise that stacking
+   context above the sticky header while it is open. */
+@media (max-width: 760px) {
+  .tlg-v2-content:has(.tlg-staff-candidate-detail.mobile-open) {
+    z-index: 80;
+  }
+  .tlg-tournament-discipline-tabs .tlg-tournament-discipline-unavailable {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    min-width: 0;
+    border-radius: 7px;
+    color: #7e90a0;
+    background: #edf1f4;
+    font-size: .76rem;
+    font-weight: 750;
+  }
+}

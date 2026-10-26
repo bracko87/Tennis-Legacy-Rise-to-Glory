@@ -7,6 +7,9 @@ import { useAuth } from '../../auth/AuthContext'
 import CountryFlag from '../../components/common/CountryFlag'
 import TournamentPlanningIntelligence from '../../components/premium/TournamentPlanningIntelligence'
 import PremiumSeasonPlanning from '../../components/premium/PremiumSeasonPlanning'
+import PremiumTournamentWatchlist from '../../components/premium/PremiumTournamentWatchlist'
+import { usePremiumTournamentWatchlist } from '../../hooks/usePremiumTournamentWatchlist'
+import { tournamentWatchLabels } from '../../lib/tournamentWatchI18n'
 import TabbedModulePage from '../../components/game/TabbedModulePage'
 import { useGameClock } from '../../hooks/useGameClock'
 import {
@@ -25,6 +28,7 @@ import { supabase } from '../../lib/supabase'
 import '../../styles/tournament-calendar.css'
 import '../../styles/calendar-player-activity.css'
 import '../../styles/tournament-status.css'
+import '../../styles/premium-tournament-watchlist.css'
 
 const TOURNAMENT_RETURN_STORAGE_KEY = 'tlg-tournament-calendar-return'
 
@@ -424,9 +428,11 @@ function SeasonCalendarView() {
 }
 
 function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: number; initialWeek?: number }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { player } = useAuth()
   const clock = useGameClock()
+  const watches = usePremiumTournamentWatchlist(player?.id ?? null, clock.season, Math.floor(clock.totalGameSeconds / 86400))
+  const watchLabels = tournamentWatchLabels(i18n.resolvedLanguage ?? i18n.language)
   const [, setSearchParams] = useSearchParams()
   const initialSeasonWeek = initialMonth && initialWeek
     ? competitionWeeksForMonth(initialMonth - 1).find((week) => week.monthWeek === initialWeek)?.seasonWeek ?? null
@@ -577,6 +583,16 @@ function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: 
         <p>{t('calendarPage.tournament.monthSummary', { count: monthCompetitionWeeks.length, month: monthName })}</p>
       </div>
 
+      <PremiumTournamentWatchlist
+        watches={watches.watches}
+        isPremium={watches.isPremium}
+        premiumLoading={watches.premiumLoading}
+        loading={watches.loading}
+        busyId={watches.busyId}
+        error={watches.error}
+        onUnwatch={(id) => watches.setWatch(id, false)}
+      />
+
       <TournamentPlanningIntelligence
         playerId={player?.id ?? null}
         season={clock.season}
@@ -622,7 +638,11 @@ function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: 
                       .map((objective) => `${objective.requirement_label ?? t('calendarPage.tournament.sponsorObjective')} · ${Math.max(0, Number(objective.reward_amount) || 0).toLocaleString()}`)
                       .join(' | ')
                     const returnQuery = `tab=tournament-calendar&month=${monthIndex + 1}&week=${week}`
-                    return (
+                    const starActive = watches.watchedIds.has(event.competition_id)
+                    const canStar = event.tournament_status === 'applications_not_open'
+                      && event.user_status === 'not_applied'
+                      && event.application_open_day * 86400 > clock.totalGameSeconds
+                    const tournamentLink = (
                       <Link
                         key={event.schedule_slot_id}
                         to={`/game/tournaments/${event.competition_id}?fromMonth=${monthIndex + 1}&fromWeek=${week}`}
@@ -658,6 +678,20 @@ function TournamentCalendarView({ initialMonth, initialWeek }: { initialMonth?: 
                           <span className={`tlg-status-chip player ${event.user_status}`}>{t(`calendarPage.tournament.userStatus.${event.user_status}`, { defaultValue: event.user_status_label })}</span>
                         </div>
                       </Link>
+                    )
+                    if (!watches.isPremium) return tournamentLink
+                    return (
+                      <div className="tlg-twatch-entry" key={event.schedule_slot_id}>
+                        <button type="button"
+                          aria-pressed={starActive}
+                          aria-label={`${starActive ? watchLabels.unwatch : watchLabels.watch}: ${event.tournament_name}`}
+                          title={starActive ? watchLabels.unwatch : watchLabels.watch}
+                          disabled={watches.loading || watches.busyId !== null || (!starActive && !canStar)}
+                          onClick={() => void watches.setWatch(event.competition_id, !starActive)}>
+                          <Star size={20} fill={starActive ? 'currentColor' : 'none'} aria-hidden="true"/>
+                        </button>
+                        {tournamentLink}
+                      </div>
                     )
                   })}
                 </div>

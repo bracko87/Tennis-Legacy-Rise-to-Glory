@@ -1153,3 +1153,104 @@
     margin-bottom: 22px;
   }
 }
+
+
+/* Unify singles and doubles mobile tournament imagery and reward layout.
+   The existing doubles logo override (180px) must never enlarge the
+   recovered logo beyond the 100px slot used by Singles on phones. */
+@media (max-width: 760px) {
+  .tlg-doubles-page .tlg-detail-hero > .tlg-detail-logo-slot.tlg-detail-logo-slot-recovered {
+    position: relative;
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    height: 100px;
+    min-height: 100px;
+    max-height: 100px;
+    padding: 6px;
+    box-sizing: border-box;
+  }
+
+  .tlg-doubles-page .tlg-detail-logo-slot-recovered > .tlg-tournament-logo-image {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: auto;
+    height: auto;
+    max-width: calc(100% - 12px);
+    max-height: calc(100% - 12px);
+    object-fit: contain;
+  }
+
+  /* No four-column minimum-width reward table or horizontal page scroll. */
+  .tlg-doubles-page .tlg-doubles-rewards-panel,
+  .tlg-doubles-page .tlg-doubles-rewards-table {
+    min-width: 0;
+    width: auto;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .tlg-doubles-page .tlg-doubles-rewards-table {
+    display: grid;
+    overflow: visible;
+    margin: 10px 12px 14px;
+    border: 1px solid #e0e8ee;
+    border-radius: 9px;
+  }
+
+  .tlg-doubles-page .tlg-doubles-rewards-table .tlg-detail-rewards-head {
+    display: none;
+  }
+
+  .tlg-doubles-page .tlg-doubles-rewards-table .tlg-detail-rewards-row:not(.tlg-detail-rewards-head) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px 12px;
+    width: 100%;
+    min-width: 0;
+    padding: 12px;
+    align-items: start;
+  }
+
+  .tlg-doubles-page .tlg-doubles-rewards-table .tlg-detail-rewards-row:not(.tlg-detail-rewards-head) > * {
+    grid-column: auto;
+    display: grid;
+    align-content: start;
+    gap: 3px;
+    min-width: 0;
+    max-width: 100%;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    font-size: .72rem;
+    font-weight: 730;
+    color: #254a63;
+  }
+
+  .tlg-doubles-page .tlg-doubles-rewards-table [data-mobile-label]::before {
+    content: attr(data-mobile-label);
+    display: block;
+    color: #7c91a1;
+    font-size: .57rem;
+    font-weight: 800;
+    line-height: 1.3;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+  }
+
+  .tlg-doubles-page .tlg-doubles-rules-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    padding: 12px;
+    min-width: 0;
+  }
+
+  .tlg-doubles-page .tlg-doubles-rules-strip span {
+    min-width: 0;
+    padding: 8px;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    line-height: 1.45;
+  }
+}

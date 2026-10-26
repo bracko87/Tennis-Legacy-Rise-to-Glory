@@ -80,6 +80,8 @@ export default function GameSidebar({
   const navigate = useNavigate()
   const { signOut, isAdmin } = useAuth()
   const { alerts: clubAlerts } = useTennisClubAlerts()
+  // The desktop collapse preference must not reduce the open phone drawer to icons.
+  const collapseNav = isCollapsed && !isMobileOpen
   const currentPageLabel = (() => {
     const exact = items.find((item) => item.to === location.pathname)
     if (exact) return t(exact.labelKey)
@@ -118,9 +120,11 @@ export default function GameSidebar({
       />
 
       <aside
+        id="tlg-game-sidebar"
+        aria-label={t('nav.gameNavigation')}
         className={clsx(
           'tlg-v2-sidebar',
-          isCollapsed && 'tlg-v2-sidebar-collapsed',
+          collapseNav && 'tlg-v2-sidebar-collapsed',
           !isMobileOpen && 'tlg-v2-sidebar-mobile-closed',
         )}
       >
@@ -145,7 +149,7 @@ export default function GameSidebar({
           {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
 
-        {!isCollapsed && <div className="tlg-v2-nav-label">{t('nav.managerCenter')}</div>}
+        {!collapseNav && <div className="tlg-v2-nav-label">{t('nav.managerCenter')}</div>}
 
         <nav className="tlg-v2-nav tlg-v2-nav-main" aria-label={t('nav.gameNavigation')}>
           {items.map((item) => {
@@ -167,13 +171,13 @@ export default function GameSidebar({
                   active && 'tlg-v2-nav-link-active',
                   item.premiumOnly && 'tlg-v2-nav-link-premium',
                 )}
-                title={isCollapsed ? `${t(item.labelKey)}${item.premiumOnly ? ` · ${t('header.premium')}` : ''}${clubAlertLabel ? ` · ${clubAlertLabel}` : ''}` : undefined}
+                title={collapseNav ? `${t(item.labelKey)}${item.premiumOnly ? ` · ${t('header.premium')}` : ''}${clubAlertLabel ? ` · ${clubAlertLabel}` : ''}` : undefined}
                 aria-label={clubAlertLabel ? `${t(item.labelKey)} · ${clubAlertLabel}` : undefined}
                 aria-current={active ? 'page' : undefined}
               >
                 <span className="tlg-v2-nav-icon">{item.icon}</span>
 
-                {!isCollapsed && (
+                {!collapseNav && (
                   <span className="tlg-v2-nav-copy">
                     <span className="tlg-v8-nav-title-line">
                       <strong>{t(item.labelKey)}</strong>
@@ -192,7 +196,7 @@ export default function GameSidebar({
 
         <div className="tlg-v2-sidebar-footer tlg-v4-sidebar-footer">
           <BugReportButton
-            collapsed={isCollapsed}
+            collapsed={collapseNav}
             currentPageLabel={currentPageLabel}
             currentPath={location.pathname}
           />
@@ -203,9 +207,9 @@ export default function GameSidebar({
             title={t('nav.signOut')}
           >
             <LogOut size={16} />
-            {!isCollapsed && <span>{t('nav.signOut')}</span>}
+            {!collapseNav && <span>{t('nav.signOut')}</span>}
           </button>
-          {!isCollapsed && <div className="tlg-v6-version">{t('nav.version', { version: '1.0.0' })}</div>}
+          {!collapseNav && <div className="tlg-v6-version">{t('nav.version', { version: '1.0.0' })}</div>}
         </div>
       </aside>
     </>

@@ -4243,3 +4243,40 @@
     grid-column: 1 / -1;
   }
 }
+
+
+/* Phone association navigation: allow swipe to the last tab without pushing
+   the page outside the viewport. Desktop alignment is not changed. */
+@media (max-width: 760px) {
+  .nt-page-head {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .nt-page-head.tlg-page-head-with-tabs > .nt-tabs.tlg-standard-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-self: stretch !important;
+    align-self: stretch !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0;
+    margin: 0 !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 8px;
+    scrollbar-width: thin;
+    touch-action: pan-x;
+  }
+
+  .nt-page-head .nt-tabs.tlg-standard-tabs > button {
+    flex: 0 0 auto;
+    min-width: 82px;
+    min-height: 44px;
+    white-space: nowrap;
+    scroll-snap-align: start;
+  }
+}

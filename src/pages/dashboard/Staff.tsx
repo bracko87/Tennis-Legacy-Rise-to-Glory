@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { lockBodyScroll } from '../../lib/bodyScrollLock'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 
@@ -118,6 +119,7 @@ export default function StaffPage() {
   const [maxSalary, setMaxSalary] = useState(4000)
   const [page, setPage] = useState(0)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [mobileCandidateOpen, setMobileCandidateOpen] = useState(false)
   const [duration, setDuration] = useState<13 | 26 | 52>(26)
   const [salaryMultiplier, setSalaryMultiplier] = useState(1)
   const [negotiationQuote, setNegotiationQuote] = useState<StaffNegotiationQuote | null>(null)
@@ -141,6 +143,35 @@ export default function StaffPage() {
   }, [view, role, quality, country, maxSalary, page, loadMarket])
 
   useEffect(() => setPage(0), [role, quality, country, maxSalary])
+
+  // On phones the selected candidate and negotiation form live in a single
+  // dismissible panel rather than below a long market list.
+  useEffect(() => {
+    if (!mobileCandidateOpen) return
+    const releaseLock = lockBodyScroll()
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !hireConfirmOpen) setMobileCandidateOpen(false)
+    }
+    const onResize = () => {
+      if (window.innerWidth > 760) setMobileCandidateOpen(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('resize', onResize)
+      releaseLock()
+    }
+  }, [mobileCandidateOpen, hireConfirmOpen])
+
+  useEffect(() => {
+    if (view !== 'market') setMobileCandidateOpen(false)
+  }, [view])
+
+  function openCandidate(id: string) {
+    setSelectedId(id)
+    if (window.matchMedia('(max-width: 760px)').matches) setMobileCandidateOpen(true)
+  }
 
   useEffect(() => {
     if (!market.items.some((item) => item.id === selectedId)) setSelectedId(market.items[0]?.id ?? null)
@@ -263,6 +294,7 @@ export default function StaffPage() {
     setMessage(t('staffPage.notices.joined', { name: pendingContract.staff_name }))
     setPendingContract(null)
     await loadMarket({ role, qualityTier: quality, countryCode: country, maxWeeklySalary: maxSalary, offset: page * 25, limit: 25 })
+    setMobileCandidateOpen(false)
     setView('team')
   }
 
@@ -366,7 +398,7 @@ export default function StaffPage() {
                     {marketLoading ? <div className="tlg-staff-loading">{t('staffPage.marketPanel.loading')}</div> : (
                       <div className="tlg-staff-market-list">
                         {market.items.map((candidate) => (
-                          <button type="button" key={candidate.id} className={selected?.id === candidate.id ? 'selected' : ''} onClick={() => setSelectedId(candidate.id)}>
+                          <button type="button" key={candidate.id} className={selected?.id === candidate.id ? 'selected' : ''} aria-haspopup="dialog" aria-label={`${candidate.first_name} ${candidate.last_name} — ${t('staffPage.candidate.contract')}`} onClick={() => openCandidate(candidate.id)}>
                             <StaffIdentity staff={candidate} />
                             <div className="quality"><strong>{candidate.overall_rating}</strong><span>{staffQualityLabel(t, candidate.quality_tier, candidate.quality_label)}</span></div>
                             <div className="cost"><strong>{formatCurrency(candidate.base_weekly_salary, 'USD')}</strong><span>{t('staffPage.marketPanel.weekBase')}</span></div>
@@ -378,7 +410,14 @@ export default function StaffPage() {
                     <footer><button type="button" disabled={page === 0 || marketLoading} onClick={() => setPage((value) => Math.max(0, value - 1))}>{t('staffPage.marketPanel.previous')}</button><span>{page + 1} / {pageCount}</span><button type="button" disabled={page + 1 >= pageCount || marketLoading} onClick={() => setPage((value) => value + 1)}>{t('staffPage.marketPanel.next')}</button></footer>
                   </section>
 
-                  <aside className="tlg-staff-candidate-detail">
+                  {mobileCandidateOpen && <div className="tlg-staff-market-detail-backdrop" aria-hidden="true" onClick={() => { if (!hireConfirmOpen) setMobileCandidateOpen(false) }} />}
+                  <aside
+                    className={`tlg-staff-candidate-detail${mobileCandidateOpen ? ' mobile-open' : ''}`}
+                    role={mobileCandidateOpen ? 'dialog' : undefined}
+                    aria-modal={mobileCandidateOpen ? true : undefined}
+                    aria-label={mobileCandidateOpen && selected ? `${selected.first_name} ${selected.last_name} — ${t('staffPage.candidate.contract')}` : undefined}
+                  >
+                    <button type="button" className="tlg-staff-mobile-detail-close" onClick={() => setMobileCandidateOpen(false)} aria-label={t('common.close', { defaultValue: 'Close candidate details' })}>× <span>{t('common.close', { defaultValue: 'Close' })}</span></button>
                     {selected ? (
                       <>
                         <div className="tlg-staff-detail-head">

@@ -1,43 +1,29 @@
-# Controlled GitHub release workflow — Tennis Legacy
+# Tennis Legacy — public development, main-only workflow
 
-## Objective
-
-Reduce paid GitHub Actions usage while retaining production validation and deployment from GitHub.
+## Current status (effective 2026-10-20)
+- Repository is **PUBLIC** during development, with all completed `staging` history safely consolidated into `main`. The old `staging` branch is left untouched as an inactive backup.
+- All normal source edits, translations, bug fixes, premium modules and documentation use **`main` only**. Do NOT use `staging` for new work.
+- Tennis Legacy's existing production website is hosted through Netlify. The owner confirmed **Netlify builds are stopped** so `main` commits do **not** automatically redeploy unfinished features.
+- Keep Netlify builds stopped until the owner expressly approves a deployment or launch. Do NOT silently resume Netlify, bypass deployment controls, alter the Netlify production branch or update live Supabase/payment systems as a side effect of a GitHub commit.
 
 ## Everyday development
+1. Read `AGENTS.md` and this document on `main`.
+2. Verify the remote `main` head; make incremental, validated commits there. Leave legacy `staging` untouched.
+3. Use `npm ci`, `npm run check:pt`, `npm run check:preferences`, `npm run check:seo`, `npm run build` and relevant feature tests for local validation. CI also validates public `main` pushes.
+4. `.github/workflows/tennis-cpx-build.yml` provides one consolidated test/build gate; specialized workflows under `.github/workflows` remain manual (`workflow_dispatch`) only.
+5. Do not store secrets, real user records, payment card data, Supabase service-role credentials or private Stripe API keys in Git.
+6. Standard public-repository GitHub-hosted runners have no per-minute bill. Other GitHub usage, Netlify, Stripe or Supabase charges are independent.
 
-- **Default branch for new code changes: `staging`, not `main`.** This applies to teammates and coding assistants.
-- Changes can be pushed to `staging` as often as needed; ordinary staging pushes do not trigger the production GitHub Actions jobs.
-- Verify changes locally as needed: `npm ci`, `npm run check:pt`, `npm run check:preferences`, `npm run build`. This is not a substitute for CI.
-- Do **not** enable Netlify production deployment from `staging`. Production stays on `main`.
+## Separating source changes from publication
+- **Committing code to `main` does not mean the game website has been published or updated.** Netlify builds must remain stopped during this phase.
+- Before a deliberate release, inspect all outstanding main changes, run validation, review migrations/secrets and confirm correct environment configuration.
+- Only with explicit owner approval may builds be resumed or a deployment triggered. Once automatic deployment of `main` is resumed, subsequent `main` pushes could publish unfinished work; settle a deployment gate first if development will continue.
+- Do not apply Supabase migrations, deploy Edge Functions, alter Stripe live products/keys or send production emails as part of this source-branch migration.
 
-## Controlled releases
+## Transition back to private at launch
+- Perform a secret/history and privacy audit, rotate exposed credentials if any, and have the owner switch GitHub visibility to private.
+- Switching back does NOT revoke public clones or forks made during development.
+- When private, re-evaluate CI schedules and GitHub Actions budget because standard-runner minutes may again be metered.
 
-- **Two preferred release windows each day: morning and evening, Europe/Berlin.** These are review windows, not scheduled automatic merges.
-- At a release window, open a pull request **`staging` → `main`**, check the diff and run the single consolidated PR validation job.
-- Merge only after checks pass and the intended release is ready. A merge creates one production push to `main`, triggering one consolidated GitHub Actions validation job. Netlify can continue deploying from `main`.
-- Keep the pull request closed between release windows where practical: an open staging PR will automatically validate new staging commits and use Actions minutes.
-- Urgent critical bugfixes can follow the same PR process outside a window. Do not silently bypass review if a check fails.
-- **Never automatically merge, schedule deployments, or auto-push code to main.**
-
-## How minutes are saved
-
-- One consolidated CI workflow validates Portuguese coverage, Preferences localization, production build, and the CPX Earn Free Coins output.
-- The three specialized validation workflows are retained, but are **manual (`workflow_dispatch`) only**. Run them for isolated troubleshooting when needed.
-- Concurrency cancels superseded runs for the same ref. Production build has a maximum 15-minute timeout.
-- Changes only to Markdown/docs skip the main-branch push validation; PR validation always runs.
-- Frequent direct pushes to `main` from other tools or assistants **are still possible**. This workflow does not technically block those pushes. If you need enforcement, enable a `main` branch ruleset/branch protection in GitHub settings (availability depends on the plan), restricting direct pushes and requiring PR checks.
-
-## Budget and safety
-
-- This policy limits CI executions, not GitHub API commits directly.
-- GitHub Actions allowances apply to billable runners in private repositories. A 2,000-minute allowance is monthly, not daily.
-- GitHub's actual billing budget is separate. Set a suitable spending cap at https://github.com/settings/billing/budgets.
-- If free Actions minutes are exhausted, PR checks can be blocked; do not merge an unvalidated release just to bypass usage limits.
-- Before any code task, explicitly tell the coding assistant to use `staging` and batch release changes.
-
-## Staging branch verification
-
-To verify that staging saves Actions minutes, first push a small change to `staging` while no pull request from `staging` into `main` is open. Confirm that GitHub Actions does not create a new run for that staging push. A local production build is free of Actions charges, but a CI run or an open pull request into `main` can consume billable minutes.
-
-After the account's approved Actions billing budget is enabled, open a short-lived `staging` → `main` PR to check consolidated validation. Merge only after the PR tests actually pass, and verify that merging triggers just one post-release workflow.
+## Project isolation
+These instructions apply to Tennis Legacy only, not Famioo, Airlinerra, ProPeloton Manager, Game Control Center or other repositories.
