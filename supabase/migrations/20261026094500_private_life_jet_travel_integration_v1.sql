@@ -103,7 +103,8 @@ revoke all on function public.quote_private_jet_leg_v1(uuid,text,text,text,text,
 create or replace function public.set_private_life_tournament_travel_v1(
  p_competition_id uuid,p_mode text,p_owned_jet_asset_id uuid default null)
 returns jsonb language plpgsql security definer set search_path='public','pg_temp' as $$
-declare v_player uuid; v_exists boolean;
+declare v_player uuid; v_exists boolean; v_preparation jsonb; v_route_jet jsonb;
+ v_staff_count integer:=0; v_arrive integer;
 begin
  v_player:=public.private_life_current_player_v1();
  if p_mode not in ('commercial','private_jet') then raise exception 'Invalid travel mode.'; end if;
@@ -115,6 +116,21 @@ begin
    where a.id=p_owned_jet_asset_id and a.player_id=v_player and a.sold_absolute_day is null
    and coalesce((c.metadata->>'tournament_travel_eligible')::boolean,false)) into v_exists;
   if not v_exists then raise exception 'Select an owned travel-capable private jet.'; end if;
+  -- Server-authoritative range, booked location and repositioning check.
+  v_preparation:=public.quote_tournament_preparation_v1(v_player,p_competition_id);
+  select coalesce(array_length(selected_staff_contract_ids,1),0)
+    into v_staff_count from public.player_tournament_preparation_plans
+    where player_id=v_player and competition_id=p_competition_id;
+  v_arrive:=coalesce((v_preparation->>'arrival_absolute_day')::integer,0);
+  v_route_jet:=public.quote_private_jet_leg_v1(
+    v_player,v_preparation->'origin'->>'city',v_preparation->'origin'->>'country_code',
+    v_preparation->'destination'->>'city',v_preparation->'destination'->>'country_code',
+    coalesce((v_preparation->'player_travel'->>'distance_km')::integer,0),
+    coalesce(v_staff_count,0),p_owned_jet_asset_id,v_arrive-1);
+  if not coalesce((v_route_jet->>'active')::boolean,false) then
+    raise exception 'Selected private jet is unavailable for this itinerary: %.',
+      coalesce(v_route_jet->>'reason','range or repositioning restriction');
+  end if;
  end if;
  insert into public.player_tournament_travel_selection(player_id,competition_id,travel_mode,owned_jet_asset_id)
  values(v_player,p_competition_id,p_mode,case when p_mode='private_jet' then p_owned_jet_asset_id else null end)
