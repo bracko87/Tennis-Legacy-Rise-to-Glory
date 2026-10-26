@@ -306,6 +306,7 @@ declare
   v_human boolean:=false; v_comp uuid;
   v_baseline_gross integer; v_baseline_net integer; v_gross integer; v_recovery integer; v_net integer;
   v_jet jsonb:=jsonb_build_object('active',false,'reduction_bps',0,'reduction_percent',0); v_reduction integer:=0; v_jet_applies boolean:=false;
+  v_fallback_staff integer:=0;v_fallback_class text:='Economy';v_fallback_comp uuid;v_fallback_fare integer:=0;
 begin
   select * into l from public.player_travel_legs where id=p_leg_id for update;
   if l.id is null then raise exception 'Travel leg not found.'; end if;
@@ -317,12 +318,29 @@ begin
   if l.jet_asset_id is not null and not exists(
     select 1 from public.private_life_player_assets o where o.id=l.jet_asset_id and o.player_id=l.player_id and o.sold_absolute_day is null
   ) then
-    update public.player_travel_legs set travel_mode='commercial',jet_asset_id=null,jet_quote=null,
+    if l.destination_location_type='tournament' and coalesce(l.destination_reference_id,'')~*'^[0-9a-f-]{36}$' then
+      v_fallback_comp:=l.destination_reference_id::uuid;
+    elsif l.source_location_type='tournament' and coalesce(l.source_reference_id,'')~*'^[0-9a-f-]{36}$' then
+      v_fallback_comp:=l.source_reference_id::uuid;
+    end if;
+    if v_fallback_comp is not null then
+      select coalesce(array_length(selected_staff_contract_ids,1),0),coalesce(staff_travel_class,'Economy')
+      into v_fallback_staff,v_fallback_class from public.player_tournament_preparation_plans
+      where player_id=l.player_id and competition_id=v_fallback_comp;
+      if coalesce(v_fallback_staff,0)>0 then
+        v_fallback_fare:=(public.quote_travel_v2(l.source_city,l.source_country_code,
+          l.source_latitude,l.source_longitude,l.destination_city,l.destination_country_code,
+          l.destination_latitude,l.destination_longitude,coalesce(v_fallback_class,'Economy'),'one_way')->>'cost')::integer;
+      end if;
+    end if;
+    update public.player_travel_legs
+    set travel_mode='commercial',jet_asset_id=null,jet_quote=null,
       estimated_cost=greatest(0,round(coalesce(base_estimated_cost,estimated_cost,0)*coalesce(price_multiplier,1))::integer)
+        +coalesce(v_fallback_staff,0)*coalesce(v_fallback_fare,0)
     where id=l.id;
     select * into l from public.player_travel_legs where id=p_leg_id;
   end if;
-  if v_human and coalesce(l.estimated_cost,0)>0 and coalesce(l.purpose,'')<>'training_camp' and coalesce(l.source_location_type,'')<>'training_camp' then
+    if v_human and coalesce(l.estimated_cost,0)>0 and coalesce(l.purpose,'')<>'training_camp' and coalesce(l.source_location_type,'')<>'training_camp' then
     v_finance:=public.post_career_finance_transaction_v1(l.player_id,-l.estimated_cost,'travel',coalesce(l.purpose,'travel'),
       format('%s → %s · %s',coalesce(l.source_city,l.source_country_code),coalesce(l.destination_city,l.destination_country_code),coalesce(l.travel_class,'Economy')),
       'travel_leg',l.id::text,'travel-leg:'||l.id::text,
