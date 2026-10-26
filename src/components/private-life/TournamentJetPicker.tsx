@@ -19,14 +19,7 @@ type JetQuote = {
  staff_commercial?: number
  reduction_percent?: number
  estimated_hours?: number
- estimated_travel_days?: number
  overnight_transfer_possible?: boolean
- stop_count?: number
- route_distance_km?: number
- refuel_stop_cost?: number
- refuel_fatigue_penalty_bps?: number
- refuel_stops?: { airport_code: string; city: string; country_code: string }[]
- route_legs?: { from: string; to: string; distance_km: number }[]
 }
 type TravelQuote = {
  selected_mode: 'default' | 'commercial' | 'private_jet'
@@ -146,18 +139,11 @@ export default function TournamentJetPicker({
       <div><span>{c.travelCost}</span><strong>{supported ? money(Number(jetPreview?.cost_one_way ?? 0)) : '—'}</strong></div>
       {supported && <div><span>{c.reposition}</span><strong>{money(Number(jetPreview?.reposition_cost ?? 0))}</strong></div>}
       {supported && <div><span>{c.travelHours}</span><strong>{jetPreview?.estimated_hours ?? '—'}</strong></div>}
-      {supported && <div><span>{c.travelDays}</span><strong>{jetPreview?.estimated_travel_days ?? 1}</strong></div>}
-      {supported && <div><span>{c.refuelStops}</span><strong>{jetPreview?.stop_count ?? 0}</strong></div>}
-      {supported && Number(jetPreview?.stop_count ?? 0)>0 && <div><span>{c.refuelFees}</span><strong>{money(Number(jetPreview?.refuel_stop_cost ?? 0))}</strong></div>}
       {supported && <div><span>{c.overnightTransfer}</span><strong>{jetPreview?.overnight_transfer_possible ? c.overnightCandidate : c.overnightTooLong}</strong></div>}
-      {supported && Boolean(jetPreview?.refuel_stops?.length) && <div className="tlg-jet-route">
-        <span>{c.routeStops}</span>
-        <strong>{jetPreview?.refuel_stops?.map(s=>`${s.city} (${s.airport_code})`).join(' → ')}</strong>
-      </div>}
      </div>}
      {jetPreviewLoading && <p>{c.loading}</p>}
      {!jetPreviewLoading && !supported && <p className="tlg-jet-error">{c.jetNotAvailable}{jetPreview?.reason ? ` (${jetPreview.reason})` : ''}</p>}
-     {supported && <small>{c.fullPartyCostNote} {c.refuelDisclaimer} {c.overnightDisclaimer}</small>}
+     {supported && <small>{c.fullPartyCostNote} {c.overnightDisclaimer}</small>}
     </>}
     {choice === 'commercial' && <p className="tlg-jet-commercial">{c.commercial} · {money(Number(quote?.commercial_player_cost ?? 0))}</p>}
     <button type="button" className="tlg-jet-save" onClick={()=>void save()}
