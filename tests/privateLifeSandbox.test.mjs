@@ -82,6 +82,11 @@ test('Windows setup uses only read-only remote schema export and local migration
  assert.match(cmd,/pushd "\.private-life-sandbox"/)
  assert.match(cmd,/call npx supabase start/)
  assert.match(cmd,/supabase status -o env/)
+ assert.match(cmd,/private_life_career_db_smoke\\.sql/)
+ assert.match(cmd,/if not defined LOCAL_DB_CONTAINER/)
+ assert.match(cmd,/docker ps --filter/)
+ assert.match(cmd,/docker exec -i "%LOCAL_DB_CONTAINER%" psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 -f -/)
+ assert.match(cmd,/if errorlevel 1 \\(\\s*echo ERROR: Private Life LOCAL schema smoke test FAILED\\./)
  assert.match(cmd,/TL_SUPABASE_URL=http:\/\/127\.0\.0\.1:54331/)
  assert.match(cmd,/TL_DEV_PORT=8001/)
  // Ignore comments, warning strings and the explicit no-dangerous-commands guard.
