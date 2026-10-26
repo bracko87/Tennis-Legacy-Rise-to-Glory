@@ -52,6 +52,23 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check pglast==8.7
           python scripts/validate-private-life-sql.py
+      - name: Compile with a disposable localhost Supabase configuration
+        env:
+          TL_SUPABASE_URL: http://127.0.0.1:54321
+          TL_SUPABASE_PUBLISHABLE_KEY: sb_publishable_disposable_local_test_only
+        run: |
+          node scripts/build.mjs --compile-local
+          grep -rqF 'http://127.0.0.1:54321' dist || (echo 'Local Supabase URL missing from browser bundle' && exit 1)
+          grep -rqF 'sb_publishable_disposable_local_test_only' dist || (echo 'Local publishable key missing from browser bundle' && exit 1)
+      - name: Ensure production build refuses localhost override
+        env:
+          TL_SUPABASE_URL: http://127.0.0.1:54321
+          TL_SUPABASE_PUBLISHABLE_KEY: sb_publishable_disposable_local_test_only
+        run: |
+          if node scripts/build.mjs --production; then
+            echo 'Unsafe: production build accepted disposable local backend'
+            exit 1
+          fi
       - name: Build production website
         run: npm run build
       - name: Validate public SEO pages, sitemap, and private noindex protections
