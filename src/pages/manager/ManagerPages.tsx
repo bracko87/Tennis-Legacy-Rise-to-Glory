@@ -14,7 +14,7 @@ import {
   UserRound,
   UsersRound,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
@@ -24,6 +24,8 @@ import AvatarReplacementCancelControl from '../../components/player/AvatarReplac
 import AvatarReplacementRequestPanel from '../../components/player/AvatarReplacementRequestPanel'
 import usePlayerAvatarUrl from '../../hooks/usePlayerAvatarUrl'
 import { supabase } from '../../lib/supabase'
+import { lifestyleCopy } from '../../lib/lifestyleCareerI18n'
+import type { LifestyleCareer } from '../../components/private-life/LifestyleCareerPanel'
 import '../../styles/player-account.css'
 
 function ManagerPageIntro({
@@ -94,9 +96,20 @@ export function NotificationsPage() {
 }
 
 export function PlayerAccountPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const careerCopy = lifestyleCopy(i18n.resolvedLanguage ?? i18n.language)
   const navigate = useNavigate()
   const { player, user, refreshPlayer, signOut } = useAuth()
+  const [careerState,setCareerState] = useState<LifestyleCareer | null>(null)
+  useEffect(() => {
+    if (!player?.id) { setCareerState(null); return }
+    let active = true
+    void supabase.rpc('get_my_private_life_career_v1').then(({data,error}) => {
+      if (!active) return
+      setCareerState(!error && data ? data as LifestyleCareer : null)
+    })
+    return () => { active = false }
+  },[player?.id])
   const avatarUrl = usePlayerAvatarUrl(player?.image_path)
   const playerName = player ? `${player.first_name} ${player.last_name}`.trim() : t('playerAccountPage.unavailable')
   const [passwordStatus, setPasswordStatus] = useState<string | null>(null)
@@ -222,6 +235,15 @@ export function PlayerAccountPage() {
               <label className="tlg-account-field">
                 <span>{t('playerAccountPage.country')}</span>
                 <input value={player?.country_code ?? '—'} readOnly />
+              </label>
+              <label className="tlg-account-field">
+                <span>{careerCopy.homeBase}</span>
+                <input readOnly value={[careerState?.home_base?.city,careerState?.home_base?.country_code].filter(Boolean).join(', ') || '—'} />
+                {!careerState && <small>{careerCopy.backendPending}</small>}
+              </label>
+              <label className="tlg-account-field">
+                <span>{careerCopy.currentLocation}</span>
+                <input readOnly value={[careerState?.current_location?.city,careerState?.current_location?.country_code].filter(Boolean).join(', ') || '—'} />
               </label>
             </div>
           </div>
