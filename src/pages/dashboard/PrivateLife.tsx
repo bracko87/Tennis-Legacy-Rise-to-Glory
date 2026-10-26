@@ -902,6 +902,19 @@ export default function PrivateLifePage() {
           onTravelPreference={(mode) => { void changeTravelPreference(mode) }}
           formatCurrency={(amount) => money(amount, currency)}
         />}
+        {!dashboard.career_lifestyle && tab === 'overview' && (
+          <section className="tlg-career-panel tlg-career-panel-pending" aria-label={careerCopy.title}>
+            <div className="tlg-career-panel-heading">
+              <div><h3>{careerCopy.title}</h3><p>{careerCopy.subtitle}</p></div>
+            </div>
+            <p className="tlg-career-pending" role="status">{careerCopy.backendPending}</p>
+            <div className="tlg-career-facts">
+              <div><span>{careerCopy.morale}</span><strong>—</strong></div>
+              <div><span>{careerCopy.homeBase}</span><strong>—</strong></div>
+              <div><span>{careerCopy.currentLocation}</span><strong>—</strong></div>
+            </div>
+          </section>
+        )}
 
         <nav className="private-life-tabs" aria-label={t('privateLifePage.tabs.aria')}>
           <button className={tab === 'overview' ? 'active' : ''} type="button" onClick={() => setTab('overview')}>{t('privateLifePage.tabs.overview')}</button>
