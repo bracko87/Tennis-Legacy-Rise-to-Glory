@@ -8,16 +8,18 @@ export default function TravelPreferenceSettings() {
  const { i18n } = useTranslation()
  const c = lifestyleCopy(i18n.resolvedLanguage ?? i18n.language)
  const [mode,setMode] = useState<NonNullable<LifestyleCareer['preferred_travel_mode']> | null>(null)
+ const [loaded,setLoaded] = useState(false)
  const [saving,setSaving] = useState(false)
  const [message,setMessage] = useState<string | null>(null)
  useEffect(()=>{
   let active=true
   void supabase.rpc('get_my_private_life_career_v1').then(({data,error})=>{
-   if(active && !error && data) setMode((data as LifestyleCareer).preferred_travel_mode ?? 'ask_every_time')
+   if(!active) return
+   if(!error && data) setMode((data as LifestyleCareer).preferred_travel_mode ?? 'ask_every_time')
+   setLoaded(true)
   })
   return ()=>{active=false}
  },[])
- if (mode===null) return null
  async function save(value:NonNullable<LifestyleCareer['preferred_travel_mode']>) {
   if(saving)return
   setSaving(true);setMessage(null)
@@ -34,13 +36,14 @@ export default function TravelPreferenceSettings() {
    <div className="tlg-preferences-section-body">
     <label className="tlg-career-preference">
      <span>{c.preferredTravel}</span>
-     <select value={mode} disabled={saving} onChange={event=>void save(event.target.value as NonNullable<LifestyleCareer['preferred_travel_mode']>)}>
+     <select value={mode ?? 'ask_every_time'} disabled={saving || mode===null} onChange={event=>void save(event.target.value as NonNullable<LifestyleCareer['preferred_travel_mode']>)}>
       <option value="ask_every_time">{c.askEveryTime}</option>
       <option value="cheapest">{c.cheapest}</option>
       <option value="commercial">{c.commercial}</option>
       <option value="best_owned_jet">{c.bestOwnedJet}</option>
      </select>
     </label>
+    {loaded && mode===null && <p className="tlg-career-pending" role="status">{c.backendPending}</p>}
     {message && <p role="status">{message}</p>}
    </div>
   </section>
