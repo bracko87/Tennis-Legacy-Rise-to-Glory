@@ -64,6 +64,16 @@ In addition to static grammar and React build validation, the consolidated GitHu
 
 Latest passing runtime + source CI: https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/40310906699
 
+## Screenshot-approved tournament aircraft (2026-10-26)
+
+The owner selected exactly nine model names shown in the Private Airplanes marketplace; see [the approved transport specification](PRIVATE_JET_TRANSPORT_POLICY_20261026.md). All other cataloged airplanes remain lifestyle-only. The nine models use explicit game-balance range, staff seats (minimum seven), one total aircraft operating fare per flight, model-based 24–50% fatigue reduction and faster estimated private-flight duration.
+
+When a player travels with selected staff, the aircraft carries the entire party or is unavailable: there are **no supplementary staff airfares**. Moving an aircraft to the departure city can add a repositioning flight charge, but this is one aircraft charge, not one ticket per staff member. The existing 90% automatic ownership bonus remains disabled.
+
+Server-side preview RPC \`quote_my_private_life_jet_v1\` recalculates actual selected aircraft one-way flight costs and repositioning; the UI now shows the total charge including all staff, its expected hours and whether the flight is an **overnight-transfer candidate** (10 hours or less). A flight-time candidate is *not* a guarantee that the Sunday final / Monday first-round schedule fits: exact match times and time-zone deadlines still require separate scheduling integration.
+
+Disposable PostgreSQL regression tests execute the nine-model catalog allowlist, the authenticated group quote function, full-team seating, prices, fatigue and range; those tests do not represent complete Supabase schema execution. Production database changes and Netlify deployments remain blocked pending explicit approval.
+
 ## Database verification on an isolated non-production database
 
 Supabase Branching requires separate compute charges and cost approval. Do not run these DDL migrations against production as a substitute for a development database. Once an isolated test database is available:
