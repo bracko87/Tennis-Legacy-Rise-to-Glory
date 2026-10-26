@@ -46,6 +46,49 @@ set metadata=coalesce(c.metadata,'{}'::jsonb) || jsonb_build_object(
  updated_at=now()
 where c.category='private_jet';
 
+
+-- An aircraft's physical position is fixed at purchase. Moving Home Base must
+-- not teleport an already-owned jet to another country for free.
+create or replace function public.initialize_private_jet_position_v1()
+returns trigger language plpgsql security definer set search_path='public','pg_temp' as $
+declare v_city text;v_country text;
+begin
+ if new.sold_absolute_day is not null then return new; end if;
+ if not exists(select 1 from public.private_life_asset_catalog c
+   where c.code=new.catalog_code and c.category='private_jet'
+   and coalesce((c.metadata->>'tournament_travel_eligible')::boolean,false))
+ then return new; end if;
+ select coalesce(nullif(ls.current_city,''),p.home_city),
+        coalesce(nullif(ls.current_country_code,''),p.country_code)
+ into v_city,v_country
+ from public.players p left join public.player_location_state ls on ls.player_id=p.id
+ where p.id=new.player_id;
+ if v_city is not null and v_country is not null then
+  insert into public.player_private_jet_positions(owned_asset_id,player_id,city,country_code)
+  values(new.id,new.player_id,v_city,v_country) on conflict(owned_asset_id) do nothing;
+ end if;
+ return new;
+end; $;
+revoke all on function public.initialize_private_jet_position_v1() from public,anon,authenticated;
+drop trigger if exists trg_initialize_private_jet_position on public.private_life_player_assets;
+create trigger trg_initialize_private_jet_position after insert on public.private_life_player_assets
+ for each row execute function public.initialize_private_jet_position_v1();
+
+-- Existing owned aircraft are initially positioned at the player's currently
+-- recorded location; this one-time backfill does not rewrite active travel legs.
+insert into public.player_private_jet_positions(owned_asset_id,player_id,city,country_code)
+select a.id,a.player_id,coalesce(nullif(ls.current_city,''),p.home_city),
+ coalesce(nullif(ls.current_country_code,''),p.country_code)
+from public.private_life_player_assets a
+join public.private_life_asset_catalog c on c.code=a.catalog_code
+join public.players p on p.id=a.player_id
+left join public.player_location_state ls on ls.player_id=p.id
+where a.sold_absolute_day is null and c.category='private_jet'
+ and coalesce((c.metadata->>'tournament_travel_eligible')::boolean,false)
+ and coalesce(nullif(ls.current_city,''),p.home_city) is not null
+ and coalesce(nullif(ls.current_country_code,''),p.country_code) is not null
+on conflict(owned_asset_id) do nothing;
+
 create or replace function public.quote_private_jet_leg_v1(
  p_player_id uuid,p_source_city text,p_source_country text,p_destination_city text,
  p_destination_country text,p_distance_km integer,p_staff_count integer default 0,
