@@ -29,6 +29,20 @@ Frontend:
 - Updated \`PrivateLife.tsx\`, \`Schedule.tsx\`, \`Overview.tsx\`, \`PlayerProfile.tsx\`, \`GamePreferences.tsx\`
 - \`src/styles/private-life-career.css\`
 
+## Validation update — 2026-10-26
+
+- Repository instructions confirmed: `main` is the active source-development branch; `staging` is an inactive backup. Netlify builds remain stopped.
+- A newly added CI test parses all three migration files and the DB smoke SQL using PostgreSQL's grammar and parses PL/pgSQL function bodies using pinned `pglast==8.7`.
+- CI exposed malformed dollar quoting in `lifestyle_prevent_home_listing_v1`; the source was corrected. **Latest successful parse:** 76 PostgreSQL statements and 19 PL/pgSQL routine bodies.
+- Six Private Life source-contract tests pass, including Premium-only private-jet controls and accurate jet/staff labels in the tournament summary.
+- Production-mode website build, translation audits, SEO and CPX integration pass in GitHub Actions.
+- Read-only production query verified that `player_lifestyle_state`, `set_private_life_home_base_v1` and `player_travel_legs.jet_asset_id` are not present: **the Private Life schema has not been deployed**.
+- Parsing proves **syntax only**. It does not validate referenced relations/columns at function runtime, game transactions, RLS, migration execution order, cron execution, or browser behavior.
+- Isolated DB integration QA is still a hard release gate. Supabase development branching incurs extra compute charges and needs user confirmation before creation. Do not apply migration DDL to the live project as a substitute.
+
+Latest successful CI:
+https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/40305723957
+
 ## Database verification on an isolated non-production database
 
 Supabase Branching requires separate compute charges and cost approval. Do not run these DDL migrations against production as a substitute for a development database. Once an isolated test database is available:
