@@ -8,6 +8,7 @@ import GameLayout from '../../components/layout/GameLayout'
 import usePlayerAvatarUrl from '../../hooks/usePlayerAvatarUrl'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
+import { lifestyleCopy } from '../../lib/lifestyleCareerI18n'
 import '../../styles/player-public-profile.css'
 import '../../styles/player-public-profile-avatar.css'
 import '../../styles/player-private-life-profile.css'
@@ -89,6 +90,7 @@ interface PrivateLifeSummary {
   asset_count: number
   asset_value: number
   possessions: PrivateLifePossession[]
+  residence?: { city?: string | null; country_code?: string | null; nationality?: string | null }
 }
 
 interface PlayerProfileReturnState {
@@ -211,7 +213,8 @@ function PrivateLifeProfileCard({ summary, loading }: { summary: PrivateLifeSumm
 }
 
 export default function PlayerProfilePage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const careerCopy = lifestyleCopy(i18n.resolvedLanguage ?? i18n.language)
   const { formatNumber } = useLocalization()
   const { playerId } = useParams()
   const location = useLocation()
@@ -276,13 +279,13 @@ export default function PlayerProfilePage() {
               <aside className="tlg-public-player-visual"><div className={`tlg-public-player-avatar${avatarUrl ? ' has-avatar' : ''}`}>{avatarUrl ? <img src={avatarUrl} alt={t('playerProfilePage.avatarAlt', { name })} /> : <UserRound size={72} />}</div></aside>
               <div className="tlg-public-player-main">
                 <div className="tlg-public-player-heading-row">
-                  <div><span className="tlg-public-player-kicker">{t('playerProfilePage.singlesPlayer', { world: profile.world })}</span><h1>{name}</h1><div className="tlg-public-player-country"><CountryFlag countryCode={profile.country_code} countryName={profile.country_code} width={26} height={17} /><span>{profile.home_city ? `${profile.home_city}, ${profile.country_code}` : profile.country_code}</span></div></div>
+                  <div><span className="tlg-public-player-kicker">{t('playerProfilePage.singlesPlayer', { world: profile.world })}</span><h1>{name}</h1><div className="tlg-public-player-country"><CountryFlag countryCode={profile.country_code} countryName={profile.country_code} width={26} height={17} /><span>{(privateLife.residence?.city ?? profile.home_city) ? `${privateLife.residence?.city ?? profile.home_city}, ${privateLife.residence?.country_code ?? profile.country_code}` : profile.country_code}</span></div></div>
                   <div className="tlg-public-player-primary-action">{profile.is_own_player ? <button type="button" onClick={() => navigate('/game/inbox')}>{t('playerProfilePage.openInbox')}</button> : !profile.is_ai ? <button type="button" onClick={startConversation} disabled={messageBusy}><Mail size={16} /> {messageBusy ? t('playerProfilePage.opening') : t('playerProfilePage.sendMessage')}</button> : null}</div>
                 </div>
                 <div className="tlg-public-player-stats"><article><span>{t('playerProfilePage.worldRanking')}</span><strong>#{profile.rank_position}</strong></article><article><span>{t('playerProfilePage.rankingPoints')}</span><strong>{formatNumber(profile.ranking_points)}</strong></article><article><span>{t('playerProfilePage.competitionWorld')}</span><strong>{profile.world}</strong></article></div>
                 <div className="tlg-public-player-info">
                   <header><span>{t('playerProfilePage.information')}</span><h2>{t('playerProfilePage.careerOverview')}</h2></header>
-                  <div className="tlg-public-player-info-grid"><div><span>{t('playerProfilePage.homeCity')}</span><strong>{profile.home_city ?? t('playerProfilePage.notSet')}</strong></div><div><span>{t('playerProfilePage.country')}</span><strong>{profile.country_code}</strong></div><div><span>{t('playerProfilePage.playingHand')}</span><strong>{profile.playing_hand === 'left' ? t('playerProfilePage.leftHanded') : t('playerProfilePage.rightHanded')}</strong></div><div><span>{t('playerProfilePage.preferredSurface')}</span><strong>{surfaceLabel(profile.preferred_surface, t)}</strong></div><div><span>{t('playerProfilePage.playingStyle')}</span><strong>{styleLabel(profile.playing_style, t)}</strong></div><div><span>{t('playerProfilePage.discipline')}</span><strong>{t('playerProfilePage.singles')}</strong></div><div><span>{t('playerProfilePage.tour')}</span><strong>{profile.world}</strong></div><div><span>{t('playerProfilePage.rankingStatus')}</span><strong>{profile.rank_position > 0 ? t('playerProfilePage.ranked', { rank: profile.rank_position }) : t('playerProfilePage.unranked')}</strong></div></div>
+                  <div className="tlg-public-player-info-grid"><div><span>{t('playerProfilePage.homeCity')}</span><strong>{profile.home_city ?? t('playerProfilePage.notSet')}</strong></div><div><span>{careerCopy.homeBase}</span><strong>{[privateLife.residence?.city ?? profile.home_city,privateLife.residence?.country_code ?? profile.country_code].filter(Boolean).join(', ')}</strong></div><div><span>{t('playerProfilePage.country')}</span><strong>{profile.country_code}</strong></div><div><span>{t('playerProfilePage.playingHand')}</span><strong>{profile.playing_hand === 'left' ? t('playerProfilePage.leftHanded') : t('playerProfilePage.rightHanded')}</strong></div><div><span>{t('playerProfilePage.preferredSurface')}</span><strong>{surfaceLabel(profile.preferred_surface, t)}</strong></div><div><span>{t('playerProfilePage.playingStyle')}</span><strong>{styleLabel(profile.playing_style, t)}</strong></div><div><span>{t('playerProfilePage.discipline')}</span><strong>{t('playerProfilePage.singles')}</strong></div><div><span>{t('playerProfilePage.tour')}</span><strong>{profile.world}</strong></div><div><span>{t('playerProfilePage.rankingStatus')}</span><strong>{profile.rank_position > 0 ? t('playerProfilePage.ranked', { rank: profile.rank_position }) : t('playerProfilePage.unranked')}</strong></div></div>
                   <p>{t('playerProfilePage.privacyNote')}</p>
                 </div>
                 {error && <p className="tlg-public-player-error">{error}</p>}

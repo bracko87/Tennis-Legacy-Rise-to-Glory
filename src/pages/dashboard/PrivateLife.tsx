@@ -13,6 +13,8 @@ import { useNavigate } from 'react-router'
 import GameConfirmDialog from '../../components/common/GameConfirmDialog'
 import GameLayout from '../../components/layout/GameLayout'
 import PrivateLifeInvestments from '../../components/private-life/PrivateLifeInvestments'
+import { LifestyleCareerPanel, type LifestyleCareer } from '../../components/private-life/LifestyleCareerPanel'
+import { lifestyleCopy } from '../../lib/lifestyleCareerI18n'
 import { useCommerce } from '../../hooks/useCommerce'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
@@ -151,6 +153,7 @@ type PrivateLifeDashboard = {
   owned_assets: OwnedAsset[]
   catalog: CatalogAsset[]
   property_locations: PropertyLocation[]
+  career_lifestyle?: LifestyleCareer
 }
 
 type MarketplaceListing = CatalogAsset & {
@@ -435,7 +438,8 @@ function AssetImage({ src, name }: { src: string; name: string }) {
 }
 
 export default function PrivateLifePage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const careerCopy = lifestyleCopy(i18n.resolvedLanguage ?? i18n.language)
   const { formatCurrency } = useLocalization()
   const money = (value: number, currency = 'USD') => formatCurrency(Number(value || 0), currency)
   const saleLabel = (mode: SaleMode) => t(`privateLifePage.saleModes.${mode}.label`)
@@ -445,6 +449,7 @@ export default function PrivateLifePage() {
   const [dashboard, setDashboard] = useState<PrivateLifeDashboard | null>(null)
   const [loading, setLoading] = useState(false)
   const [actionBusy, setActionBusy] = useState(false)
+  const [careerBusy, setCareerBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [tab, setTab] = useState<MainTab>('overview')
@@ -633,6 +638,24 @@ export default function PrivateLifePage() {
     else setNotice(t('privateLifePage.notices.saleCancelled'))
     setActionBusy(false)
     await loadDashboard()
+  }
+
+  async function relocateToAsset(asset: OwnedAsset) {
+    if (careerBusy || !asset.location_code) return
+    setCareerBusy(true);setError(null);setNotice(null)
+    const { error: rpcError } = await supabase.rpc('set_private_life_home_base_v1', { p_owned_asset_id: asset.id })
+    if (rpcError) setError(rpcError.message)
+    else { setNotice(careerCopy.relocationScheduled); await loadDashboard() }
+    setCareerBusy(false)
+  }
+
+  async function changeTravelPreference(mode: NonNullable<LifestyleCareer['preferred_travel_mode']>) {
+    if (careerBusy) return
+    setCareerBusy(true);setError(null);setNotice(null)
+    const { error: rpcError } = await supabase.rpc('set_private_life_travel_preference_v1', { p_mode: mode })
+    if (rpcError) setError(rpcError.message)
+    else { setNotice(careerCopy.preferenceSaved); await loadDashboard() }
+    setCareerBusy(false)
   }
 
   async function confirmAction() {
@@ -870,6 +893,13 @@ export default function PrivateLifePage() {
           <div className="private-life-metric"><span>{t('privateLifePage.metrics.monthlyCost')}</span><strong>{money(dashboard.annual_running_cost / 12, currency)}</strong></div>
         </section>
 
+        {dashboard.career_lifestyle && <LifestyleCareerPanel
+          data={dashboard.career_lifestyle}
+          saving={careerBusy}
+          onTravelPreference={(mode) => { void changeTravelPreference(mode) }}
+          formatCurrency={(amount) => money(amount, currency)}
+        />}
+
         <nav className="private-life-tabs" aria-label={t('privateLifePage.tabs.aria')}>
           <button className={tab === 'overview' ? 'active' : ''} type="button" onClick={() => setTab('overview')}>{t('privateLifePage.tabs.overview')}</button>
           <button className={tab === 'assets' ? 'active' : ''} type="button" onClick={() => setTab('assets')}>{t('privateLifePage.tabs.assets')} ({dashboard.owned_assets.length})</button>
@@ -949,7 +979,9 @@ export default function PrivateLifePage() {
               <div className="private-life-owned-grid">
                 {visibleOwned.map((asset) => {
                   const isResidence = asset.category === 'apartment' || asset.category === 'house_villa'
-                  const canSellResidence = !isResidence || availableResidenceCount >= 2
+                  const canSellResidence = !isResidence || (availableResidenceCount >= 2
+                    && dashboard.career_lifestyle?.active_residence_asset_id !== asset.id
+                    && dashboard.career_lifestyle?.pending_residence_asset_id !== asset.id)
                   const catalogAsset = dashboard.catalog.find((catalog) => catalog.code === asset.catalog_code)
                   const ownedLocation = asset.location_code ? dashboard.property_locations.find((location) => location.code === asset.location_code) : undefined
                   const ownedImageUrl = catalogAsset ? propertyImageUrl(catalogAsset, ownedLocation) : asset.image_url
@@ -961,6 +993,16 @@ export default function PrivateLifePage() {
                         <div className="private-life-card-title-row"><div>{catalogAsset && yachtBuilder(catalogAsset) ? <div className="private-life-yacht-builder">{yachtBuilder(catalogAsset)}</div> : null}<h4>{asset.name}</h4></div><div className="private-life-price">{money(asset.current_market_value, currency)}</div></div>
                         {asset.acquisition_type === 'starter_home' ? <div className="private-life-starter-home-label">{t('privateLifePage.assets.startingHome')}</div> : null}
                         <p className="private-life-description">{asset.description}</p>
+                        {asset.category === 'private_jet' && catalogAsset && (
+                          <small className="tlg-jet-catalog-meta">
+                            {catalogAsset.metadata?.tournament_travel_eligible
+                              ? careerCopy.jetEligible : careerCopy.jetIneligible}
+                            {Boolean(catalogAsset.metadata?.tournament_travel_eligible) &&
+                              <> · {careerCopy.range}: {Number(catalogAsset.metadata?.max_range_km ?? 0).toLocaleString()} km
+                               · {careerCopy.capacity}: {Number(catalogAsset.metadata?.passenger_capacity ?? 0)}
+                               · {careerCopy.operating}: {money(Number(catalogAsset.metadata?.base_trip_cost ?? 0))} + {money(Number(catalogAsset.metadata?.cost_per_km ?? 0))}/km</>}
+                          </small>
+                        )}
                         </div>
                         <MobileAssetDisclosure>
                         <div className="private-life-owned-value-grid">
@@ -978,6 +1020,19 @@ export default function PrivateLifePage() {
                         >
                           {t('privateLifePage.assets.details')}
                         </button>
+                        {isResidence && asset.location_code && !asset.pending_sale && (
+                          <div className="tlg-home-base-control">
+                            {dashboard.career_lifestyle?.active_residence_asset_id === asset.id ? (
+                              <strong>{careerCopy.selectedResidence}</strong>
+                            ) : dashboard.career_lifestyle?.pending_residence_asset_id === asset.id ? (
+                              <strong>{careerCopy.movePending}</strong>
+                            ) : (
+                              <button type="button" disabled={careerBusy || Boolean(dashboard.career_lifestyle?.pending_residence_asset_id)}
+                                onClick={() => { void relocateToAsset(asset) }}>{careerCopy.setHomeBase}</button>
+                            )}
+                            <small>{careerCopy.relocateNote}</small>
+                          </div>
+                        )}
                         {asset.pending_sale ? (
                           <div className="private-life-sale-pending"><div><span>{t('privateLifePage.assets.listed')}</span><strong>{saleLabel(asset.pending_sale.sale_mode)} · {money(asset.pending_sale.quoted_sale_price, currency)}</strong><small>{t('privateLifePage.dates.settlementDay', { day: asset.pending_sale.settle_absolute_day })}</small></div><button type="button" disabled={actionBusy} onClick={() => void cancelSale(asset.pending_sale!.id)}>{t('privateLifePage.assets.cancelSale')}</button></div>
                         ) : canSellResidence ? (
