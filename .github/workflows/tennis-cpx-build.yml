@@ -109,3 +109,7 @@ jobs:
             -f tests/private_life_ephemeral_catalog_fixture.sql \
             -f /tmp/private_life_aircraft_catalog.sql \
             -f tests/private_life_ephemeral_catalog_assertions.sql
+          psql -v ON_ERROR_STOP=1 \
+            -f tests/private_life_ephemeral_multistop_fixture.sql \
+            -f supabase/migrations/20261026123000_private_jet_multistop_v1.sql \
+            -f tests/private_life_ephemeral_multistop_assertions.sql
