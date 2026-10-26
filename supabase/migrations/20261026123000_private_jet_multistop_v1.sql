@@ -365,9 +365,12 @@ declare
   gd record;
   v_existing text;
   v_jet_days integer;
+  v_current_game_day integer;
   v_daily_absolute integer;
   v_last_travel_day integer;
 begin
+  select public.game_day_absolute_v1(season,month,day) into v_current_game_day
+  from public.get_current_game_day_internal_v1();
   for l in
     select *
     from public.player_travel_legs
@@ -458,6 +461,7 @@ begin
       v_jet_days:=greatest(1,coalesce((l.jet_quote->>'estimated_travel_days')::integer,1));
       -- Start the trip early enough for all required game travel days.
       v_depart:=least(v_depart,(v_first_day-v_jet_days)::bigint*1440+540);
+      v_depart:=greatest(v_depart,v_current_game_day::bigint*1440+540);
       if pm.match_id is not null then
         -- A previous match is a hard earliest possible departure; a clash
         -- remains at_risk rather than silently teleporting the player.
@@ -533,4 +537,77 @@ begin
   return jsonb_build_object('status','synced','tournament_legs',v_count);
 end;
 $function$
+
+
+-- Server-enforced travel-day availability for multi-stop private journeys.
+create or replace function public.set_private_life_tournament_travel_v1(
+ p_competition_id uuid,p_mode text,p_owned_jet_asset_id uuid default null)
+returns jsonb language plpgsql security definer set search_path='public','pg_temp' as $$
+declare v_player uuid; v_exists boolean; v_preparation jsonb; v_route_jet jsonb;
+ v_staff_count integer:=0; v_arrive integer;
+ v_days integer:=1;v_today integer;v_prior_end integer;v_first_available integer;v_available integer;v_connection text;
+begin
+ v_player:=public.private_life_current_player_v1();
+ if p_mode not in ('commercial','private_jet') then raise exception 'Invalid travel mode.'; end if;
+ if not exists(select 1 from public.tournament_entries where player_id=v_player and competition_id=p_competition_id)
+ then raise exception 'This tournament is not entered.'; end if;
+ if p_mode='private_jet' then
+  select exists(select 1 from public.private_life_player_assets a
+   join public.private_life_asset_catalog c on c.code=a.catalog_code
+   where a.id=p_owned_jet_asset_id and a.player_id=v_player and a.sold_absolute_day is null
+   and coalesce((c.metadata->>'tournament_travel_eligible')::boolean,false)) into v_exists;
+  if not v_exists then raise exception 'Select an owned travel-capable private jet.'; end if;
+  -- Server-authoritative range, booked location and repositioning check.
+  v_preparation:=public.quote_tournament_preparation_v1(v_player,p_competition_id);
+  select coalesce(array_length(selected_staff_contract_ids,1),0)
+    into v_staff_count from public.player_tournament_preparation_plans
+    where player_id=v_player and competition_id=p_competition_id;
+  v_arrive:=coalesce((v_preparation->>'arrival_absolute_day')::integer,0);
+  v_route_jet:=public.quote_private_jet_leg_v1(
+    v_player,v_preparation->'origin'->>'city',v_preparation->'origin'->>'country_code',
+    v_preparation->'destination'->>'city',v_preparation->'destination'->>'country_code',
+    coalesce((v_preparation->'player_travel'->>'distance_km')::integer,0),
+    coalesce(v_staff_count,0),p_owned_jet_asset_id,v_arrive-1);
+  if not coalesce((v_route_jet->>'active')::boolean,false) then
+    raise exception 'Selected private jet is unavailable for this itinerary: %.',
+      coalesce(v_route_jet->>'reason','range or repositioning restriction');
+  end if;
+  -- Refuelling routes may need several days. Require a real free window
+  -- after the previous commitment and before tournament arrival.
+  v_days:=greatest(1,coalesce((v_route_jet->>'estimated_travel_days')::integer,1));
+  select public.game_day_absolute_v1(season,month,day) into v_today
+    from public.get_current_game_day_internal_v1();
+  select max(x.end_absolute_day) into v_prior_end
+    from public.player_commitment_locations_v1(v_player) x
+    where x.end_absolute_day<=v_arrive
+      and x.end_absolute_day>=v_today
+      and coalesce(x.reference_id,'')<>p_competition_id::text;
+  v_first_available:=greatest(v_today,coalesce(v_prior_end+1,v_today));
+  v_available:=greatest(0,v_arrive-v_first_available+1);
+  if v_days>v_available then
+    raise exception 'Jet journey needs % travel days, only % are available before this tournament.',
+      v_days,v_available;
+  end if;
+ end if;
+ insert into public.player_tournament_travel_selection(player_id,competition_id,travel_mode,owned_jet_asset_id)
+ values(v_player,p_competition_id,p_mode,case when p_mode='private_jet' then p_owned_jet_asset_id else null end)
+ on conflict(player_id,competition_id) do update set travel_mode=excluded.travel_mode,
+ owned_jet_asset_id=excluded.owned_jet_asset_id,updated_at=now();
+ perform public.rebuild_player_travel_plan_v1(v_player);
+ if p_mode='private_jet' then
+  select l.connection_status into v_connection
+  from public.player_travel_legs l
+  where l.player_id=v_player and l.status='planned'
+    and l.destination_location_type='tournament'
+    and l.destination_reference_id=p_competition_id::text
+  order by l.departure_absolute_day desc limit 1;
+  if v_connection='at_risk' then
+   raise exception 'Jet flight cannot arrive before the next match; choose a faster route or commercial travel.';
+  end if;
+ end if;
+ return jsonb_build_object('status','saved','travel_mode',p_mode,'owned_jet_asset_id',
+ case when p_mode='private_jet' then p_owned_jet_asset_id else null end);
+end; $$;
+revoke all on function public.set_private_life_tournament_travel_v1(uuid,text,uuid) from public,anon;
+grant execute on function public.set_private_life_tournament_travel_v1(uuid,text,uuid) to authenticated;
 
