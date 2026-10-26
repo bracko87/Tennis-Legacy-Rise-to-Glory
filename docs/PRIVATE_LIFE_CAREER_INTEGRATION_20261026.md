@@ -2,6 +2,15 @@
 
 **Branch:** `main` (source-only development; Netlify builds remain stopped). **Status:** source committed and GitHub build validated; database migrations **not applied to production**. Isolated DB integration tests and browser QA remain required. **Date:** 2026-10-26.
 
+## Release readiness — current handoff (updated 2026-10-26)
+
+- **Source and UI:** Committed to GitHub `main`. Aircraft marketplace previews, Schedule jet picker, morale/Home Base panels, profile and travel preferences are implemented. Live-connected UI explicitly warns when the feature database functions are absent.
+- **Function-level integration:** Disposable PostgreSQL tests pass actual morale/relocation functions, direct-jet booking, six-person staff party charges, automatic commercial fallback, fatigue and financial idempotency, and cross-account jet ownership protection. The current application build and translation checks also pass.
+- **Live-schema compatibility check (read only):** Verified that 21 existing tables referenced by the Private Life migrations exist in production, and the external public-function dependencies identified in those migrations were present. This is a prerequisite audit, **not** proof the three migrations execute successfully together.
+- **Local full database blocker:** The repository's 591 historical migrations fail before the Private Life migrations because an early staff table is absent from the empty database. Do not edit already-deployed historical migrations in production to mask this.
+- **New no-cost testing path:** [Schema-only local sandbox instructions](PRIVATE_LIFE_SCHEMA_ONLY_LOCAL_SANDBOX.md) and `scripts/prepare-private-life-sandbox.mjs`. The generator and its data-leak safeguards pass GitHub unit tests; it uses the existing schema from a **read-only** dump and applies just three new migrations in local Docker. **The complete full-schema restoration has not been performed yet.** Local player registration, premium ownership, seeded tournaments and browser gameplay are not certified.
+- **Release:** No production migrations, Netlify deploy or paid Supabase branch has been authorized or performed. **Do not close the full feature ticket or claim the live UI is working** until the integrated database and authenticated browser scenarios pass, followed by an explicitly approved release.
+
 ## Design rules
 
 1. Nationality/passport/national-team eligibility continue to use immutable \`players.country_code\`. The original \`players.home_city\` is retained. A chosen residential asset is stored separately as Home Base in \`player_lifestyle_state\`. Actual whereabouts remain in \`player_location_state\`.
