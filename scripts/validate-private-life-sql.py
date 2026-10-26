@@ -19,6 +19,7 @@ FILES = (
     "supabase/migrations/20261026094500_private_life_jet_travel_integration_v1.sql",
     "supabase/migrations/20261026095500_private_life_profile_residence_v1.sql",
     "tests/private_life_career_db_smoke.sql",
+    "tests/private_life_sandbox_reference_seed.sql",
 )
 
 # A function is delimited by the same $tag$ on both sides. PL/pgSQL uses its
