@@ -1,0 +1,28 @@
+# Isolated Tennis Legacy localhost stack. No remote project ID or credentials.
+# This database is local to Docker and must never be exposed to the internet.
+project_id = "tennis_legacy_local"
+
+[api]
+enabled = true
+port = 54321
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+
+[auth]
+enabled = true
+site_url = "http://localhost:8000"
+additional_redirect_urls = ["http://localhost:8000", "http://127.0.0.1:8000"]
+
+[db.seed]
+enabled = false
