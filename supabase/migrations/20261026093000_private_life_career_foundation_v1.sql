@@ -92,7 +92,7 @@ create trigger trg_lifestyle_prevent_active_home_sale before update of sold_abso
 
 -- Reject a sale at listing time instead of letting the settlement cron repeatedly fail.
 create or replace function public.lifestyle_prevent_home_listing_v1()
-returns trigger language plpgsql security definer set search_path='public','pg_temp' as $
+returns trigger language plpgsql security definer set search_path='public','pg_temp' as $$
 begin
  if new.status='pending' and exists(
   select 1 from public.player_lifestyle_state s
@@ -100,7 +100,7 @@ begin
    (s.active_residence_asset_id=new.player_asset_id or s.pending_residence_asset_id=new.player_asset_id)
  ) then raise exception 'Select a different Home Base before listing this property.'; end if;
  return new;
-end; $;
+end; $$;
 revoke all on function public.lifestyle_prevent_home_listing_v1() from public,anon,authenticated;
 drop trigger if exists trg_lifestyle_prevent_home_listing on public.private_life_asset_sale_listings;
 create trigger trg_lifestyle_prevent_home_listing
