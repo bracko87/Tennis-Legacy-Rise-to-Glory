@@ -8,6 +8,20 @@ import tailwindcss from 'tailwindcss'
 const args = process.argv.slice(2)
 const isProd = args[0] === '--production'
 
+const configuredUrl = process.env.TL_SUPABASE_URL?.trim() ?? ''
+const configuredKey = process.env.TL_SUPABASE_PUBLISHABLE_KEY?.trim() ?? ''
+if (Boolean(configuredUrl) !== Boolean(configuredKey)) {
+  throw new Error('Set BOTH TL_SUPABASE_URL and TL_SUPABASE_PUBLISHABLE_KEY for local backend testing.')
+}
+if (isProd && (configuredUrl || configuredKey)) {
+  throw new Error('A production build must not override the configured live backend. Remove local test variables.')
+}
+if (!isProd && !configuredUrl) {
+  console.warn('LOCALHOST WARNING: Connecting to the existing LIVE Supabase project. Private Life database migrations are NOT deployed there. Configure an isolated backend to test this feature.')
+}
+const browserBackendUrl = configuredUrl || 'https://cwfznmroiqcyhfkfcrow.supabase.co'
+const browserBackendKey = configuredKey || 'sb_publishable_FpDi8rEB6r1Ai49UMS_R2Q__UAGburi'
+
 await rimraf('dist')
 
 // Static marketing/game assets live in public/ and must be available from the
@@ -36,6 +50,11 @@ const esbuildOpts = {
     '.html': 'copy',
     '.png': 'file',
     '.webp': 'file',
+  },
+  // esbuild substitutes these at compile time, without browser-exposed secrets.
+  define: {
+    __TL_SUPABASE_URL__: JSON.stringify(browserBackendUrl),
+    __TL_SUPABASE_PUBLISHABLE_KEY__: JSON.stringify(browserBackendKey),
   },
   plugins: [
     stylePlugin({
