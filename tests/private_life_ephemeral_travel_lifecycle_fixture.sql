@@ -16,6 +16,7 @@ alter table public.player_daily_activity
   add column effect_summary jsonb;
 alter table public.player_daily_activity
   add constraint test_unique_daily_activity unique(player_id,season,month,day);
+alter table public.player_travel_legs alter column id set default gen_random_uuid();
 alter table public.player_travel_legs
   add column purpose text,
   add column source_location_type text,
