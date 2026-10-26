@@ -50,8 +50,9 @@ def main() -> int:
                 print(f"FAIL PL/pgSQL routine #{idx} in {name}: {exc}", file=sys.stderr)
                 return 1
             total_routines += 1
+        plpgsql_count = sum(bool(re.search(r"(?i)\blanguage\s+plpgsql\b", m.group(0))) for m in routines)
         print(f"PASS {name}: {len(statements)} PostgreSQL statements, "
-              f"{sum(bool(re.search(r'(?i)\blanguage\s+plpgsql\b', m.group(0))) for m in routines)} PL/pgSQL routines")
+              f"{plpgsql_count} PL/pgSQL routines")
     print(f"PASS total: {total_statements} SQL statements and "
           f"{total_routines} PL/pgSQL routine bodies")
     return 0
