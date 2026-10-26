@@ -48,6 +48,19 @@ test('sandbox copies only existing-schema baseline and three pending migrations'
   assert.throws(()=>execFileSync(process.execPath,[script,src,out],{cwd:root,stdio:'pipe'}))
  })
 })
+test('schema-only PostgreSQL function bodies may legitimately contain INSERT statements',()=>{
+ inFixture(temp=>{
+  const src=path.join(temp,'schema.sql'),out=path.join(temp,'good-stack')
+  writeSample(src,[
+   'CREATE FUNCTION public.test_procedure() RETURNS void LANGUAGE plpgsql AS $',
+   'BEGIN',
+   '  INSERT INTO public.players (id) VALUES (gen_random_uuid());',
+   'END $;',
+  ].join('\n'))
+  execFileSync(process.execPath,[script,src,out],{cwd:root,stdio:'pipe'})
+  assert.ok(fs.existsSync(path.join(out,'supabase','migrations','20261026093000_private_life_career_foundation_v1.sql')))
+ })
+})
 test('sandbox builder rejects data dumps or missing game schema',()=>{
  inFixture(temp=>{
   const src=path.join(temp,'schema.sql'),out=path.join(temp,'bad-stack')
