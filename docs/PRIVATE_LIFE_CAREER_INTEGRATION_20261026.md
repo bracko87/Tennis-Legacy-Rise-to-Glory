@@ -43,6 +43,14 @@ Frontend:
 Latest successful CI:
 https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/40305723957
 
+### Additional code audit (2026-10-26)
+
+- Server-side booking now checks that the **specific selected jet** can fly the entered tournament route and be repositioned within its range. An impossible flight raises an error instead of silently saving a jet selection.
+- Aircraft position is recorded at purchase; an additive backfill initializes existing owned jets from the player's recorded location. Moving Home Base does not teleport the aircraft or waive repositioning costs.
+- Tournament booking previews now read the saved hotel, travel-class and staff selections, and compute commercial prices separately even when a jet is selected. Staff tickets are not mistaken for jet fares.
+- A new contract test covers server flight eligibility and persistent aircraft position.
+- **Important limitation:** Source CI verifies SQL and PL/pgSQL grammar, not actual execution against the Supabase schema or end-to-end gameplay. Isolated database validation remains mandatory.
+
 ## Database verification on an isolated non-production database
 
 Supabase Branching requires separate compute charges and cost approval. Do not run these DDL migrations against production as a substitute for a development database. Once an isolated test database is available:
