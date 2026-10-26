@@ -26,6 +26,6 @@ create or replace function public.quote_travel_v2(
 $$;
 insert into public.private_life_asset_catalog(code,category,name,tier,metadata)
  values('test_real_jet','private_jet','Test business jet',4,
- '{"tournament_travel_eligible":true,"max_range_km":2000,"passenger_capacity":4,"base_trip_cost":2000,"cost_per_km":3,"travel_fatigue_reduction_bps":9000}'::jsonb),
+ '{"tournament_travel_eligible":true,"max_range_km":2000,"passenger_capacity":7,"base_trip_cost":2000,"cost_per_km":3,"travel_fatigue_reduction_bps":9000}'::jsonb),
  ('test_prop_plane','private_jet','Test propeller plane',2,
  '{"tournament_travel_eligible":false,"max_range_km":1000,"passenger_capacity":4,"base_trip_cost":1000,"cost_per_km":2,"travel_fatigue_reduction_bps":1000}'::jsonb);
