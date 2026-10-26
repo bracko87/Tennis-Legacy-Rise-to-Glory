@@ -29,3 +29,33 @@ insert into public.private_life_asset_catalog(code,category,name,tier,metadata)
  '{"tournament_travel_eligible":true,"max_range_km":2000,"passenger_capacity":7,"base_trip_cost":2000,"cost_per_km":3,"travel_fatigue_reduction_bps":9000}'::jsonb),
  ('test_prop_plane','private_jet','Test propeller plane',2,
  '{"tournament_travel_eligible":false,"max_range_km":1000,"passenger_capacity":4,"base_trip_cost":1000,"cost_per_km":2,"travel_fatigue_reduction_bps":1000}'::jsonb);
+
+create table public.tournament_entries(
+ player_id uuid references public.players(id),
+ competition_id uuid not null,
+ primary key(player_id,competition_id)
+);
+create table public.player_tournament_preparation_plans(
+ player_id uuid references public.players(id),
+ competition_id uuid not null,
+ player_travel_class text default 'Economy',
+ staff_travel_class text default 'Economy',
+ hotel_tier text default 'Standard',
+ selected_staff_contract_ids uuid[] default '{}'::uuid[],
+ primary key(player_id,competition_id)
+);
+insert into public.tournament_entries(player_id,competition_id)
+ values('11111111-1111-1111-1111-111111111111','44444444-4444-4444-4444-444444444444');
+insert into public.player_tournament_preparation_plans(player_id,competition_id)
+ values('11111111-1111-1111-1111-111111111111','44444444-4444-4444-4444-444444444444');
+create or replace function public.quote_tournament_preparation_v1(
+ p_player_id uuid,p_competition_id uuid,p_player_travel_class text default 'Economy',
+ p_staff_travel_class text default 'Economy',p_hotel_tier text default 'Standard',
+ p_selected_staff_contract_ids uuid[] default '{}'::uuid[])
+returns jsonb language sql stable as $quote_prep$
+ select jsonb_build_object(
+  'origin',jsonb_build_object('city','Belgrade','country_code','RS'),
+  'destination',jsonb_build_object('city','Paris','country_code','FR'),
+  'arrival_absolute_day',395,
+  'player_travel',jsonb_build_object('distance_km',1600))
+$quote_prep$;
