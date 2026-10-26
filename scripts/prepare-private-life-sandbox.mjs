@@ -85,6 +85,13 @@ try {
       'DROP TRIGGER IF EXISTS '+name+' ON auth.users;\n'+
       'CREATE TRIGGER '+name+' '+timing+' INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.'+fn+'();\n'
     ).join('\n'))
+  // Synthetic catalog + locations are local-only reference rows. This must run
+  // BEFORE the jet migration so its 9-model allowlist updates those rows.
+  // Never add this seed to production's supabase/migrations directory.
+  const referenceSeed=path.join(root,'tests','private_life_sandbox_reference_seed.sql')
+  if(!fs.existsSync(referenceSeed)) stop('Missing local-only catalog reference seed')
+  fs.copyFileSync(referenceSeed,
+    path.join(migrations,'20261026090000_sandbox_reference_seed.sql'))
   for(const n of migrationNames) {
     fs.copyFileSync(path.join(root,'supabase','migrations',n),path.join(migrations,n))
   }
@@ -104,7 +111,12 @@ try {
     '',
     'Only proceed if Supabase start and all three Private Life migrations pass.',
     'The local schema has NO REAL ACCOUNTS. Create a local test account',
-    'with valid game registration eligibility; local tournaments may need',
+    'with valid game registration eligibility; three reference locations,',
+    'nine approved jets and sample watch/car/house are already seeded.',
+    'Their images are deliberately absent; this is NOT production catalog data.',
+    'Local tournaments and Premium still require separate synthetic fixtures.',
+    'Do not copy any user data to make the sandbox playable.',
+    'Local tournaments may need',
     'synthetic seeds. Do not use production or --linked migration commands.',
     'Never run supabase db push, db reset --linked or deploy Netlify.',
     'If baseline restore fails, STOP and report the error.',
