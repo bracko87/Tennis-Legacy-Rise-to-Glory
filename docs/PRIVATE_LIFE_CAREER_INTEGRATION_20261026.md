@@ -96,6 +96,16 @@ The automated GitHub Actions disposable PostgreSQL job now executes the **actual
 
 These are genuine function executions, but they **do not prove** the complete migrations work against the full production schema, real Supabase Auth/RLS role behavior, all tournament transitions, browser interactions, or actual payment provider integration. All production release gates remain.
 
+## Localhost readiness audit (2026-10-26)
+
+- The feature source is already on `main`; there is no active staging-to-main promotion.
+- `scripts/build.mjs` and `src/lib/supabase.ts` now accept an explicit `TL_SUPABASE_URL` plus `TL_SUPABASE_PUBLISHABLE_KEY` pair for localhost test builds. The local UI uses `http://localhost:8000`; release builds **reject** the test overrides. A frontend started without overrides warns that its existing Supabase connection is live and cannot validate this unreleased feature.
+- `supabase/config.toml` defines a separate local Docker stack (Postgres 17; API 54321; database 54322). [Local testing steps](LOCAL_PRIVATE_LIFE_TESTING.md) are in the repo.
+- Source build and isolated synthetic business-function tests **pass**, including jet/commercial actual travel charges, fatigue changes, state changes, idempotent processing and cross-player asset denial. Local backend substitution was compiled and verified in [GitHub CI run 40328681070](https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/40328681070).
+- A new isolated **full Supabase CLI stack** CI check attempted the entire 591-migration history. It **failed at historical migration `20260903081216_remove_staff_ranking_requirements.sql`**, because `public.staff_members` is missing from a fresh database. The private-life migrations have not been applied by the full-stack check. [GitHub failure evidence](https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/40328987767).
+- Thus **complete local gameplay is NOT yet certified**. Fix the pre-existing historical baseline, or obtain explicit approval to create an isolated Supabase development branch based on the existing project. The October 26 quote was **$0.01344/hour**, with possible additional provider usage charges. No billable branch created.
+- Do not modify already-applied production migrations or push unreleased Private Life schema changes to live Supabase to bypass the local bootstrap failure.
+
 ## Database verification on an isolated non-production database
 
 Supabase Branching requires separate compute charges and cost approval. Do not run these DDL migrations against production as a substitute for a development database. Once an isolated test database is available:
