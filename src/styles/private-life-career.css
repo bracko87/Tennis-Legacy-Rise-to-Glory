@@ -1,28 +1,33 @@
 /* Shared, low-density career connection UI. No layout changes to the existing marketplace cards. */
-.tlg-career-panel,.tlg-jet-picker,.tlg-career-preview{border:1px solid var(--border,#dce4ef);border-radius:14px;background:var(--card,#fff);color:var(--foreground,#152439);padding:18px;margin:14px 0}
+/* Explicit colors: the theme --card, --border and --foreground tokens are HSL
+   components, not valid standalone CSS colors. The previous var() values
+   invalidated this card's background and border in the browser. */
+.tlg-career-panel,.tlg-jet-picker,.tlg-career-preview{border:1px solid #dce4ee;border-radius:14px;background:#fff;color:#1c2738;padding:18px;margin:14px 0}
+/* Match the native Private Life overview/marketplace cards. */
+.private-life-page > .tlg-career-panel{box-sizing:border-box;width:100%;margin:0;padding:20px;border-radius:16px}
 .tlg-career-panel-heading,.tlg-jet-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
 .tlg-career-panel-heading h3,.tlg-career-preview h3,.tlg-jet-heading strong{font-size:1.05rem;font-weight:750;margin:0}
-.tlg-career-panel-heading p,.tlg-jet-heading small,.tlg-career-preview p{font-size:.86rem;color:var(--muted-foreground,#64748b);margin:3px 0}
+.tlg-career-panel-heading p,.tlg-jet-heading small,.tlg-career-preview p{font-size:.86rem;color:#748196;margin:3px 0}
 .tlg-career-morale{font-size:.83rem;white-space:nowrap;color:#c16911}
 .tlg-career-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin:16px 0}
 .tlg-career-facts>div,.tlg-jet-details>div{display:flex;flex-direction:column;gap:3px;min-width:0}
-.tlg-career-facts span,.tlg-jet-details span{font-size:.72rem;color:var(--muted-foreground,#64748b)}
+.tlg-career-facts span,.tlg-jet-details span{font-size:.72rem;color:#748196}
 .tlg-career-facts strong,.tlg-jet-details strong{font-size:.86rem;overflow-wrap:anywhere}
-.tlg-career-facts small{font-size:.69rem;color:var(--muted-foreground,#64748b)}
+.tlg-career-facts small{font-size:.69rem;color:#748196}
 .tlg-career-facts.compact{margin:8px 0}
 .tlg-career-pending{color:#9a5708;font-size:.82rem;background:#fff5dd;padding:8px 12px;border-radius:8px}
 .tlg-career-preference,.tlg-jet-select{display:flex;flex-direction:column;gap:7px;font-size:.8rem;font-weight:700;max-width:390px;margin:14px 0}
-.tlg-career-preference select,.tlg-jet-select select{width:100%;min-height:38px;border:1px solid #b8c9df;border-radius:8px;background:var(--background,#fff);color:inherit;padding:6px 10px}
+.tlg-career-preference select,.tlg-jet-select select{width:100%;min-height:38px;border:1px solid #b8c9df;border-radius:8px;background:#fff;color:inherit;padding:6px 10px}
 .tlg-career-jet-list h4{font-size:.9rem;margin:14px 0 8px}
 .tlg-career-jet-list{display:flex;flex-direction:column;gap:8px}
 .tlg-career-jet{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;border-top:1px solid #e6eaf0;padding-top:8px;font-size:.76rem}
-.tlg-career-jet span{color:var(--muted-foreground,#64748b)}
+.tlg-career-jet span{color:#748196}
 .tlg-career-jet strong{font-size:.8rem}
 .tlg-home-base-control{display:flex;flex-direction:column;gap:7px;margin:8px 0}
 .tlg-home-base-control button,.tlg-jet-save{border:1px solid #204d84;background:#153b69;color:#fff;font-weight:750;border-radius:8px;padding:9px 12px;cursor:pointer}
 .tlg-home-base-control button:disabled,.tlg-jet-save:disabled{opacity:.55;cursor:not-allowed}
-.tlg-home-base-control small,.tlg-jet-picker small{font-size:.72rem;color:var(--muted-foreground,#64748b)}
-.tlg-jet-catalog-meta{display:block;margin-top:7px;color:var(--muted-foreground,#64748b);font-size:.74rem}
+.tlg-home-base-control small,.tlg-jet-picker small{font-size:.72rem;color:#748196}
+.tlg-jet-catalog-meta{display:block;margin-top:7px;color:#748196;font-size:.74rem}
 .tlg-jet-modes{display:flex;flex-wrap:wrap;gap:16px;margin:12px 0;font-size:.82rem}
 .tlg-jet-modes label{display:flex;align-items:center;gap:7px;cursor:pointer}
 .tlg-jet-details{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px 18px;margin:10px 0}
@@ -30,15 +35,16 @@
 .tlg-jet-error{color:#ad3232;font-size:.8rem}
 .tlg-jet-success{color:#167042;font-size:.8rem}
 .tlg-jet-commercial{font-size:.86rem}
-.tlg-jet-fallback{display:flex;flex-direction:column;gap:7px;margin:12px 0;padding:12px 14px;border:1px solid #b7cde5;border-radius:8px;background:var(--card,#f7fafe)}
-.tlg-jet-fallback strong{color:var(--foreground,#183550);font-size:.84rem}
-.tlg-jet-fallback span{font-weight:700;color:var(--foreground,#183550)}
+.tlg-jet-fallback{display:flex;flex-direction:column;gap:7px;margin:12px 0;padding:12px 14px;border:1px solid #b7cde5;border-radius:8px;background:#f7fafe}
+.tlg-jet-fallback strong{color:#183550;font-size:.84rem}
+.tlg-jet-fallback span{font-weight:700;color:#183550}
 .tlg-jet-fallback small{font-weight:400}
 .tlg-career-preview{margin-top:0}
-.tlg-career-preview a{display:inline-block;font-size:.82rem;color:var(--primary,#265ea4);font-weight:700;text-decoration:underline}
+.tlg-career-preview a{display:inline-block;font-size:.82rem;color:#265ea4;font-weight:700;text-decoration:underline}
 @media(max-width:640px){
  .tlg-career-panel,.tlg-jet-picker,.tlg-career-preview{padding:12px}
  .tlg-career-panel-heading{flex-direction:column}
+ .private-life-page > .tlg-career-panel{padding:14px}
  .tlg-career-facts{grid-template-columns:repeat(2,minmax(0,1fr))}
  .tlg-jet-details{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
