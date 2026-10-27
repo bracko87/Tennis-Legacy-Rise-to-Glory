@@ -3,6 +3,46 @@
 **Development source:** `main` (the old `staging` branch is inactive).  
 **Production safety:** Netlify builds remain stopped. Never apply these unfinished migrations to live Supabase `cwfznmroiqcyhfkfcrow` merely to test localhost.
 
+## Windows CMD workflow — no changes to your normal build/start commands
+
+Your usual commands **still work as before** for existing Tennis Legacy screens:
+
+```cmd
+git pull origin main
+npm run build
+npm run dev
+```
+
+This is the **LIVE-connected UI preview**. `npm run build` always compiles the normal production-targeted website and **never** applies SQL migrations. Publishing remains a separate, owner-approved release step; do not unpause Netlify or upload unfinished changes to hosting.
+
+For an **isolated Private Life local database**, make a one-time Docker Desktop/WSL 2 installation on Windows, start Docker Desktop using Linux containers, then run from the same existing CMD repo folder:
+
+```cmd
+git pull origin main
+scripts\setup-private-life-sandbox.cmd
+```
+
+The sandbox script reads the current hosted `public` schema through Supabase CLI, with a **schema-only** read; all Private Life SQL changes are applied only to Docker. It may require Supabase browser authentication and a database password on the local computer. Do not share passwords, SQL dumps, or service-role keys. The first complete schema restore has **not** been independently validated and may require fixes.
+
+If and only if the sandbox setup reports a successful local SQL smoke test, continue in your normal CMD project directory:
+
+```cmd
+npm run build
+npm run dev:private-life
+```
+
+Open `http://localhost:8001`. **No manual key copying or PowerShell**: the command reads the local publishable/anon key from `supabase status -o env`, validates `http://127.0.0.1:54331`, and refuses any hosted endpoint. It never prints privileged keys. If Docker is not running, it stops with an explanation instead of accidentally accessing production.
+
+Important: `npm run dev` is deliberately **unchanged** for ordinary existing live-connected local browsing, and `npm run dev:private-life` is the clearly distinct command for isolated local-only feature testing. When the local sandbox is stopped, re-open Docker Desktop and from `.private-life-sandbox` run `npx supabase start` before launching the Private Life testing command. The local database initially has no hosted user accounts, financial records, Premium entitlements or full tournament seed data. A successful schema restore alone is not full gameplay certification.
+
+**Docker installation from CMD** (requires Windows 10/11 with WSL 2 and virtualization):
+
+```cmd
+winget install -e --id Docker.DockerDesktop
+```
+
+Then open Docker Desktop once, accept its terms, use the WSL 2 / Linux container backend and check with `docker info` in a **new** CMD window. If WSL is missing, open **CMD as administrator** and run `wsl --install`, then reboot when instructed. You never need PowerShell. Official setup guide: https://docs.docker.com/desktop/setup/install/windows-install/
+
 ## CMD-only owner: GitHub-hosted QA available (2026-10-27)
 
 **You do NOT need PowerShell or Docker Desktop to run our current automated Private Life migration tests.** The hosted GitHub Actions job `private-life-combined-migrations` uses a disposable PostgreSQL database on GitHub's runner. [Latest complete PASS](https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/40484644804).
