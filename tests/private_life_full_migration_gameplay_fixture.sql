@@ -108,7 +108,7 @@ RETURNS jsonb LANGUAGE sql AS $$ SELECT '{}'::jsonb $$;
 CREATE FUNCTION public.player_tournament_commitment_unresolved_v1(uuid,text)
 RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT false $$;
 CREATE FUNCTION public.sync_player_tournament_travel_timing_v1(uuid)
-RETURNS void LANGUAGE sql AS $$ SELECT $$;
+RETURNS void LANGUAGE plpgsql AS $ BEGIN RETURN; END $;
 
 CREATE FUNCTION public.player_commitment_locations_v1(uuid)
 RETURNS TABLE (
