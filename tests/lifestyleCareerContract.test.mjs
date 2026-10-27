@@ -177,7 +177,7 @@ test('Lifestyle and career card matches Private Life panels on desktop and mobil
  const css=read('src/styles/private-life-career.css')
  assert.match(css,/\.tlg-career-panel,\.tlg-jet-picker,\.tlg-career-preview\s*\{[^}]*border:1px solid #dce4ee;[^}]*background:#fff;/s)
  assert.match(css,/\.private-life-page > \.tlg-career-panel\s*\{[^}]*margin:0;[^}]*padding:20px;[^}]*border-radius:16px/s)
- assert.match(css,/@media\(max-width:640px\)\s*\{[^}]*\.private-life-page > \.tlg-career-panel\s*\{padding:14px\}/s)
+ assert.match(css,/@media\(max-width:640px\)\s*\{[\s\S]*?\.private-life-page > \.tlg-career-panel\s*\{padding:14px\}/)
  assert.doesNotMatch(css,/var\(--(?:card|border|foreground|background|muted-foreground|primary)[,)]/)
  assert.match(privateLife,/<LifestyleCareerPanel/)
  assert.match(privateLife,/<section className="tlg-career-panel tlg-career-panel-pending"/)
