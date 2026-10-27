@@ -1,6 +1,8 @@
 # Private Life — isolated localhost schema snapshot (no paid branch)
 
-**Source branch:** GitHub `main`. **Production database and website:** unchanged.
+**Historical optional local-sandbox instructions (written before rollout).** On 27 October 2026, the three Private Life migrations were subsequently applied directly to the authorized live Supabase project. The **website/Netlify has still not been deployed**. For the owner's normal CMD localhost testing, use [LOCAL_PRIVATE_LIFE_TESTING.md](LOCAL_PRIVATE_LIFE_TESTING.md) instead. No Docker setup is necessary for that workflow.
+
+**Source branch:** GitHub `main`. **Current production database:** contains the three Private Life migrations. **Production website:** unchanged; Netlify builds stopped.
 
 ## What this solves
 
