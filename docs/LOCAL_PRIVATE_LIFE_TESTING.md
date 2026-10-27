@@ -3,6 +3,16 @@
 **Development source:** `main` (the old `staging` branch is inactive).  
 **Production safety:** Netlify builds remain stopped. Never apply these unfinished migrations to live Supabase `cwfznmroiqcyhfkfcrow` merely to test localhost.
 
+## CMD-only owner: GitHub-hosted QA available (2026-10-27)
+
+**You do NOT need PowerShell or Docker Desktop to run our current automated Private Life migration tests.** The hosted GitHub Actions job `private-life-combined-migrations` uses a disposable PostgreSQL database on GitHub's runner. [Latest complete PASS](https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/40484644804).
+
+It applies the three Private Life migrations unchanged to synthetic compatible schema and verifies real user-facing career/jet-booking RPCs, six-staff travel accounting, one-time settlement, commercial fallback and profile fields. Production remains untouched.
+
+**The Docker commands below are OPTIONAL for developers**, not instructions the owner must follow. Running `npm run dev` in CMD still points at the existing live backend unless explicit local overrides are set, and the live backend **does not have** the unreleased Private Life schema. The GitHub database is a short-lived CI service and cannot be used as a persistent local browser backend. Therefore **this hosted CI success does not make the Private Life screens playable in localhost**.
+
+To complete the release gate, a safe full-schema, full-Supabase nonproduction environment and a real authenticated browser playthrough are still required. The previous paid data-free development branch failed historical replay and was deleted. Do not create a new paid branch or deploy to production without fresh explicit authorization.
+
 ## Current integration status — 2026-10-26
 
 - **Code is already committed to GitHub `main`** and the normal website build, Private Life booking/settlement/fatigue and cross-player ownership regression tests have passed.
