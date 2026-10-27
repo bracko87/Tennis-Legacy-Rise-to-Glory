@@ -142,3 +142,49 @@ jobs:
             -f tests/private_life_ephemeral_travel_permission_fixture.sql \
             -f /tmp/private_life_travel_permissions.sql \
             -f tests/private_life_ephemeral_travel_permission_assertions.sql
+
+  # This is run on GitHub, never on the player's Windows computer.
+  # It tests all three migration FILES unchanged (in release order) against
+  # a synthetic schema, not a dump of production or a Supabase development branch.
+  private-life-combined-migrations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: tennis_combined_private_life
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: disposable_test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d tennis_combined_private_life"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Apply three real Private Life migrations to synthetic database
+        env:
+          PGPASSWORD: disposable_test_password
+          PGHOST: localhost
+          PGPORT: "5432"
+          PGUSER: postgres
+          PGDATABASE: tennis_combined_private_life
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y postgresql-client
+          fi
+          psql -X -v ON_ERROR_STOP=1 \
+            -f tests/private_life_ephemeral_fixture.sql \
+            -f tests/private_life_full_migration_cron_fixture.sql \
+            -f supabase/migrations/20261026093000_private_life_career_foundation_v1.sql \
+            -f tests/private_life_full_migration_compat_fixture.sql \
+            -f tests/private_life_sandbox_reference_seed.sql \
+            -f supabase/migrations/20261026094500_private_life_jet_travel_integration_v1.sql \
+            -f supabase/migrations/20261026095500_private_life_profile_residence_v1.sql \
+            -f tests/private_life_career_db_smoke.sql \
+            -f tests/private_life_full_migration_assertions.sql
