@@ -1,5 +1,23 @@
 # Tennis Legacy — Private Life ↔ career integration
 
+## LIVE SUPABASE DEPLOYMENT — 2026-10-27 (supersedes earlier blockers)
+
+**Approved by owner in chat; applied successfully to Supabase project `cwfznmroiqcyhfkfcrow`.** Netlify builds remain stopped; no website publication was performed. The owner keeps the normal GitHub `main` → CMD `git pull origin main` → `npm run build` → `npm run dev` → localhost browser review workflow, with no Docker requirement.
+
+All three source migration SQL files were deployed in order using the authenticated Supabase migration API:
+
+- `20261026093000_private_life_career_foundation_v1.sql` → recorded version `20261027114153`
+- `20261026094500_private_life_jet_travel_integration_v1.sql` → recorded version `20261027114229`
+- `20261026095500_private_life_profile_residence_v1.sql` → recorded version `20261027114259`
+
+**Note the migration version mismatch:** the API stamped each deployment with the actual deployment time, not the GitHub file's earlier timestamp. Treat these source files as ALREADY DEPLOYED. Reconcile carefully before any future CLI database migration run; do not blindly push them again or rewrite production migration history.
+
+Verified immediately after migration: four new tables exist with RLS enabled and authenticated-only read privileges; career/jet/home/profile RPCs exist; nine specific business jets eligible out of 28 planes; seven internal travel helpers no longer directly executable by anon/authenticated; hourly reconciliation scheduled and active. Player count held at 839, and 2,418 pre-existing overdue/planned travel legs stayed unchanged. The historical backlog existed before this deployment; no manual travel processing or data clean-up was performed.
+
+**Still OPEN for manual QA:** a logged-in frontend browser test against the existing live backend (this is **not** an isolated test database). Purchases, relocation, travel and financial actions may modify live player records. Check read-only overview/profile/jet display first. Original source/CI tests passed; Netlify deployment remains explicitly unauthorized. See [LOCAL_PRIVATE_LIFE_TESTING.md](LOCAL_PRIVATE_LIFE_TESTING.md) for current, Docker-free CMD instructions.
+
+The sections below retain the **pre-deployment historical investigation**, including past temporary-branch failures and earlier statements that the migration was still pending. Those statements no longer describe the current deployed state.
+
 ## GitHub-hosted combined migration and gameplay QA — 2026-10-27
 
 **Successful GitHub Actions run:** https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/40484644804 (all three jobs passed).
