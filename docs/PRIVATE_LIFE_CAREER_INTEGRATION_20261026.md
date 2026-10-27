@@ -1,5 +1,24 @@
 # Tennis Legacy — Private Life ↔ career integration
 
+## GitHub-hosted combined migration and gameplay QA — 2026-10-27
+
+**Successful GitHub Actions run:** https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/40484644804 (all three jobs passed).
+
+The owner uses Windows CMD only and does not install Docker locally. New `private-life-combined-migrations` CI testing therefore executes entirely on a disposable, synthetic PostgreSQL 16 service in GitHub Actions. The current repository `main` workflow now:
+
+1. Creates synthetic game/auth/cron reference tables (no real player records, remote database credentials or production schema dumps).
+2. Applies the **three original Private Life migrations in the correct order, unchanged**, with only the synthetic compatibility fixtures inserted between them.
+3. Executes `tests/private_life_career_db_smoke.sql` to verify expected tables, RLS, travel columns, limited jet list, internal function execute permissions and the hourly cron registration.
+4. Exercises real migration RPCs against synthetic sample accounts, tournaments, jet ownership and six synthetic staff contracts: one eligible Citation M3 booking, travel-leg planning, ledger debit and arrival processing, second processing returning `already_processed`, Paris location update, long-haul commercial fallback, and the profile/career JSON views.
+5. Runs the existing production compilation, locale/SEO/CPX checks and other disposable database tests; **all green** in the same linked run.
+
+**Important release boundary:** This is a combined-migration/runtime test against an intentionally reduced PostgreSQL schema. It is **not** the full existing production schema, hosted Supabase Auth/PostgREST/Storage runtime, or logged-in Chromium gameplay. Those remain **unverified**, and there is no authorized Supabase production DDL or Netlify deployment. The old data-dependent branch replay is not repaired; the ticket stays OPEN. The Windows Docker script remains an optional separate route, **not** a required local step for this GitHub CI validation.
+
+Read-only production recheck on 2026-10-27 confirmed `player_lifestyle_state`, `player_tournament_travel_selection` and `get_my_private_life_career_v1` are absent. `list_branches` showed only original `main`; no new billable Supabase branch was made.
+
+**Next release gate:** obtain a safe full-schema nonproduction environment with server-side Supabase Auth and representative synthetic world/tournament state, apply the three migrations and complete authenticated UI scenarios. Do not bypass that gate by deploying to production.
+
+
 **Branch:** `main` (source-only development; Netlify builds remain stopped). **Status:** source committed and GitHub build validated; database migrations **not applied to production**. Isolated DB integration tests and browser QA remain required. **Date:** 2026-10-26.
 
 ## Windows database-test bootstrap — 2026-10-26
