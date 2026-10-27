@@ -13,6 +13,13 @@ These repository instructions are the **source of truth for every coding assista
 - Standard GitHub-hosted runners are free while the repository is public. Storage, special runners, Netlify builds, Supabase and other services may still incur costs. If the repository becomes private after launch, review Actions workflow frequency and the spending budget before continuing CI.
 - GitHub's default branch is already `main`. Specify `branch: main` explicitly in automated write tools; never rely on a stale staging convention.
 
+## Owner-directed LIVE operational alert change — 2026-10-27
+
+- The owner explicitly directed: **STOP Tennis Legacy system incident alert emails; keep incident alerts via Game Control Centre push only.** This was applied **directly in the live Tennis Legacy Supabase project** `cwfznmroiqcyhfkfcrow`, independently of the Netlify deployment/build freeze.
+- All rows of `public.system_monitor_processes` now have `email_alerts_enabled=false`. Two pg_cron jobs were disabled in place: `tennis-system-alert-email-dispatch-v1` (job 43) and `tennis-critical-incident-reminders-v1` (job 47). There were zero unprocessed `public.system_alert_email_outbox` messages at the time of the change. This prevents both new queued system incident emails and recurring reminders. **Do not silently restore these flags or cron jobs** during incident/watchdog work.
+- **Do not disable monitoring or Control Centre push:** `tennis-system-health-watchdog-v1` (job 27) remains active; the `gcc_direct_system_issue_push_v1` trigger on `public.system_incidents` remains enabled and delegates to `control_center_private.gcc_notify_new_system_incident_v1()`. Other transactional/gameplay email flows, including `tennis-birthday-email-dispatch-v1`, were deliberately left intact.
+- The independent underlying watchdog incident reported `connection failed` and remains to be diagnosed; turning off email is not a claim that the health issue is fixed. A future code release must preserve these owner-selected channels and avoid recreating incident-email schedules.
+
 ## Validation and release safeguards
 
 - Preserve all existing game features and premium modules. Continue critical checks: `npm run check:pt`, `npm run check:preferences`, `npm run check:seo`, `npm run build`, and the CPX Earn Free Coins assertion in CI.
