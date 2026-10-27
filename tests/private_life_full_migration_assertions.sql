@@ -11,6 +11,8 @@ DECLARE
   v_q jsonb;
   v_summary jsonb;
   v_career jsonb;
+  v_booking jsonb;
+  v_leg_id uuid;
   v_n integer;
 BEGIN
   SELECT count(*) INTO v_n FROM public.private_life_asset_catalog
@@ -63,6 +65,45 @@ BEGIN
    OR v_summary->'residence'->>'nationality' <> 'RS'
   THEN RAISE EXCEPTION 'Private Life profile summary integration failed: %',v_summary; END IF;
 
-  RAISE NOTICE 'PASS: all three real migrations ran in order; catalog, jet ownership, range, seats, career and profile checks passed';
+  -- Exercise the real tournament-selection RPC through the actual
+  -- tournament quote, full core itinerary rebuild and leg insert routines.
+  -- The synthetic fixture models six selected staff contracts.
+  v_booking := public.set_private_life_tournament_travel_v1(
+    '44444444-4444-4444-4444-444444444444'::uuid,'private_jet',v_jet);
+  IF v_booking->>'status' <> 'saved'
+     OR v_booking->>'travel_mode' <> 'private_jet'
+  THEN RAISE EXCEPTION 'Short-range tournament private jet selection failed: %',v_booking; END IF;
+  SELECT id INTO v_leg_id FROM public.player_travel_legs
+  WHERE player_id=v_player AND destination_city='Paris'
+    AND status='planned' AND travel_mode='private_jet'
+  ORDER BY created_at DESC LIMIT 1;
+  IF v_leg_id IS NULL THEN RAISE EXCEPTION 'Approved jet was not booked into planned tournament itinerary'; END IF;
+  IF EXISTS(
+    SELECT 1 FROM public.player_travel_legs WHERE id=v_leg_id
+    AND COALESCE((jet_quote->>'staff_commercial')::integer,-1)<>0)
+  THEN RAISE EXCEPTION 'Jet booking charged extra staff air tickets'; END IF;
+
+  v_booking := public.process_travel_leg_v1(v_leg_id);
+  IF v_booking->>'status' <> 'completed'
+  THEN RAISE EXCEPTION 'Paid jet arrival failed: %',v_booking; END IF;
+  IF NOT EXISTS(
+    SELECT 1 FROM public.player_location_state
+    WHERE player_id=v_player AND current_city='Paris' AND current_country_code='FR'
+  ) THEN RAISE EXCEPTION 'Flight arrival did not update player location'; END IF;
+  SELECT count(*) INTO v_n FROM public.test_career_transactions
+  WHERE idempotency_key='travel-leg:'||v_leg_id::text;
+  IF v_n<>1 THEN RAISE EXCEPTION 'Jet flight did not debit exactly once'; END IF;
+  v_booking := public.process_travel_leg_v1(v_leg_id);
+  IF v_booking->>'status' <> 'already_processed'
+  THEN RAISE EXCEPTION 'Repeated travel settlement was not idempotent'; END IF;
+
+  -- Owned jets must fall back to normal commercial travel for Australia.
+  v_booking := public.set_private_life_tournament_travel_v1(
+    '66666666-6666-6666-6666-666666666666'::uuid,'private_jet',v_jet);
+  IF v_booking->>'status' <> 'commercial_fallback'
+    OR v_booking->>'travel_mode' <> 'commercial'
+  THEN RAISE EXCEPTION 'Out-of-range tournament selection did not fall back: %',v_booking; END IF;
+
+  RAISE NOTICE 'PASS: all 3 real migrations, six-staff jet booking, settlement, idempotency, commercial fallback and profile checks';
 END $$;
 ROLLBACK;
