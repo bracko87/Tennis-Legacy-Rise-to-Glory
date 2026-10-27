@@ -46,6 +46,8 @@ jobs:
         run: node --test tests/lifestyleCareerContract.test.mjs
       - name: Validate schema-only Private Life sandbox safety
         run: node --test tests/privateLifeSandbox.test.mjs
+      - name: Verify CMD-only isolated local development launcher
+        run: node --test tests/privateLifeLocalDev.test.mjs
       - name: Set up Python for offline database migration syntax validation
         uses: actions/setup-python@v5
         with:
