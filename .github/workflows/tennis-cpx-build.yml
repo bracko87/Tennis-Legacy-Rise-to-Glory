@@ -187,4 +187,5 @@ jobs:
             -f supabase/migrations/20261026094500_private_life_jet_travel_integration_v1.sql \
             -f supabase/migrations/20261026095500_private_life_profile_residence_v1.sql \
             -f tests/private_life_career_db_smoke.sql \
+            -f tests/private_life_full_migration_gameplay_fixture.sql \
             -f tests/private_life_full_migration_assertions.sql
