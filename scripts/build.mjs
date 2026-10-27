@@ -18,7 +18,7 @@ if (isProd && (configuredUrl || configuredKey)) {
   throw new Error('A production build must not override the configured live backend. Remove local test variables.')
 }
 if (!isProd && !configuredUrl) {
-  console.warn('LOCALHOST WARNING: Connecting to the existing LIVE Supabase project. Private Life database migrations are NOT deployed there. Configure an isolated backend to test this feature.')
+  console.warn('LOCALHOST NOTICE: Connecting to the existing LIVE Supabase project. Test purchases, travel and finance actions here will affect live game records. Use npm run dev:private-life only when you intentionally want the isolated local database.')
 }
 const browserBackendUrl = configuredUrl || 'https://cwfznmroiqcyhfkfcrow.supabase.co'
 const browserBackendKey = configuredKey || 'sb_publishable_FpDi8rEB6r1Ai49UMS_R2Q__UAGburi'
