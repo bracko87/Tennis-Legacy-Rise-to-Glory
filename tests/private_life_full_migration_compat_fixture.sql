@@ -105,6 +105,17 @@ CREATE TABLE public.player_tournament_preparation_plans (
  PRIMARY KEY(player_id,competition_id)
 );
 
+-- Only used as a row type while PostgreSQL compiles the unchanged
+-- tournament-preparation function. No hotel bookings are created in QA.
+CREATE TABLE public.travel_stay_tiers (
+ tier_name text PRIMARY KEY,
+ label text NOT NULL,
+ base_nightly_cost integer NOT NULL DEFAULT 100,
+ recovery_support_pct integer NOT NULL DEFAULT 0
+);
+INSERT INTO public.travel_stay_tiers(tier_name,label)
+VALUES ('Standard','Fixture hotel');
+
 -- The real migration intentionally REVOKES EXECUTE on these legacy helpers.
 -- Their bodies are synthetic placeholders; only the signatures are required.
 CREATE FUNCTION public.apply_training_camp_split_travel_v1(uuid)
