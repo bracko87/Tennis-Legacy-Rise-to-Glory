@@ -167,3 +167,212 @@
     max-height: calc(100vh - 94px);
   }
 }
+
+/* The flight picker is shared with Private Life; inside Tournament Preparation,
+   use the preparation modal's typography, spacing and control system. */
+.tlg-tournament-prep-dialog .tlg-jet-picker {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #173149;
+  font-family: inherit;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-heading {
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-heading strong {
+  margin: 0;
+  color: #173149;
+  font-size: .92rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-heading small {
+  margin: 0;
+  color: #718697;
+  font-size: .69rem;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: right;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-modes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin: 12px 0 0;
+  font-size: .68rem;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-modes label {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 42px;
+  justify-content: center;
+  padding: 9px 12px;
+  border: 1px solid #d9e4eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #4f6a7e;
+  font: inherit;
+  font-weight: 800;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-modes label:has(input:checked) {
+  border-color: #0b6fc8;
+  background: #edf6fd;
+  color: #0b6fc8;
+  box-shadow: inset 0 0 0 1px #0b6fc8;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-modes label:has(input:disabled) {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-modes label:focus-within {
+  outline: 2px solid #0b6fc8;
+  outline-offset: 2px;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-modes input {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: #0b6fc8;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-commercial,
+.tlg-tournament-prep-dialog .tlg-jet-picker > p {
+  margin: 10px 0 0;
+  color: #718697;
+  font-size: .7rem;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-save {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  padding: 0 16px;
+  border: 1px solid #0b6fc8;
+  border-radius: 8px;
+  background: #0b6fc8;
+  color: #fff;
+  font-family: inherit;
+  font-size: .68rem;
+  font-weight: 800;
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-save:hover:not(:disabled) {
+  background: #095fae;
+  border-color: #095fae;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-save:focus-visible {
+  outline: 2px solid #0b6fc8;
+  outline-offset: 2px;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-select {
+  margin: 12px 0 0;
+  color: #29465c;
+  font-size: .7rem;
+  font-weight: 700;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-select select {
+  min-height: 42px;
+  border-color: #d7e3ea;
+  border-radius: 8px;
+  color: #29465c;
+  font: inherit;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-details {
+  gap: 10px;
+  margin: 12px 0 0;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-details > div {
+  padding: 12px;
+  border: 1px solid #e0e8ee;
+  border-radius: 9px;
+  background: #f9fcfe;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-details span {
+  color: #7890a1;
+  font-size: .64rem;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-details strong {
+  color: #29465c;
+  font-size: .73rem;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-fallback {
+  margin: 12px 0 0;
+  padding: 12px;
+  border: 1px solid #d9e4eb;
+  border-radius: 9px;
+  background: #f9fcfe;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-fallback strong,
+.tlg-tournament-prep-dialog .tlg-jet-fallback span {
+  color: #29465c;
+  font-size: .7rem;
+  line-height: 1.45;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-picker > small,
+.tlg-tournament-prep-dialog .tlg-jet-fallback small {
+  color: #718697;
+  font-size: .69rem;
+  line-height: 1.45;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-success,
+.tlg-tournament-prep-dialog .tlg-jet-error {
+  margin: 9px 0 0;
+  font-size: .7rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 720px) {
+  .tlg-tournament-prep-dialog .tlg-jet-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .tlg-tournament-prep-dialog .tlg-jet-heading small {
+    text-align: left;
+  }
+
+  .tlg-tournament-prep-dialog .tlg-jet-modes {
+    grid-template-columns: 1fr;
+  }
+
+  .tlg-tournament-prep-dialog .tlg-jet-save {
+    width: 100%;
+  }
+}
