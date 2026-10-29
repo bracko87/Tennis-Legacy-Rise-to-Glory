@@ -351,11 +351,19 @@
   line-height: 1.45;
 }
 
-.tlg-tournament-prep-dialog .tlg-jet-success,
-.tlg-tournament-prep-dialog .tlg-jet-error {
+.tlg-tournament-prep-dialog .tlg-jet-picker > .tlg-jet-success,
+.tlg-tournament-prep-dialog .tlg-jet-picker > .tlg-jet-error {
   margin: 9px 0 0;
   font-size: .7rem;
   line-height: 1.45;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-picker > .tlg-jet-success {
+  color: #167042;
+}
+
+.tlg-tournament-prep-dialog .tlg-jet-picker > .tlg-jet-error {
+  color: #ad3232;
 }
 
 @media (max-width: 720px) {
