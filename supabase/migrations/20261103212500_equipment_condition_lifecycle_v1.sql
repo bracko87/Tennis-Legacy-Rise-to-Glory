@@ -317,3 +317,25 @@ begin
   for v in select id from public.player_equipment_inventory where condition<=0 order by player_id,id
   loop perform public.retire_broken_equipment_v1(v.id); end loop;
 end $$;
+
+-- Notify existing owners whose still-usable inventory was already below 20%
+-- before threshold monitoring was installed. Deduplicate by inventory instance.
+do $$
+declare v record;
+begin
+  for v in
+    select i.id,i.player_id,i.condition,c.brand,c.model,c.item_type,c.accessory_kind,p.owner_user_id
+    from public.player_equipment_inventory i
+    join public.equipment_catalog_items c on c.id=i.catalog_item_id
+    join public.players p on p.id=i.player_id
+    where i.condition>0 and i.condition<20 and p.owner_user_id is not null
+  loop
+    perform public.emit_notification_v1(v.owner_user_id,v.player_id,'equipment.condition.low',
+      'Equipment warning: '||concat_ws(' ',v.brand,v.model),
+      concat_ws(' ',v.brand,v.model)||' is at '||v.condition||'% condition. Replace it before it breaks.',
+      '/game/equipment',
+      jsonb_build_object('inventory_id',v.id,'condition',v.condition,'item_type',v.item_type,
+        'accessory_kind',v.accessory_kind,'action_url','/game/equipment'),
+      'equipment:low20:'||v.id::text);
+  end loop;
+end $$;
