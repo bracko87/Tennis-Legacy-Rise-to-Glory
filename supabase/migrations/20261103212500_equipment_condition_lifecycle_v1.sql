@@ -49,7 +49,7 @@ returns jsonb language plpgsql security definer set search_path='public','pg_tem
 declare
   v_item public.player_equipment_inventory%rowtype;
   v_type text; v_kind text; v_name text; v_new_id uuid;
-  v_slot text; v_owner uuid; v_new_name text;
+  v_slot text; v_owner uuid; v_new_name text; v_equipped boolean:=false;
 begin
   select * into v_item from public.player_equipment_inventory where id=p_inventory_id for update;
   if not found or v_item.condition>0 then return jsonb_build_object('status','not_broken'); end if;
@@ -60,7 +60,13 @@ begin
   perform 1 from public.player_equipment_loadouts
    where player_id=v_item.player_id for update;
   v_slot:=case when v_type='accessory' then v_kind else v_type end;
+  select exists(select 1 from public.player_equipment_loadouts l
+    where l.player_id=v_item.player_id and v_item.id in
+      (l.racket_inventory_id,l.shoes_inventory_id,l.apparel_inventory_id,l.string_inventory_id))
+    or exists(select 1 from public.player_equipment_accessory_loadout a
+    where a.player_id=v_item.player_id and a.inventory_id=v_item.id) into v_equipped;
 
+  if v_equipped then
   select i.id,concat_ws(' ',c.brand,c.model) into v_new_id,v_new_name
     from public.player_equipment_inventory i
     join public.equipment_catalog_items c on c.id=i.catalog_item_id
@@ -77,6 +83,7 @@ begin
        where a.player_id=i.player_id and a.inventory_id=i.id
      )
    order by i.condition desc,i.created_at asc,i.id asc limit 1;
+  end if;
 
   if v_type='racket' then
     update public.player_equipment_loadouts set racket_inventory_id=v_new_id,updated_at=now()
