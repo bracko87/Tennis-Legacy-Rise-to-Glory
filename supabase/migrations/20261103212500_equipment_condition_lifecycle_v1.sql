@@ -306,7 +306,7 @@ begin
       updated_at=now()
   where player_id=p_player_id;
 end;
-$function$
+$function$;
 
 revoke all on function public.initialize_player_equipment_v1(uuid) from public,anon,authenticated;
 
