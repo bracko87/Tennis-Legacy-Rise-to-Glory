@@ -158,6 +158,158 @@ after update of condition on public.player_equipment_inventory
 for each row when (old.condition is distinct from new.condition)
 execute function public.equipment_condition_lifecycle_v1();
 
+
+-- Update ALL named match setups before deleting worn-out inventory.
+create or replace function public.retire_broken_equipment_v1(p_inventory_id uuid)
+returns jsonb language plpgsql security definer set search_path='public','pg_temp' as $$
+declare
+  v_item public.player_equipment_inventory%rowtype;
+  v_type text;v_kind text;v_name text;v_new_id uuid;v_new_name text;
+  v_owner uuid;v_equipped boolean:=false;v_slot text;
+begin
+  select * into v_item from public.player_equipment_inventory where id=p_inventory_id for update;
+  if not found or v_item.condition>0 then return jsonb_build_object('status','not_broken');end if;
+  select c.item_type,c.accessory_kind,concat_ws(' ',c.brand,c.model)
+    into v_type,v_kind,v_name from public.equipment_catalog_items c where c.id=v_item.catalog_item_id;
+  v_slot:=case when v_type='accessory' then v_kind else v_type end;
+  perform 1 from public.player_equipment_loadouts where player_id=v_item.player_id for update;
+  select
+    exists(select 1 from public.player_equipment_loadouts l where l.player_id=v_item.player_id and v_item.id in (l.racket_inventory_id,l.shoes_inventory_id,l.apparel_inventory_id,l.string_inventory_id))
+    or exists(select 1 from public.player_equipment_accessory_loadout a where a.player_id=v_item.player_id and a.inventory_id=v_item.id)
+    or exists(select 1 from public.player_equipment_match_setups s where s.player_id=v_item.player_id and v_item.id in (s.racket_inventory_id,s.shoes_inventory_id,s.apparel_inventory_id))
+    or exists(select 1 from public.player_equipment_match_setup_accessories a join public.player_equipment_match_setups s on s.id=a.setup_id where s.player_id=v_item.player_id and a.inventory_id=v_item.id)
+    into v_equipped;
+  if v_equipped then
+    select i.id,concat_ws(' ',c.brand,c.model) into v_new_id,v_new_name
+    from public.player_equipment_inventory i join public.equipment_catalog_items c on c.id=i.catalog_item_id
+    where i.player_id=v_item.player_id and i.id<>v_item.id and i.condition>0 and c.is_active
+      and c.item_type=v_type and (v_type<>'accessory' or c.accessory_kind=v_kind)
+    order by i.condition desc,i.created_at asc,i.id asc limit 1;
+    update public.player_equipment_loadouts set
+      racket_inventory_id=case when racket_inventory_id=v_item.id then v_new_id else racket_inventory_id end,
+      shoes_inventory_id=case when shoes_inventory_id=v_item.id then v_new_id else shoes_inventory_id end,
+      apparel_inventory_id=case when apparel_inventory_id=v_item.id then v_new_id else apparel_inventory_id end,
+      string_inventory_id=case when string_inventory_id=v_item.id then null else string_inventory_id end,
+      updated_at=now()
+    where player_id=v_item.player_id and v_item.id in (racket_inventory_id,shoes_inventory_id,apparel_inventory_id,string_inventory_id);
+    update public.player_equipment_match_setups set
+      racket_inventory_id=case when racket_inventory_id=v_item.id then v_new_id else racket_inventory_id end,
+      shoes_inventory_id=case when shoes_inventory_id=v_item.id then v_new_id else shoes_inventory_id end,
+      apparel_inventory_id=case when apparel_inventory_id=v_item.id then v_new_id else apparel_inventory_id end,
+      updated_at=now()
+    where player_id=v_item.player_id and v_item.id in (racket_inventory_id,shoes_inventory_id,apparel_inventory_id);
+    if v_type='accessory' then
+      if v_new_id is null then
+        delete from public.player_equipment_accessory_loadout where player_id=v_item.player_id and inventory_id=v_item.id;
+        delete from public.player_equipment_match_setup_accessories a using public.player_equipment_match_setups s where s.id=a.setup_id and s.player_id=v_item.player_id and a.inventory_id=v_item.id;
+      else
+        update public.player_equipment_accessory_loadout set inventory_id=v_new_id,updated_at=now() where player_id=v_item.player_id and inventory_id=v_item.id;
+        update public.player_equipment_match_setup_accessories a set inventory_id=v_new_id from public.player_equipment_match_setups s where s.id=a.setup_id and s.player_id=v_item.player_id and a.inventory_id=v_item.id;
+      end if;
+    end if;
+  end if;
+  if v_item.acquired_source='starter' then
+    insert into public.player_equipment_broken_starters_v1(player_id,catalog_item_id)
+    values(v_item.player_id,v_item.catalog_item_id) on conflict do nothing;
+  end if;
+  select owner_user_id into v_owner from public.players where id=v_item.player_id;
+  delete from public.player_equipment_inventory where id=v_item.id and player_id=v_item.player_id;
+  if v_owner is not null then
+    perform public.emit_notification_v1(v_owner,v_item.player_id,'equipment.condition.broken','Equipment broken: '||v_name,
+      v_name||' reached 0% and was removed. '||case when not v_equipped then 'It was not equipped.' when v_new_id is null then 'No replacement available.' else 'Automatically equipped '||v_new_name||'.' end,
+      '/game/equipment',jsonb_build_object('inventory_id',v_item.id,'item_type',v_type,'accessory_kind',v_kind,'replacement_inventory_id',v_new_id,'action_url','/game/equipment'),
+      'equipment:broken:'||v_item.id::text);
+  end if;
+  return jsonb_build_object('status','removed','inventory_id',v_item.id,'replacement_inventory_id',v_new_id,'slot',v_slot);
+end; $$;
+revoke all on function public.retire_broken_equipment_v1(uuid) from public,anon,authenticated;
+
+-- Preserve current ATP/WTA starter logic but allow a broken starter slot to remain empty.
+CREATE OR REPLACE FUNCTION public.initialize_player_equipment_v1(p_player_id uuid)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+declare
+  v_abs integer;
+  v_world text;
+  v_racket uuid;
+  v_shoes uuid;
+  v_apparel uuid;
+  v_apparel_sku text;
+begin
+  select p.world
+  into v_world
+  from public.players p
+  where p.id=p_player_id
+    and p.player_type='human'
+    and p.owner_user_id is not null;
+
+  if v_world not in ('ATP','WTA') then return; end if;
+
+  select public.game_day_absolute_v1(d.season,d.month,d.day)
+  into v_abs
+  from public.get_current_game_day_internal_v1() d;
+
+  v_apparel_sku:=case when v_world='WTA' then 'APP-WTA-BLOKUV-01' else 'APP-BLOKUV-01' end;
+
+  insert into public.player_equipment_loadouts(player_id)
+  values(p_player_id)
+  on conflict(player_id) do nothing;
+
+  insert into public.player_equipment_inventory(
+    player_id,catalog_item_id,condition,acquired_absolute_day,acquired_source,purchase_price_usd
+  )
+  select p_player_id,c.id,100,v_abs,'starter',0
+  from public.equipment_catalog_items c
+  where c.sku in ('RKT-ROSIGNOL-01','SHO-ANTTA-01',v_apparel_sku)
+    and c.is_active
+    and c.availability_status='available'
+    and c.tour_scope in ('unisex',v_world)
+  on conflict do nothing;
+
+  select i.id into v_racket
+  from public.player_equipment_inventory i
+  join public.equipment_catalog_items c on c.id=i.catalog_item_id
+  where i.player_id=p_player_id
+    and c.sku='RKT-ROSIGNOL-01'
+    and i.acquired_source='starter'
+  order by i.created_at
+  limit 1;
+
+  select i.id into v_shoes
+  from public.player_equipment_inventory i
+  join public.equipment_catalog_items c on c.id=i.catalog_item_id
+  where i.player_id=p_player_id
+    and c.sku='SHO-ANTTA-01'
+    and i.acquired_source='starter'
+  order by i.created_at
+  limit 1;
+
+  select i.id into v_apparel
+  from public.player_equipment_inventory i
+  join public.equipment_catalog_items c on c.id=i.catalog_item_id
+  where i.player_id=p_player_id
+    and c.sku=v_apparel_sku
+    and i.acquired_source='starter'
+  order by i.created_at
+  limit 1;
+
+  -- Missing consumed starter items are valid: equipment must not regenerate.
+
+  update public.player_equipment_loadouts
+  set racket_inventory_id=coalesce(racket_inventory_id,v_racket),
+      shoes_inventory_id=coalesce(shoes_inventory_id,v_shoes),
+      apparel_inventory_id=coalesce(apparel_inventory_id,v_apparel),
+      string_inventory_id=null,
+      updated_at=now()
+  where player_id=p_player_id;
+end;
+$function$
+
+revoke all on function public.initialize_player_equipment_v1(uuid) from public,anon,authenticated;
+
 -- Existing zero-condition gear is migrated out, with replacement using the same rule.
 do $$
 declare v record;
