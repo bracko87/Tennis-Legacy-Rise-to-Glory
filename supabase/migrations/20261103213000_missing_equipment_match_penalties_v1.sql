@@ -134,5 +134,4 @@ begin
     )
   );
 end;
-$function$
-
+$function$;
