@@ -1,7 +1,7 @@
 -- Missing core equipment penalties, applied to the authoritative match-engine profile.
 -- No production deployment without the owner's explicit release approval.
 create or replace function public.get_match_engine_profile_for_match_v2(p_player_id uuid,p_surface text,p_match_id uuid) returns jsonb language plpgsql stable security definer set search_path='public' as $$
-declare b jsonb;e jsonb;eq jsonb;m numeric:=1;eq_serve numeric:=0;eq_return numeric:=0;eq_rally numeric:=0;eq_net numeric:=0;climate numeric:=0;temp numeric;eq_avg numeric:=0;missing_racket boolean;missing_shoes boolean;missing_apparel boolean;v_penalty numeric:=1;
+declare b jsonb;e jsonb;eq jsonb;m numeric:=1;eq_serve numeric:=0;eq_return numeric:=0;eq_rally numeric:=0;eq_net numeric:=0;climate numeric:=0;temp numeric;eq_avg numeric:=0;missing_racket boolean;missing_shoes boolean;missing_apparel boolean;v_human boolean:=false;
 begin
  b:=public.get_match_engine_profile_for_match_base_v2(p_player_id,p_surface,p_match_id);eq:=public.get_equipment_match_modifiers_readonly_v2(p_player_id,p_surface);
  begin temp:=nullif(b->'weather'->>'temperature_c','')::numeric;exception when others then temp:=null;end;
@@ -25,6 +25,12 @@ begin
    join public.player_equipment_inventory i on i.id=l.apparel_inventory_id
    where l.player_id=p_player_id and i.player_id=p_player_id and i.condition>0
  ) into missing_apparel;
+ -- AI opponents do not own equipment; never apply human inventory penalties to AI.
+ select exists(select 1 from public.players p where p.id=p_player_id and p.owner_user_id is not null)
+   into v_human;
+ missing_racket:=missing_racket and v_human;
+ missing_shoes:=missing_shoes and v_human;
+ missing_apparel:=missing_apparel and v_human;
  -- Racket is essential. Shoes mainly affect court movement and endurance;
  -- clothing contributes a smaller all-round comfort penalty.
  if missing_racket then
