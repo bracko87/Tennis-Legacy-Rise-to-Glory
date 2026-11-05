@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import CountryFlag from '../common/CountryFlag'
 import { lifestyleCopy, type LifestyleCopy } from '../../lib/lifestyleCareerI18n'
 import '../../styles/private-life-career.css'
 
@@ -32,14 +33,88 @@ export function DestinationLabel({ city, country }: { city?: string | null; coun
   return <>{[city, country].filter(Boolean).join(', ') || '—'}</>
 }
 
+// The Overview preview displays readable nationalities and actual flag images,
+// rather than the two-letter ISO codes used by the game database.
+const ENGLISH_NATIONALITIES: Record<string, string> = {
+  AL: 'Albanian', AR: 'Argentine', AT: 'Austrian', AU: 'Australian',
+  BA: 'Bosnian', BE: 'Belgian', BG: 'Bulgarian', BR: 'Brazilian',
+  BY: 'Belarusian', CA: 'Canadian', CH: 'Swiss', CL: 'Chilean',
+  CN: 'Chinese', CO: 'Colombian', CR: 'Costa Rican', CY: 'Cypriot',
+  CZ: 'Czech', DE: 'German', DK: 'Danish', DO: 'Dominican',
+  DZ: 'Algerian', EC: 'Ecuadorian', EE: 'Estonian', EG: 'Egyptian',
+  ES: 'Spanish', FI: 'Finnish', FR: 'French', GB: 'British',
+  GE: 'Georgian', GR: 'Greek', HR: 'Croatian', HU: 'Hungarian',
+  ID: 'Indonesian', IE: 'Irish', IL: 'Israeli', IN: 'Indian',
+  IS: 'Icelandic', IT: 'Italian', JP: 'Japanese', KZ: 'Kazakh',
+  KR: 'South Korean', LT: 'Lithuanian', LU: 'Luxembourgish',
+  LV: 'Latvian', MA: 'Moroccan', MD: 'Moldovan', ME: 'Montenegrin',
+  MK: 'Macedonian', MX: 'Mexican', MY: 'Malaysian', NL: 'Dutch',
+  NO: 'Norwegian', NZ: 'New Zealand', PE: 'Peruvian', PH: 'Filipino',
+  PK: 'Pakistani', PL: 'Polish', PT: 'Portuguese', RO: 'Romanian',
+  RS: 'Serbian', RU: 'Russian', SE: 'Swedish', SG: 'Singaporean',
+  SI: 'Slovenian', SK: 'Slovak', TH: 'Thai', TN: 'Tunisian',
+  TR: 'Turkish', TW: 'Taiwanese', UA: 'Ukrainian', US: 'American',
+  UY: 'Uruguayan', UZ: 'Uzbek', VE: 'Venezuelan', VN: 'Vietnamese',
+  ZA: 'South African',
+}
+
+function regionName(code: string, locale: string): string {
+  try {
+    return new Intl.DisplayNames([locale], { type: 'region' }).of(code) ?? code
+  } catch {
+    return code
+  }
+}
+
+function NationalityPreview({ nationality, locale }: { nationality?: string | null; locale: string }) {
+  const raw = nationality?.trim() || ''
+  const code = /^[a-z]{2}$/i.test(raw) ? raw.toUpperCase() : null
+  const name = code
+    ? (/^en(?:$|[-_])/i.test(locale) ? ENGLISH_NATIONALITIES[code] : undefined) ?? regionName(code, locale)
+    : raw || '—'
+
+  return (
+    <span className="tlg-career-flag-row">
+      <span>{name}</span>
+      {code && <CountryFlag countryCode={code} countryName={regionName(code, locale)} width={22} height={15} />}
+    </span>
+  )
+}
+
+function LocationPreview({ city, country, locale }: { city?: string | null; country?: string | null; locale: string }) {
+  const code = country && /^[a-z]{2}$/i.test(country) ? country.toUpperCase() : null
+  return (
+    <span className="tlg-career-flag-row">
+      <span>{city ? `${city}${code ? ',' : ''}` : code ? regionName(code, locale) : '—'}</span>
+      {code && <CountryFlag countryCode={code} countryName={regionName(code, locale)} width={22} height={15} />}
+    </span>
+  )
+}
+
 export function LifestyleFacts({ data, compact = false }: { data: LifestyleCareer; compact?: boolean }) {
   const { i18n } = useTranslation()
-  const copy = useMemo(() => lifestyleCopy(i18n.resolvedLanguage ?? i18n.language), [i18n.resolvedLanguage, i18n.language])
+  const locale = i18n.resolvedLanguage ?? i18n.language
+  const copy = useMemo(() => lifestyleCopy(locale), [locale])
   return (
     <div className={'tlg-career-facts' + (compact ? ' compact' : '')}>
-      <div><span>{copy.nationality}</span><strong>{data.home_base?.nationality || '—'}</strong></div>
-      <div><span>{copy.homeBase}</span><strong><DestinationLabel city={data.home_base?.city} country={data.home_base?.country_code} /></strong></div>
-      <div><span>{copy.currentLocation}</span><strong><DestinationLabel city={data.current_location?.city} country={data.current_location?.country_code} /></strong></div>
+      <div>
+        <span>{copy.nationality}</span>
+        <strong>{compact
+          ? <NationalityPreview nationality={data.home_base?.nationality} locale={locale} />
+          : data.home_base?.nationality || '—'}</strong>
+      </div>
+      <div>
+        <span>{copy.homeBase}</span>
+        <strong>{compact
+          ? <LocationPreview city={data.home_base?.city} country={data.home_base?.country_code} locale={locale} />
+          : <DestinationLabel city={data.home_base?.city} country={data.home_base?.country_code} />}</strong>
+      </div>
+      <div>
+        <span>{copy.currentLocation}</span>
+        <strong>{compact
+          ? <LocationPreview city={data.current_location?.city} country={data.current_location?.country_code} locale={locale} />
+          : <DestinationLabel city={data.current_location?.city} country={data.current_location?.country_code} />}</strong>
+      </div>
       {!compact && <div><span>{copy.morale}</span><strong>+{Number(data.morale_bonus ?? 0)}/3</strong><small>{copy.moraleNote}</small></div>}
     </div>
   )
