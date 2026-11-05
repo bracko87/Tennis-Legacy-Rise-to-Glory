@@ -20,10 +20,16 @@ export default function CareerLocationPreview() {
  if(!data) return null
  return (
   <section className="tlg-career-preview">
-   <h3>{c.title}</h3>
-   <p>{c.subtitle}</p>
+   <div className="tlg-career-preview-heading">
+    <div className="tlg-career-preview-heading-copy">
+     <h3>{c.title}</h3>
+     <p>{c.subtitle}</p>
+    </div>
+    <Link className="tlg-career-preview-travel-link" to="/game/private-life">
+     {c.selectedResidence} / {c.ownedJets}
+    </Link>
+   </div>
    <LifestyleFacts data={data} compact />
-   <Link to="/game/private-life">{c.selectedResidence} / {c.ownedJets}</Link>
   </section>
  )
 }
