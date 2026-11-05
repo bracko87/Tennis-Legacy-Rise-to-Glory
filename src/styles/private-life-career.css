@@ -40,8 +40,18 @@
 .tlg-jet-fallback span{font-weight:700;color:#183550}
 .tlg-jet-fallback small{font-weight:400}
 .tlg-career-preview{margin-top:0}
+/* Overview: keep the residence/aircraft action in the card's upper-right corner. */
+.tlg-career-preview-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.tlg-career-preview-heading-copy{min-width:0}
+.tlg-career-preview .tlg-career-preview-travel-link{display:inline-flex;align-items:center;flex:0 1 auto;margin:0;text-align:right;font-size:.76rem;line-height:1.4;white-space:normal}
+.tlg-career-flag-row{display:inline-flex;align-items:center;gap:7px;max-width:100%;vertical-align:middle}
+.tlg-career-flag-row>span{min-width:0;overflow-wrap:anywhere}
+
 .tlg-career-preview a{display:inline-block;font-size:.82rem;color:#265ea4;font-weight:700;text-decoration:underline}
 @media(max-width:640px){
+ .tlg-career-preview-heading{flex-direction:column;gap:8px}
+ .tlg-career-preview .tlg-career-preview-travel-link{text-align:left}
+
  .tlg-career-panel,.tlg-jet-picker,.tlg-career-preview{padding:12px}
  .tlg-career-panel-heading{flex-direction:column}
  .private-life-page > .tlg-career-panel{padding:14px}
