@@ -103,6 +103,25 @@ const MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 const EMPTY_TOURNAMENT_SUMMARY: PlayerTournamentSummary = { next_tournaments: [], recent_tournaments: [], best_results: [] }
 const EMPTY_PRIVATE_LIFE: PrivateLifeSummary = { player_id: '', prestige_points: 0, asset_count: 0, asset_value: 0, possessions: [] }
 
+const TOURNAMENT_CATEGORY_LABELS: Record<string, string> = {
+  futures_15: 'Futures 15',
+  futures_25: 'Futures 25',
+  challenger_50: 'Challenger 50',
+  challenger_75: 'Challenger 75',
+  challenger_100: 'Challenger 100',
+  challenger_125: 'Challenger 125',
+  tour_250: 'Tour 250',
+  tour_500: 'Tour 500',
+  masters_1000: 'Masters 1000',
+  grand_slam_2000: 'Grand Slam',
+}
+
+function tournamentCategoryLabel(item: TournamentSummaryItem) {
+  const fallback = item.category_label?.trim() || item.category_code
+  return TOURNAMENT_CATEGORY_LABELS[item.category_code]
+    ?? fallback.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
+}
+
 function fromAbsoluteDay(value: number) {
   const season = Math.floor(value / 366) + 1
   let remaining = value % 366
@@ -155,7 +174,7 @@ function TournamentRows({ items, emptyText, showResult = false, ranked = false }
             <CountryFlag countryCode={item.country_code} countryName={item.country_code} width={23} height={16} />
             <div><strong>{item.tournament_name}</strong><small>{item.city} · {tournamentWeekLabel(item, t)}</small></div>
           </div>
-          <div className="tlg-public-tournament-meta"><span>{item.category_code}</span><small>{surfaceLabel(item.surface, t)}</small></div>
+          <div className="tlg-public-tournament-meta"><span>{tournamentCategoryLabel(item)}</span><small>{surfaceLabel(item.surface, t)}</small></div>
           {showResult && <div className="tlg-public-tournament-result"><strong>{item.result_label ?? t('playerProfilePage.tournament.completed')}</strong>{(item.ranking_points_earned ?? 0) > 0 && <small>{t('playerProfilePage.tournament.points', { points: item.ranking_points_earned })}</small>}</div>}
         </article>
       ))}
