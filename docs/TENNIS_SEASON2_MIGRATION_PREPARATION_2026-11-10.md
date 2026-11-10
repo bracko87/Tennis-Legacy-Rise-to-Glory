@@ -44,17 +44,54 @@ Private tables:
 - `control_center_private.tennis_season_transition_runs_v1`
 - `control_center_private.tennis_season_transition_steps_v1`
 
-They contain no migration run yet. Data is inaccessible to anonymous/authenticated Data API roles. Enabling a run requires checked fields for backup, restore test, two-season dry run, contracts, finance, and operator approval. A status of `running` or `completed` cannot be declared without the execution flag.
+There is now one planned (non-executable) migration run with 13 waiting steps; there are no executed migration steps. Data is inaccessible to anonymous/authenticated Data API roles. Enabling a run requires checked fields for backup, restore test, two-season dry run, contracts, finance, and operator approval. A status of `running` or `completed` cannot be declared without the execution flag.
 
 ## Blockers to an approved production migration
-1. Inspect/reconcile the already generated Season 2 applications, entries and draws.
+1. Complete full eligibility/integration certification for generated Season 2 applications, entries and draws (structural checks have passed).
 2. Implement the protected, idempotent migration runner with an actual step journal, rollback/recovery behavior, and clock lock.
 3. Verify full project backup and a real restore exercise. The journal is not a backup.
 4. Implement and validate season rollover for player ranking expiry/defence, development and identity, finances, sponsorship renewal and grandfathering.
-5. Specifically preserve 1 technical sponsorship that extends beyond the boundary and handle the 2 due contracts according to signed terms.
+5. Verify the now-installed original-terms technical sponsorship registry in the final simulated migration: 1 contract crosses the boundary and 2 due contracts need expiry processing.
 6. Conduct isolated Season 1->2 and 2->3 end-to-end dry runs; pass post-migration checks.
 7. Only after explicit approval, execute the transition and then resume the game clock.
 
 As of the recorded snapshot, all final Season 1 closeout records were present, but the season transition was still **disabled**.
 
 Do not confuse *calendar populated* with *migration approved*.
+
+## Preparation audit update — 2026-11-10, about 21:12 UTC
+
+### Confirmed structural checks (read-only)
+`control_center_private.verify_tennis_season2_early_preparations_v1()` is installed and returns `structural_preflight_passed: true`.
+
+- Published draws: 16, all based on Season 1's final ranking snapshot, absolute day 365, after the 12-finals closeout.
+- Applications: 1,334 (AI only, no duplicate competition/player pairs, no missing ranking snapshots).
+- Entries: 658 (AI only, no duplicate competition/player pairs, no missing ranking snapshots).
+- Week 1 singles match records: 676 (636 scheduled, 38 byes, 2 cancellations).
+- No actual completed Season 2 matches; byes may record a winner/completion without a played match.
+- No Season 2 singles or doubles tournament results, and no player-world mismatches found.
+- Full authenticated player UI integration and all tournament eligibility rules are **not** certified.
+
+`control_center_private.verify_tennis_season2_calendar_v1()` still conservatively reports `coverage_verified: false` because it treats any pre-generated match record as an obstacle; its underlying core calendar parity checks pass. The new migration preflight distinguishes the two questions.
+
+### Financial and player baseline
+- 5 human players and 5 live career finance accounts, each matching its latest recorded transaction balance; no duplicate finance idempotency keys.
+- 6 coin wallets with no negative balances.
+- No Season 2 finance transactions or ranking publications recorded.
+- Ranking contributions with expiration after the boundary: 36,252 active singles and 2,508 active doubles.
+- Existing `process_weekly_rankings_v1` contains next-edition replacement and scheduled expiration logic; this is code inspection, not end-to-end certification.
+
+### Technical sponsorship protection
+- Two active technical contracts (shoes and racket) have end day 365 and should complete when advancing to absolute day 366 via the established contract sync routine.
+- The third active contract (apparel) ends on day 386 and must remain unchanged across the migration.
+- A protected `control_center_private.tennis_season_transition_technical_contract_registry_v1` now stores each existing contract's original terms and proposed handling (2 completion-on-expiry, 1 grandfathered carryover). All three were verified unchanged after capture. These stored terms are not a new contract and do not extend, complete or renew any agreement.
+
+### New internal audit/guard infrastructure
+- `control_center_private.build_tennis_season2_migration_preflight_v1()`: read-only diagnostic, reports clock hold, closeout, calendar core parity, draw anomalies, sponsorship counts, ranking carryovers and hard release blockers.
+- `control_center_private.tennis_season_transition_runs_v1`: one `planned` run, `execution_enabled=false`.
+- `control_center_private.tennis_season_transition_steps_v1`: 13 waiting steps; no step has run.
+- `control_center_private.tennis_season_transition_baselines_v1`: 6 verified key comparison baselines (finance accounts, wallets, contracts, rankings, players and calendar).
+- Baselines and contract registries are protected private audit evidence, **not** a full database backup or proof of successful restore.
+
+### Release status
+At the latest check the effective game speed remains zero and the Season 1 boundary guard is enabled. The migration is not executable and Season 2 has not started. Still mandatory before the real switch: full restorable database backup; complete and tested rollover runner including rollback/replay journal; financial, ranking, development, and sponsorship end-to-end checks; authenticated UI checks; isolated Season 1→2 and 2→3 dry runs; explicit operator approval.
