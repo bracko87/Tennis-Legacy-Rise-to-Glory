@@ -174,3 +174,39 @@ The explicit Week-1 human-entry blocker was added to the fail-closed `check_tenn
 At the last live check, the Season 1 boundary safety guard was still enabled, effective clock 0x at 31 December 23:59:59, 597 Season 2 editions prepared, and **zero executed migration steps**. Six stored data baselines were unchanged.
 
 A full independently restorable backup and a complete cross-season test **remain unavailable/unverified through the current direct database connection**. The work above used the existing Supabase and GitHub plugins only.
+
+## Fast-path verification — 2026-11-10 22:50 UTC
+
+This update was executed using the existing connected Supabase database and GitHub tools only.
+
+### Real Week 1 draw engine rehearsal passed
+Private audit table: `control_center_private.tennis_season2_week1_rehearsal_evidence_v1`.
+- 16/16 previously published Week 1 competition draws were rebuilt with the real `allocate_tournament_applications_v3` and `publish_tournament_draw_v1` functions inside a forced-rollback subtransaction.
+- 676 original match records became 676 regenerated matches in the rehearsal.
+- ATP and WTA human application test fixtures were both evaluated through real allocation.
+- After forced rollback, all original Week 1 sources and 22 competition archive fingerprints matched exactly. No real human preferences or entries were created.
+- This does **not** certify that the real human preference UI has been deployed or that a signed-in player can enter the actual Week 1 field yet.
+
+### Real Season 1→2 cutover code rehearsal passed
+Private audit table: `control_center_private.tennis_season_atomic_rehearsal_evidence_v1`.
+- The real `execute_tennis_season1_to2_atomic_v1` ran to completion under a strictly transaction-local test approval helper and test-only flags.
+- It completed all 13 journal steps and reported `completed_paused`; Season 2 began at January 1, 00:00 while paused with stored speed still 2x.
+- Technical sponsor sync ran for one affected player; the run passed its post-cutover checks.
+- Deliberate exception reversed the entire simulated cutover and restored the original fail-closed approval helper.
+- After rollback, live Season 1 clock and boundary protection, all six finance/player/contract/ranking baselines, release flags and all 13 waiting journal steps were confirmed unchanged.
+- **This was a positive-path code rehearsal, not a production migration; the live safety gate remains unchanged and closed.**
+
+### Cron protection expanded
+An additional 18 game-changing cron jobs were updated to require effective game speed >0 and `game_clock.is_paused=false`. Together with the five earlier tournament jobs, **23 active game-processing jobs** are now protected. Parsing/EXPLAIN verification of all guarded job statements passed. Monitoring/telemetry and external-time jobs were not blindly disabled.
+
+### Backup position established — Pro, not individually verified
+The connected Supabase organization reports `pro` tier. Supabase's documented policy says Pro projects receive automatic daily database backups retained for seven days: https://supabase.com/docs/guides/platform/backups. The direct Supabase connector does not expose individual backup timestamps or provide restore-to-test operations, so **no specific full backup or independent restore test has been verified**. Backup/restore approval flags intentionally remain false. In-database recovery archives are not independent backups.
+
+### Remaining release blockers
+1. Confirm a specific restorable database backup and run an independent restore or equivalent recovery verification. Do not fabricate a backup approval.
+2. Deploy the built Week 1 pre-registration UI so real players have a fair opportunity to choose a tournament. The database has **zero real human preferences** so far.
+3. Review the real human choices, then reconcile and republish the 16 early Week 1 draws using the tested algorithm and the protected archives; keep the other six underfilled events under review.
+4. Complete and approve release checks covering the wider game economy, full two-season testing, and recovery of a crash/repeated execution.
+5. Then authorize the already rehearsed atomic cutover to **Season 2 Jan 1, 00:00, paused**, inspect results and resume 2× only after Week 1 player eligibility is satisfied.
+
+**The live game was NOT moved to Season 2 in these tests.**
