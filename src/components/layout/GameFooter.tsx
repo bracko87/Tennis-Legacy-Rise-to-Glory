@@ -63,6 +63,13 @@ export default function GameFooter() {
       </a>
 
       <Link
+        to="/legal/refunds"
+        style={{ fontSize: 11, fontWeight: 750, color: "#1377ad", whiteSpace: "nowrap" }}
+      >
+        Purchase policy
+      </Link>
+
+      <Link
         to="/game/pro-packages"
         className="tlg-commerce-coin-balance"
         aria-label={t('footer.coinBalanceAria', { count: commerce.coins })}
