@@ -92,3 +92,19 @@ The next calendar must be prepared **before** its applications open—at least 2
 
 ### Explicit limitation
 Existing early-season draws have not been rebuilt; the protected migration gate still denies execution. A saved preference alone does not enter any tournament. In an independently restored non-production database, the recovery routine must turn choices into bona fide applications, rerun capacity/ranking/eligibility allocation and publish corrected draws. Only after all audit, restore and migration tests pass can the live Season 2 transition be approved.
+
+## Additional complete-source archive and release-gate verification
+
+A review of foreign-key dependencies identified two additional sources required for any future Week 1 draw reconciliation:
+- 60 existing `tournament_qualifier_slots` across 12 competitions;
+- 16 `tournament_draw_publication_attempts` audit records.
+
+They are now preserved privately in `control_center_private.tennis_season2_week1_qualifier_snapshot_v1`, alongside the previously archived Week 1 match/draw/entry/application/field-cycle records. This is still inside the production database, **not an independent backup**.
+
+The read-only `control_center_private.audit_tennis_season2_week1_extended_recovery_v1()` verified all 22 competition source fingerprints, 60 qualifier-slot rows and 16 draw-attempt records against the live originals.
+
+A follow-up query confirmed there are **zero** Week 1 completed singles/doubles results, tournament doubles matches, match sets/statistics, match simulations, match tactics, match equipment setups, travel match links, player tournament preparation plans, or calendar commitments for the affected competitions. No production draw was deleted or rebuilt.
+
+The fail-closed migration release gate now also blocks execution if any recovery archive fingerprint changes. Its final check remains **blocked (8 blockers)**: full independent backup/restore, Week 1 human entry acceptance/rebuild, complete rollover certification, two-season rehearsal, final approval and atomic cutover certification are incomplete.
+
+The administrator-only migration status RPC now reads the real private journal and confirms the populated Season 2 calendar rather than presenting stale design-stage messaging. The UI source was updated separately on GitHub main; it was not deployed to the live website.
