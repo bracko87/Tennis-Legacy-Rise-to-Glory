@@ -11,7 +11,7 @@ import { supabase } from '../../lib/supabase'
 const PROPELOTON_URL = 'https://propelotonmanager.com/?source=tennis_legacy'
 export default function GameFooter() {
   const { t } = useTranslation()
-  const { localeTag, formatNumber } = useLocalization()
+  const { localeTag, locale, formatNumber } = useLocalization()
   const clock = useGameClock()
   const commerce = useCommerce()
   const weekday = weekdayForDate(clock.monthIndex, clock.day)
@@ -66,7 +66,7 @@ export default function GameFooter() {
         to="/legal/refunds"
         style={{ fontSize: 11, fontWeight: 750, color: "#1377ad", whiteSpace: "nowrap" }}
       >
-        Purchase policy
+        {locale === 'de' ? 'Kaufbedingungen' : 'Purchase policy'}
       </Link>
 
       <Link
