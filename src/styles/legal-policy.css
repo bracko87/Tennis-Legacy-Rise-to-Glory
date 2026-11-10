@@ -1,0 +1,47 @@
+/* Public refund policy + purchase notices. No artificial legal badges or warnings. */
+.tlg-legal-main {
+  min-height: 60vh;
+  padding: clamp(32px, 5vw, 72px) 20px 88px;
+  background: linear-gradient(180deg, #edf5fa 0%, #f8fbfd 260px, #f8fbfd 100%);
+  color: #102e44;
+}
+.tlg-legal-wrap { max-width: 920px; margin: 0 auto; }
+.tlg-legal-intro { padding: 10px 0 30px; border-bottom: 1px solid #d6e4ed; }
+.tlg-legal-eyebrow {
+  font-size: .73rem; font-weight: 800; letter-spacing: .12em;
+  text-transform: uppercase; color: #0876bb;
+}
+.tlg-legal-intro h1 {
+  margin: 13px 0; color: #08253d;
+  font-size: clamp(1.8rem, 4vw, 2.8rem); line-height: 1.18;
+}
+.tlg-legal-intro > p { max-width: 740px; font-size: 1rem; line-height: 1.7; color: #40586e; }
+.tlg-legal-intro .tlg-legal-updated { font-size: .82rem; color: #6b7e8f; }
+.tlg-legal-sections { display: grid; gap: 18px; margin: 27px 0; }
+.tlg-legal-section {
+  border: 1px solid #dce7ee; border-radius: 14px;
+  background: #fff; padding: clamp(20px, 3vw, 28px);
+  box-shadow: 0 5px 20px rgba(14, 47, 68, .035);
+}
+.tlg-legal-section h2 { font-size: 1.12rem; font-weight: 800; color: #10324b; margin: 0 0 12px; }
+.tlg-legal-section p { font-size: .94rem; line-height: 1.73; color: #435c70; margin: 10px 0 0; }
+.tlg-legal-section a, .tlg-legal-navigation a,
+.tlg-commerce-policy-notice a, .tlg-commerce-policy-secondary a {
+  color: #066caa; text-decoration: underline; text-underline-offset: 2px; font-weight: 750;
+}
+.tlg-legal-section a:hover, .tlg-legal-navigation a:hover,
+.tlg-commerce-policy-notice a:hover, .tlg-commerce-policy-secondary a:hover { color: #084e7d; }
+.tlg-legal-navigation { display: flex; flex-wrap: wrap; gap: 25px; margin-top: 27px; }
+.tlg-commerce-policy-notice {
+  display: flex; align-items: flex-start; gap: 12px;
+  border: 1px solid #cddfe9; border-radius: 12px;
+  padding: 17px 19px; background: #f4f9fc; color: #28445a;
+}
+.tlg-commerce-policy-notice > svg { flex: 0 0 auto; margin-top: 3px; color: #287ba9; }
+.tlg-commerce-policy-notice p { margin: 0; font-size: .88rem; line-height: 1.65; }
+.tlg-commerce-policy-secondary { margin: 15px 0 0; color: #476073; font-size: .82rem; line-height: 1.6; }
+@media (max-width: 680px) {
+  .tlg-legal-main { padding: 24px 14px 65px; }
+  .tlg-legal-section { padding: 20px; }
+  .tlg-commerce-policy-notice { padding: 14px; }
+}
