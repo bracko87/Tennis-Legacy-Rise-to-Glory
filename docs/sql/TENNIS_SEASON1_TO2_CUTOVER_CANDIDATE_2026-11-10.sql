@@ -1,11 +1,9 @@
 -- TENNIS LEGACY SEASON 1 -> SEASON 2 CANDIDATE ROUTINES
--- SNAPSHOT FROM LIVE DATABASE, updated 2026-11-10.
--- REVIEW / ISOLATED TEST ONLY. NOT AN AUTHORIZED PRODUCTION MIGRATION.
--- A separate set of migrations created the private run/step/baseline/contract tables.
--- DO NOT remove the fail-closed release gate or execute the cutover on production
--- without a verified backup/restore test, isolated two-season rehearsal and final approval.
--- Clock speed remains positive (2x configured) even when the new season is PAUSED.
--- There is no direct live-season transition in this file.
+-- LIVE SQL DEFINITIONS SNAPSHOT 2026-11-10.
+-- FOR ISOLATED REVIEW/TESTING ONLY. Production migration still NOT approved.
+-- This file includes a FAIL-CLOSED release gate, an early Week-1 human-entry audit,
+-- and clock-speed correction: stored speed remains positive when season is paused.
+-- Restore/backup certification and all 13 migration stages remain unverified.
 
 -- assert_tennis_season1_to2_release_gate_v1
 CREATE OR REPLACE FUNCTION control_center_private.assert_tennis_season1_to2_release_gate_v1(p_run_id uuid)
@@ -24,7 +22,67 @@ begin
   end if;
 end
 $function$;
-REVOKE ALL ON FUNCTION control_center_private.assert_tennis_season1_to2_release_gate_v1(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION control_center_private.assert_tennis_season1_to2_release_gate_v1(uuid) FROM PUBLIC,anon,authenticated;
+
+-- audit_tennis_season2_early_entry_windows_v1
+CREATE OR REPLACE FUNCTION control_center_private.audit_tennis_season2_early_entry_windows_v1()
+ RETURNS jsonb
+ LANGUAGE sql
+ STABLE
+ SET search_path TO 'pg_catalog', 'public', 'control_center_private'
+AS $function$
+with comps as (
+ select wc.id, wc.world, min(sl.season_week) as first_week,
+  exists(select 1 from public.tournament_draw_publications d where d.competition_id=wc.id) as draw_published,
+  exists(select 1 from public.tournament_applications a where a.competition_id=wc.id and a.owner_user_id is not null) as human_applied,
+  public.get_tournament_entry_timeline_v1(wc.id) as timeline
+ from public.tournament_world_competitions wc
+ join public.tournament_editions ed on ed.id=wc.tournament_edition_id
+ join public.tournament_schedule_slots sl on sl.tournament_edition_id=ed.id
+ where ed.season_number=2
+ group by wc.id,wc.world
+),
+windows as (
+ select *, (timeline->>'applications_open_game_second')::bigint as normal_open_sec,
+    (timeline->>'normal_close_game_second')::bigint as normal_close_sec,
+    (timeline->>'late_open_game_second')::bigint as late_open_sec,
+    (timeline->>'late_close_game_second')::bigint as late_close_sec
+ from comps where first_week<=3
+),
+audit as (
+select first_week,
+ count(*) as competitions,
+ count(*) filter(where draw_published) as published_draws,
+ count(*) filter(where human_applied) as competitions_with_human_applications,
+ count(*) filter(where normal_open_sec<=31622400 and 31622400<normal_close_sec) as normal_open_at_s2_start,
+ count(*) filter(where late_open_sec<=31622400 and 31622400<late_close_sec) as late_open_at_s2_start,
+ count(*) filter(where normal_close_sec<=31622399) as normal_closed_before_s2,
+ count(*) filter(where late_close_sec<=31622399) as late_closed_before_s2
+from windows group by first_week
+)
+select jsonb_build_object(
+ 'checked_at',now(),
+ 'target_season',2,
+ 'season2_start_second',31622400,
+ 'weeks',coalesce(jsonb_agg(jsonb_build_object(
+  'week',first_week,
+  'competitions',competitions,
+  'published_draws',published_draws,
+  'with_human_applications',competitions_with_human_applications,
+  'normal_application_windows_open_at_start',normal_open_at_s2_start,
+  'late_application_windows_open_at_start',late_open_at_s2_start,
+  'normal_windows_already_closed',normal_closed_before_s2,
+  'late_windows_already_closed',late_closed_before_s2
+ ) order by first_week),'[]'::jsonb),
+ 'week1_human_entry_ready',
+   coalesce(bool_and(competitions>0 and normal_open_at_s2_start=competitions
+      and published_draws=0) filter(where first_week=1),false),
+ 'release_approved',false,
+ 'required_correction','Week 1 requires revised entry deadlines and audited redraw/reselection after tested backup. Week 2 only has the existing late-entry window; check actual vacancies.'
+)
+from audit
+$function$;
+REVOKE ALL ON FUNCTION control_center_private.audit_tennis_season2_early_entry_windows_v1() FROM PUBLIC,anon,authenticated;
 
 -- build_tennis_season2_migration_preflight_v1
 CREATE OR REPLACE FUNCTION control_center_private.build_tennis_season2_migration_preflight_v1()
@@ -128,7 +186,7 @@ begin
   );
 end
 $function$;
-REVOKE ALL ON FUNCTION control_center_private.build_tennis_season2_migration_preflight_v1() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION control_center_private.build_tennis_season2_migration_preflight_v1() FROM PUBLIC,anon,authenticated;
 
 -- check_tennis_season1_to2_release_gate_v1
 CREATE OR REPLACE FUNCTION control_center_private.check_tennis_season1_to2_release_gate_v1(p_run_id uuid)
@@ -144,6 +202,7 @@ declare
   v_baseline jsonb;
   v_preflight jsonb;
   v_draws jsonb;
+  v_early_windows jsonb;
   v_blockers jsonb:='[]'::jsonb;
   v_steps integer;
   v_incorrect_step_status integer;
@@ -191,6 +250,10 @@ begin
 
   v_preflight:=control_center_private.build_tennis_season2_migration_preflight_v1();
   v_draws:=v_preflight->'early_draws';
+  v_early_windows:=control_center_private.audit_tennis_season2_early_entry_windows_v1();
+  if coalesce((v_early_windows->>'week1_human_entry_ready')::boolean,false) is not true then
+    v_blockers:=v_blockers||jsonb_build_array('Week 1 human players have no usable application window; redraw and entry-window correction must be certified.');
+  end if;
   if coalesce((v_preflight#>>'{season1_closeout,completed}')::boolean,false) is not true then
     v_blockers:=v_blockers||jsonb_build_array('Season 1 closeout is not certified.');
   end if;
@@ -255,7 +318,7 @@ begin
   );
 end
 $function$;
-REVOKE ALL ON FUNCTION control_center_private.check_tennis_season1_to2_release_gate_v1(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION control_center_private.check_tennis_season1_to2_release_gate_v1(uuid) FROM PUBLIC,anon,authenticated;
 
 -- execute_tennis_season1_to2_atomic_v1
 CREATE OR REPLACE FUNCTION control_center_private.execute_tennis_season1_to2_atomic_v1(p_run_id uuid)
@@ -433,7 +496,7 @@ begin
  return v_output;
 end
 $function$;
-REVOKE ALL ON FUNCTION control_center_private.execute_tennis_season1_to2_atomic_v1(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION control_center_private.execute_tennis_season1_to2_atomic_v1(uuid) FROM PUBLIC,anon,authenticated;
 
 -- verify_tennis_season1_transition_baselines_v1
 CREATE OR REPLACE FUNCTION control_center_private.verify_tennis_season1_transition_baselines_v1(p_run_id uuid)
@@ -536,7 +599,7 @@ begin
   );
 end
 $function$;
-REVOKE ALL ON FUNCTION control_center_private.verify_tennis_season1_transition_baselines_v1(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION control_center_private.verify_tennis_season1_transition_baselines_v1(uuid) FROM PUBLIC,anon,authenticated;
 
 -- verify_tennis_season2_calendar_v1
 CREATE OR REPLACE FUNCTION control_center_private.verify_tennis_season2_calendar_v1()
@@ -622,7 +685,7 @@ select jsonb_build_object(
  'note','Calendar parity against Season 1; does not certify live migration, recovery or calendar availability for a signed-in player'
 ) from readiness
 $function$;
-REVOKE ALL ON FUNCTION control_center_private.verify_tennis_season2_calendar_v1() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION control_center_private.verify_tennis_season2_calendar_v1() FROM PUBLIC,anon,authenticated;
 
 -- verify_tennis_season2_early_preparations_v1
 CREATE OR REPLACE FUNCTION control_center_private.verify_tennis_season2_early_preparations_v1()
@@ -716,4 +779,4 @@ select jsonb_build_object(
  'note','Structural read-only review only. Not a full tournament eligibility or migration approval.'
 ) from outcome
 $function$;
-REVOKE ALL ON FUNCTION control_center_private.verify_tennis_season2_early_preparations_v1() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION control_center_private.verify_tennis_season2_early_preparations_v1() FROM PUBLIC,anon,authenticated;
