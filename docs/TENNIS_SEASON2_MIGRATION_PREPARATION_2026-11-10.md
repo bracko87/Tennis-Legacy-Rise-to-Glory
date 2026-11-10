@@ -210,3 +210,62 @@ The connected Supabase organization reports `pro` tier. Supabase's documented po
 5. Then authorize the already rehearsed atomic cutover to **Season 2 Jan 1, 00:00, paused**, inspect results and resume 2× only after Week 1 player eligibility is satisfied.
 
 **The live game was NOT moved to Season 2 in these tests.**
+
+## November 11 update — atomic Week 1 recovery, combined migration and first-day processing
+
+**Verified using the existing connected Supabase project and GitHub main. No paid third-party browser.**
+
+### Week 1 actual recovery procedure implemented
+- Private, execution-restricted `control_center_private.reconcile_tennis_season2_week1_draws_v1(run_id)` creates ordinary tournament applications from **explicit** human Week 1 preferences.
+- It atomically resets stale AI selection, relevant entry/match/draw/qualifier rows, reruns the game's true allocator for all 22 Week 1 competitions and republishes the 16 previously-published draws.
+- The six underfilled events remain undrawn if they do not meet existing field requirements.
+- New private receipts record original and regenerated source fingerprints. `verify_tennis_season2_week1_reconciled_draws_v1()` checks all 22 receipts, regenerated draw statuses, source provenance and human-choice reconciliation.
+- The recovery routine checks the live year-end safety hold, all 22 approved recovery plans, unchanged original source archives and verified backup **and independent restoration** before doing any real writes. All client roles are denied EXECUTE. Repeat execution is idempotent; partial or failed SQL transactions roll back.
+- At present it is deliberately inactive because real restoration is not certified, plans are not approved and **zero human preferences have been submitted**.
+
+### Combined end-to-end cutover inside forced rollback
+A single transaction used temporary test approval flags and ATP/WTA human application fixtures:
+1. Reconciled all 22 competition fields.
+2. Republished 16 draws and regenerated 676 match rows.
+3. Evaluated two explicit test human applications through real allocation rules.
+4. Verified 22 post-reconciliation fingerprints and human application status.
+5. Called the unmodified, real season-switch function. It completed 13 journal steps and set Season 2 to January 1 at 00:00, paused, stored speed 2x.
+6. Forced rollback and confirmed original competition archives, season clock and user data/approval flags returned to their starting state.
+
+Audit: `control_center_private.tennis_season_atomic_rehearsal_evidence_v1`,
+scenario `week1_recovery_and_cutover_combined_rollback`, `passed` and `rollback_confirmed=true`.
+This is **not** a production switch, a real player registration, an independent restore or a full two-season dry run.
+
+### Season 2 Day 1 finance/career/staff rehearsal
+Another transactional trial moved to Season 2 Jan 1, ran career-day progression, human finance, weekly staff salary processing and ranking processing, then repeated the processors before full rollback.
+
+Verified:
+- 5/5 human careers advanced to absolute day 366 with **zero errors**.
+- 5/5 human finance accounts processed absolute day 366.
+- A second run advanced zero additional career days, wrote zero duplicate financial transactions or staff-salary events, and coins were unchanged.
+- Season 2 January 1 did not publish a weekly ranking cycle early.
+- Entire trial was rolled back and original six player/finance/contract/ranking baselines stayed unchanged.
+
+Audit: `control_center_private.tennis_season2_day1_finance_career_rehearsal_v1`, scenario `day1_career_finance_staff_idempotency`, passed/rolled back.
+
+The migration plan flags `finance_verified=true` and `contracts_verified=true` now reflect those verified live-code, rollback-only boundary rehearsals, **not** a production finance posting or a full independent backup.
+
+### Production state and release blockers
+
+The release gate now uses evidence:
+- Positive atomic switch rehearsal checked from the private journal.
+- Original archive consistency before recovery; **post-recovery receipts** after legitimate draw regeneration, rather than permanently rejecting moved records.
+- Finance/contract certification recorded based on the specific successful replay tests.
+
+At the last live checks, `check_tennis_season1_to2_release_gate_v1` still returned **`approved_for_cutover=false` with 5 remaining blockers**:
+1. Final execution approval/enabling has not happened.
+2. A specific independent, restorable full backup and restore test has not been verified.
+3. Full isolated two-season (Season 1→2 and Season 2→3) migration rehearsal is missing.
+4. Final operator approval has not been recorded.
+5. Real human Week 1 registration and certified live draw reconciliation have not been completed (UI still not verified deployed).
+
+The live Season 1 boundary is unchanged: December 31 23:59:59 at effective speed zero, configured 2x. No real Season 2 draw or finance data was changed; no migration step has been executed.
+
+SQL review snapshot: `docs/sql/TENNIS_SEASON2_WEEK1_ATOMIC_RESELECTION_2026-11-11.sql`.
+
+**Do not set backup, restore, two-season or operator approval flags merely to satisfy the release gate. They must be supported by genuine evidence.**
