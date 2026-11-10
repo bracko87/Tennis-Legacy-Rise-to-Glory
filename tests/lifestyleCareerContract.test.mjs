@@ -146,9 +146,10 @@ test('nine private airplane marketplace previews match their SQL travel specific
  assert.match(jetPreview,/If out of range, player and staff fly commercially/)
 })
 
-test('tournament page binds translation function for disabled doubles navigation',()=>{
- assert.match(tournamentV3,/import \{ useTranslation \} from 'react-i18next'/)
- assert.match(tournamentV3,/export default function TournamentPage\(\) \{\s*const \{ t \} = useTranslation\(\)/)
+test('tournament page hides doubles navigation when the competition has no doubles event',()=>{
+ assert.match(tournamentV3,/\{doublesCore\?\.enabled && \(\s*<Link to=\{\x60\/game\/tournaments\/\$\{competitionId\}\/doubles\x60\}>Doubles<\/Link>/)
+ assert.match(tournamentV3,/\{doublesCore\?\.enabled && \(\s*<section className="tlg-detail-panel tlg-doubles-singles-callout"/)
+ assert.doesNotMatch(tournamentV3,/<button[^>]+disabled[^>]*>Doubles<\/button>/)
 })
 test('large private life dialogs scroll images and details without hiding controls',()=>{
  assert.match(confirmDialog,/tlg-game-confirm-scroll-area/)
