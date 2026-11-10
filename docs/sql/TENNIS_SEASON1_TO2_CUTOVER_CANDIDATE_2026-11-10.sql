@@ -1,10 +1,11 @@
 -- TENNIS LEGACY SEASON 1 -> SEASON 2 CANDIDATE ROUTINES
--- SNAPSHOT FROM LIVE DATABASE, 2026-11-10.
--- REVIEW/ISOLATED TEST ONLY. NOT AN AUTHORIZED PRODUCTION MIGRATION.
+-- SNAPSHOT FROM LIVE DATABASE, updated 2026-11-10.
+-- REVIEW / ISOLATED TEST ONLY. NOT AN AUTHORIZED PRODUCTION MIGRATION.
 -- A separate set of migrations created the private run/step/baseline/contract tables.
 -- DO NOT remove the fail-closed release gate or execute the cutover on production
--- without a verified backup/restore test, isolated two-season rehearsal, and final approval.
--- This candidate is deliberately incapable of switching the live season today.
+-- without a verified backup/restore test, isolated two-season rehearsal and final approval.
+-- Clock speed remains positive (2x configured) even when the new season is PAUSED.
+-- There is no direct live-season transition in this file.
 
 -- assert_tennis_season1_to2_release_gate_v1
 CREATE OR REPLACE FUNCTION control_center_private.assert_tennis_season1_to2_release_gate_v1(p_run_id uuid)
@@ -374,7 +375,7 @@ begin
  -- Arm the next season's 23:59:59 guard BEFORE releasing the transaction.
  update public.game_clock set
     season=2,month=1,day=1,minute_of_day=0,
-    real_anchor_at=clock_timestamp(),speed_multiplier=0.000,
+    real_anchor_at=clock_timestamp(),speed_multiplier=v_clock.speed_multiplier,
     is_paused=true,updated_at=clock_timestamp()
  where id=1 and season=1;
  if not found then
@@ -391,10 +392,10 @@ begin
  end if;
 
  select * into v_after from public.get_game_clock_v1();
- if v_after.game_total_seconds<>31622400 or v_after.speed_multiplier<>0 then
+ if v_after.game_total_seconds<>31622400 then
     raise exception 'Post-cutover game clock did not hold Season 2 midnight';
  end if;
- if not exists(select 1 from public.game_clock where id=1 and season=2 and is_paused and speed_multiplier=0) then
+ if not exists(select 1 from public.game_clock where id=1 and season=2 and is_paused and speed_multiplier>0) then
     raise exception 'New game clock is not paused';
  end if;
  if (select count(*) from public.tournament_editions where season_number=2)<>597
@@ -424,6 +425,7 @@ begin
    'status','completed_paused','source_season',1,'target_season',2,
    'season_2_time','January 1 00:00',
    'game_clock_running',false,
+   'stored_speed_multiplier',v_clock.speed_multiplier,
    'tech_sponsor_players_synced',v_tech_synced,
    'steps_completed',13,
    'requires_separate_approved_resume',true
