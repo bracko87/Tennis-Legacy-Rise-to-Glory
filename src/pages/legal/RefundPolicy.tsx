@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import '../../styles/legal-policy.css'
 
 import MarketingFooter from '../../components/layout/MarketingFooter'
 import MarketingHeader from '../../components/layout/MarketingHeader'
