@@ -23,6 +23,7 @@ import NextTournamentExtras from '../../components/dashboard/NextTournamentExtra
 import RealWorldTennisNews from '../../components/dashboard/RealWorldTennisNews'
 import GameLayout from '../../components/layout/GameLayout'
 import CareerLocationPreview from '../../components/private-life/CareerLocationPreview'
+import SeasonTransitionNotice from '../../components/season/SeasonTransitionNotice'
 import usePlayerAvatarUrl from '../../hooks/usePlayerAvatarUrl'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { localizeNotification } from '../../i18n/notificationLocalization'
@@ -391,6 +392,7 @@ export default function OverviewPage() {
       </section>
 
       <CareerLocationPreview />
+      <SeasonTransitionNotice variant="dashboard" />
       {error && <div className="tlg-overview-alert error">{error}</div>}
       {loading && !dashboard ? <div className="tlg-overview-loading">{t('overviewPage.loading')}</div> : null}
 

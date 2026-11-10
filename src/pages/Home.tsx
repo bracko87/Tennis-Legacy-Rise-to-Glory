@@ -32,6 +32,7 @@ import {
 } from 'lucide-react'
 
 import MarketingHeader from '../components/layout/MarketingHeader'
+import SeasonTransitionNotice from '../components/season/SeasonTransitionNotice'
 import MarketingFooter from '../components/layout/MarketingFooter'
 import StatCard from '../components/common/StatCard'
 import HomepagePlayerReviews from '../components/marketing/HomepagePlayerReviews'
@@ -133,6 +134,7 @@ export default function HomePage() {
       <MarketingHeader />
 
       <main className="tlg-home-main">
+        <SeasonTransitionNotice variant="public" />
         <section className="tlg-hero">
           <div className="tlg-hero-background">
             <div className="tlg-hero-grid" />
