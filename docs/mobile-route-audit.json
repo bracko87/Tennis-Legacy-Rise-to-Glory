@@ -28,6 +28,11 @@
       "status": "pending_device_validation"
     },
     {
+      "path": "/legal/refunds",
+      "audience": "public/onboarding",
+      "status": "pending_device_validation"
+    },
+    {
       "path": "/r/:code",
       "audience": "public/onboarding",
       "status": "pending_device_validation"
