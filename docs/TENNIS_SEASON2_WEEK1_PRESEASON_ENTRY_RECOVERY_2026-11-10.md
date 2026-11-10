@@ -63,3 +63,32 @@ This proves basic record reconciliation and idempotent data operations, **not** 
 The release gate `control_center_private.check_tennis_season1_to2_release_gate_v1` still prevents the cutover. Week 1 human eligibility must pass on a restored non-production database before anyone clears or republishes the live draws. The full backup/restore test, two-season dry runs, migration execution, finance/contract approval and operator approval remain missing.
 
 The next calendar must be prepared **before** its applications open—at least 21 game days before the first tournament week—so this incident does not recur in Season 3.
+
+## Implementation update — authenticated pre-season preference feature
+
+**Implemented, but NOT deployed to the production website.** Netlify builds remain deliberately stopped. No production tournament draw has been changed.
+
+### Backend already installed in the Tennis Legacy Supabase project
+- Private, RLS-enabled `control_center_private.tennis_season2_week1_preentries_v1` stores at most one preference per human player for Season 2 Week 1. The signed-in owner can change or withdraw that preference.
+- `control_center_private.tennis_season2_week1_preentry_open_v1()` only permits registration while Season 1 is held at the protected year-end second, the guarded migration plan is unapproved, and all 22 recovery plans are marked ready for review.
+- `public.get_tennis_season2_week1_preentry_v1()` returns only the signed-in human player's tournament choices (ATP or WTA). It checks existing tournament conflicts and projected health.
+- `public.set_tennis_season2_week1_preentry_v1(uuid,boolean)` saves, switches or withdraws the preference under a player-level transaction lock. It verifies the signed-in account, world, recovery plan, competition status and availability. It does **not** write to `public.tournament_applications`, `tournament_entries`, draw or match tables.
+- `control_center_private.audit_tennis_season2_week1_preentries_v1()` shows how many preferences remain unreconciled with real entries.
+- Both public RPCs are executable only by authenticated users. The private preference table cannot be directly selected by authenticated or anonymous roles.
+
+### Player UI on GitHub main
+- `src/components/season/Season2Week1PreRegistration.tsx`: choice, qualification opt-in, change, withdraw and clear disclaimer that preference is NOT accepted entry.
+- `src/styles/season2-week1-preregistration.css`: responsive layout.
+- `src/pages/dashboard/Overview.tsx` mounts the component alongside the year-end notice.
+- No Netlify website deployment was requested or performed. The GitHub release-validation workflow passed on the dashboard commit.
+
+### Tests performed
+- Transaction-rolled-back authenticated ATP: list, save, read back, idempotent save, switch choice, withdraw.
+- Transaction-rolled-back authenticated WTA: list of 11 available-world competitions, save and read back.
+- Cross-world selection by an ATP player was rejected.
+- Anonymous RPC execute rights are revoked; authenticated roles have no direct private table access.
+- Database test transactions were rolled back. No user was auto-enrolled and no real preference was created by testing.
+- Future end-to-end real-browser test is still needed after authorized website deployment.
+
+### Explicit limitation
+Existing early-season draws have not been rebuilt; the protected migration gate still denies execution. A saved preference alone does not enter any tournament. In an independently restored non-production database, the recovery routine must turn choices into bona fide applications, rerun capacity/ranking/eligibility allocation and publish corrected draws. Only after all audit, restore and migration tests pass can the live Season 2 transition be approved.
