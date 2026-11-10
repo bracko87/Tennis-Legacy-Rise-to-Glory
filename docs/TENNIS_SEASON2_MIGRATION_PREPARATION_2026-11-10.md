@@ -141,3 +141,36 @@ Read-only tests passed for the last second of Season 1, the first second of Seas
 - Verify full player and finance rollover, eligibility timing and fair entry paths for human players at Week 1.
 - Complete a Season 1→2 and Season 2→3 dry run and get explicit approval before removing the fail-closed gate.
 - Never bypass the guard or manually change the production season number as a shortcut.
+
+## Follow-up: 2026-11-10 — direct Supabase remediation (no paid browser tool)
+
+### Confirmed and fixed cutover candidate defect
+- The real `public.game_clock` constraint requires `speed_multiplier > 0`. The previous migration candidate incorrectly tried to write 0 when entering the new season. This would have failed in production.
+- Corrected `execute_tennis_season1_to2_atomic_v1` to retain the configured positive speed (currently 2x), set `is_paused=true`, and verify Season 2's absolute start second without incorrectly asserting that the clock's reported configured speed is zero.
+- Temporary shadow copies of the live clock and season boundary guard passed Season 1→2 and Season 2→3 rollover checks. A deliberate zero-speed write was rejected by the copied production constraint. **No live game clock changed.**
+
+### Real-data contract/finance shadow trial
+- Transaction-local copies of 3 active technical sponsorships, 5 finance accounts, and 6 coin wallets were tested.
+- Season-2 first-day expiry logic completed the two due contracts and preserved the third crossing contract unchanged.
+- Re-running the expiry updated zero contracts (idempotency); an injected failure in a shadow subtransaction was rolled back; finance and coin totals stayed unchanged.
+- This is a small-table logical trial, **not** a restorable full project backup or full production rollover rehearsal.
+
+### Serious human entry blocker identified
+The real `get_tournament_entry_timeline_v1` makes the Season 2 first-week tournament entry windows open and close **in late Season 1**. But the Season 2 calendar was created after that period.
+
+Read-only audit `control_center_private.audit_tennis_season2_early_entry_windows_v1()` confirms:
+- Week 1: 22 ATP/WTA competitions, 16 already-published draws, zero human applications; **all 22 normal and late application windows were already closed before Season 2 starts**.
+- Week 2: 18 competitions; all 18 normal windows already closed, though late-entry time windows are open at the Season 2 start (actual vacancies/eligibility are not certified).
+- Week 3: 16 competitions; normal application windows open at the start of Season 2.
+- The lifecycle code refuses new applications for published draws.
+
+This is a real fairness/release blocker, not merely a missing test. No Week-1 draw or player entry has been deleted or reset.
+
+**Needed remediation, after verified restore:** agree/test a one-time Week-1 grace/application window after Season 2 starts; preserve existing AI entries and scheduling provenance as auditable evidence; rebuild or reschedule premature published draws with human entry opportunity; check travel/preparation deadlines; verify Week 2 selection and actual late-entry availability; retest the authenticated player experience. Also change preparation for later seasons so next-season calendars are present before application windows open.
+
+The explicit Week-1 human-entry blocker was added to the fail-closed `check_tennis_season1_to2_release_gate_v1`; current approval remains false and eight release issues are reported.
+
+### Remaining live status
+At the last live check, the Season 1 boundary safety guard was still enabled, effective clock 0x at 31 December 23:59:59, 597 Season 2 editions prepared, and **zero executed migration steps**. Six stored data baselines were unchanged.
+
+A full independently restorable backup and a complete cross-season test **remain unavailable/unverified through the current direct database connection**. The work above used the existing Supabase and GitHub plugins only.
