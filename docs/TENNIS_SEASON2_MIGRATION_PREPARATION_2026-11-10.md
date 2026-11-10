@@ -95,3 +95,49 @@ Do not confuse *calendar populated* with *migration approved*.
 
 ### Release status
 At the latest check the effective game speed remains zero and the Season 1 boundary guard is enabled. The migration is not executable and Season 2 has not started. Still mandatory before the real switch: full restorable database backup; complete and tested rollover runner including rollback/replay journal; financial, ranking, development, and sponsorship end-to-end checks; authenticated UI checks; isolated Season 1→2 and 2→3 dry runs; explicit operator approval.
+
+## Follow-up: protected release gate and atomic cutover candidate
+
+The game was re-checked with the Season 1 safety stop armed at absolute second 31,622,399 (December 31 at 23:59:59). Season 2 has **not** begun.
+
+### Live migration baseline drift detection
+Added `control_center_private.verify_tennis_season1_transition_baselines_v1(run_id)`.
+- Checks all six stored baseline values against the current finance-account, wallet, ranking, player-count, calendar and technical-contract data.
+- Compares the original full signed contract records against their private registry copies.
+- Verified against the planned run: **6/6 metrics unchanged, 0 missing, 0 drifted, 0 contract mismatches.**
+- These are small selective audit records, not a full backup.
+
+### Cutover release gate
+Added `control_center_private.check_tennis_season1_to2_release_gate_v1(run_id)` and an asserting helper. Currently the gate returns `approved_for_cutover=false` and lists missing independent release checks (backup/restore, isolated two-season dry run, contracts/finance, tournament eligibility, operator approval, and actual cutover certification).
+- A deliberate negative test verified that calling the assertion refuses an unsafe transition without modifying the game.
+- The release gate intentionally retains a code-level hard blocker until the atomic runner's positive path has been tested and approved in an isolated environment.
+- Anonymous and authenticated clients have no execute rights for the private cutover function.
+
+### Atomic cutover code candidate (not certified and not run)
+Created `control_center_private.execute_tennis_season1_to2_atomic_v1(run_id)` as a strictly guarded **candidate** using one PostgreSQL transaction and an advisory lock:
+1. Assert backup, restore, dry-run, contracts, finance, tournament eligibility and operator approvals; refuse on failure.
+2. Lock and verify the live Season 1 clock at its final second; check all six baselines unchanged.
+3. Preserve player identities, skills, rankings and wallet/finance balances rather than resetting them.
+4. Use existing technical sponsorship sync at absolute day 366; ensure two due contracts complete and the remaining contract preserves its original terms.
+5. Change the clock to **Season 2, January 1 00:00, paused at 0×**, and arm the Season 2 end-of-year safety stop for second 63,244,799.
+6. Verify Season 2 remains paused and the calendar is still present; journal the 13 steps as completed only if the entire transaction succeeds.
+7. The game will require a separately controlled resume at the agreed speed after post-checks.
+
+**Important:** The candidate's positive path has NOT been exercised; the isolated restore and two-season dry run are still missing. It is not production-approved. Invoking it in production was verified to return `Season 1->2 migration is blocked`; the live clock remained in Season 1 with all 13 steps unexecuted and the three technical contracts unchanged.
+
+### Additional pause-safety correction
+The five tournament entry/draw jobs (IDs 7, 44, 52, 53, 55) now require both:
+- canonical clock speed greater than zero (the safety guard must not be holding time); and
+- `public.game_clock.is_paused = false`.
+
+This prevents new draws being published during an explicit manual pause as well as the season-end safety hold.
+
+### Calendar arithmetic checks
+Read-only tests passed for the last second of Season 1, the first second of Season 2, the last second of Season 2, and the first second of Season 3. This is **boundary arithmetic testing**, not two-season migration certification.
+
+### Next hard blockers
+- Obtain and verify a restorable full production backup without restoring over production; test restoration in a safe isolated environment.
+- Exercise the candidate positive path and verify data/notification/transaction isolation and failure/retry behavior using that environment.
+- Verify full player and finance rollover, eligibility timing and fair entry paths for human players at Week 1.
+- Complete a Season 1→2 and Season 2→3 dry run and get explicit approval before removing the fail-closed gate.
+- Never bypass the guard or manually change the production season number as a shortcut.
