@@ -11,6 +11,8 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
+import '../../styles/legal-policy.css'
 
 import GameLayout from '../../components/layout/GameLayout'
 import { useAuth } from '../../auth/AuthContext'
@@ -111,7 +113,7 @@ export default function ProPackagesPage() {
   const financialLabels = financialIntelligenceLabels(i18n.resolvedLanguage ?? i18n.language)
   const equipmentLabels = equipmentIntelligenceLabels(i18n.resolvedLanguage ?? i18n.language)
   const careerLabels = careerIntelligenceLabels(i18n.resolvedLanguage ?? i18n.language)
-  const { formatCurrency, formatDate } = useLocalization()
+  const { formatCurrency, formatDate, locale } = useLocalization()
   const { user } = useAuth()
   const commerce = useCommerce()
   const [billing, setBilling] = useState<BillingTransaction[]>([])
@@ -288,6 +290,16 @@ export default function ProPackagesPage() {
           </div>
         )}
 
+        <aside className="tlg-commerce-policy-notice" aria-label={locale === 'de' ? 'Kaufbedingungen' : 'Purchase terms'}>
+          <Info size={19} aria-hidden="true" />
+          <p>
+            {locale === 'de'
+              ? 'Premium wird nach bestätigter Zahlung für den gewählten Zeitraum (1, 3 oder 12 Monate) freigeschaltet. Gekaufte Coins bleiben bis zur Verwendung im Spielkonto. Für korrekt erbrachte Käufe gibt es grundsätzlich keine freiwillige Rückerstattung; gesetzliche Verbraucherrechte bleiben bestehen.'
+              : 'Premium starts after confirmed payment for the chosen period (1, 3 or 12 months). Purchased Coins remain in your wallet until spent. Correctly delivered purchases are generally not eligible for voluntary refunds; statutory consumer rights remain unaffected.'}{' '}
+            <Link to="/legal/refunds">{locale === 'de' ? 'Erstattungs- und Kündigungsrichtlinie' : 'Refund & Cancellation Policy'}</Link>
+          </p>
+        </aside>
+
         {commerce.isTrial && (
           <section className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-5 text-slate-900" aria-label={t('premiumTrial.planName')}>
             <h2 className="mb-2 flex items-center gap-2 text-lg font-bold"><Crown size={20} /> {t('premiumTrial.activeLabel')}</h2>
@@ -423,6 +435,11 @@ export default function ProPackagesPage() {
               </article>
             ))}
           </div>
+          <p className="tlg-commerce-policy-secondary">
+            {locale === 'de' ? 'Bitte vor dem Kauf die ' : 'Please review the '}
+            <Link to="/legal/refunds">{locale === 'de' ? 'Erstattungs- und Kündigungsrichtlinie' : 'Refund & Cancellation Policy'}</Link>
+            {locale === 'de' ? ' lesen. Gesetzliche Rechte bleiben unberührt.' : ' before purchase. Mandatory consumer rights are not affected.'}
+          </p>
         </section>
 
         <section className="tlg-commerce-section tlg-cpx-earn-section" aria-label={t('commercePage.earnAria')}>
