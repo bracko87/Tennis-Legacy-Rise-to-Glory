@@ -343,13 +343,11 @@ export default function OverviewPage() {
     return () => { mounted = false }
   }, [])
 
-  const readiness = dashboard?.training?.skills ?? {}
   const equipment = dashboard?.equipment?.loadout
   const latestFinance = dashboard?.finance?.recent_transactions?.slice(0, 3) ?? []
   const todayTournaments = dashboard?.today_tournaments?.slice(0, 6) ?? []
   const gameNews = dashboard?.game_news?.slice(0, 5) ?? []
   const money = (value: number | null | undefined) => formatCurrency(Math.round(Number(value) || 0), 'USD')
-  const number = (value: number | null | undefined) => formatNumber(Math.round(Number(value) || 0))
 
   const equipmentAverage = useMemo(() => {
     const values = [equipment?.racket?.condition, equipment?.string?.condition, equipment?.shoes?.condition].filter((value): value is number => typeof value === 'number')
@@ -398,14 +396,6 @@ export default function OverviewPage() {
 
       {dashboard && (
         <div className="tlg-overview-dashboard">
-          <section className="tlg-overview-kpis">
-            <OverviewKpi label={t('overviewPage.worldRanking')} value={`#${dashboard.player.current_rank}`} detail={t('overviewPage.rankingPoints', { points: number(dashboard.player.ranking_points) })} />
-            <OverviewKpi label={t('overviewPage.seasonRecord')} value={`${dashboard.season_stats.wins}-${dashboard.season_stats.losses}`} detail={t('overviewPage.winRate', { rate: dashboard.season_stats.win_pct.toLocaleString(localeTag, { maximumFractionDigits: 1 }) })} />
-            <OverviewKpi label={t('overviewPage.careerBalance')} value={money(dashboard.finance.balance)} detail={t('overviewPage.seasonNet', { amount: money(dashboard.finance.season_net) })} />
-            <OverviewKpi label={t('overviewPage.fatigue')} value={`${number(readiness.fatigue)}/100`} detail={t('overviewPage.sharpnessDetail', { value: number(readiness.sharpness) })} />
-            <OverviewKpi label={t('overviewPage.equipment')} value={`${equipmentAverage}%`} detail={t('overviewPage.equippedCondition')} />
-            <OverviewKpi label={t('overviewPage.team')} value={t('overviewPage.staffCount', { count: dashboard.staff.active_count })} detail={t('overviewPage.weeklyPayroll', { amount: money(dashboard.staff.weekly_payroll) })} />
-          </section>
 
           <section className={`tlg-overview-panel tlg-overview-ranking-protection${rankingProtectionOpen ? ' is-open' : ''}`}>
             <div className="tlg-overview-ranking-protection-head">
@@ -503,10 +493,6 @@ export default function OverviewPage() {
       )}
     </GameLayout>
   )
-}
-
-function OverviewKpi({ label, value, detail }: { label: string; value: string; detail: string }) {
-  return <div className="tlg-overview-kpi"><span>{label}</span><strong>{value}</strong><small>{detail}</small></div>
 }
 
 function NextTournamentCard({ tournament, match }: { tournament: NextTournament; match: NextMatch }) {
