@@ -62,10 +62,7 @@ export default function Season2Week1PreRegistration() {
     if (!player?.id) return
     const response = await supabase.rpc('get_tennis_season2_week1_preentry_v1')
     if (response.error) {
-      // The previous backend may not have this opt-in feature installed yet.
-      // Do not block the rest of the dashboard.
-      if (!state) setState(null)
-      else setError(response.error.message)
+      setError(response.error.message)
       return
     }
     const next = response.data as Week1PreRegistrationState | null
