@@ -1,0 +1,115 @@
+.tlg-season2-week1-prereg {
+  margin: 18px 0;
+  padding: clamp(16px, 2.4vw, 24px);
+}
+.tlg-season2-week1-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.tlg-season2-week1-header span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-muted, #768397);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+}
+.tlg-season2-week1-header h3 {
+  font-size: clamp(17px, 2vw, 22px);
+  font-weight: 800;
+  margin: 0 0 8px;
+}
+.tlg-season2-week1-header p {
+  color: var(--text-muted, #768397);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 780px;
+}
+.tlg-season2-week1-world {
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 999px;
+  flex-shrink: 0;
+  font-size: 12px;
+  padding: 5px 10px;
+}
+.tlg-season2-week1-saved {
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 10px;
+  margin: 0 0 15px;
+  padding: 12px;
+  overflow-wrap: anywhere;
+}
+.tlg-season2-week1-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.tlg-season2-week1-form > label:first-child {
+  font-weight: 700;
+}
+.tlg-season2-week1-form select {
+  background: var(--surface, #fff);
+  border: 1px solid var(--border-color, #b8c2cc);
+  border-radius: 9px;
+  color: var(--text-primary, #152238);
+  font: inherit;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  width: min(100%, 550px);
+}
+.tlg-season2-week1-qualification {
+  align-items: center;
+  display: inline-flex;
+  gap: 9px;
+  line-height: 1.4;
+}
+.tlg-season2-week1-qualification input {
+  height: 17px;
+  width: 17px;
+}
+.tlg-season2-week1-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.tlg-season2-week1-actions button {
+  border: 1px solid var(--border-color, #b8c2cc);
+  border-radius: 9px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  min-height: 42px;
+  padding: 10px 17px;
+}
+.tlg-season2-week1-actions button.primary {
+  background: #1f6748;
+  border-color: #1f6748;
+  color: #fff;
+}
+.tlg-season2-week1-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.tlg-season2-week1-disclaimer {
+  color: var(--text-muted, #657287);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 15px 0 0;
+}
+.tlg-season2-week1-message,
+.tlg-season2-week1-error {
+  font-size: 13px;
+  font-weight: 650;
+  margin: 12px 0 0;
+}
+.tlg-season2-week1-error { color: #b42318; }
+@media (max-width: 600px) {
+  .tlg-season2-week1-header { flex-direction: column; }
+  .tlg-season2-week1-actions,
+  .tlg-season2-week1-actions button { width: 100%; }
+}
