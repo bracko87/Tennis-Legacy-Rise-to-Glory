@@ -164,12 +164,13 @@ export default function MarketingFooter({
               </button>
             </FooterColumn>
 
-            <FooterColumn title="Support">
+            <FooterColumn title="Support & Legal">
               <span>Help Center</span>
               <span>Community Guidelines</span>
               <span>Fair Play</span>
               <span>Privacy</span>
               <span>Terms</span>
+              <Link to="/legal/refunds">Refund & Cancellation Policy</Link>
             </FooterColumn>
           </div>
         </div>
