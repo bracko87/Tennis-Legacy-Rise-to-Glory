@@ -23,7 +23,11 @@ type SponsorReadiness = {
   compliance_verified: boolean
 }
 
+type MigrationStep = { step_key: string; status: string }
+
 type Readiness = {
+  steps?: MigrationStep[]
+  run?: { status: string; execution_enabled: boolean } | null
   phase: string
   execution_enabled: boolean
   as_of: string
@@ -76,8 +80,7 @@ export default function AdminSeasonMigrationPanel() {
 
   const refresh = useCallback(async (silent = false) => {
     if (!silent) setLoading(true)
-    // The readiness RPC is created by a pending staging migration; until
-    // deployed, show a *real* clock and explicit unavailable diagnostics.
+    // The administrator-only RPC returns the live, guarded Season 2 migration state.
     const { data, error: rpcError } = await supabase.rpc('get_admin_season_transition_readiness_v1')
     if (!rpcError && data && typeof data === 'object') {
       setStatus(data as Readiness)
@@ -140,7 +143,9 @@ export default function AdminSeasonMigrationPanel() {
     <div className="tlg-admin-season-warning" role="status">
       <AlertTriangle size={20} aria-hidden="true" />
       <div><strong>Migration NOT READY — season boundary guarded; execution unavailable</strong>
-        <p>Execution controls are disabled. The shared game clock is now guarded at the end of Season 1, so gameplay time cannot advance into Season 2 before an approved handover. The migration runner, recovery journal, Season 2 calendar and dry-run certification are still missing.</p>
+        <p>{status?.calendar?.coverage_verified
+          ? 'Season 2 calendar coverage is verified, and the protected migration journal exists. The transition is still blocked until Week 1 human entry, a restorable backup, and full migration tests are verified.'
+          : 'Game time remains protected until the next-season calendar, recovery safeguards, and end-to-end migration tests are verified.'}</p>
       </div>
     </div>
 
@@ -151,7 +156,9 @@ export default function AdminSeasonMigrationPanel() {
       <article><Clock3 size={18} aria-hidden="true" /><span>Season in progress</span><strong>{clock?.season ?? '—'}</strong><small>Game day {clock?.game_day ?? '—'} of 366</small></article>
       <article><CalendarDays size={18} aria-hidden="true" /><span>Next transition</span><strong>{clock?.target_season ?? '—'}</strong><small>{daysLeft === null ? 'Countdown unavailable' : '~' + daysLeft + ' real days remaining'}</small></article>
       <article><ShieldCheck size={18} aria-hidden="true" /><span>Clock multiplier</span><strong>{clock?.speed_multiplier ?? '—'}×</strong><small>Shared game world</small></article>
-      <article><CalendarDays size={18} aria-hidden="true" /><span>Next-season coverage</span><strong>{status ? status.calendar.next_season_editions + ' editions' : 'Not checked'}</strong><small>{status ? status.calendar.next_season_slots + ' linked slots · unverified' : 'Readiness RPC pending release'}</small></article>
+      <article><CalendarDays size={18} aria-hidden="true" /><span>Next-season coverage</span><strong>{status ? status.calendar.next_season_editions + ' editions' : 'Not checked'}</strong><small>{status
+          ? status.calendar.next_season_slots + (status.calendar.coverage_verified ? ' linked slots · calendar prepared' : ' linked slots · coverage unverified')
+          : 'Readiness RPC unavailable'}</small></article>
     </div>
 
     <section className="tlg-admin-season-sponsor-policy" aria-labelledby="tlg-admin-season-sponsor-title">
@@ -201,16 +208,16 @@ export default function AdminSeasonMigrationPanel() {
 
     <div className="tlg-admin-season-checkpoints">
       <header><div><span>TRANSITION RUNBOOK</span><h4>13 ordered migration checkpoints</h4></div>
-        <small>Plan only · No execution or historical run data yet</small></header>
+        <small>{status?.run ? `Run: ${status.run.status} · execution ${status.run.execution_enabled ? 'enabled' : 'disabled'}` : 'No verified migration run'}</small></header>
       <div className="tlg-admin-season-checkpoint-grid">
         {CHECKPOINTS.map((step) => <article key={step.id}>
-          <div><strong>{step.title}</strong><span className="tlg-admin-season-pending">Not implemented</span></div>
+          <div><strong>{step.title}</strong><span className="tlg-admin-season-pending">{status?.steps?.find((entry) => entry.step_key === step.id)?.status ?? 'Not recorded'}</span></div>
           <p>{step.gate}</p>
         </article>)}
       </div>
     </div>
-    <p className="tlg-admin-season-footnote">All career records, historical match results, finances, rankings, staff contracts, purchased assets and active player profiles are preserved by design. An executable engine and durable step journal are future phases, not part of this read-only panel.{' '}
-      <a href="https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/blob/staging/docs/SEASON_MIGRATION_PLAN.md" target="_blank" rel="noopener noreferrer">View complete migration rules and operator runbook</a>
+    <p className="tlg-admin-season-footnote">The Season 1 closeout and Season 2 calendar are prepared, but no real season-transition step has executed. The protected run journal is installed, and the candidate cutover remains locked until independent backup/recovery and full testing pass.{' '}
+      <a href="https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/blob/main/docs/TENNIS_SEASON2_MIGRATION_PREPARATION_2026-11-10.md" target="_blank" rel="noopener noreferrer">View complete migration rules and operator runbook</a>
     </p>
   </section>
 }
