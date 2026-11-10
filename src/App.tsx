@@ -51,6 +51,7 @@ import TournamentMatchTacticStatus from './components/tournament/TournamentMatch
 import TournamentPreMatchRealData from './components/tournament/TournamentPreMatchRealData'
 import TrainingHealthStatus from './components/training/TrainingHealthStatus'
 import HomePage from './pages/Home'
+import RefundPolicyPage from './pages/legal/RefundPolicy'
 import ReferralLandingPage from './pages/ReferralLanding'
 import PublicReviewSubmissionPage from './pages/PublicReviewSubmission'
 import LoginPage from './pages/auth/Login'
@@ -201,6 +202,7 @@ export default function App() {
           <AnalyticsTracker />
           <Routes>
           <Route path="/" element={<HomeRoute />} />
+          <Route path="/legal/refunds" element={<RefundPolicyPage />} />
           <Route path="/r/:code" element={<ReferralLandingPage />} />
           <Route path="/reviews/add" element={<PublicReviewSubmissionPage />} />
 
