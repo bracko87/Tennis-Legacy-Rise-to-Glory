@@ -294,6 +294,8 @@ const frenchTranslations = {
     "logoutDesc": "Se déconnecter du compte"
   },
   "footer": {
+    "clockPaused": "En pause",
+    "clockPausedUntil": "En pause · Reprise le {{date}}",
     "synchronizingClock": "Synchronisation de l’horloge du jeu…",
     "clockUnavailable": "Horloge du jeu indisponible",
     "season": "Saison {{season}}",
