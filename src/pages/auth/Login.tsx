@@ -157,15 +157,10 @@ export default function LoginPage() {
             </form>
 
             <div className="tlg-auth-divider"><span>{t('authPages.login.newToGame')}</span></div>
-            <button
-              type="button"
-              className="tlg-auth-outline-button tlg-auth-registration-disabled"
-              disabled
-              aria-disabled="true"
-              title={t('authPages.login.registrationClosed')}
-            >
-              {t('authPages.login.createAccount')} <ArrowRight size={17} />
-            </button>
+            <div className="tlg-auth-status tlg-auth-status-information" role="status">
+              <ShieldCheck size={18} />
+              <span>{t('authPages.login.registrationClosed')}</span>
+            </div>
 
             <p className="tlg-auth-supabase-note">{t('authPages.login.secureNote')}</p>
           </div>
