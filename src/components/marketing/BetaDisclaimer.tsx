@@ -5,7 +5,7 @@ import { useLocation } from 'react-router'
 
 import '../../styles/beta-disclaimer.css'
 
-const BETA_NOTICE_SESSION_KEY = 'tlg-beta-disclaimer-seen-v1'
+const BETA_NOTICE_SESSION_KEY = 'tlg-final-beta-testing-notice-v2'
 const DISCORD_INVITE_URL = 'https://discord.gg/RBBtXgZey2'
 
 export default function BetaDisclaimer() {
@@ -39,7 +39,7 @@ export default function BetaDisclaimer() {
       link.classList.add('tlg-beta-registration-disabled')
       link.setAttribute('aria-disabled', 'true')
       link.setAttribute('tabindex', '-1')
-      link.setAttribute('title', 'New registrations are temporarily closed during beta testing.')
+      link.setAttribute('title', 'New account registration is closed during final beta testing.')
       link.addEventListener('click', explainRegistrationLock)
     })
 
@@ -98,13 +98,13 @@ export default function BetaDisclaimer() {
           <X size={19} />
         </button>
 
-        <span className="tlg-beta-modal-eyebrow">Early beta testing</span>
-        <h2 id="tlg-beta-modal-title">Tennis Legacy is still under active development</h2>
+        <span className="tlg-beta-modal-eyebrow">Final beta testing</span>
+        <h2 id="tlg-beta-modal-title">We're preparing Tennis Legacy for launch</h2>
         <p id="tlg-beta-modal-description">
-          Tennis Legacy: Rise to Glory is currently an early beta version used for testing and development. We are still building, balancing and preparing the game for a future launch, and we are not close to the final release yet.
+          Tennis Legacy: Rise to Glory is currently a beta version. We are in the final phase of testing and plan to release the game publicly soon.
         </p>
         <p>
-          Features, game data and systems may change while testing continues. New registrations are temporarily closed during this phase, but existing testers can continue to sign in normally.
+          New account registration is closed until the public launch. Existing testers can still sign in and play, while features and game data may change during these final tests.
         </p>
 
         <div className="tlg-beta-modal-community">
