@@ -293,6 +293,8 @@ const russianTranslations = {
     "logoutDesc": "Выйти из аккаунта"
   },
   "footer": {
+    "clockPaused": "Пауза",
+    "clockPausedUntil": "Пауза · Возобновление {{date}}",
     "synchronizingClock": "Синхронизация игровых часов…",
     "clockUnavailable": "Игровые часы недоступны",
     "season": "Сезон {{season}}",
