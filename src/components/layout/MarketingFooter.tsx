@@ -17,6 +17,7 @@ import PremiumBenefitsGuide from '../marketing/PremiumBenefitsGuide'
 
 import { useGameClock } from '../../hooks/useGameClock'
 import { supabase } from '../../lib/supabase'
+import usePublicRegistrationStatus from '../../hooks/usePublicRegistrationStatus'
 
 const FOOTER_LOGO_URL =
   'https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/logo%20333.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy9sb2dvIDMzMy5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg3OTQ1MDc5LCJleHAiOjQ5MTAwMDkwNzl9.Q7Ocay_B1kouWo_XmmgtVcGOCh0xtzhzaIm713AhU-ci-xJPY3JanaT3xhdkptAuKV5kUJGHov34fSM2TGjmcQ'
@@ -33,6 +34,7 @@ export default function MarketingFooter({
   const navigate = useNavigate()
   const { t } = useTranslation()
   const clock = useGameClock()
+  const registrationAvailability = usePublicRegistrationStatus()
   const [pricingOpen, setPricingOpen] = useState(false)
 
   useEffect(() => {
@@ -148,7 +150,11 @@ export default function MarketingFooter({
                 Sign In
               </Link>
 
-              <span>{t('authPages.login.registrationClosed')}</span>
+              {registrationAvailability === 'open' ? (
+                <Link to="/register">{t('authPages.login.createAccount')}</Link>
+              ) : registrationAvailability === 'closed' ? (
+                <span>{t('authPages.login.registrationClosed')}</span>
+              ) : null}
             </FooterColumn>
 
             <FooterColumn title="The Game">
@@ -197,7 +203,13 @@ export default function MarketingFooter({
               </div>
               <PremiumBenefitsGuide placement="dialog" />
               <p className="tlg-pricing-note">{t('home.premium.note')}</p>
-              <div className="tlg-pricing-actions"><p role="status">{t('authPages.login.registrationClosed')}</p></div>
+              <div className="tlg-pricing-actions">
+                {registrationAvailability === 'open' ? (
+                  <Link to="/register" onClick={() => setPricingOpen(false)}>{t('authPages.login.createAccount')}</Link>
+                ) : registrationAvailability === 'closed' ? (
+                  <p role="status">{t('authPages.login.registrationClosed')}</p>
+                ) : null}
+              </div>
             </section>
           </div>
         ), document.body)}
