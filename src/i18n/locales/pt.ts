@@ -2838,6 +2838,14 @@ export const portugueseTranslations = {
     sourceSuffix: 'O inglês é atualmente a edição de referência.',
   },
   financeSponsorPage: {
+    renewal: {
+      kicker: "RENOVAÇÃO · TEMPORADA {{season}}",
+      title: "Renove seu patrocinador principal para a temporada {{season}}",
+      body: "Seu patrocinador anterior oferece um novo contrato de uma temporada com base na classificação final. Assinar em dezembro reserva o contrato para janeiro. A renovação é opcional.",
+      offerNote: "Oferta para a próxima temporada. Começa em 1º de janeiro da temporada {{season}}.",
+      scheduledKicker: "ACORDO DA PRÓXIMA TEMPORADA · {{season}}",
+      scheduledBody: "Renovação aceita. Valor garantido: {{amount}}. Ativação em 1º de janeiro; pagamentos seguem o novo cronograma.",
+    },
     loadError: 'Não foi possível carregar as ofertas de patrocínio.',
     logoAria: 'Logo de {{name}}',
     objective: {
