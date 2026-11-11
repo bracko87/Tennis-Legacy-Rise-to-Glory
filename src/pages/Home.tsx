@@ -33,6 +33,7 @@ import {
 
 import MarketingHeader from '../components/layout/MarketingHeader'
 import SeasonTransitionNotice from '../components/season/SeasonTransitionNotice'
+import { SeasonMaintenanceAnnouncement } from '../components/season/SeasonMaintenanceBoundary'
 import MarketingFooter from '../components/layout/MarketingFooter'
 import StatCard from '../components/common/StatCard'
 import HomepagePlayerReviews from '../components/marketing/HomepagePlayerReviews'
@@ -134,6 +135,7 @@ export default function HomePage() {
       <MarketingHeader />
 
       <main className="tlg-home-main">
+        <SeasonMaintenanceAnnouncement />
         <SeasonTransitionNotice variant="public" />
         <section className="tlg-hero">
           <div className="tlg-hero-background">
