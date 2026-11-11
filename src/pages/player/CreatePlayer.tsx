@@ -26,6 +26,7 @@ import FormField from '../../components/common/FormField'
 import { COUNTRIES } from '../../data/countries'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
+import { isPortraitReservationConflict } from '../../lib/playerCreationConflict'
 import '../../styles/create-player-enhancements.css'
 
 type PlayerWorld = 'ATP' | 'WTA'
@@ -487,12 +488,16 @@ export default function CreatePlayerPage(): JSX.Element {
             return
           }
 
-          setSelectedAvatarPath(null)
-          setAvatarRefreshKey((value) => value + 1)
-          setStep(3)
-          setSaving(false)
-          setSaveError(t('createPlayer.errors.portraitTaken'))
-          return
+          // A 23505 can also come from account, location or starting-home
+          // initialization. Only reset the portrait if its reservation clashes.
+          if (isPortraitReservationConflict(error)) {
+            setSelectedAvatarPath(null)
+            setAvatarRefreshKey((value) => value + 1)
+            setStep(3)
+            setSaving(false)
+            setSaveError(t('createPlayer.errors.portraitTaken'))
+            return
+          }
         }
         throw error
       }
