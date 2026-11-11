@@ -12,9 +12,15 @@ DECLARE
   -- Once a particular future season has passed the verified migration stage,
   -- its first month cannot inherit a closed window from the prior December.
   IF v_first_week BETWEEN 1 AND 4
-    AND EXISTS (
-      SELECT 1 FROM control_center_private.tennis_season_maintenance_control_v1 c
-      WHERE c.id=true AND c.target_season=v_season AND c.preseason_starts_at IS NOT NULL
+    AND (
+      -- When next year's calendar is pre-created, postpone its January
+      -- allocation and draws until *after* the frozen preseason starts.
+      v_season = (SELECT season+1 FROM public.game_clock WHERE id=1)
+      OR EXISTS (
+        SELECT 1 FROM control_center_private.tennis_season_maintenance_control_v1 c
+        WHERE c.id=true AND c.target_season=v_season
+          AND c.preseason_starts_at IS NOT NULL
+      )
     )
     AND NOT EXISTS(
       SELECT 1 FROM public.tournament_draw_publications dp
