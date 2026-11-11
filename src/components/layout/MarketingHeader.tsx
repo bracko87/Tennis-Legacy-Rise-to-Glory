@@ -14,7 +14,6 @@ import { useAuth } from '../../auth/AuthContext'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import type { AppLocale } from '../../i18n'
 import CountryFlag from '../common/CountryFlag'
-import BetaDisclaimer from '../marketing/BetaDisclaimer'
 
 interface MarketingNavigationItem {
   readonly labelKey: string
@@ -264,7 +263,6 @@ export default function MarketingHeader() {
         </div>
       )}
 
-      <BetaDisclaimer />
     </header>
   )
 }
