@@ -269,3 +269,19 @@ The live Season 1 boundary is unchanged: December 31 23:59:59 at effective speed
 SQL review snapshot: `docs/sql/TENNIS_SEASON2_WEEK1_ATOMIC_RESELECTION_2026-11-11.sql`.
 
 **Do not set backup, restore, two-season or operator approval flags merely to satisfy the release gate. They must be supported by genuine evidence.**
+
+## November 11, morning — registration coverage and second-year clock test
+
+Preparation continued using the existing Supabase and GitHub connections, only on `main`.
+
+- All **five existing human player accounts** passed transaction-rolled-back tests of the authenticated Week 1 preference RPCs. For each account, the response showed 11 competitions for the player's ATP/WTA world; saving, readback, switching and cross-world refusal were verified. No official applications or player preferences persisted after rollback.
+- Exercised the game's **real `get_game_clock_v1()`** across Season 2 Jan 1 paused, the final second of Season 2 with the clock safety stop active, and Season 3 Jan 1 paused. Its original production clock/guard values were restored by forced rollback. This is a clock-boundary test, **not** a complete Season 2→3 simulation or production cutover.
+- Added `tests/season2Week1PreRegistration.test.mjs` with CI checks that the registration panel is mounted on the player dashboard, uses only the authenticated preference RPCs, allows withdrawal and does not claim an accepted entry or write directly to match/draw/application tables. The GitHub release validation workflow now runs this test on main.
+- Administrator-only `public.get_admin_season_transition_readiness_v1()` returns a `week1_registration` summary of real human choices and the number of existing human players. Validated as an authenticated administrator: **0 of 5** currently selected, and the protected pre-season preference API is open.
+- Updated `src/components/manager/AdminSeasonMigrationPanel.tsx` to show the live Week 1 registration counts and clarify that these choices are not official tournament entries.
+
+**Operational external blocker:** Website deployment/builds were previously stopped in Netlify. The connected GitHub app can update and validate repository code but cannot activate the Netlify site's build-status control or confirm the live Netlify bundle. Netlify's documented path is Project configuration → Developer settings → Continuous deployment → Build settings → Configure → Active builds, or the Activate builds button on Site overview/Deploys; **activating builds alone does not deploy**. The owner can then choose Trigger deploy → Deploy site or retry with the latest main commit. Do not purchase an additional browser service.
+
+The Supabase project belongs to a Pro organization, whose normal daily backup policy is seven days, but the specific backup timestamps and independent restoration have still not been verified through the available database connector. Do not mark backup/restore flags true on the basis of plan tier alone.
+
+**Production remains Season 1 Dec 31 23:59:59**, 0 executed migration steps, and no actual player preferences submitted. The actual migration remains disabled pending independently verified backup, real registration/deployment, complete simulation and operator approval.
