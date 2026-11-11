@@ -399,6 +399,7 @@ const frenchTranslations = {
       "start": "Commencer à jouer",
       "signIn": "Connexion",
       "explore": "Découvrir le jeu",
+      "betaNotice": "Tennis Legacy est actuellement en version bêta. Nous sommes dans la dernière phase de tests et prévoyons de lancer le jeu publiquement bientôt. Les nouvelles inscriptions restent fermées jusqu'au lancement.",
       "persistent": "Monde multijoueur persistant",
       "seasonTime": "Temps de jeu organisé en saisons",
       "worlds": "Univers ATP et WTA",
