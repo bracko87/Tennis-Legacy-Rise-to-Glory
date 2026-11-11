@@ -135,7 +135,7 @@ BEGIN
     FROM control_center_private.tennis_season_transition_runs_v1 r
     WHERE r.source_season=v_control.source_season
       AND r.target_season=v_control.target_season
-      AND r.created_at>=v_control.starts_at
+      AND r.finished_at>=v_control.starts_at
       AND r.status='completed'
     ORDER BY r.finished_at DESC LIMIT 1;
 
