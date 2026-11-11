@@ -1979,6 +1979,14 @@ export default {
     gameDate: '{{day}}. {{month}} · Saison {{season}}',
   },
   financeSponsorPage: {
+    renewal: {
+      kicker: "VERLÄNGERUNG · SAISON {{season}}",
+      title: "Hauptsponsor für Saison {{season}} verlängern",
+      body: "Dein bisheriger Sponsor bietet einen neuen Vertrag für eine Saison auf Grundlage deiner Abschlussplatzierung an. Eine Unterschrift im Dezember reserviert ihn für Januar. Die Verlängerung ist freiwillig.",
+      offerNote: "Angebot für die nächste Saison. Beginn: 1. Januar, Saison {{season}}.",
+      scheduledKicker: "VERTRAG FÜR NÄCHSTE SAISON · SAISON {{season}}",
+      scheduledBody: "Die Verlängerung wurde angenommen. Garantierter Vertragswert: {{amount}}. Beginn am 1. Januar; Zahlungen erfolgen nach dem neuen Plan.",
+    },
     loadError: 'Sponsorangebote konnten nicht geladen werden.',
     logoAria: 'Logo von {{name}}',
     objective: {
