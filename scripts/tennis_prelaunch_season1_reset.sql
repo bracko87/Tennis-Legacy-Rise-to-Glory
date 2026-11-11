@@ -21,6 +21,7 @@ BEGIN
  OR (SELECT count(*) FROM control_center_private.tennis_prelaunch_s1_editions_v1)<>597
  OR (SELECT count(*) FROM control_center_private.tennis_prelaunch_s1_competitions_v1)<>1194
  OR (SELECT count(*) FROM control_center_private.tennis_prelaunch_s1_schedule_v1)<>613
+ OR (SELECT count(*) FROM control_center_private.tennis_prelaunch_ai_starter_assets_v1)<>1668
  OR (SELECT count(*) FROM public.tournament_matches)<40000
  OR (SELECT count(*) FROM auth.users)<>6
  OR (SELECT count(*) FROM public.billing_transactions WHERE status='paid' AND amount_eur_cents=949)<>1
@@ -155,13 +156,17 @@ UPDATE public.private_life_quote_refresh_control
 SET last_stock_refresh_game_second=null,last_crypto_refresh_game_second=null,updated_at=now()
 WHERE id=1;
 
--- Reconstruct the two AI starter assets per player and day-one training plan.
+-- Restore the verified original AI day-zero assets. Generating new starter homes
+-- can violate unique country/city property locations (for example, Seville).
+INSERT INTO public.private_life_player_assets
+SELECT * FROM control_center_private.tennis_prelaunch_ai_starter_assets_v1;
+UPDATE public.private_life_player_assets SET created_at=now(),updated_at=now()
+WHERE acquisition_type IN ('starter_home','ai_static');
+-- The player's opening training plan is a deterministic function of their reset stats.
 DO $reseed$
 DECLARE v record;
 BEGIN
  FOR v IN SELECT id FROM public.players WHERE player_type='ai' ORDER BY world,ai_profile_number LOOP
-   PERFORM public.ensure_ai_static_prestige_possession_v1(v.id);
-   PERFORM public.ensure_private_life_starter_home_v1(v.id);
    PERFORM public.configure_ai_training_plan_v1(v.id,1,1::smallint,1::smallint);
  END LOOP;
 END $reseed$;
