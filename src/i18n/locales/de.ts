@@ -333,6 +333,7 @@ export default {
       start: 'Jetzt spielen',
       signIn: 'Anmelden',
       explore: 'Spiel entdecken',
+      betaNotice: "Tennis Legacy befindet sich derzeit in der Beta-Phase. Wir sind in der letzten Testphase und planen, das Spiel bald öffentlich zu veröffentlichen. Neue Registrierungen bleiben bis zum Start geschlossen.",
       persistent: 'Persistente Multiplayer-Welt',
       seasonTime: 'Saisonbasierte Spielzeit',
       worlds: 'ATP- und WTA-Welten',
