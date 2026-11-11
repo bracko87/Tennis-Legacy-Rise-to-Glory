@@ -108,7 +108,7 @@ BEGIN
 
   -- Activation is tied to the *next* real year-end guard, not a date in the
   -- current Season 2. The active game can never be accidentally re-migrated.
-  IF v_control.status='off' AND v_guard.enabled
+  IF v_control.status IN('off','announced') AND v_guard.enabled
      AND v_guard.source_season=v_clock.season THEN
     SELECT game_total_seconds INTO v_time FROM public.get_game_clock_v1();
     IF v_time>=v_guard.stop_at_total_seconds THEN
