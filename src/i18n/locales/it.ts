@@ -2518,6 +2518,14 @@ export default {
     "gameDate": "{{day}} {{month}} · Stagione {{season}}"
   },
   "financeSponsorPage": {
+    renewal: {
+      kicker: "RINNOVO · STAGIONE {{season}}",
+      title: "Rinnova lo sponsor principale per la stagione {{season}}",
+      body: "Il tuo sponsor precedente propone un contratto di una stagione in base alla classifica finale. Firmare a dicembre lo prenota per gennaio. Il rinnovo è facoltativo.",
+      offerNote: "Offerta per la prossima stagione. Inizia il 1° gennaio della stagione {{season}}.",
+      scheduledKicker: "ACCORDO PER LA PROSSIMA STAGIONE · {{season}}",
+      scheduledBody: "Rinnovo accettato. Valore garantito: {{amount}}. Si attiva il 1° gennaio; pagamenti secondo il nuovo calendario.",
+    },
     "loadError": "Impossibile caricare le offerte degli sponsor.",
     "logoAria": "Logo di {{name}}",
     "objective": {
