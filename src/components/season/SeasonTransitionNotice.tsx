@@ -150,7 +150,9 @@ export default function SeasonTransitionNotice({ variant }: { variant: 'public' 
     setPopupOpen(window.localStorage.getItem(popupKey) !== 'dismissed')
   }, [popupKey])
 
-  if (!notice) return null
+  // The two-day transition owns the notices. After the 24-hour preparation
+  // period ends, the season resumes without any lingering welcome popup.
+  if (!notice || notice.phase === 'completed') return null
 
   const copy = messages[locale] ?? messages.en
   const [heading, description, status] = copy[notice.phase]
