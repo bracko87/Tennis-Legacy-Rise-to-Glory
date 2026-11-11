@@ -149,7 +149,7 @@ BEGIN
     (SELECT count(*) FROM public.tournament_applications a JOIN public.players p ON p.id=a.player_id
       WHERE a.competition_id IN(SELECT id FROM scope) AND p.player_type='human'),
     (SELECT count(*) FROM public.tournament_matches m WHERE m.competition_id IN(SELECT id FROM scope)
-      AND (m.status NOT IN ('scheduled','bye','cancelled') OR m.started_at IS NOT NULL OR m.completed_at IS NOT NULL OR (m.winner_id IS NOT NULL AND m.status<>'bye'))),
+      AND (m.status NOT IN ('scheduled','bye','cancelled') OR m.started_at IS NOT NULL OR (m.completed_at IS NOT NULL AND m.status NOT IN ('bye','cancelled')) OR (m.winner_id IS NOT NULL AND m.status<>'bye'))),
     (SELECT count(*) FROM public.player_tournament_results r WHERE r.competition_id IN(SELECT id FROM scope))
   INTO v_scope,v_draws,v_matches,v_entries,v_human_apps,v_started,v_bad
   FROM scope;
