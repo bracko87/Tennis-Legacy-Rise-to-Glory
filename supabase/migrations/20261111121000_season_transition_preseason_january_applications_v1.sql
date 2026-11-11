@@ -52,7 +52,7 @@ BEGIN
   SELECT pg_get_functiondef(p.oid) INTO v_source
   FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
   WHERE n.nspname='public' AND p.proname='get_tournament_entry_timeline_v1'
-    AND pg_get_function_identity_arguments(p.oid)='';
+    AND pg_get_function_identity_arguments(p.oid)='p_competition_id uuid';
 
   IF v_source IS NULL THEN RAISE EXCEPTION 'Tournament timeline function not found'; END IF;
   IF position('Once a particular future season has passed' in v_source)>0 THEN
