@@ -4337,6 +4337,7 @@ export const portugueseTranslations = {
       description: 'Crie e desenvolva seu próprio tenista profissional, domine todas as superfícies, enfrente técnicos reais e avance de uma promessa desconhecida até se tornar uma lenda do tênis mundial.',
       start: 'Começar a jogar', signIn: 'Entrar',
       explore: 'Conhecer o jogo', persistent: 'Mundo multijogador persistente',
+      betaNotice: "Tennis Legacy está atualmente em versão beta. Estamos na fase final de testes e planejamos lançar o jogo ao público em breve. O cadastro de novas contas permanecerá fechado até o lançamento.",
       seasonTime: 'Tempo de jogo por temporadas', worlds: 'Circuitos ATP e WTA',
       ranking: 'Ranking mundial', futureData: 'Dados futuros do Supabase',
       currentTime: 'Horário atual do jogo',
