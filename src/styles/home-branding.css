@@ -504,3 +504,25 @@
 .tlg-home-main .tlg-final-cta .tlg-prelaunch-registration-note {
   margin: 0;
 }
+
+/* Keep public homepage actions together: Sign In, Explore and (when open)
+   Create Account belong to one row on desktop; phones use the existing grid. */
+.tlg-home-main .tlg-hero-actions {
+  align-items: center;
+}
+@media (min-width: 1024px) {
+  .tlg-home-main .tlg-hero-actions {
+    flex-wrap: nowrap;
+  }
+  .tlg-home-main .tlg-hero-actions > .tlg-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
+/* The beta notice is a separate paragraph, never a third action button. */
+.tlg-home-main .tlg-hero-copy > .tlg-prelaunch-registration-note {
+  display: block;
+  max-width: 570px;
+  margin-top: 16px;
+}
