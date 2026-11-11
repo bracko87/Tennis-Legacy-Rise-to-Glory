@@ -1979,6 +1979,14 @@ export default {
     gameDate: '{{month}} {{day}} · Season {{season}}',
   },
   financeSponsorPage: {
+    renewal: {
+      kicker: "RENEWAL · SEASON {{season}}",
+      title: "Renew your main sponsor for Season {{season}}",
+      body: "Your previous sponsor is offering a new one-season deal based on your final season ranking. Signing in December reserves it for January. Renewal is optional.",
+      offerNote: "Next-season offer. Starts January 1 of Season {{season}}.",
+      scheduledKicker: "NEXT SEASON AGREEMENT · SEASON {{season}}",
+      scheduledBody: "Your renewal is accepted. The guaranteed agreement value is {{amount}}. It activates on January 1; payments follow the new schedule.",
+    },
     loadError: 'Unable to load sponsor offers.',
     logoAria: '{{name}} logo',
     objective: {
