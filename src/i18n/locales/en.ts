@@ -285,6 +285,8 @@ export default {
     logoutDesc: 'Sign out of your account',
   },
   footer: {
+    clockPaused: 'Paused',
+    clockPausedUntil: 'Paused · Resumes {{date}}',
     synchronizingClock: 'Synchronizing game clock…',
     clockUnavailable: 'Game clock unavailable',
     season: 'Season {{season}}',
