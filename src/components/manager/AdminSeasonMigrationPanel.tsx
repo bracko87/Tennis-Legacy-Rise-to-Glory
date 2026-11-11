@@ -25,10 +25,22 @@ type SponsorReadiness = {
 
 type MigrationStep = { step_key: string; status: string }
 type PreparationStep = { label: string; detail: string }
+type CompletedTransition = {
+  source_season: number
+  target_season: number
+  status: string
+  finished_at: string
+  restore_test_verified: boolean
+  two_season_dry_run_verified: boolean
+  one_time_no_clone_risk_accepted: boolean
+  steps: MigrationStep[]
+  week1_reconciliation_receipts: number
+}
 
 type Readiness = {
   steps?: MigrationStep[]
   step_preparation?: Record<string, PreparationStep>
+  last_completed_transition?: CompletedTransition | null
   run?: { status: string; execution_enabled: boolean } | null
   phase: string
   execution_enabled: boolean
@@ -136,6 +148,7 @@ export default function AdminSeasonMigrationPanel() {
   }, [refresh])
 
   const clock = status?.clock ?? clockOnly
+  const completedTransition = status?.phase === 'completed' ? status.last_completed_transition : null
   const daysLeft = clock ? Math.ceil(clock.real_hours_remaining / 24) : null
 
   return <section className="tlg-admin-season">
@@ -150,14 +163,26 @@ export default function AdminSeasonMigrationPanel() {
       </button>
     </header>
 
-    <div className="tlg-admin-season-warning" role="status">
-      <AlertTriangle size={20} aria-hidden="true" />
-      <div><strong>Migration NOT READY — season boundary guarded; execution unavailable</strong>
-        <p>{status?.calendar?.coverage_verified
-          ? 'Season 2 calendar coverage is verified, and the protected migration journal exists. The transition is still blocked until Week 1 human entry, a restorable backup, and full migration tests are verified.'
-          : 'Game time remains protected until the next-season calendar, recovery safeguards, and end-to-end migration tests are verified.'}</p>
+    {completedTransition ? (
+      <div className="tlg-admin-season-complete" role="status">
+        <ShieldCheck size={20} aria-hidden="true" />
+        <div>
+          <strong>Season {completedTransition.target_season} is live — previous migration completed</strong>
+          <p>The Season {completedTransition.source_season} → {completedTransition.target_season} journal is completed ({completedTransition.steps.filter((step) => step.status === 'completed').length} of 13 steps).
+            {completedTransition.week1_reconciliation_receipts} Week 1 tournament-field reconciliation receipts were recorded.</p>
+          {completedTransition.one_time_no_clone_risk_accepted && !completedTransition.restore_test_verified && (
+            <p>The existing physical backup was accepted as a recovery precaution without an independently tested restore. The separate restore and full two-season dry run remain unverified; they were not marked as passed.</p>
+          )}
+        </div>
       </div>
-    </div>
+    ) : (
+      <div className="tlg-admin-season-warning" role="status">
+        <AlertTriangle size={20} aria-hidden="true" />
+        <div><strong>Next-season migration not ready — preparation only</strong>
+          <p>Season {clock?.target_season ?? 'next'} calendar, recovery and release checks are not yet certified. This warning applies to the next future migration, not a previously completed one.</p>
+        </div>
+      </div>
+    )}
 
     {loading && <p className="tlg-admin-season-wait">Checking current game clock and readiness…</p>}
     {error && <p className="tlg-admin-season-diagnostic" role="status">{error}</p>}
@@ -191,7 +216,9 @@ export default function AdminSeasonMigrationPanel() {
         <li>Generate separate Season 2 offers based on the player's ranking and reputation. New contracts end by that season's boundary and require acceptance.</li>
         <li>Verify there are no overlapping exclusive sponsors, changed legacy end dates or duplicate money/benefit transactions.</li>
       </ul>
-      <small>Read-only policy preview · Checkpoint 06 stays pending until the sponsor reconciliation processor and dry-run tests are installed.</small>
+      <small>{completedTransition
+        ? 'The previous season migration has completed; review the executed journal below. This panel does not certify future seasons.'
+        : 'Read-only policy preview · Future season sponsor compliance must be verified before another cutover.'}</small>
     </section>
 
     <section className="tlg-admin-season-carryover" aria-labelledby="tlg-admin-season-rules-title">
@@ -210,7 +237,7 @@ export default function AdminSeasonMigrationPanel() {
       </div>
     </section>
 
-    {status?.week1_registration && (
+    {!completedTransition && status?.week1_registration && (
       <section className="tlg-admin-season-blockers" aria-labelledby="tlg-season2-registration-summary">
         <h4 id="tlg-season2-registration-summary">Season 2 · Week 1 human registration</h4>
         <p><strong>{status.week1_registration.preferences_saved}</strong> Week 1 preference(s) saved. Registration is optional; test accounts and players who choose to skip Week 1 do not block the migration.</p>
@@ -221,35 +248,54 @@ export default function AdminSeasonMigrationPanel() {
       </section>
     )}
 
-    <div className="tlg-admin-season-blockers">
+    {!completedTransition && <div className="tlg-admin-season-blockers">
       <h4>Blocking requirements</h4>
       {status?.blockers?.length ? <ul>{status.blockers.map((issue) => <li key={issue}>{issue}</li>)}</ul> :
         <p>Season N+1 tournament calendar, a tested transition runner, snapshot/recovery, idempotent step processing and dry-run validation must be completed before migration can be enabled.</p>}
-    </div>
+    </div>}
 
     <div className="tlg-admin-season-checkpoints">
       <header><div><span>ROLL-OVER EXECUTION</span><h4>13 migration checkpoints</h4></div>
-        <small>{status?.run ? `Run: ${status.run.status} · execution ${status.run.execution_enabled ? 'enabled' : 'disabled'}` : 'No verified migration run'}</small></header>
-      <p className="tlg-admin-season-checkpoint-explanation">Preparation shows verified checks and rollback tests. Execution shows actions actually completed on the live Season 2 migration. A tested step is not the same as an executed step.</p>
+        <small>{completedTransition ? `Season ${completedTransition.target_season} · completed` : status?.run ? `Run: ${status.run.status} · execution ${status.run.execution_enabled ? 'enabled' : 'disabled'}` : 'No active future migration plan'}</small></header>
+      <p className="tlg-admin-season-checkpoint-explanation">{completedTransition
+        ? 'These are the actual completed steps of the previous live migration, not projections for Season 3.'
+        : 'Preparation shows verified checks and rollback tests. Execution shows actions actually completed on the live migration. A tested step is not the same as an executed step.'}</p>
       <div className="tlg-admin-season-checkpoint-grid">
         {CHECKPOINTS.map((step) => <article key={step.id}>
           <div><strong>{step.title}</strong></div>
-          <div className="tlg-admin-season-status-pair">
-            <span className="tlg-admin-season-preparation">
-              <small>Preparation</small>
-              <strong>{status?.step_preparation?.[step.id]?.label ?? 'Not verified'}</strong>
-            </span>
-            <span className="tlg-admin-season-execution">
-              <small>Live execution</small>
-              <strong>{status?.steps?.find((entry) => entry.step_key === step.id)?.status ?? 'Not recorded'}</strong>
-            </span>
-          </div>
-          <p>{status?.step_preparation?.[step.id]?.detail ?? step.gate}</p>
+          {completedTransition ? (
+            <div className="tlg-admin-season-status-pair">
+              <span className="tlg-admin-season-execution">
+                <small>Live execution</small>
+                <strong>{completedTransition.steps.find((entry) => entry.step_key === step.id)?.status ?? 'Not recorded'}</strong>
+              </span>
+              {step.id === 'snapshot' && (
+                <span className="tlg-admin-season-preparation">
+                  <small>Recovery verification</small>
+                  <strong>{completedTransition.restore_test_verified ? 'Restore tested' : 'Restore not tested · owner accepted risk'}</strong>
+                </span>
+              )}
+            </div>
+          ) : (
+            <div className="tlg-admin-season-status-pair">
+              <span className="tlg-admin-season-preparation">
+                <small>Preparation</small>
+                <strong>{status?.step_preparation?.[step.id]?.label ?? 'Not verified'}</strong>
+              </span>
+              <span className="tlg-admin-season-execution">
+                <small>Live execution</small>
+                <strong>{status?.steps?.find((entry) => entry.step_key === step.id)?.status ?? 'Not recorded'}</strong>
+              </span>
+            </div>
+          )}
+          <p>{completedTransition ? step.gate : (status?.step_preparation?.[step.id]?.detail ?? step.gate)}</p>
         </article>)}
       </div>
     </div>
-    <p className="tlg-admin-season-footnote">The Season 1 closeout and Season 2 calendar are prepared, but no real season-transition step has executed. The protected run journal is installed, and the candidate cutover remains locked until independent backup/recovery and full testing pass.{' '}
-      <a href="https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/blob/main/docs/TENNIS_SEASON2_MIGRATION_PREPARATION_2026-11-10.md" target="_blank" rel="noopener noreferrer">View complete migration rules and operator runbook</a>
+    <p className="tlg-admin-season-footnote">{completedTransition
+      ? `Season ${completedTransition.target_season} migration was completed on the live server. Preparation for Season ${completedTransition.target_season + 1} is a separate future task.`
+      : 'No actual next-season transition has executed from the current season. Future migrations require separate calendar, backup and release checks.'}{' '}
+      <a href="https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/blob/main/docs/TENNIS_SEASON2_MIGRATION_PREPARATION_2026-11-10.md" target="_blank" rel="noopener noreferrer">View migration history and operator runbook</a>
     </p>
   </section>
 }
