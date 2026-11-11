@@ -48,6 +48,8 @@ jobs:
         run: node --test tests/seasonMaintenanceWindow.test.mjs
       - name: Verify migration day, 24h frozen preseason, January applications and automatic 2x resume
         run: node --test tests/seasonTwoDayTransition.test.mjs
+      - name: Verify paused game footer shows server unpause time with visitor time zone
+        run: node --experimental-strip-types --test tests/gameFooterSeasonPause.test.mjs
       - name: Verify mobile route audit inventory against actual App router
         run: npm run check:mobile-routes
       - name: Validate Private Life career integration contracts
