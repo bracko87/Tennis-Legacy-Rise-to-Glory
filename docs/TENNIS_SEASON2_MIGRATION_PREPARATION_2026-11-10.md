@@ -318,3 +318,20 @@ The administrator status API now returns `phase=completed` and a separate `last_
 ### Known remaining non-blocking follow-up
 
 Continue watching ordinary Season 2 operations during the January 1/2 free days and the first Week 1 matches; the transition itself is complete, but normal gameplay must still be observed. Prepare the Season 3 calendar and player applications early rather than requiring a future emergency Week 1 recovery. Use the new 24-hour real-world maintenance procedure when the next actual rollover is scheduled, after completing the API-write isolation and browser checks.
+
+### Post-launch clarification — November 11, 09:36 UTC
+
+The live game continued running at 2× after the release and triggered normal background processing. This changed three of the six **unpublished, underfilled** Week 1 ATP tournaments (Lima Challenger, Nottingham Challenger and Orlando Futures): new AI applications/entry data were written. Their original cutover fingerprints therefore changed, while no draws were published for those fields and no matches were played early.
+
+A dedicated post-launch audit confirmed:
+- All **22** cutover receipts are retained.
+- **16/16 previously published draws** still have exactly matching release-time fingerprints.
+- All **6/6 initially underfilled** competitions remain unpublished and without match rows.
+- **3/6** underfilled competitions received expected normal AI registration updates; mutable entry data should not be expected to match frozen cutover hashes once play resumes.
+- Total Week 1 match records remain **676**.
+
+The initial `verify_tennis_season2_week1_reconciled_draws_v1()` checks exact whole-record fingerprints and is intended as a **pre-cutover** validation. Its `ready_for_cutover` value can become false **after launch** when normal entry activity resumes; do not interpret that alone as a failed production cutover. A separate final postlaunch monitor was recorded in `tennis_season_transition_runs_v1.preflight.postlaunch_week1_field_monitor_2026_11_11` with `postlaunch_passed=true`.
+
+The administrator status feed was corrected to report the completed previous migration when the next-season snapshot has JSON `null` for a future migration run. It will instead show the future season's preparation once a real next-season run exists. This avoids incorrectly describing the already-completed Season 1 → 2 as `preparation`.
+
+The finance follow-up checked **5/5** player career accounts with a recorded balance-chain endpoint and found 0 unmatched accounts. Two day-366 finance events for one player were saved with reversed `created_at` ordering relative to their causal balance sequence, explaining a false alarm from a simple timestamp-only query. No account balances were modified to make that check pass.
