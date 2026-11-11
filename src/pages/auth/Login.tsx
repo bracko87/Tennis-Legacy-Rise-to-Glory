@@ -24,6 +24,7 @@ import {
 import AppButton from '../../components/common/AppButton'
 import FormField from '../../components/common/FormField'
 import { supabase } from '../../lib/supabase'
+import usePublicRegistrationStatus from '../../hooks/usePublicRegistrationStatus'
 
 interface FormStatus {
   type: 'information' | 'success' | 'error'
@@ -31,6 +32,7 @@ interface FormStatus {
 }
 
 export default function LoginPage() {
+  const registrationAvailability = usePublicRegistrationStatus()
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -157,10 +159,16 @@ export default function LoginPage() {
             </form>
 
             <div className="tlg-auth-divider"><span>{t('authPages.login.newToGame')}</span></div>
-            <div className="tlg-auth-status tlg-auth-status-information" role="status">
-              <ShieldCheck size={18} />
-              <span>{t('authPages.login.registrationClosed')}</span>
-            </div>
+            {registrationAvailability === 'open' ? (
+              <Link to="/register" className="tlg-btn tlg-btn-secondary tlg-btn-large">
+                {t('authPages.login.createAccount')}
+              </Link>
+            ) : registrationAvailability === 'closed' ? (
+              <div className="tlg-auth-status tlg-auth-status-information" role="status">
+                <ShieldCheck size={18} />
+                <span>{t('authPages.login.registrationClosed')}</span>
+              </div>
+            ) : null}
 
             <p className="tlg-auth-supabase-note">{t('authPages.login.secureNote')}</p>
           </div>
