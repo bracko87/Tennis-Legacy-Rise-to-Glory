@@ -30,8 +30,12 @@ function formatDateTime(value: string | null): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return 'To be announced'
   return new Intl.DateTimeFormat(undefined, {
-    dateStyle: 'full',
-    timeStyle: 'short',
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
     timeZoneName: 'short',
   }).format(date)
 }
