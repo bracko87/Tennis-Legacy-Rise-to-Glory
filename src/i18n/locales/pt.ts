@@ -228,6 +228,8 @@ export const portugueseTranslations = {
     logout: 'Sair', logoutDesc: 'Sair da sua conta',
   },
   footer: {
+    clockPaused: 'Pausado',
+    clockPausedUntil: 'Pausado · Retoma em {{date}}',
     synchronizingClock: 'Sincronizando o relógio do jogo…',
     clockUnavailable: 'Relógio do jogo indisponível',
     season: 'Temporada {{season}}',
