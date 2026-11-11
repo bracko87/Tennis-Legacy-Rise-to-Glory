@@ -197,7 +197,7 @@ export default function Season2Week1PreRegistration() {
       </div>
 
       <p className="tlg-season2-week1-disclaimer">
-        {t('season2Preentry.warning', { defaultValue: 'You can skip this if you do not want to play Week 1. No player is registered automatically. A saved preference is not yet an accepted entry or confirmed draw place, and no entry fee is charged. This special form will not be required for regular future seasons.' })}
+        {t('season2Preentry.warning', { defaultValue: 'You can skip this if you do not want to play Week 1. No player is registered automatically. A saved preference is not an accepted entry or a confirmed draw place, and no entry fee is charged. This special form will not be required for regular future seasons.' })}
       </p>
       {notice && <p className="tlg-season2-week1-message" role="status">{notice}</p>}
       {error && <p className="tlg-season2-week1-error" role="alert">{error}</p>}
