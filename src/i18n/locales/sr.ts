@@ -350,6 +350,7 @@ export default {
       start: 'Počni da igraš',
       signIn: 'Prijava',
       explore: 'Istraži igru',
+      betaNotice: "Tennis Legacy je trenutno u beta verziji. Nalazimo se u završnoj fazi testiranja i planiramo da uskoro javno objavimo igru. Registracija novih naloga ostaje zatvorena do izlaska igre.",
       persistent: 'Trajni svet za više igrača',
       seasonTime: 'Vreme igre zasnovano na sezonama',
       worlds: 'ATP i WTA svetovi',
