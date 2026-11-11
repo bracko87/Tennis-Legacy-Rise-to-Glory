@@ -38,6 +38,8 @@ jobs:
         run: npm run check:preferences
       - name: Validate Premium package descriptions in all eight languages
         run: node --experimental-strip-types --test tests/premiumFeatureGuide.test.mjs
+      - name: Verify prelaunch registration remains blocked on public pages
+        run: node --test tests/prelaunchRegistrationGate.test.mjs
       - name: Verify sidebar collapse preference persists across navigation
         run: node --experimental-strip-types --test tests/sidebarPreference.test.mjs
       - name: Verify Season 2 Week 1 human registration stays on dashboard and remains non-destructive
