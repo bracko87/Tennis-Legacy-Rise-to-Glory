@@ -38,7 +38,8 @@ test('game time never progresses during either 24h stage', () => {
 
 test('new season January applications remain open with stable deadlines and no draw rewriting', () => {
   assert.match(windows, /v_first_week BETWEEN 1 AND 4/)
-  assert.match(windows, /c\.target_season=v_season AND c\.preseason_starts_at IS NOT NULL/)
+  assert.match(windows, /v_season = \(SELECT season\+1 FROM public\.game_clock WHERE id=1\)/)
+  assert.match(windows, /c\.target_season=v_season[\s\S]*?c\.preseason_starts_at IS NOT NULL/)
   assert.match(windows, /NOT EXISTS\([\s\S]*?tournament_draw_publications/)
   assert.match(windows, /v_open := least\(v_open/)
   assert.match(windows, /v_first_week=1/)
