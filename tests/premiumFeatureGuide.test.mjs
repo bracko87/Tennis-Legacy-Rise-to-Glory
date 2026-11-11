@@ -63,7 +63,7 @@ test('Premium pages explicitly show the eight-language Tournament Watchlist bene
   assert.match(packages, /watchlistLabels\.title, false, true/)
   assert.match(packages, /<PremiumBenefitsGuide placement="packages"/)
   assert.match(footer, /<PremiumBenefitsGuide placement="dialog"/)
-  assert.match(home, /<PremiumBenefitsGuide placement="homepage"/)
+  assert.doesNotMatch(home, /<PremiumBenefitsGuide placement="homepage"/)
 })
 
 test('all new Premium module titles and descriptions are available in all eight game languages', () => {
@@ -123,4 +123,20 @@ test('Refund Policy remains visible in public and in-game purchase flows', () =>
   assert.match(policy, /we generally do not offer voluntary or goodwill refunds/i)
   assert.match(policy, /one-, three-, or twelve-month billing periods/)
   assert.match(policy, /Purchased Coins do not have a scheduled expiry date/)
+})
+
+test('homepage replaces the Premium comparison with two playable official videos', () => {
+  const home = readFileSync(new URL('../src/pages/Home.tsx', import.meta.url), 'utf8')
+  const videos = readFileSync(new URL('../src/components/marketing/HomeVideoShowcase.tsx', import.meta.url), 'utf8')
+  const css = readFileSync(new URL('../src/styles/home-video-showcase.css', import.meta.url), 'utf8')
+  assert.match(home, /<HomeVideoShowcase \\/>/)
+  assert.doesNotMatch(home, /<PremiumBenefitsGuide placement="homepage"/)
+  assert.match(videos, /Official Intro Trailer\\.mp4/)
+  assert.match(videos, /Official Gameplay Preview\\.mp4/)
+  assert.match(videos, /createSignedUrls/)
+  assert.match(videos, /controls/)
+  assert.match(videos, /playsInline/)
+  assert.match(videos, /preload="metadata"/)
+  assert.doesNotMatch(videos, /\\?token=/)
+  assert.match(css, /background:\\s*#fff/)
 })
