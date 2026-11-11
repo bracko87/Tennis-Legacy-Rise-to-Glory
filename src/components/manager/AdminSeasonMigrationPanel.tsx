@@ -39,6 +39,14 @@ type Readiness = {
   }
   blockers: string[]
   sponsors?: SponsorReadiness
+  week1_registration?: {
+    human_players_total: number
+    preferences_saved: number
+    preferences_withdrawn: number
+    selected_atp: number
+    selected_wta: number
+    ready_to_accept_preferences: boolean
+  }
 }
 
 type Milestone = { id: string; title: string; gate: string }
@@ -199,6 +207,17 @@ export default function AdminSeasonMigrationPanel() {
         </table>
       </div>
     </section>
+
+    {status?.week1_registration && (
+      <section className="tlg-admin-season-blockers" aria-labelledby="tlg-season2-registration-summary">
+        <h4 id="tlg-season2-registration-summary">Season 2 · Week 1 human registration</h4>
+        <p><strong>{status.week1_registration.preferences_saved} of {status.week1_registration.human_players_total}</strong> human players have saved a Week 1 tournament preference.</p>
+        <p>ATP: {status.week1_registration.selected_atp} · WTA: {status.week1_registration.selected_wta}. These are preferences, not accepted tournament entries. No player is automatically enrolled.</p>
+        <p>{status.week1_registration.ready_to_accept_preferences
+          ? 'The database registration window is ready. The updated player dashboard must be deployed before users can make their selections.'
+          : 'The protected registration window is not currently open.'}</p>
+      </section>
+    )}
 
     <div className="tlg-admin-season-blockers">
       <h4>Blocking requirements</h4>
