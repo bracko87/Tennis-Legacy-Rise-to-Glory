@@ -32,7 +32,7 @@ test('public entry points show account creation only when registration is open',
     assert.ok(content.includes("usePublicRegistrationStatus()"), name)
     assert.ok(content.includes("registrationAvailability === 'open'"), name)
     assert.ok(content.includes('to="/register"'), name)
-    assert.ok(content.includes("t('authPages.login.registrationClosed')"), name)
+    assert.ok(content.includes(name === 'home' ? "t('home.hero.betaNotice')" : "t('authPages.login.registrationClosed')"), name)
   }
   const header = read('../src/components/layout/MarketingHeader.tsx')
   assert.ok(header.includes('to="/login"'))
@@ -45,4 +45,30 @@ test('profile creation remains separate from account registration and clock paus
   assert.ok(login.includes("navigate(player ? '/game/overview' : '/create-player'"))
   assert.ok(app.includes('<Route path="/create-player" element={<RequireNoPlayer><CreatePlayerRoute /></RequireNoPlayer>} />'))
   assert.ok(css.includes('.tlg-prelaunch-registration-note'))
+})
+
+test('homepage groups action buttons and places final beta notice below the actions', () => {
+  const home = read('../src/pages/Home.tsx')
+  const css = read('../src/styles/home-branding.css')
+  const actions = home.match(/<div className="tlg-hero-actions">([\s\S]*?)<\/div>/)?.[1]
+  assert.ok(actions, 'hero action group is present')
+  assert.ok(actions.includes('to="/login"'), 'Sign In in action group')
+  assert.ok(actions.includes("t('home.hero.explore')"), 'Explore in action group')
+  assert.ok(actions.includes('to="/register"'), 'Create Account in same action group when enabled')
+  assert.ok(actions.includes("registrationAvailability === 'open'"), 'Register conditional')
+  assert.ok(home.includes("registrationAvailability === 'closed' && <BetaDisclaimer />"), 'Beta disclaimer when closed')
+  assert.ok(home.includes("t('home.hero.betaNotice')"), 'Beta notice below buttons')
+  assert.ok(css.includes('flex-wrap: nowrap'), 'desktop actions on one row')
+  assert.ok(css.includes('white-space: nowrap'), 'button labels do not wrap')
+  const modal = read('../src/components/marketing/BetaDisclaimer.tsx')
+  assert.ok(modal.includes('final phase of testing'))
+  assert.ok(modal.includes('New account registration is closed until the public launch'))
+  assert.ok(!modal.includes('we are not close to the final release yet'))
+})
+
+test('beta launch messaging is available in all eight translations', () => {
+  for (const lang of ['en', 'de', 'es', 'fr', 'it', 'pt', 'ru', 'sr']) {
+    const translation = read(`../src/i18n/locales/${lang}.ts`)
+    assert.ok(translation.includes('betaNotice'), `home beta notice missing in ${lang}`)
+  }
 })
