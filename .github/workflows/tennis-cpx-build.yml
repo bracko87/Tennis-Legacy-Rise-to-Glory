@@ -46,6 +46,8 @@ jobs:
         run: node --test tests/adminSeasonMigrationStatus.test.mjs
       - name: Verify 24-hour season maintenance cannot bypass player-access gate
         run: node --test tests/seasonMaintenanceWindow.test.mjs
+      - name: Verify migration day, 24h frozen preseason, January applications and automatic 2x resume
+        run: node --test tests/seasonTwoDayTransition.test.mjs
       - name: Verify mobile route audit inventory against actual App router
         run: npm run check:mobile-routes
       - name: Validate Private Life career integration contracts
