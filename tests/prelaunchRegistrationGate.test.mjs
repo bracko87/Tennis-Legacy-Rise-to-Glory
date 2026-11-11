@@ -4,39 +4,45 @@ import { readFileSync } from 'node:fs'
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8')
 
-test('public registration route remains blocked while prelaunch reset is unverified', () => {
+test('public registration route follows the server registration switch', () => {
   const app = read('../src/App.tsx')
-  assert.ok(app.includes('<Route path="/register" element={<Navigate to="/login" replace />} />'))
-  assert.ok(!app.includes('<Route path="/register" element={<RegisterPage'))
+  assert.ok(app.includes('<Route path="/register" element={<AnonymousOnly><RegisterRoute /></AnonymousOnly>} />'))
+  assert.ok(app.includes("const availability = usePublicRegistrationStatus()"))
+  assert.ok(app.includes("availability === 'open' ? <RegisterPage /> : <Navigate to=\"/login\" replace />"))
+  assert.ok(!app.includes('<Route path="/register" element={<RegisterPage />} />'))
 })
 
-test('homepage, public header and footer do not offer registration buttons', () => {
+test('registration gate is read-only and fails closed when the server is unavailable', () => {
+  const hook = read('../src/hooks/usePublicRegistrationStatus.ts')
+  assert.ok(hook.includes("supabase.rpc('get_public_registration_status_v1')"))
+  assert.ok(hook.includes("!error && data === true ? 'open' : 'closed'"))
+  assert.ok(hook.includes("useState<RegistrationAvailability>('loading')"))
+  const migration = read('../supabase/migrations/20261111170000_tennis_public_registration_status_read_only.sql')
+  assert.ok(migration.includes('get_public_registration_status_v1'))
+  assert.ok(migration.includes('FROM public.registration_control WHERE singleton_id=true'))
+  assert.ok(migration.includes('GRANT EXECUTE ON FUNCTION'))
+  assert.ok(!migration.includes('GRANT SELECT ON public.registration_control'))
+})
+
+test('public entry points show account creation only when registration is open', () => {
   const home = read('../src/pages/Home.tsx')
-  const header = read('../src/components/layout/MarketingHeader.tsx')
-  const footer = read('../src/components/layout/MarketingFooter.tsx')
-  for (const [name, content] of [['home', home], ['header', header], ['footer', footer]]) {
-    assert.ok(!content.includes('to="/register"'), name)
-    assert.ok(content.includes('to="/login"'), name)
-  }
-  assert.ok(!header.includes("t('marketing.startPlaying')"))
-  assert.ok(!header.includes("sectionId: 'premium-features'"))
-  assert.ok(home.includes("t('authPages.login.registrationClosed')"))
-  assert.ok(footer.includes("t('authPages.login.registrationClosed')"))
-})
-
-test('login and referral pages cannot direct visitors to open signup', () => {
   const login = read('../src/pages/auth/Login.tsx')
-  const referral = read('../src/pages/ReferralLanding.tsx')
-  assert.ok(login.includes("t('authPages.login.registrationClosed')"))
-  assert.ok(!login.includes('to="/register"'))
-  assert.ok(!referral.includes("navigate('/register'"))
-  assert.ok(referral.includes("navigate('/', { replace: true })"))
+  const footer = read('../src/components/layout/MarketingFooter.tsx')
+  for (const [name, content] of [['home', home], ['login', login], ['footer', footer]]) {
+    assert.ok(content.includes("usePublicRegistrationStatus()"), name)
+    assert.ok(content.includes("registrationAvailability === 'open'"), name)
+    assert.ok(content.includes('to="/register"'), name)
+    assert.ok(content.includes("t('authPages.login.registrationClosed')"), name)
+  }
+  const header = read('../src/components/layout/MarketingHeader.tsx')
+  assert.ok(header.includes('to="/login"'))
 })
 
-test('closed registration notice is visible and not linked to game clock reset', () => {
+test('profile creation remains separate from account registration and clock pause', () => {
+  const login = read('../src/pages/auth/Login.tsx')
+  const app = read('../src/App.tsx')
   const css = read('../src/styles/home-branding.css')
-  const home = read('../src/pages/Home.tsx')
+  assert.ok(login.includes("navigate(player ? '/game/overview' : '/create-player'"))
+  assert.ok(app.includes('<Route path="/create-player" element={<RequireNoPlayer><CreatePlayerRoute /></RequireNoPlayer>} />'))
   assert.ok(css.includes('.tlg-prelaunch-registration-note'))
-  assert.ok(home.includes('className="tlg-prelaunch-registration-note"'))
-  assert.ok(!home.includes('public_signup_enabled'))
 })
