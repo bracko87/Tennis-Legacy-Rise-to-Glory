@@ -148,9 +148,7 @@ export default function MarketingFooter({
                 Sign In
               </Link>
 
-              <Link to="/register">
-                Register
-              </Link>
+              <span>{t('authPages.login.registrationClosed')}</span>
             </FooterColumn>
 
             <FooterColumn title="The Game">
@@ -199,7 +197,7 @@ export default function MarketingFooter({
               </div>
               <PremiumBenefitsGuide placement="dialog" />
               <p className="tlg-pricing-note">{t('home.premium.note')}</p>
-              <div className="tlg-pricing-actions"><Link to="/register" onClick={() => setPricingOpen(false)}>{t('home.cta.create')}</Link></div>
+              <div className="tlg-pricing-actions"><p role="status">{t('authPages.login.registrationClosed')}</p></div>
             </section>
           </div>
         ), document.body)}
