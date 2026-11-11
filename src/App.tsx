@@ -56,6 +56,8 @@ import RefundPolicyPage from './pages/legal/RefundPolicy'
 import ReferralLandingPage from './pages/ReferralLanding'
 import PublicReviewSubmissionPage from './pages/PublicReviewSubmission'
 import LoginPage from './pages/auth/Login'
+import RegisterPage from './pages/auth/Register'
+import usePublicRegistrationStatus from './hooks/usePublicRegistrationStatus'
 import ForgotPasswordPage from './pages/auth/ForgotPassword'
 import ResetPasswordPage from './pages/auth/ResetPassword'
 import CreatePlayerPage from './pages/player/CreatePlayer'
@@ -189,6 +191,12 @@ function EquipmentRoute() {
   return <><EquipmentPage /><EquipmentMatchSetupsEnhancement /></>
 }
 
+function RegisterRoute() {
+  const availability = usePublicRegistrationStatus()
+  if (availability === 'loading') return <main role="status">Checking registration availability…</main>
+  return availability === 'open' ? <RegisterPage /> : <Navigate to="/login" replace />
+}
+
 function CreatePlayerRoute() {
   return <CreatePlayerPage />
 }
@@ -209,7 +217,7 @@ export default function App() {
           <Route path="/reviews/add" element={<PublicReviewSubmissionPage />} />
 
           <Route path="/login" element={<AnonymousOnly><LoginPage /></AnonymousOnly>} />
-          <Route path="/register" element={<Navigate to="/login" replace />} />
+          <Route path="/register" element={<AnonymousOnly><RegisterRoute /></AnonymousOnly>} />
           <Route path="/forgot-password" element={<AnonymousOnly><ForgotPasswordPage /></AnonymousOnly>} />
           <Route path="/reset-password" element={<RequireAuth><ResetPasswordPage /></RequireAuth>} />
           <Route path="/create-player" element={<RequireNoPlayer><CreatePlayerRoute /></RequireNoPlayer>} />
