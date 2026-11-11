@@ -238,7 +238,7 @@ BEGIN
   -- The current calendar must say Applications Open, for all 22 ATP/WTA
   -- competitions, without any January 1 game-clock time shift.
   WITH scope AS(
-    SELECT id FROM control_center_private.tennis_season2_week1_draw_deferral_archive_v1
+    SELECT competition_id AS id FROM control_center_private.tennis_season2_week1_draw_deferral_archive_v1
   )
   SELECT (SELECT count(*) FROM public.tournament_draw_publications d WHERE d.competition_id IN(SELECT id FROM scope))
       +(SELECT count(*) FROM public.tournament_matches m WHERE m.competition_id IN(SELECT id FROM scope))
