@@ -2624,6 +2624,14 @@ const frenchTranslations = {
     "deletePermanently": "Supprimer définitivement le joueur et le compte"
   },
   "financeSponsorPage": {
+    renewal: {
+      kicker: "RENOUVELLEMENT · SAISON {{season}}",
+      title: "Renouveler le sponsor principal pour la saison {{season}}",
+      body: "Votre sponsor précédent propose un contrat d'une saison basé sur votre classement final. Signer en décembre le réserve pour janvier. Le renouvellement est facultatif.",
+      offerNote: "Offre pour la saison suivante. Début le 1er janvier de la saison {{season}}.",
+      scheduledKicker: "ACCORD SAISON SUIVANTE · SAISON {{season}}",
+      scheduledBody: "Renouvellement accepté. Montant garanti : {{amount}}. Activation le 1er janvier ; paiements selon le nouveau calendrier.",
+    },
     "loadError": "Impossible de charger les offres de sponsors.",
     "logoAria": "Logo de {{name}}",
     "objective": {
