@@ -292,6 +292,8 @@ export default {
     logoutDesc: 'Odjavi se sa naloga',
   },
   footer: {
+    clockPaused: 'Pauzirano',
+    clockPausedUntil: 'Pauzirano · Nastavlja se {{date}}',
     synchronizingClock: 'Sinhronizacija vremena igre…',
     clockUnavailable: 'Vreme igre nije dostupno',
     season: 'Sezona {{season}}',
