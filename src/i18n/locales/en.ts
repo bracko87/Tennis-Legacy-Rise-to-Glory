@@ -333,6 +333,7 @@ export default {
       start: 'Start Playing',
       signIn: 'Sign In',
       explore: 'Explore the Game',
+      betaNotice: "Tennis Legacy is currently in beta. We are in the final phase of testing and plan to launch publicly soon. New account registration is closed until launch.",
       persistent: 'Persistent multiplayer world',
       seasonTime: 'Season-based game time',
       worlds: 'ATP and WTA worlds',
