@@ -36,10 +36,16 @@ The site release must be coordinated before the next boundary.
 - Game time is Season N+1, January 1, 00:00, effective speed 0.
 - Player sign-in / dashboard returns, and a dismissible preseason popup shows
   the **actual local date/time** the game clock will resume.
-- All undrawn January Weeks 1–4 competitions have a new-season application
-  window. Week 1 normal close: January 2 at 16:00; late close: 18:00;
-  draw publication: 22:00. First matches are scheduled no earlier than
-  January 3. Regular eligibility, rank and commitment checks still apply.
+- **Updated Week 1 rule (11 Nov 2026):** Season 2 and all future Week 1
+  ATP/WTA entries open no earlier than January 1 of that SAME season. Normal
+  applications close on January 3 at 06:00 game time; final late field
+  lock occurs at 07:00; draws publish at 08:00; earliest first match 10:00.
+  No previous-December acceptance or draw publication is valid for Week 1.
+  Weeks 2–4 return to their normal application schedule.
+  The update is `20261111132000_season2_week1_open_until_first_match_safe_redraw.sql`.
+  Existing premature Season 2 Week 1 brackets and accepted entries are
+  archived privately before the field is reopened. The single real human
+  application is retained for reassessment at the new deadline.
 - Existing published draws, finance transactions and rankings are not
   rewritten by the new transition controller.
 
@@ -129,3 +135,30 @@ on GitHub `main`, and the new timed Season 2 preparation popup is ready in
 `SeasonMaintenanceBoundary`. The Netlify automatic release gate remains
 stopped: **the new popup is not independently confirmed as published live**.
 The live database phase may therefore precede the website UI release.
+
+## Week 1 reopening correction — 11 Nov 2026
+
+The owner reported a live calendar displaying 16 prematurely published draws
+during the paused Season 2 preparation day. The original extension fixed five
+undrawn competitions only; it did not remove the already published ones.
+A guarded replacement migration archives all 22 competition records and
+applies the Jan 3 06:00/07:00/08:00/10:00 in-game schedule.
+
+- The preflight explicitly refuses to act if any real match has started or
+  if Season 2 Week 1 results already exist. It permits unplayed automatic
+  bye and canceled placeholders, which have completion timestamps but no
+  real match starts.
+- The archive captures each competition's original applications, entry rows,
+  match brackets, published draws, cycle state, qualifier slots and affected
+  travel planning records.
+- Player application choices are preserved; previously accepted AI and human
+  entries return to a fair pending selection, **not** guaranteed acceptance.
+- Old calendar Week 1 selection/lock monitors use the new first-match-day
+  timeline instead of incorrectly escalating a closed prior-season deadline.
+- Automatic processing retains the standard health, eligibility, rank,
+  one-tournament-per-week and minimum-field rules.
+- The live Season 2 clock and the 24-hour pause are not modified.
+- This does not authorize changing Season 1 results or Week 2–52 tournaments.
+
+Validation evidence: a full SQL reset and timeline simulation passed inside
+a transaction that was then rolled back, before any production commit.
