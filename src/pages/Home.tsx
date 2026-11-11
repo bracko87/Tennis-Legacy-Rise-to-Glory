@@ -32,6 +32,7 @@ import {
 } from 'lucide-react'
 
 import MarketingHeader from '../components/layout/MarketingHeader'
+import BetaDisclaimer from '../components/marketing/BetaDisclaimer'
 import SeasonTransitionNotice from '../components/season/SeasonTransitionNotice'
 import { SeasonMaintenanceAnnouncement } from '../components/season/SeasonMaintenanceBoundary'
 import MarketingFooter from '../components/layout/MarketingFooter'
@@ -135,6 +136,7 @@ export default function HomePage() {
   return (
     <div className="tlg-marketing-page">
       <MarketingHeader />
+      {registrationAvailability === 'closed' && <BetaDisclaimer />}
 
       <main className="tlg-home-main">
         <SeasonMaintenanceAnnouncement />
@@ -186,17 +188,19 @@ export default function HomePage() {
                 >
                   {t('home.hero.explore')}
                 </button>
+
+                {registrationAvailability === 'open' && (
+                  <Link to="/register" className="tlg-btn tlg-btn-primary tlg-btn-large">
+                    {t('authPages.login.createAccount')}
+                  </Link>
+                )}
               </div>
 
-              {registrationAvailability === 'open' ? (
-                <Link to="/register" className="tlg-btn tlg-btn-primary tlg-btn-large">
-                  {t('authPages.login.createAccount')}
-                </Link>
-              ) : registrationAvailability === 'closed' ? (
+              {registrationAvailability === 'closed' && (
                 <p className="tlg-prelaunch-registration-note" role="status">
-                  {t('authPages.login.registrationClosed')}
+                  {t('home.hero.betaNotice')}
                 </p>
-              ) : null}
+              )}
 
               <div className="tlg-hero-assurances">
                 <div>
@@ -546,7 +550,7 @@ export default function HomePage() {
                     </Link>
                   ) : registrationAvailability === 'closed' ? (
                     <p className="tlg-prelaunch-registration-note" role="status">
-                      {t('authPages.login.registrationClosed')}
+                      {t('home.hero.betaNotice')}
                     </p>
                   ) : null}
 
