@@ -28,3 +28,16 @@ test('Premium Tournament Watchlist is RPC-only and reminder worker stays inactiv
   assert.ok(hook.includes("supabase.rpc('get_premium_tournament_watchlist_v1'"))
   assert.ok(hook.includes("supabase.rpc('set_premium_tournament_watch_v1'"))
 })
+
+test('Season 1 Weeks 1 and 2 monitoring, auto-repair, and minimum-field checks honor late entry deadlines', () => {
+  const sql = read('../supabase/migrations/20261111185000_season1_early_weeks_entry_pipeline_due_alignment.sql')
+  assert.match(sql, /check_tournament_entry_pipeline_health_v1/)
+  assert.match(sql, /auto_repair_due_tournament_entry_pipelines_v1/)
+  assert.match(sql, /process_minimum_tournament_fields_v1/)
+  assert.match(sql, /mod\(r\.start_abs,366\) IN \(2,9\)/)
+  assert.match(sql, /min\(ss\.season_week\) IN \(1,2\)/)
+  assert.match(sql, /late_close_game_second/)
+  assert.match(sql, /ELSE \(\(r\.start_abs-8\)::bigint\*86400\)\+\(18\*3600\)/)
+  assert.match(sql, /RAISE EXCEPTION 'Unexpected % procedure version/)
+  assert.doesNotMatch(sql, /\bUPDATE\s+(?:public\.)?(?:game_clock|tournament_matches|tournament_entries)\b/i)
+})
