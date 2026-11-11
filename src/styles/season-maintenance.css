@@ -1,0 +1,72 @@
+.tlg-season-maintenance-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px 18px;
+  color: #152b3c;
+  background: radial-gradient(circle at 50% 8%, #e8f4f3 0%, #f6f9fb 48%, #eaf1f5 100%);
+  font-family: inherit;
+}
+.tlg-season-maintenance-card {
+  width: min(100%, 660px);
+  padding: clamp(24px, 4vw, 44px);
+  background: #fff;
+  border: 1px solid #d7e2e9;
+  border-radius: 20px;
+  box-shadow: 0 18px 56px rgba(12, 38, 57, .09);
+}
+.tlg-season-maintenance-brand {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 30px;
+}
+.tlg-season-maintenance-brand strong,
+.tlg-season-maintenance-brand small { display: block; }
+.tlg-season-maintenance-brand strong { font-size: 17px; letter-spacing: -.02em; }
+.tlg-season-maintenance-brand small { color: #607789; font-size: 11px; margin-top: 2px; }
+.tlg-season-maintenance-mark {
+  display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0;
+  border-radius: 11px; background: #17394b; color: #fff; font-weight: 900; font-size: 22px;
+}
+.tlg-season-maintenance-icon {
+  display: grid; place-items: center; width: 58px; height: 58px; margin-bottom: 20px;
+  background: #eef6f3; color: #216e57; border-radius: 15px;
+}
+.tlg-season-maintenance-eyebrow {
+  display: block; color: #247055; font-size: 11px; letter-spacing: .12em; font-weight: 800;
+}
+.tlg-season-maintenance-card h1 {
+  font-size: clamp(24px, 4vw, 35px); line-height: 1.2; letter-spacing: -.035em;
+  margin: 10px 0 14px; font-weight: 850;
+}
+.tlg-season-maintenance-lead {
+  color: #526b7d; font-size: 15px; line-height: 1.75; max-width: 590px; margin: 0 0 25px;
+}
+.tlg-season-maintenance-timing {
+  display: flex; align-items: flex-start; gap: 14px; padding: 17px;
+  background: #f5f8fa; border: 1px solid #dbe6eb; border-radius: 12px;
+}
+.tlg-season-maintenance-timing svg { color: #246d59; flex-shrink: 0; margin-top: 2px; }
+.tlg-season-maintenance-timing span { font-size: 12px; color: #5a7584; display: block; margin-bottom: 4px; }
+.tlg-season-maintenance-timing strong { display: block; line-height: 1.45; font-size: 15px; }
+.tlg-season-maintenance-timing small { color: #65798a; line-height: 1.6; display: block; margin-top: 6px; }
+.tlg-season-maintenance-note {
+  padding: 12px 15px; background: #fff9e9; border-left: 3px solid #dcad44;
+  margin: 15px 0 0; border-radius: 6px; font-size: 13px; line-height: 1.65;
+}
+.tlg-season-maintenance-reassurance {
+  display: flex; align-items: flex-start; gap: 10px;
+  color: #4a687b; font-size: 12px; line-height: 1.7; margin: 22px 0 0;
+}
+.tlg-season-maintenance-reassurance svg { flex-shrink: 0; margin-top: 2px; color: #247055; }
+.tlg-season-maintenance-announcement {
+  display: flex; gap: 14px; align-items: flex-start; padding: 17px 20px;
+  background: #fff9ea; border: 1px solid #ecd9a9; border-radius: 12px;
+  color: #523d20; line-height: 1.6; margin: 16px auto 0;
+  width: min(100% - 32px, 1240px);
+}
+.tlg-season-maintenance-announcement > svg { margin-top: 3px; flex-shrink: 0; color: #a07934; }
+.tlg-season-maintenance-announcement p { margin: 5px 0 0; font-size: 13px; }
+.tlg-season-maintenance-announcement strong { font-size: 14px; }
+@media(max-width: 600px) {
+  .tlg-season-maintenance-card { border-radius: 14px; }
+  .tlg-season-maintenance-announcement { padding: 14px; }
+}
