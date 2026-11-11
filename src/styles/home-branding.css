@@ -485,3 +485,22 @@
     padding-left: 6px;
   }
 }
+
+
+/* Public homepage: registration remains closed until a separately verified launch. */
+.tlg-home-main .tlg-prelaunch-registration-note {
+  display: inline-block;
+  max-width: 540px;
+  margin: 16px 0 0;
+  padding: 11px 15px;
+  border: 1px solid rgba(173, 212, 242, .36);
+  border-radius: 10px;
+  background: rgba(12, 46, 78, .58);
+  color: #e1f1ff;
+  font-size: .84rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.tlg-home-main .tlg-final-cta .tlg-prelaunch-registration-note {
+  margin: 0;
+}
