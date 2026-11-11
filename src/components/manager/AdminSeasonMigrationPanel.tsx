@@ -213,10 +213,10 @@ export default function AdminSeasonMigrationPanel() {
     {status?.week1_registration && (
       <section className="tlg-admin-season-blockers" aria-labelledby="tlg-season2-registration-summary">
         <h4 id="tlg-season2-registration-summary">Season 2 · Week 1 human registration</h4>
-        <p><strong>{status.week1_registration.preferences_saved} of {status.week1_registration.human_players_total}</strong> human players have saved a Week 1 tournament preference.</p>
+        <p><strong>{status.week1_registration.preferences_saved}</strong> Week 1 preference(s) saved. Registration is optional; test accounts and players who choose to skip Week 1 do not block the migration.</p>
         <p>ATP: {status.week1_registration.selected_atp} · WTA: {status.week1_registration.selected_wta}. These are preferences, not accepted tournament entries. No player is automatically enrolled.</p>
         <p>{status.week1_registration.ready_to_accept_preferences
-          ? 'The database registration window is ready. The updated player dashboard must be deployed before users can make their selections.'
+          ? 'The optional registration window is active. The live player dashboard can accept preferences; selections are not yet tournament entries.'
           : 'The protected registration window is not currently open.'}</p>
       </section>
     )}
