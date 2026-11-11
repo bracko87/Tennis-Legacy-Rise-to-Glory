@@ -1979,6 +1979,14 @@ export default {
     gameDate: "{{month}} {{day}} · Temporada {{season}}",
   },
   financeSponsorPage: {
+    renewal: {
+      kicker: "RENOVACIÓN · TEMPORADA {{season}}",
+      title: "Renueva tu patrocinador principal para la temporada {{season}}",
+      body: "Tu patrocinador anterior ofrece un nuevo contrato de una temporada según tu clasificación final. Firmarlo en diciembre lo reserva para enero. La renovación es opcional.",
+      offerNote: "Oferta para la próxima temporada. Comienza el 1 de enero de la temporada {{season}}.",
+      scheduledKicker: "ACUERDO PARA LA PRÓXIMA TEMPORADA · {{season}}",
+      scheduledBody: "Renovación aceptada. Valor garantizado: {{amount}}. Se activa el 1 de enero; los pagos siguen el nuevo calendario.",
+    },
     loadError: "No se pudieron cargar las ofertas de los patrocinadores.",
     logoAria: "Logotipo de {{name}}",
     objective: {
