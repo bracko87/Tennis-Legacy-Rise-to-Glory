@@ -24,9 +24,11 @@ type SponsorReadiness = {
 }
 
 type MigrationStep = { step_key: string; status: string }
+type PreparationStep = { label: string; detail: string }
 
 type Readiness = {
   steps?: MigrationStep[]
+  step_preparation?: Record<string, PreparationStep>
   run?: { status: string; execution_enabled: boolean } | null
   phase: string
   execution_enabled: boolean
@@ -226,12 +228,23 @@ export default function AdminSeasonMigrationPanel() {
     </div>
 
     <div className="tlg-admin-season-checkpoints">
-      <header><div><span>TRANSITION RUNBOOK</span><h4>13 ordered migration checkpoints</h4></div>
+      <header><div><span>ROLL-OVER EXECUTION</span><h4>13 migration checkpoints</h4></div>
         <small>{status?.run ? `Run: ${status.run.status} · execution ${status.run.execution_enabled ? 'enabled' : 'disabled'}` : 'No verified migration run'}</small></header>
+      <p className="tlg-admin-season-checkpoint-explanation">Preparation shows verified checks and rollback tests. Execution shows actions actually completed on the live Season 2 migration. A tested step is not the same as an executed step.</p>
       <div className="tlg-admin-season-checkpoint-grid">
         {CHECKPOINTS.map((step) => <article key={step.id}>
-          <div><strong>{step.title}</strong><span className="tlg-admin-season-pending">{status?.steps?.find((entry) => entry.step_key === step.id)?.status ?? 'Not recorded'}</span></div>
-          <p>{step.gate}</p>
+          <div><strong>{step.title}</strong></div>
+          <div className="tlg-admin-season-status-pair">
+            <span className="tlg-admin-season-preparation">
+              <small>Preparation</small>
+              <strong>{status?.step_preparation?.[step.id]?.label ?? 'Not verified'}</strong>
+            </span>
+            <span className="tlg-admin-season-execution">
+              <small>Live execution</small>
+              <strong>{status?.steps?.find((entry) => entry.step_key === step.id)?.status ?? 'Not recorded'}</strong>
+            </span>
+          </div>
+          <p>{status?.step_preparation?.[step.id]?.detail ?? step.gate}</p>
         </article>)}
       </div>
     </div>
