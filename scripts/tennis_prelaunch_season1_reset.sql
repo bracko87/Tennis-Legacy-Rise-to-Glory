@@ -172,7 +172,8 @@ BEGIN
 END $reseed$;
 
 -- Starting abilities should not create historical training entries.
-TRUNCATE TABLE public.player_skill_history,public.user_notifications RESTRICT;
+TRUNCATE TABLE public.player_skill_history RESTRICT;
+DELETE FROM public.user_notifications;
 
 DO $postcheck$
 DECLARE v_mismatch integer;
