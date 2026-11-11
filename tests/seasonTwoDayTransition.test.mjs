@@ -51,7 +51,7 @@ test('maintenance blocks routes and displays real-world reopening; preseason all
   assert.match(boundary, /supabase\.auth\.signOut\(\{ scope: 'local' \}\)/)
   assert.match(boundary, /if \(state\.maintenance_active\) return <MaintenanceScreen/)
   assert.match(boundary, /preseasonPopupVisible/)
-  assert.match(boundary, /You can sign in again/)
+  assert.match(boundary, /you can sign in again/i)
   assert.match(boundary, /formatDateTime\(state\.preseason_ends_at\)/)
   assert.match(boundary, /to="\/game\/calendar"/)
   assert.match(css, /\.tlg-preseason-modal-backdrop/)
