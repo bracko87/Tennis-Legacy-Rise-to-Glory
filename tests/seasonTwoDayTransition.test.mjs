@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs'
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8')
 const controller = read('../supabase/migrations/20261111120000_season_transition_two_real_days_v1.sql')
 const windows = read('../supabase/migrations/20261111121000_season_transition_preseason_january_applications_v1.sql')
+const week1 = read('../supabase/migrations/20261111132000_season2_week1_open_until_first_match_safe_redraw.sql')
 const boundary = read('../src/components/season/SeasonMaintenanceBoundary.tsx')
 const css = read('../src/styles/season-maintenance.css')
 const notice = read('../src/components/season/SeasonTransitionNotice.tsx')
@@ -36,14 +37,29 @@ test('game time never progresses during either 24h stage', () => {
   assert.match(controller, /stop_at_total_seconds=v_control\.target_season::bigint\*31622400-1/)
 })
 
-test('new season January applications remain open with stable deadlines and no draw rewriting', () => {
-  assert.match(windows, /v_first_week BETWEEN 1 AND 4/)
-  assert.match(windows, /v_season = \(SELECT season\+1 FROM public\.game_clock WHERE id=1\)/)
-  assert.match(windows, /c\.target_season=v_season[\s\S]*?c\.preseason_starts_at IS NOT NULL/)
-  assert.match(windows, /NOT EXISTS\([\s\S]*?tournament_draw_publications/)
-  assert.match(windows, /v_open := least\(v_open/)
-  assert.match(windows, /v_first_week=1/)
-  assert.match(windows, /v_draw := \(v_season-1\)::bigint\*31622400 \+ 86400 \+ 22\*3600/)
+test('Week 1 exclusively is booked in its own season until Jan 3, with first match at 10:00', () => {
+  assert.match(week1, /IF v_first_week=1 AND v_season>=2 THEN/)
+  assert.match(week1, /v_open := \(v_season-1\)::bigint\*31622400/)
+  assert.match(week1, /v_close := v_first_start::bigint\*86400 \+ 6\*3600/)
+  assert.match(week1, /v_late_close := v_first_start::bigint\*86400 \+ 7\*3600/)
+  assert.match(week1, /v_draw := v_first_start::bigint\*86400 \+ 8\*3600/)
+  assert.match(week1, /CASE WHEN v_first_week=1 AND v_season>=2 THEN 10\*3600 ELSE 0 END/)
+  assert.match(week1, /v_count<>2 THEN RAISE EXCEPTION 'Expected two lifecycle selection sites/)
+  assert.match(week1, /process_minimum_tournament_fields_v1/)
+})
+
+test('premature Season 2 Week 1 drawings are archived and reset only if no match was played', () => {
+  assert.match(week1, /CREATE TABLE IF NOT EXISTS control_center_private\.tennis_season2_week1_draw_deferral_archive_v1/)
+  assert.match(week1, /FROM public\.tournament_matches m/)
+  assert.match(week1, /m\.started_at IS NOT NULL/)
+  assert.match(week1, /m\.status NOT IN \('scheduled','bye','cancelled'\)/)
+  assert.match(week1, /original_data jsonb NOT NULL/)
+  assert.match(week1, /'applications'/)
+  assert.match(week1, /'matches'/)
+  assert.match(week1, /'travel'/)
+  assert.match(week1, /a\.status IN\('accepted_main_draw','accepted_qualification'\)/)
+  assert.match(week1, /IF v_human_apps<>1 THEN RAISE EXCEPTION 'Human tournament preference not preserved'/)
+  assert.match(week1, /WHERE e\.season_number=2 AND ss\.season_week=1/)
 })
 
 test('maintenance blocks routes and displays real-world reopening; preseason allows login', () => {
