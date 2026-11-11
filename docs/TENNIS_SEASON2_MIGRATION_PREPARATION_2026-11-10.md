@@ -285,3 +285,36 @@ Preparation continued using the existing Supabase and GitHub connections, only o
 The Supabase project belongs to a Pro organization, whose normal daily backup policy is seven days, but the specific backup timestamps and independent restoration have still not been verified through the available database connector. Do not mark backup/restore flags true on the basis of plan tier alone.
 
 **Production remains Season 1 Dec 31 23:59:59**, 0 executed migration steps, and no actual player preferences submitted. The actual migration remains disabled pending independently verified backup, real registration/deployment, complete simulation and operator approval.
+
+## RELEASE COMPLETED — Season 2 is live (November 11, 2026)
+
+**Production state confirmed** (project `cwfznmroiqcyhfkfcrow`, UTC timestamps; real time is Europe/Berlin):
+
+- **Season 1 → 2 cutover** finished `2026-11-11T09:20:30.787Z` using the authenticated operator-controlled, atomic PostgreSQL runner.
+- **All 13 actual migration journal steps** are `completed`; the run status is `completed`. These are real committed production steps, not rehearsal results.
+- **Week 1**: 22 competitions reconciled with 22 matching source/audit receipts; 16 previously published draws were reconstructed, six underfilled competitions remain unpublished, 676 match records; one explicitly selected ATP human preference was processed and accepted into the Brisbane Open main draw; the four test accounts were not forcibly registered.
+- **Calendar**: 597 Season 2 editions, 613 linked schedule slots, and 1,194 ATP/WTA competitions. No Season 2 match was played early. Matches are planned from January 3 onward; January 1 and 2 are the two tournament-free opening days.
+- **Clock**: cutover initially completed at Season 2 January 1 00:00 **paused**; separate post-cutover verifications passed; the real-time clock was then resumed at **2×** with the Season 2 year-end boundary guard armed at absolute game second 63,244,799. Live `get_game_clock_v1()` advanced from 31,622,400 to 31,622,433 and onward. `public.get_season_transition_notice_v1()` reported `phase=completed`.
+- **Maintenance**: future 24-hour site maintenance control remained `off`, so the migration did not block logins.
+- **Player finance**: five of five accounts match the `balance_after` of the terminal transaction of their latest game-day ledger; 0 unmatched as of `2026-11-11T09:30:01Z`. One previous naive check ordered solely by `created_at` and falsely flagged a $2,122 mismatch; a tax transaction was inserted a few milliseconds after a dependent monthly cost, so timestamp order did not reflect the balance chain. No balances were modified by this verification.
+- **Sponsor contracts**: due technical sponsor contracts changed state at boundary as intended. Consequently the pre-cutover `all_unchanged` baseline is **not** appropriate as a blanket post-cutover invariant for all contracts and player finance accounts.
+
+### Explicitly accepted recovery/test limitations
+
+The owner declined creation of an additional billable Supabase project and requested moving ahead using the existing physical backup. The private run therefore contains a **one-time Season 1 → 2 documented risk acceptance**, source-backup screenshot evidence, and passed transaction-rollback rehearsals. This exception was written into a one-time, target-season-specific approval constraint and release gate—not by marking missing tests as successful.
+
+**These three verification flags intentionally remain false even after successful migration:**
+
+- `backup_verified = false` (independent full source/restore proof not certified; an existing physical backup was observed)
+- `restore_test_verified = false` (no actual independent restored database was tested)
+- `two_season_dry_run_verified = false` (no complete isolated S1→2→3 migration was run; separate clock-boundary and S1→2 rollback trials passed)
+
+This represents consciously accepted additional recovery risk and should **not** become the default policy for future season migrations. Do not weaken these controls for Season 2 → 3.
+
+### Administration interface
+
+The administrator status API now returns `phase=completed` and a separate `last_completed_transition` containing all 13 real journal steps and the one-time recovery-risk disclosure. The underlying generic snapshot now correctly describes the **future Season 2 → 3** transition, which has no calendar or release plan yet. The frontend separates this future readiness state from the completed Season 1 → 2 journal and removes the obsolete "Migration NOT READY" warning for the completed release.
+
+### Known remaining non-blocking follow-up
+
+Continue watching ordinary Season 2 operations during the January 1/2 free days and the first Week 1 matches; the transition itself is complete, but normal gameplay must still be observed. Prepare the Season 3 calendar and player applications early rather than requiring a future emergency Week 1 recovery. Use the new 24-hour real-world maintenance procedure when the next actual rollover is scheduled, after completing the API-write isolation and browser checks.
