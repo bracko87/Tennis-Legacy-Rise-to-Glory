@@ -77,3 +77,55 @@ The site release must be coordinated before the next boundary.
 5. Test a full cycle with a controlled clock: boundary lock, migration overrun,
    verified completion, 24-hour paused January access, and automatic 2x resume.
 6. Inspect cron history and Control Center incidents after each phase.
+
+## Live Season 2 preparation exercise — 11 November 2026
+
+Owner requested a full real-world 24-hour freeze **after** the already-executed
+Season 1→2 migration, **without rerunning migration or resetting player state**.
+
+- Started: 11 Nov 2026 11:22:24 UTC (12:22:24 Germany).
+- Scheduled resume: 12 Nov 2026 11:22:24 UTC (12:22:24 Germany).
+- Actual in-game freeze: Season 2, January 1, **04:00**, the current time
+  at activation; this was deliberately not reset to 00:01.
+- Database state: `maintenance.status=preseason`;
+  `game_clock.is_paused=true`; effective game speed `0`.
+- Access state: public `maintenance_active=false` and
+  `preseason_active=true`, so existing players can sign in.
+- The minute-scheduled controller has succeeded after activation.
+- During the first monitored minutes, **zero** new career-finance
+  transactions, tournament results, or ranking awards were posted.
+- This was **not** a second migration. The preexisting completed run contains
+  13 of 13 completed steps; an isolated backup restore was **not** tested.
+
+### Read-only migration audit taken during this exercise
+
+- Six recorded baseline metrics; four remain identical (coin wallets,
+  player population, rankings and Season 2 calendar counts).
+- Financial baseline differed by **-$5,722**: recorded Season 2 day-one costs
+  **-$2,122 private-life costs** and **-$3,600 taxes**, all five balances
+  reconciled to their most recent transaction.
+- Two technical sponsor contracts originally expiring at the boundary have
+  status `completed`; the surviving contract remains `active`.
+- Season 1: 0 unfinished matches, 0 unclosed editions, 12 completed finals,
+  616 year-end ranking results. Source ranking contribution history remains.
+- Player inventory: 29 equipment records owned by five human players;
+  seven private-life asset records for human players; no player population or
+  coin-balance reset was detected.
+- Season 2 calendar: 597 editions, 613 slots, 1,194 competitions, 52 weeks.
+  A strict pre-migration readiness checker now fails by design because
+  already-generated Week 1 matches exist and one scheduled competition
+  (Lima Challenger ATP) was cancelled.
+- Week 1: 16 draws published, 5 competitions undrawn, one cancelled.
+  Three original post-cutover fingerprints differ due to subsequent
+  application/field changes; a historical receipt is not an immutable
+  live-state guarantee.
+- Backup inventory existed but **independent restore certification and
+  isolated two-season simulation were not performed**.
+
+### Website publication
+
+The old "active development" beta popup is removed from `MarketingHeader`
+on GitHub `main`, and the new timed Season 2 preparation popup is ready in
+`SeasonMaintenanceBoundary`. The Netlify automatic release gate remains
+stopped: **the new popup is not independently confirmed as published live**.
+The live database phase may therefore precede the website UI release.
