@@ -65,6 +65,8 @@ interface SponsorOffer {
   performance_bonus_pool?: number
   maximum_total_value?: number
   objective_plan?: SponsorObjectiveView[]
+  target_season?: number
+  is_renewal?: boolean
   status: string
 }
 
@@ -113,6 +115,8 @@ interface SponsorDashboard {
   player_country_code: string
   active_contract: SponsorContract | null
   offers: SponsorOffer[]
+  renewal_offers?: SponsorOffer[]
+  scheduled_renewal?: { target_season: number; sponsor_name: string; total_contract_value: number; starts_absolute_day: number } | null
 }
 
 const MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
@@ -481,12 +485,13 @@ function SponsorOfferCard({
         <div className="tlg-finance-sponsor-offer-content">
           <div className="tlg-finance-sponsor-offer-heading">
             <div>
-              <span className="tlg-finance-sponsor-kicker">{t('financeSponsorPage.offer.kicker')}</span>
+              <span className="tlg-finance-sponsor-kicker">{offer.is_renewal ? t('financeSponsorPage.renewal.kicker', { season: offer.target_season }) : t('financeSponsorPage.offer.kicker')}</span>
               <h3>{offer.sponsor_name}</h3>
               <span className="tlg-finance-sponsor-country">{offer.sponsor_country_code}</span>
             </div>
           </div>
 
+          {offer.is_renewal && <p className="tlg-finance-sponsor-note">{t('financeSponsorPage.renewal.offerNote', { season: offer.target_season })}</p>}
           <div className="tlg-finance-sponsor-offer-value">
             <span>{t('financeSponsorPage.offer.guaranteed')}</span>
             <strong>{money(offer.total_contract_value)}</strong>
@@ -566,6 +571,8 @@ function SponsorContent({
   onDecline: (id: string) => void
 }) {
   const { t } = useTranslation()
+  const { formatCurrency } = useLocalization()
+  const money = (value: number) => formatCurrency(Math.max(0, Math.round(Number(value) || 0)), 'USD')
   if (loading && !dashboard) return <div className="tlg-finance-sponsor-state">{t('financeSponsorPage.market.loading')}</div>
   if (error && !dashboard) {
     return <div className="tlg-finance-sponsor-state error"><span>{error}</span><button type="button" onClick={onRetry}>{t('financeSponsorPage.market.retry')}</button></div>
@@ -573,6 +580,7 @@ function SponsorContent({
   if (!dashboard) return null
 
   const offers = dashboard.offers ?? []
+  const renewalOffers = dashboard.renewal_offers ?? []
 
   return (
     <div className="tlg-finance-sponsor-page">
@@ -608,6 +616,33 @@ function SponsorContent({
 
           <p className="tlg-finance-sponsor-note standalone">{t('financeSponsorPage.market.signingNote')}</p>
         </>
+      )}
+
+      {dashboard.scheduled_renewal && (
+        <section className="tlg-finance-sponsor-market-summary compact">
+          <span className="tlg-finance-sponsor-kicker">
+            {t('financeSponsorPage.renewal.scheduledKicker', { season: dashboard.scheduled_renewal.target_season })}
+          </span>
+          <h2>{dashboard.scheduled_renewal.sponsor_name}</h2>
+          <p>{t('financeSponsorPage.renewal.scheduledBody', {
+            amount: money(dashboard.scheduled_renewal.total_contract_value),
+          })}</p>
+        </section>
+      )}
+
+      {renewalOffers.length > 0 && (
+        <section className="tlg-finance-sponsor-renewal">
+          <div className="tlg-finance-sponsor-market-summary compact">
+            <span className="tlg-finance-sponsor-kicker">{t('financeSponsorPage.renewal.kicker', { season: renewalOffers[0].target_season })}</span>
+            <h2>{t('financeSponsorPage.renewal.title', { season: renewalOffers[0].target_season })}</h2>
+            <p>{t('financeSponsorPage.renewal.body')}</p>
+          </div>
+          <div className="tlg-finance-sponsor-offers-grid">
+            {renewalOffers.map((offer) => (
+              <SponsorOfferCard key={offer.id} offer={offer} actionId={actionId} onSign={onSign} onDecline={onDecline} />
+            ))}
+          </div>
+        </section>
       )}
 
       <PremiumSponsorIntelligence
