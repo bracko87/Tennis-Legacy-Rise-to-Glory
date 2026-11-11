@@ -146,6 +146,10 @@ export function SeasonMaintenanceBoundary({ children }: { readonly children: Rea
     void supabase.auth.signOut({ scope: 'local' })
   }, [state?.maintenance_active])
 
+  // Keep the availability check active without flashing a full-page status
+  // during ordinary logins and refreshes. Do not mount gameplay until verified.
+  if (!state && !unavailable) return null
+
   if (!state) {
     return (
       <div className="tlg-season-maintenance-page">
