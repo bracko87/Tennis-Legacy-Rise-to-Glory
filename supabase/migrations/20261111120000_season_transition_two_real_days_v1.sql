@@ -41,7 +41,7 @@ WITH clock_state AS (
       END AS total_seconds
   FROM clock_state cs
 ),guarded AS (
-  SELECT r.server_now,r.speed_multiplier,r.total_seconds,
+  SELECT r.server_now,r.speed_multiplier,r.total_seconds,r.season AS physical_season,
     CASE WHEN g.enabled AND g.source_season=r.season THEN g.stop_at_total_seconds
       ELSE null::bigint END AS cap_seconds
   FROM raw_time r LEFT JOIN public.season_transition_boundary_guard_v1 g ON g.id=true
@@ -53,7 +53,9 @@ SELECT g.server_now,
   CASE WHEN s.status IN('active','extended','preseason') THEN 0::numeric
        WHEN g.cap_seconds IS NOT NULL AND g.total_seconds>=g.cap_seconds THEN 0::numeric
        ELSE g.speed_multiplier END,
-  CASE WHEN s.status IN('active','extended') THEN s.source_season::bigint*31622400-1
+  CASE WHEN s.status IN('active','extended') THEN
+         CASE WHEN g.physical_season=s.target_season THEN (s.target_season-1)::bigint*31622400
+              ELSE s.source_season::bigint*31622400-1 END
        WHEN s.status='preseason' THEN (s.target_season-1)::bigint*31622400
        WHEN g.cap_seconds IS NOT NULL THEN least(g.total_seconds,g.cap_seconds)
        ELSE g.total_seconds END
