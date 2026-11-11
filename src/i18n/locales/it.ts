@@ -286,6 +286,8 @@ export default {
     "logoutDesc": "Disconnettiti dal tuo account"
   },
   "footer": {
+    "clockPaused": "In pausa",
+    "clockPausedUntil": "In pausa · Riprende il {{date}}",
     "synchronizingClock": "Sincronizzazione dell'orologio di gioco…",
     "clockUnavailable": "Orologio di gioco non disponibile",
     "season": "Stagione {{season}}",
