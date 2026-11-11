@@ -31,8 +31,8 @@ export default function ReferralLandingPage() {
 
       if (!error && data === true) {
         storeReferralCode(normalizedCode)
-        setMessage(t('referralLanding.saved'))
-        window.setTimeout(() => navigate('/register', { replace: true }), 650)
+        setMessage(t('authPages.login.registrationClosed'))
+        window.setTimeout(() => navigate('/', { replace: true }), 650)
         return
       }
 
