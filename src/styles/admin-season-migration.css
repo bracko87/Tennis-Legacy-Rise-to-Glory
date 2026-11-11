@@ -55,3 +55,12 @@
 .tlg-admin-season-rules-scroll tbody tr:last-child th,.tlg-admin-season-rules-scroll tbody tr:last-child td{border-bottom:none}
 @media(max-width:1080px){.tlg-admin-season-sponsor-counts{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.tlg-admin-season-sponsor-policy,.tlg-admin-season-carryover{padding:14px}.tlg-admin-season-sponsor-counts{gap:8px}}
+
+/* Migration journal: preparation evidence is deliberately distinct from execution. */
+.tlg-admin-season-checkpoint-explanation{margin:0 0 13px;color:#4d6b7f;font-size:.72rem;line-height:1.6}
+.tlg-admin-season-status-pair{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important;margin-top:12px}
+.tlg-admin-season-status-pair>span{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0;padding:9px 10px;border:1px solid #e2eaf0;border-radius:8px;background:#fff}
+.tlg-admin-season-status-pair small{font-size:.61rem;color:#587389}
+.tlg-admin-season-status-pair strong{font-size:.7rem;line-height:1.35;font-weight:680;color:#23516e;overflow-wrap:anywhere}
+.tlg-admin-season-execution strong{color:#936c41}
+@media(max-width:390px){.tlg-admin-season-status-pair{grid-template-columns:1fr}}
