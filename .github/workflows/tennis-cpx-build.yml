@@ -40,6 +40,8 @@ jobs:
         run: node --experimental-strip-types --test tests/premiumFeatureGuide.test.mjs
       - name: Verify sidebar collapse preference persists across navigation
         run: node --experimental-strip-types --test tests/sidebarPreference.test.mjs
+      - name: Verify Season 2 Week 1 human registration stays on dashboard and remains non-destructive
+        run: node --test tests/season2Week1PreRegistration.test.mjs
       - name: Verify mobile route audit inventory against actual App router
         run: npm run check:mobile-routes
       - name: Validate Private Life career integration contracts
