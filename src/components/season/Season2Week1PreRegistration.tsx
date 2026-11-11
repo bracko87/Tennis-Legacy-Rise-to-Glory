@@ -136,8 +136,8 @@ export default function Season2Week1PreRegistration() {
       <header className="tlg-season2-week1-header">
         <div>
           <span>{t('season2Preentry.kicker', { defaultValue: 'SEASON 2 · WEEK 1' })}</span>
-          <h3 id="tlg-season2-week1-title">{t('season2Preentry.title', { defaultValue: 'Choose your first tournament' })}</h3>
-          <p>{t('season2Preentry.intro', { defaultValue: 'Season 1 has ended. Choose a Week 1 tournament now so your preference can be considered during the safe Season 2 recovery.' })}</p>
+          <h3 id="tlg-season2-week1-title">{t('season2Preentry.title', { defaultValue: 'Optional Week 1 tournament preference' })}</h3>
+          <p>{t('season2Preentry.intro', { defaultValue: 'This optional choice is only for the Season 1 → 2 recovery, because the first Week 1 draws were prepared before normal player registration was available. Future seasons should use the regular tournament application process.' })}</p>
         </div>
         <strong className="tlg-season2-week1-world">{state.world}</strong>
       </header>
@@ -197,7 +197,7 @@ export default function Season2Week1PreRegistration() {
       </div>
 
       <p className="tlg-season2-week1-disclaimer">
-        {t('season2Preentry.warning', { defaultValue: 'This is not an accepted entry or a confirmed draw place. There is no entry fee charged. Your choice will be checked against player eligibility and tournament capacity during the protected migration.' })}
+        {t('season2Preentry.warning', { defaultValue: 'You can skip this if you do not want to play Week 1. No player is registered automatically. A saved preference is not yet an accepted entry or confirmed draw place, and no entry fee is charged. This special form will not be required for regular future seasons.' })}
       </p>
       {notice && <p className="tlg-season2-week1-message" role="status">{notice}</p>}
       {error && <p className="tlg-season2-week1-error" role="alert">{error}</p>}
