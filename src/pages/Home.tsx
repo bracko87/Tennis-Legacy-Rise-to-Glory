@@ -165,14 +165,6 @@ export default function HomePage() {
 
               <div className="tlg-hero-actions">
                 <Link
-                  to="/register"
-                  className="tlg-btn tlg-btn-primary tlg-btn-large"
-                >
-                  {t('home.hero.start')}
-                  <ArrowRight size={18} />
-                </Link>
-
-                <Link
                   to="/login"
                   className="tlg-btn tlg-btn-secondary tlg-btn-large"
                 >
@@ -193,6 +185,10 @@ export default function HomePage() {
                   {t('home.hero.explore')}
                 </button>
               </div>
+
+              <p className="tlg-prelaunch-registration-note" role="status">
+                {t('authPages.login.registrationClosed')}
+              </p>
 
               <div className="tlg-hero-assurances">
                 <div>
@@ -536,13 +532,9 @@ export default function HomePage() {
                 </p>
 
                 <div className="tlg-final-cta-actions">
-                  <Link
-                    to="/register"
-                    className="tlg-btn tlg-btn-primary tlg-btn-large"
-                  >
-                    {t('home.cta.create')}
-                    <ArrowRight size={18} />
-                  </Link>
+                  <p className="tlg-prelaunch-registration-note" role="status">
+                    {t('authPages.login.registrationClosed')}
+                  </p>
 
                   <Link
                     to="/login"
