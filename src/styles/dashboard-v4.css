@@ -241,6 +241,27 @@
   font-weight: 780;
 }
 
+/* Plain text beside the game time; disappears when the server unpauses. */
+.tlg-v4-game-clock {
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.tlg-v4-game-clock-pause {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-width: 0;
+  color: #526c80;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.tlg-v4-game-clock-pause svg {
+  flex-shrink: 0;
+}
+
 .tlg-v4-clock-speed {
   color: #8798a6;
   font-size: .58rem;
@@ -272,5 +293,12 @@
 
   .tlg-v4-footer {
     align-items: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  .tlg-v4-game-clock-pause {
+    flex-basis: 100%;
+    margin-left: 22px;
   }
 }
