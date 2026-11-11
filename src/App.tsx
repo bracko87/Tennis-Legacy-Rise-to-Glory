@@ -34,6 +34,7 @@ import {
   RequireNoPlayer,
   RequirePlayer,
 } from './auth/RouteGuards'
+import { SeasonMaintenanceBoundary } from './components/season/SeasonMaintenanceBoundary'
 import AnalyticsTracker from './components/analytics/AnalyticsTracker'
 import OverviewInjuryEnhancement from './components/dashboard/OverviewInjuryEnhancement'
 import EquipmentMatchSetupsEnhancement from './components/equipment/EquipmentMatchSetupsEnhancement'
@@ -195,6 +196,7 @@ function CreatePlayerRoute() {
 export default function App() {
   return (
     <BrowserRouter>
+      <SeasonMaintenanceBoundary>
       <AuthProvider>
         <LocalizationProvider>
           <GamePreferencesProvider>
@@ -253,6 +255,7 @@ export default function App() {
           </GamePreferencesProvider>
         </LocalizationProvider>
       </AuthProvider>
+      </SeasonMaintenanceBoundary>
     </BrowserRouter>
   )
 }
