@@ -1,4 +1,14 @@
 export default {
+  financeSponsorPage: {
+    renewal: {
+      kicker: "OBNOVA · SEZONA {{season}}",
+      title: "Obnovi glavnog sponzora za sezonu {{season}}",
+      body: "Dosadašnji sponzor nudi novi ugovor za jednu sezonu na osnovu konačnog plasmana. Ako ga potpišeš u decembru, važiće od januara. Obnova nije obavezna.",
+      offerNote: "Ponuda za sledeću sezonu. Počinje 1. januara u sezoni {{season}}.",
+      scheduledKicker: "UGOVOR ZA SLEDEĆU SEZONU · {{season}}",
+      scheduledBody: "Obnova je prihvaćena. Garantovana vrednost ugovora je {{amount}}. Važi od 1. januara, a isplate prate novi raspored.",
+    },
+  },
   developmentPremium: {
     "kicker": "PREMIUM · RAZVOJ",
     "title": "Inteligentna analiza razvoja igrača",
