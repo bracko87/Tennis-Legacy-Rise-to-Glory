@@ -24,7 +24,6 @@ const navigationItems: readonly MarketingNavigationItem[] = [
   { labelKey: 'marketing.features', sectionId: 'features' },
   { labelKey: 'marketing.howItWorks', sectionId: 'how-it-works' },
   { labelKey: 'marketing.gameWorld', sectionId: 'game-world' },
-  { labelKey: 'home.premium.eyebrow', sectionId: 'premium-features' },
 ]
 
 const LANGUAGE_META: Record<AppLocale, { label: string; shortLabel: string; countryCode: string }> = {
@@ -152,7 +151,6 @@ export default function MarketingHeader() {
           ) : (
             <>
               <Link to="/login" className="tlg-btn tlg-btn-ghost tlg-btn-small tlg-header-signin">{t('marketing.signIn')}</Link>
-              <Link to="/register" className="tlg-btn tlg-btn-primary tlg-btn-small">{t('marketing.startPlaying')}</Link>
             </>
           )}
 
@@ -255,7 +253,6 @@ export default function MarketingHeader() {
               ) : (
                 <>
                   <Link to="/login" className="tlg-btn tlg-btn-secondary tlg-btn-full" onClick={() => setMobileMenuOpen(false)}>{t('marketing.signIn')}</Link>
-                  <Link to="/register" className="tlg-btn tlg-btn-primary tlg-btn-full" onClick={() => setMobileMenuOpen(false)}>{t('marketing.startPlaying')}</Link>
                 </>
               )}
             </div>
