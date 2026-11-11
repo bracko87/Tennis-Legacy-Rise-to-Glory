@@ -40,6 +40,8 @@ jobs:
         run: node --experimental-strip-types --test tests/premiumFeatureGuide.test.mjs
       - name: Verify server-controlled registration gate is safe in both states
         run: node --test tests/prelaunchRegistrationGate.test.mjs
+      - name: Validate first-two-week tournament windows and Premium watchlist install
+        run: node --test tests/firstTwoSeasonWeeksAndWatchlist.test.mjs
       - name: Verify player creation reports portrait conflicts correctly
         run: node --experimental-strip-types --test tests/playerCreationConflict.test.mjs
       - name: Verify sidebar collapse preference persists across navigation
