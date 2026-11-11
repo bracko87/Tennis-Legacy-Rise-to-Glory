@@ -285,6 +285,8 @@ export default {
     logoutDesc: 'Von deinem Konto abmelden',
   },
   footer: {
+    clockPaused: 'Pausiert',
+    clockPausedUntil: 'Pausiert · Weiter am {{date}}',
     synchronizingClock: 'Spieluhr wird synchronisiert…',
     clockUnavailable: 'Spieluhr nicht verfügbar',
     season: 'Saison {{season}}',
