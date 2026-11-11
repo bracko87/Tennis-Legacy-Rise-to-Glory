@@ -285,6 +285,8 @@ export default {
     logoutDesc: "Cierra sesión en tu cuenta.",
   },
   footer: {
+    clockPaused: 'En pausa',
+    clockPausedUntil: 'En pausa · Se reanuda el {{date}}',
     synchronizingClock: "Sincronizando el reloj del juego…",
     clockUnavailable: "Reloj de juego no disponible",
     season: "Temporada {{season}}",
