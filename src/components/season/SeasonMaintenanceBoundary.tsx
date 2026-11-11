@@ -180,12 +180,13 @@ export function SeasonMaintenanceBoundary({ children }: { readonly children: Rea
           <section className="tlg-preseason-modal" role="dialog" aria-modal="true"
             aria-labelledby="tlg-preseason-modal-title" aria-describedby="tlg-preseason-modal-description">
             <div className="tlg-season-maintenance-icon"><CalendarClock size={27} aria-hidden="true" /></div>
-            <span className="tlg-season-maintenance-eyebrow">24-HOUR SEASON PREPARATION</span>
+            <span className="tlg-season-maintenance-eyebrow">SEASON 2 · 24-HOUR PREPARATION</span>
             <h2 id="tlg-preseason-modal-title">Welcome to Season {state.target_season}!</h2>
             <p id="tlg-preseason-modal-description">
-              The migration is complete and you can sign in again. Game time is frozen at
-              January 1, 00:00 for 24 real-world hours so you can review your career
-              and apply for January tournaments before the season begins.
+              The Season 1 to Season 2 migration is complete. This is the 24-hour
+              Season 2 preparation period. Game time is paused on January 1 at its
+              current in-game time; your account and progress stay unchanged.
+              You can sign in, prepare your player and apply for January tournaments.
             </p>
             <div className="tlg-season-maintenance-timing">
               <Clock3 size={20} aria-hidden="true" />
