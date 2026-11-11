@@ -40,6 +40,7 @@ import HomepagePlayerReviews from '../components/marketing/HomepagePlayerReviews
 import HomeScreenshotGallery from '../components/marketing/HomeScreenshotGallery'
 import HomeVideoShowcase from '../components/marketing/HomeVideoShowcase'
 import { supabase } from '../lib/supabase'
+import usePublicRegistrationStatus from '../hooks/usePublicRegistrationStatus'
 
 
 const screenshotCopy: Record<AppLocale, { eyebrow: string; title: string; description: string }> = {
@@ -111,6 +112,7 @@ const managementFeatures = [
 ] as const
 
 export default function HomePage() {
+  const registrationAvailability = usePublicRegistrationStatus()
   const { t } = useTranslation()
   const { locale } = useLocalization()
   const galleryText = screenshotCopy[locale] ?? screenshotCopy.en
@@ -186,9 +188,15 @@ export default function HomePage() {
                 </button>
               </div>
 
-              <p className="tlg-prelaunch-registration-note" role="status">
-                {t('authPages.login.registrationClosed')}
-              </p>
+              {registrationAvailability === 'open' ? (
+                <Link to="/register" className="tlg-btn tlg-btn-primary tlg-btn-large">
+                  {t('authPages.login.createAccount')}
+                </Link>
+              ) : registrationAvailability === 'closed' ? (
+                <p className="tlg-prelaunch-registration-note" role="status">
+                  {t('authPages.login.registrationClosed')}
+                </p>
+              ) : null}
 
               <div className="tlg-hero-assurances">
                 <div>
@@ -532,9 +540,15 @@ export default function HomePage() {
                 </p>
 
                 <div className="tlg-final-cta-actions">
-                  <p className="tlg-prelaunch-registration-note" role="status">
-                    {t('authPages.login.registrationClosed')}
-                  </p>
+                  {registrationAvailability === 'open' ? (
+                    <Link to="/register" className="tlg-btn tlg-btn-primary tlg-btn-large">
+                      {t('authPages.login.createAccount')}
+                    </Link>
+                  ) : registrationAvailability === 'closed' ? (
+                    <p className="tlg-prelaunch-registration-note" role="status">
+                      {t('authPages.login.registrationClosed')}
+                    </p>
+                  ) : null}
 
                   <Link
                     to="/login"
