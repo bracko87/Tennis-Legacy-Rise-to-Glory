@@ -70,3 +70,44 @@
   .tlg-season-maintenance-card { border-radius: 14px; }
   .tlg-season-maintenance-announcement { padding: 14px; }
 }
+
+/* Second real-world day: game is accessible, clock is frozen at January 1. */
+.tlg-preseason-modal-backdrop {
+  position: fixed; inset: 0; z-index: 2500;
+  display: grid; place-items: center;
+  padding: 22px;
+  background: rgba(7, 27, 43, .67);
+  overflow-y: auto;
+}
+.tlg-preseason-modal {
+  width: min(100%, 590px);
+  border: 1px solid #cfdde6; border-radius: 20px;
+  background: #fff; color: #153249;
+  box-shadow: 0 22px 75px rgba(3, 21, 34, .27);
+  padding: clamp(24px, 4vw, 36px);
+}
+.tlg-preseason-modal h2 {
+  font-size: clamp(24px, 4vw, 32px);
+  line-height: 1.25; font-weight: 850; margin: 12px 0;
+}
+.tlg-preseason-modal > p {
+  font-size: 15px; line-height: 1.75; color: #526b7d; margin: 0 0 22px;
+}
+.tlg-preseason-modal-actions {
+  display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px;
+}
+.tlg-preseason-modal-actions a,
+.tlg-preseason-modal-actions button {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 43px; padding: 10px 16px; border-radius: 9px;
+  font-size: 13px; font-weight: 750; cursor: pointer;
+}
+.tlg-preseason-modal-actions a { background: #0a6da2; color: white; text-decoration: none; }
+.tlg-preseason-modal-actions a:hover { background: #07557e; }
+.tlg-preseason-modal-actions button {
+  background: #eff4f7; color: #24475c; border: 1px solid #d7e2ea;
+}
+@media(max-width: 600px) {
+  .tlg-preseason-modal-backdrop { padding: 12px; }
+  .tlg-preseason-modal-actions > * { width: 100%; }
+}
