@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react'
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AlertTriangle, CalendarClock, Clock3, ShieldCheck } from 'lucide-react'
+import { Link } from 'react-router'
 import { supabase } from '../../lib/supabase'
 import '../../styles/season-maintenance.css'
 
-type MaintenancePhase = 'off' | 'announced' | 'active' | 'extended'
+type MaintenancePhase = 'off' | 'announced' | 'active' | 'extended' | 'preseason'
 
 export interface SeasonMaintenanceState {
   status: MaintenancePhase
@@ -13,6 +14,10 @@ export interface SeasonMaintenanceState {
   starts_at: string | null
   planned_reopen_at: string | null
   estimated_reopen_at: string | null
+  preseason_starts_at: string | null
+  preseason_ends_at: string | null
+  preseason_active: boolean
+  game_clock_paused: boolean
   maintenance_active: boolean
   announcement_visible: boolean
   reopening_delayed: boolean
@@ -96,6 +101,7 @@ export function SeasonMaintenanceBoundary({ children }: { readonly children: Rea
   const [unavailable, setUnavailable] = useState(false)
   const sequence = useRef(0)
   const signedOut = useRef(false)
+  const [dismissedPreseasonKey, setDismissedPreseasonKey] = useState<string | null>(null)
 
   useEffect(() => {
     let mounted = true
@@ -129,7 +135,11 @@ export function SeasonMaintenanceBoundary({ children }: { readonly children: Rea
   }, [])
 
   useEffect(() => {
-    if (!state?.maintenance_active || signedOut.current) return
+    if (!state?.maintenance_active) {
+      signedOut.current = false
+      return
+    }
+    if (signedOut.current) return
     signedOut.current = true
     // Existing browser sessions lose local access when the window begins.
     // Do not revoke other devices or disconnect service accounts.
@@ -157,11 +167,62 @@ export function SeasonMaintenanceBoundary({ children }: { readonly children: Rea
 
   if (state.maintenance_active) return <MaintenanceScreen state={state} />
 
-  return <MaintenanceContext.Provider value={state}>{children}</MaintenanceContext.Provider>
+  const preseasonKey = state.preseason_active && state.preseason_ends_at
+    ? 'season-' + state.target_season + '-' + state.preseason_ends_at
+    : null
+  const preseasonPopupVisible = Boolean(preseasonKey && dismissedPreseasonKey !== preseasonKey)
+
+  return (
+    <MaintenanceContext.Provider value={state}>
+      {children}
+      {preseasonPopupVisible && (
+        <div className="tlg-preseason-modal-backdrop">
+          <section className="tlg-preseason-modal" role="dialog" aria-modal="true"
+            aria-labelledby="tlg-preseason-modal-title" aria-describedby="tlg-preseason-modal-description">
+            <div className="tlg-season-maintenance-icon"><CalendarClock size={27} aria-hidden="true" /></div>
+            <span className="tlg-season-maintenance-eyebrow">24-HOUR SEASON PREPARATION</span>
+            <h2 id="tlg-preseason-modal-title">Welcome to Season {state.target_season}!</h2>
+            <p id="tlg-preseason-modal-description">
+              The migration is complete and you can sign in again. Game time is frozen at
+              January 1, 00:00 for 24 real-world hours so you can review your career
+              and apply for January tournaments before the season begins.
+            </p>
+            <div className="tlg-season-maintenance-timing">
+              <Clock3 size={20} aria-hidden="true" />
+              <div>
+                <span>Game clock resumes automatically at 2× on</span>
+                <strong>{formatDateTime(state.preseason_ends_at)}</strong>
+                <small>Time shown in your device's local time zone.</small>
+              </div>
+            </div>
+            <div className="tlg-preseason-modal-actions">
+              <Link to="/game/calendar" onClick={() => setDismissedPreseasonKey(preseasonKey)}>
+                Explore January tournaments
+              </Link>
+              <button type="button" onClick={() => setDismissedPreseasonKey(preseasonKey)}>
+                Continue to game
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+    </MaintenanceContext.Provider>
+  )
 }
 
 export function SeasonMaintenanceAnnouncement() {
   const state = useSeasonMaintenance()
+  if (state?.preseason_active) {
+    return (
+      <section className="tlg-season-maintenance-announcement" role="status" aria-label="Paused preseason">
+        <CalendarClock size={23} aria-hidden="true" />
+        <div>
+          <strong>Season {state.target_season} preparation — game time paused</strong>
+          <p>You can sign in and apply for January tournaments. The game clock resumes at 2× on <strong>{formatDateTime(state.preseason_ends_at)}</strong> (your local time).</p>
+        </div>
+      </section>
+    )
+  }
   if (!state?.announcement_visible) return null
   return (
     <section className="tlg-season-maintenance-announcement" role="status" aria-label="Upcoming season migration">
