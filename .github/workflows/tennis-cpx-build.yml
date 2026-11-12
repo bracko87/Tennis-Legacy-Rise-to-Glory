@@ -48,6 +48,8 @@ jobs:
         run: node --test tests/newHumanRankingStartsLast.test.mjs
       - name: Verify Stripe subscription period ends display correctly for paid Premium
         run: node --test tests/stripeSubscriptionPeriodDates.test.mjs
+      - name: Verify whole-amount game money and precise real-world payment prices
+        run: node --experimental-strip-types --test tests/gameMoneyDisplay.test.mjs
       - name: Verify player creation reports portrait conflicts correctly
         run: node --experimental-strip-types --test tests/playerCreationConflict.test.mjs
       - name: Verify sidebar collapse preference persists across navigation
