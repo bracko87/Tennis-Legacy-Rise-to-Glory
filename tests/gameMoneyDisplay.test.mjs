@@ -17,7 +17,7 @@ test('all game cash, balances, prizes and sponsor offers show whole money amount
   assert.equal(formatGameCurrency(-700, 'en-US', 'USD'), '-$700')
   assert.equal(formatGameCurrency(1000.6, 'en-US', 'USD'), '$1,001')
   assert.equal(formatGameCurrency(-0.3, 'en-US', 'USD'), '$0')
-  assert.match(formatGameCurrency(66000, 'de-DE', 'EUR'), /^66\\.000.*€/)
+  assert.match(formatGameCurrency(66000, 'de-DE', 'EUR'), /^66[.]000.*€/)
   assert.doesNotMatch(formatGameCurrency(66000, 'de-DE', 'EUR'), /,00/)
 })
 
