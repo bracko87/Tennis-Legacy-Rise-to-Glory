@@ -30,6 +30,7 @@ import { trainingOptimizationLabels } from '../../lib/trainingOptimizationI18n'
 import { tournamentWatchLabels } from '../../lib/tournamentWatchI18n'
 import PremiumBenefitsGuide from '../../components/marketing/PremiumBenefitsGuide'
 import { useLocalization } from '../../i18n/LocalizationProvider'
+import { formatPurchasePrice } from '../../lib/moneyFormatting'
 import { supabase } from '../../lib/supabase'
 
 interface BillingTransaction {
@@ -113,7 +114,7 @@ export default function ProPackagesPage() {
   const financialLabels = financialIntelligenceLabels(i18n.resolvedLanguage ?? i18n.language)
   const equipmentLabels = equipmentIntelligenceLabels(i18n.resolvedLanguage ?? i18n.language)
   const careerLabels = careerIntelligenceLabels(i18n.resolvedLanguage ?? i18n.language)
-  const { formatCurrency, formatDate, locale } = useLocalization()
+  const { formatDate, locale, localeTag } = useLocalization()
   const { user } = useAuth()
   const commerce = useCommerce()
   const [billing, setBilling] = useState<BillingTransaction[]>([])
@@ -265,7 +266,7 @@ export default function ProPackagesPage() {
     [t('commercePage.compareCoinFeatures'), true, true],
   ] as const
 
-  const money = (cents: number) => formatCurrency(cents / 100, 'EUR')
+  const money = (cents: number) => formatPurchasePrice(cents / 100, localeTag, 'EUR')
   const date = (value: string | null | undefined) => value ? formatDate(value, { year: 'numeric', month: 'long', day: 'numeric' }) : '—'
 
   return (
@@ -423,8 +424,8 @@ export default function ProPackagesPage() {
                 <span>{t('commercePage.coinPack')}</span>
                 <h3><Coins size={28} /> {pack.coins}</h3>
                 <p>{t(pack.helperKey)}</p>
-                <strong>{formatCurrency(pack.price, 'EUR')}</strong>
-                <small>{t('commercePage.perCoin', { price: formatCurrency(pack.price / pack.coins, 'EUR') })}</small>
+                <strong>{formatPurchasePrice(pack.price, localeTag, 'EUR')}</strong>
+                <small>{t('commercePage.perCoin', { price: formatPurchasePrice(pack.price / pack.coins, localeTag, 'EUR') })}</small>
                 <button
                   type="button"
                   onClick={() => void openStripeCheckout(pack.code)}
