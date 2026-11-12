@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../auth/AuthContext'
 import { supabase } from '../lib/supabase'
+import { formatGameCurrency } from '../lib/moneyFormatting'
 import i18n, { ENABLED_LOCALES, LOCALE_TAGS, normalizeAppLocale, type AppLocale } from './index'
 
 type LocalizationContextValue = {
@@ -112,7 +113,7 @@ export function LocalizationProvider({ children }: { children: ReactNode }) {
     enabledLocales: ENABLED_LOCALES,
     setLocale,
     formatNumber: (value) => new Intl.NumberFormat(localeTag).format(value),
-    formatCurrency: (value, currency = 'EUR') => new Intl.NumberFormat(localeTag, { style: 'currency', currency }).format(value),
+    formatCurrency: (value, currency = 'EUR') => formatGameCurrency(value, localeTag, currency),
     formatPercent: (value) => new Intl.NumberFormat(localeTag, { style: 'percent', maximumFractionDigits: 1 }).format(value),
     formatDate: (value, options) => new Intl.DateTimeFormat(localeTag, options).format(new Date(value)),
   }), [locale, localeTag, loading, saving, setLocale])
