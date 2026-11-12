@@ -116,7 +116,7 @@ export default function PremiumEquipmentIntelligence({
   }).format(n)
   const priceUse=(n:number|null)=>n===null?copy.unknown:
     new Intl.NumberFormat(i18n.language??'en',{
-      style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2,
+      style:'currency',currency:'USD',minimumFractionDigits:0,maximumFractionDigits:2,
     }).format(n)
   const number=(n:number)=>new Intl.NumberFormat(i18n.language??'en',{
     maximumFractionDigits:1,
