@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import GameConfirmDialog from '../common/GameConfirmDialog'
 import { supabase } from '../../lib/supabase'
+import { formatGameCurrency, formatMarketQuote } from '../../lib/moneyFormatting'
 import '../../styles/private-life-investments.css'
 
 type InvestmentTab = 'stocks' | 'crypto' | 'portfolio' | 'history'
@@ -138,12 +139,9 @@ type QuoteRefreshResult = {
 }
 
 function money(value: number, currency = 'USD', decimals = 0) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(Number(value || 0))
+  return decimals > 0
+    ? formatMarketQuote(Number(value) || 0, 'en-US', currency, decimals)
+    : formatGameCurrency(Number(value) || 0, 'en-US', currency)
 }
 
 function marketPrice(value: number | null, currency = 'USD') {
@@ -677,9 +675,9 @@ export default function PrivateLifeInvestments({
 
       <div className="private-life-investment-summary" aria-label="Investment portfolio summary">
         <div><span>Career cash</span><strong>{money(dashboard.cash_balance, currency)}</strong></div>
-        <div><span>Portfolio value</span><strong>{money(portfolioValuePrecise, currency, 2)}</strong></div>
+        <div><span>Portfolio value</span><strong>{money(portfolioValuePrecise, currency)}</strong></div>
         <div><span>Cost basis</span><strong>{money(dashboard.cost_basis, currency)}</strong></div>
-        <div><span>Unrealized P/L</span><strong className={unrealizedPrecise >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{signedMoney(unrealizedPrecise, currency, 2)}</strong></div>
+        <div><span>Unrealized P/L</span><strong className={unrealizedPrecise >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{signedMoney(unrealizedPrecise, currency)}</strong></div>
         <div><span>Realized P/L</span><strong className={dashboard.realized_pnl >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{signedMoney(dashboard.realized_pnl, currency)}</strong></div>
       </div>
 
@@ -785,8 +783,8 @@ export default function PrivateLifeInvestments({
                       <td>{marketPrice(Number(position.average_buy_price), currency)}</td>
                       <td><strong>{marketPrice(position.price, currency)}</strong><span>{gameTimeLabel(position.quote_metadata, 'checked')}</span></td>
                       <td><strong className={dailyMove !== null && dailyMove >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{percentText(dailyMove)}</strong></td>
-                      <td>{money(preciseValue, currency, 2)}</td>
-                      <td><strong className={precisePnl >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{signedMoney(precisePnl, currency, 2)}</strong><span className={returnPct >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{percentText(returnPct)}</span></td>
+                      <td>{money(preciseValue, currency)}</td>
+                      <td><strong className={precisePnl >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{signedMoney(precisePnl, currency)}</strong><span className={returnPct >= 0 ? 'private-life-trend-positive' : 'private-life-trend-negative'}>{percentText(returnPct)}</span></td>
                       <td><button type="button" className="private-life-portfolio-sell" onClick={(event) => { event.stopPropagation(); beginPortfolioSell(position) }}>Sell</button></td>
                     </tr>
                   )
