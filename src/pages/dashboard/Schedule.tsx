@@ -754,7 +754,7 @@ export default function SchedulePage() {
                     </p>
                   )}
                   {transferLoading && <p>{t('schedulePage.preparation.transferLoading', { defaultValue: 'Checking tournament transfer options…' })}</p>}
-                  {transferError && <p role="alert">{t('schedulePage.preparation.transferError', { defaultValue: 'Transfer options unavailable: {{message}}', message: transferError })}</p>
+                  {transferError && <p role="alert">{t('schedulePage.preparation.transferError', { defaultValue: 'Transfer options unavailable: {{message}}', message: transferError })}</p>}
                   {estimate && <div className="tlg-prep-copy"><h3>{estimate.origin.city ?? t('schedulePage.preparation.currentLocation')} → {estimate.destination.city}</h3><p>{t('schedulePage.preparation.oneWay', { distance: distance(estimate.player_travel.distance_km, t, formatNumber), hours: estimate.player_travel.estimated_hours_one_way })}</p></div>}
                   {nextTournament && !membershipLoading && isPremium && <TournamentJetPicker
                      competitionId={nextTournament.competition_id}
