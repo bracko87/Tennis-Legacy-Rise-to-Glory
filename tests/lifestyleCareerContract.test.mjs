@@ -69,7 +69,9 @@ test('eight Tennis Legacy game languages have lifestyle copy',()=>{
 })
 
 test('Private Life jet booking stays Premium-only and summary identifies real flight mode', () => {
- assert.match(schedule,/!membershipLoading && isPremium && <TournamentJetPicker/)
+ assert.match(schedule,/!membershipLoading && isPremium &&/)
+ assert.match(schedule,/&& <TournamentJetPicker/)
+ assert.match(schedule,/transferContext\?\.route_choice !== 'direct'/)
  assert.match(schedule,/estimate\.private_jet\?\.active/)
  assert.match(schedule,/staff_on_jet/)
  assert.match(schedule,/staff_commercial/)
