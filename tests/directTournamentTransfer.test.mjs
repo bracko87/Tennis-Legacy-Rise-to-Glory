@@ -72,9 +72,9 @@ test('time away morale is capped and only applies after a completed direct trans
 })
 
 test('private jet selection and flight duration use direct route when opted in', () => {
- assert.match(v3,/function public\.quote_my_private_life_jet_v1/)
- assert.match(v3,/function public\.set_private_life_tournament_travel_v1/)
- assert.match(v3,/function public\.get_private_life_tournament_travel_v1/)
+ assert.match(v3,/function public\.quote_my_private_life_jet_v1/i)
+ assert.match(v3,/function public\.set_private_life_tournament_travel_v1/i)
+ assert.match(v3,/function public\.get_private_life_tournament_travel_v1/i)
  assert.match(v3,/l\.jet_quote->>'estimated_hours'/)
  assert.match(picker,/direct_transfer_scope/)
  assert.match(ui,/quoteRevision=\{travelModeRevision\}/)
@@ -87,4 +87,14 @@ test('resolved previous tournament can still be linked from player location', ()
 test('clear travel labels are available in all eight supported languages', () => {
  for (const code of ['en','de','es','fr','it','pt','ru','sr']) assert.ok(labels.includes(' '+code+':{'),code)
  assert.match(styles,/\.tlg-prep-transfer-quote/)
+})
+
+test('accepted destination is present before the draw without activating next season', () => {
+ const v5 = read('../supabase/migrations/20261113093000_provisional_accepted_tournament_travel_v5.sql')
+ assert.match(v5,/coalesce\(first_player.first_day,window_dates.start_absolute_day\)/)
+ assert.match(v5,/tb.season_number=\(select season from public.get_current_game_day_internal_v1\(\)\)/)
+ assert.match(v5,/tb.entry_status='active'/)
+ assert.match(v5,/window_dates.end_absolute_day/)
+ assert.match(v5,/no_arrival_yet/)
+ assert.match(v5,/destination_reference_id=c.reference_id/)
 })
