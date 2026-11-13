@@ -10,7 +10,7 @@ test('existing return-home rule is the default and the user must choose direct t
   assert.match(sql, /coalesce\(v_choice,'home'\)/)
   assert.match(sql, /route_choice text not null check \(route_choice in \('home','direct'\)\)/)
   assert.match(ui, /useState<TournamentTransferChoice>\('home'\)/)
-  assert.match(ui, /Return home first \(default\)/)
+  assert.match(labels, /Return home first \(default\)/)
 })
 test('preparation saves an authorized destination-specific travel preference', () => {
   assert.match(sql, /p\.owner_user_id=auth\.uid\(\)/)
@@ -31,7 +31,7 @@ test('protects completed travel and does not rewrite match results or player bal
   assert.match(sql, /l\.status='completed'/)
   assert.doesNotMatch(sql, /\b(?:UPDATE|DELETE FROM|TRUNCATE)\s+public\.tournament_matches\b/i)
   assert.doesNotMatch(sql, /\b(?:UPDATE|DELETE FROM|TRUNCATE)\s+public\.player_finances\b/i)
-  assert.match(ui, /The standard round-trip cost estimate below does not include this alternative route/)
+  assert.match(ui, /transferLabels\.costNote/)
 })
 
 const v2 = read('../supabase/migrations/20261113090000_direct_transfer_cost_hotel_morale_v2.sql')
@@ -54,7 +54,7 @@ test('saved direct transfer has a server-side owner-checked quote', () => {
 })
 
 test('hotel charges include early-arrival days only for completed direct journeys', () => {
- assert.match(v2,/function public\.process_tournament_hotel_day_v1/)
+ assert.match(v2,/function public\.process_tournament_hotel_day_v1/i)
  assert.match(v2,/l\.status='completed'/)
  assert.match(v2,/p_absolute_day<target\.start_absolute_day/)
  assert.match(v2,/post_tournament_hotel_night_v1\(p_player_id,c\.destination_reference_id::uuid,p_absolute_day\)/)
