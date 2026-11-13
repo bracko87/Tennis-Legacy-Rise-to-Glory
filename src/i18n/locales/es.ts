@@ -1439,7 +1439,7 @@ export default {
       played: "Jugó",
       accepted: "Aceptado",
       predicted: "Previsto",
-      confirmed: "Confirmado",
+      confirmed: "Confirmado", live: 'En vivo',
       tournamentState: "Torneo ({{discipline}}) · {{state}}",
       nationalState: "Selección Nacional · {{state}}",
     },
