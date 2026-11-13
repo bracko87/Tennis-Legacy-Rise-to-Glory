@@ -1908,7 +1908,7 @@ export const portugueseTranslations = {
       national_team: 'Seleção nacional', travel: 'Viagem',
       injured: 'Saúde / Recuperação', home: 'Em casa',
       singlesShort: 'S', doublesShort: 'D', played: 'Disputada',
-      accepted: 'Aceito', predicted: 'Previsto', confirmed: 'Confirmado',
+      accepted: 'Aceito', predicted: 'Previsto', confirmed: 'Confirmado', live: 'Ao vivo',
       tournamentState: 'Torneio ({{discipline}}) · {{state}}',
       nationalState: 'Seleção nacional · {{state}}',
     },
