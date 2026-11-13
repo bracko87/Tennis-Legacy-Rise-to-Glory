@@ -54,6 +54,8 @@ jobs:
         run: node --experimental-strip-types --test tests/gameMoneyDisplay.test.mjs
       - name: Verify qualifying matches show Live status on the Season Calendar
         run: node --test tests/calendarLiveQualifying.test.mjs
+      - name: Verify direct tournament transfer preferences and route integration
+        run: node --test tests/directTournamentTransfer.test.mjs
       - name: Verify player creation reports portrait conflicts correctly
         run: node --experimental-strip-types --test tests/playerCreationConflict.test.mjs
       - name: Verify sidebar collapse preference persists across navigation

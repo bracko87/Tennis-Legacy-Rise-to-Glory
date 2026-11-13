@@ -157,6 +157,15 @@ interface TournamentPreparationQuote {
   }
 }
 
+type TournamentTransferChoice = 'home' | 'direct'
+interface TournamentTransferContext {
+  available: boolean
+  source_competition_id?: string
+  source_tournament_name?: string
+  source_city?: string
+  route_choice: TournamentTransferChoice
+  reason?: string
+}
 interface PreparationPlanResponse {
   saved: boolean
   player_travel_class: TravelClass
@@ -313,6 +322,10 @@ export default function SchedulePage() {
   const [engineQuote, setEngineQuote] = useState<TournamentPreparationQuote | null>(null)
   const [quoteLoading, setQuoteLoading] = useState(false)
   const [travelModeRevision, setTravelModeRevision] = useState(0)
+  const [transferContext, setTransferContext] = useState<TournamentTransferContext | null>(null)
+  const [transferChoice, setTransferChoice] = useState<TournamentTransferChoice>('home')
+  const [transferLoading, setTransferLoading] = useState(false)
+  const [transferError, setTransferError] = useState<string | null>(null)
   const [applicationHistory, setApplicationHistory] = useState<TournamentApplicationHistory>({ singles: [], doubles: [] })
   const [applicationsLoading, setApplicationsLoading] = useState(true)
   const [applicationsError, setApplicationsError] = useState<string | null>(null)
@@ -428,6 +441,35 @@ export default function SchedulePage() {
   }, [nextTournament?.competition_id, player?.id])
 
   useEffect(() => {
+    if (!player?.id || !nextTournament?.competition_id) {
+      setTransferContext(null)
+      setTransferChoice('home')
+      setTransferError(null)
+      return
+    }
+    let cancelled = false
+    setTransferLoading(true)
+    setTransferContext(null)
+    setTransferChoice('home')
+    setTransferError(null)
+    void supabase.rpc('get_tournament_transfer_preference_v1', {
+      p_player_id: player.id,
+      p_competition_id: nextTournament.competition_id,
+    }).then(({ data, error: rpcError }) => {
+      if (cancelled) return
+      setTransferLoading(false)
+      if (rpcError) {
+        setTransferError(rpcError.message)
+        return
+      }
+      const context = data as TournamentTransferContext
+      setTransferContext(context)
+      setTransferChoice(context.route_choice === 'direct' ? 'direct' : 'home')
+    })
+    return () => { cancelled = true }
+  }, [player?.id, nextTournament?.competition_id])
+
+  useEffect(() => {
     if (
       loading
       || !shouldOpenPreparation
@@ -530,11 +572,28 @@ export default function SchedulePage() {
       p_tactic_target: tactics.target,
       p_tactic_risk: tactics.risk,
     })
-    setPlanSaving(false)
+
     if (saveError || !data) {
+      setPlanSaving(false)
       setPlanMessage(saveError?.message ?? t('schedulePage.preparation.saveError'))
       return
     }
+    if (transferContext?.available) {
+      const { error: transferSaveError } = await supabase.rpc('save_tournament_transfer_preference_v1', {
+        p_player_id: player.id,
+        p_competition_id: nextTournament.competition_id,
+        p_route_choice: transferChoice,
+      })
+      if (transferSaveError) {
+        setPlanSaving(false)
+        setPlanMessage(t('schedulePage.preparation.transferSaveError', {
+          defaultValue: 'Tournament details saved, but travel routing failed: {{message}}',
+          message: transferSaveError.message,
+        }))
+        return
+      }
+    }
+    setPlanSaving(false)
     const saved = data as PreparationPlanResponse
     const savedStaff = saved.selected_staff_contract_ids ?? []
     const savedTactic = saved.tactic ?? tactics
@@ -668,6 +727,34 @@ export default function SchedulePage() {
               {activeTab === 'travel' && (
                 <div className="tlg-prep-stack">
                   <div className="tlg-prep-rule"><Plane size={18} /><div><strong>{t('schedulePage.preparation.automaticTiming')}</strong><p>{t('schedulePage.preparation.automaticTimingBody')}</p></div></div>
+                  {transferContext?.available && (
+                    <ChoiceSection
+                      title={t('schedulePage.preparation.transferTitle', { defaultValue: 'Travel between tournaments' })}
+                      subtitle={t('schedulePage.preparation.transferIntro', {
+                        defaultValue: 'Choose your route from {{previous}} to {{next}} before your return journey starts.',
+                        previous: transferContext.source_tournament_name ?? transferContext.source_city ?? 'Previous tournament',
+                        next: nextTournament.tournament_name,
+                      })}
+                    >
+                      <div className="tlg-prep-choice-grid">
+                        <button type="button" className={transferChoice === 'home' ? 'selected' : ''} aria-pressed={transferChoice === 'home'} onClick={() => { markPlanDirty(); setTransferChoice('home') }}>
+                          {t('schedulePage.preparation.transferHome', { defaultValue: 'Return home first (default)' })}
+                        </button>
+                        <button type="button" className={transferChoice === 'direct' ? 'selected' : ''} aria-pressed={transferChoice === 'direct'} onClick={() => { markPlanDirty(); setTransferChoice('direct') }}>
+                          {t('schedulePage.preparation.transferDirect', { defaultValue: 'Travel directly to the next tournament' })}
+                        </button>
+                      </div>
+                    </ChoiceSection>
+                  )}
+                  {transferContext?.available && transferChoice === 'direct' && (
+                    <p className="tlg-prep-copy">
+                      {t('schedulePage.preparation.transferDirectNote', {
+                        defaultValue: 'After your last match, travel directly to the next tournament. Your selected private jet is used if eligible; otherwise a commercial flight is booked. The standard round-trip cost estimate below does not include this alternative route or additional hotel nights.',
+                      })}
+                    </p>
+                  )}
+                  {transferLoading && <p>{t('schedulePage.preparation.transferLoading', { defaultValue: 'Checking tournament transfer options…' })}</p>}
+                  {transferError && <p role="alert">{t('schedulePage.preparation.transferError', { defaultValue: 'Transfer options unavailable: {{message}}', message: transferError })}</p>
                   {estimate && <div className="tlg-prep-copy"><h3>{estimate.origin.city ?? t('schedulePage.preparation.currentLocation')} → {estimate.destination.city}</h3><p>{t('schedulePage.preparation.oneWay', { distance: distance(estimate.player_travel.distance_km, t, formatNumber), hours: estimate.player_travel.estimated_hours_one_way })}</p></div>}
                   {nextTournament && !membershipLoading && isPremium && <TournamentJetPicker
                      competitionId={nextTournament.competition_id}
@@ -730,7 +817,9 @@ export default function SchedulePage() {
                     {estimate.staff_effects && estimate.staff_effects.injury_risk_reduction_pct > 0 && <SummaryItem label={t('schedulePage.preparation.injuryPrevention')} value={t('schedulePage.preparation.summaryInjury', { value: estimate.staff_effects.injury_risk_reduction_pct })} />}
                     {estimate.staff_effects && estimate.staff_effects.commercial_bonus_pct > 0 && <SummaryItem label={t('schedulePage.preparation.commercialSupport')} value={t('schedulePage.preparation.summaryCommercial', { value: estimate.staff_effects.commercial_bonus_pct })} />}
                     <SummaryItem label={t('schedulePage.preparation.defaultTacticLabel')} value={tacticLabel(tactics.preset, t)} />
-                    <SummaryItem label={t('schedulePage.preparation.returnTravel')} value={t('schedulePage.preparation.dayAfterElimination')} />
+                    <SummaryItem label={t('schedulePage.preparation.returnTravel')} value={transferContext?.available && transferChoice === 'direct'
+                      ? t('schedulePage.preparation.transferDirect', { defaultValue: 'Travel directly to the next tournament' })
+                      : t('schedulePage.preparation.dayAfterElimination')} />
                   </div>
                   {selectedStaffNames.length > 0 && <div className="tlg-prep-selected-staff"><span>{t('schedulePage.preparation.party')}</span><strong>{selectedStaffNames.join(', ')}</strong></div>}
                   <div className="tlg-prep-cost-placeholder tlg-prep-cost-live"><span>{t('schedulePage.preparation.estimatedCost')} {quoteLoading ? t('schedulePage.preparation.recalculatingShort') : ''}</span><strong>{money(estimate.minimum_total)} – {money(estimate.maximum_total)}</strong><div className="tlg-prep-cost-breakdown"><small>{t('schedulePage.preparation.travelCost', { amount: money(estimate.player_travel_cost + estimate.staff_travel_cost) })}</small><small>{t('schedulePage.preparation.hotelCost', { amount: money(estimate.hotel.minimum.adjusted_unit_cost * estimate.party_size) })}</small><small>{t('schedulePage.preparation.stayRange', { min: estimate.minimum_nights, max: estimate.maximum_nights })}</small><small>{t('schedulePage.preparation.arrivalFatigue', { value: estimate.player_travel.arrival_fatigue })}</small></div><p>{t('schedulePage.preparation.stayBody')}</p></div>
@@ -740,7 +829,7 @@ export default function SchedulePage() {
 
             <footer className="tlg-tournament-prep-footer">
               <span>{planMessage ?? (quoteLoading ? t('schedulePage.preparation.recalculating') : hasUnsavedChanges ? t('schedulePage.preparation.unsaved') : planSaved ? t('schedulePage.preparation.active') : t('schedulePage.preparation.defaults'))}</span>
-              <button type="button" onClick={savePreparation} disabled={planSaving || planLoading || quoteLoading}>{planSaving ? t('schedulePage.preparation.saving') : hasUnsavedChanges && planSaved ? t('schedulePage.preparation.saveChanges') : t('schedulePage.preparation.savePlan')}</button>
+              <button type="button" onClick={savePreparation} disabled={planSaving || planLoading || quoteLoading || transferLoading || Boolean(transferError)}>{planSaving ? t('schedulePage.preparation.saving') : hasUnsavedChanges && planSaved ? t('schedulePage.preparation.saveChanges') : t('schedulePage.preparation.savePlan')}</button>
             </footer>
           </section>
         </div>
