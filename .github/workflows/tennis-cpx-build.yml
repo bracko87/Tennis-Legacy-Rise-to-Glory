@@ -56,6 +56,8 @@ jobs:
         run: node --test tests/calendarLiveQualifying.test.mjs
       - name: Verify direct tournament transfer preferences and route integration
         run: node --test tests/directTournamentTransfer.test.mjs
+      - name: Verify future-only calendar flight overrides and payment refunds
+        run: node --test tests/calendarFlightReschedule.test.mjs
       - name: Verify player creation reports portrait conflicts correctly
         run: node --experimental-strip-types --test tests/playerCreationConflict.test.mjs
       - name: Verify sidebar collapse preference persists across navigation
