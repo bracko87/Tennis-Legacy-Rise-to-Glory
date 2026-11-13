@@ -52,6 +52,8 @@ jobs:
         run: node --test tests/stripeSubscriptionPeriodDates.test.mjs
       - name: Verify whole-amount game money and precise real-world payment prices
         run: node --experimental-strip-types --test tests/gameMoneyDisplay.test.mjs
+      - name: Verify main draw seeding config and guard against unseeded draws
+        run: node --test tests/tournamentMainDrawSeeding.test.mjs
       - name: Verify qualifying matches show Live status on the Season Calendar
         run: node --test tests/calendarLiveQualifying.test.mjs
       - name: Verify direct tournament transfer preferences and route integration
