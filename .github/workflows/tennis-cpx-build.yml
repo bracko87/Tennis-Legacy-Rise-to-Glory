@@ -114,6 +114,14 @@ jobs:
             exit 1
           fi
 
+      - name: Upload validated website for manual test publishing
+        uses: actions/upload-artifact@v4
+        with:
+          name: tennis-legacy-manual-test-site
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+
   private-life-ephemeral-db:
     runs-on: ubuntu-latest
     timeout-minutes: 12
