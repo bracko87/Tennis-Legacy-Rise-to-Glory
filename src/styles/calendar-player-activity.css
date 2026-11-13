@@ -29,6 +29,16 @@
   border-color: #3f9bd1;
 }
 
+/* The player has a match actually in progress (qualifying counts). */
+.tlg-calendar-day-tournament-live {
+  background: #d8f5e7;
+  border-color: #159665;
+}
+
+.tlg-calendar-day-tournament-live .tlg-calendar-day-number {
+  color: #075a3e;
+}
+
 .tlg-calendar-day-tournament-predicted {
   background: #f1f8fd;
   border-color: #bcdced;
@@ -136,6 +146,15 @@
 .tlg-calendar-player-activity.tournament.confirmed > strong,
 .tlg-calendar-player-activity.national_team.confirmed > strong {
   color: #083f67;
+}
+
+.tlg-calendar-player-activity.tournament.live,
+.tlg-calendar-player-activity.tournament.live > strong {
+  color: #075a3e;
+}
+
+.tlg-calendar-player-activity.tournament.live > span {
+  font-weight: 800;
 }
 
 .tlg-calendar-player-activity.tournament.predicted {
