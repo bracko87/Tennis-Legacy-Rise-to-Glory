@@ -1439,7 +1439,7 @@ export default {
       played: 'Gespielt',
       accepted: 'Angenommen',
       predicted: 'Prognostiziert',
-      confirmed: 'Bestätigt',
+      confirmed: 'Bestätigt', live: 'Live',
       tournamentState: 'Turnier ({{discipline}}) · {{state}}',
       nationalState: 'Nationalteam · {{state}}',
     },
