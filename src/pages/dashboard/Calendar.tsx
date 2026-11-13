@@ -179,6 +179,7 @@ function environmentLabel(value: TournamentCalendarRow['environment'], t: TFunct
 
 function playerActivityPriority(activity: PlayerCalendarActivityRow) {
   if (activity.activity_type === 'injured') return 1
+  if (activity.activity_type === 'tournament' && activity.source === 'tournament_live') return 1
   if (activity.activity_type === 'national_team') return 2
   if (activity.activity_type === 'tournament' && activity.source === 'tournament_accepted') return 8
   if (activity.activity_type === 'tournament' && activity.source !== 'tournament_predicted') return 2
@@ -323,15 +324,21 @@ function SeasonCalendarView() {
               || primaryActivity.source === 'doubles_tournament_completed'
               || (primaryAbsoluteDay !== null && primaryAbsoluteDay < todayAbsoluteDay)
             )
+          const primaryLive = primaryActivity?.activity_type === 'tournament'
+            && primaryActivity.source === 'tournament_live'
+            && primaryAbsoluteDay === todayAbsoluteDay
+            && !primaryCompleted
           const primaryAccepted = primaryActivity?.activity_type === 'tournament'
             && (primaryActivity.source === 'tournament_accepted' || primaryActivity.source === 'doubles_tournament_accepted')
           const primaryPredicted = primaryActivity?.activity_type === 'tournament'
             && (primaryActivity.source === 'tournament_predicted' || primaryActivity.source === 'doubles_tournament_predicted')
           const primaryConfirmed = primaryActivity?.activity_type === 'tournament'
-            && !primaryCompleted && !primaryAccepted && !primaryPredicted
+            && !primaryCompleted && !primaryLive && !primaryAccepted && !primaryPredicted
           const primaryTournamentState = primaryCompleted
             ? 'completed'
-            : primaryAccepted
+            : primaryLive
+              ? 'live'
+              : primaryAccepted
               ? 'accepted'
               : primaryPredicted
                 ? 'predicted'
@@ -365,15 +372,21 @@ function SeasonCalendarView() {
                         || activity.source === 'doubles_tournament_completed'
                         || activityAbsoluteDay < todayAbsoluteDay
                       )
+                    const tournamentLive = activity.activity_type === 'tournament'
+                      && activity.source === 'tournament_live'
+                      && activityAbsoluteDay === todayAbsoluteDay
+                      && !tournamentCompleted
                     const tournamentAccepted = activity.activity_type === 'tournament'
                       && (activity.source === 'tournament_accepted' || activity.source === 'doubles_tournament_accepted')
                     const tournamentPredicted = activity.activity_type === 'tournament'
                       && (activity.source === 'tournament_predicted' || activity.source === 'doubles_tournament_predicted')
                     const tournamentConfirmed = activity.activity_type === 'tournament'
-                      && !tournamentCompleted && !tournamentAccepted && !tournamentPredicted
+                      && !tournamentCompleted && !tournamentLive && !tournamentAccepted && !tournamentPredicted
                     const tournamentState = tournamentCompleted
                       ? 'completed'
-                      : tournamentAccepted
+                      : tournamentLive
+                        ? 'live'
+                        : tournamentAccepted
                         ? 'accepted'
                         : tournamentPredicted
                           ? 'predicted'
@@ -396,7 +409,7 @@ function SeasonCalendarView() {
                         <span>{activity.activity_type === 'tournament'
                           ? t('calendarPage.activities.tournamentState', {
                               discipline: t(`calendarPage.activities.${isDoubles ? 'doublesShort' : 'singlesShort'}`),
-                              state: t(`calendarPage.activities.${tournamentCompleted ? 'played' : tournamentAccepted ? 'accepted' : tournamentPredicted ? 'predicted' : 'confirmed'}`),
+                              state: t(`calendarPage.activities.${tournamentCompleted ? 'played' : tournamentLive ? 'live' : tournamentAccepted ? 'accepted' : tournamentPredicted ? 'predicted' : 'confirmed'}`),
                             })
                           : activity.activity_type === 'national_team'
                             ? t('calendarPage.activities.nationalState', { state: t(`calendarPage.activities.${nationalTeamCompleted ? 'played' : 'confirmed'}`) })
