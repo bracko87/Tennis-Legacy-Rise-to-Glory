@@ -384,3 +384,14 @@
     width: 100%;
   }
 }
+
+/* Tournament-to-tournament transfer quote, aligned with Schedule. */
+.tlg-prep-transfer-quote{display:grid;gap:9px;padding:12px 14px;border:1px solid #d8e6ef;border-radius:10px;background:#f8fbfd;color:#29465c;font-size:.73rem;line-height:1.5}
+.tlg-prep-transfer-quote>strong{font-size:.81rem}
+.tlg-prep-transfer-quote p{margin:0;color:#6b8193;font-size:.69rem}
+.tlg-prep-transfer-quote .tlg-jet-error{color:#a33b38}
+.tlg-prep-transfer-facts{display:grid;grid-template-columns:minmax(120px,1fr) minmax(0,1fr);gap:7px 16px}
+.tlg-prep-transfer-facts span{color:#6d8495}
+.tlg-prep-transfer-facts b{text-align:right;font-size:.73rem;font-weight:700;overflow-wrap:anywhere}
+.tlg-prep-transfer-muted{padding:9px 11px;background:#f8fafc;border:1px solid #e0e8ee;border-radius:9px;font-size:.72rem;color:#5f7586}
+@media(max-width:580px){.tlg-prep-transfer-facts{grid-template-columns:minmax(0,1fr)}.tlg-prep-transfer-facts b{text-align:left;margin-bottom:4px}}

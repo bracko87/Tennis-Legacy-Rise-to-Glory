@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../../lib/supabase'
 import { lifestyleCopy } from '../../lib/lifestyleCareerI18n'
+import { directTournamentTravelCopy } from '../../lib/directTournamentTravelI18n'
 import type { LifestyleCareer, OwnedTravelJet } from './LifestyleCareerPanel'
 import '../../styles/private-life-career.css'
 
@@ -22,6 +23,7 @@ type JetQuote = {
  overnight_transfer_possible?: boolean
 }
 type TravelQuote = {
+ direct_transfer_scope?: boolean
  selected_mode: 'default' | 'commercial' | 'private_jet'
  selected_asset_id: string | null
  private_jet_quote: JetQuote
@@ -41,6 +43,7 @@ export default function TournamentJetPicker({
 }: Props) {
  const { i18n } = useTranslation()
  const c = useMemo(() => lifestyleCopy(i18n.resolvedLanguage ?? i18n.language), [i18n.resolvedLanguage,i18n.language])
+ const directCopy = directTournamentTravelCopy(i18n.resolvedLanguage ?? i18n.language)
  const [career,setCareer] = useState<LifestyleCareer | null>(null)
  const [choice,setChoice] = useState<'commercial' | 'private_jet'>('commercial')
  const [assetId,setAssetId] = useState('')
@@ -148,12 +151,12 @@ export default function TournamentJetPicker({
      {jetPreviewLoading && <p>{c.loading}</p>}
      {!jetPreviewLoading && !supported && <div className="tlg-jet-commercial tlg-jet-fallback" role="status">
       <strong>{c.commercialFallback}</strong>
-      <span>{c.commercialRoundTrip}: {money(commercialTotal)} ({c.playerAndStaff})</span>
+      <span>{quote?.direct_transfer_scope ? directCopy.directChoice : c.commercialRoundTrip}: {money(commercialTotal)} ({c.playerAndStaff})</span>
       <small>{c.commercialFatigueNote}</small>
      </div>}
      {supported && <small>{c.fullPartyCostNote} {c.overnightDisclaimer}</small>}
     </>}
-    {choice === 'commercial' && <p className="tlg-jet-commercial">{c.commercialRoundTrip}: {money(commercialTotal)} ({c.playerAndStaff})</p>}
+    {choice === 'commercial' && <p className="tlg-jet-commercial">{quote?.direct_transfer_scope ? directCopy.directChoice : c.commercialRoundTrip}: {money(commercialTotal)} ({c.playerAndStaff})</p>}
     <button type="button" className="tlg-jet-save" onClick={()=>void save()}
       disabled={busy || (choice==='private_jet' && jetPreviewLoading)}>{busy ? c.loading : choice==='private_jet' && !supported ? c.bookCommercial : c.save}</button>
     {notice && <p className="tlg-jet-success" role="status">{notice}</p>}

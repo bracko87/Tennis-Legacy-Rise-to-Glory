@@ -19,6 +19,7 @@ import CountryFlag from '../../components/common/CountryFlag'
 import GameLayout from '../../components/layout/GameLayout'
 import TournamentJetPicker from '../../components/private-life/TournamentJetPicker'
 import { lifestyleCopy } from '../../lib/lifestyleCareerI18n'
+import { directTournamentTravelCopy } from '../../lib/directTournamentTravelI18n'
 import { useStaff, type StaffRole } from '../../hooks/useStaff'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { staffEffectLabel, staffRoleLabel } from '../../i18n/staffLocalization'
@@ -166,6 +167,21 @@ interface TournamentTransferContext {
   route_choice: TournamentTransferChoice
   reason?: string
 }
+interface TournamentTransferQuote {
+ quote_available: boolean
+ source_city?: string
+ destination_city?: string
+ direct_distance_km?: number
+ direct_flight_mode?: 'commercial' | 'private_jet'
+ direct_flight_cost?: number
+ commercial_via_home_cost?: number
+ extra_hotel_nights?: number
+ extra_hotel_cost?: number
+ direct_total_cost?: number
+ arrival_fatigue?: number
+ potential_tight_connection?: boolean
+ jet?: { active?: boolean; reason?: string; name?: string }
+}
 interface PreparationPlanResponse {
   saved: boolean
   player_travel_class: TravelClass
@@ -295,6 +311,7 @@ function TournamentApplicationList({
 export default function SchedulePage() {
   const { t, i18n } = useTranslation()
   const lifestyleLabels = lifestyleCopy(i18n.resolvedLanguage ?? i18n.language)
+  const transferLabels = directTournamentTravelCopy(i18n.resolvedLanguage ?? i18n.language)
   const { formatCurrency, formatNumber } = useLocalization()
   const money = (value: number) => formatCurrency(Math.round(value), 'USD')
   const { player, playerLoading } = useAuth()
@@ -326,6 +343,9 @@ export default function SchedulePage() {
   const [transferChoice, setTransferChoice] = useState<TournamentTransferChoice>('home')
   const [transferLoading, setTransferLoading] = useState(false)
   const [transferError, setTransferError] = useState<string | null>(null)
+  const [transferQuote, setTransferQuote] = useState<TournamentTransferQuote | null>(null)
+  const [transferQuoteLoading, setTransferQuoteLoading] = useState(false)
+  const [transferQuoteError, setTransferQuoteError] = useState<string | null>(null)
   const [applicationHistory, setApplicationHistory] = useState<TournamentApplicationHistory>({ singles: [], doubles: [] })
   const [applicationsLoading, setApplicationsLoading] = useState(true)
   const [applicationsError, setApplicationsError] = useState<string | null>(null)
@@ -470,6 +490,38 @@ export default function SchedulePage() {
   }, [player?.id, nextTournament?.competition_id])
 
   useEffect(() => {
+    if (!prepareOpen || !player?.id || !nextTournament?.competition_id || !transferContext?.available) {
+      setTransferQuote(null)
+      setTransferQuoteError(null)
+      setTransferQuoteLoading(false)
+      return
+    }
+    let cancelled = false
+    setTransferQuoteLoading(true)
+    setTransferQuoteError(null)
+    const timer = window.setTimeout(async () => {
+      const { data, error: quoteError } = await supabase.rpc('quote_tournament_transfer_options_v1', {
+        p_player_id: player.id,
+        p_competition_id: nextTournament.competition_id,
+        p_player_travel_class: playerTravelClass,
+        p_staff_travel_class: staffTravelClass,
+        p_hotel_tier: hotelTier,
+        p_selected_staff_contract_ids: selectedStaff,
+      })
+      if (cancelled) return
+      setTransferQuoteLoading(false)
+      if (quoteError || !data) {
+        setTransferQuote(null)
+        setTransferQuoteError(quoteError?.message ?? 'Quote unavailable')
+      } else {
+        setTransferQuote(data as TournamentTransferQuote)
+      }
+    }, 120)
+    return () => { cancelled = true; window.clearTimeout(timer) }
+  }, [prepareOpen, player?.id, nextTournament?.competition_id, transferContext?.available,
+      playerTravelClass, staffTravelClass, hotelTier, selectedStaff, travelModeRevision])
+
+  useEffect(() => {
     if (
       loading
       || !shouldOpenPreparation
@@ -594,6 +646,9 @@ export default function SchedulePage() {
       }
     }
     setPlanSaving(false)
+    if (transferContext?.available) {
+      setTransferContext((current) => current ? ({ ...current, route_choice: transferChoice }) : current)
+    }
     const saved = data as PreparationPlanResponse
     const savedStaff = saved.selected_staff_contract_ids ?? []
     const savedTactic = saved.tactic ?? tactics
@@ -729,44 +784,76 @@ export default function SchedulePage() {
                   <div className="tlg-prep-rule"><Plane size={18} /><div><strong>{t('schedulePage.preparation.automaticTiming')}</strong><p>{t('schedulePage.preparation.automaticTimingBody')}</p></div></div>
                   {transferContext?.available && (
                     <ChoiceSection
-                      title={t('schedulePage.preparation.transferTitle', { defaultValue: 'Travel between tournaments' })}
-                      subtitle={t('schedulePage.preparation.transferIntro', {
-                        defaultValue: 'Choose your route from {{previous}} to {{next}} before your return journey starts.',
-                        previous: transferContext.source_tournament_name ?? transferContext.source_city ?? 'Previous tournament',
-                        next: nextTournament.tournament_name,
-                      })}
+                      title={transferLabels.title}
+                      subtitle={transferLabels.intro
+                        .replace('{previous}', transferContext.source_tournament_name ?? transferContext.source_city ?? '')
+                        .replace('{next}', nextTournament.tournament_name)}
                     >
                       <div className="tlg-prep-choice-grid">
                         <button type="button" className={transferChoice === 'home' ? 'selected' : ''} aria-pressed={transferChoice === 'home'} onClick={() => { markPlanDirty(); setTransferChoice('home') }}>
-                          {t('schedulePage.preparation.transferHome', { defaultValue: 'Return home first (default)' })}
+                          {transferLabels.viaHome}
                         </button>
                         <button type="button" className={transferChoice === 'direct' ? 'selected' : ''} aria-pressed={transferChoice === 'direct'} onClick={() => { markPlanDirty(); setTransferChoice('direct') }}>
-                          {t('schedulePage.preparation.transferDirect', { defaultValue: 'Travel directly to the next tournament' })}
+                          {transferLabels.direct}
                         </button>
                       </div>
                     </ChoiceSection>
                   )}
                   {transferContext?.available && transferChoice === 'direct' && (
-                    <p className="tlg-prep-copy">
-                      {t('schedulePage.preparation.transferDirectNote', {
-                        defaultValue: 'After your last match, travel directly to the next tournament. Your selected private jet is used if eligible; otherwise a commercial flight is booked. The standard round-trip cost estimate below does not include this alternative route or additional hotel nights.',
-                      })}
-                    </p>
+                    <div className="tlg-prep-transfer-quote" aria-live="polite">
+                      <strong>{transferLabels.quoteTitle}</strong>
+                      {transferQuoteLoading && <p>{transferLabels.loading}</p>}
+                      {transferQuoteError && <p role="alert">{transferLabels.error} {transferQuoteError}</p>}
+                      {transferQuote?.quote_available && (
+                        <>
+                          <div className="tlg-prep-transfer-facts">
+                            <span>{transferLabels.route}</span><b>{transferQuote.source_city} → {transferQuote.destination_city} · {distance(transferQuote.direct_distance_km, t, formatNumber)}</b>
+                            <span>{transferLabels.flight} ({transferQuote.direct_flight_mode === 'private_jet' ? transferLabels.flightJet : transferLabels.flightCommercial})</span><b>{money(transferQuote.direct_flight_cost ?? 0)}</b>
+                            <span>{transferLabels.hotel}</span><b>{transferQuote.extra_hotel_nights ?? 0} {transferQuote.extra_hotel_nights === 1 ? transferLabels.day : transferLabels.days} · {money(transferQuote.extra_hotel_cost ?? 0)}</b>
+                            <span>{transferLabels.fatigue}</span><b>+{transferQuote.arrival_fatigue ?? 0}</b>
+                            <span>{transferLabels.subtotal}</span><b>{money(transferQuote.direct_total_cost ?? 0)}</b>
+                            <span>{transferLabels.homeComparison}</span><b>{money(transferQuote.commercial_via_home_cost ?? 0)}</b>
+                          </div>
+                          {transferQuote.jet?.active === false && transferQuote.jet?.reason && <p>{transferLabels.flightCommercial}: {transferQuote.jet.reason.replaceAll('_',' ')}</p>}
+                          {transferQuote.potential_tight_connection && <p className="tlg-jet-error">{transferLabels.connectionWarning}</p>}
+                          <p>{transferLabels.costNote}</p>
+                          <p>{transferLabels.awayMorale}</p>
+                          <p>{transferLabels.noTravelYet}</p>
+                        </>
+                      )}
+                      {transferContext.route_choice !== 'direct' && <p>{transferLabels.saveToConfirm}</p>}
+                    </div>
                   )}
-                  {transferLoading && <p>{t('schedulePage.preparation.transferLoading', { defaultValue: 'Checking tournament transfer options…' })}</p>}
-                  {transferError && <p role="alert">{t('schedulePage.preparation.transferError', { defaultValue: 'Transfer options unavailable: {{message}}', message: transferError })}</p>}
-                  {estimate && <div className="tlg-prep-copy"><h3>{estimate.origin.city ?? t('schedulePage.preparation.currentLocation')} → {estimate.destination.city}</h3><p>{t('schedulePage.preparation.oneWay', { distance: distance(estimate.player_travel.distance_km, t, formatNumber), hours: estimate.player_travel.estimated_hours_one_way })}</p></div>}
-                  {nextTournament && !membershipLoading && isPremium && <TournamentJetPicker
+                  {transferContext?.available === false && <p className="tlg-prep-transfer-muted">{transferLabels.unavailable}</p>}
+                  {transferLoading && <p>{transferLabels.loading}</p>}
+                  {transferError && <p role="alert">{transferLabels.error} {transferError}</p>}
+                  {estimate && transferChoice !== 'direct' && <div className="tlg-prep-copy"><h3>{estimate.origin.city ?? t('schedulePage.preparation.currentLocation')} → {estimate.destination.city}</h3><p>{t('schedulePage.preparation.oneWay', { distance: distance(estimate.player_travel.distance_km, t, formatNumber), hours: estimate.player_travel.estimated_hours_one_way })}</p></div>}
+                  {transferChoice === 'direct' && transferContext?.route_choice !== 'direct' && !membershipLoading && isPremium && (
+                     <div className="tlg-prep-transfer-muted">{transferLabels.jetFirst}</div>
+                   )}
+                   {nextTournament && !membershipLoading && isPremium &&
+                     !(transferChoice === 'direct' && transferContext?.route_choice !== 'direct') && <TournamentJetPicker
                      competitionId={nextTournament.competition_id}
                      staffCount={selectedStaff.length}
-                     distanceKm={Number(estimate?.player_travel.distance_km ?? 0)}
+                     distanceKm={Number(transferChoice === 'direct' ? (transferQuote?.direct_distance_km ?? estimate?.player_travel.distance_km ?? 0) : (estimate?.player_travel.distance_km ?? 0))}
+                     quoteRevision={travelModeRevision}
                      money={money}
                      onChanged={() => setTravelModeRevision((revision) => revision + 1)}
                    />}
                    <ChoiceSection title={t('schedulePage.preparation.playerClass')} subtitle={t('schedulePage.preparation.playerClassBody')}><ChoiceGrid values={TRAVEL_CLASSES} selected={playerTravelClass} onSelect={(value) => { markPlanDirty(); setPlayerTravelClass(value as TravelClass) }} /></ChoiceSection>
-                  <PlanImpact label={t('schedulePage.preparation.playerTravelEffect')} value={estimate ? `${estimate.private_jet?.active ? `${lifestyleLabels.jetMode} · ${estimate.private_jet.name ?? lifestyleLabels.selectedJet}` : travelClassEffect(playerTravelClass, t)} · ${t('schedulePage.preparation.fatigueArrival', { fatigue: estimate.player_travel.arrival_fatigue })}` : travelClassEffect(playerTravelClass, t)} cost={estimate ? t('schedulePage.preparation.roundTrip', { amount: money(estimate.player_travel_cost) }) : '—'} />
+                  {!(transferChoice === 'direct' && transferQuote?.quote_available) && (<PlanImpact label={t('schedulePage.preparation.playerTravelEffect')} value={estimate ? `${estimate.private_jet?.active ? `${lifestyleLabels.jetMode} · ${estimate.private_jet.name ?? lifestyleLabels.selectedJet}` : travelClassEffect(playerTravelClass, t)} · ${t('schedulePage.preparation.fatigueArrival', { fatigue: estimate.player_travel.arrival_fatigue })}` : travelClassEffect(playerTravelClass, t)} cost={estimate ? t('schedulePage.preparation.roundTrip', { amount: money(estimate.player_travel_cost) }) : '—'} />)}
+                  {transferChoice === 'direct' && transferQuote?.quote_available && <PlanImpact
+  label={t('schedulePage.preparation.playerTravelEffect')}
+  value={`${transferQuote.direct_flight_mode === 'private_jet' ? transferLabels.flightJet : transferLabels.flightCommercial} · +${transferQuote.arrival_fatigue ?? 0} ${transferLabels.fatigue}`}
+  cost={money(transferQuote.direct_flight_cost ?? 0)}
+/>}
                   <ChoiceSection title={t('schedulePage.preparation.staffClass')} subtitle={t('schedulePage.preparation.staffClassBody')}><ChoiceGrid values={TRAVEL_CLASSES} selected={staffTravelClass} onSelect={(value) => { markPlanDirty(); setStaffTravelClass(value as TravelClass) }} /></ChoiceSection>
-                  <PlanImpact label={t('schedulePage.preparation.staffTravelEffect')} value={selectedStaff.length > 0 && estimate ? `${travelClassEffect(staffTravelClass, t)} · ${t('schedulePage.preparation.fatigueTraveller', { fatigue: estimate.staff_travel.arrival_fatigue, count: selectedStaff.length })}` : t('schedulePage.preparation.noStaffSelected')} cost={estimate ? money(estimate.staff_travel_cost) : '—'} />
+                  {!(transferChoice === 'direct' && transferQuote?.quote_available) && (<PlanImpact label={t('schedulePage.preparation.staffTravelEffect')} value={selectedStaff.length > 0 && estimate ? `${travelClassEffect(staffTravelClass, t)} · ${t('schedulePage.preparation.fatigueTraveller', { fatigue: estimate.staff_travel.arrival_fatigue, count: selectedStaff.length })}` : t('schedulePage.preparation.noStaffSelected')} cost={estimate ? money(estimate.staff_travel_cost) : '—'} />)}
+                  {transferChoice === 'direct' && transferQuote?.quote_available && <PlanImpact
+  label={t('schedulePage.preparation.staffTravelEffect')}
+  value={selectedStaff.length > 0 ? transferLabels.included : t('schedulePage.preparation.noStaffSelected')}
+  cost="—"
+/>}
                   <ChoiceSection title={t('schedulePage.preparation.hotel')} subtitle={t('schedulePage.preparation.hotelBody')}>
                     <div className="tlg-prep-hotel-grid">{HOTEL_TIERS.map((tier) => { const info = hotelInfo(tier.value, t); return <button key={tier.value} type="button" className={hotelTier === tier.value ? 'selected' : ''} onClick={() => { markPlanDirty(); setHotelTier(tier.value) }}><Hotel size={17} /><strong>{info.label}</strong><span>{info.detail} · {info.effect}</span><small>{t('schedulePage.preparation.basePerNight', { amount: money(tier.nightly) })}</small></button> })}</div>
                   </ChoiceSection>
@@ -807,9 +894,21 @@ export default function SchedulePage() {
               {activeTab === 'summary' && estimate && (
                 <div className="tlg-prep-stack">
                   <div className="tlg-prep-summary-grid">
-                    <SummaryItem label={t('schedulePage.preparation.route')} value={`${estimate.origin.city ?? t('schedulePage.preparation.currentLocation')} → ${estimate.destination.city} · ${distance(estimate.player_travel.distance_km, t, formatNumber)}`} />
-                    <SummaryItem label={t('schedulePage.preparation.playerFlight')} value={`${estimate.private_jet?.active ? `${lifestyleLabels.selectedJet}: ${estimate.private_jet.name ?? '—'}` : travelClassLabel(playerTravelClass, t)} · ${money(estimate.player_travel_cost)} · ${t('schedulePage.preparation.summaryFatigue', { value: estimate.player_travel.arrival_fatigue })}`} />
-                    <SummaryItem label={t('schedulePage.preparation.staffFlight')} value={selectedStaff.length === 0 ? t('schedulePage.preparation.noStaffTravel') : `${estimate.private_jet?.active ? `${lifestyleLabels.staffOnBoard}: ${estimate.private_jet.staff_on_jet ?? 0} · ${lifestyleLabels.staffCommercial}: ${estimate.private_jet.staff_commercial ?? 0}` : travelClassLabel(staffTravelClass, t)} · ${money(estimate.staff_travel_cost)}`} />
+                    {!(transferChoice === 'direct' && transferQuote?.quote_available) && (<SummaryItem label={t('schedulePage.preparation.route')} value={`${estimate.origin.city ?? t('schedulePage.preparation.currentLocation')} → ${estimate.destination.city} · ${distance(estimate.player_travel.distance_km, t, formatNumber)}`} />)}
+                    {transferChoice === 'direct' && transferQuote?.quote_available && <SummaryItem
+  label={t('schedulePage.preparation.route')}
+  value={`${transferQuote.source_city} → ${transferQuote.destination_city} · ${distance(transferQuote.direct_distance_km, t, formatNumber)}`}
+/>}
+                    {!(transferChoice === 'direct' && transferQuote?.quote_available) && (<SummaryItem label={t('schedulePage.preparation.playerFlight')} value={`${estimate.private_jet?.active ? `${lifestyleLabels.selectedJet}: ${estimate.private_jet.name ?? '—'}` : travelClassLabel(playerTravelClass, t)} · ${money(estimate.player_travel_cost)} · ${t('schedulePage.preparation.summaryFatigue', { value: estimate.player_travel.arrival_fatigue })}`} />)}
+                    {transferChoice === 'direct' && transferQuote?.quote_available && <SummaryItem
+  label={t('schedulePage.preparation.playerFlight')}
+  value={`${transferQuote.direct_flight_mode === 'private_jet' ? transferLabels.flightJet : transferLabels.flightCommercial} · ${money(transferQuote.direct_flight_cost ?? 0)} · +${transferQuote.arrival_fatigue ?? 0} ${transferLabels.fatigue}`}
+/>}
+                    {!(transferChoice === 'direct' && transferQuote?.quote_available) && (<SummaryItem label={t('schedulePage.preparation.staffFlight')} value={selectedStaff.length === 0 ? t('schedulePage.preparation.noStaffTravel') : `${estimate.private_jet?.active ? `${lifestyleLabels.staffOnBoard}: ${estimate.private_jet.staff_on_jet ?? 0} · ${lifestyleLabels.staffCommercial}: ${estimate.private_jet.staff_commercial ?? 0}` : travelClassLabel(staffTravelClass, t)} · ${money(estimate.staff_travel_cost)}`} />)}
+                    {transferChoice === 'direct' && transferQuote?.quote_available && <SummaryItem
+  label={t('schedulePage.preparation.staffFlight')}
+  value={selectedStaff.length > 0 ? transferLabels.included : t('schedulePage.preparation.noStaffTravel')}
+/>}
                     <SummaryItem label={t('schedulePage.preparation.hotelLabel')} value={`${hotelCopy.label} · ${t('schedulePage.preparation.perPersonNight', { amount: money(estimate.hotel.minimum.adjusted_unit_cost) })} · ${hotelCopy.effect}`} />
                     <SummaryItem label={t('schedulePage.preparation.travellingStaff')} value={selectedStaff.length === 0 ? t('schedulePage.preparation.playerOnly') : t('schedulePage.preparation.staffCount', { count: selectedStaff.length })} />
                     {estimate.staff_effects && estimate.staff_effects.match_execution_bonus_pct > 0 && <SummaryItem label={t('schedulePage.preparation.matchExecution')} value={`+${estimate.staff_effects.match_execution_bonus_pct}%`} />}
@@ -822,7 +921,13 @@ export default function SchedulePage() {
                       : t('schedulePage.preparation.dayAfterElimination')} />
                   </div>
                   {selectedStaffNames.length > 0 && <div className="tlg-prep-selected-staff"><span>{t('schedulePage.preparation.party')}</span><strong>{selectedStaffNames.join(', ')}</strong></div>}
-                  <div className="tlg-prep-cost-placeholder tlg-prep-cost-live"><span>{t('schedulePage.preparation.estimatedCost')} {quoteLoading ? t('schedulePage.preparation.recalculatingShort') : ''}</span><strong>{money(estimate.minimum_total)} – {money(estimate.maximum_total)}</strong><div className="tlg-prep-cost-breakdown"><small>{t('schedulePage.preparation.travelCost', { amount: money(estimate.player_travel_cost + estimate.staff_travel_cost) })}</small><small>{t('schedulePage.preparation.hotelCost', { amount: money(estimate.hotel.minimum.adjusted_unit_cost * estimate.party_size) })}</small><small>{t('schedulePage.preparation.stayRange', { min: estimate.minimum_nights, max: estimate.maximum_nights })}</small><small>{t('schedulePage.preparation.arrivalFatigue', { value: estimate.player_travel.arrival_fatigue })}</small></div><p>{t('schedulePage.preparation.stayBody')}</p></div>
+                  {transferChoice === 'direct' && transferQuote?.quote_available ? (
+                    <div className="tlg-prep-cost-placeholder tlg-prep-cost-live">
+                      <span>{transferLabels.quoteTitle} · {transferLabels.subtotal}</span>
+                      <strong>{money(transferQuote.direct_total_cost ?? 0)}</strong>
+                      <p>{transferLabels.costNote}</p>
+                    </div>
+                  ) : (<div className="tlg-prep-cost-placeholder tlg-prep-cost-live"><span>{t('schedulePage.preparation.estimatedCost')} {quoteLoading ? t('schedulePage.preparation.recalculatingShort') : ''}</span><strong>{money(estimate.minimum_total)} – {money(estimate.maximum_total)}</strong><div className="tlg-prep-cost-breakdown"><small>{t('schedulePage.preparation.travelCost', { amount: money(estimate.player_travel_cost + estimate.staff_travel_cost) })}</small><small>{t('schedulePage.preparation.hotelCost', { amount: money(estimate.hotel.minimum.adjusted_unit_cost * estimate.party_size) })}</small><small>{t('schedulePage.preparation.stayRange', { min: estimate.minimum_nights, max: estimate.maximum_nights })}</small><small>{t('schedulePage.preparation.arrivalFatigue', { value: estimate.player_travel.arrival_fatigue })}</small></div><p>{t('schedulePage.preparation.stayBody')}</p></div>)}
                 </div>
               )}
             </div>
