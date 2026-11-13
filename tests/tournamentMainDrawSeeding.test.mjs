@@ -21,7 +21,7 @@ test('future draw publication never silently proceeds when seed layout is missin
  assert.match(migration,/v_main_seeds:=least\(v_main_seeds,v_main_count\)/)
 })
 test('do not redraw existing started tournaments or rewrite seeded players or results',()=>{
- const installation=migration.split(/CREATE OR REPLACE FUNCTION public\\.publish_tournament_draw_v1/i)[0]
+ const installation=migration.split('CREATE OR REPLACE FUNCTION public.publish_tournament_draw_v1')[0]
  assert.doesNotMatch(installation,/\bdelete\s+from\s+public\.tournament_matches\b/i)
  assert.doesNotMatch(installation,/\btruncate\s+public\.tournament_matches\b/i)
  assert.doesNotMatch(installation,/\bupdate\s+public\.tournament_matches\b/i)
