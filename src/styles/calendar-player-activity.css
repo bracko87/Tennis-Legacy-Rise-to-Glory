@@ -30,12 +30,14 @@
 }
 
 /* The player has a match actually in progress (qualifying counts). */
-.tlg-calendar-day-tournament-live {
+.tlg-calendar-day-tournament-live,
+.tlg-calendar-day-current.tlg-calendar-day-tournament-live {
   background: #d8f5e7;
   border-color: #159665;
 }
 
-.tlg-calendar-day-tournament-live .tlg-calendar-day-number {
+.tlg-calendar-day-tournament-live .tlg-calendar-day-number,
+.tlg-calendar-day-current.tlg-calendar-day-tournament-live .tlg-calendar-day-number {
   color: #075a3e;
 }
 
