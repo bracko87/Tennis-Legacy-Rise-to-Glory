@@ -46,6 +46,8 @@ jobs:
         run: node --test tests/tournamentRankAiAndGrandSlamWeeks.test.mjs
       - name: Verify live match replay health and early Grand Slam qualifying draws
         run: node --test tests/matchReplayHealthAndGrandSlamDraw.test.mjs
+      - name: Verify due rankings are published before tournament incident checks
+        run: node --test tests/tournamentRankingEarlyPublication.test.mjs
       - name: Verify new human ranking starts at the bottom with no seeded sponsor windfall
         run: node --test tests/newHumanRankingStartsLast.test.mjs
       - name: Verify Stripe subscription period ends display correctly for paid Premium
