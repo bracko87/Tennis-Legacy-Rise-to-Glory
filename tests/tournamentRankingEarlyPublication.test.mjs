@@ -10,8 +10,11 @@ const sql=readFileSync(
 test('watchdog publishes ready ranking cycles BEFORE checking for tournament errors', () => {
   assert.match(sql,/run_tournament_operations_watchdog_v1/)
   const ranking=sql.indexOf('v_ranking_recovery:=public.process_weekly_rankings_v1()')
-  const checks=sql.indexOf("select * from public.tournament_operations_rows_v1('problems',30) r")
-  assert.ok(ranking>0 && checks>ranking)
+  assert.ok(ranking>0)
+  // This is a source-rewrite migration: the existing problem-loop anchor is
+  // declared before the inserted code, but the replacement prepends the patch
+  // in the compiled watchdog function.
+  assert.match(sql,/v_source:=replace\(v_source,v_anchor,v_patch\|\|v_anchor\)/)
   assert.match(sql,/v_ranking_recovery jsonb/)
   assert.match(sql,/ranking_recovery/)
 })
