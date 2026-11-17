@@ -170,3 +170,23 @@ test('launch popup links to the existing official Tennis Legacy Discord',()=>{
   assert.ok(notice.includes("discord: 'Join Discord'"))
   assert.ok(notice.includes("discord: 'Discord beitreten'"))
 })
+
+
+test('registration birthday wizard follows the dark Tennis Legacy form theme', () => {
+  const register = read('../src/pages/auth/Register.tsx')
+  const css = read('../src/styles/onboarding-enhancements.css')
+  assert.ok(register.includes('tlg-birthday-panel tlg-birthday-panel-v2 tlg-birthday-wizard-panel'))
+  assert.ok(css.includes('Dark registration wizard — Date of Birth panel'))
+  const fix = css.slice(css.indexOf('Dark registration wizard — Date of Birth panel'))
+  assert.match(fix, /\.tlg-auth-register-page \.tlg-birthday-panel\.tlg-birthday-panel-v2\.tlg-birthday-wizard-panel/)
+  assert.match(fix, /background: linear-gradient\(160deg, rgba\(12, 39, 64, \.98\), rgba\(7, 26, 44, \.98\)\) !important/)
+  assert.match(fix, /\.tlg-birthday-wizard-panel select\.tlg-input/)
+  assert.match(fix, /\.tlg-birthday-wizard-panel input\.tlg-input/)
+  assert.match(fix, /color-scheme: dark/)
+  assert.match(fix, /\.tlg-birthday-wizard-panel \.tlg-birthday-warning/)
+  assert.match(fix, /\.tlg-birthday-wizard-panel \.tlg-field-label/)
+  assert.match(fix, /\.tlg-birthday-wizard-panel \.tlg-field-hint/)
+  assert.match(fix, /\.tlg-birthday-wizard-panel \.tlg-optional-year-field > span/)
+  assert.match(fix, /\.tlg-birthday-wizard-panel select\.tlg-input:focus/)
+  assert.doesNotMatch(fix, /background: #fff !important/)
+})
