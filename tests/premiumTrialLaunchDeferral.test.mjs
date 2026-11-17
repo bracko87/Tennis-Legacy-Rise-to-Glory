@@ -1,0 +1,63 @@
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import test from 'node:test'
+
+const read = path => readFileSync(new URL('../'+path,import.meta.url),'utf8')
+const sql=read('supabase/migrations/20261117181500_defer_premium_trials_until_real_launch_unpause.sql')
+const commerce=read('src/hooks/useCommerce.ts')
+const packages=read('src/pages/manager/ProPackages.tsx')
+const copy=read('src/lib/premiumPrelaunchTrialCopy.ts')
+
+test('first official unpause anchors seven real days, never account creation',()=>{
+ assert.match(sql,/scheduled_at='2026-11-23 07:00:00\+01'::timestamptz/)
+ assert.match(sql,/Game launch cannot begin before 23 November 2026 at 07:00 German time/)
+ assert.match(sql,/AFTER UPDATE OF is_paused ON public\.game_clock/)
+ assert.match(sql,/FOR EACH ROW WHEN \(OLD\.is_paused AND NOT NEW\.is_paused\)/)
+ assert.match(sql,/UPDATE control_center_private\.tennis_premium_launch_control_v1/)
+ assert.match(sql,/WHERE id=true AND unpaused_at IS NULL/)
+ assert.match(sql,/SET started_at=v_release,expires_at=v_release\+interval '7 days'/)
+ assert.match(sql,/p\.created_at<=v_release/)
+ assert.equal(new Date('2026-11-23T07:00:00+01:00').toISOString(),'2026-11-23T06:00:00.000Z')
+ assert.equal(new Date(new Date('2026-11-23T07:00:00+01:00').getTime()+7*86400000).toISOString(),'2026-11-30T06:00:00.000Z')
+})
+
+test('prelaunch player receives Premium preview without consuming trial days',()=>{
+ assert.match(sql,/reserved_for_launch boolean NOT NULL DEFAULT false/)
+ assert.match(sql,/v_reserve_for_launch := v_launch_actual IS NULL/)
+ assert.match(sql,/IF v_trial\.reserved_for_launch THEN/)
+ assert.match(sql,/'state','pending_launch','is_premium',true/)
+ assert.match(sql,/'started_at',null,'expires_at',null,'seconds_left',604800/)
+ assert.match(sql,/not t\.reserved_for_launch and t\.expires_at>now\(\)/)
+ assert.match(sql,/l\.unpaused_at is null/)
+ assert.match(sql,/g\.is_paused/)
+})
+
+test('players creating a character after release receive their own full trial',()=>{
+ assert.match(sql,/WHEN v_player_created_at < v_launch_actual THEN v_launch_actual/)
+ assert.match(sql,/ELSE v_now END/)
+ assert.match(sql,/IF v_trial\.user_id IS NOT NULL AND v_trial\.reserved_for_launch/)
+ assert.match(sql,/SET started_at=v_start_anchor,expires_at=v_start_anchor\+interval '7 days'/)
+ assert.match(sql,/launch_cohort=\(v_player_created_at <= v_launch_actual\)/)
+})
+
+test('paid subscriptions, coins and one-trial-per-email safeguards remain intact',()=>{
+ assert.match(sql,/b\.kind='premium_invoice' AND b\.status='paid'/)
+ assert.match(sql,/m\.plan_code='premium' AND m\.status='active'/)
+ assert.match(sql,/insert into public\.tennis_premium_trial_claims_v1\(email_claim_hash\)/)
+ assert.match(sql,/on conflict do nothing/)
+ assert.match(sql,/tennis_trial_reservation_requires_cohort/)
+ assert.match(sql,/REVOKE ALL ON control_center_private\.tennis_premium_launch_control_v1 FROM PUBLIC,anon,authenticated/)
+ assert.doesNotMatch(sql,/DELETE FROM (?:auth\.users|public\.premium_memberships|public\.coin_ledger)/i)
+})
+
+test('Premium page distinguishes reserved prelaunch trial from active countdown',()=>{
+ assert.match(commerce,/state: 'pending_launch' \| 'active'/)
+ assert.match(commerce,/trial\?\.state === 'pending_launch'/)
+ assert.match(packages,/const trialPendingLaunch = commerce\.trial\?\.state === 'pending_launch'/)
+ assert.match(packages,/const trialStatusText = trialPendingLaunch/)
+ assert.match(packages,/const trialDetailsText = trialPendingLaunch/)
+ assert.match(packages,/trialPendingLaunch \? '—' : date\(commerce\.isTrial/)
+ for(const lang of ['en','de','sr','es','fr','it','pt','ru'])
+   assert.ok(copy.includes('  '+lang+': {'),lang)
+ assert.match(copy,/full 7-day free trial begins only when the game clock is first unpaused/)
+})

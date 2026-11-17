@@ -28,7 +28,7 @@ export interface PremiumMembershipRecord {
 }
 
 export interface PremiumTrialRecord {
-  state: 'active' | 'expired' | 'subscribed' | 'ineligible' | 'not_ready'
+  state: 'pending_launch' | 'active' | 'expired' | 'subscribed' | 'ineligible' | 'not_ready'
   trial_started?: boolean
   started_at?: string
   expires_at?: string
@@ -107,8 +107,13 @@ export function useCommerce() {
     return new Date(membership.current_period_end).getTime() > Date.now()
   }, [membership])
 
-  const isTrial = !isPaidPremium && trial?.state === 'active'
-    && Boolean(trial.expires_at && new Date(trial.expires_at).getTime() > Date.now())
+  // Before the first official unpause the Premium preview is available, but
+  // the seven real trial days have not started and cannot expire.
+  const isTrial = !isPaidPremium && (
+    trial?.state === 'pending_launch'
+    || (trial?.state === 'active'
+      && Boolean(trial.expires_at && new Date(trial.expires_at).getTime() > Date.now()))
+  )
   const isPremium = isPaidPremium || isTrial
 
   // Trial expiry must lock features without waiting for another page reload.
