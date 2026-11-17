@@ -99,3 +99,19 @@ test('authentication-only player actions remain available to logged-in users, no
  assert.doesNotMatch(playerAcl,/get_public_registration_status_v1/)
  assert.doesNotMatch(playerAcl,/record_site_analytics_event_v1/)
 })
+
+
+const internalCalculatorAcl=read('supabase/migrations/20261117152000_restrict_internal_tennis_match_calculators.sql')
+test('internal match ratings, private tactics and health/staff calculations are no longer public RPCs',()=>{
+ for (const name of [
+  'get_effective_match_tactic_internal_v2','get_effective_doubles_match_tactic_internal_v1',
+  'get_match_engine_profile_for_match_v2','get_player_health_summary_v1',
+  'get_player_injury_risk_v1','get_player_staff_effects_v2','player_match_slot_conflict_v1'
+ ]) assert.match(internalCalculatorAcl,new RegExp(name))
+ assert.match(internalCalculatorAcl,/REVOKE EXECUTE ON FUNCTION %s FROM PUBLIC,anon,authenticated/)
+ assert.match(internalCalculatorAcl,/p\.proowner='postgres'::regrole/)
+ assert.match(internalCalculatorAcl,/NOT p\.prosecdef/)
+ assert.match(internalCalculatorAcl,/GRANT EXECUTE ON FUNCTION %s TO service_role/)
+ assert.doesNotMatch(internalCalculatorAcl,/get_player_health_dashboard_v3/)
+ assert.doesNotMatch(internalCalculatorAcl,/get_staff_dashboard_v2/)
+})
