@@ -27,4 +27,6 @@ The Premium page shows a clear “trial reserved” message instead of claiming 
 
 Tested in a rolled-back database transaction: three old free-trial rows were reserved, previously paid membership/invoice/coin totals did not change, early unpause was blocked, an isolated simulated unpause recorded the launch timestamp, and accounts without characters did not consume trial days. Subsequent pause/resume did not re-anchor trials. All writes were rolled back.
 
-The full migration should be applied on the live database only after matching the GitHub production build and regression tests; its application and postconditions must be verified separately. The game clock must stay paused for now.
+**Installed and verified on 17 November 2026.** Both Premium trial migrations are active on Tennis Legacy Supabase `cwfznmroiqcyhfkfcrow`. The final GitHub build and regression tests passed in run [44101761086](https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/actions/runs/44101761086).
+
+Live post-install checks found: three legacy free trials reserved; no trial duration mismatches; the launch-control actual unpause is still null; an authenticated sample with a reserved trial does **not** have active trial Premium access. The clock remains paused at Season 1, January 1, 00:00, configured for 2×. Registration remains open. Six account and membership rows, one paid invoice and all 650 wallet coins remain intact. The launch transition trigger is installed. The website code is committed, but the Netlify live deployment has not been independently verified.
