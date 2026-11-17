@@ -127,5 +127,10 @@ OR (schemaname='public' AND (
    CASE WHEN two_week_events=16 AND valid_two_week_events=16 THEN 'PASS' ELSE 'BLOCKED' END,
    format('%s of %s two-week tournament definitions have one qualification week and one main-draw week; required 16 of 16',
           valid_two_week_events,two_week_events) FROM two_week_phase_health
+ UNION ALL SELECT 19,'Public-write rate limits deployed together with review form',
+   CASE WHEN to_regclass('control_center_private.tennis_public_rpc_budgets_v1') IS NULL
+        THEN 'PENDING_DEPLOYMENT'
+        ELSE 'NEEDS_WEBSITE_VERIFICATION' END,
+   'Deploy database limits and the review form together; a database-only deployment can falsely confirm a rejected review'
 )
 SELECT seq,item,state,evidence FROM checks ORDER BY seq;

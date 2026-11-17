@@ -103,3 +103,9 @@ The public review form is updated to treat only `status: pending` as success. A 
 **Deployment order matters.** The database rate-limit changes should not be applied to the active game until the updated website review form is also deployed. Website publication is paused for the prelaunch test. The migrations have been transactionally tested and committed for deployment later; do not report them as active prematurely.
 
 Rollback tests included anonymous guest-review submission, analytics and cross-game events, limit exhaustion and unchanged row counts. All test data was rolled back.
+
+## Last public RPC exposure review (November 17)
+
+The read-only audit `scripts/tennis_public_rpc_access_readonly.sql` checks every privileged function that anonymous visitors can execute. Prior to the final helper lockdown it identified **24** such functions: 16 public-information functions, four public-write functions awaiting coordinated rate-limit deployment, and four requiring closer access review. Two of those four are internal health eligibility/doubles timing helpers and have now been prepared for direct-access revocation. The other two are calendar/tournament entry functions; do not deny anonymous access before verifying any public website dependency.
+
+The release-readiness report includes a nineteenth check: rate-limit deployment remains **PENDING_DEPLOYMENT** until the new private budget table exists, and even then requires website verification. The current normal website should not be automatically republished.

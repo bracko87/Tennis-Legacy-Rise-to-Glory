@@ -186,3 +186,22 @@ test('website review form never says submitted if the API rate limits it',()=>{
  assert.ok(publicReviewPage.indexOf("if (data?.status !== 'pending')") <
    publicReviewPage.indexOf("setSubmitted(true)"))
 })
+
+
+const helperLocks=read('supabase/migrations/20261117172000_restrict_public_health_and_doubles_internal_helpers.sql')
+const publicRpcAudit=read('scripts/tennis_public_rpc_access_readonly.sql')
+test('only trusted game processors can call internal doubles timing and health eligibility helpers',()=>{
+ for(const name of ['player_tournament_entry_health_eligible_v1','doubles_match_game_second_v1'])
+   assert.match(helperLocks,new RegExp(name))
+ assert.match(helperLocks,/REVOKE EXECUTE ON FUNCTION %s FROM PUBLIC,anon,authenticated/)
+ assert.match(helperLocks,/GRANT EXECUTE ON FUNCTION %s TO service_role/)
+ assert.match(helperLocks,/Invoker function depends on %/)
+})
+test('release report distinguishes intentionally public writes from privileged unexpected functions',()=>{
+ assert.match(publicRpcAudit,/UNEXPECTED_PUBLIC_SECURITY_DEFINER/)
+ assert.match(publicRpcAudit,/PUBLIC_WRITE_REQUIRES_LIMITS/)
+ assert.match(publicRpcAudit,/PENDING_DEPLOYMENT/)
+ assert.match(publicRpcAudit,/INTERNAL_HELPER_REVIEW/)
+ assert.match(publicRpcAudit,/get_registration_invite_v1/)
+ assert.doesNotMatch(publicRpcAudit,/\b(?:UPDATE|DELETE|INSERT|TRUNCATE|DROP|ALTER|CREATE)\s+(?:TABLE|FROM|INTO|public\.|control_center_private\.)/i)
+})
