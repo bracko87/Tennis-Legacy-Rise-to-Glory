@@ -30,6 +30,25 @@ BEGIN
    WHERE (SELECT coalesce(max(seed_end),0) FROM public.tournament_draw_seed_groups g WHERE g.draw_size=v.draw_size)<>v.expected_seeds
       OR (SELECT count(*) FROM public.tournament_draw_seed_slots sl WHERE sl.draw_size=v.draw_size)<>v.expected_seeds
  )
+ OR (
+   SELECT count(*) FROM (
+     SELECT ss.tournament_edition_id,
+       count(DISTINCT ss.season_week) week_count,
+       count(*) FILTER (WHERE ss.phase='qualification') qual_count,
+       count(*) FILTER (WHERE ss.phase='main_draw') main_count
+     FROM control_center_private.tennis_prelaunch_s1_schedule_v1 ss
+     GROUP BY ss.tournament_edition_id
+     HAVING count(DISTINCT ss.season_week)>1
+   ) tw WHERE tw.qual_count<>1 OR tw.main_count<>1
+ )>0
+ OR (
+   SELECT count(*) FROM (
+     SELECT ss.tournament_edition_id
+     FROM control_center_private.tennis_prelaunch_s1_schedule_v1 ss
+     GROUP BY ss.tournament_edition_id
+     HAVING count(DISTINCT ss.season_week)>1
+   ) tw
+ )<>16
  OR (SELECT count(*) FROM public.tournament_matches)<1
  OR coalesce(current_setting('tennis_prelaunch.owner_approved',true),'')<>'yes'
  OR length(coalesce(current_setting('tennis_prelaunch.backup_restore_reference',true),''))<12
@@ -233,6 +252,19 @@ BEGIN
    WHERE (SELECT coalesce(max(seed_end),0) FROM public.tournament_draw_seed_groups g WHERE g.draw_size=v.draw_size)<>v.expected_seeds
       OR (SELECT count(*) FROM public.tournament_draw_seed_slots sl WHERE sl.draw_size=v.draw_size)<>v.expected_seeds
  )
+ OR (
+   SELECT count(*) FROM (
+     SELECT ss.tournament_edition_id,
+       count(DISTINCT ss.season_week) week_count,
+       count(*) FILTER (WHERE ss.phase='qualification') qual_count,
+       count(*) FILTER (WHERE ss.phase='main_draw') main_count
+     FROM public.tournament_schedule_slots ss
+     JOIN public.tournament_editions ed ON ed.id=ss.tournament_edition_id
+     WHERE ed.season_number=1
+     GROUP BY ss.tournament_edition_id
+     HAVING count(DISTINCT ss.season_week)>1
+   ) tw WHERE tw.qual_count<>1 OR tw.main_count<>1
+ )>0
  OR (SELECT count(*) FROM public.tournament_matches)<>0
  OR (SELECT count(*) FROM public.tournament_entries)<>0
  OR (SELECT count(*) FROM public.tournament_applications)<>0

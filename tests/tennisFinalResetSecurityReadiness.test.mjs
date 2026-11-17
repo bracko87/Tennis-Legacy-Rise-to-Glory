@@ -130,3 +130,12 @@ test('January-February audit independently checks phases, singles and doubles, r
   assert.match(source,/Duplicate payment idempotency keys/)
   assert.match(source,/CASE WHEN failures=0 THEN 'PASS' ELSE 'FAIL' END/)
 })
+
+
+test('final reset blocks mixed or missing two-week tournament phases even when seed tables are correct',()=>{
+ assert.match(reset,/FROM control_center_private\.tennis_prelaunch_s1_schedule_v1 ss/)
+ assert.match(reset,/tw\.qual_count<>1 OR tw\.main_count<>1/)
+ assert.match(reset,/\)<>16/)
+ assert.match(report,/two_week_phase_health/)
+ assert.match(report,/valid_two_week_events=16/)
+})

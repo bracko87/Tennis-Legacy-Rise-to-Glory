@@ -81,3 +81,9 @@ A total of 24 privileged functions still accept anonymous requests as of the las
 Supabase also reports mutable search paths for some functions and an Auth leaked-password protection advisory. These deserve follow-up; an advisor warning is not proof of exploitation.
 
 Do not classify the security review as finished until public-write rate limits, least-privilege access and Auth/account settings have been verified.
+
+## Legacy two-week tournament calendar repair (November 17)
+
+13 unplayed future Season 1 tournaments used the legacy `full` label for the qualifying week, followed by an explicit `main_draw` second week. The strict new scheduler could have rejected their qualifying matches. The repair changes these 13 first-week labels to `qualification` in both live Season 1 calendar definitions and the original Season 1 reset snapshot. Future-season generators with old `full` labels are supported by a compatibility fallback for match phases, effective player availability, and doubles entry weeks.
+
+The reset now checks that all **16** Season 1 two-week events have exactly one qualification week and one main-draw week, and refuses execution if they drift. The read-only readiness report has an 18th explicit check for these phases. Existing published matches and results are not modified.

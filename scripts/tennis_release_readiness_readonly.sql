@@ -65,6 +65,17 @@ OR (schemaname='public' AND (
   (select coalesce(max(seed_end),0) from public.tournament_draw_seed_groups g WHERE g.draw_size=v.size)=v.seed_count
   AND (select count(*) from public.tournament_draw_seed_slots sl WHERE sl.draw_size=v.size)=v.seed_count) correct_sizes
  FROM (VALUES(16,4),(32,8),(64,16),(128,32)) AS v(size,seed_count)
+), two_week_phase_health AS (
+ SELECT count(*) AS two_week_events,
+   count(*) FILTER (WHERE q_count=1 AND main_count=1) AS valid_two_week_events
+ FROM (
+   SELECT tournament_edition_id,
+      count(*) FILTER(WHERE phase='qualification') q_count,
+      count(*) FILTER(WHERE phase='main_draw') main_count
+   FROM control_center_private.tennis_prelaunch_s1_schedule_v1
+   GROUP BY tournament_edition_id
+   HAVING count(DISTINCT season_week)>1
+ ) events
 ), checks AS (
  SELECT 1 seq,'Registration stays closed' item,
    CASE WHEN NOT signup THEN 'PASS' ELSE 'BLOCKED' END state,
@@ -112,5 +123,9 @@ OR (schemaname='public' AND (
    'READY_TO_ARCHIVE',
    format('%s diagnostic rows to be archived at final cutover; archiving has NOT happened',
       (SELECT count(*) FROM control_center_private.tournament_qualification_nocontest_repairs_v1))
+ UNION ALL SELECT 18,'All Season 1 two-week tournament phases are explicit',
+   CASE WHEN two_week_events=16 AND valid_two_week_events=16 THEN 'PASS' ELSE 'BLOCKED' END,
+   format('%s of %s two-week tournament definitions have one qualification week and one main-draw week; required 16 of 16',
+          valid_two_week_events,two_week_events) FROM two_week_phase_health
 )
 SELECT seq,item,state,evidence FROM checks ORDER BY seq;

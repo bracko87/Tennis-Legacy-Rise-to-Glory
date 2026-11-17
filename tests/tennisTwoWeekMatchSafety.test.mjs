@@ -96,3 +96,25 @@ test('old unplayed doubles cannot start before their configured main week',()=>{
  assert.match(legacyDoubles,/public\.schedule_doubles_match_v1\(m\.id\)/)
  assert.match(legacyDoubles,/CONTINUE;/)
 })
+
+
+const legacyPhaseNormalization=read('20261117164500_normalize_legacy_two_week_qualifying_slots.sql')
+const futureLegacyPhaseCompatibility=read('20261117165000_legacy_phase_compatibility_future_seasons.sql')
+
+test('all 13 unpublished legacy two-week events and reset snapshots convert first week to qualifying',()=>{
+ assert.match(legacyPhaseNormalization,/v_count<>13/)
+ assert.match(legacyPhaseNormalization,/ed\.season_number=1 AND ed\.status='scheduled'/)
+ assert.match(legacyPhaseNormalization,/NOT EXISTS \(\s*SELECT 1 FROM public\.tournament_world_competitions wc\s*JOIN public\.tournament_draw_publications/s)
+ assert.match(legacyPhaseNormalization,/NOT EXISTS \(\s*SELECT 1 FROM public\.tournament_world_competitions wc\s*JOIN public\.tournament_matches/s)
+ assert.match(legacyPhaseNormalization,/UPDATE public\.tournament_schedule_slots\s*SET phase='qualification'/)
+ assert.match(legacyPhaseNormalization,/UPDATE control_center_private\.tennis_prelaunch_s1_schedule_v1\s*SET phase='qualification'/)
+})
+
+test('future season old full/main labels cannot break qualifying matches or doubles',()=>{
+ assert.match(futureLegacyPhaseCompatibility,/IF v_qual_week IS NULL AND v_main_first_week IS NOT NULL/)
+ assert.match(futureLegacyPhaseCompatibility,/ss\.phase='full'/)
+ assert.match(futureLegacyPhaseCompatibility,/ss\.season_week<v_main_first_week/)
+ assert.match(futureLegacyPhaseCompatibility,/min\(ss\.season_week\) FILTER\(WHERE ss\.phase='full'\)/)
+ assert.match(futureLegacyPhaseCompatibility,/max\(ss\.season_week\) filter\(where ss\.phase='main_draw'\)/)
+ assert.match(futureLegacyPhaseCompatibility,/max\(ss\.season_week\) filter\(where ss\.phase='full'\)/)
+})
