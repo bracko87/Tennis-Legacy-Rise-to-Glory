@@ -22,13 +22,19 @@ BEGIN
  OR (SELECT count(*) FROM control_center_private.tennis_prelaunch_s1_competitions_v1)<>1194
  OR (SELECT count(*) FROM control_center_private.tennis_prelaunch_s1_schedule_v1)<>613
  OR (SELECT count(*) FROM control_center_private.tennis_prelaunch_ai_starter_assets_v1)<>1668
+ OR EXISTS (
+   SELECT 1 FROM (VALUES(16,4),(32,8),(64,16),(128,32)) v(draw_size,expected_seeds)
+   WHERE (SELECT coalesce(max(seed_end),0) FROM public.tournament_draw_seed_groups g WHERE g.draw_size=v.draw_size)<>v.expected_seeds
+      OR (SELECT count(*) FROM public.tournament_draw_seed_slots sl WHERE sl.draw_size=v.draw_size)<>v.expected_seeds
+ )
  OR (SELECT count(*) FROM public.tournament_matches)<40000
  OR (SELECT count(*) FROM auth.users)<>6
  OR (SELECT count(*) FROM public.billing_transactions WHERE status='paid' AND amount_eur_cents=949)<>1
  THEN RAISE EXCEPTION 'Prelaunch reset guard failed. No changes allowed.'; END IF;
 END $guard$;
 
--- Build exact 160-table dependency-checked gameplay reset set.
+-- Build exact 162-table dependency-checked gameplay reset set.
+-- Permanent main-draw seeding layouts MUST remain intact.
 -- TRUNCATE RESTRICT prevents silently clearing new referenced tables.
 DO $truncate$
 DECLARE v_tables text; v_count integer;
@@ -45,7 +51,8 @@ OR (schemaname='public' AND (
     'tournament_series','tournament_categories','tournament_doubles_settings',
     'tournament_doubles_ranking_point_rules','tournament_match_scheduling_rules',
     'tournament_prize_pool_rules','tournament_prize_pools','tournament_prize_payouts',
-    'tournament_doubles_prize_payouts','tournament_prize_stage_weights','tournament_ranking_point_rules'))
+    'tournament_doubles_prize_payouts','tournament_prize_stage_weights','tournament_ranking_point_rules',
+     'tournament_draw_seed_groups','tournament_draw_seed_slots'))
   OR (left(tablename,9)='national_' AND tablename NOT IN(
     'national_associations','national_association_funds','national_association_treasuries',
     'national_team_config','national_team_competition_config','national_team_country_regions',
@@ -64,8 +71,8 @@ OR (schemaname='public' AND (
     'technical_sponsor_equipment_claims','staff_financial_events','referrals','tennis_clubs',
     'site_analytics_daily_pages','site_analytics_daily_sessions','site_analytics_daily_visitors')
 ));
- IF v_count<>160 OR v_tables IS NULL THEN
-   RAISE EXCEPTION 'Reset inventory drifted: expected 160 tables, got %',v_count;
+ IF v_count<>162 OR v_tables IS NULL THEN
+   RAISE EXCEPTION 'Reset inventory drifted: expected 162 tables, got %',v_count;
  END IF;
  EXECUTE 'TRUNCATE TABLE '||v_tables||' RESTRICT';
 END $truncate$;
@@ -184,6 +191,11 @@ BEGIN
  OR (SELECT count(*) FROM public.tournament_editions WHERE season_number<>1)<>0
  OR (SELECT count(*) FROM public.tournament_world_competitions WHERE status='scheduled')<>1194
  OR (SELECT count(*) FROM public.tournament_schedule_slots)<>613
+ OR EXISTS (
+   SELECT 1 FROM (VALUES(16,4),(32,8),(64,16),(128,32)) v(draw_size,expected_seeds)
+   WHERE (SELECT coalesce(max(seed_end),0) FROM public.tournament_draw_seed_groups g WHERE g.draw_size=v.draw_size)<>v.expected_seeds
+      OR (SELECT count(*) FROM public.tournament_draw_seed_slots sl WHERE sl.draw_size=v.draw_size)<>v.expected_seeds
+ )
  OR (SELECT count(*) FROM public.tournament_matches)<>0
  OR (SELECT count(*) FROM public.tournament_entries)<>0
  OR (SELECT count(*) FROM public.tournament_applications)<>0
