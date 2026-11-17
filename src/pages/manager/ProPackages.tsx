@@ -226,7 +226,7 @@ export default function ProPackagesPage() {
   const trialDetailsText = trialPendingLaunch
     ? prelaunchTrialCopy.description
     : t('premiumTrial.trialEnds', { date: date(commerce.trial?.expires_at) })
-  const planName = commerce.isTrial ? t('premiumTrial.planName') : commerce.isPaidPremium ? t('commercePage.premiumName') : t('commercePage.freeName')
+  const planName = trialPendingLaunch ? prelaunchTrialCopy.status : commerce.isTrial ? t('premiumTrial.planName') : commerce.isPaidPremium ? t('commercePage.premiumName') : t('commercePage.freeName')
   const resolvedPremiumOffers = premiumOffers.map((offer) => {
     const item = catalog.find((candidate) => candidate.code === offer.code)
     const priceCents = item?.price_eur_cents ?? offer.fallbackPriceCents
@@ -308,7 +308,7 @@ export default function ProPackagesPage() {
           </p>
         </aside>
 
-        {commerce.isTrial && (
+        {(commerce.isTrial || trialPendingLaunch) && (
           <section className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-5 text-slate-900" aria-label={t('premiumTrial.planName')}>
             <h2 className="mb-2 flex items-center gap-2 text-lg font-bold"><Crown size={20} /> {trialStatusText}</h2>
             <p className="mb-2 text-sm">{trialDetailsText}</p>
@@ -338,8 +338,8 @@ export default function ProPackagesPage() {
               <li><Check size={15} /> {t('commercePage.benefit4')}</li>
             </ul>
             <div className="tlg-commerce-free-rule">
-              <strong>{commerce.isTrial ? trialStatusText : commerce.isPaidPremium ? t('commercePage.premiumActive') : t('commercePage.freeAvailable')}</strong>
-              <span>{commerce.isTrial ? trialDetailsText : commerce.isPaidPremium ? t('commercePage.currentPeriodEnds', { date: date(membership?.current_period_end) }) : t('commercePage.premiumOptionalBody')}</span>
+              <strong>{commerce.isTrial || trialPendingLaunch ? trialStatusText : commerce.isPaidPremium ? t('commercePage.premiumActive') : t('commercePage.freeAvailable')}</strong>
+              <span>{commerce.isTrial || trialPendingLaunch ? trialDetailsText : commerce.isPaidPremium ? t('commercePage.currentPeriodEnds', { date: date(membership?.current_period_end) }) : t('commercePage.premiumOptionalBody')}</span>
             </div>
           </div>
 
@@ -468,7 +468,7 @@ export default function ProPackagesPage() {
           </div>
           <div className="tlg-commerce-membership-card">
             <MembershipStat label={t('commercePage.plan')} value={planName} />
-            <MembershipStat label={t('commercePage.status')} value={commerce.isTrial ? trialStatusText : membership?.status === 'active' ? t('commercePage.active') : membership?.status ?? t('commercePage.free')} />
+            <MembershipStat label={t('commercePage.status')} value={commerce.isTrial || trialPendingLaunch ? trialStatusText : membership?.status === 'active' ? t('commercePage.active') : membership?.status ?? t('commercePage.free')} />
             <MembershipStat label={t('commercePage.started')} value={trialPendingLaunch ? '—' : date(commerce.isTrial ? commerce.trial?.started_at : membership?.started_at)} />
             <MembershipStat label={t('commercePage.currentPeriodEndsLabel')} value={trialPendingLaunch ? '—' : date(commerce.isTrial ? commerce.trial?.expires_at : membership?.current_period_end)} />
             <MembershipStat label={t('commercePage.nextRenewal')} value={commerce.isPaidPremium && !membership?.cancel_at_period_end ? date(membership?.current_period_end) : '—'} />

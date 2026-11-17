@@ -8,7 +8,7 @@ The first official game-clock unpause on or after **Monday, 23 November 2026 at 
 
 - A player created before the clock begins gets seven **full real days** from the actual unpause, not account creation. If unpaused on 23 November at 07:00 German time, the free trial ends on **30 November at 07:00 German time**.
 - If launch is delayed, the start and end move with the **actual** first unpause. A popup disappearing at 07:00 does not start the trial.
-- Prelaunch characters may preview Premium features while the clock is paused, but trial time does **not** count down and no trial-start/expiry notifications are sent.
+- Before launch, the seven-day trial is **reserved but not active**. Premium features unlock on the real unpause; no trial days are used and no trial-start/expiry notifications are sent beforehand.
 - Players who create their first tennis character **after launch** receive their own full seven real days from their first eligible Premium trial request.
 - Accounts created earlier without a character at launch do **not** lose time merely because registration was open.
 - Later maintenance pauses do not restart or extend a trial. Premium remains optional; trials never trigger automatic card charges.
@@ -19,9 +19,9 @@ The first official game-clock unpause on or after **Monday, 23 November 2026 at 
 
 `supabase/migrations/20261117181500_defer_premium_trials_until_real_launch_unpause.sql` adds a private launch-control row with scheduled and actual start timestamps, protected reservation flags on `tennis_premium_trials_v1`, and a trigger on the real `game_clock` first-unpause transition. The trigger refuses accidental unpauses before the scheduled release hour. At the first valid unpause, it anchors eligible prelaunch-player trials to the actual timestamp, with `expires_at=started_at+interval '7 days'`. It never runs on later pauses/resumes.
 
-The Premium trial RPC returns `state: pending_launch`, `seconds_left: 604800` and no fake start/expiry dates during prelaunch. The server-side `has_active_premium_v1` entitlement allows preview only while the launch clock remains paused, and paid benefits take precedence. After actual launch, the RPC uses the saved launch anchor for prelaunch players; new postlaunch characters start from their own first visit.
+The Premium trial RPC returns `state: pending_launch`, `seconds_left: 604800` and no fake start/expiry dates during prelaunch. The follow-up migration `20261117182000_keep_reserved_premium_trial_inactive_until_launch.sql` ensures `has_active_premium_v1` remains **false** for reserved free trials until the clock is unpaused, while paid Premium continues to take precedence. After actual launch, the RPC uses the saved launch anchor for prelaunch players; new postlaunch characters start from their own first visit.
 
-The Premium page shows a clear “trial reserved” message instead of claiming that trial time is already expiring. The start/end dates remain blank until the trial actually begins.
+The Premium page shows a clear “trial reserved” message instead of claiming that trial time is already expiring or access has begun. The start/end dates remain blank until the trial actually begins.
 
 ## Verification
 

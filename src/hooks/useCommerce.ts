@@ -107,13 +107,10 @@ export function useCommerce() {
     return new Date(membership.current_period_end).getTime() > Date.now()
   }, [membership])
 
-  // Before the first official unpause the Premium preview is available, but
-  // the seven real trial days have not started and cannot expire.
-  const isTrial = !isPaidPremium && (
-    trial?.state === 'pending_launch'
-    || (trial?.state === 'active'
-      && Boolean(trial.expires_at && new Date(trial.expires_at).getTime() > Date.now()))
-  )
+  // A reserved prelaunch trial is not active Premium. All seven real days
+  // begin only at the first official game unpause.
+  const isTrial = !isPaidPremium && trial?.state === 'active'
+    && Boolean(trial.expires_at && new Date(trial.expires_at).getTime() > Date.now())
   const isPremium = isPaidPremium || isTrial
 
   // Trial expiry must lock features without waiting for another page reload.
