@@ -75,11 +75,14 @@ test('reset clears obsolete repair links only after preserving full private evid
  assert.match(report,/Referrals and website analytics remain intact/)
 })
 
-test('restart needs owner approval and independent backup plus rehearsal references',()=>{
+test('direct disposable test restart requires owner approval, stopped jobs and a selected speed',()=>{
  assert.match(reset,/current_setting\('tennis_prelaunch\.owner_approved',true\)/)
- assert.match(reset,/current_setting\('tennis_prelaunch\.backup_restore_reference',true\)/)
- assert.match(reset,/current_setting\('tennis_prelaunch\.rehearsal_reference',true\)/)
+ assert.match(reset,/current_setting\('tennis_prelaunch\.disposable_test_version',true\)/)
+ assert.doesNotMatch(reset,/current_setting\('tennis_prelaunch\.backup_restore_reference',true\)/)
+ assert.doesNotMatch(reset,/current_setting\('tennis_prelaunch\.rehearsal_reference',true\)/)
  assert.match(reset,/speed_multiplier=current_setting\('tennis_prelaunch\.target_speed'\)::numeric/)
+ assert.match(reset,/public_signup_enabled/)
+ assert.match(reset,/cron\.job j ON j\.jobid=f\.jobid WHERE j\.active/)
  assert.doesNotMatch(reset,/speed_multiplier=2,/)
  assert.doesNotMatch(reset,/>=40000|<40000/)
  assert.match(report,/Restorable database backup/)
