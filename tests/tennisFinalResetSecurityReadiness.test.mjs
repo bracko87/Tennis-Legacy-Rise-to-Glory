@@ -85,3 +85,17 @@ test('restart needs owner approval and independent backup plus rehearsal referen
  assert.match(report,/Restorable database backup/)
  assert.match(report,/Isolated January-February simulation/)
 })
+
+const playerAcl = read('supabase/migrations/20261117140000_restrict_authenticated_player_rpc_anon_access.sql')
+test('authentication-only player actions remain available to logged-in users, not anonymous callers',()=>{
+ for (const name of [
+   'set_training_week_day_v1','get_player_calendar_activity_v1','get_staff_dashboard_v2',
+   'save_tournament_preparation_v1','book_training_camp_v3','restart_tennis_legacy_account_v1',
+   'get_admin_tournament_operations_v1','get_player_inbox_v1'
+ ]) assert.match(playerAcl,new RegExp(name))
+ assert.match(playerAcl,/REVOKE EXECUTE ON FUNCTION %s FROM PUBLIC,anon/)
+ assert.match(playerAcl,/GRANT EXECUTE ON FUNCTION %s TO authenticated,service_role/)
+ assert.match(playerAcl,/p\.prosrc ILIKE '%auth.uid%'/)
+ assert.doesNotMatch(playerAcl,/get_public_registration_status_v1/)
+ assert.doesNotMatch(playerAcl,/record_site_analytics_event_v1/)
+})
