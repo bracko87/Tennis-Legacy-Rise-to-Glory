@@ -172,21 +172,19 @@ test('launch popup links to the existing official Tennis Legacy Discord',()=>{
 })
 
 
-test('registration birthday wizard follows the dark Tennis Legacy form theme', () => {
+test('registration birthday fields match Security form styling and mobile layout', () => {
   const register = read('../src/pages/auth/Register.tsx')
   const css = read('../src/styles/onboarding-enhancements.css')
-  assert.ok(register.includes('tlg-birthday-panel tlg-birthday-panel-v2 tlg-birthday-wizard-panel'))
-  assert.ok(css.includes('Dark registration wizard — Date of Birth panel'))
-  const fix = css.slice(css.indexOf('Dark registration wizard — Date of Birth panel'))
-  assert.match(fix, /\.tlg-auth-register-page \.tlg-birthday-panel\.tlg-birthday-panel-v2\.tlg-birthday-wizard-panel/)
-  assert.match(fix, /background: linear-gradient\(160deg, rgba\(12, 39, 64, \.98\), rgba\(7, 26, 44, \.98\)\) !important/)
-  assert.match(fix, /\.tlg-birthday-wizard-panel select\.tlg-input/)
-  assert.match(fix, /\.tlg-birthday-wizard-panel input\.tlg-input/)
-  assert.match(fix, /color-scheme: dark/)
-  assert.match(fix, /\.tlg-birthday-wizard-panel \.tlg-birthday-warning/)
-  assert.match(fix, /\.tlg-birthday-wizard-panel \.tlg-field-label/)
-  assert.match(fix, /\.tlg-birthday-wizard-panel \.tlg-field-hint/)
-  assert.match(fix, /\.tlg-birthday-wizard-panel \.tlg-optional-year-field > span/)
-  assert.match(fix, /\.tlg-birthday-wizard-panel select\.tlg-input:focus/)
-  assert.doesNotMatch(fix, /background: #fff !important/)
+  const security = register.split('{registerStep === 2 && (')[1].split('{registerStep === 3 && (')[0]
+  const birthday = register.split('{registerStep === 3 && (')[1].split('{status && (')[0]
+  assert.ok(security.includes('className="tlg-auth-form-grid"'))
+  assert.ok(birthday.includes('className="tlg-auth-form-grid tlg-birthday-form-grid"'))
+  assert.doesNotMatch(birthday, /tlg-birthday-panel|tlg-birthday-warning/)
+  for (const id of ['birth-month','birth-day','birth-year']) assert.ok(birthday.includes('id="'+id+'"'))
+  assert.ok(birthday.includes('label="Year (optional)"'))
+  assert.ok(birthday.includes('Month and day cannot be changed after registration'))
+  assert.ok(css.includes('.tlg-auth-page-v2 .tlg-input,'))
+  assert.match(css, /\.tlg-auth-register-page \.tlg-register-step-content \.tlg-auth-form-grid\.tlg-birthday-form-grid/)
+  assert.match(css, /@media \(max-width: 760px\) \{\s+\.tlg-auth-register-page \.tlg-register-step-content \.tlg-auth-form-grid\.tlg-birthday-form-grid \{\s+grid-template-columns: 1fr;/)
+  assert.doesNotMatch(css, /Dark registration wizard — Date of Birth panel/)
 })
