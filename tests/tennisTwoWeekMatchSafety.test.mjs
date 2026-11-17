@@ -86,3 +86,13 @@ test('doubles can never start when a singles player or court remains in use',()=
  assert.match(doublesStart,/pg_advisory_xact_lock\(171106,20261117\)/)
  assert.match(doublesStart,/REVOKE EXECUTE ON FUNCTION public\.process_due_doubles_matches_v1\(\)/)
 })
+
+
+const legacyDoubles=read('20261117115500_prevent_legacy_doubles_wrong_phase_start.sql')
+test('old unplayed doubles cannot start before their configured main week',()=>{
+ assert.match(legacyDoubles,/m\.scheduled_season_week<v_main_first_week/)
+ assert.match(legacyDoubles,/m\.scheduled_season_week>v_main_last_week/)
+ assert.match(legacyDoubles,/schedule_reason='conflict_pending'/)
+ assert.match(legacyDoubles,/public\.schedule_doubles_match_v1\(m\.id\)/)
+ assert.match(legacyDoubles,/CONTINUE;/)
+})
