@@ -1,0 +1,41 @@
+.tlg-registration-launch-notice {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 16px 0 0;
+  padding: 16px 18px;
+  border: 1px solid rgba(88, 181, 255, .34);
+  border-radius: 14px;
+  background: rgba(5, 29, 55, .96);
+  color: #f1f8ff;
+}
+.tlg-registration-launch-icon {
+  width: 43px;
+  height: 43px;
+  flex: 0 0 43px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(39, 153, 248, .16);
+  color: #7ecaff;
+}
+.tlg-registration-launch-copy { flex: 1; min-width: 0; }
+.tlg-registration-launch-eyebrow {
+  display: block;
+  margin-bottom: 3px;
+  color: #70c9ff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+.tlg-registration-launch-copy strong { display: block; font-size: 15px; line-height: 1.4; }
+.tlg-registration-launch-copy p { margin: 5px 0 0; color: #c1d6e9; font-size: 13px; line-height: 1.5; }
+.tlg-registration-launch-clock { display: flex; align-items: flex-start; gap: 7px; }
+.tlg-registration-launch-clock svg { flex: 0 0 auto; margin-top: 2px; }
+.tlg-registration-launch-button { flex: 0 0 auto; white-space: nowrap; }
+.tlg-registration-launch-notice-compact { margin: 18px 0 0; align-items: flex-start; }
+.tlg-registration-launch-notice-compact .tlg-registration-launch-icon { width: 34px; height: 34px; flex-basis: 34px; }
+@media (max-width: 760px) {
+  .tlg-registration-launch-notice { flex-wrap: wrap; padding: 15px; }
+  .tlg-registration-launch-button { width: 100%; justify-content: center; }
+}

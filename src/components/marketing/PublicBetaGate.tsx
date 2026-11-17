@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { MessageSquare, ShieldAlert } from 'lucide-react'
+import usePublicRegistrationStatus from '../../hooks/usePublicRegistrationStatus'
 
 const TENNIS_LEGACY_DISCORD_INVITE = 'https://discord.gg/RBBtXgZey2'
 
 export default function PublicBetaGate() {
+  const registrationAvailability = usePublicRegistrationStatus()
   const [target, setTarget] = useState<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -19,7 +21,7 @@ export default function PublicBetaGate() {
     return () => observer.disconnect()
   }, [])
 
-  if (!target) return null
+  if (!target || registrationAvailability !== 'closed') return null
 
   return createPortal(
     <section className="tlg-public-beta-notice" aria-label="Tennis Legacy beta status">

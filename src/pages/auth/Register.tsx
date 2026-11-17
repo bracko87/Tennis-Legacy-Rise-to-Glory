@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 
 import AppButton from '../../components/common/AppButton'
+import RegistrationLaunchNotice from '../../components/marketing/RegistrationLaunchNotice'
 import FormField from '../../components/common/FormField'
 import GameConfirmDialog from '../../components/common/GameConfirmDialog'
 import { clearStoredReferralCode, getReferralBrowserHash, getStoredReferralCode } from '../../lib/referrals'
@@ -249,7 +250,7 @@ export default function RegisterPage() {
             <p>
               First create the real account you use to sign in. After email verification, you will create the fictional tennis player for your career.
             </p>
-
+            <RegistrationLaunchNotice compact />
           </div>
         </section>
 

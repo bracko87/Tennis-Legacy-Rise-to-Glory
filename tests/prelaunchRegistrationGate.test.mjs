@@ -72,3 +72,48 @@ test('beta launch messaging is available in all eight translations', () => {
     assert.ok(translation.includes('betaNotice'), `home beta notice missing in ${lang}`)
   }
 })
+
+
+test('November 23 open-registration notice appears on homepage and signup page',()=>{
+  const home=read('../src/pages/Home.tsx')
+  const register=read('../src/pages/auth/Register.tsx')
+  const notice=read('../src/components/marketing/RegistrationLaunchNotice.tsx')
+  const noticeCss=read('../src/styles/registration-launch-notice.css')
+  assert.ok(home.includes("registrationAvailability === 'open' && ("))
+  assert.ok(home.includes('<RegistrationLaunchNotice />'))
+  assert.ok(register.includes('<RegistrationLaunchNotice compact />'))
+  assert.ok(notice.includes('Official launch: 23 November 2026.'))
+  assert.ok(notice.includes('Registration is open to everyone.'))
+  assert.ok(notice.includes('You can sign up and create your tennis player'))
+  assert.ok(notice.includes('Season 1, January 1, 00:00'))
+  assert.ok(notice.includes('2× speed when the game begins'))
+  assert.ok(notice.includes("clock.speedMultiplier === 0"))
+  assert.ok(noticeCss.includes('.tlg-registration-launch-notice'))
+  for(const lang of ['en','de','es','fr','it','pt','ru','sr']){
+    assert.ok(notice.includes(`  ${lang}: {`), `missing notice translation ${lang}`)
+  }
+})
+
+test('opening registration is not accidentally blocked by legacy CSS or beta overlay',()=>{
+  const css=read('../src/styles/public-beta.css')
+  const betaGate=read('../src/components/marketing/PublicBetaGate.tsx')
+  assert.doesNotMatch(css,/a\[href=["']\/register["']\]\s*\{[^}]*display\s*:\s*none/i)
+  assert.ok(betaGate.includes("registrationAvailability !== 'closed'"))
+  const home=read('../src/pages/Home.tsx')
+  assert.ok(home.includes("registrationAvailability === 'closed' && <BetaDisclaimer />"))
+  assert.ok(home.includes("registrationAvailability === 'open' && ("))
+  const login=read('../src/pages/auth/Login.tsx')
+  assert.ok(login.includes("registrationAvailability === 'open'"))
+  const app=read('../src/App.tsx')
+  assert.ok(app.includes("availability === 'open' ? <RegisterPage />"))
+})
+
+test('prelaunch public game clock is labelled paused rather than live or 0x',()=>{
+  const home=read('../src/pages/Home.tsx')
+  const display=read('../src/components/marketing/HomeLiveEnhancements.tsx')
+  assert.ok(home.includes('Season 1 · January 1'))
+  assert.ok(home.includes('<time>00:00</time>'))
+  assert.ok(home.includes('month === seasonMonths[0]'))
+  assert.ok(display.includes("clock.speedMultiplier === 0 ? ' Game time paused' : ' Live game time'"))
+  assert.ok(display.includes('The saved speed is 2×.'))
+})

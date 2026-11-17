@@ -128,7 +128,7 @@ export default function HomeLiveEnhancements() {
       const dot = liveLabel.querySelector('span')
       liveLabel.textContent = ''
       if (dot) liveLabel.appendChild(dot)
-      liveLabel.append(' Live game time')
+      liveLabel.append(clock.speedMultiplier === 0 ? ' Game time paused' : ' Live game time')
     }
 
     document.querySelectorAll<HTMLElement>('.tlg-season-months > span').forEach((month, index) => {
@@ -137,7 +137,9 @@ export default function HomeLiveEnhancements() {
 
     setText(
       '.tlg-game-clock-note',
-      `Connected to the centralized game clock at ${clock.speedMultiplier}× real-time speed.`,
+      clock.speedMultiplier === 0
+        ? 'Game time paused for the official launch on 23 November 2026. The saved speed is 2×.'
+        : `Connected to the centralized game clock at ${clock.speedMultiplier}× real-time speed.`,
     )
   }, [clock.day, clock.error, clock.formattedTime, clock.loading, clock.month, clock.monthIndex, clock.season, clock.speedMultiplier])
 

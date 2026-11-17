@@ -33,6 +33,7 @@ import {
 
 import MarketingHeader from '../components/layout/MarketingHeader'
 import BetaDisclaimer from '../components/marketing/BetaDisclaimer'
+import RegistrationLaunchNotice from '../components/marketing/RegistrationLaunchNotice'
 import SeasonTransitionNotice from '../components/season/SeasonTransitionNotice'
 import { SeasonMaintenanceAnnouncement } from '../components/season/SeasonMaintenanceBoundary'
 import MarketingFooter from '../components/layout/MarketingFooter'
@@ -139,6 +140,9 @@ export default function HomePage() {
       {registrationAvailability === 'closed' && <BetaDisclaimer />}
 
       <main className="tlg-home-main">
+        {registrationAvailability === 'open' && (
+          <div className="tlg-section"><RegistrationLaunchNotice /></div>
+        )}
         <SeasonMaintenanceAnnouncement />
         <SeasonTransitionNotice variant="public" />
         <section className="tlg-hero">
@@ -232,9 +236,9 @@ export default function HomePage() {
               <div className="tlg-hero-floating-card tlg-hero-floating-season">
                 <span>{t('home.hero.currentTime')}</span>
                 <strong>
-                  Season 1 · March 14
+                  Season 1 · January 1
                 </strong>
-                <small>18:00</small>
+                <small>00:00</small>
               </div>
             </div>
           </div>
@@ -494,8 +498,8 @@ export default function HomePage() {
 
                 <div className="tlg-game-clock-date">
                   <span>{t('home.clock.season')}</span>
-                  <strong>{t('home.clock.date')}</strong>
-                  <time>18:00</time>
+                  <strong>{seasonMonths[0]} 1</strong>
+                  <time>00:00</time>
                 </div>
 
                 <div className="tlg-season-months">
@@ -503,7 +507,7 @@ export default function HomePage() {
                     <span
                       key={month}
                       className={
-                        month === seasonMonths[2]
+                        month === seasonMonths[0]
                           ? 'tlg-season-month-active'
                           : ''
                       }

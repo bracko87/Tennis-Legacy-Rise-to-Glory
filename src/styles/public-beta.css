@@ -1,12 +1,5 @@
-/* Temporary public-access gate while Tennis Legacy remains in beta. */
-
-a[href="/register"] {
-  display: none !important;
-}
-
-.tlg-auth-card .tlg-auth-divider:has(+ a[href="/register"]) {
-  display: none !important;
-}
+/* Public beta notice styling. Account creation is controlled by the server
+   registration switch, never hidden by unconditional CSS. */
 
 .tlg-public-beta-notice {
   order: -10;
