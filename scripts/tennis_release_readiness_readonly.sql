@@ -1,12 +1,11 @@
--- SAFE READ-ONLY report. Does NOT pause cron, change clock, delete data,
--- create a backup, or execute the final restart.
--- Run against the Tennis Legacy project immediately before planning the cutover.
-WITH reset_scope AS (
- SELECT count(*)::integer n, count(*) FILTER(WHERE tablename IN
- ('tournament_draw_seed_groups','tournament_draw_seed_slots'))::integer forbidden_seed_targets
+-- Read-only final-restart readiness; NEVER resets game data.
+-- Scope and relationships are derived from the exact current final-reset script.
+WITH reset_targets AS (
+ SELECT schemaname,tablename,to_regclass(format('%I.%I',schemaname,tablename)) relid
  FROM pg_tables WHERE (schemaname='control_center_private'
-  AND left(tablename,13)='tennis_season'
-  AND tablename<>'tennis_season_maintenance_control_v1')
+  AND ((left(tablename,13)='tennis_season'
+        AND tablename<>'tennis_season_maintenance_control_v1')
+       OR tablename='tournament_qualification_nocontest_repairs_v1'))
 OR (schemaname='public' AND (
   (left(tablename,7)='player_' AND tablename NOT IN(
     'player_skills','player_rankings','player_doubles_rankings','player_training_plans',
@@ -24,17 +23,24 @@ OR (schemaname='public' AND (
   OR (left(tablename,13)='private_life_' AND tablename ~
     '(_history|_events|_sale_listings|_positions|_trades|_player_assets)$')
   OR left(tablename,8)='ranking_' OR left(tablename,16)='doubles_ranking_'
-  OR (left(tablename,9)='referral_' AND tablename NOT IN(
-    'referral_badge_catalog','referral_program_settings','referral_admins',
-    'referral_codes','referral_user_devices'))
   OR (left(tablename,6)='staff_' AND tablename ~ '(_events|_offers|_negotiations)$')
   OR (left(tablename,12)='tennis_club_' AND tablename<>'tennis_club_settings')
   OR tablename IN(
     'ai_weekly_injury_runs','career_finance_transactions','career_tax_periods','user_notifications',
     'birthday_rewards','birthday_email_outbox','new_player_initialization_audit',
-    'technical_sponsor_equipment_claims','staff_financial_events','referrals','tennis_clubs',
-    'site_analytics_daily_pages','site_analytics_daily_sessions','site_analytics_daily_visitors')
+    'technical_sponsor_equipment_claims','staff_financial_events','tennis_clubs')
 ))
+), reset_scope AS (
+ SELECT count(*)::integer n,
+ count(*) FILTER(WHERE tablename IN ('tournament_draw_seed_groups','tournament_draw_seed_slots'))::integer forbidden_seed_targets,
+ count(*) FILTER(WHERE tablename LIKE 'referral_%' OR tablename='referrals' OR tablename LIKE 'site_analytics_%')::integer protected_histories_in_scope
+ FROM reset_targets
+), reset_dependencies AS (
+ SELECT count(*)::integer inbound_fks
+ FROM pg_constraint c
+ JOIN reset_targets tgt ON tgt.relid=c.confrelid
+ LEFT JOIN reset_targets src ON src.relid=c.conrelid
+ WHERE c.contype='f' AND src.relid IS NULL
 ), status AS (
  SELECT
  (select is_paused from public.game_clock where id=1) paused,
@@ -72,29 +78,39 @@ OR (schemaname='public' AND (
    CASE WHEN ai_snapshot=834 AND editions_snapshot=597 AND competitions_snapshot=1194 AND schedule_snapshot=613 AND starter_snapshot=1668 THEN 'PASS' ELSE 'BLOCKED' END,
    format('AI=%s editions=%s competitions=%s schedule=%s assets=%s',ai_snapshot,editions_snapshot,competitions_snapshot,schedule_snapshot,starter_snapshot) FROM status
  UNION ALL SELECT 5,'Reset table scope',
-   CASE WHEN n=162 AND forbidden_seed_targets=0 THEN 'PASS' ELSE 'BLOCKED' END,
+   CASE WHEN n=149 AND forbidden_seed_targets=0 THEN 'PASS' ELSE 'BLOCKED' END,
    format('%s tables in planned reset; %s static seed tables accidentally included',n,forbidden_seed_targets) FROM reset_scope
  UNION ALL SELECT 6,'Seeding rules ready',
    CASE WHEN correct_sizes=4 THEN 'PASS' ELSE 'BLOCKED' END,
    format('%s of 4 main-draw sizes have correct permanent layouts',correct_sizes) FROM seeds
- UNION ALL SELECT 7,'Historical match count guard',
-   CASE WHEN old_match_count>=40000 THEN 'PASS' ELSE 'BLOCKED' END,
-   format('Old script requires >=40000 matches; currently %s. Reconcile the guard, do not merely remove it.',old_match_count) FROM status
- UNION ALL SELECT 8,'Historical account/payment guard',
-   CASE WHEN auth_logins=6 AND test_paid_949=1 THEN 'PASS' ELSE 'NEEDS_REVIEW' END,
-   format('Old reset assumes exactly 6 logins and one 949-cent paid test invoice; currently %s and %s',auth_logins,test_paid_949) FROM status
+ UNION ALL SELECT 7,'Disposable rehearsal matches identified',
+   CASE WHEN old_match_count>=1 THEN 'PASS' ELSE 'BLOCKED' END,
+   format('%s historical rehearsal matches; final cutover still requires backup, rehearsal and owner approval',old_match_count) FROM status
+ UNION ALL SELECT 8,'Payment and account safeguards prepared',
+   'NEEDS_REHEARSAL',
+   format('%s registered logins and %s matching historical test invoices. Old exact-count requirement is removed; all accounts and entitlements must survive.',auth_logins,test_paid_949) FROM status
  UNION ALL SELECT 9,'Unsafe test helpers removed',
    CASE WHEN test_helpers=0 THEN 'PASS' ELSE 'BLOCKED' END,
    format('%s public test helper functions still exist',test_helpers) FROM status
  UNION ALL SELECT 10,'Remaining privileged API security review',
    'NEEDS_REVIEW',format('%s SECURITY DEFINER functions remain callable anonymously; review each purpose',exposed_anon_definers) FROM status
  UNION ALL SELECT 11,'Launch speed agreed',
-   'NEEDS_DECISION',format('Current database speed is %s; old reset script hardcodes 2x',live_speed) FROM status
+   'NEEDS_DECISION',format('Current game speed is %s; final restart needs an explicit owner-selected speed',live_speed) FROM status
  UNION ALL SELECT 12,'Restorable database backup',
    'NEEDS_EVIDENCE','Must be proven by an actual restore, not a SQL count'
  UNION ALL SELECT 13,'Isolated January-February simulation',
    'NEEDS_EVIDENCE','Need an isolated restored database with full game data and a 59-day rehearsal'
  UNION ALL SELECT 14,'Approval for destructive final reset',
    'NOT_AUTHORIZED','Do not run the final reset merely because database checks pass'
+ UNION ALL SELECT 15,'No dangling foreign keys from reset scope',
+   CASE WHEN inbound_fks=0 THEN 'PASS' ELSE 'BLOCKED' END,
+   format('%s FK relationships still reference tables being cleared',inbound_fks) FROM reset_dependencies
+ UNION ALL SELECT 16,'Referrals and website analytics remain intact',
+   CASE WHEN protected_histories_in_scope=0 THEN 'PASS' ELSE 'BLOCKED' END,
+   format('%s protected referral or analytics tables in reset scope',protected_histories_in_scope) FROM reset_scope
+ UNION ALL SELECT 17,'Tournament repair diagnostic evidence archived',
+   'READY_TO_ARCHIVE',
+   format('%s diagnostic rows to be archived at final cutover; archiving has NOT happened',
+      (SELECT count(*) FROM control_center_private.tournament_qualification_nocontest_repairs_v1))
 )
 SELECT seq,item,state,evidence FROM checks ORDER BY seq;

@@ -3,7 +3,10 @@
 -- return Season 1 Jan 1 00:00 PAUSED, keep public registration closed.
 -- PRESERVE: auth.users, payment invoices, Stripe events, paid membership entitlements,
 -- wallets/coin ledger, app admins, game catalogs, static schedules and system-health evidence.
--- REQUIRE: original Supabase daily backup exists, and the existing game is disposable test data.
+-- REQUIRE: independently proven restore and isolated Jan-Feb rehearsal. Operator
+-- must set local owner_approved=yes, a backup_restore_reference, a rehearsal_reference,
+-- and the selected target_speed at the same transaction scope before calling script.
+-- These typed attestations are a gate, not proof. Do not bypass independent checks.
 -- This is NOT automatically deployed; use only in the selected Tennis Legacy project.
 -- Rehearse without writes by replacing terminal COMMIT with ROLLBACK.
 BEGIN;
@@ -27,13 +30,50 @@ BEGIN
    WHERE (SELECT coalesce(max(seed_end),0) FROM public.tournament_draw_seed_groups g WHERE g.draw_size=v.draw_size)<>v.expected_seeds
       OR (SELECT count(*) FROM public.tournament_draw_seed_slots sl WHERE sl.draw_size=v.draw_size)<>v.expected_seeds
  )
- OR (SELECT count(*) FROM public.tournament_matches)<40000
- OR (SELECT count(*) FROM auth.users)<>6
- OR (SELECT count(*) FROM public.billing_transactions WHERE status='paid' AND amount_eur_cents=949)<>1
+ OR (SELECT count(*) FROM public.tournament_matches)<1
+ OR coalesce(current_setting('tennis_prelaunch.owner_approved',true),'')<>'yes'
+ OR length(coalesce(current_setting('tennis_prelaunch.backup_restore_reference',true),''))<12
+ OR length(coalesce(current_setting('tennis_prelaunch.rehearsal_reference',true),''))<12
+ OR coalesce(current_setting('tennis_prelaunch.target_speed',true),'') !~ '^[0-9]+([.][0-9]+)?$'
+ OR (coalesce(nullif(current_setting('tennis_prelaunch.target_speed',true),''),'0')::numeric NOT BETWEEN 0.25 AND 24)
  THEN RAISE EXCEPTION 'Prelaunch reset guard failed. No changes allowed.'; END IF;
 END $guard$;
 
--- Build exact 162-table dependency-checked gameplay reset set.
+-- Protect account, payment, referral and website-audit evidence against
+-- unintentional changes during the reset transaction. Counts and wallet totals
+-- are compared again before the final COMMIT.
+SELECT set_config('tennis_prelaunch.auth_before',(SELECT count(*)::text FROM auth.users),true);
+SELECT set_config('tennis_prelaunch.billing_before',(SELECT count(*)::text FROM public.billing_transactions),true);
+SELECT set_config('tennis_prelaunch.premium_before',(SELECT count(*)::text FROM public.premium_memberships),true);
+SELECT set_config('tennis_prelaunch.wallet_count_before',(SELECT count(*)::text FROM public.user_wallets),true);
+SELECT set_config('tennis_prelaunch.wallet_balance_before',(SELECT coalesce(sum(coins_balance),0)::text FROM public.user_wallets),true);
+SELECT set_config('tennis_prelaunch.ledger_before',(SELECT count(*)::text FROM public.coin_ledger),true);
+SELECT set_config('tennis_prelaunch.stripe_before',(SELECT count(*)::text FROM public.stripe_webhook_events),true);
+SELECT set_config('tennis_prelaunch.referral_rewards_before',(SELECT count(*)::text FROM public.referral_rewards),true);
+SELECT set_config('tennis_prelaunch.referral_premium_before',(SELECT count(*)::text FROM public.referral_premium_grants),true);
+SELECT set_config('tennis_prelaunch.referrals_before',(SELECT count(*)::text FROM public.referrals),true);
+SELECT set_config('tennis_prelaunch.analytics_before',(SELECT count(*)::text FROM public.site_analytics_daily_visitors),true);
+
+-- These five historical repair records have foreign keys to match results.
+-- Archive them PRIVATELY and atomically before removing their old references.
+CREATE TABLE IF NOT EXISTS control_center_private.tennis_prelaunch_reset_repair_evidence_archive_v1 (
+  archive_id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  reset_run_id uuid NOT NULL,
+  source_table text NOT NULL,
+  row_data jsonb NOT NULL,
+  archived_at timestamptz NOT NULL DEFAULT now()
+);
+SELECT set_config('tennis_prelaunch.run_id',gen_random_uuid()::text,true);
+SELECT set_config('tennis_prelaunch.repair_rows_before',
+ (SELECT count(*)::text FROM control_center_private.tournament_qualification_nocontest_repairs_v1),true);
+INSERT INTO control_center_private.tennis_prelaunch_reset_repair_evidence_archive_v1
+ (reset_run_id,source_table,row_data)
+SELECT current_setting('tennis_prelaunch.run_id')::uuid,
+  'control_center_private.tournament_qualification_nocontest_repairs_v1',
+  to_jsonb(r)
+FROM control_center_private.tournament_qualification_nocontest_repairs_v1 r;
+
+-- Build exact 149-table dependency-checked gameplay reset set.
 -- Permanent main-draw seeding layouts MUST remain intact.
 -- TRUNCATE RESTRICT prevents silently clearing new referenced tables.
 DO $truncate$
@@ -41,8 +81,9 @@ DECLARE v_tables text; v_count integer;
 BEGIN
  SELECT count(*),string_agg(format('%I.%I',schemaname,tablename),',' ORDER BY schemaname,tablename)
  INTO v_count,v_tables FROM pg_tables WHERE (schemaname='control_center_private'
-  AND left(tablename,13)='tennis_season'
-  AND tablename<>'tennis_season_maintenance_control_v1')
+  AND ((left(tablename,13)='tennis_season'
+        AND tablename<>'tennis_season_maintenance_control_v1')
+       OR tablename='tournament_qualification_nocontest_repairs_v1'))
 OR (schemaname='public' AND (
   (left(tablename,7)='player_' AND tablename NOT IN(
     'player_skills','player_rankings','player_doubles_rankings','player_training_plans',
@@ -60,19 +101,15 @@ OR (schemaname='public' AND (
   OR (left(tablename,13)='private_life_' AND tablename ~
     '(_history|_events|_sale_listings|_positions|_trades|_player_assets)$')
   OR left(tablename,8)='ranking_' OR left(tablename,16)='doubles_ranking_'
-  OR (left(tablename,9)='referral_' AND tablename NOT IN(
-    'referral_badge_catalog','referral_program_settings','referral_admins',
-    'referral_codes','referral_user_devices'))
   OR (left(tablename,6)='staff_' AND tablename ~ '(_events|_offers|_negotiations)$')
   OR (left(tablename,12)='tennis_club_' AND tablename<>'tennis_club_settings')
   OR tablename IN(
     'ai_weekly_injury_runs','career_finance_transactions','career_tax_periods','user_notifications',
     'birthday_rewards','birthday_email_outbox','new_player_initialization_audit',
-    'technical_sponsor_equipment_claims','staff_financial_events','referrals','tennis_clubs',
-    'site_analytics_daily_pages','site_analytics_daily_sessions','site_analytics_daily_visitors')
+    'technical_sponsor_equipment_claims','staff_financial_events','tennis_clubs')
 ));
- IF v_count<>162 OR v_tables IS NULL THEN
-   RAISE EXCEPTION 'Reset inventory drifted: expected 162 tables, got %',v_count;
+ IF v_count<>149 OR v_tables IS NULL THEN
+   RAISE EXCEPTION 'Reset inventory drifted: expected 149 tables, got %',v_count;
  END IF;
  EXECUTE 'TRUNCATE TABLE '||v_tables||' RESTRICT';
 END $truncate$;
@@ -93,7 +130,7 @@ FROM control_center_private.tennis_prelaunch_s1_schedule_v1;
 DELETE FROM public.players WHERE player_type='human';
 
 UPDATE public.game_clock
-SET season=1,month=1,day=1,minute_of_day=0,speed_multiplier=2,
+SET season=1,month=1,day=1,minute_of_day=0,speed_multiplier=current_setting('tennis_prelaunch.target_speed')::numeric,
     is_paused=true,real_anchor_at=now(),updated_at=now()
 WHERE id=1;
 UPDATE public.season_transition_boundary_guard_v1
@@ -216,6 +253,21 @@ BEGIN
  OR EXISTS(SELECT 1 FROM public.registration_control WHERE public_signup_enabled)
  OR EXISTS(SELECT 1 FROM cron.job j JOIN control_center_private.tennis_prelaunch_cron_freeze_v1 f USING(jobid)
       WHERE j.active)
+ OR (SELECT count(*)::text FROM auth.users)<>current_setting('tennis_prelaunch.auth_before')
+ OR (SELECT count(*)::text FROM public.billing_transactions)<>current_setting('tennis_prelaunch.billing_before')
+ OR (SELECT count(*)::text FROM public.premium_memberships)<>current_setting('tennis_prelaunch.premium_before')
+ OR (SELECT count(*)::text FROM public.user_wallets)<>current_setting('tennis_prelaunch.wallet_count_before')
+ OR (SELECT coalesce(sum(coins_balance),0)::text FROM public.user_wallets)<>current_setting('tennis_prelaunch.wallet_balance_before')
+ OR (SELECT count(*)::text FROM public.coin_ledger)<>current_setting('tennis_prelaunch.ledger_before')
+ OR (SELECT count(*)::text FROM public.stripe_webhook_events)<>current_setting('tennis_prelaunch.stripe_before')
+ OR (SELECT count(*)::text FROM public.referral_rewards)<>current_setting('tennis_prelaunch.referral_rewards_before')
+ OR (SELECT count(*)::text FROM public.referral_premium_grants)<>current_setting('tennis_prelaunch.referral_premium_before')
+ OR (SELECT count(*)::text FROM public.referrals)<>current_setting('tennis_prelaunch.referrals_before')
+ OR (SELECT count(*)::text FROM public.site_analytics_daily_visitors)<>current_setting('tennis_prelaunch.analytics_before')
+ OR (SELECT count(*) FROM control_center_private.tennis_prelaunch_reset_repair_evidence_archive_v1
+       WHERE reset_run_id=current_setting('tennis_prelaunch.run_id')::uuid)
+       <>current_setting('tennis_prelaunch.repair_rows_before')::integer
+ OR (SELECT count(*) FROM control_center_private.tournament_qualification_nocontest_repairs_v1)<>0
  THEN RAISE EXCEPTION 'Post-reset consistency failed, all changes must roll back'; END IF;
  SELECT count(*) INTO v_mismatch FROM public.players p JOIN public.player_skills s ON s.player_id=p.id
  WHERE p.player_type='ai' AND (

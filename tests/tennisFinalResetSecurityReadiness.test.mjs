@@ -10,7 +10,7 @@ const engines = read('supabase/migrations/20261117131500_restrict_internal_game_
 
 test('final restart never clears permanent tournament draw seeding layouts',()=>{
  assert.match(reset,/'tournament_draw_seed_groups','tournament_draw_seed_slots'/)
- assert.match(reset,/IF v_count<>162 OR v_tables IS NULL/)
+ assert.match(reset,/IF v_count<>149 OR v_tables IS NULL/)
  assert.doesNotMatch(reset,/expected 160 tables/)
  assert.match(reset,/count\(\*\) FROM public\.tournament_draw_seed_slots sl/)
  assert.match(reset,/max\(seed_end\).*tournament_draw_seed_groups/)
@@ -49,4 +49,39 @@ test('internal mutating engines and trigger functions are inaccessible directly'
  assert.match(engines,/REVOKE EXECUTE ON FUNCTION %s FROM PUBLIC,anon,authenticated/)
  assert.match(engines,/p\.prorettype='pg_catalog\.trigger'::regtype/)
  assert.match(engines,/GRANT EXECUTE ON FUNCTION %s TO service_role/)
+})
+
+test('final reset preserves real payment and referral histories',()=>{
+ const scope=reset.split('INTO v_count,v_tables FROM pg_tables WHERE')[1]?.split("EXECUTE 'TRUNCATE TABLE'")[0]
+ assert.ok(scope,'Expected reset inventory')
+ assert.doesNotMatch(scope,/left\(tablename,9\)='referral_'/)
+ assert.doesNotMatch(scope,/'site_analytics_daily_pages'/)
+ assert.doesNotMatch(scope,/,'referrals'/)
+ for(const preserved of ['auth.users','billing_transactions','premium_memberships',
+ 'user_wallets','coin_ledger','stripe_webhook_events','referral_rewards',
+ 'referral_premium_grants','referrals','site_analytics_daily_visitors']){
+   assert.match(reset,new RegExp(preserved.replace('.',String.raw`\.`)))
+ }
+ assert.match(reset,/tennis_prelaunch\.wallet_balance_before/)
+ assert.match(reset,/Post-reset consistency failed/)
+})
+
+test('reset clears obsolete repair links only after preserving full private evidence',()=>{
+ assert.match(reset,/tablename='tournament_qualification_nocontest_repairs_v1'/)
+ assert.match(reset,/CREATE TABLE IF NOT EXISTS control_center_private\.tennis_prelaunch_reset_repair_evidence_archive_v1/)
+ assert.match(reset,/to_jsonb\(r\)/)
+ assert.match(reset,/tennis_prelaunch\.repair_rows_before/)
+ assert.match(report,/No dangling foreign keys from reset scope/)
+ assert.match(report,/Referrals and website analytics remain intact/)
+})
+
+test('restart needs owner approval and independent backup plus rehearsal references',()=>{
+ assert.match(reset,/current_setting\('tennis_prelaunch\.owner_approved',true\)/)
+ assert.match(reset,/current_setting\('tennis_prelaunch\.backup_restore_reference',true\)/)
+ assert.match(reset,/current_setting\('tennis_prelaunch\.rehearsal_reference',true\)/)
+ assert.match(reset,/speed_multiplier=current_setting\('tennis_prelaunch\.target_speed'\)::numeric/)
+ assert.doesNotMatch(reset,/speed_multiplier=2,/)
+ assert.doesNotMatch(reset,/>=40000|<40000/)
+ assert.match(report,/Restorable database backup/)
+ assert.match(report,/Isolated January-February simulation/)
 })
