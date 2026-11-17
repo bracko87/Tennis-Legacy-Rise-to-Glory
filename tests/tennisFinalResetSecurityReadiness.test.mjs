@@ -115,3 +115,18 @@ test('internal match ratings, private tactics and health/staff calculations are 
  assert.doesNotMatch(internalCalculatorAcl,/get_player_health_dashboard_v3/)
  assert.doesNotMatch(internalCalculatorAcl,/get_staff_dashboard_v2/)
 })
+
+
+const janFebAudit=read('scripts/tennis_january_february_integrity_readonly.sql')
+test('January-February audit independently checks phases, singles and doubles, results and payments',()=>{
+  const source=janFebAudit.replace(/^\s*--.*$/gm,'')
+  assert.doesNotMatch(source,/\b(?:UPDATE|DELETE|INSERT|TRUNCATE|DROP|ALTER|CREATE|GRANT|REVOKE)\s+(?:TABLE|FROM|INTO|public\.|control_center_private\.)/i)
+  assert.match(source,/Qualifying matches outside configured qualifying week/)
+  assert.match(source,/Main-draw matches before configured main-draw week/)
+  assert.match(source,/Overlapping matches for the same player \(singles\)/)
+  assert.match(source,/Same player overlapping singles and doubles/)
+  assert.match(source,/Same player overlapping two doubles matches/)
+  assert.match(source,/Completed simulated matches with no actual simulated match duration/)
+  assert.match(source,/Duplicate payment idempotency keys/)
+  assert.match(source,/CASE WHEN failures=0 THEN 'PASS' ELSE 'FAIL' END/)
+})

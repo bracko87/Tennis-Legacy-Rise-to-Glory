@@ -49,3 +49,35 @@ The operator must also pause the game clock and all 33 registered reset-controll
 - Final owner authorization or launch speed.
 
 **Do not confuse successful GitHub CI, SQL preflight or rolled-back migrations with a completed season restart rehearsal.**
+
+
+## Current January–February test-history baseline (read-only, November 17)
+
+Run `scripts/tennis_january_february_integrity_readonly.sql`. This report is safe to execute repeatedly and **does not repair or rewrite completed test records**.
+
+| Existing test-history discrepancy | Count |
+|---|---:|
+| Qualification matches outside configured qualification week | 130 |
+| Main-draw matches before configured main-draw week | 335 |
+| Same-player overlapping singles match pairs | 80 |
+| Same-player singles/doubles overlapping match pairs | 42 |
+| Same-player doubles/doubles overlapping match pairs | 0 |
+| Completed matches without valid winner | 0 |
+| Completed simulated matches without stored actual duration | 3,590 |
+| Duplicated finance idempotency keys | 0 |
+
+These are measurements of a season generated substantially **before** the scheduling and actual-duration corrections. These numbers are not proof that the new code is broken; historical results are not to be modified just to lower them.
+
+**Acceptance criteria for the independent clean January 1 – February 28 rehearsal:** all 10 integrity metrics must report PASS, including all new completed simulated matches having realistic recorded duration. The run must actually produce qualifying, main-draw, singles and doubles matches; an empty database returning zeros is not a meaningful pass. Also check rank publications, player location/travel, finances, fatigue, injuries and full browser behavior separately.
+
+## Public security review after November 17 hardening
+
+A total of 24 privileged functions still accept anonymous requests as of the last recorded security check; this number includes deliberate public APIs, not necessarily 24 vulnerabilities.
+
+- **Public read endpoints** include calendar, rankings, public player profiles, commerce catalog, registration status/invite verification, maintenance notice, home page statistics/reviews and current game clock.
+- **Public-write endpoints requiring external abuse/rate-limit review** include visitor analytics, cross-game referral events, referral clicks and guest homepage review submissions. They are public intentionally. Do not disable them without adapting their website flows.
+- **Additional read helpers** such as tournament window and health eligibility need review for least-privilege grants and unintended cross-player disclosures.
+
+Supabase also reports mutable search paths for some functions and an Auth leaked-password protection advisory. These deserve follow-up; an advisor warning is not proof of exploitation.
+
+Do not classify the security review as finished until public-write rate limits, least-privilege access and Auth/account settings have been verified.
