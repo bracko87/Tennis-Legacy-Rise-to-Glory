@@ -63,3 +63,26 @@ test('new scheduling implementation cannot rewrite historical results at install
  assert.match(length,/IF target\.id IS NULL OR target\.status<>'scheduled'/)
  assert.match(follow,/IF played\.id IS NULL OR played\.status<>'completed'/)
 })
+
+
+const doublesPhase=read('20261117114500_doubles_main_phase_and_variable_singles_conflicts.sql')
+const doublesStart=read('20261117115000_doubles_start_guard_and_rebooking.sql')
+
+test('doubles are scheduled in the main-draw phase rather than the qualifying phase',()=>{
+ assert.match(doublesPhase,/ss\.phase='main_draw'/)
+ assert.match(doublesPhase,/coalesce\(main_phase\.main_start,w\.start_absolute_day\)/)
+ assert.match(doublesPhase,/coalesce\(main_phase\.main_end,w\.end_absolute_day\)/)
+ assert.match(doublesPhase,/v_abs::bigint\*1440\+v_slot<=v_game_minute\+10/)
+})
+
+test('doubles can never start when a singles player or court remains in use',()=>{
+ assert.match(doublesPhase,/public\.simulated_tennis_duration_minutes_v1\(sim\.total_games,sim\.total_points\)/)
+ assert.match(doublesStart,/sm\.status='in_progress'/)
+ assert.match(doublesStart,/public\.player_match_slot_conflict_v1\(/)
+ assert.match(doublesStart,/schedule_reason='conflict_pending'/)
+ assert.match(doublesStart,/public\.schedule_doubles_match_v1\(m\.id\)/)
+ assert.match(doublesStart,/IF v_conflict THEN/)
+ assert.match(doublesStart,/CONTINUE;/)
+ assert.match(doublesStart,/pg_advisory_xact_lock\(171106,20261117\)/)
+ assert.match(doublesStart,/REVOKE EXECUTE ON FUNCTION public\.process_due_doubles_matches_v1\(\)/)
+})
