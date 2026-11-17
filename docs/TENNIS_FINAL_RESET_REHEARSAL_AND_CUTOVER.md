@@ -1,5 +1,20 @@
 # Tennis Legacy — Final Season 1 restart: safety and rehearsal gate
 
+## LATEST OWNER SETTING — PUBLIC REGISTRATION OPEN, PRELAUNCH CLOCK PAUSED (17 November 2026)
+
+**This section supersedes the older registration-closed and 6× speed statements below.**
+
+- **Official Tennis Legacy launch:** 23 November 2026.
+- **Public registration:** enabled now. Visitors may create an account and tennis player before the official launch. The normal email verification flow still applies.
+- **Game date:** Season 1, January 1, 00:00 (game clock total seconds 0).
+- **Clock:** paused; saved resumed speed 2×. Do not resume before the owner-selected launch time.
+- **Database verification:** anonymous read-only registration RPC returned true; public clock RPC returned game second 0 and effective running speed 0 while paused. Database values show configured speed 2× and is_paused=true.
+- **Website implementation:** the homepage and register page show the November 23 release disclaimer; previously hidden Create Account links have been restored; the paused clock is labelled accurately; translations are included for eight locales.
+- **Build:** GitHub Actions run 44092254006 passed. **This does not prove a Netlify deployment.** Publish the latest main branch and verify the live website signup form before announcing it publicly.
+- **Release activation:** resuming the paused game at 2× is a separate owner-controlled action. No automatic release-time job has been created.
+
+---
+
 ## STATUS UPDATE — DIRECT TEST-GAME RESTART COMPLETED (17 November 2026)
 
 **This supersedes the older separate-project and backup/rehearsal prerequisites below for the disposable TEST season only.** The owner explicitly authorized restarting the existing game directly, and no new Supabase project or charge was incurred.
