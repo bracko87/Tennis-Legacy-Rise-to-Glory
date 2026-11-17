@@ -457,33 +457,33 @@ export default function RegisterPage() {
                               required
                               error={submitted && !birthdayValid ? 'Enter a valid month and day. If you provide a year, it must be valid.' : undefined}
                             >
-                                <select
-                                                                  id="birth-month"
-                                                                  value={month}
-                                                                  onChange={(event) => {
-                                                                    const value = event.target.value
-                                                                    setMonth(value)
-                                                                    if (day && Number(day) > createAvailableDays(value, year).length) setDay('')
-                                                                    clearStatus()
-                                                                  }}
-                                                                  className={`tlg-input ${submitted && !birthdayValid ? 'tlg-input-error' : ''}`}
-                                                                >
-                                                                  <option value="">Month</option>
-                                                                  {MONTHS.map((label, index) => <option key={label} value={String(index + 1)}>{label}</option>)}
-                                                                </select>
+                                                              <select
+                                  id="birth-month"
+                                  value={month}
+                                  onChange={(event) => {
+                                    const value = event.target.value
+                                    setMonth(value)
+                                    if (day && Number(day) > createAvailableDays(value, year).length) setDay('')
+                                    clearStatus()
+                                  }}
+                                  className={`tlg-input ${submitted && !birthdayValid ? 'tlg-input-error' : ''}`}
+                                >
+                                  <option value="">Month</option>
+                                  {MONTHS.map((label, index) => <option key={label} value={String(index + 1)}>{label}</option>)}
+                              </select>
                             </FormField>
 
                             <FormField id="birth-day" label="Day" required>
-                                <select
-                                                                    id="birth-day"
-                                                                  value={day}
-                                                                  onChange={(event) => { setDay(event.target.value); clearStatus() }}
-                                                                  className={`tlg-input ${submitted && !birthdayValid ? 'tlg-input-error' : ''}`}
-                                                                  aria-label="Birthday day"
-                                                                >
-                                                                  <option value="">Day</option>
-                                                                  {availableDays.map((value) => <option key={value} value={String(value)}>{value}</option>)}
-                                                                </select>
+                                                              <select
+                                    id="birth-day"
+                                  value={day}
+                                  onChange={(event) => { setDay(event.target.value); clearStatus() }}
+                                  className={`tlg-input ${submitted && !birthdayValid ? 'tlg-input-error' : ''}`}
+                                  aria-label="Birthday day"
+                                >
+                                  <option value="">Day</option>
+                                  {availableDays.map((value) => <option key={value} value={String(value)}>{value}</option>)}
+                              </select>
                             </FormField>
 
                             <FormField
@@ -491,21 +491,21 @@ export default function RegisterPage() {
                               label="Year (optional)"
                               error={submitted && !yearValid ? 'Enter a valid year or leave this field blank.' : undefined}
                             >
-                                <input
-                                                                      id="birth-year"
-                                                                    value={year}
-                                                                    onChange={(event) => {
-                                                                      const value = event.target.value.replace(/\D/g, '').slice(0, 4)
-                                                                      setYear(value)
-                                                                      if (day && Number(day) > createAvailableDays(month, value).length) setDay('')
-                                                                      clearStatus()
-                                                                    }}
-                                                                    className={`tlg-input ${submitted && !yearValid ? 'tlg-input-error' : ''}`}
-                                                                    placeholder="Year"
-                                                                    inputMode="numeric"
-                                                                    autoComplete="bday-year"
-                                                                    aria-label="Birthday year, optional"
-                                                                  />
+                                                              <input
+                                  id="birth-year"
+                                value={year}
+                                onChange={(event) => {
+                                  const value = event.target.value.replace(/\D/g, '').slice(0, 4)
+                                  setYear(value)
+                                  if (day && Number(day) > createAvailableDays(month, value).length) setDay('')
+                                  clearStatus()
+                                }}
+                                className={`tlg-input ${submitted && !yearValid ? 'tlg-input-error' : ''}`}
+                                placeholder="Year"
+                                inputMode="numeric"
+                                autoComplete="bday-year"
+                                aria-label="Birthday year, optional"
+                              />
                             </FormField>
                           </div>
 
