@@ -58,6 +58,8 @@ jobs:
         run: node --test tests/tournamentMainDrawSeeding.test.mjs
       - name: Verify qualifying matches show Live status on the Season Calendar
         run: node --test tests/calendarLiveQualifying.test.mjs
+      - name: Verify only the departure day is marked as Travel on the calendar
+        run: node --test tests/calendarOneTravelDay.test.mjs
       - name: Verify direct tournament transfer preferences and route integration
         run: node --test tests/directTournamentTransfer.test.mjs
       - name: Verify future-only calendar flight overrides and payment refunds
