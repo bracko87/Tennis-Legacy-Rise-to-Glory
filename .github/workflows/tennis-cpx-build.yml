@@ -56,6 +56,8 @@ jobs:
         run: node --experimental-strip-types --test tests/gameMoneyDisplay.test.mjs
       - name: Verify internal test cleanup, two-week phases, match lengths and safe rescheduling
         run: node --test tests/tennisTwoWeekMatchSafety.test.mjs
+      - name: Verify safe final reset guards and protected game engine permissions
+        run: node --test tests/tennisFinalResetSecurityReadiness.test.mjs
       - name: Verify main draw seeding config and guard against unseeded draws
         run: node --test tests/tournamentMainDrawSeeding.test.mjs
       - name: Verify qualifying matches show Live status on the Season Calendar
