@@ -1,5 +1,25 @@
 # Tennis Legacy — Final Season 1 restart: safety and rehearsal gate
 
+## STATUS UPDATE — DIRECT TEST-GAME RESTART COMPLETED (17 November 2026)
+
+**This supersedes the older separate-project and backup/rehearsal prerequisites below for the disposable TEST season only.** The owner explicitly authorized restarting the existing game directly, and no new Supabase project or charge was incurred.
+
+A full Season 1 reset was first executed within a database transaction ending in ROLLBACK and passed its postconditions. The same reset was then committed on the Tennis Legacy database `cwfznmroiqcyhfkfcrow`. The original 33 controlled cron jobs were paused; 26 had been active and were restored afterward. An additional Premium tournament watcher was also paused and restored. The game clock resumed at 6× speed from Season 1, January 1, 00:00.
+
+Verified after commit and resume:
+- Game active at Season 1, January 1, with 6× clock; no other-season editions.
+- 834 AI players, 597 Season 1 editions, 1,194 competitions and 613 calendar slots.
+- 0 old matches, 0 draw publications, 0 tournament entries or applications; 0 old human test characters.
+- AI profile totals match starting values; singles and doubles ranking points reset.
+- 6 Auth login records, 6 Premium membership rows, 6 wallets with a total 650 coins, 12 coin ledger rows and 1 billing record preserved; 1 website review preserved.
+- 26 previously active game cron jobs restored and the separate Premium watcher resumed; no job failures observed in the immediate post-restart check.
+- Public signup still disabled; existing testers can log in and create fresh tennis characters.
+
+**Still unverified:** a complete January–February runtime test after the restart, live browser onboarding, and production public signup. Do not mistake this test restart for final public launch approval.
+
+---
+
+
 Updated: 2026-11-17. **Preparation only. This is not permission to reset production.**
 
 ## Goal
