@@ -244,6 +244,7 @@ export default function MarketingFooter({
           <p>
             Tennis Legacy: Rise to Glory · Online
             multiplayer tennis management simulation.
+            <span style={{ display: 'block', marginTop: 6 }}>Game version: 1.1.9</span>
           </p>
 
           <div className="tlg-footer-company-credit">
