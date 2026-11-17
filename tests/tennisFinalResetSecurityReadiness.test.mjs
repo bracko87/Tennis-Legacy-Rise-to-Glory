@@ -148,3 +148,41 @@ test('final reset retains reviews when their obsolete human test character is re
             reset.indexOf("DELETE FROM public.players WHERE player_type='human'"))
   assert.match(reset,/\(SELECT count\(\*\)::text FROM public\.player_homepage_reviews\)<>current_setting\('tennis_prelaunch\.homepage_reviews_before'\)/)
 })
+
+
+const budgetFoundation=read('supabase/migrations/20261117170500_public_rpc_budget_foundation.sql')
+const budgetPublicRpc=read('supabase/migrations/20261117171000_apply_public_rpc_write_budgets.sql')
+const publicReviewPage=read('src/pages/PublicReviewSubmission.tsx')
+
+test('public RPC counter cannot be called or written by anonymous visitors',()=>{
+ assert.match(budgetFoundation,/control_center_private\.tennis_public_rpc_budgets_v1/)
+ assert.match(budgetFoundation,/ENABLE ROW LEVEL SECURITY/)
+ assert.match(budgetFoundation,/REVOKE ALL ON TABLE .* FROM PUBLIC,anon,authenticated/)
+ assert.match(budgetFoundation,/REVOKE ALL ON FUNCTION control_center_private\.tennis_allow_public_rpc_v1/)
+ assert.match(budgetFoundation,/ON CONFLICT\(endpoint,identity_hash,window_open\) DO UPDATE/)
+ assert.match(budgetFoundation,/request_count<p_limit/)
+ assert.match(budgetFoundation,/tennis-public-rpc-budget-prune-v1/)
+})
+
+test('anonymous public write endpoints apply conservative bounded budgets',()=>{
+ for(const fn of [
+   'record_site_analytics_event_v1','record_cross_game_referral_event_v1',
+   'register_referral_click_v1','submit_public_homepage_review_v1'
+ ]) assert.match(budgetPublicRpc,new RegExp('CREATE OR REPLACE FUNCTION public\\.'+fn))
+ for(const scope of ['analytics_visitor','analytics_global','referral_code',
+  'referral_global','cross_game_global','review_email','review_global']){
+    assert.match(budgetPublicRpc,new RegExp(scope))
+ }
+ assert.match(budgetPublicRpc,/return jsonb_build_object\(\s*'status','rate_limited'/)
+ assert.match(budgetPublicRpc,/return false;/)
+ assert.match(budgetPublicRpc,/return; -- Analytics must never prevent website navigation/)
+})
+
+test('website review form never says submitted if the API rate limits it',()=>{
+ assert.match(publicReviewPage,/const \{ data, error: rpcError \} = await supabase\.rpc\('submit_public_homepage_review_v1'/)
+ assert.match(publicReviewPage,/if \(data\?\.status !== 'pending'\)/)
+ assert.match(publicReviewPage,/typeof data\?\.message === 'string'/)
+ assert.match(publicReviewPage,/setSubmitted\(true\)/)
+ assert.ok(publicReviewPage.indexOf("if (data?.status !== 'pending')") <
+   publicReviewPage.indexOf("setSubmitted(true)"))
+})

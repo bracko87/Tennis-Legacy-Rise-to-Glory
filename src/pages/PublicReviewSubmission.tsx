@@ -58,7 +58,7 @@ export default function PublicReviewSubmissionPage() {
     }
 
     setSubmitting(true)
-    const { error: rpcError } = await supabase.rpc('submit_public_homepage_review_v1', {
+    const { data, error: rpcError } = await supabase.rpc('submit_public_homepage_review_v1', {
       p_reviewer_name: cleanName,
       p_reviewer_email: cleanEmail,
       p_rating: rating,
@@ -68,6 +68,17 @@ export default function PublicReviewSubmissionPage() {
 
     if (rpcError) {
       setError(rpcError.message)
+      return
+    }
+
+    // A rate-limited request returns a normal RPC response but does not
+    // create a review. Only the confirmed 'pending' state means success.
+    if (data?.status !== 'pending') {
+      setError(
+        typeof data?.message === 'string'
+          ? data.message
+          : 'Review was not submitted. Please try again later.',
+      )
       return
     }
 

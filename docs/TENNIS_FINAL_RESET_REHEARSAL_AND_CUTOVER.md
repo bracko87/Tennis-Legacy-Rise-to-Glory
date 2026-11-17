@@ -91,3 +91,15 @@ The reset now checks that all **16** Season 1 two-week events have exactly one q
 ## Preserve submitted website reviews at final reset
 
 The `public.player_homepage_reviews.player_id` foreign key has `ON DELETE CASCADE`. Deleting a test character could inadvertently delete that person's published or pending review. The final-reset script now unlinks human test-character IDs from reviews **before** deleting those characters and verifies the total review count remains unchanged. The submitted review content, author account, status and rating are retained. This change is in the final-reset script only and does not change live reviews.
+
+## Anonymous public-write abuse limits (prepared, not yet deployed)
+
+Four intentionally public endpoints write visitor/referral/review records: `record_site_analytics_event_v1`, `register_referral_click_v1`, `record_cross_game_referral_event_v1` and `submit_public_homepage_review_v1`.
+
+Proposed database safeguard: `20261117170500_public_rpc_budget_foundation.sql` and `20261117171000_apply_public_rpc_write_budgets.sql`. The first installs private hashed fixed-window counters plus six-hour cleanup; the second adds per-visitor, referral-code, review-email and global limits. These settings reduce write amplification but **cannot identify anonymous users reliably**, since visitor IDs and referral codes can be rotated. Edge/WAF throttling and CAPTCHA for guest reviews remain advisable.
+
+The public review form is updated to treat only `status: pending` as success. A rejected `status: rate_limited` response now shows an error rather than an incorrect success message.
+
+**Deployment order matters.** The database rate-limit changes should not be applied to the active game until the updated website review form is also deployed. Website publication is paused for the prelaunch test. The migrations have been transactionally tested and committed for deployment later; do not report them as active prematurely.
+
+Rollback tests included anonymous guest-review submission, analytics and cross-game events, limit exhaustion and unchanged row counts. All test data was rolled back.
