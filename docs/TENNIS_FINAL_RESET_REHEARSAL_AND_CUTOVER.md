@@ -87,3 +87,7 @@ Do not classify the security review as finished until public-write rate limits, 
 13 unplayed future Season 1 tournaments used the legacy `full` label for the qualifying week, followed by an explicit `main_draw` second week. The strict new scheduler could have rejected their qualifying matches. The repair changes these 13 first-week labels to `qualification` in both live Season 1 calendar definitions and the original Season 1 reset snapshot. Future-season generators with old `full` labels are supported by a compatibility fallback for match phases, effective player availability, and doubles entry weeks.
 
 The reset now checks that all **16** Season 1 two-week events have exactly one qualification week and one main-draw week, and refuses execution if they drift. The read-only readiness report has an 18th explicit check for these phases. Existing published matches and results are not modified.
+
+## Preserve submitted website reviews at final reset
+
+The `public.player_homepage_reviews.player_id` foreign key has `ON DELETE CASCADE`. Deleting a test character could inadvertently delete that person's published or pending review. The final-reset script now unlinks human test-character IDs from reviews **before** deleting those characters and verifies the total review count remains unchanged. The submitted review content, author account, status and rating are retained. This change is in the final-reset script only and does not change live reviews.

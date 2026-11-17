@@ -72,6 +72,7 @@ SELECT set_config('tennis_prelaunch.referral_rewards_before',(SELECT count(*)::t
 SELECT set_config('tennis_prelaunch.referral_premium_before',(SELECT count(*)::text FROM public.referral_premium_grants),true);
 SELECT set_config('tennis_prelaunch.referrals_before',(SELECT count(*)::text FROM public.referrals),true);
 SELECT set_config('tennis_prelaunch.analytics_before',(SELECT count(*)::text FROM public.site_analytics_daily_visitors),true);
+SELECT set_config('tennis_prelaunch.homepage_reviews_before',(SELECT count(*)::text FROM public.player_homepage_reviews),true);
 
 -- These five historical repair records have foreign keys to match results.
 -- Archive them PRIVATELY and atomically before removing their old references.
@@ -146,6 +147,14 @@ SELECT id,tournament_edition_id,calendar_month,month_week,phase,slot_order,now()
 FROM control_center_private.tennis_prelaunch_s1_schedule_v1;
 
 -- Existing test logins remain, but their old tennis characters/careers do not.
+-- Reviews are deliberately *not* gameplay history. Their FK to players uses
+-- ON DELETE CASCADE: unlink first or deleting the test character would also
+-- destroy authentic guest/player reviews. Preserve review text, ratings,
+-- status, author identity and approval records as submitted.
+UPDATE public.player_homepage_reviews r
+SET player_id=NULL,updated_at=now()
+WHERE r.player_id IN (SELECT p.id FROM public.players p WHERE p.player_type='human');
+
 DELETE FROM public.players WHERE player_type='human';
 
 UPDATE public.game_clock
@@ -296,6 +305,7 @@ BEGIN
  OR (SELECT count(*)::text FROM public.referral_premium_grants)<>current_setting('tennis_prelaunch.referral_premium_before')
  OR (SELECT count(*)::text FROM public.referrals)<>current_setting('tennis_prelaunch.referrals_before')
  OR (SELECT count(*)::text FROM public.site_analytics_daily_visitors)<>current_setting('tennis_prelaunch.analytics_before')
+ OR (SELECT count(*)::text FROM public.player_homepage_reviews)<>current_setting('tennis_prelaunch.homepage_reviews_before')
  OR (SELECT count(*) FROM control_center_private.tennis_prelaunch_reset_repair_evidence_archive_v1
        WHERE reset_run_id=current_setting('tennis_prelaunch.run_id')::uuid)
        <>current_setting('tennis_prelaunch.repair_rows_before')::integer

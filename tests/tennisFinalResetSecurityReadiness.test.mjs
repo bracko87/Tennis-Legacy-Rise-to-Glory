@@ -139,3 +139,12 @@ test('final reset blocks mixed or missing two-week tournament phases even when s
  assert.match(report,/two_week_phase_health/)
  assert.match(report,/valid_two_week_events=16/)
 })
+
+test('final reset retains reviews when their obsolete human test character is removed',()=>{
+  assert.match(reset,/tennis_prelaunch\.homepage_reviews_before/)
+  assert.match(reset,/UPDATE public\.player_homepage_reviews r\s*SET player_id=NULL,updated_at=now\(\)/)
+  assert.match(reset,/WHERE r\.player_id IN \(SELECT p\.id FROM public\.players p WHERE p\.player_type='human'\)/)
+  assert.ok(reset.indexOf('UPDATE public.player_homepage_reviews r') <
+            reset.indexOf("DELETE FROM public.players WHERE player_type='human'"))
+  assert.match(reset,/\(SELECT count\(\*\)::text FROM public\.player_homepage_reviews\)<>current_setting\('tennis_prelaunch\.homepage_reviews_before'\)/)
+})
