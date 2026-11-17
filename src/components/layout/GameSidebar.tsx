@@ -209,7 +209,7 @@ export default function GameSidebar({
             <LogOut size={16} />
             {!collapseNav && <span>{t('nav.signOut')}</span>}
           </button>
-          {!collapseNav && <div className="tlg-v6-version">{t('nav.version', { version: '1.0.0' })}</div>}
+          {!collapseNav && <div className="tlg-v6-version">{t('nav.version', { version: '1.1.9' })}</div>}
         </div>
       </aside>
     </>
