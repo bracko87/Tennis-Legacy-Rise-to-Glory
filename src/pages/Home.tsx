@@ -138,11 +138,9 @@ export default function HomePage() {
     <div className="tlg-marketing-page">
       <MarketingHeader />
       {registrationAvailability === 'closed' && <BetaDisclaimer />}
+      {registrationAvailability === 'open' && <RegistrationLaunchNotice modal />}
 
       <main className="tlg-home-main">
-        {registrationAvailability === 'open' && (
-          <div className="tlg-section"><RegistrationLaunchNotice /></div>
-        )}
         <SeasonMaintenanceAnnouncement />
         <SeasonTransitionNotice variant="public" />
         <section className="tlg-hero">

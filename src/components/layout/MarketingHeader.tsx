@@ -14,6 +14,7 @@ import { useAuth } from '../../auth/AuthContext'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import type { AppLocale } from '../../i18n'
 import CountryFlag from '../common/CountryFlag'
+import usePublicRegistrationStatus from '../../hooks/usePublicRegistrationStatus'
 
 interface MarketingNavigationItem {
   readonly labelKey: string
@@ -37,10 +38,22 @@ const LANGUAGE_META: Record<AppLocale, { label: string; shortLabel: string; coun
   pt: { label: 'Português', shortLabel: 'PT', countryCode: 'PT' },
 }
 
+const REGISTER_LABEL: Record<AppLocale, string> = {
+  en: 'Register',
+  de: 'Registrieren',
+  sr: 'Registracija',
+  es: 'Registro',
+  fr: "S'inscrire",
+  it: 'Registrati',
+  pt: 'Registar',
+  ru: 'Регистрация',
+}
+
 export default function MarketingHeader() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { user, player, authLoading, signOut } = useAuth()
+  const registrationAvailability = usePublicRegistrationStatus()
   const { locale, enabledLocales, setLocale, saving: languageSaving } = useLocalization()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [languageOpen, setLanguageOpen] = useState(false)
@@ -151,6 +164,9 @@ export default function MarketingHeader() {
           ) : (
             <>
               <Link to="/login" className="tlg-btn tlg-btn-ghost tlg-btn-small tlg-header-signin">{t('marketing.signIn')}</Link>
+              {registrationAvailability === 'open' && (
+                <Link to="/register" className="tlg-btn tlg-btn-primary tlg-btn-small tlg-header-register">{REGISTER_LABEL[locale]}</Link>
+              )}
             </>
           )}
 
@@ -253,6 +269,10 @@ export default function MarketingHeader() {
               ) : (
                 <>
                   <Link to="/login" className="tlg-btn tlg-btn-secondary tlg-btn-full" onClick={() => setMobileMenuOpen(false)}>{t('marketing.signIn')}</Link>
+                  {registrationAvailability === 'open' && (
+                    <Link to="/register" className="tlg-btn tlg-btn-primary tlg-btn-full tlg-header-register"
+                      onClick={() => setMobileMenuOpen(false)}>{REGISTER_LABEL[locale]}</Link>
+                  )}
                 </>
               )}
             </div>
