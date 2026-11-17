@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarDays, Clock3, X } from 'lucide-react'
+import { ArrowRight, CalendarDays, Clock3, ExternalLink, MessageCircle, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router'
@@ -6,6 +6,7 @@ import { Link } from 'react-router'
 import type { AppLocale } from '../../i18n'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { useGameClock } from '../../hooks/useGameClock'
+import { TENNIS_DISCORD_INVITE_URL } from '../../lib/communityLinks'
 import '../../styles/registration-launch-notice.css'
 
 interface LaunchCopy {
@@ -15,6 +16,7 @@ interface LaunchCopy {
   paused: string
   running: string
   register: string
+  discord: string
   continueLabel: string
   closeLabel: string
 }
@@ -27,6 +29,7 @@ const COPY: Record<AppLocale, LaunchCopy> = {
     paused: 'Game time is paused at Season 1, January 1, 00:00. The clock is set to run at 2× speed when the game begins.',
     running: 'Game time is running at 2× real-time speed.',
     register: 'Create Account',
+    discord: 'Join Discord',
     continueLabel: "Explore website",
     closeLabel: "Close announcement",
   },
@@ -37,6 +40,7 @@ const COPY: Record<AppLocale, LaunchCopy> = {
     paused: 'Die Spielzeit ist bei Saison 1, 1. Januar, 00:00 Uhr angehalten. Zum Start läuft die Uhr mit 2-facher Geschwindigkeit.',
     running: 'Die Spielzeit läuft mit 2-facher Geschwindigkeit.',
     register: 'Konto erstellen',
+    discord: 'Discord beitreten',
     continueLabel: "Website ansehen",
     closeLabel: "Ankündigung schließen",
   },
@@ -47,6 +51,7 @@ const COPY: Record<AppLocale, LaunchCopy> = {
     paused: 'Vreme igre je zaustavljeno na Sezoni 1, 1. januar, 00:00. Po početku igre vreme će teći 2 puta brže.',
     running: 'Vreme igre teče 2 puta brže od stvarnog vremena.',
     register: 'Napravi nalog',
+    discord: 'Pridruži se Discordu',
     continueLabel: "Pogledaj sajt",
     closeLabel: "Zatvori obaveštenje",
   },
@@ -57,6 +62,7 @@ const COPY: Record<AppLocale, LaunchCopy> = {
     paused: 'El tiempo del juego está pausado en la temporada 1, 1 de enero, 00:00. Al comenzar, avanzará al doble de velocidad.',
     running: 'El tiempo del juego avanza al doble de velocidad.',
     register: 'Crear cuenta',
+    discord: 'Unirse a Discord',
     continueLabel: "Explorar sitio web",
     closeLabel: "Cerrar anuncio",
   },
@@ -67,6 +73,7 @@ const COPY: Record<AppLocale, LaunchCopy> = {
     paused: 'Le temps du jeu est en pause à la saison 1, le 1er janvier à 00 h 00. Il avancera 2 fois plus vite au lancement.',
     running: 'Le temps du jeu avance 2 fois plus vite.',
     register: 'Créer un compte',
+    discord: 'Rejoindre Discord',
     continueLabel: "Découvrir le site",
     closeLabel: "Fermer l'annonce",
   },
@@ -77,6 +84,7 @@ const COPY: Record<AppLocale, LaunchCopy> = {
     paused: 'Il tempo di gioco è fermo alla stagione 1, 1 gennaio, ore 00:00. Al lancio scorrerà a velocità 2×.',
     running: 'Il tempo di gioco scorre a velocità 2×.',
     register: 'Crea account',
+    discord: 'Entra su Discord',
     continueLabel: "Esplora il sito",
     closeLabel: "Chiudi avviso",
   },
@@ -87,6 +95,7 @@ const COPY: Record<AppLocale, LaunchCopy> = {
     paused: 'O tempo do jogo está pausado na época 1, 1 de janeiro, 00:00. No lançamento avançará a 2×.',
     running: 'O tempo do jogo avança a 2×.',
     register: 'Criar conta',
+    discord: 'Entrar no Discord',
     continueLabel: "Explorar o site",
     closeLabel: "Fechar aviso",
   },
@@ -97,6 +106,7 @@ const COPY: Record<AppLocale, LaunchCopy> = {
     paused: 'Игровое время остановлено на 1 января первого сезона, 00:00. После запуска оно пойдёт со скоростью 2×.',
     running: 'Игровое время идёт со скоростью 2×.',
     register: 'Создать аккаунт',
+    discord: 'Присоединиться к Discord',
     continueLabel: "Посмотреть сайт",
     closeLabel: "Закрыть объявление",
   },
@@ -188,6 +198,14 @@ export default function RegistrationLaunchNotice({ compact = false, modal = fals
               onClick={dismiss}>
               {copy.register}<ArrowRight size={15} aria-hidden="true" />
             </Link>
+            <a href={TENNIS_DISCORD_INVITE_URL}
+              target="_blank" rel="noopener noreferrer"
+              className="tlg-btn tlg-registration-launch-discord"
+              onClick={dismiss}>
+              <MessageCircle size={16} aria-hidden="true" />
+              {copy.discord}
+              <ExternalLink size={13} aria-hidden="true" />
+            </a>
             <button type="button" className="tlg-btn tlg-btn-secondary tlg-registration-launch-continue"
               onClick={dismiss}>{copy.continueLabel}</button>
           </div>

@@ -157,3 +157,26 @@
   .tlg-registration-launch-modal-actions { flex-direction: column; }
   .tlg-registration-launch-modal-actions .tlg-btn { width: 100%; }
 }
+
+/* Community invite is a real external link and stays distinct from signup. */
+.tlg-registration-launch-modal-actions .tlg-registration-launch-discord {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid #8290ff;
+  background: #5865f2;
+  color: #fff;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.tlg-registration-launch-modal-actions .tlg-registration-launch-discord:hover {
+  background: #4752c4;
+  color: #fff;
+}
+.tlg-registration-launch-modal-actions .tlg-registration-launch-continue {
+  flex: 0 1 auto;
+}
+@media (min-width: 571px) {
+  .tlg-registration-launch-modal-actions { flex-wrap: wrap; }
+}

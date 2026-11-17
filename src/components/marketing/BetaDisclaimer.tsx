@@ -4,9 +4,9 @@ import { createPortal } from 'react-dom'
 import { useLocation } from 'react-router'
 
 import '../../styles/beta-disclaimer.css'
+import { TENNIS_DISCORD_INVITE_URL } from '../../lib/communityLinks'
 
 const BETA_NOTICE_SESSION_KEY = 'tlg-final-beta-testing-notice-v2'
-const DISCORD_INVITE_URL = 'https://discord.gg/RBBtXgZey2'
 
 export default function BetaDisclaimer() {
   const location = useLocation()
@@ -117,7 +117,7 @@ export default function BetaDisclaimer() {
 
         <div className="tlg-beta-modal-actions">
           <a
-            href={DISCORD_INVITE_URL}
+            href={TENNIS_DISCORD_INVITE_URL}
             target="_blank"
             rel="noreferrer"
             className="tlg-btn tlg-btn-primary tlg-btn-large"
