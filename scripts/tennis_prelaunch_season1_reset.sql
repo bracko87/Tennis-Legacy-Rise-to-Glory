@@ -3,12 +3,14 @@
 -- return Season 1 Jan 1 00:00 PAUSED, keep public registration closed.
 -- PRESERVE: auth.users, payment invoices, Stripe events, paid membership entitlements,
 -- wallets/coin ledger, app admins, game catalogs, static schedules and system-health evidence.
--- REQUIRE: independently proven restore and isolated Jan-Feb rehearsal. Operator
--- must set local owner_approved=yes, a backup_restore_reference, a rehearsal_reference,
--- and the selected target_speed at the same transaction scope before calling script.
--- These typed attestations are a gate, not proof. Do not bypass independent checks.
+-- OWNER AUTHORIZED DIRECT TEST RESET: existing game history is disposable.
+-- No separate paid project or completed January-February rehearsal is required.
+-- The reset must be transactionally rehearsed (ROLLBACK) before committed.
+-- Accounts, purchases, coin balances, static tournament rules and referrals remain protected.
+-- Set owner_approved=yes, disposable_test_version=yes, and existing target_speed
+-- inside the same transaction. Freeze all registered gameplay cron jobs first.
 -- This is NOT automatically deployed; use only in the selected Tennis Legacy project.
--- Rehearse without writes by replacing terminal COMMIT with ROLLBACK.
+-- Rehearse with all writes ROLLED BACK before any real reset. Keep the game paused through post-reset verification.
 BEGIN;
 SET LOCAL statement_timeout = '180s';
 SET LOCAL lock_timeout = '15s';
@@ -51,8 +53,7 @@ BEGIN
  )<>16
  OR (SELECT count(*) FROM public.tournament_matches)<1
  OR coalesce(current_setting('tennis_prelaunch.owner_approved',true),'')<>'yes'
- OR length(coalesce(current_setting('tennis_prelaunch.backup_restore_reference',true),''))<12
- OR length(coalesce(current_setting('tennis_prelaunch.rehearsal_reference',true),''))<12
+ OR coalesce(current_setting('tennis_prelaunch.disposable_test_version',true),'')<>'yes'
  OR coalesce(current_setting('tennis_prelaunch.target_speed',true),'') !~ '^[0-9]+([.][0-9]+)?$'
  OR (coalesce(nullif(current_setting('tennis_prelaunch.target_speed',true),''),'0')::numeric NOT BETWEEN 0.25 AND 24)
  THEN RAISE EXCEPTION 'Prelaunch reset guard failed. No changes allowed.'; END IF;
