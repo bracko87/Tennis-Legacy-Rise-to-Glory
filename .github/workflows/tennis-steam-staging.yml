@@ -1,0 +1,50 @@
+name: Tennis Legacy Steam Windows staging rehearsal (NOT for release)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'steam/**'
+      - 'desktop/**'
+      - '.github/workflows/tennis-steam-staging.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  steam-staging:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Assert this is ONLY a staging rehearsal
+        run: node steam/preflight.mjs --staging
+      - name: Generate game icon from uploaded reference
+        run: |
+          python -m pip install Pillow==11.3.0
+          python desktop/scripts/generate_icons.py
+          python desktop/scripts/generate_icons.py --verify
+      - name: Install and run desktop tests
+        working-directory: desktop
+        run: |
+          npm install --no-audit --no-fund
+          npm run check
+      - name: Create unpacked Windows staging build
+        working-directory: desktop
+        run: npx electron-builder --win --x64 --dir --publish never
+      - name: Add explicit not-release-ready marker
+        shell: pwsh
+        run: |
+          $path = "desktop/release/win-unpacked/NOT_READY_FOR_STEAM.txt"
+          "STAGING ONLY: Steamworks auth and Steam Wallet integration are NOT implemented. Do NOT submit this build to Valve. See docs/steam/RELEASE_CHECKLIST.md." | Set-Content -Path $path -Encoding utf8
+      - name: Upload private build rehearsal
+        uses: actions/upload-artifact@v4
+        with:
+          name: TennisLegacy-Steam-STAGING-NOT-FOR-RELEASE
+          path: desktop/release/win-unpacked/**
+          if-no-files-found: error

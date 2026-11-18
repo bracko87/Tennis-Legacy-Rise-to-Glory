@@ -1,0 +1,47 @@
+{
+  "title": "Tennis Legacy: Rise to Glory",
+  "developer": "Next Quest Studio",
+  "publisher": "Next Quest Studio",
+  "business_model": "free_to_play_with_optional_premium",
+  "steam_app_id": null,
+  "platform": "windows_x64",
+  "mode": "online_multiplayer",
+  "server": "https://www.tennislegacygame.com/",
+  "state": "staging_only_not_release_ready",
+  "blockers": {
+    "steam_native_auth": false,
+    "server_ticket_verification": false,
+    "account_linking": false,
+    "steam_wallet_payments": false,
+    "steam_appid_assigned": false,
+    "steam_review_complete": false
+  },
+  "store_assets": {
+    "header_capsule": [
+      920,
+      430
+    ],
+    "small_capsule": [
+      462,
+      174
+    ],
+    "main_capsule": [
+      1232,
+      706
+    ],
+    "vertical_capsule": [
+      748,
+      896
+    ],
+    "screenshots_minimum": [
+      1920,
+      1080
+    ]
+  },
+  "release_note": "Steam install requires internet; do not claim offline/single-player.",
+  "docs": [
+    "docs/steam/STORE_COPY.md",
+    "docs/steam/RELEASE_CHECKLIST.md",
+    "docs/steam/TECHNICAL_PLAN.md"
+  ]
+}
