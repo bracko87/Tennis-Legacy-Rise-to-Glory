@@ -41,6 +41,7 @@ import StatCard from '../components/common/StatCard'
 import HomepagePlayerReviews from '../components/marketing/HomepagePlayerReviews'
 import HomeScreenshotGallery from '../components/marketing/HomeScreenshotGallery'
 import HomeVideoShowcase from '../components/marketing/HomeVideoShowcase'
+import DesktopDownloads from '../components/marketing/DesktopDownloads'
 import { supabase } from '../lib/supabase'
 import usePublicRegistrationStatus from '../hooks/usePublicRegistrationStatus'
 
@@ -397,6 +398,8 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        <DesktopDownloads />
 
         <section
           id="features"

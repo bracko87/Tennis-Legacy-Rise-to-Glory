@@ -14,6 +14,7 @@ import {
 import { Clock3, X } from 'lucide-react'
 import '../../styles/marketing-premium-dialog.css'
 import PremiumBenefitsGuide from '../marketing/PremiumBenefitsGuide'
+import DesktopDownloads from '../marketing/DesktopDownloads'
 
 import { useGameClock } from '../../hooks/useGameClock'
 import { supabase } from '../../lib/supabase'
@@ -119,6 +120,8 @@ export default function MarketingFooter({
                 </strong>
               </div>
             </div>
+
+            <DesktopDownloads compact />
           </div>
 
           <div className="tlg-footer-links-grid">
