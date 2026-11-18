@@ -309,11 +309,14 @@ export default function ProPackagesPage() {
         </aside>
 
         {(commerce.isTrial || trialPendingLaunch) && (
-          <section className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-5 text-slate-900" aria-label={t('premiumTrial.planName')}>
-            <h2 className="mb-2 flex items-center gap-2 text-lg font-bold"><Crown size={20} /> {trialStatusText}</h2>
-            <p className="mb-2 text-sm">{trialDetailsText}</p>
-            <p className="text-sm">{t('premiumTrial.privateLife')} {t('premiumTrial.rankingProtection')}</p>
-            <p className="mt-2 text-xs">{t('premiumTrial.noBilling')}</p>
+          <section className="tlg-commerce-preview-notice" aria-label={t('premiumTrial.planName')}>
+            <Crown size={19} aria-hidden="true" />
+            <div>
+              <h2>{trialStatusText}</h2>
+              <p>{trialDetailsText}</p>
+              <p>{t('premiumTrial.privateLife')} {t('premiumTrial.rankingProtection')}</p>
+              <p>{t('premiumTrial.noBilling')}</p>
+            </div>
           </section>
         )}
 

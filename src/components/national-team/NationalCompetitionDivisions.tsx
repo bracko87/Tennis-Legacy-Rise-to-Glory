@@ -449,7 +449,10 @@ export default function NationalCompetitionDivisions() {
     if (rpcError) {
       setError(rpcError.message)
     } else {
-      setBrowser(data as DivisionBrowser)
+      // The API can legitimately return { available: false } when the player
+      // has not joined an association or there is no configured division.
+      // Preserve this response without trying to access absent arrays/objects.
+      setBrowser(data as DivisionBrowser | null)
     }
 
     setLoading(false)
@@ -461,7 +464,9 @@ export default function NationalCompetitionDivisions() {
   }, [loadBrowser])
 
   const selectedOption = useMemo(
-    () => browser?.competition_options.find((option) => option.division_id === browser.selected_division.division_id) ?? null,
+    () => browser?.available && browser.selected_division && Array.isArray(browser.competition_options)
+      ? browser.competition_options.find((option) => option.division_id === browser.selected_division.division_id) ?? null
+      : null,
     [browser],
   )
 
@@ -469,7 +474,7 @@ export default function NationalCompetitionDivisions() {
   const selectedRegion = selectedOption?.selector_region ?? 'GLOBAL'
 
   const regions = useMemo(() => {
-    if (!browser) return []
+    if (!browser?.available || !Array.isArray(browser.competition_options)) return []
     return Array.from(new Set(
       browser.competition_options
         .filter((option) => option.tier_family === 'Regional' && option.selector_region)
@@ -478,7 +483,7 @@ export default function NationalCompetitionDivisions() {
   }, [browser])
 
   const competitionChoices = useMemo(() => {
-    if (!browser) return []
+    if (!browser?.available || !Array.isArray(browser.competition_options)) return []
     return browser.competition_options.filter((option) => {
       if (option.tier_family !== tierFamily) return false
       if (tierFamily === 'Regional') return option.selector_region === selectedRegion
@@ -492,7 +497,7 @@ export default function NationalCompetitionDivisions() {
   }, [selectedOption])
 
   async function changeTier(nextTier: string) {
-    if (!browser) return
+    if (!browser?.available || !Array.isArray(browser.competition_options)) return
     const nextRegion = nextTier === 'Regional' ? (regions[0] ?? 'EUROPE') : null
     const option = browser.competition_options.find((item) =>
       item.tier_family === nextTier
@@ -502,7 +507,7 @@ export default function NationalCompetitionDivisions() {
   }
 
   async function changeRegion(nextRegion: string) {
-    if (!browser) return
+    if (!browser?.available || !Array.isArray(browser.competition_options)) return
     const option = browser.competition_options.find((item) =>
       item.tier_family === 'Regional' && item.selector_region === nextRegion,
     )
@@ -514,7 +519,14 @@ export default function NationalCompetitionDivisions() {
   }
 
   if (error || !browser?.available || !selectedOption) {
-    return <section className="tlg-v2-panel nt-division-browser-state">{error ?? 'National competition is unavailable.'}</section>
+    return (
+      <section className="tlg-v2-panel nt-division-browser-state" role="status">
+        {error ?? 'There are no national divisions available for this player yet. Join your national association to take part when competitions open.'}
+        <button type="button" onClick={() => void loadBrowser(null, null, true)}>
+          <RotateCcw size={14} /> Refresh competitions
+        </button>
+      </section>
+    )
   }
 
   const viewingMine = browser.selected_division.division_id === browser.my_division_id
