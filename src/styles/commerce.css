@@ -674,3 +674,51 @@
     align-items: center;
   }
 }
+
+/* Keep both notices at the top of Premium Packages in the same type system
+   as normal commerce copy; avoid Tailwind utility sizes on this surface. */
+.tlg-commerce-page .tlg-commerce-policy-notice,
+.tlg-commerce-page .tlg-commerce-preview-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 17px 19px;
+  border: 1px solid #cddfe9;
+  border-radius: 12px;
+  background: #f4f9fc;
+  color: #28445a;
+  font-family: inherit;
+  font-size: .88rem;
+  font-weight: 400;
+  line-height: 1.65;
+}
+.tlg-commerce-page .tlg-commerce-policy-notice > svg,
+.tlg-commerce-page .tlg-commerce-preview-notice > svg {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  color: #287ba9;
+}
+.tlg-commerce-page .tlg-commerce-preview-notice h2 {
+  margin: 0 0 4px;
+  color: #17324a;
+  font-size: .88rem;
+  font-weight: 700;
+  line-height: 1.65;
+}
+.tlg-commerce-page .tlg-commerce-preview-notice p,
+.tlg-commerce-page .tlg-commerce-policy-notice p {
+  margin: 0;
+  color: #28445a;
+  font-size: .88rem;
+  font-weight: 400;
+  line-height: 1.65;
+}
+.tlg-commerce-page .tlg-commerce-preview-notice p + p {
+  margin-top: 5px;
+}
+@media (max-width: 680px) {
+  .tlg-commerce-page .tlg-commerce-policy-notice,
+  .tlg-commerce-page .tlg-commerce-preview-notice {
+    padding: 14px;
+  }
+}
