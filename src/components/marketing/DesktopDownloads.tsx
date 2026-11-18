@@ -8,8 +8,8 @@ import { useLocalization } from '../../i18n/LocalizationProvider'
 import type { AppLocale } from '../../i18n'
 import '../../styles/desktop-downloads.css'
 
-export const WINDOWS_DESKTOP_DOWNLOAD = 'https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/releases/download/desktop-v0.1.0/TennisLegacy-Setup-0.1.0-x64.exe'
-export const LINUX_DESKTOP_DOWNLOAD = 'https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/releases/download/desktop-v0.1.0/TennisLegacy-0.1.0-x86_64.AppImage'
+export const WINDOWS_DESKTOP_DOWNLOAD = 'https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/releases/download/desktop-v0.1.1/TennisLegacy-Setup-0.1.1-x64.exe'
+export const LINUX_DESKTOP_DOWNLOAD = 'https://github.com/bracko87/Tennis-Legacy-Rise-to-Glory/releases/download/desktop-v0.1.1/TennisLegacy-0.1.1-x86_64.AppImage'
 
 const desktopCopy: Record<AppLocale, {
   eyebrow: string; title: string; description: string; windows: string; linux: string; steam: string; coming: string; small: string; note: string
