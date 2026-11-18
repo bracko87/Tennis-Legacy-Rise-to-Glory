@@ -219,6 +219,7 @@ export default function ProPackagesPage() {
     window.location.assign(url.toString())
   }
 
+  const date = (value: string | null | undefined) => value ? formatDate(value, { year: 'numeric', month: 'long', day: 'numeric' }) : '—'
   const membership = commerce.membership
   const trialPendingLaunch = commerce.trial?.state === 'pending_launch'
   const prelaunchTrialCopy = premiumPrelaunchTrialCopy(locale)
@@ -274,7 +275,6 @@ export default function ProPackagesPage() {
   ] as const
 
   const money = (cents: number) => formatPurchasePrice(cents / 100, localeTag, 'EUR')
-  const date = (value: string | null | undefined) => value ? formatDate(value, { year: 'numeric', month: 'long', day: 'numeric' }) : '—'
 
   return (
     <GameLayout title={t('commercePage.title')} subtitle={t('commercePage.subtitle')}>

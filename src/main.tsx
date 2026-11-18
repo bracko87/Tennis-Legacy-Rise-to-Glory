@@ -37,6 +37,7 @@ import './styles/font-standard.css'
 import './styles/mobile-gameplay-round2.css'
 import './styles/mobile-tournament-containment.css'
 import App from './App'
+import AppErrorBoundary from './components/errors/AppErrorBoundary'
 
 const appElement =
   document.getElementById('app')
@@ -62,6 +63,8 @@ unusedMountElement?.remove()
 
 createRoot(mountElement).render(
   <StrictMode>
-    <App />
+    <AppErrorBoundary>
+      <App />
+    </AppErrorBoundary>
   </StrictMode>,
 )
