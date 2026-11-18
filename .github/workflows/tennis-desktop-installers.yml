@@ -19,6 +19,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build desktop icon from the provided tennis-ball artwork
+        run: |
+          python -m pip install Pillow==11.3.0
+          python desktop/scripts/generate_icons.py
+      - name: Check generated icon assets
+        run: python desktop/scripts/generate_icons.py --verify
       - name: Install desktop dependencies
         working-directory: desktop
         run: npm install --no-audit --no-fund
@@ -43,6 +52,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build desktop icon from the provided tennis-ball artwork
+        run: |
+          python -m pip install Pillow==11.3.0
+          python desktop/scripts/generate_icons.py
+      - name: Check generated icon assets
+        run: python desktop/scripts/generate_icons.py --verify
       - name: Install desktop dependencies
         working-directory: desktop
         run: npm install --no-audit --no-fund

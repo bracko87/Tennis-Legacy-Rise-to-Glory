@@ -1,7 +1,7 @@
 {
   "name": "tennis-legacy-desktop",
   "productName": "Tennis Legacy",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Desktop test shell for the Tennis Legacy online multiplayer game",
   "private": true,
   "main": "main.cjs",
@@ -26,7 +26,8 @@
       "main.cjs",
       "security.cjs",
       "offline.html",
-      "package.json"
+      "package.json",
+      "build/icon.png"
     ],
     "win": {
       "target": [
@@ -37,12 +38,16 @@
           ]
         }
       ],
-      "artifactName": "TennisLegacy-Setup-${version}-${arch}.${ext}"
+      "artifactName": "TennisLegacy-Setup-${version}-${arch}.${ext}",
+      "icon": "build/icon.ico"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true
+      "createDesktopShortcut": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico"
     },
     "linux": {
       "target": [
@@ -54,7 +59,8 @@
         }
       ],
       "category": "Game",
-      "artifactName": "TennisLegacy-${version}-${arch}.${ext}"
+      "artifactName": "TennisLegacy-${version}-${arch}.${ext}",
+      "icon": "build/icon.png"
     }
   }
 }
