@@ -1,16 +1,36 @@
-.tlg-desktop-download-section { padding-top: clamp(24px, 4vw, 64px); padding-bottom: clamp(24px, 4vw, 64px); }
-.tlg-desktop-download-panel {
-  position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(265px, .8fr);
-  gap: clamp(22px, 4vw, 64px); align-items: center; padding: clamp(25px, 4vw, 56px);
-  border: 1px solid rgba(113,187,255,.4); border-radius: 22px;
-  background: linear-gradient(115deg, #0d306b 0%, #124d9f 54%, #08275d 100%);
-  box-shadow: 0 22px 66px rgba(0,24,72,.27);
+/* Full-width desktop section, matching the Player Reviews section structure.
+   The existing .tlg-section keeps the content aligned with other homepage sections. */
+.tlg-content-section.tlg-desktop-download-section {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 84px 0 88px;
+  background: linear-gradient(145deg, #092f67 0%, #1152a2 55%, #092a60 100%);
   color: #fff;
 }
-.tlg-desktop-download-panel::before {
-  content: ""; position: absolute; pointer-events: none; border-radius: 50%;
-  width: 440px; height: 440px; right: -200px; top: -230px;
-  background: radial-gradient(circle, rgba(86,171,255,.3), transparent 70%);
+.tlg-desktop-download-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(87, 178, 255, .22), transparent 32%),
+    radial-gradient(circle at 12% 84%, rgba(43, 123, 235, .18), transparent 30%);
+}
+.tlg-desktop-download-section > .tlg-section { position: relative; z-index: 1; }
+.tlg-desktop-download-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(265px, .8fr);
+  align-items: center;
+  gap: clamp(24px, 4vw, 64px);
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #fff;
 }
 .tlg-desktop-download-copy, .tlg-desktop-download-actions { position: relative; z-index: 1; }
 .tlg-desktop-download-eyebrow { display:block; text-transform:uppercase; font-weight:800; font-size:12px; letter-spacing:.15em; color:#c0e5ff; margin-bottom:12px; }
@@ -39,7 +59,9 @@ a.tlg-desktop-download-button:focus-visible, .tlg-footer-download-links a:focus-
 @media (max-width:800px) {
   .tlg-desktop-download-panel { grid-template-columns:1fr; }
 }
+@media (max-width:680px) {
+  .tlg-content-section.tlg-desktop-download-section { padding: 60px 0 64px; }
+}
 @media (max-width:480px) {
-  .tlg-desktop-download-panel { border-radius:14px; padding:20px; }
   .tlg-desktop-download-button { font-size:13px; }
 }
