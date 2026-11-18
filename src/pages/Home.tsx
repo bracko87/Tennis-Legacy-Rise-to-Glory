@@ -33,7 +33,6 @@ import {
 
 import MarketingHeader from '../components/layout/MarketingHeader'
 import BetaDisclaimer from '../components/marketing/BetaDisclaimer'
-import RegistrationLaunchNotice from '../components/marketing/RegistrationLaunchNotice'
 import SeasonTransitionNotice from '../components/season/SeasonTransitionNotice'
 import { SeasonMaintenanceAnnouncement } from '../components/season/SeasonMaintenanceBoundary'
 import MarketingFooter from '../components/layout/MarketingFooter'
@@ -139,8 +138,7 @@ export default function HomePage() {
     <div className="tlg-marketing-page">
       <MarketingHeader />
       {registrationAvailability === 'closed' && <BetaDisclaimer />}
-      {registrationAvailability === 'open' && <RegistrationLaunchNotice modal />}
-
+      
       <main className="tlg-home-main">
         <SeasonMaintenanceAnnouncement />
         <SeasonTransitionNotice variant="public" />
