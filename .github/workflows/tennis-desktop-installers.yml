@@ -1,0 +1,60 @@
+name: Tennis Legacy desktop test installers
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'desktop/**'
+      - '.github/workflows/tennis-desktop-installers.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    name: Windows installer (x64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install desktop dependencies
+        working-directory: desktop
+        run: npm install --no-audit --no-fund
+      - name: Test desktop security checks
+        working-directory: desktop
+        run: npm run check
+      - name: Package Windows installer
+        working-directory: desktop
+        run: npm run dist:win
+      - name: Archive installer for testing
+        uses: actions/upload-artifact@v4
+        with:
+          name: TennisLegacy-Windows-Preview
+          path: desktop/release/*.exe
+          if-no-files-found: error
+
+  linux:
+    name: Linux AppImage (x64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install desktop dependencies
+        working-directory: desktop
+        run: npm install --no-audit --no-fund
+      - name: Test desktop security checks
+        working-directory: desktop
+        run: npm run check
+      - name: Package Linux AppImage
+        working-directory: desktop
+        run: npm run dist:linux
+      - name: Archive AppImage for testing
+        uses: actions/upload-artifact@v4
+        with:
+          name: TennisLegacy-Linux-Preview
+          path: desktop/release/*.AppImage
+          if-no-files-found: error
