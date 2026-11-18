@@ -52,11 +52,11 @@ for (const [route, source] of routes) {
 const home = read('dist/index.html')
 const homeDescription = home.match(/<meta name="description" content="([^"]+)"/i)?.[1]
 assert.ok(homeDescription && homeDescription.length <= 160, 'Homepage search description must be concise')
-const fallback = home.match(/<main id="tlg-seo-fallback"[\\s\\S]*?<\\/main>/i)?.[0]
+const fallback = home.split('<main id="tlg-seo-fallback"')[1]?.split('</main>')[0]
 assert.ok(fallback, 'Missing server-readable homepage description')
-const fallbackWords = fallback.replace(/<[^>]*>/g, ' ').trim().split(/\\s+/).length
+const fallbackWords = fallback.replace(/<[^>]*>/g, ' ').trim().split(/\s+/).length
 assert.ok(fallbackWords >= 160, 'Homepage fallback needs useful, substantive content')
-assert.ok(fallback.includes('online tennis career management'), 'SEO homepage should describe the gameplay')
+assert.ok(fallback.includes('browser-based tennis career management game'), 'SEO homepage should describe the gameplay')
 assert.ok(fallback.includes('href="/features/"') && fallback.includes('href="/how-to-play/"'), 'SEO homepage needs public navigation')
 assert.ok(home.includes('name="tennis-legacy-contact"'), 'Preserve Netlify contact form')
 const jsonLd = home.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)
