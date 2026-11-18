@@ -41,14 +41,23 @@ for (const [route, source] of routes) {
   assert.ok(!built.includes('localhost'), route + ': localhost reference')
   if (route !== '/') {
     assert.ok(built.includes('href="/login"'), route + ': missing game sign-in link')
-    assert.ok(!built.includes('href="/register"'), route + ': registration is closed; public CTA cannot point to /register')
-    assert.ok(built.includes('New-player registration is currently unavailable.'), route + ': missing truthful registration status')
+    assert.ok(built.includes('href="/register"'), route + ': missing account-registration link')
+    assert.ok(built.includes('Registration is open.'), route + ': outdated registration status')
+    assert.ok(!built.includes('New-player registration is currently unavailable.'), route + ': stale registration notice')
     assert.ok(built.includes('href="/features/"'), route + ': missing navigation')
   }
   const input = read(source)
   assert.ok(input.length > 500, route + ': empty source content')
 }
 const home = read('dist/index.html')
+const homeDescription = home.match(/<meta name="description" content="([^"]+)"/i)?.[1]
+assert.ok(homeDescription && homeDescription.length <= 160, 'Homepage search description must be concise')
+const fallback = home.match(/<main id="tlg-seo-fallback"[\\s\\S]*?<\\/main>/i)?.[0]
+assert.ok(fallback, 'Missing server-readable homepage description')
+const fallbackWords = fallback.replace(/<[^>]*>/g, ' ').trim().split(/\\s+/).length
+assert.ok(fallbackWords >= 160, 'Homepage fallback needs useful, substantive content')
+assert.ok(fallback.includes('online tennis career management'), 'SEO homepage should describe the gameplay')
+assert.ok(fallback.includes('href="/features/"') && fallback.includes('href="/how-to-play/"'), 'SEO homepage needs public navigation')
 assert.ok(home.includes('name="tennis-legacy-contact"'), 'Preserve Netlify contact form')
 const jsonLd = home.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)
 assert.ok(jsonLd, 'Structured data missing from homepage')
