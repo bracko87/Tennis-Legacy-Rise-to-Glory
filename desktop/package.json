@@ -1,7 +1,7 @@
 {
   "name": "tennis-legacy-desktop",
   "productName": "Tennis Legacy",
-  "version": "0.1.1",
+  "version": "1.1.9",
   "description": "Desktop test shell for the Tennis Legacy online multiplayer game",
   "private": true,
   "main": "main.cjs",
