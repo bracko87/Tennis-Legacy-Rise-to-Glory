@@ -13,13 +13,13 @@ jobs:
     steps:
       - name: Download verified Windows installer
         env:
-          GH_TOKEN: \${{ github.token }}
-          GH_REPO: \${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: gh run download 44277003110 --name TennisLegacy-Windows-Preview --dir release
       - name: Download verified Linux AppImage
         env:
-          GH_TOKEN: \${{ github.token }}
-          GH_REPO: \${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: gh run download 44277003110 --name TennisLegacy-Linux-Preview --dir release
       - name: Confirm both packages
         run: |
@@ -28,8 +28,8 @@ jobs:
           ls -lh release
       - name: Publish stable downloadable links
         env:
-          GH_TOKEN: \${{ github.token }}
-          GH_REPO: \${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           if gh release view desktop-v0.1.0 >/dev/null 2>&1; then
             gh release upload desktop-v0.1.0 release/TennisLegacy-Setup-0.1.0-x64.exe release/TennisLegacy-0.1.0-x86_64.AppImage --clobber
