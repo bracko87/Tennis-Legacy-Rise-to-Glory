@@ -5,7 +5,7 @@ import '../../styles/home-video-showcase.css'
 // Owner-supplied YouTube videos in the existing intro and gameplay slots.
 const VIDEOS = [
   { key: 'intro', id: 'kwQQ-MtgZCg' },
-  { key: 'gameplay', id: '0lxuG5rWjtU' },
+  { key: 'gameplay', id: 'Ng5C14mZ_kY' },
 ] as const
 
 type VideoText = { title: string; description: string }
