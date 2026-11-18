@@ -1,0 +1,46 @@
+name: Publish Tennis Legacy desktop preview downloads
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/tennis-desktop-public-files.yml'
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download verified Windows installer
+        env:
+          GH_TOKEN: \${{ github.token }}
+          GH_REPO: \${{ github.repository }}
+        run: gh run download 44277003110 --name TennisLegacy-Windows-Preview --dir release
+      - name: Download verified Linux AppImage
+        env:
+          GH_TOKEN: \${{ github.token }}
+          GH_REPO: \${{ github.repository }}
+        run: gh run download 44277003110 --name TennisLegacy-Linux-Preview --dir release
+      - name: Confirm both packages
+        run: |
+          test -s release/TennisLegacy-Setup-0.1.0-x64.exe
+          test -s release/TennisLegacy-0.1.0-x86_64.AppImage
+          ls -lh release
+      - name: Publish stable downloadable links
+        env:
+          GH_TOKEN: \${{ github.token }}
+          GH_REPO: \${{ github.repository }}
+        run: |
+          if gh release view desktop-v0.1.0 >/dev/null 2>&1; then
+            gh release upload desktop-v0.1.0 release/TennisLegacy-Setup-0.1.0-x64.exe release/TennisLegacy-0.1.0-x86_64.AppImage --clobber
+          else
+            gh release create desktop-v0.1.0 \
+              release/TennisLegacy-Setup-0.1.0-x64.exe \
+              release/TennisLegacy-0.1.0-x86_64.AppImage \
+              --title 'Tennis Legacy desktop test 0.1.0' \
+              --notes 'Windows and Linux preview builds of the existing online multiplayer game. Internet required. These installers are unsigned and intended for early testing.' \
+              --prerelease \
+              --latest=false \
+              --target "$GITHUB_SHA"
+          fi
+          gh release view desktop-v0.1.0 --json assets,url
