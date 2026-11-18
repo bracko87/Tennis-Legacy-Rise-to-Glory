@@ -1,17 +1,13 @@
-import { useEffect, useState } from 'react'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import type { AppLocale } from '../../i18n'
-import { supabase } from '../../lib/supabase'
 import '../../styles/home-video-showcase.css'
 
-// These two owner-supplied videos are intended for the public homepage.
-// Request time-limited links at runtime; never publish storage bearer tokens.
+// Owner-supplied YouTube videos in the existing intro and gameplay slots.
 const VIDEOS = [
-  { key: 'intro', path: 'Branding/Tennis Legacy Rise to Glory  Official Intro Trailer.mp4' },
-  { key: 'gameplay', path: 'Branding/Tennis Legacy Rise to Glory  Official Gameplay Preview.mp4' },
+  { key: 'intro', id: 'kwQQ-MtgZCg' },
+  { key: 'gameplay', id: '0lxuG5rWjtU' },
 ] as const
 
-type VideoKey = (typeof VIDEOS)[number]['key']
 type VideoText = { title: string; description: string }
 type ShowcaseText = {
   eyebrow: string
@@ -107,46 +103,9 @@ const COPY: Record<AppLocale, ShowcaseText> = {
   },
 }
 
-const EMPTY_URLS: Record<VideoKey, string> = { intro: '', gameplay: '' }
-
 export default function HomeVideoShowcase() {
   const { locale } = useLocalization()
   const copy = COPY[locale] ?? COPY.en
-  const [sources, setSources] = useState<Record<VideoKey, string>>(EMPTY_URLS)
-  const [failed, setFailed] = useState<VideoKey[]>([])
-  const [loading, setLoading] = useState(true)
-  const [retryKey, setRetryKey] = useState(0)
-
-  useEffect(() => {
-    let active = true
-
-    async function loadVideos() {
-      setLoading(true)
-      setFailed([])
-      setSources(EMPTY_URLS)
-      try {
-        // Public SELECT access is restricted to these two paths in storage.objects.
-        const { data, error } = await supabase.storage.from('Admin')
-          .createSignedUrls(VIDEOS.map((video) => video.path), 6 * 60 * 60)
-        if (!active) return
-        if (error) {
-          console.warn('[Home videos] Failed to sign video links:', error.message)
-          return
-        }
-        setSources({
-          intro: data?.[0]?.error ? '' : data?.[0]?.signedUrl ?? '',
-          gameplay: data?.[1]?.error ? '' : data?.[1]?.signedUrl ?? '',
-        })
-      } catch (error) {
-        if (active) console.warn('[Home videos] Video access unavailable:', error)
-      } finally {
-        if (active) setLoading(false)
-      }
-    }
-
-    void loadVideos()
-    return () => { active = false }
-  }, [retryKey])
 
   return (
     <section className="tlg-content-section tlg-home-video-section" id="official-videos" aria-labelledby="tlg-home-video-heading">
@@ -159,31 +118,17 @@ export default function HomeVideoShowcase() {
         <div className="tlg-home-video-grid">
           {VIDEOS.map((video) => {
             const content = copy[video.key]
-            const url = sources[video.key]
-            const hasError = failed.includes(video.key)
             return (
               <article className="tlg-home-video-card" key={video.key}>
                 <div className="tlg-home-video-player">
-                  {loading ? (
-                    <p role="status">{copy.loading}</p>
-                  ) : url && !hasError ? (
-                    <video
-                      key={url}
-                      src={url}
-                      controls
-                      playsInline
-                      preload="metadata"
-                      aria-label={content.title}
-                      onError={() => setFailed((current) => current.includes(video.key) ? current : [...current, video.key])}
-                    >
-                      {copy.unavailable}
-                    </video>
-                  ) : (
-                    <div className="tlg-home-video-error" role="status">
-                      <p>{copy.unavailable}</p>
-                      <button type="button" onClick={() => setRetryKey((current) => current + 1)}>{copy.retry}</button>
-                    </div>
-                  )}
+                  <iframe
+                    src={`https://www.youtube-nocookie.com/embed/${video.id}?rel=0`}
+                    title={content.title}
+                    loading="lazy"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
                 </div>
                 <div className="tlg-home-video-details">
                   <h3>{content.title}</h3>
