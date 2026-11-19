@@ -16,7 +16,7 @@ const LABELS: Record<AppLocale, PrelaunchTrialCopy> = {
   },
   sr: {
     status: 'Premium pregled je aktivan',
-    description: 'Premium funkcije, uključujući Privatni život, dostupne su već sada. Punih 7 dana besplatnog probnog perioda počinje tek kada se sat igre prvi put pokrene, najranije 23. novembra 2026. u 07:00 po nemačkom vremenu. Pregled ne troši dane i ne pokreće naplatu.',
+    description: 'Premium funkcije, uključujući Privatni život, dostupne su već sada. Punih 7 dana besplatnog probnog perioda počinje tek kada se sat igre prvi put pokrene, najranije 1. decembra 2026. u 07:00 po nemačkom vremenu. Pregled ne troši dane i ne pokreće naplatu.',
   },
   es: {
     status: 'Vista previa Premium activa',
@@ -24,11 +24,11 @@ const LABELS: Record<AppLocale, PrelaunchTrialCopy> = {
   },
   fr: {
     status: 'Aperçu Premium actif',
-    description: 'Les fonctions Premium, y compris la vie privée, sont déjà accessibles. Les sept jours complets d\'essai gratuit commenceront au premier démarrage de l\'horloge du jeu, au plus tôt le 1 décembre 2026 à 07 h 00 (heure allemande). L\'aperçu ne décompte aucun jour et ne déclenche aucun paiement.',
+    description: 'Les fonctions Premium, y compris la vie privée, sont déjà accessibles. Les sept jours complets d\'essai gratuit commenceront au premier démarrage de l\'horloge du jeu, au plus tôt le 1er décembre 2026 à 07 h 00 (heure allemande). L\'aperçu ne décompte aucun jour et ne déclenche aucun paiement.',
   },
   it: {
     status: 'Anteprima Premium attiva',
-    description: 'Le funzioni Premium, inclusa la vita privata, sono già disponibili. I sette giorni completi di prova gratuita inizieranno solo al primo avvio dell\'orologio di gioco, non prima del 1 décembre 2026 alle 07:00 (ora tedesca). L\'anteprima non consuma giorni né avvia pagamenti.',
+    description: 'Le funzioni Premium, inclusa la vita privata, sono già disponibili. I sette giorni completi di prova gratuita inizieranno solo al primo avvio dell\'orologio di gioco, non prima del 1 dicembre 2026 alle 07:00 (ora tedesca). L\'anteprima non consuma giorni né avvia pagamenti.',
   },
   pt: {
     status: 'Pré-visualização Premium ativa',
