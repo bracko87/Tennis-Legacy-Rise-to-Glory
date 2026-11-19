@@ -74,20 +74,18 @@ test('beta launch messaging is available in all eight translations', () => {
 })
 
 
-test('November 23 open-registration notice appears on homepage and signup page',()=>{
+test('November 23 open-registration notice appears on homepage with Discord',()=>{
   const home=read('../src/pages/Home.tsx')
-  const register=read('../src/pages/auth/Register.tsx')
   const notice=read('../src/components/marketing/RegistrationLaunchNotice.tsx')
   const noticeCss=read('../src/styles/registration-launch-notice.css')
   assert.ok(home.includes("registrationAvailability === 'open' && ("))
   assert.ok(home.includes('<RegistrationLaunchNotice modal />'))
-  assert.ok(register.includes('<RegistrationLaunchNotice compact />'))
-  assert.ok(notice.includes('Official launch: 23 November 2026.'))
+  assert.ok(notice.includes('Official launch: 23 November 2026, 07:00 CET.'))
   assert.ok(notice.includes('Registration is open to everyone.'))
   assert.ok(notice.includes('You can sign up and create your tennis player'))
   assert.ok(notice.includes('Season 1, January 1, 00:00'))
-  assert.ok(notice.includes('2× speed when the game begins'))
-  assert.ok(notice.includes("clock.speedMultiplier === 0"))
+  assert.ok(notice.includes('2× speed once released'))
+  assert.ok(!notice.includes("clock.speedMultiplier === 0"))
   assert.ok(noticeCss.includes('.tlg-registration-launch-notice'))
   for(const lang of ['en','de','es','fr','it','pt','ru','sr']){
     assert.ok(notice.includes(`  ${lang}: {`), `missing notice translation ${lang}`)
