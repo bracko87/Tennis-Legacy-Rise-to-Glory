@@ -138,7 +138,7 @@ export default function HomeLiveEnhancements() {
     setText(
       '.tlg-game-clock-note',
       clock.speedMultiplier === 0
-        ? 'Game time paused for the official launch on 23 November 2026. The saved speed is 2×.'
+        ? 'Game time paused for the official launch on 1 December 2026. The saved speed is 2×.'
         : `Connected to the centralized game clock at ${clock.speedMultiplier}× real-time speed.`,
     )
   }, [clock.day, clock.error, clock.formattedTime, clock.loading, clock.month, clock.monthIndex, clock.season, clock.speedMultiplier])

@@ -23,7 +23,7 @@ interface LaunchCopy {
 const COPY: Record<AppLocale, LaunchCopy> = {
   en: {
     eyebrow: 'REGISTRATION IS OPEN',
-    heading: 'Create your account now. Official launch: 23 November 2026, 07:00 CET.',
+    heading: 'Create your account now. Official launch: 1 December 2026, 07:00 CET.',
     prelaunch: 'Registration is open to everyone. You can sign up and create your tennis player before the game officially launches.',
     paused: 'Game time is paused at Season 1, January 1, 00:00 until the official launch. It will run at 2× speed once released.',
     running: 'Game time is running at 2× real-time speed.',
@@ -34,7 +34,7 @@ const COPY: Record<AppLocale, LaunchCopy> = {
   },
   de: {
     eyebrow: 'REGISTRIERUNG GEÖFFNET',
-    heading: 'Jetzt registrieren. Offizieller Start: 23. November 2026, 07:00 Uhr MEZ.',
+    heading: 'Jetzt registrieren. Offizieller Start: 1. Dezember 2026, 07:00 Uhr MEZ.',
     prelaunch: 'Die Registrierung ist für alle geöffnet. Du kannst jetzt ein Konto und deinen Tennisspieler erstellen.',
     paused: 'Die Spielzeit bleibt bis zum offiziellen Start bei Saison 1, 1. Januar, 00:00 Uhr angehalten. Danach läuft sie mit 2-facher Geschwindigkeit.',
     running: 'Die Spielzeit läuft mit 2-facher Geschwindigkeit.',
@@ -45,7 +45,7 @@ const COPY: Record<AppLocale, LaunchCopy> = {
   },
   sr: {
     eyebrow: 'REGISTRACIJA JE OTVORENA',
-    heading: 'Napravi nalog sada. Zvanični početak: 23. novembar 2026. u 07:00 CET.',
+    heading: 'Napravi nalog sada. Zvanični početak: 1. decembar 2026. u 07:00 CET.',
     prelaunch: 'Registracija je otvorena za sve. Već sada možeš da napraviš nalog i svog tenisera.',
     paused: 'Vreme igre je zaustavljeno na Sezoni 1, 1. januar, 00:00. Po početku igre vreme će teći 2 puta brže.',
     running: 'Vreme igre teče 2 puta brže od stvarnog vremena.',
@@ -56,7 +56,7 @@ const COPY: Record<AppLocale, LaunchCopy> = {
   },
   es: {
     eyebrow: 'REGISTRO ABIERTO',
-    heading: 'Crea tu cuenta ahora. Lanzamiento oficial: 23 de noviembre de 2026, 07:00 CET.',
+    heading: 'Crea tu cuenta ahora. Lanzamiento oficial: 1 de diciembre de 2026, 07:00 CET.',
     prelaunch: 'El registro está abierto para todos. Ya puedes crear tu cuenta y tu tenista.',
     paused: 'El tiempo del juego está pausado en la temporada 1, 1 de enero, 00:00. Al comenzar, avanzará al doble de velocidad.',
     running: 'El tiempo del juego avanza al doble de velocidad.',
@@ -67,7 +67,7 @@ const COPY: Record<AppLocale, LaunchCopy> = {
   },
   fr: {
     eyebrow: 'INSCRIPTIONS OUVERTES',
-    heading: 'Crée ton compte dès maintenant. Lancement officiel : 23 novembre 2026 à 07 h 00 CET.',
+    heading: 'Crée ton compte dès maintenant. Lancement officiel : 1er décembre 2026 à 07 h 00 CET.',
     prelaunch: 'Les inscriptions sont ouvertes à tous. Tu peux déjà créer ton compte et ton joueur de tennis.',
     paused: 'Le temps du jeu est en pause à la saison 1, le 1er janvier à 00 h 00. Il avancera 2 fois plus vite au lancement.',
     running: 'Le temps du jeu avance 2 fois plus vite.',
@@ -78,7 +78,7 @@ const COPY: Record<AppLocale, LaunchCopy> = {
   },
   it: {
     eyebrow: 'REGISTRAZIONI APERTE',
-    heading: 'Crea il tuo account ora. Lancio ufficiale: 23 novembre 2026 alle 07:00 CET.',
+    heading: 'Crea il tuo account ora. Lancio ufficiale: 1 dicembre 2026 alle 07:00 CET.',
     prelaunch: 'Le registrazioni sono aperte a tutti. Puoi già creare il tuo account e il tuo tennista.',
     paused: 'Il tempo di gioco è fermo alla stagione 1, 1 gennaio, ore 00:00. Al lancio scorrerà a velocità 2×.',
     running: 'Il tempo di gioco scorre a velocità 2×.',
@@ -89,7 +89,7 @@ const COPY: Record<AppLocale, LaunchCopy> = {
   },
   pt: {
     eyebrow: 'REGISTOS ABERTOS',
-    heading: 'Cria a tua conta agora. Lançamento oficial: 23 de novembro de 2026, 07:00 CET.',
+    heading: 'Cria a tua conta agora. Lançamento oficial: 1 de dezembro de 2026, 07:00 CET.',
     prelaunch: 'O registo está aberto a todos. Já podes criar a tua conta e o teu tenista.',
     paused: 'O tempo do jogo está pausado na época 1, 1 de janeiro, 00:00. No lançamento avançará a 2×.',
     running: 'O tempo do jogo avança a 2×.',
@@ -100,7 +100,7 @@ const COPY: Record<AppLocale, LaunchCopy> = {
   },
   ru: {
     eyebrow: 'РЕГИСТРАЦИЯ ОТКРЫТА',
-    heading: 'Создайте аккаунт сейчас. Официальный запуск — 23 ноября 2026 года в 07:00 CET.',
+    heading: 'Создайте аккаунт сейчас. Официальный запуск — 1 декабря 2026 года в 07:00 CET.',
     prelaunch: 'Регистрация открыта для всех. Вы уже можете создать аккаунт и своего теннисиста.',
     paused: 'Игровое время остановлено на 1 января первого сезона, 00:00. После запуска оно пойдёт со скоростью 2×.',
     running: 'Игровое время идёт со скоростью 2×.',
@@ -116,10 +116,10 @@ interface Props {
   modal?: boolean
 }
 
-// 23 November 2026 at 07:00 in Germany (CET = UTC+01:00).
+// 1 December 2026 at 07:00 in Germany (CET = UTC+01:00).
 // The banner expires automatically; it NEVER starts the paused game clock.
-export const TENNIS_LAUNCH_AT = new Date('2026-11-23T07:00:00+01:00').getTime()
-const PRELAUNCH_NOTICE_DISMISSED = 'tlg-preregistration-popup-dismissed-nov23-2026'
+export const TENNIS_LAUNCH_AT = new Date('2026-12-01T07:00:00+01:00').getTime()
+const PRELAUNCH_NOTICE_DISMISSED = 'tlg-preregistration-popup-dismissed-dec01-2026'
 
 /** Shown to visitors until the release hour; no changes to the game clock. */
 export default function RegistrationLaunchNotice({ compact = false, modal = false }: Props) {
