@@ -10,16 +10,16 @@ const copy=read('src/lib/premiumPrelaunchTrialCopy.ts')
 const previewAcl=read('supabase/migrations/20261118103000_enable_prelaunch_premium_preview.sql')
 
 test('first official unpause anchors seven real days, never account creation',()=>{
- assert.match(sql,/scheduled_at='2026-11-23 07:00:00\+01'::timestamptz/)
- assert.match(sql,/Game launch cannot begin before 23 November 2026 at 07:00 German time/)
+ assert.match(sql,/scheduled_at='2026-12-01 07:00:00\+01'::timestamptz/)
+ assert.match(sql,/Game launch cannot begin before 1 December 2026 at 07:00 German time/)
  assert.match(sql,/AFTER UPDATE OF is_paused ON public\.game_clock/)
  assert.match(sql,/FOR EACH ROW WHEN \(OLD\.is_paused AND NOT NEW\.is_paused\)/)
  assert.match(sql,/UPDATE control_center_private\.tennis_premium_launch_control_v1/)
  assert.match(sql,/WHERE id=true AND unpaused_at IS NULL/)
  assert.match(sql,/SET started_at=v_release,expires_at=v_release\+interval '7 days'/)
  assert.match(sql,/p\.created_at<=v_release/)
- assert.equal(new Date('2026-11-23T07:00:00+01:00').toISOString(),'2026-11-23T06:00:00.000Z')
- assert.equal(new Date(new Date('2026-11-23T07:00:00+01:00').getTime()+7*86400000).toISOString(),'2026-11-30T06:00:00.000Z')
+ assert.equal(new Date('2026-12-01T07:00:00+01:00').toISOString(),'2026-12-01T06:00:00.000Z')
+ assert.equal(new Date(new Date('2026-12-01T07:00:00+01:00').getTime()+7*86400000).toISOString(),'2026-12-08T06:00:00.000Z')
 })
 
 test('prelaunch player receives Premium preview without consuming trial days',()=>{
