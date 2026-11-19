@@ -8,10 +8,11 @@ const commerce=read('src/hooks/useCommerce.ts')
 const packages=read('src/pages/manager/ProPackages.tsx')
 const copy=read('src/lib/premiumPrelaunchTrialCopy.ts')
 const previewAcl=read('supabase/migrations/20261118103000_enable_prelaunch_premium_preview.sql')
+const newLaunch=read('supabase/migrations/20261119213000_reschedule_tennis_launch_dec1.sql')
 
 test('first official unpause anchors seven real days, never account creation',()=>{
- assert.match(sql,/scheduled_at='2026-12-01 07:00:00\+01'::timestamptz/)
- assert.match(sql,/Game launch cannot begin before 1 December 2026 at 07:00 German time/)
+ assert.match(newLaunch,/scheduled_at='2026-12-01 07:00:00\+01'::timestamptz/)
+ assert.match(newLaunch,/Game launch cannot begin before 1 December 2026 at 07:00 German time/)
  assert.match(sql,/AFTER UPDATE OF is_paused ON public\.game_clock/)
  assert.match(sql,/FOR EACH ROW WHEN \(OLD\.is_paused AND NOT NEW\.is_paused\)/)
  assert.match(sql,/UPDATE control_center_private\.tennis_premium_launch_control_v1/)
