@@ -272,7 +272,7 @@ export default function MarketingFooter({
               </a>. All rights reserved.
             </p>
             <p>
-              <a
+              Vote for us: <a
                 href="https://browsergames.cc/vote/223?code=bg-GQoGHChW"
                 title="Browsergame Links"
                 target="_blank"
