@@ -12,8 +12,8 @@ test('homepage opens the existing launch and Discord popup when registration is 
 
 test('launch popup gives correct time and never treats configured 2x speed as an unpaused clock', () => {
   const notice = read('src/components/marketing/RegistrationLaunchNotice.tsx')
-  assert.match(notice, /2026-11-23T07:00:00\+01:00/)
-  assert.match(notice, /23 November 2026, 07:00 CET/)
+  assert.match(notice, /2026-12-01T07:00:00\+01:00/)
+  assert.match(notice, /1 December 2026, 07:00 CET/)
   assert.match(notice, /copy\.paused/)
   assert.match(notice, /TENNIS_DISCORD_INVITE_URL/)
   assert.doesNotMatch(notice, /clock\.speedMultiplier === 0/)
