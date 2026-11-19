@@ -45,7 +45,7 @@ const COPY: Record<AppLocale, LaunchCopy> = {
   },
   sr: {
     eyebrow: 'REGISTRACIJA JE OTVORENA',
-    heading: 'Napravi nalog sada. Zvanični početak: 23. novembar 2026. u 07:00 CET.',
+    heading: 'Napravi nalog sada. Zvanični početak: 1. decembar 2026. u 07:00 CET.',
     prelaunch: 'Registracija je otvorena za sve. Već sada možeš da napraviš nalog i svog tenisera.',
     paused: 'Vreme igre je zaustavljeno na Sezoni 1, 1. januar, 00:00. Po početku igre vreme će teći 2 puta brže.',
     running: 'Vreme igre teče 2 puta brže od stvarnog vremena.',
@@ -67,7 +67,7 @@ const COPY: Record<AppLocale, LaunchCopy> = {
   },
   fr: {
     eyebrow: 'INSCRIPTIONS OUVERTES',
-    heading: 'Crée ton compte dès maintenant. Lancement officiel : 1 décembre 2026 à 07 h 00 CET.',
+    heading: 'Crée ton compte dès maintenant. Lancement officiel : 1er décembre 2026 à 07 h 00 CET.',
     prelaunch: 'Les inscriptions sont ouvertes à tous. Tu peux déjà créer ton compte et ton joueur de tennis.',
     paused: 'Le temps du jeu est en pause à la saison 1, le 1er janvier à 00 h 00. Il avancera 2 fois plus vite au lancement.',
     running: 'Le temps du jeu avance 2 fois plus vite.',
@@ -78,7 +78,7 @@ const COPY: Record<AppLocale, LaunchCopy> = {
   },
   it: {
     eyebrow: 'REGISTRAZIONI APERTE',
-    heading: 'Crea il tuo account ora. Lancio ufficiale: 1 décembre 2026 alle 07:00 CET.',
+    heading: 'Crea il tuo account ora. Lancio ufficiale: 1 dicembre 2026 alle 07:00 CET.',
     prelaunch: 'Le registrazioni sono aperte a tutti. Puoi già creare il tuo account e il tuo tennista.',
     paused: 'Il tempo di gioco è fermo alla stagione 1, 1 gennaio, ore 00:00. Al lancio scorrerà a velocità 2×.',
     running: 'Il tempo di gioco scorre a velocità 2×.',
