@@ -271,6 +271,16 @@ export default function MarketingFooter({
                 Next Quest Studio
               </a>. All rights reserved.
             </p>
+            <p>
+              <a
+                href="https://browsergames.cc/vote/223?code=bg-GQoGHChW"
+                title="Browsergame Links"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Vote4Us
+              </a>
+            </p>
           </div>
         </div>
       </div>
