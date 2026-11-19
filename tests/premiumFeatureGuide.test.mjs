@@ -132,7 +132,7 @@ test('homepage replaces the Premium comparison with two playable official videos
   assert.ok(home.includes('<HomeVideoShowcase />'))
   assert.ok(!home.includes('<PremiumBenefitsGuide placement="homepage"'))
   assert.ok(videos.includes("id: 'kwQQ-MtgZCg'"))
-  assert.ok(videos.includes("id: '0lxuG5rWjtU'"))
+  assert.ok(videos.includes("id: 'Ng5C14mZ_kY'"))
   assert.ok(videos.includes('https://www.youtube-nocookie.com/embed/'))
   assert.ok(videos.includes('<iframe'))
   assert.ok(videos.includes('loading="lazy"'))
