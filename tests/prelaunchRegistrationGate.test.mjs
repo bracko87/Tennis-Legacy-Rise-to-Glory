@@ -74,13 +74,13 @@ test('beta launch messaging is available in all eight translations', () => {
 })
 
 
-test('November 23 open-registration notice appears on homepage with Discord',()=>{
+test('December 1 open-registration notice appears on homepage with Discord',()=>{
   const home=read('../src/pages/Home.tsx')
   const notice=read('../src/components/marketing/RegistrationLaunchNotice.tsx')
   const noticeCss=read('../src/styles/registration-launch-notice.css')
   assert.ok(home.includes("registrationAvailability === 'open' && ("))
   assert.ok(home.includes('<RegistrationLaunchNotice modal />'))
-  assert.ok(notice.includes('Official launch: 23 November 2026, 07:00 CET.'))
+  assert.ok(notice.includes('Official launch: 1 December 2026, 07:00 CET.'))
   assert.ok(notice.includes('Registration is open to everyone.'))
   assert.ok(notice.includes('You can sign up and create your tennis player'))
   assert.ok(notice.includes('Season 1, January 1, 00:00'))
@@ -116,10 +116,10 @@ test('prelaunch public game clock is labelled paused rather than live or 0x',()=
   assert.ok(display.includes('The saved speed is 2×.'))
 })
 
-test('prelaunch popup expires precisely at November 23 at 07:00 German time',()=>{
+test('prelaunch popup expires precisely at December 1 at 07:00 German time',()=>{
   const notice = read('../src/components/marketing/RegistrationLaunchNotice.tsx')
   const home = read('../src/pages/Home.tsx')
-  assert.ok(notice.includes("2026-11-23T07:00:00+01:00"))
+  assert.ok(notice.includes("2026-12-01T07:00:00+01:00"))
   assert.ok(notice.includes('TENNIS_LAUNCH_AT - Date.now()'))
   assert.ok(notice.includes('setBeforeLaunch(false)'))
   assert.ok(notice.includes('if (!beforeLaunch) return null'))
@@ -133,7 +133,7 @@ test('prelaunch popup expires precisely at November 23 at 07:00 German time',()=
   assert.ok(!home.includes('<RegistrationLaunchNotice />'))
   assert.ok(!notice.includes('UPDATE public.game_clock'))
   assert.ok(!notice.includes('cron.alter_job'))
-  assert.equal(new Date('2026-11-23T07:00:00+01:00').toISOString(), '2026-11-23T06:00:00.000Z')
+  assert.equal(new Date('2026-12-01T07:00:00+01:00').toISOString(), '2026-12-01T06:00:00.000Z')
 })
 
 test('Register link visible beside Sign In on desktop and mobile while signup open',()=>{
