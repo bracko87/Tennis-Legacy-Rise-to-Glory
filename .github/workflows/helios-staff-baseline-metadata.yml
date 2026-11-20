@@ -1,0 +1,22 @@
+name: Helios staff baseline schema metadata guard
+
+on:
+  pull_request:
+    paths:
+      - 'tests/helios_live_staff_schema_readonly_contract.sql'
+      - 'docs/HELIOS_H08_STAFF_BASELINE_METADATA.md'
+      - 'scripts/check-helios-staff-baseline-metadata.mjs'
+      - '.github/workflows/helios-staff-baseline-metadata.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  staff-metadata:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify current schema-only staff audit and historical replay disclaimers
+        run: node scripts/check-helios-staff-baseline-metadata.mjs
