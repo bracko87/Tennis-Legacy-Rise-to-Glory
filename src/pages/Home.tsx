@@ -170,6 +170,10 @@ export default function HomePage() {
             <div className="tlg-hero-effect-layer" aria-hidden="true">
               <span className="tlg-hero-ambient tlg-hero-ambient--left" />
               <span className="tlg-hero-ambient tlg-hero-ambient--right" />
+              {/* Stadium reflectors project soft light toward the two players. */}
+              <span className="tlg-hero-spotlight tlg-hero-spotlight--left" />
+              <span className="tlg-hero-spotlight tlg-hero-spotlight--middle" />
+              <span className="tlg-hero-spotlight tlg-hero-spotlight--right" />
               <span className="tlg-hero-camera-flash tlg-hero-camera-flash--one" />
               <span className="tlg-hero-camera-flash tlg-hero-camera-flash--two" />
               <span className="tlg-hero-camera-flash tlg-hero-camera-flash--three" />
