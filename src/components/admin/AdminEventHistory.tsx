@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { FormEvent } from 'react'
 import { RefreshCw, Search } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
@@ -63,7 +64,7 @@ export default function AdminEventHistory({ period }: { readonly period: number 
     return () => { sequence.current += 1 }
   }, [load])
 
-  function runSearch(event: React.FormEvent<HTMLFormElement>) {
+  function runSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setOffset(0)
     setAppliedSearch(draftSearch.trim().slice(0,80))
