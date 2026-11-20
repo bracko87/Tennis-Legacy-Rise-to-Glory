@@ -1,0 +1,105 @@
+/* Project Helios H02: always-visible guest conversion and expiry UI. */
+.tlg-guest-register-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(124,190,157,.65);
+  background: rgba(39,129,81,.16);
+  white-space: nowrap;
+}
+.tlg-guest-register-action small { font-size: .72rem; font-weight: 500; opacity: .88; }
+.tlg-guest-sidebar-register {
+  color: #bff0d5;
+  background: rgba(35,133,85,.17);
+  margin-bottom: 10px;
+}
+.tlg-guest-convert {
+  min-height: 100vh;
+  padding: clamp(20px,5vw,70px) 16px;
+  background: #091527;
+  color: #f3f6fb;
+  display: grid;
+  place-items: center;
+}
+.tlg-guest-convert-card {
+  width: min(100%,660px);
+  border: 1px solid rgba(178,201,222,.24);
+  border-radius: 16px;
+  padding: clamp(20px,4vw,42px);
+  background: #14243b;
+}
+.tlg-guest-convert-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: .82rem;
+  font-weight: 700;
+}
+.tlg-guest-convert-card h1 { font-size: clamp(1.6rem,3.5vw,2.25rem); margin: 16px 0; }
+.tlg-guest-convert-card p { line-height: 1.6; }
+.tlg-guest-convert-identity { margin: 20px 0; padding: 10px 12px; background: rgba(149,181,210,.12); }
+.tlg-guest-convert-form { display: grid; gap: 10px; margin-top: 20px; }
+.tlg-guest-convert-form label { font-size: .9rem; font-weight: 600; }
+.tlg-guest-convert-form input {
+  width: 100%;
+  min-height: 45px;
+  border-radius: 7px;
+  border: 1px solid rgba(180,207,228,.6);
+  padding: 9px 11px;
+  color: #172137;
+  background: #fff;
+}
+.tlg-guest-convert-form button,
+.tlg-guest-convert-google,
+.tlg-guest-expiry-modal button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 45px;
+  border-radius: 6px;
+  border: 0;
+  padding: 10px 16px;
+  background: #227849;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+.tlg-guest-convert-form button:disabled,
+.tlg-guest-convert-google:disabled { opacity: .55; cursor: not-allowed; }
+.tlg-guest-convert-google { width: 100%; margin: 8px 0; background: #26466d; }
+.tlg-guest-convert-help { font-size: .82rem; color: #c2d0e1; }
+.tlg-guest-convert-error { padding: 11px; border: 1px solid #b95762; color: #ffced3; }
+.tlg-guest-convert-notice { padding: 11px; background: rgba(91,141,180,.19); }
+.tlg-guest-convert-complete { margin: 18px 0; }
+.tlg-guest-convert-complete h2 { margin-top: 6px; font-size: 1.2rem; }
+.tlg-guest-convert-footer { display: flex; gap: 18px; margin-top: 22px; flex-wrap: wrap; align-items: center; }
+.tlg-guest-convert-footer a { color: #c2e7d4; }
+.tlg-guest-convert-footer button { color: #c2e7d4; text-decoration: underline; cursor: pointer; }
+.tlg-guest-expiry-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  background: rgba(5,12,24,.88);
+  padding: 16px;
+}
+.tlg-guest-expiry-modal {
+  width: min(100%,510px);
+  background: #182a42;
+  color: #f6f9ff;
+  border: 1px solid rgba(170,192,214,.4);
+  padding: clamp(20px,4vw,35px);
+  border-radius: 12px;
+  text-align: center;
+}
+.tlg-guest-expiry-modal svg { margin: 0 auto; }
+.tlg-guest-expiry-modal h2 { margin: 14px 0; font-size: 1.55rem; }
+.tlg-guest-expiry-modal p { line-height: 1.55; margin-bottom: 16px; }
+.tlg-guest-expiry-modal button { width: 100%; margin-bottom: 12px; }
+.tlg-guest-expiry-modal small { display: block; opacity: .82; line-height: 1.5; }
+@media(max-width: 670px) {
+  .tlg-guest-register-action span { font-size: .79rem; }
+  .tlg-guest-register-action small { display: none; }
+}

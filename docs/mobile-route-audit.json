@@ -48,6 +48,11 @@
       "status": "blocked"
     },
     {
+      "path": "/guest/register",
+      "audience": "guest-to-permanent conversion (feature gated)",
+      "status": "blocked"
+    },
+    {
       "path": "/login",
       "audience": "public/onboarding",
       "status": "pending_device_validation"
@@ -294,6 +299,10 @@
     },
     {
       "name": "Anonymous Guest entry, 14-day enroll and preserve progress (Guest Mode disabled pending H02/H08)",
+      "status": "blocked"
+    },
+    {
+      "name": "Guest email verification and password linking without changing auth.user.id; Google manual identity linking and expired guest progress preservation",
       "status": "blocked"
     }
   ]

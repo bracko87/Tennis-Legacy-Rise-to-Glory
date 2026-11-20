@@ -62,6 +62,7 @@ import ForgotPasswordPage from './pages/auth/ForgotPassword'
 import ResetPasswordPage from './pages/auth/ResetPassword'
 import CreatePlayerPage from './pages/player/CreatePlayer'
 import TryAsGuestPage from './pages/auth/TryAsGuest'
+import GuestRegistrationPage from './pages/auth/GuestRegistration'
 import OverviewPage from './pages/dashboard/Overview'
 import SkillsPage from './pages/dashboard/Skills'
 import TrainingPage from './pages/dashboard/Training'
@@ -218,6 +219,7 @@ export default function App() {
           <Route path="/reviews/add" element={<PublicReviewSubmissionPage />} />
 
           <Route path="/try-as-guest" element={<TryAsGuestPage />} />
+          <Route path="/guest/register" element={<RequireAuth><GuestRegistrationPage /></RequireAuth>} />
           <Route path="/login" element={<AnonymousOnly><LoginPage /></AnonymousOnly>} />
           <Route path="/register" element={<AnonymousOnly><RegisterRoute /></AnonymousOnly>} />
           <Route path="/forgot-password" element={<AnonymousOnly><ForgotPasswordPage /></AnonymousOnly>} />
