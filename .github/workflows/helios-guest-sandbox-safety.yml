@@ -1,0 +1,31 @@
+name: Helios isolated guest sandbox safety
+on:
+  pull_request:
+    paths:
+      - 'scripts/prepare-helios-guest-sandbox.mjs'
+      - 'scripts/helios-guest-dev.mjs'
+      - 'tests/helios_guest_local_sandbox_generator.test.mjs'
+      - '.github/workflows/helios-guest-sandbox-safety.yml'
+      - 'supabase/config.toml'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sandbox-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax-check isolated guest sandbox scripts
+        run: |
+          node --check scripts/prepare-helios-guest-sandbox.mjs
+          node --check scripts/helios-guest-dev.mjs
+          node --check tests/helios_guest_local_sandbox_generator.test.mjs
+      - name: Verify sandbox generator rejects user data, isolates ports and forbids overwrite
+        run: node tests/helios_guest_local_sandbox_generator.test.mjs
