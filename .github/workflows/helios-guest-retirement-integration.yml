@@ -6,6 +6,7 @@ on:
       - '.github/workflows/helios-guest-retirement-integration.yml'
       - 'tests/helios_guest_retirement_ephemeral_db.sql'
       - 'tests/helios_guest_retirement_edge_cases.sql'
+      - 'tests/helios_guest_tombstone_proof_ephemeral_db.sql'
       - 'tests/fixtures/helios_guest_retirement_*.sql'
       - 'HELIOS_CHECKLIST.md'
   workflow_dispatch:
@@ -62,3 +63,5 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f tests/helios_guest_retirement_ephemeral_db.sql
       - name: Run edge-case expiry, converted-account and in-progress history assertions
         run: psql -v ON_ERROR_STOP=1 -f tests/helios_guest_retirement_edge_cases.sql
+      - name: Prove historical singles and doubles preservation with a detached guest identity
+        run: psql -v ON_ERROR_STOP=1 -f tests/helios_guest_tombstone_proof_ephemeral_db.sql
