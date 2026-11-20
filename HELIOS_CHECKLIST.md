@@ -21,7 +21,7 @@ Updated: 20 November 2026. Checked = code/DB task complete, **not** automaticall
 ## Analytics and Control Center (current workstream)
 - [ ] **H09** Accurate site analytics — **implemented in DB/code:** 60-second automatic refresh, last reload, three-table page-view reconciler, recent event timestamp. **Still needed:** live authenticated UI verification, tracking through browser to DB and dashboard.
 - [ ] **H10** Registration conversion — **current step:** independent real counts for homepage visitors, /register viewers, accounts, player creation, returning accounts (>=24h). The counts are not a linked/cohort funnel; **still needed:** same-visitor attribution and true conversion rates, test/deployment verification.
-- [ ] **H11** Active authenticated players/guest sessions — current five-minute event count is not true online presence; actual heartbeat/TTL needed.
+- [ ] **H11** Active authenticated players/guest sessions — **implemented in live DB and code:** authenticated human-player, foreground-interaction presence updates; 2-minute rolling active-player count with no personally identifying details in the admin UI. **Still needed:** CI, merge, deployment, authenticated browser test, cross-tab/idle/expiry validation, and guest monitoring when H01 launches. This measures recent activity, not an open websocket connection.
 - [ ] **H12** Meaningful gameplay events — pending.
 - [ ] **H13** Economy and transaction monitoring — pending.
 - [ ] **H14** Searchable event and audit history — pending.
@@ -42,6 +42,7 @@ Updated: 20 November 2026. Checked = code/DB task complete, **not** automaticall
 - **Nov 20 · PR #25:** designated admin current ID corrected in Supabase; admin-only sidebar entry; last-seen events, five-minute recorded activity and three-source reconciliation; CI passed, merged into main. DB admin and non-admin permissions verified, live UI deployment unverified.
 
 ## Current delivery
+- **H11 current task:** secure presence heartbeat RPC, restricted presence table, active-player dashboard summary. A DB update must reflect actual human foreground interaction; no background or admin-page updates. 2-minute TTL with per-user deduplication. Automated and browser verification pending.
 - **H10** Registration and player creation activity totals: live database RPC migration applied, source/UI migration and tests in Helios feature branch; release and live UI checks are pending.
 - Baseline for 7-day window ending Nov 20 (Berlin): 35 homepage visitors, 1 registration-page visitor, 2 accounts created, 2 human player accounts created, 1 registered account seen returning after 24h. They are *independent period counts*, not a causal funnel. Do not calculate a conversion percentage from them.
-- Next: verify CI, merge PR, authenticate against published UI; then design H10 stage linkage plus H11 meaningful presence.
+- Next: verify H11 CI and merge, test in an authenticated live browser and verify 2-minute expiry; complete H10 same-visitor funnel attribution and H11 guest presence after guest mode exists.
