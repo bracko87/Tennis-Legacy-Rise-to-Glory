@@ -63,3 +63,7 @@ Material direct references include:
 Official platform references:
 - https://supabase.com/docs/guides/auth/managing-user-data
 - https://supabase.com/docs/guides/storage/management/delete-objects
+
+## Direct-FK triage audit added
+
+`tests/helios_guest_erasure_readiness_audit.sql` now produces the live direct-FK inventory with review-area groups and a drift signal against the confirmed 188-relationship baseline. Every row remains explicitly `REVIEW_REQUIRED`, and its final readiness status is `NOT_READY_FOR_HARD_DELETE`. Policy details are in `docs/HELIOS_GUEST_ERASURE_FK_CLASSIFICATION.md`. These are **read-only** tools, not an erasure implementation or approval. Full recursive mapping and staging tests still remain.
