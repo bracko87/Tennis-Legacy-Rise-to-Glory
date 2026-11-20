@@ -61,6 +61,7 @@ import usePublicRegistrationStatus from './hooks/usePublicRegistrationStatus'
 import ForgotPasswordPage from './pages/auth/ForgotPassword'
 import ResetPasswordPage from './pages/auth/ResetPassword'
 import CreatePlayerPage from './pages/player/CreatePlayer'
+import TryAsGuestPage from './pages/auth/TryAsGuest'
 import OverviewPage from './pages/dashboard/Overview'
 import SkillsPage from './pages/dashboard/Skills'
 import TrainingPage from './pages/dashboard/Training'
@@ -216,6 +217,7 @@ export default function App() {
           <Route path="/r/:code" element={<ReferralLandingPage />} />
           <Route path="/reviews/add" element={<PublicReviewSubmissionPage />} />
 
+          <Route path="/try-as-guest" element={<TryAsGuestPage />} />
           <Route path="/login" element={<AnonymousOnly><LoginPage /></AnonymousOnly>} />
           <Route path="/register" element={<AnonymousOnly><RegisterRoute /></AnonymousOnly>} />
           <Route path="/forgot-password" element={<AnonymousOnly><ForgotPasswordPage /></AnonymousOnly>} />
