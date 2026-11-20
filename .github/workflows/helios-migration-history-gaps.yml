@@ -1,0 +1,21 @@
+name: Helios applied migration history gap diagnostic
+
+on:
+  pull_request:
+    paths:
+      - 'tests/recovered-migrations/**'
+      - 'scripts/helios-compare-applied-migrations.mjs'
+      - '.github/workflows/helios-migration-history-gaps.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  migration-gap-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare applied migration manifest with checked-in SQL migrations
+        run: node scripts/helios-compare-applied-migrations.mjs
