@@ -26,6 +26,7 @@ import FormField from '../../components/common/FormField'
 import GameConfirmDialog from '../../components/common/GameConfirmDialog'
 import { clearStoredReferralCode, getReferralBrowserHash, getStoredReferralCode } from '../../lib/referrals'
 import { supabase } from '../../lib/supabase'
+import useGoogleSignInAvailability, { startTennisGoogleSignIn } from '../../hooks/useGoogleSignInAvailability'
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -46,6 +47,7 @@ const REGISTER_STEPS: Array<{ id: RegisterStep; title: string; subtitle: string 
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const googleAvailable = useGoogleSignInAvailability()
   const [searchParams] = useSearchParams()
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -58,6 +60,7 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [status, setStatus] = useState<FormStatus | null>(null)
   const [registrationComplete, setRegistrationComplete] = useState(false)
@@ -228,6 +231,20 @@ export default function RegisterPage() {
       type: 'success',
       message: 'Account created. Check your inbox and confirm your email. After verification, Tennis Legacy will take you to Create Your Player.',
     })
+  }
+
+  async function handleGoogleRegister() {
+    // Referral and invitation signups stay on the explicit email form until
+    // their attribution can be safely carried through the OAuth round-trip.
+    if (!googleAvailable || googleLoading || loading || inviteToken || getStoredReferralCode()) return
+    setGoogleLoading(true)
+    setStatus(null)
+    try {
+      await startTennisGoogleSignIn()
+    } catch (error) {
+      setStatus({ type: 'error', message: error instanceof Error ? error.message : 'Google Sign-In is unavailable.' })
+      setGoogleLoading(false)
+    }
   }
 
   return (
@@ -569,6 +586,22 @@ export default function RegisterPage() {
                     </footer>
                   </section>
                 </form>
+
+                {googleAvailable && !inviteToken && !getStoredReferralCode() && (
+                  <div className="tlg-google-oauth-option">
+                    <div className="tlg-auth-divider"><span>or sign up without a password</span></div>
+                    <button
+                      type="button"
+                      className="tlg-google-oauth-button"
+                      onClick={() => void handleGoogleRegister()}
+                      disabled={loading || googleLoading}
+                    >
+                      <span className="tlg-google-oauth-mark" aria-hidden="true">G</span>
+                      {googleLoading ? 'Connecting to Google…' : 'Continue with Google'}
+                    </button>
+                    <p>Your Google account signs in securely. Tennis player creation follows after sign-in.</p>
+                  </div>
+                )}
 
                 <div className="tlg-auth-divider"><span>Already have an account?</span></div>
                 <Link to="/login" className="tlg-auth-outline-button">Sign In <ArrowRight size={17} /></Link>

@@ -2745,3 +2745,50 @@
   opacity: 0.85;
   margin-top: 0.8rem;
 }
+
+/* Helios H03: optional Google sign-in, visible only after server readiness. */
+.tlg-google-oauth-option {
+  margin-top: 1rem;
+}
+.tlg-google-oauth-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid rgba(128, 151, 176, .52);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, .97);
+  color: #202d40;
+  font-size: 0.94rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.tlg-google-oauth-button:hover:not(:disabled),
+.tlg-google-oauth-button:focus-visible {
+  background: #fff;
+  border-color: #597ca2;
+}
+.tlg-google-oauth-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+.tlg-google-oauth-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #d1d5db;
+  border-radius: 50%;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.tlg-google-oauth-option p {
+  margin-top: 0.55rem;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: #7b8c9d;
+}
