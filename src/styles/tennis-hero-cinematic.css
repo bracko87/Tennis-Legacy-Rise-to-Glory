@@ -71,7 +71,7 @@
   opacity: .14;
 }
 
-/* Subtle stadium-style accent streaks near the bottom edge. */
+/* Subtle curved blue accent along the bottom of the hero. */
 .tlg-home-main .tlg-hero .tlg-hero-background::before {
   content: "";
   position: absolute;
@@ -86,53 +86,10 @@
   animation: tlgHeroArcPulse 5.5s ease-in-out infinite;
 }
 
-.tlg-home-main .tlg-hero .tlg-hero-background::after {
-  content: "";
-  position: absolute;
-  right: -14%;
-  bottom: 72px;
-  width: 88%;
-  height: 2px;
-  transform: rotate(-13deg);
-  transform-origin: right center;
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(120, 213, 255, 0) 20%,
-    rgba(120, 213, 255, .22) 42%,
-    rgba(120, 213, 255, .90) 52%,
-    rgba(120, 213, 255, .22) 62%,
-    rgba(120, 213, 255, 0) 82%,
-    transparent 100%);
-  box-shadow:
-    0 0 10px rgba(120, 213, 255, .22),
-    0 0 22px rgba(120, 213, 255, .10);
-  animation: tlgHeroSweep 4.2s linear infinite;
-}
 
-/* A second, finer light trace stays behind the hero copy and buttons. */
-.tlg-home-main .tlg-hero .tlg-hero-inner::after {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  right: -8%;
-  top: 30%;
-  width: 42%;
-  height: 2px;
-  pointer-events: none;
-  transform: rotate(-18deg);
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(130, 220, 255, 0) 18%,
-    rgba(130, 220, 255, .20) 46%,
-    rgba(130, 220, 255, .82) 52%,
-    rgba(130, 220, 255, .18) 58%,
-    rgba(130, 220, 255, 0) 82%,
-    transparent 100%);
-  box-shadow:
-    0 0 12px rgba(130, 220, 255, .18),
-    0 0 30px rgba(130, 220, 255, .08);
-  animation: tlgHeroSweepSecondary 6s linear infinite;
-}
+
+
+
 
 .tlg-home-main .tlg-hero .tlg-hero-inner {
   position: relative;
@@ -251,11 +208,7 @@
 }
 
 
-/*
- * These are genuine DOM layers with independent animation durations, just as
- * the cycling game's hero uses three moving speed lines and ambient glows.
- * A line travels across the entire picture instead of merely pulsing in place.
- */
+/* Atmospheric stadium glows and occasional crowd camera flashes. */
 .tlg-home-main .tlg-hero .tlg-hero-effect-layer {
   position: absolute;
   inset: 0;
@@ -291,72 +244,15 @@
   background: radial-gradient(ellipse, rgba(94, 205, 255, .28), rgba(35, 105, 165, .12) 50%, transparent 78%);
 }
 
-.tlg-home-main .tlg-hero .tlg-hero-speed-line {
-  position: absolute;
-  display: block;
-  z-index: 2;
-  width: 65%;
-  height: 2px;
-  border-radius: 9999px;
-  opacity: 0;
-  pointer-events: none;
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(118, 216, 255, .10) 16%,
-    rgba(165, 231, 255, .72) 43%,
-    #f0fcff 52%,
-    rgba(119, 218, 255, .78) 60%,
-    rgba(118, 216, 255, .12) 85%,
-    transparent 100%);
-  box-shadow: 0 0 8px rgba(185, 239, 255, .86), 0 0 23px rgba(56, 164, 255, .36);
-  transform-origin: 50% 50%;
-  animation: tlgHeroLiveSweep 6.2s linear infinite;
-}
 
-.tlg-home-main .tlg-hero .tlg-hero-speed-line--one {
-  top: 27%;
-  right: -28%;
-  width: 56%;
-  animation-delay: -2.7s;
-  animation-duration: 6.2s;
-}
 
-.tlg-home-main .tlg-hero .tlg-hero-speed-line--two {
-  top: 58%;
-  right: -22%;
-  width: 81%;
-  animation-delay: -4.1s;
-  animation-duration: 7.7s;
-  background: linear-gradient(90deg,
-    transparent,
-    rgba(102, 200, 255, .18) 25%,
-    rgba(135, 222, 255, .78) 48%,
-    #e8faff 53%,
-    rgba(92, 190, 251, .50) 67%,
-    transparent);
-}
 
-.tlg-home-main .tlg-hero .tlg-hero-speed-line--three {
-  bottom: 14%;
-  left: -12%;
-  width: 70%;
-  animation-delay: -1.8s;
-  animation-duration: 8.3s;
-}
 
-@keyframes tlgHeroLiveSweep {
-  0% {
-    transform: translate3d(85%, 0, 0) rotate(-11deg);
-    opacity: 0;
-  }
-  12% { opacity: .82; }
-  35% { opacity: .95; }
-  74% { opacity: .88; }
-  100% {
-    transform: translate3d(-175%, 0, 0) rotate(-11deg);
-    opacity: 0;
-  }
-}
+
+
+
+
+
 
 @keyframes tlgHeroAmbient {
   from { transform: scale(.89) translateY(7px); opacity: .37; }
@@ -429,13 +325,9 @@
     width: 100%;
   }
 
-  .tlg-home-main .tlg-hero .tlg-hero-speed-line--one {
-    display: none;
-  }
 
-  .tlg-home-main .tlg-hero .tlg-hero-speed-line {
-    opacity: .6;
-  }
+
+
 }
 
 @media (max-width: 480px) {
@@ -449,31 +341,9 @@
   }
 }
 
-@keyframes tlgHeroSweep {
-  0% {
-    opacity: 0;
-    transform: translateX(-6%) rotate(-13deg);
-  }
-  10% { opacity: .25; }
-  45% { opacity: .95; }
-  100% {
-    opacity: 0;
-    transform: translateX(8%) rotate(-13deg);
-  }
-}
 
-@keyframes tlgHeroSweepSecondary {
-  0% {
-    opacity: 0;
-    transform: translateX(-10%) rotate(-18deg);
-  }
-  15% { opacity: .18; }
-  50% { opacity: .85; }
-  100% {
-    opacity: 0;
-    transform: translateX(12%) rotate(-18deg);
-  }
-}
+
+
 
 @keyframes tlgHeroArcPulse {
   0%, 100% {
@@ -487,74 +357,18 @@
 }
 
 
-/*
- * Final cinematic tuning:
- * - three light streaks descend from TOP to BOTTOM
- * - equal 2.8s gaps, repeating every 8.4s, not irregular sideways motion
- * - sentence-case, cycling-style hero headline and curved blue underline
- * Scoped entirely to the public Tennis Legacy hero.
- */
-.tlg-home-main .tlg-hero .tlg-hero-background::after,
-.tlg-home-main .tlg-hero .tlg-hero-inner::after {
-  animation: none;
-  opacity: .13;
-}
+/* Cycling-inspired headline typography, retained without moving light lines. */
 
-.tlg-home-main .tlg-hero .tlg-hero-speed-line {
-  top: 0;
-  bottom: auto;
-  left: 12%;
-  right: auto;
-  width: 76%;
-  height: 2px;
-  opacity: 0;
-  animation: tlgHeroDownwardSweep 8.4s linear infinite;
-}
 
-.tlg-home-main .tlg-hero .tlg-hero-speed-line--one {
-  top: 0;
-  bottom: auto;
-  right: auto;
-  left: 25%;
-  width: 67%;
-  animation-delay: 0s;
-  animation-duration: 8.4s;
-}
 
-.tlg-home-main .tlg-hero .tlg-hero-speed-line--two {
-  top: 0;
-  bottom: auto;
-  right: auto;
-  left: 2%;
-  width: 88%;
-  animation-delay: -2.8s;
-  animation-duration: 8.4s;
-}
 
-.tlg-home-main .tlg-hero .tlg-hero-speed-line--three {
-  top: 0;
-  bottom: auto;
-  right: auto;
-  left: 39%;
-  width: 58%;
-  animation-delay: -5.6s;
-  animation-duration: 8.4s;
-}
 
-@keyframes tlgHeroDownwardSweep {
-  0% {
-    transform: translate3d(0, -25vh, 0) rotate(-9deg);
-    opacity: 0;
-  }
-  14% { opacity: .80; }
-  45% { opacity: .96; }
-  79% { opacity: .78; }
-  91% { opacity: .22; }
-  100% {
-    transform: translate3d(0, calc(100vh + 210px), 0) rotate(-9deg);
-    opacity: 0;
-  }
-}
+
+
+
+
+
+
 
 .tlg-home-main .tlg-hero .tlg-hero-eyebrow {
   color: #ffe16a;
@@ -639,13 +453,9 @@
   }
 
   /* Keep all three beams on small screens to preserve even 2.8s spacing. */
-  .tlg-home-main .tlg-hero .tlg-hero-speed-line--one {
-    display: block;
-  }
 
-  .tlg-home-main .tlg-hero .tlg-hero-speed-line {
-    filter: brightness(.75);
-  }
+
+
 
   .tlg-home-main .tlg-hero .tlg-hero-eyebrow::after {
     display: none;
@@ -663,17 +473,80 @@
     transition: none;
   }
   .tlg-home-main .tlg-hero .tlg-hero-background::before,
-  .tlg-home-main .tlg-hero .tlg-hero-background::after,
-  .tlg-home-main .tlg-hero .tlg-hero-inner::after,
-  .tlg-home-main .tlg-hero .tlg-hero-speed-line,
-  .tlg-home-main .tlg-hero .tlg-hero-ambient {
+  .tlg-home-main .tlg-hero .tlg-hero-ambient,
+  .tlg-home-main .tlg-hero .tlg-hero-camera-flash {
     animation: none !important;
   }
   .tlg-home-main .tlg-hero::before {
     transform: none !important;
     transition: none !important;
   }
-  .tlg-home-main .tlg-hero .tlg-hero-speed-line {
+
+}
+
+/*
+ * Brief camera glints in the RIGHT-side spectator seating.
+ * Seven unevenly spaced pulses per 42-second cycle (roughly 4–7 seconds apart).
+ * No flashes in the headline area, no image assets, and no JavaScript timers.
+ */
+.tlg-home-main .tlg-hero .tlg-hero-camera-flash {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(circle, #fff 0 24%, #e6f9ff 52%, rgba(153, 219, 255, .05) 100%);
+  box-shadow: 0 0 6px 2px rgba(238, 251, 255, .85), 0 0 14px 5px rgba(138, 211, 255, .35);
+  animation: tlgHeroCrowdCameraFlash 42s linear infinite;
+  animation-fill-mode: both;
+}
+.tlg-home-main .tlg-hero .tlg-hero-camera-flash::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 65px;
+  height: 65px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, .74),
+    rgba(166, 224, 255, .22) 24%, transparent 68%);
+}
+.tlg-home-main .tlg-hero .tlg-hero-camera-flash::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  transform: translate(-50%, -50%) rotate(10deg);
+  background:
+    linear-gradient(90deg, transparent 0 47%, rgba(244, 252, 255, .88) 49% 51%, transparent 53%),
+    linear-gradient(0deg, transparent 0 47%, rgba(244, 252, 255, .88) 49% 51%, transparent 53%);
+}
+.tlg-home-main .tlg-hero .tlg-hero-camera-flash--one { left: 72%; top: 36%; animation-delay: -40s; }
+.tlg-home-main .tlg-hero .tlg-hero-camera-flash--two { left: 84%; top: 43%; animation-delay: -35s; }
+.tlg-home-main .tlg-hero .tlg-hero-camera-flash--three { left: 95%; top: 32%; animation-delay: -29s; }
+.tlg-home-main .tlg-hero .tlg-hero-camera-flash--four { left: 79%; top: 56%; animation-delay: -22s; }
+.tlg-home-main .tlg-hero .tlg-hero-camera-flash--five { left: 91%; top: 57%; animation-delay: -15s; }
+.tlg-home-main .tlg-hero .tlg-hero-camera-flash--six { left: 74%; top: 48%; animation-delay: -11s; }
+.tlg-home-main .tlg-hero .tlg-hero-camera-flash--seven { left: 97%; top: 47%; animation-delay: -4s; }
+@keyframes tlgHeroCrowdCameraFlash {
+  0%, .25%, 1.1%, 100% { opacity: 0; transform: scale(.65); }
+  .52% { opacity: .93; transform: scale(1.1); }
+  .75% { opacity: .45; transform: scale(.95); }
+}
+@media (max-width: 760px) {
+  .tlg-home-main .tlg-hero .tlg-hero-camera-flash { width: 4px; height: 4px; }
+  .tlg-home-main .tlg-hero .tlg-hero-camera-flash::before { width: 44px; height: 44px; }
+  .tlg-home-main .tlg-hero .tlg-hero-camera-flash::after { width: 17px; height: 17px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tlg-home-main .tlg-hero .tlg-hero-camera-flash {
     display: none;
+    animation: none !important;
   }
 }

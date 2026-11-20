@@ -166,13 +166,17 @@ export default function HomePage() {
             <div className="tlg-hero-glow tlg-hero-glow-one" />
             <div className="tlg-hero-glow tlg-hero-glow-two" />
 
-            {/* Real cycling-style animated layers, rather than a nearly static CSS line. */}
+            {/* Occasional camera flashes in the stadium stands, away from the headline. */}
             <div className="tlg-hero-effect-layer" aria-hidden="true">
               <span className="tlg-hero-ambient tlg-hero-ambient--left" />
               <span className="tlg-hero-ambient tlg-hero-ambient--right" />
-              <span className="tlg-hero-speed-line tlg-hero-speed-line--one" />
-              <span className="tlg-hero-speed-line tlg-hero-speed-line--two" />
-              <span className="tlg-hero-speed-line tlg-hero-speed-line--three" />
+              <span className="tlg-hero-camera-flash tlg-hero-camera-flash--one" />
+              <span className="tlg-hero-camera-flash tlg-hero-camera-flash--two" />
+              <span className="tlg-hero-camera-flash tlg-hero-camera-flash--three" />
+              <span className="tlg-hero-camera-flash tlg-hero-camera-flash--four" />
+              <span className="tlg-hero-camera-flash tlg-hero-camera-flash--five" />
+              <span className="tlg-hero-camera-flash tlg-hero-camera-flash--six" />
+              <span className="tlg-hero-camera-flash tlg-hero-camera-flash--seven" />
             </div>
           </div>
 
