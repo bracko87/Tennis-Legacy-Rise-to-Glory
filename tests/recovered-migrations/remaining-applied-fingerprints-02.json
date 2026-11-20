@@ -1,0 +1,385 @@
+{
+  "description": "Applied SQL token fingerprints from migration registry only, no account data and no source SQL",
+  "batch": 2,
+  "expected_groups": 6,
+  "items": [
+    {
+      "name": "harden_draw_recovery_internal_rpc_permissions",
+      "applied_version": "20261002073937",
+      "repo_file": "20261002074800_harden_draw_recovery_internal_rpc_permissions.sql",
+      "source_md5": "e3b0cc1fca4d42b9b54f70e9b994ff7f",
+      "source_length": 904,
+      "tokens": 114,
+      "fnv64": "1f07f5d858d23e73"
+    },
+    {
+      "name": "balance_wta_shoe_entry_market",
+      "applied_version": "20261002092439",
+      "repo_file": "20261002093000_balance_wta_shoe_entry_market.sql",
+      "source_md5": "b5c61022ded25cb0ac83cb9968dcc80f",
+      "source_length": 690,
+      "tokens": 116,
+      "fnv64": "113ffc8b4b755339"
+    },
+    {
+      "name": "new_player_starting_scheme_v1",
+      "applied_version": "20261002094527",
+      "repo_file": "20261002095500_new_player_starting_scheme_v1.sql",
+      "source_md5": "1edd3dd47a82465726e5ab7cfbb03789",
+      "source_length": 26394,
+      "tokens": 4252,
+      "fnv64": "f9532b9aed426e4b"
+    },
+    {
+      "name": "harden_new_player_scheme_idempotency",
+      "applied_version": "20261002094851",
+      "repo_file": "20261002102000_harden_new_player_scheme_idempotency.sql",
+      "source_md5": "ae4732021722e5ff40415da7ad3010d5",
+      "source_length": 6494,
+      "tokens": 939,
+      "fnv64": "093564e4645ce0c1"
+    },
+    {
+      "name": "fix_new_career_coin_ledger_type",
+      "applied_version": "20261002095004",
+      "repo_file": "20261002103000_fix_new_career_coin_ledger_type.sql",
+      "source_md5": "cba563cdb12efc638320db9a4cd47645",
+      "source_length": 2075,
+      "tokens": 299,
+      "fnv64": "756ce374b97cd07d"
+    },
+    {
+      "name": "monitor_new_player_starting_scheme_v1",
+      "applied_version": "20261002100228",
+      "repo_file": "20261002121000_monitor_new_player_starting_scheme_v1.sql",
+      "source_md5": "4f6eff83425cf3a5addd6155f39d4451",
+      "source_length": 14428,
+      "tokens": 2143,
+      "fnv64": "6b8046e2978cf215"
+    },
+    {
+      "name": "training_camp_reliability_balance_health_v1",
+      "applied_version": "20261002112227",
+      "repo_file": "20261002124500_training_camp_reliability_balance_health_v1.sql",
+      "source_md5": "f28a6ea6f3e3fa19f6d8cc8481056d36",
+      "source_length": 46282,
+      "tokens": 6916,
+      "fnv64": "f00f8b47e3a9cb78"
+    },
+    {
+      "name": "fix_training_camp_health_alias",
+      "applied_version": "20261002112307",
+      "repo_file": "20261002125200_fix_training_camp_health_alias.sql",
+      "source_md5": "bb8968f13ebfda5792f5cc4aadb5eb9f",
+      "source_length": 1064,
+      "tokens": 106,
+      "fnv64": "bc29a56d8a7998f9"
+    },
+    {
+      "name": "training_camp_visibility_split_travel_no_show_v1",
+      "applied_version": "20261002120101",
+      "repo_file": "20261002133000_training_camp_visibility_split_travel_no_show_v1.sql",
+      "source_md5": "5e24a70f9de2ccd5fac79b8e701391cb",
+      "source_length": 46211,
+      "tokens": 7044,
+      "fnv64": "b34f88ed509806a9"
+    },
+    {
+      "name": "game_manual_system_health_v1",
+      "applied_version": "20261002140831",
+      "repo_file": "20261002151000_game_manual_system_health_v1.sql",
+      "source_md5": "6412bc9675f583d49c471614acdffdab",
+      "source_length": 7292,
+      "tokens": 1027,
+      "fnv64": "884c16b4aa46273c"
+    },
+    {
+      "name": "game_manual_generated_pdf_route_v1",
+      "applied_version": "20261002141436",
+      "repo_file": "20261002152500_game_manual_generated_pdf_route_v1.sql",
+      "source_md5": "4e485f5aac81620c18dc282fa448365b",
+      "source_length": 4446,
+      "tokens": 637,
+      "fnv64": "a0cf0948392aa548"
+    },
+    {
+      "name": "add_private_life_watch_images_batch1",
+      "applied_version": "20261002180226",
+      "repo_file": "20261002180000_add_private_life_watch_images_batch1.sql",
+      "source_md5": "c147f9cf3ac10262c56d95020a433ffa",
+      "source_length": 11224,
+      "tokens": 264,
+      "fnv64": "46189a0668b9e028"
+    },
+    {
+      "name": "add_wta_ai_profile_images_batch1",
+      "applied_version": "20261002181308",
+      "repo_file": "20261002181500_add_wta_ai_profile_images_batch1.sql",
+      "source_md5": "9136d72dfbc4fa1d70ac0782a654237c",
+      "source_length": 3809,
+      "tokens": 486,
+      "fnv64": "d14a22f150604898"
+    },
+    {
+      "name": "monitor_wta_ai_profile_portraits_v1",
+      "applied_version": "20261002181344",
+      "repo_file": "20261002182000_monitor_wta_ai_profile_portraits_v1.sql",
+      "source_md5": "d8656b001554864ef3f3d854adb0bbbb",
+      "source_length": 4981,
+      "tokens": 725,
+      "fnv64": "c2610a8c75a2c03f"
+    },
+    {
+      "name": "allow_authenticated_curated_player_portrait_reads",
+      "applied_version": "20261002182344",
+      "repo_file": "20261002183000_allow_authenticated_curated_player_portrait_reads.sql",
+      "source_md5": "d1b151a24c1be4c1682399a04807478a",
+      "source_length": 4277,
+      "tokens": 588,
+      "fnv64": "825cb429c9cb77cc"
+    },
+    {
+      "name": "extend_admin_player_avatar_read_to_wta_ai",
+      "applied_version": "20261002182514",
+      "repo_file": "20261002183500_extend_admin_player_avatar_read_to_wta_ai.sql",
+      "source_md5": "40810e73b658710429af36c519239017",
+      "source_length": 4349,
+      "tokens": 602,
+      "fnv64": "fb2275149935fe22"
+    },
+    {
+      "name": "fix_new_cron_first_run_grace_v1",
+      "applied_version": "20261002183827",
+      "repo_file": "20261002184500_fix_new_cron_first_run_grace_v1.sql",
+      "source_md5": "f8e9f5759a4f5d89efa12d8cac1b9c71",
+      "source_length": 13087,
+      "tokens": 1683,
+      "fnv64": "2566d74e47313263"
+    },
+    {
+      "name": "move_wta_ai_portraits_to_supported_avatar_path",
+      "applied_version": "20261002185941",
+      "repo_file": "20261002190000_move_wta_ai_portraits_to_supported_avatar_path.sql",
+      "source_md5": "58114da980a6b3b50824dd2a48349760",
+      "source_length": 7042,
+      "tokens": 944,
+      "fnv64": "2fa55b24f6181226"
+    },
+    {
+      "name": "add_wta_ai_profile_images_batch2",
+      "applied_version": "20261002193946",
+      "repo_file": "20261002200500_add_wta_ai_profile_images_batch2.sql",
+      "source_md5": "d1bc420163777fda2ee922e98091751b",
+      "source_length": 6353,
+      "tokens": 1054,
+      "fnv64": "a929fd0133144b03"
+    },
+    {
+      "name": "add_wta_ai_profile_images_batch3",
+      "applied_version": "20261002194654",
+      "repo_file": "20261002202000_add_wta_ai_profile_images_batch3.sql",
+      "source_md5": "c302116e790cfa7bc5f04cc6a399260a",
+      "source_length": 3848,
+      "tokens": 654,
+      "fnv64": "a62b9fe6fae9df72"
+    },
+    {
+      "name": "add_wta_ai_profile_images_batch4",
+      "applied_version": "20261002202337",
+      "repo_file": "20261002203000_add_wta_ai_profile_images_batch4.sql",
+      "source_md5": "f473030bb2143e975a7f8ce481a9698d",
+      "source_length": 3829,
+      "tokens": 654,
+      "fnv64": "bf83d34153a3026d"
+    },
+    {
+      "name": "cache_ai_tournament_entry_candidates",
+      "applied_version": "20261003190620",
+      "repo_file": "20261003185830_cache_ai_tournament_entry_candidates.sql",
+      "source_md5": "b672b82f4e218a4a2e6f7c3990c9a730",
+      "source_length": 7513,
+      "tokens": 1201,
+      "fnv64": "3c78a1ca80f6ea30"
+    },
+    {
+      "name": "player_handedness_scouting_tactics_v1",
+      "applied_version": "20261004182229",
+      "repo_file": "20261004184000_player_handedness_scouting_tactics_v1.sql",
+      "source_md5": "3262ef6623c0e188441acdd5ee66f3de",
+      "source_length": 61368,
+      "tokens": 10101,
+      "fnv64": "a93318f9c3c528bc"
+    },
+    {
+      "name": "handedness_scouting_immediate_start_v1",
+      "applied_version": "20261004183207",
+      "repo_file": "20261004191500_handedness_scouting_immediate_start_v1.sql",
+      "source_md5": "3158793e11e345dcb84d58ee0c3f0b46",
+      "source_length": 2907,
+      "tokens": 437,
+      "fnv64": "3657e65f28e149b1"
+    },
+    {
+      "name": "player_tactics_health_and_admin_guard_v1",
+      "applied_version": "20261004183758",
+      "repo_file": "20261004193000_player_tactics_health_and_admin_guard_v1.sql",
+      "source_md5": "3d4933e30eeb734174ff2dfe2437c464",
+      "source_length": 7170,
+      "tokens": 1081,
+      "fnv64": "a97ad31d903b500e"
+    },
+    {
+      "name": "player_creation_country_filter_v1",
+      "applied_version": "20261004191841",
+      "repo_file": "20261004212000_player_creation_country_filter_v1.sql",
+      "source_md5": "31f06db279f13d060e915230d37ea3e5",
+      "source_length": 8873,
+      "tokens": 1740,
+      "fnv64": "7afa2bbfdfd54c11"
+    },
+    {
+      "name": "add_vatican_player_home_city_v1",
+      "applied_version": "20261004192247",
+      "repo_file": "20261004213500_add_vatican_player_home_city_v1.sql",
+      "source_md5": "d9d0caeabea3d3d7681a017e681dfd39",
+      "source_length": 468,
+      "tokens": 77,
+      "fnv64": "9652e6abaf856717"
+    },
+    {
+      "name": "expand_wta_ai_population_117_v1",
+      "applied_version": "20261004201022",
+      "repo_file": "20261004220500_expand_wta_ai_population_117_v1.sql",
+      "source_md5": "a03d95971be0b813b822e49f81137965",
+      "source_length": 29217,
+      "tokens": 6694,
+      "fnv64": "d239644aa6785dde"
+    },
+    {
+      "name": "approve_kosovo_in_identity_health_v1",
+      "applied_version": "20261004201303",
+      "repo_file": "20261004221500_approve_kosovo_in_identity_health_v1.sql",
+      "source_md5": "a52724dbc9c5d4d2e14e6832a02c5da8",
+      "source_length": 918,
+      "tokens": 113,
+      "fnv64": "b15b269ca29c1870"
+    },
+    {
+      "name": "pair_wta_ai_profiles_101_300_v1",
+      "applied_version": "20261004202228",
+      "repo_file": "20261004223500_pair_wta_ai_profiles_101_300_v1.sql",
+      "source_md5": "81a3ce9ca5a4768bd8b281eb20eb6df5",
+      "source_length": 6022,
+      "tokens": 837,
+      "fnv64": "85a2e4c470395afd"
+    },
+    {
+      "name": "add_private_life_watch_images_batch2",
+      "applied_version": "20261004202900",
+      "repo_file": "20261004224500_add_private_life_watch_images_batch2.sql",
+      "source_md5": "3d595a7dc191005d88cc4b436041eee6",
+      "source_length": 10835,
+      "tokens": 815,
+      "fnv64": "b9132768c6bce9cd"
+    },
+    {
+      "name": "schedule_private_life_watch_image_health_v1",
+      "applied_version": "20261004202927",
+      "repo_file": "20261004225000_schedule_private_life_watch_image_health_v1.sql",
+      "source_md5": "3a54efed7fb5f1bb6fd129b22afee996",
+      "source_length": 1615,
+      "tokens": 210,
+      "fnv64": "16eaf7c387d33dc8"
+    },
+    {
+      "name": "pair_wta_ai_portraits_301_417_and_recovered_v1",
+      "applied_version": "20261005122616",
+      "repo_file": "20261005123000_pair_wta_ai_portraits_301_417_and_recovered_v1.sql",
+      "source_md5": "2b9919651bf00c86d69564184e3cb040",
+      "source_length": 7537,
+      "tokens": 1137,
+      "fnv64": "652d220620867ca1"
+    },
+    {
+      "name": "pair_wta_ai_transliterated_profiles_v1",
+      "applied_version": "20261005123954",
+      "repo_file": "20261005124500_pair_wta_ai_transliterated_profiles_v1.sql",
+      "source_md5": "d38b0f323b66402e2e9617f3383adac9",
+      "source_length": 2636,
+      "tokens": 385,
+      "fnv64": "df457ef3d610d336"
+    },
+    {
+      "name": "resolve_cron_incidents_from_terminal_runs",
+      "applied_version": "20261005193545",
+      "repo_file": "20261005193700_resolve_cron_incidents_from_terminal_runs.sql",
+      "source_md5": "bd378be4fba91f17e3b6535a5b2f26ee",
+      "source_length": 3635,
+      "tokens": 612,
+      "fnv64": "226a498590066878"
+    },
+    {
+      "name": "private_life_apartment_catalog_15_v1",
+      "applied_version": "20261005193749",
+      "repo_file": "20261005193500_private_life_apartment_catalog_15_v1.sql",
+      "source_md5": "e101cc47eaea91bf7911d6b7be97d118",
+      "source_length": 21662,
+      "tokens": 2893,
+      "fnv64": "df5bfed7e31397c0"
+    },
+    {
+      "name": "stabilize_starting_apartment_value_v1",
+      "applied_version": "20261005193828",
+      "repo_file": "20261005194000_stabilize_starting_apartment_value_v1.sql",
+      "source_md5": "449de6e84d2dcb11fc83e9c54babcaac",
+      "source_length": 6341,
+      "tokens": 1050,
+      "fnv64": "13bcaaef51ffe409"
+    },
+    {
+      "name": "keep_all_50_standard_property_cities_v1",
+      "applied_version": "20261005201531",
+      "repo_file": "20261005201800_keep_all_50_standard_property_cities_v1.sql",
+      "source_md5": "1b167a8e851478a1c9ae05dd1819d3c4",
+      "source_length": 3083,
+      "tokens": 556,
+      "fnv64": "efd2b37a34299e85"
+    },
+    {
+      "name": "compact_city_flat_location_images_v1",
+      "applied_version": "20261005205711",
+      "repo_file": "20261005225500_compact_city_flat_location_images_v1.sql",
+      "source_md5": "59478ea7c69dd55a3010d3251e6df1b7",
+      "source_length": 6236,
+      "tokens": 308,
+      "fnv64": "d9400dc3c4fbc129"
+    },
+    {
+      "name": "complete_compact_city_flat_images_v1",
+      "applied_version": "20261005210122",
+      "repo_file": "20261005230300_complete_compact_city_flat_images_v1.sql",
+      "source_md5": "8a86745a4006e9be890907b053569b5a",
+      "source_length": 569,
+      "tokens": 64,
+      "fnv64": "48ff37da0c769d7e"
+    },
+    {
+      "name": "reduce_apartment_catalog_to_9_v1",
+      "applied_version": "20261005210346",
+      "repo_file": "20261005230600_reduce_apartment_catalog_to_9_v1.sql",
+      "source_md5": "5418cf31901e8bdb3c0c5d765427f727",
+      "source_length": 2061,
+      "tokens": 407,
+      "fnv64": "f532e4b2130ceb87"
+    },
+    {
+      "name": "stagger_tournament_draw_jobs",
+      "applied_version": "20261005211545",
+      "repo_file": "20261005211600_stagger_tournament_draw_jobs.sql",
+      "source_md5": "d08ed21c904f1bbf46bcac4f9eb90222",
+      "source_length": 641,
+      "tokens": 72,
+      "fnv64": "a835b8d571f4b1a6"
+    }
+  ]
+}
