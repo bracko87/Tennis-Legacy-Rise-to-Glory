@@ -1,0 +1,385 @@
+{
+  "description": "Applied SQL token fingerprints from migration registry only, no account data and no source SQL",
+  "batch": 4,
+  "expected_groups": 6,
+  "items": [
+    {
+      "name": "connect_grand_estate_images_v1",
+      "applied_version": "20261008111016",
+      "repo_file": "20261008131000_connect_grand_estate_images_v1.sql",
+      "source_md5": "911e5993800064e83b46764eaee9bc5b",
+      "source_length": 5083,
+      "tokens": 855,
+      "fnv64": "8184fea3223bc1dd"
+    },
+    {
+      "name": "publish_signature_mansion_market_v1",
+      "applied_version": "20261008113718",
+      "repo_file": "20261008134000_publish_signature_mansion_market_v1.sql",
+      "source_md5": "ffd701de1ede9cefebaa92edfbb256cc",
+      "source_length": 9719,
+      "tokens": 1582,
+      "fnv64": "f984045e0237bebc"
+    },
+    {
+      "name": "connect_signature_mansion_images_v1",
+      "applied_version": "20261008120823",
+      "repo_file": "20261008141500_connect_signature_mansion_images_v1.sql",
+      "source_md5": "2838ce58f45d2d66e71b41f1c7cf3345",
+      "source_length": 5388,
+      "tokens": 799,
+      "fnv64": "701b8968c40cd6f1"
+    },
+    {
+      "name": "publish_yacht_catalog_30_v1",
+      "applied_version": "20261008132045",
+      "repo_file": "20261008152500_publish_yacht_catalog_30_v1.sql",
+      "source_md5": "6b1a086eb3c16c48f4a5481e1fb5459f",
+      "source_length": 12843,
+      "tokens": 2015,
+      "fnv64": "ab359254ddb22a46"
+    },
+    {
+      "name": "connect_yacht_images_and_builders_v1",
+      "applied_version": "20261008151130",
+      "repo_file": "20261008171500_connect_yacht_images_and_builders_v1.sql",
+      "source_md5": "449c9b744b7851aa12d9861f0f9df0ec",
+      "source_length": 5992,
+      "tokens": 981,
+      "fnv64": "8177ba96916c487d"
+    },
+    {
+      "name": "publish_private_airplanes_18_v1",
+      "applied_version": "20261008153643",
+      "repo_file": "20261008173500_publish_private_airplanes_18_v1.sql",
+      "source_md5": "1400b361b13744ad097dad13a93858ae",
+      "source_length": 11662,
+      "tokens": 1659,
+      "fnv64": "0c69248ba1d008fd"
+    },
+    {
+      "name": "connect_private_airplane_images_v1",
+      "applied_version": "20261008155936",
+      "repo_file": "20261008180500_connect_private_airplane_images_v1.sql",
+      "source_md5": "0b9d0c91b50a83ac305a39636931ad5b",
+      "source_length": 5912,
+      "tokens": 921,
+      "fnv64": "f2311fb17b591799"
+    },
+    {
+      "name": "publish_art_catalog_50_v1",
+      "applied_version": "20261008161250",
+      "repo_file": "20261008182500_publish_art_catalog_50_v1.sql",
+      "source_md5": "68b935be34b334823708f7f4d3d5f7ba",
+      "source_length": 20022,
+      "tokens": 3117,
+      "fnv64": "77dcc6a916036340"
+    },
+    {
+      "name": "cpx_tennis_reward_tables_v1",
+      "applied_version": "20261008182122",
+      "repo_file": "20261008203000_cpx_tennis_reward_tables_v1.sql",
+      "source_md5": "5ade9bcf453278e651eecc798b0e42bd",
+      "source_length": 1494,
+      "tokens": 244,
+      "fnv64": "c9e0124c8890315a"
+    },
+    {
+      "name": "cpx_tennis_reward_receiver_v1",
+      "applied_version": "20261008182151",
+      "repo_file": "20261008203500_cpx_tennis_reward_receiver_v1.sql",
+      "source_md5": "cddbb0e23adfed74c1ceca50cbf2b225",
+      "source_length": 4718,
+      "tokens": 746,
+      "fnv64": "0bade658debff498"
+    },
+    {
+      "name": "cpx_tennis_reward_summary_v1",
+      "applied_version": "20261008183901",
+      "repo_file": "20261008204000_cpx_tennis_reward_summary_v1.sql",
+      "source_md5": "f728f945bef814a5fd7636bb213842e6",
+      "source_length": 1596,
+      "tokens": 269,
+      "fnv64": "d2da7cbf5cd7d633"
+    },
+    {
+      "name": "connect_art_images_50_v1",
+      "applied_version": "20261008185930",
+      "repo_file": "20261008210500_connect_art_images_50_v1.sql",
+      "source_md5": "4dc520e3fce0a9d5ff31e4fda79dba90",
+      "source_length": 9074,
+      "tokens": 1319,
+      "fnv64": "86168f0095e33b0c"
+    },
+    {
+      "name": "rebalance_art_prices_v2",
+      "applied_version": "20261008190139",
+      "repo_file": "20261008211500_rebalance_art_prices_v2.sql",
+      "source_md5": "f723398983780772f5c373a97f8dd1df",
+      "source_length": 4747,
+      "tokens": 1031,
+      "fnv64": "ac7f841433852fe0"
+    },
+    {
+      "name": "publish_collectibles_51_v1",
+      "applied_version": "20261008190847",
+      "repo_file": "20261008212000_publish_collectibles_51_v1.sql",
+      "source_md5": "2f0beddecc17a3be40c7fc5f6b23efe1",
+      "source_length": 24344,
+      "tokens": 2916,
+      "fnv64": "67f942ff95527d7c"
+    },
+    {
+      "name": "private_life_collectible_images_authenticated_read",
+      "applied_version": "20261008200442",
+      "repo_file": "20261008215500_private_life_collectible_images_authenticated_read.sql",
+      "source_md5": "6eaf64558759a81b52e56c976f41ab39",
+      "source_length": 176,
+      "tokens": 22,
+      "fnv64": "0764cc2a49dc8f99"
+    },
+    {
+      "name": "map_new_atp_ai_profile_portraits_v1",
+      "applied_version": "20261009123205",
+      "repo_file": "20261009123500_map_new_atp_ai_profile_portraits_v1.sql",
+      "source_md5": "46bb0200c2caf02d36a11a64ef9c1c80",
+      "source_length": 2905,
+      "tokens": 567,
+      "fnv64": "1fdbbd35a5a4153a"
+    },
+    {
+      "name": "fix_tournament_completion_and_ai_entry_priority_v1",
+      "applied_version": "20261009125936",
+      "repo_file": "20261009133000_fix_tournament_completion_and_ai_entry_priority_v1.sql",
+      "source_md5": "fd2fe137913838b921a915559a4061f0",
+      "source_length": 23655,
+      "tokens": 3587,
+      "fnv64": "61c113bf1a024f5e"
+    },
+    {
+      "name": "surface_walkover_results_in_draw_v1",
+      "applied_version": "20261009131053",
+      "repo_file": "20261009131500_surface_walkover_results_in_draw_v1.sql",
+      "source_md5": "f35301a1f2fae4ff589b444487f5cb2b",
+      "source_length": 6015,
+      "tokens": 1030,
+      "fnv64": "2d2a8bc88f340ba6"
+    },
+    {
+      "name": "user_language_preferences_v1",
+      "applied_version": "20261009132230",
+      "repo_file": "20261009134000_user_language_preferences_v1.sql",
+      "source_md5": "af54b306b5aa8108f0e62f8f5632a663",
+      "source_length": 1234,
+      "tokens": 194,
+      "fnv64": "a7fe7721b8b4df47"
+    },
+    {
+      "name": "overview_localized_notifications_v2",
+      "applied_version": "20261009141430",
+      "repo_file": "20261009161000_overview_localized_notifications_v2.sql",
+      "source_md5": "e2b8e1803ac152aefefbb544d471b8b0",
+      "source_length": 1080,
+      "tokens": 183,
+      "fnv64": "100a650a9ac014f4"
+    },
+    {
+      "name": "control_center_dynamic_disk_capacity_v1",
+      "applied_version": "20261012155514",
+      "repo_file": "20261012155800_control_center_dynamic_disk_capacity_v1.sql",
+      "source_md5": "b576af2e25ebc3acbae2b1559c2e4d94",
+      "source_length": 163,
+      "tokens": 21,
+      "fnv64": "d367f22712b72742"
+    },
+    {
+      "name": "tennis_system_incident_direct_push",
+      "applied_version": "20261013052226",
+      "repo_file": "20261013075500_tennis_system_incident_direct_push.sql",
+      "source_md5": "9ff7125a1b2be5657572451f589a13e5",
+      "source_length": 1349,
+      "tokens": 224,
+      "fnv64": "4a803d5b21d42197"
+    },
+    {
+      "name": "ignore_fresh_running_cron_in_telemetry",
+      "applied_version": "20261013060337",
+      "repo_file": "20261013080500_ignore_fresh_running_cron_in_telemetry.sql",
+      "source_md5": "391dc31bfc96d1d84018974026e6c3e5",
+      "source_length": 1561,
+      "tokens": 107,
+      "fnv64": "e2273d00eb825160"
+    },
+    {
+      "name": "tournament_operations_ignore_unplayed_withdrawn_entries",
+      "applied_version": "20261013164220",
+      "repo_file": "20261013165500_tournament_operations_ignore_unplayed_withdrawn_entries.sql",
+      "source_md5": "dc200b595e0f6b26f07ab27245852404",
+      "source_length": 18345,
+      "tokens": 3577,
+      "fnv64": "cd16f1ce73b5aa5b"
+    },
+    {
+      "name": "tennis_seven_day_premium_trial_v1",
+      "applied_version": "20261018174145",
+      "repo_file": "20261018192700_tennis_seven_day_premium_trial_v1.sql",
+      "source_md5": "0a8a9032f873ab0612e80b1385698d6c",
+      "source_length": 10171,
+      "tokens": 1342,
+      "fnv64": "78a7e233ea1462c1"
+    },
+    {
+      "name": "tennis_trial_private_life_entitlement_v1",
+      "applied_version": "20261018174209",
+      "repo_file": "20261018193000_tennis_trial_private_life_entitlement_v1.sql",
+      "source_md5": "5845a663ae4c924fd3133e0be0c1d1a5",
+      "source_length": 8160,
+      "tokens": 1271,
+      "fnv64": "97c39eebe298999d"
+    },
+    {
+      "name": "tennis_trial_private_life_costs_v1",
+      "applied_version": "20261018174822",
+      "repo_file": "20261018194000_tennis_trial_private_life_costs_v1.sql",
+      "source_md5": "0c8f96a1c1e334838f79d8de13c17229",
+      "source_length": 1665,
+      "tokens": 293,
+      "fnv64": "e28eeb28e04165f1"
+    },
+    {
+      "name": "tennis_trial_prior_upgrades_v1",
+      "applied_version": "20261018175313",
+      "repo_file": "20261018194500_tennis_trial_prior_upgrades_v1.sql",
+      "source_md5": "f2c475a6cecea46ea69f8f7acad70464",
+      "source_length": 6021,
+      "tokens": 867,
+      "fnv64": "86b6f1b15cf2ad3a"
+    },
+    {
+      "name": "tennis_club_unread_alerts_v1",
+      "applied_version": "20261018181245",
+      "repo_file": "20261018191500_tennis_club_unread_alerts_v1.sql",
+      "source_md5": "c6f70d41c3e9ad6e8e54a2ed6cdad099",
+      "source_length": 8215,
+      "tokens": 1367,
+      "fnv64": "1d4fa046e1cf60a6"
+    },
+    {
+      "name": "tennis_club_invitation_notification_cleanup_v1",
+      "applied_version": "20261018182038",
+      "repo_file": "20261018192500_tennis_club_invitation_notification_cleanup_v1.sql",
+      "source_md5": "1c3d9091d6731f49acfaaa9e2cfd01b2",
+      "source_length": 1139,
+      "tokens": 139,
+      "fnv64": "6895e8e7c002ae8e"
+    },
+    {
+      "name": "tennis_notification_preference_inventory_v2",
+      "applied_version": "20261019071049",
+      "repo_file": "20261019102000_tennis_notification_preference_inventory_v2.sql",
+      "source_md5": "88a695a093ce4396d6a760571b0da49e",
+      "source_length": 8586,
+      "tokens": 1263,
+      "fnv64": "bc21dd05c586ae5b"
+    },
+    {
+      "name": "public_tennis_home_gallery_20_read",
+      "applied_version": "20261019122133",
+      "repo_file": "20261019133100_public_tennis_home_gallery_20_read.sql",
+      "source_md5": "aedca0a3dec0d0fe9d2c3ea61ea1256e",
+      "source_length": 685,
+      "tokens": 64,
+      "fnv64": "d998b58ba882ee86"
+    },
+    {
+      "name": "season_transition_preflight_readonly_v1",
+      "applied_version": "20261019151008",
+      "repo_file": "20261019153000_season_transition_preflight_readonly_v1.sql",
+      "source_md5": "1f2a45148dcba29d2721e7050691a6ef",
+      "source_length": 4146,
+      "tokens": 562,
+      "fnv64": "8efec947279ad73e"
+    },
+    {
+      "name": "season_transition_clock_boundary_guard_v1",
+      "applied_version": "20261019151243",
+      "repo_file": "20261019173000_season_transition_clock_boundary_guard_v1.sql",
+      "source_md5": "454c7687dc739453b71314889f1c4243",
+      "source_length": 3512,
+      "tokens": 496,
+      "fnv64": "3ba676bdaef636db"
+    },
+    {
+      "name": "tennis_season_migration_secure_control_center_feed",
+      "applied_version": "20261019151309",
+      "repo_file": "20261019174500_tennis_season_migration_secure_control_center_feed.sql",
+      "source_md5": "36a11b4127aad5d4ac846e67b3f324d6",
+      "source_length": 6733,
+      "tokens": 948,
+      "fnv64": "aa0dd4f4989f59d2"
+    },
+    {
+      "name": "monitor_tennis_migration_telemetry_job",
+      "applied_version": "20261019151629",
+      "repo_file": "20261019175000_monitor_tennis_migration_telemetry_job.sql",
+      "source_md5": "f6f15d532bab05b20de330803b65bfb9",
+      "source_length": 1395,
+      "tokens": 146,
+      "fnv64": "00b123c6ac62adcd"
+    },
+    {
+      "name": "premium_statistics_intelligence_v1",
+      "applied_version": "20261020062737",
+      "repo_file": "20261020063000_premium_statistics_intelligence_v1.sql",
+      "source_md5": "b97a73b4c81ad31884601263b1853859",
+      "source_length": 3509,
+      "tokens": 620,
+      "fnv64": "edf4ee0824cdab7e"
+    },
+    {
+      "name": "premium_statistics_intelligence_volatility_fix",
+      "applied_version": "20261020063247",
+      "repo_file": "20261020070100_premium_statistics_intelligence_volatility_fix.sql",
+      "source_md5": "db6887b48880f1434897ac073196e90d",
+      "source_length": 246,
+      "tokens": 12,
+      "fnv64": "4f251e9e9fdf4c1c"
+    },
+    {
+      "name": "premium_deep_match_analysis_v1",
+      "applied_version": "20261020070830",
+      "repo_file": "20261020090500_premium_deep_match_analysis_v1.sql",
+      "source_md5": "17dd25d88b2cd208e341df32290f578f",
+      "source_length": 4862,
+      "tokens": 749,
+      "fnv64": "72e6d4d7b4260224"
+    },
+    {
+      "name": "premium_deep_match_historical_factors_v1",
+      "applied_version": "20261020074935",
+      "repo_file": "20261020094500_premium_deep_match_historical_factors_v1.sql",
+      "source_md5": "14bd94911a457689381197b923312353",
+      "source_length": 7696,
+      "tokens": 1178,
+      "fnv64": "b657e2bd94fceeb4"
+    },
+    {
+      "name": "premium_player_development_intelligence_v1",
+      "applied_version": "20261020102656",
+      "repo_file": "20261020114500_premium_player_development_intelligence_v1.sql",
+      "source_md5": "0d9a1c9e0042741b96cc496588dc48e3",
+      "source_length": 3126,
+      "tokens": 417,
+      "fnv64": "5ee8e57b7bb53c13"
+    },
+    {
+      "name": "skill_history_game_week_metadata_v1",
+      "applied_version": "20261020103953",
+      "repo_file": "20261020131500_skill_history_game_week_metadata_v1.sql",
+      "source_md5": "063d7d9e6ed0143ecca4c7892836cbe1",
+      "source_length": 4894,
+      "tokens": 809,
+      "fnv64": "72aac03cb0228979"
+    }
+  ]
+}
