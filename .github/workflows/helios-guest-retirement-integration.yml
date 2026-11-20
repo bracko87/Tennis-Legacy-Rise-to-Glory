@@ -7,6 +7,8 @@ on:
       - 'tests/helios_guest_retirement_ephemeral_db.sql'
       - 'tests/helios_guest_retirement_edge_cases.sql'
       - 'tests/helios_guest_tombstone_proof_ephemeral_db.sql'
+      - 'tests/helios_guest_erasure_preflight_ephemeral_db.sql'
+      - 'tests/fixtures/helios_guest_erasure_preflight_fixture.sql'
       - 'tests/fixtures/helios_guest_retirement_*.sql'
       - 'HELIOS_CHECKLIST.md'
   workflow_dispatch:
@@ -65,3 +67,7 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f tests/helios_guest_retirement_edge_cases.sql
       - name: Prove historical singles and doubles preservation with a detached guest identity
         run: psql -v ON_ERROR_STOP=1 -f tests/helios_guest_tombstone_proof_ephemeral_db.sql
+      - name: Load disposable-only guest erasure preflight (no deletion endpoint)
+        run: psql -v ON_ERROR_STOP=1 -f tests/fixtures/helios_guest_erasure_preflight_fixture.sql
+      - name: Check expired, active, converted, paid and historical account deletion blockers
+        run: psql -v ON_ERROR_STOP=1 -f tests/helios_guest_erasure_preflight_ephemeral_db.sql
