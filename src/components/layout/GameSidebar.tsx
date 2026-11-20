@@ -19,11 +19,13 @@ import {
   Shield,
   Trophy,
   UsersRound,
+  UserPlus,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
+import { useGuestTrialDisplay } from '../../hooks/useGuestTrialDisplay'
 import BugReportButton from '../dashboard/BugReportButton'
 import { useTennisClubAlerts } from '../../hooks/useTennisClubAlerts'
 import './tennis-club-alerts.css'
@@ -78,7 +80,8 @@ export default function GameSidebar({
   const { t } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
-  const { signOut, isAdmin } = useAuth()
+  const { user, signOut, isAdmin } = useAuth()
+  const guestTrial = useGuestTrialDisplay()
   const { alerts: clubAlerts } = useTennisClubAlerts()
   // The desktop collapse preference must not reduce the open phone drawer to icons.
   const collapseNav = isCollapsed && !isMobileOpen
@@ -224,6 +227,17 @@ export default function GameSidebar({
         )}
 
         <div className="tlg-v2-sidebar-footer tlg-v4-sidebar-footer">
+          {user?.is_anonymous && (
+            <Link to="/guest/register" className="tlg-v2-nav-link tlg-guest-sidebar-register"
+              onClick={onMobileClose} title="Register to save your test player">
+              <span className="tlg-v2-nav-icon"><UserPlus size={17}/></span>
+              {!collapseNav && <span className="tlg-v2-nav-copy">
+                <strong>Register · Save Progress</strong>
+                <small>{guestTrial.state === 'active' ? `${guestTrial.daysLeft} days remaining` : guestTrial.state === 'expired' ? 'Trial ended · Register now' : 'Keep your tennis player'}</small>
+              </span>}
+            </Link>
+          )}
+
           <BugReportButton
             collapsed={collapseNav}
             currentPageLabel={currentPageLabel}
