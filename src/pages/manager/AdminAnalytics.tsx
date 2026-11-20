@@ -22,6 +22,7 @@ import {
   YAxis,
 } from 'recharts'
 
+import AdminEventHistory from '../../components/admin/AdminEventHistory'
 import GameLayout from '../../components/layout/GameLayout'
 import { supabase } from '../../lib/supabase'
 
@@ -379,6 +380,8 @@ export default function AdminAnalyticsPage() {
             : ''}
         </p>
         {error && <div className="tlg-admin-analytics-error">{error}</div>}
+
+        <AdminEventHistory period={period} />
 
         <section className="tlg-admin-analytics-panel" aria-label="Tennis Legacy economy and transactions">
           <h2 style={{ marginBottom: 8 }}>Economy &amp; Transactions</h2>
