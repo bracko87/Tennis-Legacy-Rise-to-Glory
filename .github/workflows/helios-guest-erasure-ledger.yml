@@ -1,0 +1,21 @@
+name: Helios guest erasure review ledger guard
+
+on:
+  pull_request:
+    paths:
+      - 'docs/HELIOS_GUEST_ERASURE_180_TABLE_TRIAGE_LEDGER.md'
+      - 'scripts/check-helios-erasure-ledger.mjs'
+      - '.github/workflows/helios-guest-erasure-ledger.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  schema-review-ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check 180-table inventory has no omission or premature policy approval
+        run: node scripts/check-helios-erasure-ledger.mjs
