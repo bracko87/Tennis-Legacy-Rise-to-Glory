@@ -1,0 +1,385 @@
+{
+  "description": "Applied SQL token fingerprints from migration registry only, no account data and no source SQL",
+  "batch": 3,
+  "expected_groups": 6,
+  "items": [
+    {
+      "name": "expand_property_cities_and_apartment_availability_v1",
+      "applied_version": "20261006071445",
+      "repo_file": "20261006091500_expand_property_cities_and_apartment_availability_v1.sql",
+      "source_md5": "783d1f2949f25e281ef499fc719e1a41",
+      "source_length": 34248,
+      "tokens": 6868,
+      "fnv64": "42e686bb5f5b350e"
+    },
+    {
+      "name": "one_bedroom_apartment_city_images_v1",
+      "applied_version": "20261006082055",
+      "repo_file": "20261006102200_one_bedroom_apartment_city_images_v1.sql",
+      "source_md5": "b3abf2443d296b4e7486c6da056d5427",
+      "source_length": 7519,
+      "tokens": 493,
+      "fnv64": "908fecd7f554fab3"
+    },
+    {
+      "name": "restrict_apartment_market_to_curated_city_sets_v1",
+      "applied_version": "20261006090103",
+      "repo_file": "20261006110500_restrict_apartment_market_to_curated_city_sets_v1.sql",
+      "source_md5": "b54476e00c14d440c00b48589672ed11",
+      "source_length": 11391,
+      "tokens": 1799,
+      "fnv64": "eda213437ee8d485"
+    },
+    {
+      "name": "make_player_property_location_function_volatile_v1",
+      "applied_version": "20261006090146",
+      "repo_file": "20261006111200_make_player_property_location_function_volatile_v1.sql",
+      "source_md5": "ab5c24c4cf638ebb0e6a023614a4c65a",
+      "source_length": 191,
+      "tokens": 10,
+      "fnv64": "83c81025976ccb34"
+    },
+    {
+      "name": "calibrate_apartment_city_prices_v1",
+      "applied_version": "20261006091543",
+      "repo_file": "20261006113000_calibrate_apartment_city_prices_v1.sql",
+      "source_md5": "58a0160ed3ee47c42f34190f4688c536",
+      "source_length": 3164,
+      "tokens": 650,
+      "fnv64": "67473709d757c03e"
+    },
+    {
+      "name": "lock_standard_city_apartment_market_v1",
+      "applied_version": "20261006091921",
+      "repo_file": "20261006114500_lock_standard_city_apartment_market_v1.sql",
+      "source_md5": "e7f0b504aa23f0b5d8272735f3ec373b",
+      "source_length": 3581,
+      "tokens": 684,
+      "fnv64": "b18b9b37a250475b"
+    },
+    {
+      "name": "publish_standard_city_apartment_market_v1",
+      "applied_version": "20261006111931",
+      "repo_file": "20261006120000_publish_standard_city_apartment_market_v1.sql",
+      "source_md5": "1ec327cf861ecbd11a62444855efbd62",
+      "source_length": 2628,
+      "tokens": 350,
+      "fnv64": "893b58e7d699b9cb"
+    },
+    {
+      "name": "allow_standard_city_apartment_authenticated_read_v1",
+      "applied_version": "20261006113253",
+      "repo_file": "20261006123500_allow_standard_city_apartment_authenticated_read_v1.sql",
+      "source_md5": "d383c9452a1203c1ba4c9902c61b8366",
+      "source_length": 495,
+      "tokens": 53,
+      "fnv64": "41f625c25be3611e"
+    },
+    {
+      "name": "apply_travelling_staff_tournament_effects_v1",
+      "applied_version": "20261006114335",
+      "repo_file": "20261006115000_apply_travelling_staff_tournament_effects_v1.sql",
+      "source_md5": "cdc5ca885ed31401012533934e9a27b3",
+      "source_length": 18184,
+      "tokens": 3721,
+      "fnv64": "7f0cfa5baebfb19a"
+    },
+    {
+      "name": "publish_large_city_apartment_market_v1",
+      "applied_version": "20261006120142",
+      "repo_file": "20261006130000_publish_large_city_apartment_market_v1.sql",
+      "source_md5": "8879443bf830d995a205a81a26fe3784",
+      "source_length": 2390,
+      "tokens": 317,
+      "fnv64": "0db695aa3b6ae534"
+    },
+    {
+      "name": "all_travelling_staff_tournament_effects_v2",
+      "applied_version": "20261006121339",
+      "repo_file": "20261006121500_all_travelling_staff_tournament_effects_v2.sql",
+      "source_md5": "16a0e621d03fd5ffd1f7e71ad8ffaf02",
+      "source_length": 24785,
+      "tokens": 4478,
+      "fnv64": "f8d8d38582e678d0"
+    },
+    {
+      "name": "secure_travelling_staff_internal_helpers_v1",
+      "applied_version": "20261006121422",
+      "repo_file": "20261006122500_secure_travelling_staff_internal_helpers_v1.sql",
+      "source_md5": "4aad4fd5fe4ee407153014b8b0c24050",
+      "source_length": 616,
+      "tokens": 93,
+      "fnv64": "44d8db6cededb6e2"
+    },
+    {
+      "name": "calibrate_large_city_apartment_prices_v2",
+      "applied_version": "20261006134332",
+      "repo_file": "20261006155000_calibrate_large_city_apartment_prices_v2.sql",
+      "source_md5": "9f935277f6b1b0d29adaadeff20c4c2e",
+      "source_length": 12182,
+      "tokens": 2332,
+      "fnv64": "9dac4922bc4866b2"
+    },
+    {
+      "name": "connect_large_city_apartment_images_v1",
+      "applied_version": "20261006135024",
+      "repo_file": "20261006160000_connect_large_city_apartment_images_v1.sql",
+      "source_md5": "6c5743e3b88ddb3dbe851da00f9568d0",
+      "source_length": 2716,
+      "tokens": 359,
+      "fnv64": "bda28ea0a15520eb"
+    },
+    {
+      "name": "publish_executive_apartment_market_v1",
+      "applied_version": "20261006141026",
+      "repo_file": "20261006162500_publish_executive_apartment_market_v1.sql",
+      "source_md5": "72db976069269282bfbeacd959fa5542",
+      "source_length": 6020,
+      "tokens": 1147,
+      "fnv64": "1e12d782de35c93a"
+    },
+    {
+      "name": "connect_executive_apartment_images_v1",
+      "applied_version": "20261006151334",
+      "repo_file": "20261006171000_connect_executive_apartment_images_v1.sql",
+      "source_md5": "2bf354c8e016294e98bfe48e8821022c",
+      "source_length": 3302,
+      "tokens": 426,
+      "fnv64": "36eb2070199dce03"
+    },
+    {
+      "name": "publish_luxury_city_apartment_market_v1",
+      "applied_version": "20261006152711",
+      "repo_file": "20261006172500_publish_luxury_city_apartment_market_v1.sql",
+      "source_md5": "f28ce7082b58bd8022ee0872ff7a4098",
+      "source_length": 11945,
+      "tokens": 2589,
+      "fnv64": "983b616836b96aea"
+    },
+    {
+      "name": "connect_luxury_city_apartment_images_v1",
+      "applied_version": "20261006162826",
+      "repo_file": "20261006183000_connect_luxury_city_apartment_images_v1.sql",
+      "source_md5": "8d1defa75d3e813a49c21aa437edbe01",
+      "source_length": 5174,
+      "tokens": 684,
+      "fnv64": "f6d99557021c7950"
+    },
+    {
+      "name": "rebalance_match_double_faults_v2",
+      "applied_version": "20261006183149",
+      "repo_file": "20261006183500_rebalance_match_double_faults_v2.sql",
+      "source_md5": "c90aa812cf3efb557e988f64e1621dbb",
+      "source_length": 903,
+      "tokens": 154,
+      "fnv64": "3e703f735674a20d"
+    },
+    {
+      "name": "publish_skyline_apartment_market_v1",
+      "applied_version": "20261006183932",
+      "repo_file": "20261006204000_publish_skyline_apartment_market_v1.sql",
+      "source_md5": "8f5a777c61929814ba213998828d3bb0",
+      "source_length": 11983,
+      "tokens": 2382,
+      "fnv64": "873910d6165f000c"
+    },
+    {
+      "name": "connect_skyline_apartment_images_v1",
+      "applied_version": "20261006192909",
+      "repo_file": "20261006213000_connect_skyline_apartment_images_v1.sql",
+      "source_md5": "0ce0c9dc3dd00f452baa79db5995004f",
+      "source_length": 4595,
+      "tokens": 634,
+      "fnv64": "7a3b59556272f2f4"
+    },
+    {
+      "name": "publish_luxury_penthouse_market_v1",
+      "applied_version": "20261007065149",
+      "repo_file": "20261007090000_publish_luxury_penthouse_market_v1.sql",
+      "source_md5": "c7309be29fec628536bf21450b9c4d15",
+      "source_length": 8166,
+      "tokens": 1598,
+      "fnv64": "273e4e5330d15975"
+    },
+    {
+      "name": "prelaunch_game_tutorial_progress_v1",
+      "applied_version": "20261007071220",
+      "repo_file": "20261007091500_prelaunch_game_tutorial_progress_v1.sql",
+      "source_md5": "2abe5c309e4ec59c50577d6251bbc977",
+      "source_length": 3608,
+      "tokens": 541,
+      "fnv64": "60738e530520181a"
+    },
+    {
+      "name": "first_session_tutorial_only_v1",
+      "applied_version": "20261007073713",
+      "repo_file": "20261007094500_first_session_tutorial_only_v1.sql",
+      "source_md5": "adc9aa1c56792bf7519e1a23841c0e54",
+      "source_length": 1744,
+      "tokens": 218,
+      "fnv64": "cacebc45992143ce"
+    },
+    {
+      "name": "connect_luxury_penthouse_images_v1",
+      "applied_version": "20261007091844",
+      "repo_file": "20261007112000_connect_luxury_penthouse_images_v1.sql",
+      "source_md5": "5c20af71cd6c3b0e67dacf883331fe14",
+      "source_length": 4042,
+      "tokens": 598,
+      "fnv64": "ed9a3595676a4837"
+    },
+    {
+      "name": "publish_signature_penthouse_market_v1",
+      "applied_version": "20261007092705",
+      "repo_file": "20261007113000_publish_signature_penthouse_market_v1.sql",
+      "source_md5": "96182cdcf29f644f6b57bf862861e788",
+      "source_length": 7910,
+      "tokens": 1371,
+      "fnv64": "c3f602aac4013cee"
+    },
+    {
+      "name": "connect_signature_penthouse_images_v1",
+      "applied_version": "20261007100745",
+      "repo_file": "20261007121000_connect_signature_penthouse_images_v1.sql",
+      "source_md5": "269c26764cb63d57f8e3870c7066a56d",
+      "source_length": 4774,
+      "tokens": 683,
+      "fnv64": "b3100c700b323f8b"
+    },
+    {
+      "name": "publish_standard_house_market_v1",
+      "applied_version": "20261007132146",
+      "repo_file": "20261007131500_publish_standard_house_market_v1.sql",
+      "source_md5": "375e79d2ff509f92af7d24d5ec4932f5",
+      "source_length": 15036,
+      "tokens": 2877,
+      "fnv64": "81664ec20912ed13"
+    },
+    {
+      "name": "keep_only_standard_house_v1",
+      "applied_version": "20261007133426",
+      "repo_file": "20261007134500_keep_only_standard_house_v1.sql",
+      "source_md5": "f867de01eba3d7ba917359a932ace98f",
+      "source_length": 1653,
+      "tokens": 192,
+      "fnv64": "0d322505e0fa6a51"
+    },
+    {
+      "name": "publish_family_house_market_v1",
+      "applied_version": "20261007140705",
+      "repo_file": "20261007141500_publish_family_house_market_v1.sql",
+      "source_md5": "a7ac40269b636afea6d89a05d2dca6b3",
+      "source_length": 8842,
+      "tokens": 1770,
+      "fnv64": "608c54b69749c868"
+    },
+    {
+      "name": "connect_family_house_images_v1",
+      "applied_version": "20261007152102",
+      "repo_file": "20261007173000_connect_family_house_images_v1.sql",
+      "source_md5": "a7d6b48d97c8445e7e160ec8bdbf7b87",
+      "source_length": 6633,
+      "tokens": 1337,
+      "fnv64": "b410df5e429a1081"
+    },
+    {
+      "name": "connect_modern_house_images_v1",
+      "applied_version": "20261007183344",
+      "repo_file": "20261007203500_connect_modern_house_images_v1.sql",
+      "source_md5": "373425111593be7a6d6ebfa440805db3",
+      "source_length": 7338,
+      "tokens": 1262,
+      "fnv64": "e69a196f7638174a"
+    },
+    {
+      "name": "connect_modern_house_shanghai_v1",
+      "applied_version": "20261007183802",
+      "repo_file": "20261007204500_connect_modern_house_shanghai_v1.sql",
+      "source_md5": "2332624781e275d76b415b7df247664f",
+      "source_length": 1880,
+      "tokens": 232,
+      "fnv64": "b69429c9267ef900"
+    },
+    {
+      "name": "publish_executive_house_market_v1",
+      "applied_version": "20261008065327",
+      "repo_file": "20261008070000_publish_executive_house_market_v1.sql",
+      "source_md5": "29276358dde59be8a1bbde7d5e68d966",
+      "source_length": 8411,
+      "tokens": 1526,
+      "fnv64": "d1cde3e1000f1054"
+    },
+    {
+      "name": "premium_multi_period_billing_v1",
+      "applied_version": "20261008070027",
+      "repo_file": "20261008101500_premium_multi_period_billing_v1.sql",
+      "source_md5": "92071becc1fb13579015a48ed7079420",
+      "source_length": 19583,
+      "tokens": 2904,
+      "fnv64": "07f5580c845fa61a"
+    },
+    {
+      "name": "connect_executive_house_images_v1",
+      "applied_version": "20261008075535",
+      "repo_file": "20261008095500_connect_executive_house_images_v1.sql",
+      "source_md5": "9c80cb4915d6d507bfcd506e05f5b6e8",
+      "source_length": 6278,
+      "tokens": 1060,
+      "fnv64": "e14192b83c8e4537"
+    },
+    {
+      "name": "publish_luxury_house_market_v1",
+      "applied_version": "20261008085158",
+      "repo_file": "20261008105000_publish_luxury_house_market_v1.sql",
+      "source_md5": "2229af4dbcdab39c6c682d6b8cf15068",
+      "source_length": 10544,
+      "tokens": 1883,
+      "fnv64": "dcb3a0c36d259981"
+    },
+    {
+      "name": "connect_luxury_house_images_v1",
+      "applied_version": "20261008092114",
+      "repo_file": "20261008112000_connect_luxury_house_images_v1.sql",
+      "source_md5": "93726823849a9494a9ed6ec624cce06f",
+      "source_length": 5967,
+      "tokens": 987,
+      "fnv64": "f3cd6b96e29925d7"
+    },
+    {
+      "name": "expand_private_life_asset_tiers_v1",
+      "applied_version": "20261008092938",
+      "repo_file": "20261008113400_expand_private_life_asset_tiers_v1.sql",
+      "source_md5": "a4b8123201def7ae6eacbdffceaf331b",
+      "source_length": 311,
+      "tokens": 32,
+      "fnv64": "6db515753af1eded"
+    },
+    {
+      "name": "publish_private_villa_market_v1",
+      "applied_version": "20261008092945",
+      "repo_file": "20261008113500_publish_private_villa_market_v1.sql",
+      "source_md5": "6491ac053991a95963d179cd90664a35",
+      "source_length": 7425,
+      "tokens": 1249,
+      "fnv64": "a270f0813f14832f"
+    },
+    {
+      "name": "connect_private_villa_images_v1",
+      "applied_version": "20261008100515",
+      "repo_file": "20261008121000_connect_private_villa_images_v1.sql",
+      "source_md5": "144a54fbb853c77f96950d0caa845d46",
+      "source_length": 5450,
+      "tokens": 905,
+      "fnv64": "77420d966d31feea"
+    },
+    {
+      "name": "publish_grand_estate_market_v1",
+      "applied_version": "20261008102238",
+      "repo_file": "20261008122500_publish_grand_estate_market_v1.sql",
+      "source_md5": "0a6bcc529fea47d7579810f154aa3079",
+      "source_length": 9279,
+      "tokens": 1562,
+      "fnv64": "2a96dc091299e123"
+    }
+  ]
+}
