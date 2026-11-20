@@ -542,8 +542,8 @@ export default function CreatePlayerPage(): JSX.Element {
 
         <div className="tlg-onboarding-topbar-actions">
           <div className="tlg-onboarding-account-state">
-            <span>{t('createPlayer.top.accountVerified')}</span>
-            <strong>{user?.email ?? t('createPlayer.top.authenticated')}</strong>
+            <span>{activeGuest ? 'Test Player · 14-day limit' : t('createPlayer.top.accountVerified')}</span>
+            <strong>{activeGuest ? 'Guest session' : user?.email ?? t('createPlayer.top.authenticated')}</strong>
           </div>
 
           <Link to="/" className="tlg-onboarding-home-link">
@@ -559,13 +559,13 @@ export default function CreatePlayerPage(): JSX.Element {
             <p className="tlg-page-heading-eyebrow">{t('createPlayer.top.eyebrow')}</p>
             <h1>{t('createPlayer.top.title')}</h1>
             <p>
-              {t('createPlayer.top.description')}
+              {activeGuest ? 'To try Tennis Legacy, choose a player name, country and appearance. No city or email is required.' : t('createPlayer.top.description')}
             </p>
           </div>
         </div>
 
         <nav className="tlg-onboarding-stepper" aria-label={t('createPlayer.top.progressAria')}>
-          {ONBOARDING_STEPS.map((item) => {
+          {ONBOARDING_STEPS.filter(item => !activeGuest || item.id !== 4).map((item) => {
             const active = item.id === step
             const complete = item.id < step
 
@@ -585,6 +585,17 @@ export default function CreatePlayerPage(): JSX.Element {
           })}
         </nav>
 
+        {isGuest && guestState !== 'active' && (
+          <div className="tlg-auth-status tlg-auth-status-information" role="alert">
+            {guestState === 'loading' ? 'Checking your test session…' :
+              'Your test player is unavailable until Guest Mode is enabled and your 14-day trial is active. No player data has been created.'}
+          </div>
+        )}
+        {activeGuest && (
+          <div className="tlg-auth-status tlg-auth-status-success" role="status">
+            Test Player: choose your name, country and appearance. Your introductory Premium trial is handled separately. Register later to save progress.
+          </div>
+        )}
         <form className="tlg-onboarding-wizard" onSubmit={handleCreate} noValidate>
           <section className="tlg-onboarding-stage-card">
             <header className="tlg-onboarding-stage-header">
@@ -1042,7 +1053,7 @@ export default function CreatePlayerPage(): JSX.Element {
                   variant="primary"
                   size="large"
                   onClick={goNext}
-                  disabled={step === 2 && (countriesLoading || homeCitiesLoading)}
+                  disabled={guestState === 'loading' || (isGuest && !activeGuest) || (step === 2 && (countriesLoading || (!activeGuest && homeCitiesLoading)))}
                   rightIcon={<ArrowRight size={18} />}
                 >
                   Continue
@@ -1053,7 +1064,7 @@ export default function CreatePlayerPage(): JSX.Element {
                   variant="primary"
                   size="large"
                   loading={saving}
-                  disabled={!user || !formValid}
+                  disabled={!user || !formValid || guestState === 'loading' || (isGuest && !activeGuest)}
                   rightIcon={<ArrowRight size={18} />}
                 >
                   {saving ? t('createPlayer.review.starting') : t('createPlayer.review.start')}
