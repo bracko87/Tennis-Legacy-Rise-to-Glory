@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Activity,
@@ -357,6 +358,7 @@ export default function AdminAnalyticsPage() {
     <GameLayout title="Admin Analytics" subtitle="Private website traffic and player activity">
       <div className="tlg-admin-analytics">
         <div className="tlg-admin-analytics-toolbar">
+          <Link to="/game/admin/guest-preview" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 14px", border: "1px solid #b49a5f", borderRadius: 3, color: "inherit", textDecoration: "none" }}><Eye size={16} /> Preview Guest Mode UI</Link>
           <div>
             <span>REPORTING WINDOW</span>
             <select value={period} onChange={(event) => setPeriod(Number(event.target.value))}>

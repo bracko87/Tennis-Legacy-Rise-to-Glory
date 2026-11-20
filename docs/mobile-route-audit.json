@@ -246,6 +246,11 @@
       "path": "*",
       "audience": "fallback",
       "status": "not_applicable"
+    },
+    {
+      "path": "/game/admin/guest-preview",
+      "audience": "admin",
+      "status": "pending_device_validation"
     }
   ],
   "workflows": [

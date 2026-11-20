@@ -1,0 +1,25 @@
+.tlg-helios-preview{width:100%;max-width:1080px;margin:0 auto;padding:18px 0 42px;color:var(--tlg-text,#f2f4f7)}
+.tlg-helios-preview-alert{display:flex;gap:12px;align-items:flex-start;padding:16px 18px;border:1px solid #d3ad54;background:rgba(211,173,84,.11);border-radius:4px}
+.tlg-helios-preview-alert p{margin:6px 0 0;line-height:1.5;font-size:14px}
+.tlg-helios-preview-top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin:25px 0 12px}
+.tlg-helios-preview-top p{display:flex;align-items:center;gap:9px;margin:0;font-weight:700}
+.tlg-helios-preview-top a{text-decoration:underline}
+.tlg-helios-preview-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.tlg-helios-preview-tabs button{border:1px solid #777;background:#272b32;color:#fff;border-radius:3px;padding:11px 16px;font:inherit;cursor:pointer}
+.tlg-helios-preview-tabs button.is-active{background:#e4bb58;border-color:#e4bb58;color:#171717;font-weight:700}
+.tlg-helios-preview-stage{border:1px solid rgba(170,170,170,.45);border-radius:4px;overflow:hidden}
+.tlg-helios-preview-stage .tlg-guest-entry{min-height:0;padding:28px 18px}
+.tlg-helios-preview-panel{padding:clamp(20px,5vw,48px);background:linear-gradient(145deg,#17212e,#101319);color:#f9f9f9}
+.tlg-helios-preview-panel h2{font-size:clamp(25px,4vw,39px);font-weight:700;margin:10px 0 16px}
+.tlg-helios-preview-panel p{max-width:710px;line-height:1.65}
+.tlg-helios-preview-kicker{font-size:12px;letter-spacing:.13em;color:#e5bc65;font-weight:700}
+.tlg-helios-preview-actions{display:flex;flex-wrap:wrap;gap:10px;margin:28px 0}
+.tlg-helios-preview-panel button{border:1px solid #8d939c;border-radius:3px;padding:12px 18px;background:#2e333b;color:#fff;font-weight:600}
+.tlg-helios-preview-panel button.is-primary{background:#f0c55d;border-color:#f0c55d;color:#111}
+.tlg-helios-preview-panel button:disabled{opacity:1;cursor:not-allowed}
+.tlg-helios-preview-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:25px 0}
+.tlg-helios-preview-fields label{display:flex;flex-direction:column;gap:8px;font-size:14px;font-weight:600}
+.tlg-helios-preview-fields input,.tlg-helios-preview-fields select{background:#f6f6f6;color:#222;padding:12px;border-radius:3px;border:1px solid #a3a3a3;width:100%}
+.tlg-helios-preview-balance{display:flex;align-items:center;gap:10px;margin:22px 0;color:#e5c576}
+.tlg-helios-preview-panel small{display:block;margin-top:18px;opacity:.82;line-height:1.5}
+@media(max-width:650px){.tlg-helios-preview-tabs button{flex:1 1 44%;font-size:13px;padding:11px 8px}}

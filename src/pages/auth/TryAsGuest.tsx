@@ -12,7 +12,7 @@ import '../../styles/guest-entry.css'
  * Anonymous Auth creates a new auth.users identity; do not replace a signed-in
  * permanent session or allow a repeat anonymous login to reset its clock.
  */
-export default function TryAsGuestPage() {
+export default function TryAsGuestPage({ previewOnly = false }: { readonly previewOnly?: boolean }) {
   const available = useTennisGuestAvailability()
   const { user, player, authLoading } = useAuth()
   const navigate = useNavigate()
@@ -30,7 +30,7 @@ export default function TryAsGuestPage() {
   }, [])
 
   async function begin() {
-    if (!available || busy || authLoading) return
+    if (previewOnly || !available || busy || authLoading) return
     setError(null)
     setBusy(true)
     try {
@@ -61,7 +61,7 @@ export default function TryAsGuestPage() {
     }
   }
 
-  if (!authLoading && user && !user.is_anonymous) {
+  if (!previewOnly && !authLoading && user && !user.is_anonymous) {
     return <Navigate to={player ? '/game/overview' : '/create-player'} replace />
   }
 
@@ -81,7 +81,8 @@ export default function TryAsGuestPage() {
           Your guest progress is stored with this browser session. Clearing browser data, signing out, or switching devices before registering may make your player unrecoverable.
         </p>
         {error && <p role="alert" className="tlg-auth-status tlg-auth-status-information">{error}</p>}
-        {checked && !available && (
+        {previewOnly && <p role="status" className="tlg-auth-status tlg-auth-status-information">Admin UI preview only — no account is created, no trial starts and no data is saved.</p>}
+        {!previewOnly && checked && !available && (
           <p role="status">Test Player access is not available yet. You can still register a permanent account.</p>
         )}
         <div className="tlg-guest-entry-actions">
@@ -89,13 +90,13 @@ export default function TryAsGuestPage() {
             className="tlg-btn tlg-btn-primary tlg-btn-large"
             type="button"
             onClick={() => void begin()}
-            disabled={!available || busy || authLoading}
+            disabled={previewOnly || !available || busy || authLoading}
           >
-            {busy ? 'Creating your test session…' : 'Create Test Player'}
+            {previewOnly ? 'Create Test Player (Preview Only)' : busy ? 'Creating your test session…' : 'Create Test Player'}
             <ArrowRight size={17}/>
           </button>
-          <Link to="/register" className="tlg-btn tlg-btn-secondary tlg-btn-large">Create a Permanent Account</Link>
-          <Link to="/">Back to Homepage</Link>
+          {previewOnly ? <span className="tlg-btn tlg-btn-secondary tlg-btn-large" aria-disabled="true">Create a Permanent Account</span> : <Link to="/register" className="tlg-btn tlg-btn-secondary tlg-btn-large">Create a Permanent Account</Link>}
+          {!previewOnly && <Link to="/">Back to Homepage</Link>}
         </div>
       </section>
     </main>
