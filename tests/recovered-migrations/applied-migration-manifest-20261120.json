@@ -1,0 +1,3254 @@
+{
+  "source": "Tennis Legacy production migration metadata only; no SQL or personal records",
+  "snapshot_date": "2026-11-20",
+  "versions": [
+    {
+      "version": "20260828112439",
+      "name": "auth_onboarding_foundation"
+    },
+    {
+      "version": "20260828112544",
+      "name": "lock_down_auth_trigger_function"
+    },
+    {
+      "version": "20260828124542",
+      "name": "create_public_email_branding_bucket"
+    },
+    {
+      "version": "20260828172024",
+      "name": "player_identity_assets_and_countries"
+    },
+    {
+      "version": "20260828173037",
+      "name": "link_player_country_reference"
+    },
+    {
+      "version": "20260828180817",
+      "name": "game_clock_foundation"
+    },
+    {
+      "version": "20260828181205",
+      "name": "harden_game_clock_read_access"
+    },
+    {
+      "version": "20260828182230",
+      "name": "allow_authenticated_tennis_logo_read"
+    },
+    {
+      "version": "20260828184116",
+      "name": "switch_dashboard_logo_asset"
+    },
+    {
+      "version": "20260830184454",
+      "name": "avatar_catalog_and_reservation"
+    },
+    {
+      "version": "20260830184911",
+      "name": "harden_avatar_catalog_availability"
+    },
+    {
+      "version": "20260831065931",
+      "name": "commerce_wallet_premium_foundation"
+    },
+    {
+      "version": "20260831065945",
+      "name": "commerce_rls_and_backfill"
+    },
+    {
+      "version": "20260831065956",
+      "name": "commerce_new_user_trigger"
+    },
+    {
+      "version": "20260831070009",
+      "name": "lock_commerce_trigger_function"
+    },
+    {
+      "version": "20260831121636",
+      "name": "tournament_foundation_and_january_season_1"
+    },
+    {
+      "version": "20260831122923",
+      "name": "february_season_1_tournaments"
+    },
+    {
+      "version": "20260831131316",
+      "name": "tournament_detail_page_rpc"
+    },
+    {
+      "version": "20260831131853",
+      "name": "harden_tournament_detail_rpc"
+    },
+    {
+      "version": "20260831150235",
+      "name": "lock_tournament_schedule_rules_and_normalize_names"
+    },
+    {
+      "version": "20260831153944",
+      "name": "tournament_applications_and_prestart_projection"
+    },
+    {
+      "version": "20260831154821",
+      "name": "harden_tournament_application_rpcs"
+    },
+    {
+      "version": "20260831154918",
+      "name": "optimize_tournament_application_rls_and_indexes"
+    },
+    {
+      "version": "20260831160652",
+      "name": "rename_repeat_tournaments_and_enforce_unique_names"
+    },
+    {
+      "version": "20260831162138",
+      "name": "continuous_monday_sunday_competition_weeks"
+    },
+    {
+      "version": "20260831164307",
+      "name": "tournament_logos_january_batch_1"
+    },
+    {
+      "version": "20260831184717",
+      "name": "rename_australian_grand_slam_and_fix_logos"
+    },
+    {
+      "version": "20260831185451",
+      "name": "tournament_logos_january_batch_2"
+    },
+    {
+      "version": "20260901072412",
+      "name": "march_season_1_tournaments"
+    },
+    {
+      "version": "20260901073114",
+      "name": "april_season_1_tournaments"
+    },
+    {
+      "version": "20260901080244",
+      "name": "may_season_1_tournaments"
+    },
+    {
+      "version": "20260901095046",
+      "name": "june_season_1_tournaments"
+    },
+    {
+      "version": "20260901095122",
+      "name": "july_season_1_tournaments"
+    },
+    {
+      "version": "20260901100004",
+      "name": "august_season_1_tournaments"
+    },
+    {
+      "version": "20260901101650",
+      "name": "september_season_1_tournaments"
+    },
+    {
+      "version": "20260901104902",
+      "name": "october_season_1_tournaments"
+    },
+    {
+      "version": "20260901112445",
+      "name": "november_season_1_tournaments"
+    },
+    {
+      "version": "20260901112506",
+      "name": "december_season_1_tournaments"
+    },
+    {
+      "version": "20260901121307",
+      "name": "remove_duplicate_sydney_challenger_week_46"
+    },
+    {
+      "version": "20260901131151",
+      "name": "add_player_account_danger_zone_actions"
+    },
+    {
+      "version": "20260901131512",
+      "name": "preserve_player_identity_on_account_restart"
+    },
+    {
+      "version": "20260901132634",
+      "name": "add_player_rankings_profiles_and_messaging"
+    },
+    {
+      "version": "20260901145740",
+      "name": "add_contact_support_requests"
+    },
+    {
+      "version": "20260901155245",
+      "name": "add_player_preferred_surface"
+    },
+    {
+      "version": "20260901160400",
+      "name": "restore_authenticated_player_creation_insert_grant"
+    },
+    {
+      "version": "20260901170225",
+      "name": "bug_reporting_foundation"
+    },
+    {
+      "version": "20260901170243",
+      "name": "player_skills_foundation"
+    },
+    {
+      "version": "20260901170641",
+      "name": "harden_player_skills_trigger_function"
+    },
+    {
+      "version": "20260901171813",
+      "name": "add_playing_style_and_skill_categories"
+    },
+    {
+      "version": "20260901175331",
+      "name": "player_skill_development_history"
+    },
+    {
+      "version": "20260902072921",
+      "name": "add_lob_smash_nine_skill_model"
+    },
+    {
+      "version": "20260902081958",
+      "name": "notification_system_foundation"
+    },
+    {
+      "version": "20260902082845",
+      "name": "include_lob_smash_in_skill_history_trigger"
+    },
+    {
+      "version": "20260902103210",
+      "name": "regular_training_engine_foundation"
+    },
+    {
+      "version": "20260902103353",
+      "name": "training_daily_activity_processor"
+    },
+    {
+      "version": "20260902111943",
+      "name": "training_database_authority_and_realtime_sync"
+    },
+    {
+      "version": "20260902113106",
+      "name": "fatigue_and_injury_notifications"
+    },
+    {
+      "version": "20260902131908",
+      "name": "training_camp_booking_and_progression_engine"
+    },
+    {
+      "version": "20260902132132",
+      "name": "seed_150_training_camp_locations"
+    },
+    {
+      "version": "20260902133107",
+      "name": "training_camp_calendar_integrity_and_realtime"
+    },
+    {
+      "version": "20260902133413",
+      "name": "training_camp_catch_up_processing"
+    },
+    {
+      "version": "20260902143057",
+      "name": "training_camp_week_booking_cost_engine"
+    },
+    {
+      "version": "20260902143154",
+      "name": "player_home_city_location_sync"
+    },
+    {
+      "version": "20260902143718",
+      "name": "training_camp_pricing_rules"
+    },
+    {
+      "version": "20260902145409",
+      "name": "distance_based_training_camp_travel_and_hotel_quality"
+    },
+    {
+      "version": "20260902150800",
+      "name": "player_location_continuity_and_travel_itinerary"
+    },
+    {
+      "version": "20260902150941",
+      "name": "travel_leg_arrival_day_alignment"
+    },
+    {
+      "version": "20260902151347",
+      "name": "travel_plan_rebooking_and_trigger_safety"
+    },
+    {
+      "version": "20260902151537",
+      "name": "travel_notification_catalog"
+    },
+    {
+      "version": "20260902153659",
+      "name": "player_home_city_options"
+    },
+    {
+      "version": "20260902154104",
+      "name": "seed_player_home_cities_europe"
+    },
+    {
+      "version": "20260902154203",
+      "name": "seed_player_home_cities_asia"
+    },
+    {
+      "version": "20260902154308",
+      "name": "seed_player_home_cities_africa"
+    },
+    {
+      "version": "20260902154351",
+      "name": "seed_player_home_cities_north_america"
+    },
+    {
+      "version": "20260902154413",
+      "name": "seed_player_home_cities_south_america"
+    },
+    {
+      "version": "20260902154438",
+      "name": "seed_player_home_cities_oceania"
+    },
+    {
+      "version": "20260902154455",
+      "name": "seed_player_home_cities_territories"
+    },
+    {
+      "version": "20260902155039",
+      "name": "training_quote_country_flags"
+    },
+    {
+      "version": "20260902162553",
+      "name": "require_home_city_for_new_players"
+    },
+    {
+      "version": "20260902163954",
+      "name": "restrict_home_city_lookup_to_authenticated"
+    },
+    {
+      "version": "20260902171548",
+      "name": "training_long_term_progression_and_weekly_recovery"
+    },
+    {
+      "version": "20260902171640",
+      "name": "training_camp_weekly_recovery_and_effective_progress"
+    },
+    {
+      "version": "20260902172108",
+      "name": "training_dashboard_balance_rules"
+    },
+    {
+      "version": "20260902174956",
+      "name": "ai_player_foundation_profiles_rankings_and_training"
+    },
+    {
+      "version": "20260902175320",
+      "name": "seed_600_ai_players_with_country_names_and_home_cities"
+    },
+    {
+      "version": "20260902175453",
+      "name": "schedule_ai_training_progression"
+    },
+    {
+      "version": "20260902180026",
+      "name": "normalize_ai_profile_ownership_boolean"
+    },
+    {
+      "version": "20260903070023",
+      "name": "player_profile_tournament_history_and_best_results"
+    },
+    {
+      "version": "20260903072608",
+      "name": "staff_market_contracts_effects_and_scouting_foundation"
+    },
+    {
+      "version": "20260903072707",
+      "name": "seed_3000_global_staff_market_and_replenishment"
+    },
+    {
+      "version": "20260903072838",
+      "name": "staff_effects_regular_training_and_camp_progression"
+    },
+    {
+      "version": "20260903072914",
+      "name": "staff_dashboard_rank_and_market_metadata"
+    },
+    {
+      "version": "20260903073615",
+      "name": "fix_performance_analyst_scouting_alias"
+    },
+    {
+      "version": "20260903073929",
+      "name": "training_camp_travelling_staff_selection_and_costs"
+    },
+    {
+      "version": "20260903074445",
+      "name": "staff_weekly_salary_accrual"
+    },
+    {
+      "version": "20260903081216",
+      "name": "remove_staff_ranking_requirements"
+    },
+    {
+      "version": "20260903082156",
+      "name": "staff_willingness_and_salary_negotiation_engine"
+    },
+    {
+      "version": "20260903083434",
+      "name": "enforce_staff_hard_refusal_before_negotiation"
+    },
+    {
+      "version": "20260903092633",
+      "name": "weekly_regular_training_planner_and_calendar_ownership"
+    },
+    {
+      "version": "20260903093539",
+      "name": "weekly_training_planner_show_actual_processed_session"
+    },
+    {
+      "version": "20260903102414",
+      "name": "rebalance_training_fatigue_hotel_mitigation_and_match_fatigue_foundation"
+    },
+    {
+      "version": "20260903102616",
+      "name": "add_march_tournament_logos_batch_3a"
+    },
+    {
+      "version": "20260903102703",
+      "name": "add_march_tournament_logos_batch_3b"
+    },
+    {
+      "version": "20260903110449",
+      "name": "training_history_current_day_and_player_calendar_activity"
+    },
+    {
+      "version": "20260903110519",
+      "name": "prevent_future_regular_and_camp_processing"
+    },
+    {
+      "version": "20260903122853",
+      "name": "limit_training_history_to_three_days"
+    },
+    {
+      "version": "20260903123445",
+      "name": "save_weekly_training_plan_drafts_in_one_action"
+    },
+    {
+      "version": "20260903131329",
+      "name": "harden_weekly_training_batch_save_execute"
+    },
+    {
+      "version": "20260903132007",
+      "name": "add_training_camp_images_batch_1"
+    },
+    {
+      "version": "20260903144120",
+      "name": "add_top_ranked_atp_ai_profile_images"
+    },
+    {
+      "version": "20260903144911",
+      "name": "allow_atp_ai_profiles_authenticated_read"
+    },
+    {
+      "version": "20260903152919",
+      "name": "tournament_draw_foundation"
+    },
+    {
+      "version": "20260903152947",
+      "name": "seed_week3_atp_test_draws"
+    },
+    {
+      "version": "20260903160244",
+      "name": "tournament_match_detail_scores_and_live_stats"
+    },
+    {
+      "version": "20260903160345",
+      "name": "enable_tournament_matches_realtime"
+    },
+    {
+      "version": "20260903162908",
+      "name": "simulate_palm_springs_round_of_32_test"
+    },
+    {
+      "version": "20260903163758",
+      "name": "tournament_preparation_and_match_tactics"
+    },
+    {
+      "version": "20260903185323",
+      "name": "assign_dominik_gruber_atp255_avatar"
+    },
+    {
+      "version": "20260904061840",
+      "name": "tournament_status_engine_v1"
+    },
+    {
+      "version": "20260904062132",
+      "name": "surface_tournament_status_on_detail"
+    },
+    {
+      "version": "20260904073133",
+      "name": "universal_travel_and_stay_engine_v1"
+    },
+    {
+      "version": "20260904073705",
+      "name": "route_legacy_location_resolution_through_travel_engine"
+    },
+    {
+      "version": "20260904074232",
+      "name": "align_tournament_itinerary_with_draw_and_elimination"
+    },
+    {
+      "version": "20260904080128",
+      "name": "career_finance_ledger_v1"
+    },
+    {
+      "version": "20260904080323",
+      "name": "route_career_expenses_through_finance_v1"
+    },
+    {
+      "version": "20260904080818",
+      "name": "exclude_opening_balance_from_finance_stats"
+    },
+    {
+      "version": "20260904081948",
+      "name": "monthly_career_tax_and_finance_analytics_v1"
+    },
+    {
+      "version": "20260904083517",
+      "name": "fix_monthly_tax_game_day_argument_types"
+    },
+    {
+      "version": "20260904083628",
+      "name": "fix_finance_analytics_game_day_argument_types"
+    },
+    {
+      "version": "20260904083916",
+      "name": "enforce_usd_career_currency_v1"
+    },
+    {
+      "version": "20260904091735",
+      "name": "equipment_gear_room_market_and_wear_v1"
+    },
+    {
+      "version": "20260904093824",
+      "name": "tennis_club_shared_atp_wta_social_system_v1"
+    },
+    {
+      "version": "20260904095039",
+      "name": "world_statistics_and_career_records_v1"
+    },
+    {
+      "version": "20260904095126",
+      "name": "polish_world_statistics_record_selection_v1"
+    },
+    {
+      "version": "20260904102324",
+      "name": "career_overview_command_center_v1"
+    },
+    {
+      "version": "20260904110451",
+      "name": "add_training_camp_images_batch_2"
+    },
+    {
+      "version": "20260904112800",
+      "name": "add_april_tournament_logos_batch_1"
+    },
+    {
+      "version": "20260904112824",
+      "name": "fix_ho_chi_minh_april_tournament_logo_url"
+    },
+    {
+      "version": "20260904115546",
+      "name": "tournament_prize_money_and_weekly_ranking_engine_v1"
+    },
+    {
+      "version": "20260904130707",
+      "name": "realistic_tournament_draw_foundation_v1"
+    },
+    {
+      "version": "20260904130816",
+      "name": "realistic_tournament_draw_publisher_v1"
+    },
+    {
+      "version": "20260904133128",
+      "name": "tournament_match_times_and_courts_v1"
+    },
+    {
+      "version": "20260904133239",
+      "name": "first_match_anchored_tournament_travel_v1"
+    },
+    {
+      "version": "20260904133500",
+      "name": "fix_travel_accommodation_court_assignment"
+    },
+    {
+      "version": "20260904133602",
+      "name": "preserve_active_tournament_commitment_window"
+    },
+    {
+      "version": "20260904134833",
+      "name": "dynamic_next_tournament_travel_accommodation"
+    },
+    {
+      "version": "20260904142332",
+      "name": "live_match_replay_infrastructure_v1"
+    },
+    {
+      "version": "20260904143001",
+      "name": "harden_match_replay_rpc_permissions"
+    },
+    {
+      "version": "20260904143200",
+      "name": "lock_match_simulation_payloads"
+    },
+    {
+      "version": "20260904145237",
+      "name": "match_engine_profiles_and_condition_effects_v1"
+    },
+    {
+      "version": "20260904145523",
+      "name": "match_engine_point_simulator_v1"
+    },
+    {
+      "version": "20260904145737",
+      "name": "polish_match_engine_point_classification_v1"
+    },
+    {
+      "version": "20260904150014",
+      "name": "match_engine_prematch_preview_v1"
+    },
+    {
+      "version": "20260904153926",
+      "name": "tournament_entry_lifecycle_schema_and_human_priorities_v2"
+    },
+    {
+      "version": "20260904154318",
+      "name": "tournament_entry_allocation_ai_and_late_entry_v2"
+    },
+    {
+      "version": "20260904154558",
+      "name": "guard_entry_lifecycle_against_started_tournaments"
+    },
+    {
+      "version": "20260904154720",
+      "name": "calibrate_ai_tournament_application_rank_bands"
+    },
+    {
+      "version": "20260904154926",
+      "name": "tournament_entry_lifecycle_status_and_personal_deadlines_v2"
+    },
+    {
+      "version": "20260904155121",
+      "name": "protect_existing_legacy_draws_from_entry_lifecycle"
+    },
+    {
+      "version": "20260904155556",
+      "name": "fix_priority_fallback_allocation_order_v2"
+    },
+    {
+      "version": "20260904160303",
+      "name": "add_atp_ai_profile_images_batch_2"
+    },
+    {
+      "version": "20260904184139",
+      "name": "catch_up_overdue_weekly_rankings_v1"
+    },
+    {
+      "version": "20260904184301",
+      "name": "tournament_application_field_notifications_and_tactic_deadlines_v1"
+    },
+    {
+      "version": "20260904184805",
+      "name": "enable_tournament_entry_realtime_v1"
+    },
+    {
+      "version": "20260904201306",
+      "name": "restart_palm_springs_week3_to_published_draw"
+    },
+    {
+      "version": "20260905140757",
+      "name": "replace_numbered_second_half_tournaments_v1"
+    },
+    {
+      "version": "20260905143105",
+      "name": "add_training_camp_images_batch_3"
+    },
+    {
+      "version": "20260906185309",
+      "name": "add_may_tournament_logos_batch_1"
+    },
+    {
+      "version": "20260906191145",
+      "name": "add_may_tournament_logos_batch_2"
+    },
+    {
+      "version": "20260907074349",
+      "name": "add_atp_ai_profile_images_batch_3"
+    },
+    {
+      "version": "20260907104202",
+      "name": "replace_priority_tournament_entry_with_staggered_ladder_v1"
+    },
+    {
+      "version": "20260907104519",
+      "name": "optimize_staggered_entry_ladder_timeline_v1"
+    },
+    {
+      "version": "20260907104644",
+      "name": "serialize_staggered_entry_lifecycle_v1"
+    },
+    {
+      "version": "20260907104715",
+      "name": "fix_staggered_ai_refresh_cte_scope_v1"
+    },
+    {
+      "version": "20260907104831",
+      "name": "fix_staggered_wave_by_wave_allocation_v1"
+    },
+    {
+      "version": "20260907112525",
+      "name": "calendar_tournament_commitments_and_dynamic_travel_v1"
+    },
+    {
+      "version": "20260907113814",
+      "name": "return_home_between_nonconsecutive_tournaments_v1"
+    },
+    {
+      "version": "20260907120937",
+      "name": "human_starting_skill_identity_rebalance_v2"
+    },
+    {
+      "version": "20260907140618",
+      "name": "schedule_minimum_field_and_draw_scaling_v1"
+    },
+    {
+      "version": "20260907140635",
+      "name": "minimum_field_final_lock_guard_v2"
+    },
+    {
+      "version": "20260907140646",
+      "name": "tournament_logo_storage_read_v1"
+    },
+    {
+      "version": "20260907144339",
+      "name": "add_june_tournament_logos_batch_1"
+    },
+    {
+      "version": "20260907150625",
+      "name": "process_human_finance_travel_and_hotel_catchup_v1"
+    },
+    {
+      "version": "20260907150806",
+      "name": "reconcile_finance_running_balances_after_catchup_v1"
+    },
+    {
+      "version": "20260907154937",
+      "name": "injury_system_foundation_v1"
+    },
+    {
+      "version": "20260907155353",
+      "name": "match_engine_v2_tactics_style_weather_v1"
+    },
+    {
+      "version": "20260907155518",
+      "name": "injury_tournament_availability_walkovers_v1"
+    },
+    {
+      "version": "20260907182258",
+      "name": "proactive_injury_risk_notifications_v1"
+    },
+    {
+      "version": "20260907185501",
+      "name": "assign_30_atp_ai_avatar_profiles_batch_v1"
+    },
+    {
+      "version": "20260907191315",
+      "name": "main_sponsor_catalogue_market_foundation_v1"
+    },
+    {
+      "version": "20260908072523",
+      "name": "import_main_sponsor_catalogue_part_01"
+    },
+    {
+      "version": "20260908082851",
+      "name": "stage_main_sponsor_catalogue_payload"
+    },
+    {
+      "version": "20260908091538",
+      "name": "finalize_main_sponsor_catalogue_import_v1"
+    },
+    {
+      "version": "20260908092040",
+      "name": "reconcile_main_sponsor_catalogue_exact_source_name_v1"
+    },
+    {
+      "version": "20260908103903",
+      "name": "player_sponsor_offer_contract_engine_v1"
+    },
+    {
+      "version": "20260908104017",
+      "name": "fix_sponsor_engine_game_day_casts_v1"
+    },
+    {
+      "version": "20260908104709",
+      "name": "harden_player_sponsor_engine_rpc_access_v1"
+    },
+    {
+      "version": "20260908111004",
+      "name": "player_sponsor_performance_objectives_v1"
+    },
+    {
+      "version": "20260908113806",
+      "name": "sponsor_signing_rank_live_repricing_v1"
+    },
+    {
+      "version": "20260908113838",
+      "name": "fix_sponsor_live_repricing_update_v1"
+    },
+    {
+      "version": "20260908120036",
+      "name": "sponsor_dashboard_payment_schedule_details_v1"
+    },
+    {
+      "version": "20260908123651",
+      "name": "add_training_camp_images_north_america_batch_1"
+    },
+    {
+      "version": "20260908144649",
+      "name": "complete_sponsor_market_country_coverage_v1"
+    },
+    {
+      "version": "20260908155505",
+      "name": "add_july_tournament_logos_batch_1"
+    },
+    {
+      "version": "20260909074841",
+      "name": "calendar_confirmed_predicted_match_travel_logic_v1"
+    },
+    {
+      "version": "20260909082055",
+      "name": "tournament_cancellation_notification_refund_calendar_v1"
+    },
+    {
+      "version": "20260909082152",
+      "name": "canceled_tournament_status_history_safe_v1"
+    },
+    {
+      "version": "20260909082430",
+      "name": "canceled_tournament_detail_visible_v1"
+    },
+    {
+      "version": "20260909082707",
+      "name": "archive_canceled_tournament_preparation_notifications_v1"
+    },
+    {
+      "version": "20260909084630",
+      "name": "real_player_head_to_head_v1"
+    },
+    {
+      "version": "20260909093610",
+      "name": "phase_aware_tournament_match_days_and_unresolved_travel_v2"
+    },
+    {
+      "version": "20260909094521",
+      "name": "first_match_readiness_uses_planned_travel_v2"
+    },
+    {
+      "version": "20260909101015",
+      "name": "unresolved_tournament_return_travel_guard_v1"
+    },
+    {
+      "version": "20260909110203",
+      "name": "match_tactic_deadline_metadata_v1"
+    },
+    {
+      "version": "20260909123451",
+      "name": "previous_season_ranking_points_defence_v1"
+    },
+    {
+      "version": "20260909124520",
+      "name": "ranking_defence_season_monday_anchor_v2"
+    },
+    {
+      "version": "20260909124842",
+      "name": "ranking_defence_replacement_indexes_v3"
+    },
+    {
+      "version": "20260909180242",
+      "name": "ai_tournament_application_distribution_v3"
+    },
+    {
+      "version": "20260910080838",
+      "name": "private_avatar_replacement_requests_v1"
+    },
+    {
+      "version": "20260910081925",
+      "name": "avatar_replacement_user_read_hardening_v2"
+    },
+    {
+      "version": "20260910082133",
+      "name": "avatar_replacement_contact_index_v3"
+    },
+    {
+      "version": "20260910090213",
+      "name": "avatar_replacement_rules_consent_and_immediate_cleanup_v4"
+    },
+    {
+      "version": "20260910101408",
+      "name": "avatar_replacement_user_cancellation_v5"
+    },
+    {
+      "version": "20260910103005",
+      "name": "fix_avatar_cancellation_contact_request_update_v6"
+    },
+    {
+      "version": "20260910103123",
+      "name": "register_avatar_cancellation_notification_v7"
+    },
+    {
+      "version": "20260910123652",
+      "name": "staff_role_catalog_profiles_and_balanced_effects_v2"
+    },
+    {
+      "version": "20260910123850",
+      "name": "connect_staff_effects_to_career_systems_v3"
+    },
+    {
+      "version": "20260910134136",
+      "name": "assign_50_atp_ai_avatar_profiles_batch_v2"
+    },
+    {
+      "version": "20260910140727",
+      "name": "human_daily_career_processing_and_recovery_rebalance_v1"
+    },
+    {
+      "version": "20260910144535",
+      "name": "simplify_recovery_and_travel_fatigue_model_v2"
+    },
+    {
+      "version": "20260910145531",
+      "name": "remove_legacy_active_recovery_staff_labels_v3"
+    },
+    {
+      "version": "20260911091742",
+      "name": "assign_august_tournament_logos_batch_v1"
+    },
+    {
+      "version": "20260911093105",
+      "name": "health_illness_recovery_lifecycle_v1"
+    },
+    {
+      "version": "20260911094959",
+      "name": "unified_health_lifecycle_ai_injuries_and_match_surrender_v1"
+    },
+    {
+      "version": "20260911095028",
+      "name": "fix_ai_weekly_short_injury_selector_v2"
+    },
+    {
+      "version": "20260911095050",
+      "name": "fix_ai_weekly_injury_vulnerability_rounding_v3"
+    },
+    {
+      "version": "20260911095122",
+      "name": "align_ai_weekly_injuries_to_existing_source_types_v4"
+    },
+    {
+      "version": "20260911095308",
+      "name": "unified_health_dashboard_and_consistency_v5"
+    },
+    {
+      "version": "20260911102422",
+      "name": "health_notification_catalog_compatibility_v6"
+    },
+    {
+      "version": "20260911102457",
+      "name": "health_live_progress_and_setbacks_v7"
+    },
+    {
+      "version": "20260911102712",
+      "name": "wire_health_setbacks_and_medical_activity_blocks_v8"
+    },
+    {
+      "version": "20260911102804",
+      "name": "live_health_state_and_recovery_progress_v9"
+    },
+    {
+      "version": "20260911102849",
+      "name": "illness_progression_under_recovery_stress_v10"
+    },
+    {
+      "version": "20260911102954",
+      "name": "align_health_surrender_notification_v11"
+    },
+    {
+      "version": "20260911105752",
+      "name": "fix_health_walkover_zero_duration_v12"
+    },
+    {
+      "version": "20260911110700",
+      "name": "health_match_completion_reason_and_walkover_resolution_v13"
+    },
+    {
+      "version": "20260911111054",
+      "name": "align_high_fatigue_health_state_and_medical_walkover_notice_v14"
+    },
+    {
+      "version": "20260911112127",
+      "name": "tournament_entry_health_eligibility_and_field_lock_v15"
+    },
+    {
+      "version": "20260911112249",
+      "name": "expose_tournament_health_eligibility_in_entry_lifecycle_v16"
+    },
+    {
+      "version": "20260911113337",
+      "name": "deactivate_legacy_duplicate_health_notification_codes_v17"
+    },
+    {
+      "version": "20260911152259",
+      "name": "assign_78_atp_ai_avatar_profiles_batch_v3"
+    },
+    {
+      "version": "20260911153118",
+      "name": "private_life_wealth_marketplace_phase1_v1"
+    },
+    {
+      "version": "20260911154048",
+      "name": "private_life_recurring_costs_phase2_v1"
+    },
+    {
+      "version": "20260911154344",
+      "name": "private_life_index_hardening_phase2_v2"
+    },
+    {
+      "version": "20260911155738",
+      "name": "private_life_remove_lifestyle_gating_v3"
+    },
+    {
+      "version": "20260911164026",
+      "name": "private_life_investments_phase4_v1"
+    },
+    {
+      "version": "20260911184050",
+      "name": "private_life_marketplace_and_market_data_v5"
+    },
+    {
+      "version": "20260912134342",
+      "name": "private_life_prestige_property_schema_v6"
+    },
+    {
+      "version": "20260912134353",
+      "name": "private_life_property_locations_seed_a_v6"
+    },
+    {
+      "version": "20260912134404",
+      "name": "private_life_property_locations_seed_b_v6"
+    },
+    {
+      "version": "20260912134420",
+      "name": "private_life_property_catalog_v6"
+    },
+    {
+      "version": "20260912134448",
+      "name": "private_life_watches_catalog_v6"
+    },
+    {
+      "version": "20260912134510",
+      "name": "private_life_resale_engine_v6"
+    },
+    {
+      "version": "20260912134536",
+      "name": "private_life_property_purchase_and_home_v6"
+    },
+    {
+      "version": "20260912134604",
+      "name": "private_life_dashboard_profile_prestige_v6"
+    },
+    {
+      "version": "20260912134609",
+      "name": "private_life_sale_cron_v6"
+    },
+    {
+      "version": "20260912134802",
+      "name": "private_life_starter_home_one_time_v6"
+    },
+    {
+      "version": "20260912135647",
+      "name": "private_life_resale_index_hardening_v6"
+    },
+    {
+      "version": "20260913124136",
+      "name": "private_life_catalog_cars_jewelry_expansion_v7"
+    },
+    {
+      "version": "20260913124209",
+      "name": "private_life_catalog_art_collectibles_expansion_v7"
+    },
+    {
+      "version": "20260913124224",
+      "name": "private_life_catalog_yachts_jets_expansion_v7"
+    },
+    {
+      "version": "20260913124313",
+      "name": "private_life_catalog_jewelry_art_collectibles_topup_v7"
+    },
+    {
+      "version": "20260913144046",
+      "name": "private_life_residence_costs_quote_history_v7"
+    },
+    {
+      "version": "20260913144328",
+      "name": "private_life_market_quote_scheduler_v7"
+    },
+    {
+      "version": "20260913153635",
+      "name": "private_life_monthly_cost_aggregation_v8"
+    },
+    {
+      "version": "20260913153740",
+      "name": "private_life_dynamic_property_market_v8"
+    },
+    {
+      "version": "20260913153922",
+      "name": "private_life_dashboard_dynamic_market_switch_v8"
+    },
+    {
+      "version": "20260913154003",
+      "name": "private_life_dynamic_property_sale_quotes_v8"
+    },
+    {
+      "version": "20260913154901",
+      "name": "private_life_private_jet_travel_fatigue_v9"
+    },
+    {
+      "version": "20260913194140",
+      "name": "assign_70_atp_ai_avatar_profiles_batch_v4"
+    },
+    {
+      "version": "20260914072504",
+      "name": "world_rankings_weekly_change_v2"
+    },
+    {
+      "version": "20260914080819",
+      "name": "ai_skill_tiers_v1"
+    },
+    {
+      "version": "20260914080854",
+      "name": "ai_static_prestige_possessions_v1"
+    },
+    {
+      "version": "20260914083131",
+      "name": "public_home_live_data_v1"
+    },
+    {
+      "version": "20260914084724",
+      "name": "public_home_stats_human_players_and_clock_access_v2"
+    },
+    {
+      "version": "20260914120127",
+      "name": "staff_contract_confirmation_salary_and_termination_v4"
+    },
+    {
+      "version": "20260914121105",
+      "name": "staff_contract_rpc_access_hardening_v5"
+    },
+    {
+      "version": "20260914122308",
+      "name": "training_staff_effect_visibility_v1"
+    },
+    {
+      "version": "20260914132337",
+      "name": "ai_starter_homes_and_ranking_point_change_v1"
+    },
+    {
+      "version": "20260915093720",
+      "name": "private_life_game_time_quotes_and_all_asset_markets_v1"
+    },
+    {
+      "version": "20260915093841",
+      "name": "private_life_investment_game_cadence_scheduler_v1"
+    },
+    {
+      "version": "20260915100012",
+      "name": "private_life_vehicle_entry_range_expansion_v1"
+    },
+    {
+      "version": "20260915105641",
+      "name": "private_life_home_city_marketplace_v1"
+    },
+    {
+      "version": "20260915111031",
+      "name": "investment_real_15m_hover_and_asset_history_v1"
+    },
+    {
+      "version": "20260915111054",
+      "name": "investment_stock_window_start_11utc_v1"
+    },
+    {
+      "version": "20260915112748",
+      "name": "private_life_asset_transaction_history_v2"
+    },
+    {
+      "version": "20260915120517",
+      "name": "private_life_daily_market_and_forever_trade_history_v1"
+    },
+    {
+      "version": "20260915124116",
+      "name": "calendar_main_draw_accepted_week_v1"
+    },
+    {
+      "version": "20260915132704",
+      "name": "referral_program_core_v1"
+    },
+    {
+      "version": "20260915133454",
+      "name": "referral_program_rpc_hardening_v2"
+    },
+    {
+      "version": "20260915134452",
+      "name": "referral_admin_and_contests_v1"
+    },
+    {
+      "version": "20260915135703",
+      "name": "referral_trigger_rpc_hardening_v3"
+    },
+    {
+      "version": "20260915135742",
+      "name": "referral_admin_index_hardening_v2"
+    },
+    {
+      "version": "20260915151228",
+      "name": "equipment_marketplace_catalog_resale_v2"
+    },
+    {
+      "version": "20260915153532",
+      "name": "simplify_equipment_to_four_categories"
+    },
+    {
+      "version": "20260915161136",
+      "name": "technical_sponsor_brand_pool"
+    },
+    {
+      "version": "20260915162006",
+      "name": "technical_brand_equipment_catalog_and_wear"
+    },
+    {
+      "version": "20260915163003",
+      "name": "technical_sponsor_catalog_read_v1"
+    },
+    {
+      "version": "20260915164247",
+      "name": "technical_sponsor_catalog_rpc_hardening_v1"
+    },
+    {
+      "version": "20260915182212",
+      "name": "technical_sponsor_contract_system_v1"
+    },
+    {
+      "version": "20260915182238",
+      "name": "technical_sponsor_offer_generation_fix_v1"
+    },
+    {
+      "version": "20260915183345",
+      "name": "technical_sponsor_contract_exclusivity_fix_v1"
+    },
+    {
+      "version": "20260916112755",
+      "name": "technical_sponsor_rank_only_season_contracts"
+    },
+    {
+      "version": "20260916112909",
+      "name": "equipment_custom_match_setups"
+    },
+    {
+      "version": "20260916112941",
+      "name": "fix_technical_sponsor_rank_offer_generation"
+    },
+    {
+      "version": "20260916113250",
+      "name": "fix_match_setup_slot_cast"
+    },
+    {
+      "version": "20260916113340",
+      "name": "fix_equipment_setup_resolver_casts"
+    },
+    {
+      "version": "20260917084832",
+      "name": "fix_power_of_two_tournament_round_count"
+    },
+    {
+      "version": "20260917103209",
+      "name": "technical_sponsor_discount_only_v1"
+    },
+    {
+      "version": "20260917110158",
+      "name": "equipment_resale_and_discard_v1"
+    },
+    {
+      "version": "20260917110457",
+      "name": "equipment_resale_metadata_v1"
+    },
+    {
+      "version": "20260918092800",
+      "name": "add_tournament_past_winners_v1"
+    },
+    {
+      "version": "20260918100728",
+      "name": "ranking_contribution_expiration_v1"
+    },
+    {
+      "version": "20260918114934",
+      "name": "annual_birthday_gift_foundation_v1"
+    },
+    {
+      "version": "20260918115120",
+      "name": "birthday_email_dispatch_v1"
+    },
+    {
+      "version": "20260918115236",
+      "name": "birthday_feb29_rule_v2"
+    },
+    {
+      "version": "20260918115516",
+      "name": "birthday_email_cron_auth_v2"
+    },
+    {
+      "version": "20260918115804",
+      "name": "birthday_email_retry_safety_v3"
+    },
+    {
+      "version": "20260918134410",
+      "name": "main_sponsor_objective_pool_v2"
+    },
+    {
+      "version": "20260918134815",
+      "name": "main_sponsor_objective_region_balance_v2"
+    },
+    {
+      "version": "20260918135834",
+      "name": "main_sponsor_reputation_live_progress_v2"
+    },
+    {
+      "version": "20260918142433",
+      "name": "sponsor_objective_calendar_badges_v1"
+    },
+    {
+      "version": "20260918180704",
+      "name": "admin_site_analytics_foundation_v1"
+    },
+    {
+      "version": "20260918181756",
+      "name": "fix_three_missing_tournament_logos_v1"
+    },
+    {
+      "version": "20260918183437",
+      "name": "add_racket_photos_slazengar_gama_rosignol_spaldin_v1"
+    },
+    {
+      "version": "20260918185248",
+      "name": "atp_shoe_catalog_gender_price_bonus_rebalance_v1"
+    },
+    {
+      "version": "20260918192048",
+      "name": "homepage_player_reviews_moderation_v1"
+    },
+    {
+      "version": "20260918193142",
+      "name": "admin_bug_reports_and_realtime_badges_v1"
+    },
+    {
+      "version": "20260918193912",
+      "name": "fix_bug_report_new_status_constraint_v1"
+    },
+    {
+      "version": "20260918194342",
+      "name": "public_guest_homepage_review_submission_v1"
+    },
+    {
+      "version": "20260918195622",
+      "name": "rename_atp_shoes_hokka_onward_v1"
+    },
+    {
+      "version": "20260918195935",
+      "name": "add_atp_shoe_images_noik_adidis_asiks_onn_v1"
+    },
+    {
+      "version": "20260920121106",
+      "name": "add_atp_shoe_images_hokka_to_filia_v1"
+    },
+    {
+      "version": "20260920131910",
+      "name": "add_atp_shoe_images_under_armer_to_jomae_v1"
+    },
+    {
+      "version": "20260920132349",
+      "name": "retire_legacy_starter_racket_and_shoes_v1"
+    },
+    {
+      "version": "20260920152012",
+      "name": "add_wta_shoes_noik_to_pumma_with_images_v1"
+    },
+    {
+      "version": "20260920174106",
+      "name": "notification_center_actions_and_dedup_v1"
+    },
+    {
+      "version": "20260921140138",
+      "name": "add_atp_clothing_images_and_revised_models_batch_v1"
+    },
+    {
+      "version": "20260921143555",
+      "name": "rebalance_atp_apparel_price_bonus_and_expand_noik_adidis_v1"
+    },
+    {
+      "version": "20260922093139",
+      "name": "canonicalize_atp_clothing_model_names_v1"
+    },
+    {
+      "version": "20260922115845",
+      "name": "add_atp_clothing_images_noik_through_hydrogin_v1"
+    },
+    {
+      "version": "20260922130511",
+      "name": "differentiate_noik_adidis_atp_clothing_names_v1"
+    },
+    {
+      "version": "20260922140130",
+      "name": "add_atp_clothing_images_lacosta_through_travis_matio_v1"
+    },
+    {
+      "version": "20260922152120",
+      "name": "add_wta_apparel_noik_to_bjern_borga_with_images_v1"
+    },
+    {
+      "version": "20260922183616",
+      "name": "add_wta_apparel_blokuv_bosso_castora_court_cuture_with_images_v1"
+    },
+    {
+      "version": "20260922184414",
+      "name": "replace_atp_blokuv_apparel_images_v1"
+    },
+    {
+      "version": "20260923071155",
+      "name": "doubles_core_schema_and_economy_v1"
+    },
+    {
+      "version": "20260923071427",
+      "name": "doubles_core_availability_scheduling_draws_v1"
+    },
+    {
+      "version": "20260923071622",
+      "name": "doubles_core_match_effects_rankings_v1"
+    },
+    {
+      "version": "20260923071824",
+      "name": "doubles_core_read_api_and_access_v1"
+    },
+    {
+      "version": "20260923074140",
+      "name": "fix_doubles_match_fatigue_cast_v1"
+    },
+    {
+      "version": "20260923074447",
+      "name": "harden_doubles_dynamic_bracket_and_byes_v1"
+    },
+    {
+      "version": "20260923075534",
+      "name": "fix_doubles_ranking_recalculation_alias_v1"
+    },
+    {
+      "version": "20260923080102",
+      "name": "enable_doubles_matches_realtime_v1"
+    },
+    {
+      "version": "20260923081443",
+      "name": "doubles_partner_marketplace_schema_timeline_v1"
+    },
+    {
+      "version": "20260923081801",
+      "name": "doubles_partner_marketplace_actions_v1"
+    },
+    {
+      "version": "20260923082152",
+      "name": "doubles_partner_entry_lifecycle_hub_v1"
+    },
+    {
+      "version": "20260923091322",
+      "name": "doubles_ticket2_singles_commitment_compatibility_v1"
+    },
+    {
+      "version": "20260923110020",
+      "name": "add_wta_apparel_ellesy_hydrogin_ibkool_with_images_v1"
+    },
+    {
+      "version": "20260923113132",
+      "name": "replace_atp_castora_apparel_images_v2"
+    },
+    {
+      "version": "20260923115009",
+      "name": "replace_atp_apparel_images_sep23_batch_v1"
+    },
+    {
+      "version": "20260923130733",
+      "name": "premium_ranking_protection_and_ai_doubles_marketplace_v1"
+    },
+    {
+      "version": "20260923131023",
+      "name": "ai_doubles_deadline_fill_hardening_v1"
+    },
+    {
+      "version": "20260923131956",
+      "name": "optimize_ai_doubles_entry_lifecycle_window_v1"
+    },
+    {
+      "version": "20260923132228",
+      "name": "optimize_ai_doubles_marketplace_seeding_once_v1"
+    },
+    {
+      "version": "20260923132555",
+      "name": "skip_active_week_in_ai_doubles_entry_lifecycle_v1"
+    },
+    {
+      "version": "20260923133642",
+      "name": "doubles_human_tactics_and_ai_automation_v1"
+    },
+    {
+      "version": "20260923140450",
+      "name": "restrict_ai_doubles_to_same_event_singles_field_v1"
+    },
+    {
+      "version": "20260923140839",
+      "name": "anchor_ai_doubles_to_same_event_singles_v2"
+    },
+    {
+      "version": "20260923141737",
+      "name": "show_same_event_ai_in_doubles_marketplace_v1"
+    },
+    {
+      "version": "20260923143222",
+      "name": "restrict_ai_doubles_to_same_singles_tournament_v1"
+    },
+    {
+      "version": "20260923143308",
+      "name": "fix_same_tournament_ai_doubles_seed_rank_fallback_v1"
+    },
+    {
+      "version": "20260923144325",
+      "name": "add_wta_apparel_lacosta_through_travis_matio_with_images_v1"
+    },
+    {
+      "version": "20260923150125",
+      "name": "rebalance_ai_doubles_pool_and_calendar_disciplines_v1"
+    },
+    {
+      "version": "20260923150653",
+      "name": "exact_ai_doubles_marketplace_quotas_v1"
+    },
+    {
+      "version": "20260923160901",
+      "name": "complete_doubles_match_notifications_v1"
+    },
+    {
+      "version": "20260923160958",
+      "name": "harden_doubles_notification_routing_v1"
+    },
+    {
+      "version": "20260923190735",
+      "name": "expand_tennis_bag_catalog_with_small_bonuses_v1"
+    },
+    {
+      "version": "20260923192207",
+      "name": "rebalance_bag_prices_and_racket_wear_reduction_v1"
+    },
+    {
+      "version": "20260923201205",
+      "name": "national_team_associations_governance_division_lifecycle_v1"
+    },
+    {
+      "version": "20260923201757",
+      "name": "harden_national_team_rpc_grants_and_fk_indexes_v1"
+    },
+    {
+      "version": "20260923204253",
+      "name": "national_team_ticket2_windows_callups_squads_lineups_v1"
+    },
+    {
+      "version": "20260923205036",
+      "name": "national_team_ticket2_match_engine_bridge_v1"
+    },
+    {
+      "version": "20260923205137",
+      "name": "national_team_ticket2_match_engine_bridge_v1"
+    },
+    {
+      "version": "20260923205321",
+      "name": "national_team_ticket2_travel_calendar_lock_v1"
+    },
+    {
+      "version": "20260923205432",
+      "name": "national_team_ticket2_availability_host_hardening_v1"
+    },
+    {
+      "version": "20260923205614",
+      "name": "national_team_ticket2_fixture_detail_v1"
+    },
+    {
+      "version": "20260923205624",
+      "name": "national_team_ticket2_standings_read_v1"
+    },
+    {
+      "version": "20260923210738",
+      "name": "national_team_ticket2_travel_purpose_v1"
+    },
+    {
+      "version": "20260923210847",
+      "name": "national_team_ticket2_membership_appearance_counts_v1"
+    },
+    {
+      "version": "20260923210931",
+      "name": "national_team_ticket2_pairing_retry_hardening_v1"
+    },
+    {
+      "version": "20260923211242",
+      "name": "national_team_ticket2_security_index_hardening_v1"
+    },
+    {
+      "version": "20260923211317",
+      "name": "optimize_national_team_travel_rls_v1"
+    },
+    {
+      "version": "20260923212312",
+      "name": "national_team_ticket2_forfeit_and_callup_plan_hardening_v1"
+    },
+    {
+      "version": "20260923212510",
+      "name": "national_team_ticket2_match_control_detail_bridge_v1"
+    },
+    {
+      "version": "20260923212602",
+      "name": "national_team_ticket2_match_control_status_bridge_v1"
+    },
+    {
+      "version": "20260923212749",
+      "name": "harden_national_team_ticket2_internal_rpc_grants_v1"
+    },
+    {
+      "version": "20260923212923",
+      "name": "national_team_ticket2_callup_guard_invoker_hardening_v1"
+    },
+    {
+      "version": "20260923213049",
+      "name": "national_team_ticket2_private_callup_guard_v1"
+    },
+    {
+      "version": "20260923213241",
+      "name": "national_team_ticket2_atomic_callup_acceptance_guard_v1"
+    },
+    {
+      "version": "20260924080019",
+      "name": "national_association_january_membership_election_foundation_v1"
+    },
+    {
+      "version": "20260924080255",
+      "name": "national_association_january_election_lifecycle_v1"
+    },
+    {
+      "version": "20260924080355",
+      "name": "national_association_membership_captain_page_context_v1"
+    },
+    {
+      "version": "20260924080519",
+      "name": "fix_national_captain_uuid_winner_aggregation_v1"
+    },
+    {
+      "version": "20260924080556",
+      "name": "game_day_absolute_integer_overload_for_national_lifecycle_v1"
+    },
+    {
+      "version": "20260924081148",
+      "name": "national_captain_ten_day_first_round_duration_v1"
+    },
+    {
+      "version": "20260924102621",
+      "name": "national_captain_three_stage_election_windows_v1"
+    },
+    {
+      "version": "20260924102909",
+      "name": "national_captain_annual_january_boundary_fix_v1"
+    },
+    {
+      "version": "20260924105025",
+      "name": "national_captain_vote_finality_and_candidate_withdrawal_v1"
+    },
+    {
+      "version": "20260924110402",
+      "name": "national_team_chat_live_presence_v1"
+    },
+    {
+      "version": "20260924124931",
+      "name": "national_team_notification_workflow_v1"
+    },
+    {
+      "version": "20260924141555",
+      "name": "national_team_competition_pyramid_foundation_v1"
+    },
+    {
+      "version": "20260924141613",
+      "name": "national_team_four_windows_v1"
+    },
+    {
+      "version": "20260924141700",
+      "name": "national_team_season_modes_and_pairings_v1"
+    },
+    {
+      "version": "20260924141743",
+      "name": "national_team_competition_context_v2"
+    },
+    {
+      "version": "20260924144554",
+      "name": "national_team_final8_extended_window_v1"
+    },
+    {
+      "version": "20260924145617",
+      "name": "national_team_season2_bootstrap_seeding_v1"
+    },
+    {
+      "version": "20260924145834",
+      "name": "national_team_friendly_marketplace_v1"
+    },
+    {
+      "version": "20260924152351",
+      "name": "national_team_division_browser_v1"
+    },
+    {
+      "version": "20260924152514",
+      "name": "fix_national_team_division_browser_group_scope_v1"
+    },
+    {
+      "version": "20260924153928",
+      "name": "admin_system_health_monitoring_v1"
+    },
+    {
+      "version": "20260924154025",
+      "name": "system_health_human_travel_only_v1"
+    },
+    {
+      "version": "20260924154121",
+      "name": "admin_system_health_incident_history_v1"
+    },
+    {
+      "version": "20260924154650",
+      "name": "fix_system_health_cron_running_and_watchdog_v1"
+    },
+    {
+      "version": "20260924155026",
+      "name": "system_health_complete_process_logs_v1"
+    },
+    {
+      "version": "20260924155314",
+      "name": "ai_training_skip_medically_blocked_players_v1"
+    },
+    {
+      "version": "20260924155705",
+      "name": "system_health_do_not_reopen_resolved_historical_cron_failures_v1"
+    },
+    {
+      "version": "20260924155814",
+      "name": "system_health_detect_deterministic_alert_email_failure_v1"
+    },
+    {
+      "version": "20260924184342",
+      "name": "add_tennis_bag_equipment_images_batch_1"
+    },
+    {
+      "version": "20260924184420",
+      "name": "add_tennis_bag_equipment_images_batch_2"
+    },
+    {
+      "version": "20260924184458",
+      "name": "add_tennis_bag_equipment_images_batch_3"
+    },
+    {
+      "version": "20260924184534",
+      "name": "add_tennis_bag_equipment_images_batch_4"
+    },
+    {
+      "version": "20260925073407",
+      "name": "system_health_latest_run_wins_v1"
+    },
+    {
+      "version": "20260925073432",
+      "name": "system_health_schedule_aware_stale_jobs_v1"
+    },
+    {
+      "version": "20260925082459",
+      "name": "rebuild_towel_catalog"
+    },
+    {
+      "version": "20260925095833",
+      "name": "finalize_towel_names_prices_images"
+    },
+    {
+      "version": "20260925095908",
+      "name": "control_center_hourly_telemetry_v2"
+    },
+    {
+      "version": "20260925095923",
+      "name": "control_center_telemetry_config"
+    },
+    {
+      "version": "20260925100035",
+      "name": "control_center_source_config"
+    },
+    {
+      "version": "20260925100104",
+      "name": "control_center_resource_metrics"
+    },
+    {
+      "version": "20260925101040",
+      "name": "game_control_center_telemetry_setup"
+    },
+    {
+      "version": "20260925101100",
+      "name": "game_control_center_telemetry_payload"
+    },
+    {
+      "version": "20260925101108",
+      "name": "game_control_center_telemetry_sender"
+    },
+    {
+      "version": "20260925105434",
+      "name": "game_control_center_live_admin_modules"
+    },
+    {
+      "version": "20260925105810",
+      "name": "increase_control_center_admin_push_timeout"
+    },
+    {
+      "version": "20260925110145",
+      "name": "pause_gcc_live_flood"
+    },
+    {
+      "version": "20260925110419",
+      "name": "throttle_realtime_control_center_admin_feeds"
+    },
+    {
+      "version": "20260925110802",
+      "name": "slim_control_center_admin_snapshots"
+    },
+    {
+      "version": "20260925110912",
+      "name": "further_slim_system_health_snapshot"
+    },
+    {
+      "version": "20260925120214",
+      "name": "control_center_exact_admin_analytics_snapshot_v2"
+    },
+    {
+      "version": "20260925120258",
+      "name": "restore_control_center_admin_module_push_v1"
+    },
+    {
+      "version": "20260925124032",
+      "name": "complete_hourly_database_usage_snapshot"
+    },
+    {
+      "version": "20260925135109",
+      "name": "control_center_platform_metrics_hourly_v3"
+    },
+    {
+      "version": "20260925141632",
+      "name": "control_center_platform_overview_metadata_v2"
+    },
+    {
+      "version": "20260925174922",
+      "name": "control_center_avatar_and_contact_modules"
+    },
+    {
+      "version": "20260925183634",
+      "name": "disable_legacy_issue_email_cron_after_control_center_cutover"
+    },
+    {
+      "version": "20260925184120",
+      "name": "separate_avatar_requests_from_contact_messages"
+    },
+    {
+      "version": "20260925184134",
+      "name": "separate_avatar_contact_module_status"
+    },
+    {
+      "version": "20260925192343",
+      "name": "add_atp_cap_catalog"
+    },
+    {
+      "version": "20260925193211",
+      "name": "remove_legacy_unisex_caps"
+    },
+    {
+      "version": "20260926193941",
+      "name": "add_final_wta_cap_catalog"
+    },
+    {
+      "version": "20260926195424",
+      "name": "rebuild_unisex_bottle_catalog"
+    },
+    {
+      "version": "20260927062405",
+      "name": "schedule_tournament_application_history_v1"
+    },
+    {
+      "version": "20260928101140",
+      "name": "remove_courtline_starter_match_kit_v1"
+    },
+    {
+      "version": "20260928191207",
+      "name": "cross_game_referral_analytics_v1"
+    },
+    {
+      "version": "20260929080329",
+      "name": "registration_invites_with_coin_bonus_v1"
+    },
+    {
+      "version": "20260929110947",
+      "name": "make_registration_birthday_year_optional_v1"
+    },
+    {
+      "version": "20260929114512",
+      "name": "add_tournament_result_completion_notification_v1"
+    },
+    {
+      "version": "20260929114839",
+      "name": "add_tournament_operations_monitor_v1"
+    },
+    {
+      "version": "20260929115000",
+      "name": "tournament_operations_legacy_compatibility_v1"
+    },
+    {
+      "version": "20260929115151",
+      "name": "fix_tournament_operations_orphan_bye_recovery_v1"
+    },
+    {
+      "version": "20260929115618",
+      "name": "repair_s1_week3_incomplete_atp_tournaments_v3"
+    },
+    {
+      "version": "20260929115937",
+      "name": "finalize_s1_week3_legacy_two_player_byes_v1"
+    },
+    {
+      "version": "20260929120738",
+      "name": "optimize_tournament_operations_monitor_v1"
+    },
+    {
+      "version": "20260929125818",
+      "name": "true_two_week_tournament_schedule_and_calendar_states_v2"
+    },
+    {
+      "version": "20260929133224",
+      "name": "cleanup_exploratory_ana_miami_e2e_rows"
+    },
+    {
+      "version": "20260929133557",
+      "name": "add_full_two_week_tournament_e2e_probe_v1"
+    },
+    {
+      "version": "20260929133622",
+      "name": "add_e2e_set_game_day_integer_overload_v1"
+    },
+    {
+      "version": "20260929133751",
+      "name": "temporary_e2e_daily_activity_integer_overload_v1"
+    },
+    {
+      "version": "20260929133815",
+      "name": "fix_temporary_e2e_daily_activity_overload_v2"
+    },
+    {
+      "version": "20260929134242",
+      "name": "optimize_full_two_week_e2e_probe_v2"
+    },
+    {
+      "version": "20260929134302",
+      "name": "remove_global_processors_from_two_week_e2e_probe_v3"
+    },
+    {
+      "version": "20260929134451",
+      "name": "fix_bracket_false_bye_race_condition_v1"
+    },
+    {
+      "version": "20260929134538",
+      "name": "finalize_two_week_e2e_harness_cleanup_v1"
+    },
+    {
+      "version": "20260929150417",
+      "name": "close_public_account_registration_v1"
+    },
+    {
+      "version": "20260930080614",
+      "name": "tennis_commerce_pricing_and_stripe_fulfillment_v1"
+    },
+    {
+      "version": "20260930080632",
+      "name": "stripe_webhook_private_config_v1"
+    },
+    {
+      "version": "20260930080831",
+      "name": "tennis_commerce_runtime_settings_v1"
+    },
+    {
+      "version": "20260930081006",
+      "name": "tennis_club_50_coin_fallback_v1"
+    },
+    {
+      "version": "20260930081144",
+      "name": "stripe_async_coin_checkout_cleanup_v1"
+    },
+    {
+      "version": "20260930081432",
+      "name": "secure_commerce_checkout_intents_v1"
+    },
+    {
+      "version": "20260930081528",
+      "name": "secure_stripe_fulfillment_with_checkout_intents_v1"
+    },
+    {
+      "version": "20261001133543",
+      "name": "align_player_avatar_bucket_limit_8mb"
+    },
+    {
+      "version": "20261001134358",
+      "name": "avatar_reference_photo_24h_retention_cleanup"
+    },
+    {
+      "version": "20261001134956",
+      "name": "direct_control_center_admin_push_events_v1_tennis"
+    },
+    {
+      "version": "20261001151539",
+      "name": "schedule_national_association_lifecycle"
+    },
+    {
+      "version": "20261001152051",
+      "name": "harden_health_and_national_lifecycle_monitoring"
+    },
+    {
+      "version": "20261001152310",
+      "name": "decouple_system_health_control_center_delivery"
+    },
+    {
+      "version": "20261001163441",
+      "name": "harden_tournament_entry_cancellation_and_alerting"
+    },
+    {
+      "version": "20261001163709",
+      "name": "notify_human_tournament_applicants_on_cancellation"
+    },
+    {
+      "version": "20261001164834",
+      "name": "repair_week11_false_tournament_cancellations_v2"
+    },
+    {
+      "version": "20261001165003",
+      "name": "rebalance_week11_minimum_fields"
+    },
+    {
+      "version": "20261001165203",
+      "name": "tournament_entry_resilience_auto_repair_and_alerts"
+    },
+    {
+      "version": "20261001165622",
+      "name": "run_critical_incident_reminder_check_every_minute"
+    },
+    {
+      "version": "20261002073731",
+      "name": "tournament_draw_timing_recovery_and_health"
+    },
+    {
+      "version": "20261002073805",
+      "name": "register_draw_processor_monitor_keys"
+    },
+    {
+      "version": "20261002073937",
+      "name": "harden_draw_recovery_internal_rpc_permissions"
+    },
+    {
+      "version": "20261002092439",
+      "name": "balance_wta_shoe_entry_market"
+    },
+    {
+      "version": "20261002094527",
+      "name": "new_player_starting_scheme_v1"
+    },
+    {
+      "version": "20261002094851",
+      "name": "harden_new_player_scheme_idempotency"
+    },
+    {
+      "version": "20261002095004",
+      "name": "fix_new_career_coin_ledger_type"
+    },
+    {
+      "version": "20261002100228",
+      "name": "monitor_new_player_starting_scheme_v1"
+    },
+    {
+      "version": "20261002112227",
+      "name": "training_camp_reliability_balance_health_v1"
+    },
+    {
+      "version": "20261002112307",
+      "name": "fix_training_camp_health_alias"
+    },
+    {
+      "version": "20261002120101",
+      "name": "training_camp_visibility_split_travel_no_show_v1"
+    },
+    {
+      "version": "20261002140831",
+      "name": "game_manual_system_health_v1"
+    },
+    {
+      "version": "20261002141436",
+      "name": "game_manual_generated_pdf_route_v1"
+    },
+    {
+      "version": "20261002180226",
+      "name": "add_private_life_watch_images_batch1"
+    },
+    {
+      "version": "20261002181308",
+      "name": "add_wta_ai_profile_images_batch1"
+    },
+    {
+      "version": "20261002181344",
+      "name": "monitor_wta_ai_profile_portraits_v1"
+    },
+    {
+      "version": "20261002182344",
+      "name": "allow_authenticated_curated_player_portrait_reads"
+    },
+    {
+      "version": "20261002182514",
+      "name": "extend_admin_player_avatar_read_to_wta_ai"
+    },
+    {
+      "version": "20261002183827",
+      "name": "fix_new_cron_first_run_grace_v1"
+    },
+    {
+      "version": "20261002185941",
+      "name": "move_wta_ai_portraits_to_supported_avatar_path"
+    },
+    {
+      "version": "20261002193946",
+      "name": "add_wta_ai_profile_images_batch2"
+    },
+    {
+      "version": "20261002194654",
+      "name": "add_wta_ai_profile_images_batch3"
+    },
+    {
+      "version": "20261002202337",
+      "name": "add_wta_ai_profile_images_batch4"
+    },
+    {
+      "version": "20261003190620",
+      "name": "cache_ai_tournament_entry_candidates"
+    },
+    {
+      "version": "20261004182229",
+      "name": "player_handedness_scouting_tactics_v1"
+    },
+    {
+      "version": "20261004183207",
+      "name": "handedness_scouting_immediate_start_v1"
+    },
+    {
+      "version": "20261004183758",
+      "name": "player_tactics_health_and_admin_guard_v1"
+    },
+    {
+      "version": "20261004191841",
+      "name": "player_creation_country_filter_v1"
+    },
+    {
+      "version": "20261004192247",
+      "name": "add_vatican_player_home_city_v1"
+    },
+    {
+      "version": "20261004201022",
+      "name": "expand_wta_ai_population_117_v1"
+    },
+    {
+      "version": "20261004201303",
+      "name": "approve_kosovo_in_identity_health_v1"
+    },
+    {
+      "version": "20261004202228",
+      "name": "pair_wta_ai_profiles_101_300_v1"
+    },
+    {
+      "version": "20261004202900",
+      "name": "add_private_life_watch_images_batch2"
+    },
+    {
+      "version": "20261004202927",
+      "name": "schedule_private_life_watch_image_health_v1"
+    },
+    {
+      "version": "20261005122616",
+      "name": "pair_wta_ai_portraits_301_417_and_recovered_v1"
+    },
+    {
+      "version": "20261005123954",
+      "name": "pair_wta_ai_transliterated_profiles_v1"
+    },
+    {
+      "version": "20261005124922",
+      "name": "private_life_shared_atp_wta_jewelry_catalog_v1"
+    },
+    {
+      "version": "20261005143355",
+      "name": "private_life_jewelry_images_v1"
+    },
+    {
+      "version": "20261005145716",
+      "name": "private_life_realistic_usd_car_catalog_v1"
+    },
+    {
+      "version": "20261005182336",
+      "name": "private_life_vehicle_images_existing_catalog_v1"
+    },
+    {
+      "version": "20261005182453",
+      "name": "private_life_expand_vehicle_catalog_41_60_v1"
+    },
+    {
+      "version": "20261005191804",
+      "name": "allow_authenticated_private_life_vehicle_images_v1"
+    },
+    {
+      "version": "20261005193545",
+      "name": "resolve_cron_incidents_from_terminal_runs"
+    },
+    {
+      "version": "20261005193749",
+      "name": "private_life_apartment_catalog_15_v1"
+    },
+    {
+      "version": "20261005193828",
+      "name": "stabilize_starting_apartment_value_v1"
+    },
+    {
+      "version": "20261005201531",
+      "name": "keep_all_50_standard_property_cities_v1"
+    },
+    {
+      "version": "20261005205711",
+      "name": "compact_city_flat_location_images_v1"
+    },
+    {
+      "version": "20261005210122",
+      "name": "complete_compact_city_flat_images_v1"
+    },
+    {
+      "version": "20261005210346",
+      "name": "reduce_apartment_catalog_to_9_v1"
+    },
+    {
+      "version": "20261005211545",
+      "name": "stagger_tournament_draw_jobs"
+    },
+    {
+      "version": "20261006071445",
+      "name": "expand_property_cities_and_apartment_availability_v1"
+    },
+    {
+      "version": "20261006082055",
+      "name": "one_bedroom_apartment_city_images_v1"
+    },
+    {
+      "version": "20261006083449",
+      "name": "verify_connector_access"
+    },
+    {
+      "version": "20261006083546",
+      "name": "complete_one_bedroom_apartment_images_v1"
+    },
+    {
+      "version": "20261006090103",
+      "name": "restrict_apartment_market_to_curated_city_sets_v1"
+    },
+    {
+      "version": "20261006090146",
+      "name": "make_player_property_location_function_volatile_v1"
+    },
+    {
+      "version": "20261006091543",
+      "name": "calibrate_apartment_city_prices_v1"
+    },
+    {
+      "version": "20261006091921",
+      "name": "lock_standard_city_apartment_market_v1"
+    },
+    {
+      "version": "20261006111931",
+      "name": "publish_standard_city_apartment_market_v1"
+    },
+    {
+      "version": "20261006113253",
+      "name": "allow_standard_city_apartment_authenticated_read_v1"
+    },
+    {
+      "version": "20261006114335",
+      "name": "apply_travelling_staff_tournament_effects_v1"
+    },
+    {
+      "version": "20261006120142",
+      "name": "publish_large_city_apartment_market_v1"
+    },
+    {
+      "version": "20261006121339",
+      "name": "all_travelling_staff_tournament_effects_v2"
+    },
+    {
+      "version": "20261006121422",
+      "name": "secure_travelling_staff_internal_helpers_v1"
+    },
+    {
+      "version": "20261006134332",
+      "name": "calibrate_large_city_apartment_prices_v2"
+    },
+    {
+      "version": "20261006135024",
+      "name": "connect_large_city_apartment_images_v1"
+    },
+    {
+      "version": "20261006141026",
+      "name": "publish_executive_apartment_market_v1"
+    },
+    {
+      "version": "20261006151334",
+      "name": "connect_executive_apartment_images_v1"
+    },
+    {
+      "version": "20261006152711",
+      "name": "publish_luxury_city_apartment_market_v1"
+    },
+    {
+      "version": "20261006162826",
+      "name": "connect_luxury_city_apartment_images_v1"
+    },
+    {
+      "version": "20261006183149",
+      "name": "rebalance_match_double_faults_v2"
+    },
+    {
+      "version": "20261006183932",
+      "name": "publish_skyline_apartment_market_v1"
+    },
+    {
+      "version": "20261006192909",
+      "name": "connect_skyline_apartment_images_v1"
+    },
+    {
+      "version": "20261007065149",
+      "name": "publish_luxury_penthouse_market_v1"
+    },
+    {
+      "version": "20261007071220",
+      "name": "prelaunch_game_tutorial_progress_v1"
+    },
+    {
+      "version": "20261007073713",
+      "name": "first_session_tutorial_only_v1"
+    },
+    {
+      "version": "20261007091844",
+      "name": "connect_luxury_penthouse_images_v1"
+    },
+    {
+      "version": "20261007092705",
+      "name": "publish_signature_penthouse_market_v1"
+    },
+    {
+      "version": "20261007100745",
+      "name": "connect_signature_penthouse_images_v1"
+    },
+    {
+      "version": "20261007132146",
+      "name": "publish_standard_house_market_v1"
+    },
+    {
+      "version": "20261007133426",
+      "name": "keep_only_standard_house_v1"
+    },
+    {
+      "version": "20261007140705",
+      "name": "publish_family_house_market_v1"
+    },
+    {
+      "version": "20261007152102",
+      "name": "connect_family_house_images_v1"
+    },
+    {
+      "version": "20261007183344",
+      "name": "connect_modern_house_images_v1"
+    },
+    {
+      "version": "20261007183802",
+      "name": "connect_modern_house_shanghai_v1"
+    },
+    {
+      "version": "20261008065327",
+      "name": "publish_executive_house_market_v1"
+    },
+    {
+      "version": "20261008070027",
+      "name": "premium_multi_period_billing_v1"
+    },
+    {
+      "version": "20261008075535",
+      "name": "connect_executive_house_images_v1"
+    },
+    {
+      "version": "20261008085158",
+      "name": "publish_luxury_house_market_v1"
+    },
+    {
+      "version": "20261008092114",
+      "name": "connect_luxury_house_images_v1"
+    },
+    {
+      "version": "20261008092938",
+      "name": "expand_private_life_asset_tiers_v1"
+    },
+    {
+      "version": "20261008092945",
+      "name": "publish_private_villa_market_v1"
+    },
+    {
+      "version": "20261008100515",
+      "name": "connect_private_villa_images_v1"
+    },
+    {
+      "version": "20261008102238",
+      "name": "publish_grand_estate_market_v1"
+    },
+    {
+      "version": "20261008111016",
+      "name": "connect_grand_estate_images_v1"
+    },
+    {
+      "version": "20261008113718",
+      "name": "publish_signature_mansion_market_v1"
+    },
+    {
+      "version": "20261008120823",
+      "name": "connect_signature_mansion_images_v1"
+    },
+    {
+      "version": "20261008132045",
+      "name": "publish_yacht_catalog_30_v1"
+    },
+    {
+      "version": "20261008151130",
+      "name": "connect_yacht_images_and_builders_v1"
+    },
+    {
+      "version": "20261008153643",
+      "name": "publish_private_airplanes_18_v1"
+    },
+    {
+      "version": "20261008155936",
+      "name": "connect_private_airplane_images_v1"
+    },
+    {
+      "version": "20261008161250",
+      "name": "publish_art_catalog_50_v1"
+    },
+    {
+      "version": "20261008182122",
+      "name": "cpx_tennis_reward_tables_v1"
+    },
+    {
+      "version": "20261008182151",
+      "name": "cpx_tennis_reward_receiver_v1"
+    },
+    {
+      "version": "20261008183901",
+      "name": "cpx_tennis_reward_summary_v1"
+    },
+    {
+      "version": "20261008185930",
+      "name": "connect_art_images_50_v1"
+    },
+    {
+      "version": "20261008190139",
+      "name": "rebalance_art_prices_v2"
+    },
+    {
+      "version": "20261008190847",
+      "name": "publish_collectibles_51_v1"
+    },
+    {
+      "version": "20261008200442",
+      "name": "private_life_collectible_images_authenticated_read"
+    },
+    {
+      "version": "20261009123205",
+      "name": "map_new_atp_ai_profile_portraits_v1"
+    },
+    {
+      "version": "20261009125936",
+      "name": "fix_tournament_completion_and_ai_entry_priority_v1"
+    },
+    {
+      "version": "20261009131053",
+      "name": "surface_walkover_results_in_draw_v1"
+    },
+    {
+      "version": "20261009132230",
+      "name": "user_language_preferences_v1"
+    },
+    {
+      "version": "20261009141430",
+      "name": "overview_localized_notifications_v2"
+    },
+    {
+      "version": "20261012155514",
+      "name": "control_center_dynamic_disk_capacity_v1"
+    },
+    {
+      "version": "20261012155713",
+      "name": "control_center_dynamic_disk_capacity_payloads_v1"
+    },
+    {
+      "version": "20261013052226",
+      "name": "tennis_system_incident_direct_push"
+    },
+    {
+      "version": "20261013060337",
+      "name": "ignore_fresh_running_cron_in_telemetry"
+    },
+    {
+      "version": "20261013164220",
+      "name": "tournament_operations_ignore_unplayed_withdrawn_entries"
+    },
+    {
+      "version": "20261018174145",
+      "name": "tennis_seven_day_premium_trial_v1"
+    },
+    {
+      "version": "20261018174209",
+      "name": "tennis_trial_private_life_entitlement_v1"
+    },
+    {
+      "version": "20261018174822",
+      "name": "tennis_trial_private_life_costs_v1"
+    },
+    {
+      "version": "20261018175313",
+      "name": "tennis_trial_prior_upgrades_v1"
+    },
+    {
+      "version": "20261018181245",
+      "name": "tennis_club_unread_alerts_v1"
+    },
+    {
+      "version": "20261018182038",
+      "name": "tennis_club_invitation_notification_cleanup_v1"
+    },
+    {
+      "version": "20261019062154",
+      "name": "tennis_preferences_center_v1"
+    },
+    {
+      "version": "20261019063003",
+      "name": "tennis_preferences_privilege_hardening"
+    },
+    {
+      "version": "20261019071049",
+      "name": "tennis_notification_preference_inventory_v2"
+    },
+    {
+      "version": "20261019094916",
+      "name": "overview_game_news_limit_five"
+    },
+    {
+      "version": "20261019122133",
+      "name": "public_tennis_home_gallery_20_read"
+    },
+    {
+      "version": "20261019151008",
+      "name": "season_transition_preflight_readonly_v1"
+    },
+    {
+      "version": "20261019151243",
+      "name": "season_transition_clock_boundary_guard_v1"
+    },
+    {
+      "version": "20261019151309",
+      "name": "tennis_season_migration_secure_control_center_feed"
+    },
+    {
+      "version": "20261019151629",
+      "name": "monitor_tennis_migration_telemetry_job"
+    },
+    {
+      "version": "20261020062737",
+      "name": "premium_statistics_intelligence_v1"
+    },
+    {
+      "version": "20261020063247",
+      "name": "premium_statistics_intelligence_volatility_fix"
+    },
+    {
+      "version": "20261020070830",
+      "name": "premium_deep_match_analysis_v1"
+    },
+    {
+      "version": "20261020074935",
+      "name": "premium_deep_match_historical_factors_v1"
+    },
+    {
+      "version": "20261020102656",
+      "name": "premium_player_development_intelligence_v1"
+    },
+    {
+      "version": "20261020103953",
+      "name": "skill_history_game_week_metadata_v1"
+    },
+    {
+      "version": "20261020134644",
+      "name": "premium_tournament_planning_intelligence_v1"
+    },
+    {
+      "version": "20261020140744",
+      "name": "premium_season_planning_center_v1"
+    },
+    {
+      "version": "20261020141300",
+      "name": "premium_season_planning_active_series_guard"
+    },
+    {
+      "version": "20261020143153",
+      "name": "premium_staff_advisory_reports_v1"
+    },
+    {
+      "version": "20261020145031",
+      "name": "premium_sponsor_intelligence_v1"
+    },
+    {
+      "version": "20261020150421",
+      "name": "premium_financial_intelligence_v1"
+    },
+    {
+      "version": "20261020151721",
+      "name": "premium_equipment_intelligence_v1"
+    },
+    {
+      "version": "20261020154001",
+      "name": "premium_career_intelligence_v1"
+    },
+    {
+      "version": "20261020155543",
+      "name": "fix_premium_equipment_intelligence_readonly_v2"
+    },
+    {
+      "version": "20261027114153",
+      "name": "20261026093000_private_life_career_foundation_v1"
+    },
+    {
+      "version": "20261027114229",
+      "name": "20261026094500_private_life_jet_travel_integration_v1"
+    },
+    {
+      "version": "20261027114259",
+      "name": "20261026095500_private_life_profile_residence_v1"
+    },
+    {
+      "version": "20261029090508",
+      "name": "push_only_system_alert_monitoring_guard"
+    },
+    {
+      "version": "20261103204720",
+      "name": "equipment_condition_lifecycle_v1"
+    },
+    {
+      "version": "20261103204727",
+      "name": "missing_equipment_match_penalties_v1"
+    },
+    {
+      "version": "20261105093630",
+      "name": "repair_tennis_health_watchdog_indexed_freshness"
+    },
+    {
+      "version": "20261105093931",
+      "name": "optimize_tennis_cron_sync_window_latest_completed"
+    },
+    {
+      "version": "20261105094300",
+      "name": "tennis_cron_history_bounded_30_day_retention"
+    },
+    {
+      "version": "20261105095200",
+      "name": "tennis_stripe_exclude_proven_foreign_subscription_events"
+    },
+    {
+      "version": "20261105095409",
+      "name": "tennis_cron_sync_skip_unstarted_jobs"
+    },
+    {
+      "version": "20261105095433",
+      "name": "tennis_premium_subscription_exact_match_guard"
+    },
+    {
+      "version": "20261105095838",
+      "name": "tennis_jewelry_image_health_automated_scheduler"
+    },
+    {
+      "version": "20261110165919",
+      "name": "restore_legacy_control_center_hourly_auth"
+    },
+    {
+      "version": "20261110184116",
+      "name": "archive_unplayed_season1_january_tournaments"
+    },
+    {
+      "version": "20261110184506",
+      "name": "season1_final_day_tournament_closeout"
+    },
+    {
+      "version": "20261110190106",
+      "name": "season1_final_replay_fast_finish_and_cutoff_monitor"
+    },
+    {
+      "version": "20261110205613",
+      "name": "tennis_season2_calendar_readonly_preflight_20261110"
+    },
+    {
+      "version": "20261110210140",
+      "name": "tennis_season_transition_private_journal_guardrails_20261110"
+    },
+    {
+      "version": "20261110210223",
+      "name": "tennis_season_transition_execution_status_guard_20261110"
+    },
+    {
+      "version": "20261110211020",
+      "name": "tennis_season2_early_draws_structural_preflight_20261110"
+    },
+    {
+      "version": "20261110211114",
+      "name": "tennis_season2_readonly_migration_preflight_20261110"
+    },
+    {
+      "version": "20261110211405",
+      "name": "tennis_season_transition_private_baseline_checks_20261110"
+    },
+    {
+      "version": "20261110211515",
+      "name": "tennis_season2_private_signed_technical_contract_registry_20261110"
+    },
+    {
+      "version": "20261110211947",
+      "name": "season_transition_public_notice_v1"
+    },
+    {
+      "version": "20261110212329",
+      "name": "tennis_season1_transition_verify_baseline_drift_20261110"
+    },
+    {
+      "version": "20261110212559",
+      "name": "tennis_season1_2_fail_closed_release_gate_20261110"
+    },
+    {
+      "version": "20261110212814",
+      "name": "tennis_season1_2_atomic_cutover_candidate_inert_20261110"
+    },
+    {
+      "version": "20261110215202",
+      "name": "tennis_cutover_candidate_respect_positive_stored_clock_speed_20261110"
+    },
+    {
+      "version": "20261110215629",
+      "name": "tennis_season2_early_human_entry_window_audit_20261110"
+    },
+    {
+      "version": "20261110215651",
+      "name": "tennis_cutover_gate_block_unusable_early_human_entry_windows_20261110"
+    },
+    {
+      "version": "20261110220511",
+      "name": "tennis_season2_week1_private_recovery_plan_20261110"
+    },
+    {
+      "version": "20261110220737",
+      "name": "tennis_season2_week1_source_integrity_verifier_20261110"
+    },
+    {
+      "version": "20261110221745",
+      "name": "tennis_season2_week1_player_preentry_private_store_20261110"
+    },
+    {
+      "version": "20261110221824",
+      "name": "tennis_season2_week1_owner_checked_preentry_rpc_20261110"
+    },
+    {
+      "version": "20261110222349",
+      "name": "tennis_season2_week1_preentry_reconciliation_audit_20261110"
+    },
+    {
+      "version": "20261110223109",
+      "name": "tennis_live_admin_migration_snapshot_correct_prepared_calendar_journal_20261110"
+    },
+    {
+      "version": "20261110223153",
+      "name": "tennis_admin_season_readiness_use_actual_production_migration_status_20261110"
+    },
+    {
+      "version": "20261110223445",
+      "name": "tennis_s2_w1_add_missing_qualifier_slot_recovery_snapshot_20261110"
+    },
+    {
+      "version": "20261110223558",
+      "name": "tennis_s2_w1_archive_draw_publishing_attempt_history_20261110"
+    },
+    {
+      "version": "20261110223730",
+      "name": "tennis_s2_w1_extended_recovery_source_integrity_gate_20261110"
+    },
+    {
+      "version": "20261110223746",
+      "name": "tennis_cutover_release_gate_verify_complete_week1_draw_archive_20261110"
+    },
+    {
+      "version": "20261110224457",
+      "name": "tennis_s2_week1_real_engine_rollback_rehearsal_evidence_20261110"
+    },
+    {
+      "version": "20261110224909",
+      "name": "tennis_atomic_cutover_rollback_rehearsal_audit_20261110"
+    },
+    {
+      "version": "20261110230956",
+      "name": "tennis_season2_week1_draw_reselection_atomic_receipts_20261111"
+    },
+    {
+      "version": "20261110231056",
+      "name": "tennis_season2_week1_guarded_atomic_human_reselection_20261111"
+    },
+    {
+      "version": "20261110231251",
+      "name": "tennis_s2_week1_post_recovery_fingerprint_and_human_preentry_verification_20261111"
+    },
+    {
+      "version": "20261110231352",
+      "name": "tennis_s1_to_s2_evidence_based_release_gate_after_week1_reselection_20261111"
+    },
+    {
+      "version": "20261110231651",
+      "name": "tennis_season2_day1_human_finance_career_rehearsal_table_20261111"
+    },
+    {
+      "version": "20261111061919",
+      "name": "tennis_admin_migration_show_live_week1_player_opt_in_count_20261111"
+    },
+    {
+      "version": "20261111062415",
+      "name": "tennis_admin_separate_preparation_evidence_from_execution_journal_20261111"
+    },
+    {
+      "version": "20261111062426",
+      "name": "tennis_admin_expose_verified_preparation_labels_alongside_execution_steps_20261111"
+    },
+    {
+      "version": "20261111083227",
+      "name": "tennis_future_season_24h_maintenance_notice_inactive_by_default_20261111"
+    },
+    {
+      "version": "20261111091648",
+      "name": "tennis_season1_to2_one_time_documented_no_clone_release_waiver_v1"
+    },
+    {
+      "version": "20261111091844",
+      "name": "tennis_one_off_no_clone_owner_accepted_risk_db_constraint_20261111"
+    },
+    {
+      "version": "20261111092354",
+      "name": "tennis_admin_show_actual_completed_s1_to_s2_journal_after_clock_advances_20261111"
+    },
+    {
+      "version": "20261111093147",
+      "name": "tennis_admin_prefer_future_season_plan_over_completed_prior_transition_20261111"
+    },
+    {
+      "version": "20261111093433",
+      "name": "tennis_admin_completed_phase_ignore_json_null_future_run_20261111"
+    },
+    {
+      "version": "20261111101427",
+      "name": "season2_week1_extend_prestart_application_and_draw_windows"
+    },
+    {
+      "version": "20261111110354",
+      "name": "season_transition_two_real_days_v1"
+    },
+    {
+      "version": "20261111110356",
+      "name": "season_transition_preseason_january_applications_v1"
+    },
+    {
+      "version": "20261111112159",
+      "name": "preserve_live_game_time_during_preseason"
+    },
+    {
+      "version": "20261111120551",
+      "name": "season2_week1_open_until_first_match_safe_redraw"
+    },
+    {
+      "version": "20261111120856",
+      "name": "season2_week1_clear_stale_lima_cancellation"
+    },
+    {
+      "version": "20261111144724",
+      "name": "tennis_prelaunch_maintenance_rpc_report_real_paused_clock"
+    },
+    {
+      "version": "20261111150029",
+      "name": "tennis_prelaunch_ai_seed_and_cron_freeze_manifest"
+    },
+    {
+      "version": "20261111150624",
+      "name": "public_tennis_home_videos_read"
+    },
+    {
+      "version": "20261111150839",
+      "name": "tennis_prelaunch_s1_tournament_structure_seed"
+    },
+    {
+      "version": "20261111152700",
+      "name": "tennis_prelaunch_ai_starter_assets_seed"
+    },
+    {
+      "version": "20261111153045",
+      "name": "tennis_prelaunch_season1_reset_verification_receipt"
+    },
+    {
+      "version": "20261111153206",
+      "name": "tennis_prelaunch_clock_rpc_honor_paused_state"
+    },
+    {
+      "version": "20261111153328",
+      "name": "tennis_prelaunch_suspend_monitors_for_intentionally_frozen_game_jobs"
+    },
+    {
+      "version": "20261111160300",
+      "name": "tennis_sponsor_ranking_and_local_eligibility"
+    },
+    {
+      "version": "20261111160546",
+      "name": "tennis_main_sponsor_renewal_model"
+    },
+    {
+      "version": "20261111160623",
+      "name": "tennis_main_sponsor_renewal_lifecycle"
+    },
+    {
+      "version": "20261111160702",
+      "name": "tennis_main_sponsor_renewal_dashboard"
+    },
+    {
+      "version": "20261111161531",
+      "name": "tennis_sponsor_year_end_rankings_capture"
+    },
+    {
+      "version": "20261111161648",
+      "name": "tennis_technical_sponsor_improved_renewal"
+    },
+    {
+      "version": "20261111163813",
+      "name": "tennis_public_registration_status_read_only_20261111"
+    },
+    {
+      "version": "20261111165638",
+      "name": "tennis_reuse_existing_starter_home_city_after_reset"
+    },
+    {
+      "version": "20261111171447",
+      "name": "tennis_first_two_season_weeks_entry_windows"
+    },
+    {
+      "version": "20261111171639",
+      "name": "tennis_enable_premium_tournament_watchlist_paused"
+    },
+    {
+      "version": "20261111182756",
+      "name": "season1_early_weeks_entry_pipeline_due_alignment"
+    },
+    {
+      "version": "20261111193801",
+      "name": "tennis_show_current_world_rank_in_tournament_field"
+    },
+    {
+      "version": "20261111194007",
+      "name": "tennis_spread_ai_tournament_choices_without_losing_rank_rules"
+    },
+    {
+      "version": "20261111194259",
+      "name": "tennis_direct_main_draw_frees_qualification_week"
+    },
+    {
+      "version": "20261111202603",
+      "name": "tennis_new_human_player_starts_last_in_world_ranking"
+    },
+    {
+      "version": "20261112085224",
+      "name": "tennis_stripe_subscription_item_period_dates"
+    },
+    {
+      "version": "20261113062600",
+      "name": "tennis_match_replay_health_and_early_grand_slam_draw_v1"
+    },
+    {
+      "version": "20261113075802",
+      "name": "tennis_calendar_show_live_qualifying_matches"
+    },
+    {
+      "version": "20261113084705",
+      "name": "tournament_direct_transfer_choice_v1_20261113"
+    },
+    {
+      "version": "20261113091045",
+      "name": "tournament_direct_transfer_cost_hotel_morale_v2_20261113"
+    },
+    {
+      "version": "20261113091047",
+      "name": "tournament_direct_transfer_jet_timing_v3_20261113"
+    },
+    {
+      "version": "20261113091051",
+      "name": "tournament_direct_transfer_late_resolution_v4_20261113"
+    },
+    {
+      "version": "20261113091053",
+      "name": "tournament_provisional_accepted_travel_v5_20261113"
+    },
+    {
+      "version": "20261113094450",
+      "name": "calendar_future_travel_override_v1_20261113"
+    },
+    {
+      "version": "20261113111254",
+      "name": "restore_main_draw_seed_layouts_future_draws_20261113"
+    },
+    {
+      "version": "20261114110056",
+      "name": "publish_due_rankings_before_tournament_watchdog_v1"
+    },
+    {
+      "version": "20261115174457",
+      "name": "guard_tournament_feeder_progression_v1"
+    },
+    {
+      "version": "20261115180110",
+      "name": "repair_australian_slam_qualifiers_and_guard_byes_v1"
+    },
+    {
+      "version": "20261117082152",
+      "name": "player_calendar_single_travel_day_departure_only_v1_20261117"
+    },
+    {
+      "version": "20261117094430",
+      "name": "remove_exposed_e2e_test_functions_20261117"
+    },
+    {
+      "version": "20261117094814",
+      "name": "respect_qualification_and_main_draw_weeks_20261117"
+    },
+    {
+      "version": "20261117100100",
+      "name": "simulated_match_duration_and_safe_start_20261117"
+    },
+    {
+      "version": "20261117100103",
+      "name": "finalize_variable_match_duration_and_guard_start_20261117"
+    },
+    {
+      "version": "20261117100105",
+      "name": "reschedule_followup_matches_after_long_match_20261117"
+    },
+    {
+      "version": "20261117100635",
+      "name": "doubles_main_week_and_projected_singles_conflicts_20261117"
+    },
+    {
+      "version": "20261117100637",
+      "name": "doubles_safe_start_and_rebooking_20261117"
+    },
+    {
+      "version": "20261117100857",
+      "name": "prevent_unstarted_doubles_wrong_main_week_20261117"
+    },
+    {
+      "version": "20261117101812",
+      "name": "lock_server_owned_tables_readonly_rls_20261117"
+    },
+    {
+      "version": "20261117102045",
+      "name": "restrict_internal_game_engine_rpcs_20261117"
+    },
+    {
+      "version": "20261117102732",
+      "name": "restrict_internal_health_and_match_rpc_20261117"
+    },
+    {
+      "version": "20261117105839",
+      "name": "deny_anonymous_execution_of_authenticated_player_rpcs_20261117"
+    },
+    {
+      "version": "20261117112246",
+      "name": "restrict_internal_tennis_match_rating_and_health_rpc_v1_20261117"
+    },
+    {
+      "version": "20261117114547",
+      "name": "normalize_legacy_two_week_qualifying_slots_20261117"
+    },
+    {
+      "version": "20261117114553",
+      "name": "legacy_phase_compatibility_future_seasons_20261117"
+    },
+    {
+      "version": "20261117121605",
+      "name": "restrict_public_health_and_doubles_internal_helpers_20261117"
+    },
+    {
+      "version": "20261117141450",
+      "name": "defer_tennis_premium_trials_until_first_launch_unpause_20261117"
+    },
+    {
+      "version": "20261117142002",
+      "name": "keep_reserved_premium_trial_inactive_until_unpause_20261117"
+    },
+    {
+      "version": "20261118091742",
+      "name": "tennis_prelaunch_premium_preview_without_trial_clock"
+    },
+    {
+      "version": "20261118095229",
+      "name": "national_team_division_browser_for_nonmember_players"
+    },
+    {
+      "version": "20261118151422",
+      "name": "restore_orphaned_prelaunch_premium_trial_claims"
+    },
+    {
+      "version": "20261119213254",
+      "name": "tennis_launch_guard_message_december_1_2026"
+    },
+    {
+      "version": "20261120085750",
+      "name": "helios_admin_analytics_freshness_and_reconciliation"
+    },
+    {
+      "version": "20261120090608",
+      "name": "helios_tennis_onboarding_funnel_aggregate_metrics"
+    },
+    {
+      "version": "20261120091815",
+      "name": "helios_h11_authenticated_active_player_presence"
+    },
+    {
+      "version": "20261120093113",
+      "name": "helios_h10_browser_linked_registration_funnel"
+    },
+    {
+      "version": "20261120093140",
+      "name": "helios_h10_funnel_uuid_aggregation_fix"
+    },
+    {
+      "version": "20261120094749",
+      "name": "helios_h12_admin_game_activity"
+    },
+    {
+      "version": "20261120100104",
+      "name": "helios_h13_economy_monitoring"
+    },
+    {
+      "version": "20261120100748",
+      "name": "helios_h14_guarded_event_history_index"
+    },
+    {
+      "version": "20261120102702",
+      "name": "helios_h17_admin_identity_hardening"
+    },
+    {
+      "version": "20261120103404",
+      "name": "helios_h06_optional_account_birthday"
+    },
+    {
+      "version": "20261120111745",
+      "name": "helios_h03_google_oauth_prepare_disabled_corrected"
+    },
+    {
+      "version": "20261120113651",
+      "name": "helios_h01_guest_trial_foundation_disabled"
+    },
+    {
+      "version": "20261120115415",
+      "name": "helios_h01_guest_player_creation_guard_disabled"
+    },
+    {
+      "version": "20261120124523",
+      "name": "helios_h01_anonymous_signup_gated_off"
+    },
+    {
+      "version": "20261120125725",
+      "name": "helios_h08_guest_premium_trial_disabled"
+    },
+    {
+      "version": "20261120130759",
+      "name": "helios_h08_guest_gameplay_expiry_rpc_guards"
+    },
+    {
+      "version": "20261120131004",
+      "name": "helios_h08_additional_guest_expiry_guards"
+    },
+    {
+      "version": "20261120132438",
+      "name": "helios_h02_same_identity_guest_conversion"
+    },
+    {
+      "version": "20261120134241",
+      "name": "helios_guest_zero_point_rank_fairness"
+    },
+    {
+      "version": "20261120134357",
+      "name": "helios_guest_doubles_rank_fairness"
+    },
+    {
+      "version": "20261120135554",
+      "name": "helios_guest_draw_seeding_fairness"
+    },
+    {
+      "version": "20261120141848",
+      "name": "helios_guest_retire_and_walkover"
+    },
+    {
+      "version": "20261120142045",
+      "name": "helios_guest_double_expiry_opponent_guard"
+    },
+    {
+      "version": "20261120142200",
+      "name": "helios_retired_guest_conversion_guard"
+    },
+    {
+      "version": "20261120142410",
+      "name": "helios_guest_retirement_lock_order"
+    },
+    {
+      "version": "20261120201405",
+      "name": "helios_h18_live_page_activity"
+    }
+  ]
+}
