@@ -77,7 +77,7 @@ async function getCountryCode() {
 
 export default function AnalyticsTracker() {
   const location = useLocation()
-  const { user, authLoading } = useAuth()
+  const { user, player, authLoading } = useAuth()
 
   useEffect(() => {
     if (authLoading) return
@@ -111,6 +111,62 @@ export default function AnalyticsTracker() {
       cancelled = true
     }
   }, [authLoading, location.pathname, user?.id])
+
+  useEffect(() => {
+    // An actual foreground interaction, not an open/background browser tab,
+    // qualifies an authenticated human tennis player as recently active.
+    if (authLoading || !user?.id || !player?.id) return
+    if (!OFFICIAL_ANALYTICS_HOSTS.has(window.location.hostname.toLowerCase())) return
+    if (location.pathname.startsWith('/game/admin/')) return
+
+    let lastInteraction = 0
+    let lastSent = 0
+    let inFlight = false
+    let active = true
+
+    async function sendPresence() {
+      if (!active || document.visibilityState !== 'visible' || inFlight) return
+      const now = Date.now()
+      if (now - lastInteraction > 90_000 || now - lastSent < 30_000) return
+      lastSent = now
+      inFlight = true
+      try {
+        const { error } = await supabase.rpc('record_my_tennis_presence_v1')
+        if (error) console.warn('Tennis Legacy activity presence failed:', error.message)
+      } catch (error) {
+        console.warn('Tennis Legacy activity presence failed:', error)
+      } finally {
+        inFlight = false
+      }
+    }
+
+    function noteInteraction() {
+      if (document.visibilityState !== 'visible') return
+      lastInteraction = Date.now()
+      void sendPresence()
+    }
+
+    function onVisibilityChange() {
+      if (document.visibilityState !== 'visible') {
+        lastInteraction = 0
+      }
+      // Returning to the tab does not imply game activity until interaction.
+    }
+
+    window.addEventListener('pointerdown', noteInteraction, { passive: true })
+    window.addEventListener('keydown', noteInteraction)
+    window.addEventListener('scroll', noteInteraction, { passive: true })
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    const interval = window.setInterval(() => { void sendPresence() }, 45_000)
+    return () => {
+      active = false
+      window.clearInterval(interval)
+      window.removeEventListener('pointerdown', noteInteraction)
+      window.removeEventListener('keydown', noteInteraction)
+      window.removeEventListener('scroll', noteInteraction)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
+  }, [authLoading, user?.id, player?.id, location.pathname])
 
   return null
 }
