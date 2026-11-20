@@ -33,3 +33,9 @@ Do **not** call `public.delete_tennis_legacy_account_v1()` on an expired guest u
 **Existing evidence:** PR #46 proves scheduled singles/doubles walkovers and result preservation in a minimal disposable PostgreSQL harness; it does not prove account deletion safety.
 
 **Release gate:** This document and FK audit are preparation, **not** a claim that history-safe hard deletion has been implemented or approved.
+
+## Minimal-schema implementation proof (PR #47)
+
+The new `tests/helios_guest_tombstone_proof_ephemeral_db.sql` runs transactionally in the disposable PostgreSQL workflow. It models the live `players.owner_user_id ON DELETE CASCADE` relationship, retains and anonymizes an expired guest's public player row, detaches its Auth ownership, removes the synthetic Auth account, and asserts a completed singles match still references the same winner and participant. A converted permanent account is a negative control and must remain unmodified. The entire transaction ends with ROLLBACK.
+
+This is **not** a production migration, full-schema test, legal retention decision, or confirmation that real Auth deletion is safe; actual dependent tables and stored private fields remain to be handled. Results must be confirmed from GitHub CI before claiming the proof passed.
