@@ -1,0 +1,22 @@
+name: Helios applied SQL token equivalence audit
+
+on:
+  pull_request:
+    paths:
+      - 'tests/recovered-migrations/same-name-applied-sources-first-ten.json'
+      - 'scripts/helios-verify-applied-sql-token-equivalence.mjs'
+      - 'supabase/migrations/**'
+      - '.github/workflows/helios-applied-sql-token-equivalence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-applied-sql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify ten renamed migrations match applied SQL tokens
+        run: node scripts/helios-verify-applied-sql-token-equivalence.mjs
