@@ -19,8 +19,9 @@ const needed = [
 for (const name of needed) {
   const needle = '`' + (name==='players' ? 'public.players' : 'public.'+name) + '`';
   if (!policy.includes(needle)) throw new Error('Missing high-risk table policy: '+needle);
-  if (name!=='players' && !ledger.includes(needle))
-    throw new Error('High-risk table no longer appears in ledger: '+needle);
+  // Catalog reports public tables without schema qualification.
+  if (name!=='players' && !ledger.includes('`'+name+'`'))
+    throw new Error('High-risk table no longer appears in ledger: '+name);
 }
 for(const keyword of [
  'REVIEW_REQUIRED','NOT an approved retention schedule','No legal retention length',
