@@ -43,6 +43,11 @@
       "status": "pending_device_validation"
     },
     {
+      "path": "/try-as-guest",
+      "audience": "public/onboarding (feature gated, no public rollout)",
+      "status": "blocked"
+    },
+    {
       "path": "/login",
       "audience": "public/onboarding",
       "status": "pending_device_validation"
@@ -286,6 +291,10 @@
     {
       "name": "Admin routes (authorized administrator account only)",
       "status": "pending_device_validation"
+    },
+    {
+      "name": "Anonymous Guest entry, 14-day enroll and preserve progress (Guest Mode disabled pending H02/H08)",
+      "status": "blocked"
     }
   ]
 }

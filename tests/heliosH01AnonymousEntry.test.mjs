@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import test from 'node:test'
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8')
+const sql=read('supabase/migrations/20261120151000_helios_h01_anonymous_signup_gated.sql')
+const route=read('src/pages/auth/TryAsGuest.tsx')
+const hook=read('src/hooks/useTennisGuestAvailability.ts')
+const home=read('src/pages/Home.tsx')
+const app=read('src/App.tsx')
+const checklist=read('HELIOS_CHECKLIST.md')
+
+test('H01: anonymous Auth signup requires server-side guest gate, even when normal signup is open',()=>{
+  assert.match(sql,/if coalesce\(new\.is_anonymous,false\) then/)
+  assert.match(sql,/rc\.guest_test_enabled/)
+  assert.match(sql,/if not v_guest_enabled then/)
+  assert.match(sql,/Test player registration is not available/)
+  assert.match(sql,/if coalesce\(v_signup_enabled,false\) or v_admin_override then/)
+})
+test('H01: anonymous account profile is auto-generated with safe unique username and no birthday',()=>{
+  assert.match(sql,/new\.is_anonymous,false/)
+  assert.match(sql,/v_username:='guest_'\|\|left\(replace\(new\.id::text,'-',''\),16\)/)
+  assert.match(sql,/insert into public\.profiles\(/)
+  assert.match(sql,/v_month,v_day,v_year/)
+  assert.match(sql,/if v_username !~ '\^\[A-Za-z0-9_\.\-\]\{3,24\}\$'/)
+})
+test('H08: guest identities do not earn normal signup coins or referral or invitation bonuses',()=>{
+  assert.match(sql,/guest_identity_no_signup_coins/)
+  assert.match(sql,/if exists \(select 1 from auth\.users u where u\.id=p_user_id and u\.is_anonymous\)/)
+  assert.match(sql,/if coalesce\(new\.is_anonymous,false\) then return new; end if;/)
+  assert.match(sql,/handle_registration_invite_bonus_v1/)
+  assert.match(sql,/handle_referral_signup_v1/)
+})
+test('H01: homepage guest entry fail-closed and enrollment is self-scoped',()=>{
+  assert.match(hook,/useState\(false\)/)
+  assert.match(hook,/!error && data === true/)
+  assert.match(home,/guestAvailable &&/)
+  assert.match(home,/to="\/try-as-guest"/)
+  assert.match(app,/path="\/try-as-guest"/)
+  assert.match(route,/supabase\.auth\.signInAnonymously\(\)/)
+  assert.match(route,/enroll_my_tennis_guest_trial_v1/)
+  assert.match(route,/if \(!available \|\| busy \|\| authLoading\) return/)
+  assert.match(route,/if \(user && !user\.is_anonymous\)/)
+  assert.match(route,/navigate\('\/create-player'/)
+  assert.match(route,/Clearing browser data/)
+  assert.match(checklist,/guest_test_enabled=false/)
+})

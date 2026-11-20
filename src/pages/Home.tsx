@@ -44,6 +44,7 @@ import HomeVideoShowcase from '../components/marketing/HomeVideoShowcase'
 import DesktopDownloads from '../components/marketing/DesktopDownloads'
 import { supabase } from '../lib/supabase'
 import usePublicRegistrationStatus from '../hooks/usePublicRegistrationStatus'
+import useTennisGuestAvailability from '../hooks/useTennisGuestAvailability'
 
 
 const screenshotCopy: Record<AppLocale, { eyebrow: string; title: string; description: string }> = {
@@ -116,6 +117,7 @@ const managementFeatures = [
 
 export default function HomePage() {
   const registrationAvailability = usePublicRegistrationStatus()
+  const guestAvailable = useTennisGuestAvailability()
   const { t } = useTranslation()
   const { locale } = useLocalization()
   const galleryText = screenshotCopy[locale] ?? screenshotCopy.en
@@ -191,6 +193,11 @@ export default function HomePage() {
                   {t('home.hero.explore')}
                 </button>
 
+                {guestAvailable && (
+                  <Link to="/try-as-guest" className="tlg-btn tlg-btn-primary tlg-btn-large">
+                    Try as Test Player
+                  </Link>
+                )}
                 {registrationAvailability === 'open' && (
                   <Link to="/register" className="tlg-btn tlg-btn-primary tlg-btn-large">
                     {t('authPages.login.createAccount')}
