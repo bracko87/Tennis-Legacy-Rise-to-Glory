@@ -45,3 +45,21 @@ This is **not** a production migration, full-schema test, legal retention decisi
 `tests/helios_guest_retirement_edge_cases_ephemeral_db.sql` invokes the actual snapshot retirement worker and bracket functions against a disposable PostgreSQL schema, and checks: two expired singles opponents cause cancellation without a fabricated winner; two unavailable doubles teams withdraw and cancel; already in-progress singles stays in-progress; completed historical result/winner stays unchanged; both expired users retire once; re-running the worker does nothing. This fixture is registered in the dedicated GitHub Actions workflow. **Do not call it passed until its new CI run completes.**
 
 An in-progress match being left unchanged during retirement is current worker behavior, **not** a finalized long-term rule for how an active match should conclude after expiry. That policy and any later reconciliation job still require separate design, tests, and full-schema validation.
+
+## Verified read-only live schema inspection — 20 November 2026
+
+Read-only queries against the **Tennis Legacy** Supabase project (no user rows returned and no data mutations) independently confirmed direct FKs referencing `auth.users` or `public.players`: **188 total** = 146 CASCADE, 23 SET NULL, 18 RESTRICT, 1 NO ACTION. These are *direct FK constraints*, not all recursively reachable dependencies. The player's `owner_user_id` column is nullable; both `first_name` and `last_name` are NOT NULL, which makes a neutral history tombstone technically possible, but does not constitute a safe deletion migration.
+
+Material direct references include:
+- `public.tournament_matches` (3 SET NULL participant/winner FKs) and `public.tournament_doubles_teams` (2 CASCADE player FKs): do not delete the public historical player row or its doubles teams.
+- `public.tournament_match_simulations` (RESTRICT), `public.player_tournament_results` / `public.player_doubles_tournament_results` (CASCADE): preserve official outcome/statistical history before modifying any ownership.
+- `public.billing_transactions`, `public.coin_ledger`, `public.user_wallets` (CASCADE Auth FKs) plus `public.career_finance_transactions` (CASCADE player FK): classify legal financial retention and private balances separately before deleting any Auth identity.
+- `public.national_team_squad_members`, `public.national_captain_terms`, `public.tennis_clubs`, `control_center_private.tennis_season2_week1_preentries_v1` (RESTRICT): a blanket Auth deletion can fail, even after a player tombstone.
+- `public.player_messages`, `public.national_team_chat_messages`, `public.tennis_club_chat_messages`: account erasure must address private communications and potential references or quoted identity in message payloads.
+- Supabase Storage object ownership may block Auth user deletion; remove assets through the Storage API, not raw table deletions. Auth user deletion does not immediately revoke already issued JWTs; guest expiry access guards remain necessary.
+
+**Decision:** maintain Guest Mode OFF, prohibit direct Auth deletion, and do not ship a worker based solely on the minimal fixture. The next full-schema implementation requires explicit per-table retention/erasure mapping, an automated schema-drift check, complete isolated validation, and separate operational review. For account privacy, an apparently neutral public player tombstone can still be linkable through country, match history, and other stored metadata; minimize fields and document retention basis.
+
+Official platform references:
+- https://supabase.com/docs/guides/auth/managing-user-data
+- https://supabase.com/docs/guides/storage/management/delete-objects
