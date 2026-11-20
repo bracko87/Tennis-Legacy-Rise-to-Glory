@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'tests/recovered-migrations/remaining-applied-fingerprints-*.json'
+      - 'tests/recovered-migrations/known-applied-sql-divergences.json'
+      - 'docs/HELIOS_H08_REMAINING_APPLIED_MIGRATION_DIFFERENCES.md'
       - 'scripts/helios-verify-remaining-applied-fingerprints.mjs'
       - 'supabase/migrations/**'
       - '.github/workflows/helios-remaining-applied-sql-fingerprints.yml'
@@ -18,5 +20,5 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Compare all 211 remaining applied SQL fingerprints to checked-in migrations
+      - name: Verify 202 matching fingerprints and nine unchanged REVIEW_REQUIRED replay blockers
         run: node scripts/helios-verify-remaining-applied-fingerprints.mjs
