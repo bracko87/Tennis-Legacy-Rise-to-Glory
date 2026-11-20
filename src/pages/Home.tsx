@@ -4,7 +4,7 @@
  * Premium marketing homepage for Tennis Legacy: Rise to Glory.
  */
 
-import { useEffect } from 'react'
+import { useEffect, type PointerEvent as ReactPointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocalization } from '../i18n/LocalizationProvider'
 import type { AppLocale } from '../i18n'
@@ -137,6 +137,21 @@ export default function HomePage() {
     })
   }, [])
 
+  // Match the cycling hero: gentle pointer parallax on the photograph only.
+  // Interactive controls stay completely separate from the decoration.
+  const onHeroPointerMove = (event: ReactPointerEvent<HTMLElement>) => {
+    if (event.pointerType === 'touch' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const rect = event.currentTarget.getBoundingClientRect()
+    const x = (event.clientX - rect.left) / rect.width - 0.5
+    const y = (event.clientY - rect.top) / rect.height - 0.5
+    event.currentTarget.style.setProperty('--tlg-hero-x', `${(x * 15).toFixed(1)}px`)
+    event.currentTarget.style.setProperty('--tlg-hero-y', `${(y * 10).toFixed(1)}px`)
+  }
+  const onHeroPointerLeave = (event: ReactPointerEvent<HTMLElement>) => {
+    event.currentTarget.style.setProperty('--tlg-hero-x', '0px')
+    event.currentTarget.style.setProperty('--tlg-hero-y', '0px')
+  }
+
   return (
     <div className="tlg-marketing-page">
       <MarketingHeader />
@@ -145,11 +160,20 @@ export default function HomePage() {
       <main className="tlg-home-main">
         <SeasonMaintenanceAnnouncement />
         <SeasonTransitionNotice variant="public" />
-        <section className="tlg-hero">
+        <section className="tlg-hero" onPointerMove={onHeroPointerMove} onPointerLeave={onHeroPointerLeave}>
           <div className="tlg-hero-background">
             <div className="tlg-hero-grid" />
             <div className="tlg-hero-glow tlg-hero-glow-one" />
             <div className="tlg-hero-glow tlg-hero-glow-two" />
+
+            {/* Real cycling-style animated layers, rather than a nearly static CSS line. */}
+            <div className="tlg-hero-effect-layer" aria-hidden="true">
+              <span className="tlg-hero-ambient tlg-hero-ambient--left" />
+              <span className="tlg-hero-ambient tlg-hero-ambient--right" />
+              <span className="tlg-hero-speed-line tlg-hero-speed-line--one" />
+              <span className="tlg-hero-speed-line tlg-hero-speed-line--two" />
+              <span className="tlg-hero-speed-line tlg-hero-speed-line--three" />
+            </div>
           </div>
 
           <div className="tlg-section tlg-hero-inner">

@@ -27,6 +27,9 @@
   -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, .60) 16%, #000 34%);
   mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, .60) 16%, #000 34%);
   filter: saturate(1.08) contrast(1.05);
+  transform: translate3d(var(--tlg-hero-x, 0px), var(--tlg-hero-y, 0px), 0) scale(1.025);
+  transition: transform .38s ease-out;
+  will-change: transform;
 }
 
 /* Keep the photo bright on the right, with a readable dark navy area on the left. */
@@ -247,6 +250,119 @@
   color: #cce1f5;
 }
 
+
+/*
+ * These are genuine DOM layers with independent animation durations, just as
+ * the cycling game's hero uses three moving speed lines and ambient glows.
+ * A line travels across the entire picture instead of merely pulsing in place.
+ */
+.tlg-home-main .tlg-hero .tlg-hero-effect-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-ambient {
+  position: absolute;
+  display: block;
+  border-radius: 9999px;
+  pointer-events: none;
+  filter: blur(75px);
+  animation: tlgHeroAmbient 5.6s ease-in-out infinite alternate;
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-ambient--left {
+  top: 6%;
+  left: -12%;
+  width: 520px;
+  height: 390px;
+  background: radial-gradient(ellipse, rgba(16, 130, 237, .25), rgba(3, 49, 98, .08) 54%, transparent 75%);
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-ambient--right {
+  right: -9%;
+  bottom: -18%;
+  width: 600px;
+  height: 360px;
+  animation-delay: -2.4s;
+  background: radial-gradient(ellipse, rgba(94, 205, 255, .28), rgba(35, 105, 165, .12) 50%, transparent 78%);
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-speed-line {
+  position: absolute;
+  display: block;
+  z-index: 2;
+  width: 65%;
+  height: 2px;
+  border-radius: 9999px;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(118, 216, 255, .10) 16%,
+    rgba(165, 231, 255, .72) 43%,
+    #f0fcff 52%,
+    rgba(119, 218, 255, .78) 60%,
+    rgba(118, 216, 255, .12) 85%,
+    transparent 100%);
+  box-shadow: 0 0 8px rgba(185, 239, 255, .86), 0 0 23px rgba(56, 164, 255, .36);
+  transform-origin: 50% 50%;
+  animation: tlgHeroLiveSweep 6.2s linear infinite;
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-speed-line--one {
+  top: 27%;
+  right: -28%;
+  width: 56%;
+  animation-delay: -2.7s;
+  animation-duration: 6.2s;
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-speed-line--two {
+  top: 58%;
+  right: -22%;
+  width: 81%;
+  animation-delay: -4.1s;
+  animation-duration: 7.7s;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(102, 200, 255, .18) 25%,
+    rgba(135, 222, 255, .78) 48%,
+    #e8faff 53%,
+    rgba(92, 190, 251, .50) 67%,
+    transparent);
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-speed-line--three {
+  bottom: 14%;
+  left: -12%;
+  width: 70%;
+  animation-delay: -1.8s;
+  animation-duration: 8.3s;
+}
+
+@keyframes tlgHeroLiveSweep {
+  0% {
+    transform: translate3d(85%, 0, 0) rotate(-11deg);
+    opacity: 0;
+  }
+  12% { opacity: .82; }
+  35% { opacity: .95; }
+  74% { opacity: .88; }
+  100% {
+    transform: translate3d(-175%, 0, 0) rotate(-11deg);
+    opacity: 0;
+  }
+}
+
+@keyframes tlgHeroAmbient {
+  from { transform: scale(.89) translateY(7px); opacity: .37; }
+  to { transform: scale(1.12) translateY(-9px); opacity: .88; }
+}
+
 @media (max-width: 1023px) {
   .tlg-home-main .tlg-hero::before {
     inset: 0 0 0 12%;
@@ -312,6 +428,14 @@
   .tlg-home-main .tlg-hero .tlg-hero-actions > .tlg-btn {
     width: 100%;
   }
+
+  .tlg-home-main .tlg-hero .tlg-hero-speed-line--one {
+    display: none;
+  }
+
+  .tlg-home-main .tlg-hero .tlg-hero-speed-line {
+    opacity: .6;
+  }
 }
 
 @media (max-width: 480px) {
@@ -368,7 +492,16 @@
   }
   .tlg-home-main .tlg-hero .tlg-hero-background::before,
   .tlg-home-main .tlg-hero .tlg-hero-background::after,
-  .tlg-home-main .tlg-hero .tlg-hero-inner::after {
-    animation: none;
+  .tlg-home-main .tlg-hero .tlg-hero-inner::after,
+  .tlg-home-main .tlg-hero .tlg-hero-speed-line,
+  .tlg-home-main .tlg-hero .tlg-hero-ambient {
+    animation: none !important;
+  }
+  .tlg-home-main .tlg-hero::before {
+    transform: none !important;
+    transition: none !important;
+  }
+  .tlg-home-main .tlg-hero .tlg-hero-speed-line {
+    display: none;
   }
 }
