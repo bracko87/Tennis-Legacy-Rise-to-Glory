@@ -23,6 +23,7 @@ import {
   YAxis,
 } from 'recharts'
 
+import AdminLivePageActivity from '../../components/admin/AdminLivePageActivity'
 import AdminEventHistory from '../../components/admin/AdminEventHistory'
 import AdminSecurityStatus from '../../components/admin/AdminSecurityStatus'
 import GameLayout from '../../components/layout/GameLayout'
@@ -383,6 +384,8 @@ export default function AdminAnalyticsPage() {
             : ''}
         </p>
         {error && <div className="tlg-admin-analytics-error">{error}</div>}
+
+        <AdminLivePageActivity formatPath={formatPath} />
 
         <AdminSecurityStatus />
 
