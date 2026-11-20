@@ -1,0 +1,22 @@
+name: Helios authoritative applied divergence SQL source verification
+
+on:
+  pull_request:
+    paths:
+      - 'tests/recovered-migrations/applied-divergences/**'
+      - 'scripts/helios-verify-recovered-divergence-sources.mjs'
+      - 'tests/recovered-migrations/known-applied-sql-divergences.json'
+      - '.github/workflows/helios-recovered-divergence-source-integrity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-exact-applied-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify nine historical applied SQL files byte for byte against source fingerprints
+        run: node scripts/helios-verify-recovered-divergence-sources.mjs
