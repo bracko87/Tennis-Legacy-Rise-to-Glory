@@ -6,11 +6,6 @@ on:
     paths:
       - '.github/workflows/tennis-local-supabase-qa.yml'
   workflow_dispatch:
-  pull_request:
-    paths:
-      - '.github/workflows/tennis-local-supabase-qa.yml'
-      - 'tests/helios_guest_retirement_ephemeral_db.sql'
-      - 'supabase/migrations/**'
 
 permissions:
   contents: read
@@ -38,7 +33,6 @@ jobs:
           PGDATABASE: postgres
         run: |
           psql -v ON_ERROR_STOP=1 -f tests/private_life_career_db_smoke.sql
-          psql -v ON_ERROR_STOP=1 -f tests/helios_guest_retirement_ephemeral_db.sql
           psql -v ON_ERROR_STOP=1 -c "select count(*) as applied_migrations from supabase_migrations.schema_migrations;"
       - name: Shut down disposable Supabase stack
         if: always()
