@@ -6,7 +6,7 @@
 .tlg-home-main .tlg-hero {
   position: relative;
   isolation: isolate;
-  min-height: 740px;
+  min-height: 780px;
   overflow: hidden;
   background: #03162b;
 }
@@ -15,15 +15,15 @@
 .tlg-home-main .tlg-hero::before {
   content: "";
   position: absolute;
-  inset: 0 0 0 22%;
+  inset: 0 0 0 30%;
   z-index: 0;
   pointer-events: none;
   background-image: var(--tlg-home-hero-image);
   background-repeat: no-repeat;
-  background-position: 57% 9%;
+  background-position: 60% 13%;
   background-size: cover;
-  /* Anchor the photograph in the right 78% of the hero: this actually moves
-     both players without enlarging them or cutting off the stadium. */
+  /* Anchor the photograph in the right 70% of the hero: the players remain
+     prominent but clear the headline and its curved underline. */
   -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, .60) 16%, #000 34%);
   mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, .60) 16%, #000 34%);
   filter: saturate(1.08) contrast(1.05);
@@ -97,8 +97,8 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  min-height: 740px;
-  padding-top: 76px;
+  min-height: 780px;
+  padding-top: 92px;
   padding-bottom: 90px;
 }
 
@@ -261,8 +261,8 @@
 
 @media (max-width: 1023px) {
   .tlg-home-main .tlg-hero::before {
-    inset: 0 0 0 12%;
-    background-position: 60% 10%;
+    inset: 0 0 0 20%;
+    background-position: 64% 13%;
   }
 
   .tlg-home-main .tlg-hero::after {
@@ -272,8 +272,8 @@
   }
 
   .tlg-home-main .tlg-hero .tlg-hero-inner {
-    min-height: 670px;
-    padding-top: 68px;
+    min-height: 705px;
+    padding-top: 80px;
     padding-bottom: 75px;
   }
 }
@@ -285,7 +285,7 @@
 
   .tlg-home-main .tlg-hero::before {
     inset: 0;
-    background-position: 61% 7%;
+    background-position: 67% 10%;
     -webkit-mask-image: none;
     mask-image: none;
   }
@@ -298,7 +298,7 @@
 
   .tlg-home-main .tlg-hero .tlg-hero-inner {
     min-height: 0;
-    padding-top: 62px;
+    padding-top: 70px;
     padding-bottom: 86px;
   }
 
@@ -336,7 +336,7 @@
   }
 
   .tlg-home-main .tlg-hero .tlg-hero-inner {
-    padding-top: 52px;
+    padding-top: 58px;
     padding-bottom: 73px;
   }
 }
