@@ -131,8 +131,8 @@ export default function AnalyticsTracker() {
     async function recordLivePage() {
       if (!active || inFlight || document.visibilityState !== 'visible') return
       const now = Date.now()
-      // An idle tab is NOT continuously counted as a live visitor.
-      if (!lastInteractionAt || now - lastInteractionAt > 90_000 || now - lastSentAt < 25_000) return
+      // Only recent interaction (within 15s) can extend page presence; a merely open tab cannot.
+      if (!lastInteractionAt || now - lastInteractionAt > 15_000 || now - lastSentAt < 25_000) return
       inFlight = true
       lastSentAt = now
       try {

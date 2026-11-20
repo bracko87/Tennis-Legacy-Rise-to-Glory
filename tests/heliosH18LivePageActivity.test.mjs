@@ -25,7 +25,7 @@ test('Helios H18: client tracks foreground interaction without artificial idle p
   assert.match(tracker, /record_live_page_presence_v1/)
   assert.match(tracker, /location\.pathname\.startsWith\('\/game\/admin\/'\)/)
   assert.match(tracker, /document\.visibilityState !== 'visible'/)
-  assert.match(tracker, /now - lastInteractionAt > 90_000/)
+  assert.match(tracker, /now - lastInteractionAt > 15_000/)
   assert.match(tracker, /now - lastSentAt < 25_000/)
   assert.match(tracker, /setInterval\(\(\) => \{ void recordLivePage\(\) \}, 30_000\)/)
   assert.match(tracker, /clearInterval\(interval\)/)
