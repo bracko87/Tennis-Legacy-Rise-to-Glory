@@ -12,7 +12,7 @@ if(/\b(?:INSERT\s+INTO|DELETE\s+FROM|UPDATE\s+\S+\s+SET|TRUNCATE|ALTER\s+TABLE|C
 for(const marker of ['v_columns<>23','v_constraints<>13','v_indexes<>5','v_triggers<>4','v_required_cols<>9','relrowsecurity']){
  if(!sql.includes(marker))throw Error('Staff metadata invariant missing: '+marker);
 }
-for(const marker of ['23 columns','13 constraints','5 indexes','4 application triggers','not a historical','Guest Mode OFF','Full historical replay NOT fixed']){
+for(const marker of ['Current columns (23)','13 constraints','5 indexes','4 application triggers','not a historical','Guest Mode OFF','Full historical replay NOT fixed']){
  if(!doc.includes(marker))throw Error('Staff baseline warning or inventory missing: '+marker);
 }
 console.log('PASS: metadata-only current staff baseline contract with explicit historical replay limits');
