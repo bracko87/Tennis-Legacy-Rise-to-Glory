@@ -4,6 +4,7 @@ import { ArrowRight, ShieldCheck, UserRound } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import useTennisGuestAvailability from '../../hooks/useTennisGuestAvailability'
 import { supabase } from '../../lib/supabase'
+import '../../styles/guest-entry.css'
 
 /**
  * Guest creation remains hidden and disabled server-side until conversion,
