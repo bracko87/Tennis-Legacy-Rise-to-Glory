@@ -36,6 +36,8 @@ import './styles/equipment-detail-media-fill.css'
 import './styles/font-standard.css'
 import './styles/mobile-gameplay-round2.css'
 import './styles/mobile-tournament-containment.css'
+/* Keep the cinematic stadium treatment last so legacy/mobile hero rules cannot override it. */
+import './styles/tennis-hero-cinematic.css'
 import App from './App'
 import AppErrorBoundary from './components/errors/AppErrorBoundary'
 
