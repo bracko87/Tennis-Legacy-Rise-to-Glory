@@ -38,3 +38,24 @@ It contains **no account or game data**. The script `scripts/helios-compare-appl
 ## Limitations
 
 Applied migration history proves a migration was recorded as applied, not necessarily that the current schema is identical to every historical intermediate state. The archived SQL should be treated as sensitive source code and not executed unreviewed. MD5 is used here as a simple byte-fidelity check against the recorded source, not a security signature.
+
+## Version-by-version comparison — GitHub Actions verified
+
+The credential-free diagnostic finished successfully and exposed additional migration-history divergence:
+
+| Metric | Count |
+|---|---:|
+| Applied versions in production migration registry | 812 |
+| SQL migration files currently checked into GitHub | 688 |
+| Exact matching version IDs | 366 |
+| Applied version IDs absent from GitHub | 446 |
+| GitHub version IDs absent from applied registry snapshot | 322 |
+| Missing applied versions with a **same-name** GitHub file at a different version | 219 |
+| Applied migration names absent from GitHub **both by version and exact name** | 227 |
+| Missing by version and name before the first 3 September staff reference | 10 |
+
+The 219 same-name matches must be compared by SQL content and order; a matching name is **not** proof that their code is identical or safe to replay. The 227 remaining absences are source recovery candidates, not a definitive count of independently missing database features: migrations may have been renamed, consolidated, replaced, or otherwise reconstructed. Likewise, 322 repo-only version IDs do not necessarily mean 322 unapplied database changes.
+
+Among the earliest high-priority missing sources are the staff foundation, staff-market seeding, staff effects, staff dashboard, and training-camp migrations. The original staff foundation has been archived and its SQL fingerprint has passed the automated check. The full migration chain has **not** been replayed and remains blocked for deletion release.
+
+For reproducibility, the tool prints the first missing versions and the first renamed-timestamp examples in GitHub Actions logs for this PR.
