@@ -44,9 +44,10 @@ const esbuildOpts = {
   minify: isProd,
   treeShaking: true,
   jsx: 'automatic',
-  // Root-relative mock assets are copied from public/ to dist/ above and are
-  // intentionally resolved by the browser at runtime rather than bundled.
-  external: ['/mock/*'],
+  // Root-relative mock and marketing assets are copied from public/ to dist/ above.
+  // Preserve both URL families for the browser instead of asking esbuild to resolve
+  // /marketing/... against a local file path during CSS bundling.
+  external: ['/mock/*', '/marketing/*'],
   loader: {
     '.html': 'copy',
     '.png': 'file',
