@@ -394,7 +394,7 @@ export default function AdminAnalyticsPage() {
                   ['Coins spent', economy.coin_movements.debits],
                   ['Welcome coins issued', economy.coin_movements.signup_grants],
                   ['Paid transactions', economy.billing.paid_transactions],
-                  ['Paid revenue (€)', asNumber(economy.billing.paid_eur_cents) / 100],
+                  ['Paid revenue', asNumber(economy.billing.paid_eur_cents) / 100],
                   ['Paid Premium orders', economy.billing.paid_premium],
                   ['Paid coin packs', economy.billing.paid_coin_packs],
                   ['Career starting funds ($)', economy.career_finance.opening_funds],
@@ -408,7 +408,9 @@ export default function AdminAnalyticsPage() {
                 ] as const).map(([label, value]) => (
                   <article key={label}>
                     <BarChart3 size={18}/>
-                    <div><span>{label}</span><strong>{wholeNumber.format(asNumber(value))}</strong></div>
+                    <div><span>{label}</span><strong>{label === 'Paid revenue'
+                      ? new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' }).format(asNumber(value))
+                      : wholeNumber.format(asNumber(value))}</strong></div>
                   </article>
                 ))}
               </div>
