@@ -25,6 +25,23 @@ import {
 import GameLayout from '../../components/layout/GameLayout'
 import { supabase } from '../../lib/supabase'
 
+interface GameActivityReport {
+  generated_at: string
+  timezone: string
+  start_date: string
+  end_date: string
+  training_sessions: number
+  tournament_applications: number
+  completed_matches: number
+  staff_contracts_signed: number
+  nonstarter_equipment_acquired: number
+  skill_history_updates: number
+  distinct_human_players_with_actions: number
+  last_gameplay_event_at: string | null
+  is_game_clock_paused: boolean
+  definition: string
+}
+
 interface AnalyticsSummary {
   unique_visitors: number
   pageviews: number
@@ -246,6 +263,8 @@ function DeviceIcon({ type }: { readonly type: DeviceRow['device_type'] }) {
 export default function AdminAnalyticsPage() {
   const [period, setPeriod] = useState(30)
   const [dashboard, setDashboard] = useState<AnalyticsDashboard | null>(null)
+  const [gameActivity, setGameActivity] = useState<GameActivityReport | null>(null)
+  const [gameActivityError, setGameActivityError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastLoadedAt, setLastLoadedAt] = useState<Date | null>(null)
@@ -256,14 +275,22 @@ export default function AdminAnalyticsPage() {
     if (!silent) setLoading(true)
 
     try {
-      const { data, error: rpcError } = await supabase.rpc(
-        'get_admin_analytics_dashboard_v1',
-        { p_days: nextPeriod },
-      )
+      const [siteResult, gameResult] = await Promise.all([
+        supabase.rpc('get_admin_analytics_dashboard_v1', { p_days: nextPeriod }),
+        supabase.rpc('get_admin_tennis_game_activity_v1', { p_days: nextPeriod }),
+      ])
       if (request !== requestSequence.current) return
-      if (rpcError || !data) throw new Error(rpcError?.message || 'Analytics could not be loaded.')
+      if (siteResult.error || !siteResult.data) {
+        throw new Error(siteResult.error?.message || 'Analytics could not be loaded.')
+      }
 
-      setDashboard(normalizeDashboard(data as AnalyticsDashboard))
+      setDashboard(normalizeDashboard(siteResult.data as AnalyticsDashboard))
+      if (gameResult.error || !gameResult.data) {
+        setGameActivityError(gameResult.error?.message || 'Game activity could not be loaded.')
+      } else {
+        setGameActivity(gameResult.data as GameActivityReport)
+        setGameActivityError(null)
+      }
       setLastLoadedAt(new Date())
       setError(null)
     } catch (err) {
@@ -330,6 +357,47 @@ export default function AdminAnalyticsPage() {
             : ''}
         </p>
         {error && <div className="tlg-admin-analytics-error">{error}</div>}
+
+        <section className="tlg-admin-analytics-panel" aria-label="Recorded tennis gameplay activity">
+          <h2 style={{ marginBottom: 8 }}>Game Activity — Tennis Legacy</h2>
+          {gameActivityError && (
+            <p role="alert" className="tlg-admin-analytics-error">
+              Gameplay metrics refresh failed: {gameActivityError}
+            </p>
+          )}
+          {gameActivity ? (
+            <>
+              <p style={{ fontSize: 12, color: '#667085', marginBottom: 12 }}>
+                {gameActivity.start_date} – {gameActivity.end_date} ({gameActivity.timezone})
+                {gameActivity.is_game_clock_paused ? ' · Game clock paused' : ' · Game clock running'}
+              </p>
+              <div className="tlg-admin-analytics-summary">
+                {([
+                  ['Training sessions', gameActivity.training_sessions],
+                  ['Tournament applications', gameActivity.tournament_applications],
+                  ['Completed matches involving players', gameActivity.completed_matches],
+                  ['Staff contracts signed', gameActivity.staff_contracts_signed],
+                  ['Equipment acquired (not starter)', gameActivity.nonstarter_equipment_acquired],
+                  ['Recorded skill changes', gameActivity.skill_history_updates],
+                  ['Distinct active human players', gameActivity.distinct_human_players_with_actions],
+                ] as const).map(([label, value]) => (
+                  <article key={label}>
+                    <Activity size={18}/>
+                    <div><span>{label}</span><strong>{wholeNumber.format(asNumber(value))}</strong></div>
+                  </article>
+                ))}
+              </div>
+              <p style={{ fontSize: 12, color: '#667085', marginTop: 12 }}>
+                Last recorded gameplay action: {gameActivity.last_gameplay_event_at
+                  ? new Date(gameActivity.last_gameplay_event_at).toLocaleString()
+                  : 'None in the selected period'}
+              </p>
+              <p style={{ fontSize: 12, color: '#667085', marginTop: 6 }}>
+                {gameActivity.definition}
+              </p>
+            </>
+          ) : !gameActivityError ? <p>Loading gameplay activity…</p> : null}
+        </section>
 
         {dashboard?.presence && (
           <section className="tlg-admin-analytics-panel" aria-label="Authenticated player activity">
