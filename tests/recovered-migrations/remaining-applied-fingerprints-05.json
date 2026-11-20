@@ -1,0 +1,385 @@
+{
+  "description": "Applied SQL token fingerprints from migration registry only, no account data and no source SQL",
+  "batch": 5,
+  "expected_groups": 6,
+  "items": [
+    {
+      "name": "premium_tournament_planning_intelligence_v1",
+      "applied_version": "20261020134644",
+      "repo_file": "20261020161500_premium_tournament_planning_intelligence_v1.sql",
+      "source_md5": "f4fa637ac03ebdd3b4e9eb66b3eae94b",
+      "source_length": 7711,
+      "tokens": 1079,
+      "fnv64": "69687851f21b7fc2"
+    },
+    {
+      "name": "premium_season_planning_center_v1",
+      "applied_version": "20261020140744",
+      "repo_file": "20261020170500_premium_season_planning_center_v1.sql",
+      "source_md5": "d80370467a9ff60f31ff4288d474d26d",
+      "source_length": 11782,
+      "tokens": 1871,
+      "fnv64": "7157aa5851ed2da1"
+    },
+    {
+      "name": "premium_season_planning_active_series_guard",
+      "applied_version": "20261020141300",
+      "repo_file": "20261020171600_premium_season_planning_active_series_guard.sql",
+      "source_md5": "74f201cdc9433f81df5cb2dcad3347f0",
+      "source_length": 6677,
+      "tokens": 1051,
+      "fnv64": "e7e3b8e6418b3221"
+    },
+    {
+      "name": "premium_staff_advisory_reports_v1",
+      "applied_version": "20261020143153",
+      "repo_file": "20261020175500_premium_staff_advisory_reports_v1.sql",
+      "source_md5": "2713d2f328a8dfe5c0ee3bc0ad0b0c54",
+      "source_length": 5413,
+      "tokens": 778,
+      "fnv64": "8b6224eb5a403b6a"
+    },
+    {
+      "name": "premium_sponsor_intelligence_v1",
+      "applied_version": "20261020145031",
+      "repo_file": "20261020190000_premium_sponsor_intelligence_v1.sql",
+      "source_md5": "b7f48e52291ac6ad93f81885ff35ee5a",
+      "source_length": 7916,
+      "tokens": 1233,
+      "fnv64": "c9e6236642c4d951"
+    },
+    {
+      "name": "premium_financial_intelligence_v1",
+      "applied_version": "20261020150421",
+      "repo_file": "20261020194000_premium_financial_intelligence_v1.sql",
+      "source_md5": "c6e466c97ccee25121bf20eecbc7b1a4",
+      "source_length": 6103,
+      "tokens": 1017,
+      "fnv64": "967e79a207943894"
+    },
+    {
+      "name": "premium_equipment_intelligence_v1",
+      "applied_version": "20261020151721",
+      "repo_file": "20261020195000_premium_equipment_intelligence_v1.sql",
+      "source_md5": "a2d40ede2c40201ff5dcda9aa744ca8d",
+      "source_length": 7915,
+      "tokens": 1309,
+      "fnv64": "b345b330c08566eb"
+    },
+    {
+      "name": "premium_career_intelligence_v1",
+      "applied_version": "20261020154001",
+      "repo_file": "20261020213000_premium_career_intelligence_v1.sql",
+      "source_md5": "95ae0cec97fc329cafe256ab6c9688e7",
+      "source_length": 11560,
+      "tokens": 2044,
+      "fnv64": "5a1157812bbb9b65"
+    },
+    {
+      "name": "fix_premium_equipment_intelligence_readonly_v2",
+      "applied_version": "20261020155543",
+      "repo_file": "20261020221500_fix_premium_equipment_intelligence_readonly_v2.sql",
+      "source_md5": "2a7a113683f4d1c2a607f58e73d6abe0",
+      "source_length": 11844,
+      "tokens": 1942,
+      "fnv64": "0928ad894035138c"
+    },
+    {
+      "name": "push_only_system_alert_monitoring_guard",
+      "applied_version": "20261029090508",
+      "repo_file": "20261029093000_push_only_system_alert_monitoring_guard.sql",
+      "source_md5": "cdd66382c5431656257ca91e7a84c5f2",
+      "source_length": 7283,
+      "tokens": 704,
+      "fnv64": "17f205d733295228"
+    },
+    {
+      "name": "equipment_condition_lifecycle_v1",
+      "applied_version": "20261103204720",
+      "repo_file": "20261103212500_equipment_condition_lifecycle_v1.sql",
+      "source_md5": "2d68d7603ca5df883d129313cefe1b9b",
+      "source_length": 18351,
+      "tokens": 3025,
+      "fnv64": "44973534255d5165"
+    },
+    {
+      "name": "missing_equipment_match_penalties_v1",
+      "applied_version": "20261103204727",
+      "repo_file": "20261103213000_missing_equipment_match_penalties_v1.sql",
+      "source_md5": "278f872cb038fcb7b51b5db29034243f",
+      "source_length": 6836,
+      "tokens": 1546,
+      "fnv64": "cde6a46fe954b7a0"
+    },
+    {
+      "name": "restore_legacy_control_center_hourly_auth",
+      "applied_version": "20261110165919",
+      "repo_file": "20261110170200_restore_legacy_control_center_hourly_auth.sql",
+      "source_md5": "724113a86e4a557af0deaaafcb9605c1",
+      "source_length": 1863,
+      "tokens": 217,
+      "fnv64": "184a09050b7eb134"
+    },
+    {
+      "name": "archive_unplayed_season1_january_tournaments",
+      "applied_version": "20261110184116",
+      "repo_file": "20261110184500_archive_unplayed_season1_january_tournaments.sql",
+      "source_md5": "319e620ddce7c99e289ee3838254debb",
+      "source_length": 3934,
+      "tokens": 563,
+      "fnv64": "96e5b2dcb85afb41"
+    },
+    {
+      "name": "season1_final_day_tournament_closeout",
+      "applied_version": "20261110184506",
+      "repo_file": "20261110185500_season1_final_day_tournament_closeout.sql",
+      "source_md5": "7d99dbe0821b5774fa62548edb095b29",
+      "source_length": 12291,
+      "tokens": 1789,
+      "fnv64": "facbbf2931aa5128"
+    },
+    {
+      "name": "season1_final_replay_fast_finish_and_cutoff_monitor",
+      "applied_version": "20261110190106",
+      "repo_file": "20261110191000_season1_final_replay_fast_finish_and_cutoff_monitor.sql",
+      "source_md5": "cf9c3413713f73b52167924e84925eb9",
+      "source_length": 5707,
+      "tokens": 761,
+      "fnv64": "9455614e8d63ca7a"
+    },
+    {
+      "name": "season_transition_public_notice_v1",
+      "applied_version": "20261110211947",
+      "repo_file": "20261110220000_season_transition_public_notice_v1.sql",
+      "source_md5": "e504623d86bcdeae2bef5ae5143209ca",
+      "source_length": 2577,
+      "tokens": 392,
+      "fnv64": "915d0b0829457e24"
+    },
+    {
+      "name": "season2_week1_extend_prestart_application_and_draw_windows",
+      "applied_version": "20261111101427",
+      "repo_file": "20261111102500_season2_week1_extend_prestart_application_and_draw_windows.sql",
+      "source_md5": "7443d839a1c34c206d1cded6b1553bee",
+      "source_length": 8748,
+      "tokens": 1113,
+      "fnv64": "06b6f3ed35b67511"
+    },
+    {
+      "name": "season_transition_two_real_days_v1",
+      "applied_version": "20261111110354",
+      "repo_file": "20261111120000_season_transition_two_real_days_v1.sql",
+      "source_md5": "a6260ca29f2721d67280fde6a221fb93",
+      "source_length": 10992,
+      "tokens": 1626,
+      "fnv64": "f407c185b1684100"
+    },
+    {
+      "name": "season_transition_preseason_january_applications_v1",
+      "applied_version": "20261111110356",
+      "repo_file": "20261111121000_season_transition_preseason_january_applications_v1.sql",
+      "source_md5": "35383fcd2c4cb6d64f755b8827e2113a",
+      "source_length": 3520,
+      "tokens": 278,
+      "fnv64": "359baa8ea3171cb1"
+    },
+    {
+      "name": "preserve_live_game_time_during_preseason",
+      "applied_version": "20261111112159",
+      "repo_file": "20261111122500_preserve_live_game_time_during_preseason.sql",
+      "source_md5": "d0f478c178f0f08562a4b2f74bdeeb65",
+      "source_length": 1098,
+      "tokens": 139,
+      "fnv64": "ff3f2798c5e65dcf"
+    },
+    {
+      "name": "season2_week1_open_until_first_match_safe_redraw",
+      "applied_version": "20261111120551",
+      "repo_file": "20261111132000_season2_week1_open_until_first_match_safe_redraw.sql",
+      "source_md5": "e7a6ea57a05656046c0355d06d8dda7a",
+      "source_length": 14540,
+      "tokens": 1600,
+      "fnv64": "68dbcf52552b2217"
+    },
+    {
+      "name": "season2_week1_clear_stale_lima_cancellation",
+      "applied_version": "20261111120856",
+      "repo_file": "20261111134000_season2_week1_clear_stale_lima_cancellation.sql",
+      "source_md5": "a2264cb9ff63e886498da879754a80fd",
+      "source_length": 2649,
+      "tokens": 336,
+      "fnv64": "3ce0f136552235df"
+    },
+    {
+      "name": "tennis_sponsor_ranking_and_local_eligibility",
+      "applied_version": "20261111160300",
+      "repo_file": "20261111161000_tennis_sponsor_ranking_and_local_eligibility.sql",
+      "source_md5": "7e2928710de03867ea6036d511e83bb1",
+      "source_length": 26093,
+      "tokens": 5102,
+      "fnv64": "2bcbd872ae166d76"
+    },
+    {
+      "name": "tennis_main_sponsor_renewal_model",
+      "applied_version": "20261111160546",
+      "repo_file": "20261111161300_tennis_main_sponsor_renewal_model.sql",
+      "source_md5": "1deec399ad06d50d41127573785d82a8",
+      "source_length": 10883,
+      "tokens": 1822,
+      "fnv64": "9a2689812542566d"
+    },
+    {
+      "name": "tennis_main_sponsor_renewal_lifecycle",
+      "applied_version": "20261111160623",
+      "repo_file": "20261111161400_tennis_main_sponsor_renewal_lifecycle.sql",
+      "source_md5": "187b893d5b611f7d68c7839625405b14",
+      "source_length": 23875,
+      "tokens": 4353,
+      "fnv64": "e777e2aa9c53486b"
+    },
+    {
+      "name": "tennis_main_sponsor_renewal_dashboard",
+      "applied_version": "20261111160702",
+      "repo_file": "20261111161500_tennis_main_sponsor_renewal_dashboard.sql",
+      "source_md5": "a4cf57c81d06451f47e048622bdee503",
+      "source_length": 7448,
+      "tokens": 1293,
+      "fnv64": "969c5d46a87e5c07"
+    },
+    {
+      "name": "tennis_sponsor_year_end_rankings_capture",
+      "applied_version": "20261111161531",
+      "repo_file": "20261111163500_tennis_sponsor_year_end_rankings_capture.sql",
+      "source_md5": "5d52c762be6082b2b364241e4ef20203",
+      "source_length": 1015,
+      "tokens": 153,
+      "fnv64": "ce9698606f20a236"
+    },
+    {
+      "name": "tennis_technical_sponsor_improved_renewal",
+      "applied_version": "20261111161648",
+      "repo_file": "20261111163700_tennis_technical_sponsor_improved_renewal.sql",
+      "source_md5": "8bcdce0f82a3d61d2b2cc027ec302fc7",
+      "source_length": 7102,
+      "tokens": 1459,
+      "fnv64": "3e74b62610040057"
+    },
+    {
+      "name": "season1_early_weeks_entry_pipeline_due_alignment",
+      "applied_version": "20261111182756",
+      "repo_file": "20261111185000_season1_early_weeks_entry_pipeline_due_alignment.sql",
+      "source_md5": "e5481f8acc73d4952534a304d419b422",
+      "source_length": 3380,
+      "tokens": 113,
+      "fnv64": "9cbe6437e0ca7f4c"
+    },
+    {
+      "name": "tennis_match_replay_health_and_early_grand_slam_draw_v1",
+      "applied_version": "20261113062600",
+      "repo_file": "20261113065000_tennis_match_replay_health_and_early_grand_slam_draw_v1.sql",
+      "source_md5": "87b4daed4c416406ae6d14f43e3cabfb",
+      "source_length": 4466,
+      "tokens": 270,
+      "fnv64": "1c2bdd47bec5b30e"
+    },
+    {
+      "name": "publish_due_rankings_before_tournament_watchdog_v1",
+      "applied_version": "20261114110056",
+      "repo_file": "20261114120000_publish_due_rankings_before_tournament_watchdog_v1.sql",
+      "source_md5": "1999e289fcabe13bd9ea8e17c4574c5c",
+      "source_length": 4406,
+      "tokens": 268,
+      "fnv64": "3374381e98a138cb"
+    },
+    {
+      "name": "guard_tournament_feeder_progression_v1",
+      "applied_version": "20261115174457",
+      "repo_file": "20261115174500_guard_tournament_feeder_progression_v1.sql",
+      "source_md5": "b8a65c774fee245a0d00bcdf66314931",
+      "source_length": 15027,
+      "tokens": 2877,
+      "fnv64": "c94b522a4b0a9ef2"
+    },
+    {
+      "name": "helios_h13_economy_monitoring",
+      "applied_version": "20261120100104",
+      "repo_file": "20261120112500_helios_h13_economy_monitoring.sql",
+      "source_md5": "0878ae56ebcc7b99e3ca072c79509cd9",
+      "source_length": 5449,
+      "tokens": 975,
+      "fnv64": "bf53a49440a526ae"
+    },
+    {
+      "name": "helios_h08_additional_guest_expiry_guards",
+      "applied_version": "20261120131004",
+      "repo_file": "20261120171500_helios_h08_additional_guest_expiry_guards.sql",
+      "source_md5": "264056f87957de231458398e7823013b",
+      "source_length": 2025,
+      "tokens": 255,
+      "fnv64": "743a1879007f2475"
+    },
+    {
+      "name": "helios_guest_zero_point_rank_fairness",
+      "applied_version": "20261120134241",
+      "repo_file": "20261120184500_helios_guest_zero_point_rank_fairness.sql",
+      "source_md5": "14b043a5ded65277e2e1bc356a6088f7",
+      "source_length": 17597,
+      "tokens": 3166,
+      "fnv64": "d14845cb9c2ce7b1"
+    },
+    {
+      "name": "helios_guest_doubles_rank_fairness",
+      "applied_version": "20261120134357",
+      "repo_file": "20261120185000_helios_guest_doubles_rank_fairness.sql",
+      "source_md5": "07515bdf7cc6557f34fc7aa9f8601ae7",
+      "source_length": 16497,
+      "tokens": 2934,
+      "fnv64": "2faaeda059f6f319"
+    },
+    {
+      "name": "helios_guest_draw_seeding_fairness",
+      "applied_version": "20261120135554",
+      "repo_file": "20261120190500_helios_guest_draw_seeding_fairness.sql",
+      "source_md5": "16a04a96209806f9745a7e3c85bd3176",
+      "source_length": 16421,
+      "tokens": 3018,
+      "fnv64": "f2c54c66276c9bcc"
+    },
+    {
+      "name": "helios_guest_retire_and_walkover",
+      "applied_version": "20261120141848",
+      "repo_file": "20261120194500_helios_guest_retire_and_walkover.sql",
+      "source_md5": "f769ce6f13544843d35527f9ad96be6c",
+      "source_length": 9610,
+      "tokens": 1379,
+      "fnv64": "dad9651515febf22"
+    },
+    {
+      "name": "helios_guest_double_expiry_opponent_guard",
+      "applied_version": "20261120142045",
+      "repo_file": "20261120195000_helios_guest_double_expiry_opponent_guard.sql",
+      "source_md5": "ca3fd1ad176ddf385e15f12a2f91a5e9",
+      "source_length": 8917,
+      "tokens": 1368,
+      "fnv64": "4620c801e2d39359"
+    },
+    {
+      "name": "helios_retired_guest_conversion_guard",
+      "applied_version": "20261120142200",
+      "repo_file": "20261120195500_helios_retired_guest_conversion_guard.sql",
+      "source_md5": "3758f6112e9c9ac52efb3fb84320849d",
+      "source_length": 4568,
+      "tokens": 716,
+      "fnv64": "b23330fe52539908"
+    },
+    {
+      "name": "helios_guest_retirement_lock_order",
+      "applied_version": "20261120142410",
+      "repo_file": "20261120200000_helios_guest_retirement_lock_order.sql",
+      "source_md5": "1522e6a4585cf656650e0c3db224d860",
+      "source_length": 8194,
+      "tokens": 1229,
+      "fnv64": "806fe7ff4048cdc9"
+    }
+  ]
+}

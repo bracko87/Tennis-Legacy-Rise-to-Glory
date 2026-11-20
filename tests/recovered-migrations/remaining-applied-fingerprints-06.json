@@ -1,0 +1,16 @@
+{
+  "description": "Applied SQL token fingerprints from migration registry only, no account data and no source SQL",
+  "batch": 6,
+  "expected_groups": 6,
+  "items": [
+    {
+      "name": "helios_h18_live_page_activity",
+      "applied_version": "20261120201405",
+      "repo_file": "20261120203000_helios_h18_live_page_activity.sql",
+      "source_md5": "67a56228509e12d6f53d9a589b6a38c3",
+      "source_length": 5840,
+      "tokens": 752,
+      "fnv64": "2ec8f9f7c2b2a2a5"
+    }
+  ]
+}

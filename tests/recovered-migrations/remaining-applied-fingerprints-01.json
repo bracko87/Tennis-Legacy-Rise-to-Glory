@@ -1,0 +1,385 @@
+{
+  "description": "Applied SQL token fingerprints derived from stored SQL only; NO user data, no source SQL, no production access at runtime",
+  "batch": 1,
+  "expected_groups": 6,
+  "items": [
+    {
+      "name": "schedule_minimum_field_and_draw_scaling_v1",
+      "applied_version": "20260907140618",
+      "repo_file": "20260907133500_schedule_minimum_field_and_draw_scaling_v1.sql",
+      "source_md5": "b361e4cdbb4ee61c72d8edf1e4e0bdc9",
+      "source_length": 33126,
+      "tokens": 6375,
+      "fnv64": "28b02a2df9af69cc"
+    },
+    {
+      "name": "minimum_field_final_lock_guard_v2",
+      "applied_version": "20260907140635",
+      "repo_file": "20260907134000_minimum_field_final_lock_guard_v2.sql",
+      "source_md5": "9f5679c18d70e21f5422999f3783b669",
+      "source_length": 2445,
+      "tokens": 467,
+      "fnv64": "f7c30483b3b02470"
+    },
+    {
+      "name": "tournament_logo_storage_read_v1",
+      "applied_version": "20260907140646",
+      "repo_file": "20260907134200_tournament_logo_storage_read_v1.sql",
+      "source_md5": "870ea32c0e8a58957329b3f3a28ab654",
+      "source_length": 240,
+      "tokens": 32,
+      "fnv64": "ec3eec7c1b423361"
+    },
+    {
+      "name": "avatar_replacement_rules_consent_and_immediate_cleanup_v4",
+      "applied_version": "20260910090213",
+      "repo_file": "20260910085941_avatar_replacement_rules_consent_and_immediate_cleanup_v4.sql",
+      "source_md5": "75131fc3963189159046be1216fb083c",
+      "source_length": 4794,
+      "tokens": 736,
+      "fnv64": "78825ed94a2ec1bd"
+    },
+    {
+      "name": "fix_health_walkover_zero_duration_v12",
+      "applied_version": "20260911105752",
+      "repo_file": "20260911105820_fix_health_walkover_zero_duration_v12.sql",
+      "source_md5": "fabf526efadabdeaa3318f9baaaf2cde",
+      "source_length": 6366,
+      "tokens": 1151,
+      "fnv64": "5419206b20475c66"
+    },
+    {
+      "name": "ai_starter_homes_and_ranking_point_change_v1",
+      "applied_version": "20260914132337",
+      "repo_file": "20260914132740_ai_starter_homes_and_ranking_point_change_v1.sql",
+      "source_md5": "55b8e3c1358b4dabfd75fcf63617d9a5",
+      "source_length": 5459,
+      "tokens": 925,
+      "fnv64": "ab18ad43ae03f12f"
+    },
+    {
+      "name": "private_life_game_time_quotes_and_all_asset_markets_v1",
+      "applied_version": "20260915093720",
+      "repo_file": "20260915094000_private_life_game_time_quotes_and_all_asset_markets_v1.sql",
+      "source_md5": "75c0910843d797c7ead614675df06b5b",
+      "source_length": 12957,
+      "tokens": 2470,
+      "fnv64": "2e576be843058079"
+    },
+    {
+      "name": "private_life_investment_game_cadence_scheduler_v1",
+      "applied_version": "20260915093841",
+      "repo_file": "20260915094100_private_life_investment_game_cadence_scheduler_v1.sql",
+      "source_md5": "a54464262c68f78047ff0ddb5536d209",
+      "source_length": 1323,
+      "tokens": 94,
+      "fnv64": "5843756bc2262346"
+    },
+    {
+      "name": "private_life_vehicle_entry_range_expansion_v1",
+      "applied_version": "20260915100012",
+      "repo_file": "20260915100000_private_life_vehicle_entry_range_expansion_v1.sql",
+      "source_md5": "60890300d53fb03fbb10a94f20e668ea",
+      "source_length": 4844,
+      "tokens": 473,
+      "fnv64": "48dd8d3cb7944af8"
+    },
+    {
+      "name": "private_life_home_city_marketplace_v1",
+      "applied_version": "20260915105641",
+      "repo_file": "20260915110000_private_life_home_city_marketplace_v1.sql",
+      "source_md5": "0fd3ad766b94cb9a3c8f13b76e6252ec",
+      "source_length": 13440,
+      "tokens": 2384,
+      "fnv64": "2cdb413cde3207d5"
+    },
+    {
+      "name": "investment_real_15m_hover_and_asset_history_v1",
+      "applied_version": "20260915111031",
+      "repo_file": "20260915111500_investment_real_15m_hover_and_asset_history_v1.sql",
+      "source_md5": "d6f1183bf05a4d6b46cefd2275305636",
+      "source_length": 7866,
+      "tokens": 1718,
+      "fnv64": "543d2ce64abee4b3"
+    },
+    {
+      "name": "investment_stock_window_start_11utc_v1",
+      "applied_version": "20260915111054",
+      "repo_file": "20260915111600_investment_stock_window_start_11utc_v1.sql",
+      "source_md5": "72353ccd47a9169e550e08dd99b1a3ae",
+      "source_length": 261,
+      "tokens": 47,
+      "fnv64": "9acf8d8a44c96085"
+    },
+    {
+      "name": "private_life_asset_transaction_history_v2",
+      "applied_version": "20260915112748",
+      "repo_file": "20260915113200_private_life_asset_transaction_history_v2.sql",
+      "source_md5": "725a791207d6fd116b6c9db6bbf34ed2",
+      "source_length": 1674,
+      "tokens": 294,
+      "fnv64": "b6f4a10f5fe059b8"
+    },
+    {
+      "name": "private_life_daily_market_and_forever_trade_history_v1",
+      "applied_version": "20260915120517",
+      "repo_file": "20260915140500_private_life_daily_market_and_forever_trade_history_v1.sql",
+      "source_md5": "a12478fc654f37d16cea093a832bb11a",
+      "source_length": 2791,
+      "tokens": 478,
+      "fnv64": "49d091ac70263c53"
+    },
+    {
+      "name": "calendar_main_draw_accepted_week_v1",
+      "applied_version": "20260915124116",
+      "repo_file": "20260915124000_calendar_main_draw_accepted_week_v1.sql",
+      "source_md5": "1ec48ec9823bf772c27d5d6bb4b1939f",
+      "source_length": 7821,
+      "tokens": 1468,
+      "fnv64": "f9406b06b578ddcc"
+    },
+    {
+      "name": "simplify_equipment_to_four_categories",
+      "applied_version": "20260915153532",
+      "repo_file": "20260915153600_simplify_equipment_to_four_categories.sql",
+      "source_md5": "17104cc060d37205b63d7b22fced592c",
+      "source_length": 12797,
+      "tokens": 2400,
+      "fnv64": "ac09b68f7009848d"
+    },
+    {
+      "name": "technical_sponsor_contract_exclusivity_fix_v1",
+      "applied_version": "20260915183345",
+      "repo_file": "20260915183331_technical_sponsor_contract_exclusivity_fix_v1.sql",
+      "source_md5": "f42638dd0c8b3c2c7d96d3c1d516342b",
+      "source_length": 456,
+      "tokens": 50,
+      "fnv64": "2090c837935856c5"
+    },
+    {
+      "name": "fix_power_of_two_tournament_round_count",
+      "applied_version": "20260917084832",
+      "repo_file": "20260917085000_fix_power_of_two_tournament_round_count.sql",
+      "source_md5": "25d1e6761deeb3d8e91b20a151fd8b01",
+      "source_length": 1571,
+      "tokens": 139,
+      "fnv64": "b46ff2770c99d48d"
+    },
+    {
+      "name": "technical_sponsor_discount_only_v1",
+      "applied_version": "20260917103209",
+      "repo_file": "20260917102700_technical_sponsor_discount_only_v1.sql",
+      "source_md5": "c2b6e086279c907f63c081e9018be416",
+      "source_length": 12272,
+      "tokens": 2213,
+      "fnv64": "b8e7a63d9607de49"
+    },
+    {
+      "name": "equipment_resale_and_discard_v1",
+      "applied_version": "20260917110158",
+      "repo_file": "20260917110000_equipment_resale_and_discard_v1.sql",
+      "source_md5": "63e4bc4230fd82ac20ec901fd1461ce5",
+      "source_length": 3272,
+      "tokens": 504,
+      "fnv64": "a4441feb49c10802"
+    },
+    {
+      "name": "equipment_resale_metadata_v1",
+      "applied_version": "20260917110457",
+      "repo_file": "20260917110500_equipment_resale_metadata_v1.sql",
+      "source_md5": "2a0336c83b356059152bcf9991898894",
+      "source_length": 330,
+      "tokens": 50,
+      "fnv64": "b7036a72422c6c5d"
+    },
+    {
+      "name": "add_tournament_past_winners_v1",
+      "applied_version": "20260918092800",
+      "repo_file": "20260918100500_add_tournament_past_winners_v1.sql",
+      "source_md5": "cf59b1447ce6146eeb09bd8cff755139",
+      "source_length": 2229,
+      "tokens": 360,
+      "fnv64": "7dcff45f5c6d7147"
+    },
+    {
+      "name": "ranking_contribution_expiration_v1",
+      "applied_version": "20260918100728",
+      "repo_file": "20260918102000_ranking_contribution_expiration_v1.sql",
+      "source_md5": "9239d0d04e63e9214d5e8f04d43aa1e8",
+      "source_length": 19051,
+      "tokens": 3052,
+      "fnv64": "6cf13e2fde098607"
+    },
+    {
+      "name": "annual_birthday_gift_foundation_v1",
+      "applied_version": "20260918114934",
+      "repo_file": "20260918114000_annual_birthday_gift_foundation_v1.sql",
+      "source_md5": "9c428f313f6b45fd5142af63f904a1f1",
+      "source_length": 16863,
+      "tokens": 2454,
+      "fnv64": "c6cb9be4eb983910"
+    },
+    {
+      "name": "birthday_email_dispatch_v1",
+      "applied_version": "20260918115120",
+      "repo_file": "20260918114500_birthday_email_dispatch_v1.sql",
+      "source_md5": "dab924d39bae5c221f2caeacf94c47fa",
+      "source_length": 1756,
+      "tokens": 318,
+      "fnv64": "90968dad7161107f"
+    },
+    {
+      "name": "birthday_feb29_rule_v2",
+      "applied_version": "20260918115236",
+      "repo_file": "20260918115000_birthday_feb29_rule_v2.sql",
+      "source_md5": "1450997feab4141f2edc766f64a845e3",
+      "source_length": 2662,
+      "tokens": 489,
+      "fnv64": "7641f92192a6f05d"
+    },
+    {
+      "name": "birthday_email_cron_auth_v2",
+      "applied_version": "20260918115516",
+      "repo_file": "20260918115500_birthday_email_cron_auth_v2.sql",
+      "source_md5": "a6e02b153b26ee134e7c5db101c053dc",
+      "source_length": 1763,
+      "tokens": 279,
+      "fnv64": "976711b6d4d90dc9"
+    },
+    {
+      "name": "birthday_email_retry_safety_v3",
+      "applied_version": "20260918115804",
+      "repo_file": "20260918120000_birthday_email_retry_safety_v3.sql",
+      "source_md5": "fb8cc0d554381d946c74b8ca03b03e08",
+      "source_length": 1408,
+      "tokens": 267,
+      "fnv64": "04cb67ed5cccd8d1"
+    },
+    {
+      "name": "main_sponsor_objective_pool_v2",
+      "applied_version": "20260918134410",
+      "repo_file": "20260918133000_main_sponsor_objective_pool_v2.sql",
+      "source_md5": "265cb735bacdca67668daaa7585bd24c",
+      "source_length": 42320,
+      "tokens": 7399,
+      "fnv64": "e36fef4528b50670"
+    },
+    {
+      "name": "main_sponsor_objective_region_balance_v2",
+      "applied_version": "20260918134815",
+      "repo_file": "20260918133500_main_sponsor_objective_region_balance_v2.sql",
+      "source_md5": "0ddd633fb196a3f7c5a2b6bed1bc86dc",
+      "source_length": 1067,
+      "tokens": 183,
+      "fnv64": "bf85de7a2d132398"
+    },
+    {
+      "name": "sponsor_objective_calendar_badges_v1",
+      "applied_version": "20260918142433",
+      "repo_file": "20260918142500_sponsor_objective_calendar_badges_v1.sql",
+      "source_md5": "84b70d447e9ca162486305875df76479",
+      "source_length": 1427,
+      "tokens": 220,
+      "fnv64": "8e4d2e359bd2f875"
+    },
+    {
+      "name": "national_team_ticket2_match_engine_bridge_v1",
+      "applied_version": "20260923205036",
+      "repo_file": "20260923205137_national_team_ticket2_match_engine_bridge_v1.sql",
+      "source_md5": "d9cd41b02cb4d51e3b7c0ff084f5eda3",
+      "source_length": 35941,
+      "tokens": 5943,
+      "fnv64": "6a72dde622c109ff"
+    },
+    {
+      "name": "align_player_avatar_bucket_limit_8mb",
+      "applied_version": "20261001133543",
+      "repo_file": "20261001134500_align_player_avatar_bucket_limit_8mb.sql",
+      "source_md5": "33a5647c9aaf528bfd8a4310b3e5ccc9",
+      "source_length": 160,
+      "tokens": 29,
+      "fnv64": "8efd9d5cb1742c0d"
+    },
+    {
+      "name": "avatar_reference_photo_24h_retention_cleanup",
+      "applied_version": "20261001134358",
+      "repo_file": "20261001135200_avatar_reference_photo_24h_retention_cleanup.sql",
+      "source_md5": "0d7cf987f1d29a0a70b2e77e86d212d2",
+      "source_length": 2084,
+      "tokens": 328,
+      "fnv64": "479bb8f4616b54f6"
+    },
+    {
+      "name": "schedule_national_association_lifecycle",
+      "applied_version": "20261001151539",
+      "repo_file": "20261001152000_schedule_national_association_lifecycle.sql",
+      "source_md5": "2ee0e697d56f42ff7ef22719bdb019da",
+      "source_length": 473,
+      "tokens": 70,
+      "fnv64": "686ddba6a95de075"
+    },
+    {
+      "name": "harden_health_and_national_lifecycle_monitoring",
+      "applied_version": "20261001152051",
+      "repo_file": "20261001153000_harden_health_and_national_lifecycle_monitoring.sql",
+      "source_md5": "037cbb5b3e1faab7bbcb6321e378c394",
+      "source_length": 7789,
+      "tokens": 1131,
+      "fnv64": "6d23ac644ef40dc2"
+    },
+    {
+      "name": "decouple_system_health_control_center_delivery",
+      "applied_version": "20261001152310",
+      "repo_file": "20261001153600_decouple_system_health_control_center_delivery.sql",
+      "source_md5": "0c472d33853c6ac571814be3268c54fe",
+      "source_length": 1803,
+      "tokens": 224,
+      "fnv64": "fb467fb9b091a365"
+    },
+    {
+      "name": "harden_tournament_entry_cancellation_and_alerting",
+      "applied_version": "20261001163441",
+      "repo_file": "20261001165000_harden_tournament_entry_cancellation_and_alerting.sql",
+      "source_md5": "a4412a30271584d202ca2afd889e734b",
+      "source_length": 14779,
+      "tokens": 2082,
+      "fnv64": "36b21eac36a2394c"
+    },
+    {
+      "name": "notify_human_tournament_applicants_on_cancellation",
+      "applied_version": "20261001163709",
+      "repo_file": "20261001165800_notify_human_tournament_applicants_on_cancellation.sql",
+      "source_md5": "2cdb29ac817b5a54cd54dbd30ef97de3",
+      "source_length": 4381,
+      "tokens": 614,
+      "fnv64": "81c7d957a5e6e77e"
+    },
+    {
+      "name": "run_critical_incident_reminder_check_every_minute",
+      "applied_version": "20261001165622",
+      "repo_file": "20261001172500_run_critical_incident_reminder_check_every_minute.sql",
+      "source_md5": "ab1cf47d04f0e01624a21bf1261bb192",
+      "source_length": 850,
+      "tokens": 96,
+      "fnv64": "04485a0baa7a1cc6"
+    },
+    {
+      "name": "tournament_draw_timing_recovery_and_health",
+      "applied_version": "20261002073731",
+      "repo_file": "20261002073500_tournament_draw_timing_recovery_and_health.sql",
+      "source_md5": "7ece74078914b3a441c2c4700edcdcad",
+      "source_length": 39852,
+      "tokens": 6891,
+      "fnv64": "eaae54ff589d9ab2"
+    },
+    {
+      "name": "register_draw_processor_monitor_keys",
+      "applied_version": "20261002073805",
+      "repo_file": "20261002074200_register_draw_processor_monitor_keys.sql",
+      "source_md5": "474ad756291609f514457735de6a76b0",
+      "source_length": 1264,
+      "tokens": 166,
+      "fnv64": "08505c869ad91688"
+    }
+  ]
+}
