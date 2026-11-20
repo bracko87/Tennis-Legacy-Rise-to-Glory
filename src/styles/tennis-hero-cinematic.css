@@ -486,7 +486,7 @@
 
 /*
  * Brief camera glints in the RIGHT-side spectator seating.
- * Seven unevenly spaced pulses per 42-second cycle (roughly 4–7 seconds apart).
+ * Seven unevenly spaced pulses per 21-second cycle (roughly 2–3.5 seconds apart).
  * No flashes in the headline area, no image assets, and no JavaScript timers.
  */
 .tlg-home-main .tlg-hero .tlg-hero-camera-flash {
@@ -500,7 +500,7 @@
   pointer-events: none;
   background: radial-gradient(circle, #fff 0 24%, #e6f9ff 52%, rgba(153, 219, 255, .05) 100%);
   box-shadow: 0 0 6px 2px rgba(238, 251, 255, .85), 0 0 14px 5px rgba(138, 211, 255, .35);
-  animation: tlgHeroCrowdCameraFlash 42s linear infinite;
+  animation: tlgHeroCrowdCameraFlash 21s linear infinite;
   animation-fill-mode: both;
 }
 .tlg-home-main .tlg-hero .tlg-hero-camera-flash::before {
@@ -527,17 +527,17 @@
     linear-gradient(90deg, transparent 0 47%, rgba(244, 252, 255, .88) 49% 51%, transparent 53%),
     linear-gradient(0deg, transparent 0 47%, rgba(244, 252, 255, .88) 49% 51%, transparent 53%);
 }
-.tlg-home-main .tlg-hero .tlg-hero-camera-flash--one { left: 72%; top: 36%; animation-delay: -40s; }
-.tlg-home-main .tlg-hero .tlg-hero-camera-flash--two { left: 84%; top: 43%; animation-delay: -35s; }
-.tlg-home-main .tlg-hero .tlg-hero-camera-flash--three { left: 95%; top: 32%; animation-delay: -29s; }
-.tlg-home-main .tlg-hero .tlg-hero-camera-flash--four { left: 79%; top: 56%; animation-delay: -22s; }
-.tlg-home-main .tlg-hero .tlg-hero-camera-flash--five { left: 91%; top: 57%; animation-delay: -15s; }
-.tlg-home-main .tlg-hero .tlg-hero-camera-flash--six { left: 74%; top: 48%; animation-delay: -11s; }
-.tlg-home-main .tlg-hero .tlg-hero-camera-flash--seven { left: 97%; top: 47%; animation-delay: -4s; }
+.tlg-home-main .tlg-hero .tlg-hero-camera-flash--one { left: 72%; top: 36%; animation-delay: -20s; }
+.tlg-home-main .tlg-hero .tlg-hero-camera-flash--two { left: 84%; top: 43%; animation-delay: -17.5s; }
+.tlg-home-main .tlg-hero .tlg-hero-camera-flash--three { left: 95%; top: 32%; animation-delay: -14.5s; }
+.tlg-home-main .tlg-hero .tlg-hero-camera-flash--four { left: 79%; top: 56%; animation-delay: -11s; }
+.tlg-home-main .tlg-hero .tlg-hero-camera-flash--five { left: 91%; top: 57%; animation-delay: -7.5s; }
+.tlg-home-main .tlg-hero .tlg-hero-camera-flash--six { left: 74%; top: 48%; animation-delay: -5.5s; }
+.tlg-home-main .tlg-hero .tlg-hero-camera-flash--seven { left: 97%; top: 47%; animation-delay: -2s; }
 @keyframes tlgHeroCrowdCameraFlash {
-  0%, .25%, 1.1%, 100% { opacity: 0; transform: scale(.65); }
-  .52% { opacity: .93; transform: scale(1.1); }
-  .75% { opacity: .45; transform: scale(.95); }
+  0%, .5%, 2.2%, 100% { opacity: 0; transform: scale(.65); }
+  1.04% { opacity: .93; transform: scale(1.1); }
+  1.5% { opacity: .45; transform: scale(.95); }
 }
 @media (max-width: 760px) {
   .tlg-home-main .tlg-hero .tlg-hero-camera-flash { width: 4px; height: 4px; }
