@@ -445,11 +445,22 @@ export default function RegisterPage() {
                             <PasswordRequirement passed={passwordChecks.number} text="At least one number" />
                           </div>
                           <p className="tlg-auth-register-security-note">No payment details required. Email verification protects your progress; your player profile is created next.</p>
+                          {submitted && !birthdayValid && (
+                            <p role="alert" className="tlg-auth-status tlg-auth-status-information">
+                              Please provide both a valid birth month and day, or clear all birthday fields to skip the gift.
+                            </p>
+                          )}
+                          {status && (
+                            <div className={`tlg-auth-status ${status.type === 'success' ? 'tlg-auth-status-success' : 'tlg-auth-status-information'}`} role={status.type === 'error' ? 'alert' : 'status'}>
+                              <ShieldCheck size={18} />
+                              <span>{status.message}</span>
+                            </div>
+                          )}
                           <details className="tlg-register-optional-details">
                             <summary>Birthday gift (optional) — skip this to register faster</summary>
                         <div className="tlg-register-birthday-optional">
                           <p className="tlg-register-step-intro">
-                            Add your birthday only if you want to qualify for the annual 20-Coin Birthday Gift. Your birth year is optional. Skip all fields to receive no birthday reward.
+                            Add your birthday only if you want to qualify for the annual 20-Coin Birthday Gift. Your birth year is optional. No date means no birthday reward.
                           </p>
 
                           <div className="tlg-auth-form-grid tlg-birthday-form-grid">
@@ -512,12 +523,7 @@ export default function RegisterPage() {
                             This information belongs to your account, not your fictional tennis player. If you skip it, no birthday reward is granted. If supplied, your birthday cannot be changed after registration.
                           </p>
 
-                          {status && (
-                            <div className={`tlg-auth-status ${status.type === 'success' ? 'tlg-auth-status-success' : 'tlg-auth-status-information'}`} role={status.type === 'error' ? 'alert' : 'status'}>
-                              <ShieldCheck size={18} />
-                              <span>{status.message}</span>
-                            </div>
-                          )}
+
                         </div>
                           </details>
                         </div>
