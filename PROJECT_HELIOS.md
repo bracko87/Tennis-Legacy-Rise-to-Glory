@@ -1,8 +1,8 @@
 # Project Helios — Player Experience, Analytics & Platform Quality
 
-**Applies to:** Tennis Legacy: Rise to Glory and ProPeloton Manager.  
+**Applies to:** Tennis Legacy: Rise to Glory ONLY. ProPeloton Manager is managed through the separate Project Saturn.  
 **Owner:** Next Quest Studio. **Status:** Active discovery / staged implementation.  
-**Goal:** Deliver and verify all 21 improvements from the Helios brief in both browser games, preserving player progress, multiplayer fairness, privacy, and sustainable infrastructure costs.
+**Goal:** Deliver and verify all 21 improvements from the Helios brief in the Tennis Legacy browser game, preserving player progress, multiplayer fairness, privacy, and sustainable infrastructure costs.
 
 ## Non-negotiable engineering rules
 - Keep Supabase/PostgreSQL and the existing in-game Control Centers as the default architecture.
@@ -24,7 +24,7 @@ Status values: **Audit**, **Design**, **Implement**, **Test**, **Live verified**
 - **H12 (Medium):** Gameplay actions: training, tournaments/races, transfers, team/character management; aggregate safely.
 - **H13 (Medium):** Economy integrity: transactions, purchased and promotional coins, sponsorship/rewards, anomalies and reconciliation.
 - **H14 (Medium):** Searchable admin audit history with stable event IDs, UTC timestamps, source/game/entity, retention and access controls.
-**H1 exit criteria:** 7/30-day dashboard values reconcile to SQL counts for each game; manual refresh and visible last-refreshed timestamp; tested with actual browser session; no non-admin access to sensitive data.
+**H1 exit criteria:** 7/30-day dashboard values reconcile to SQL counts for Tennis Legacy; manual refresh and visible last-refreshed timestamp; tested with actual browser session; no non-admin access to sensitive data.
 
 ### H2 — Registration / onboarding
 - **H01 (High):** Play as Guest / Test Player with temporary unique identity and clear guest restrictions.
@@ -35,7 +35,7 @@ Status values: **Audit**, **Design**, **Implement**, **Test**, **Live verified**
 - **H06 (High):** Optional birthday; zero reward without birthday, no fake placeholder dates.
 - **H07 (High):** Fewer mandatory fields, direct path to understand gameplay, concise buttons and explanatory copy.
 - **H08 (High):** Guest abuse prevention across economy, multiplayer competitions and Premium trials.
-**H2 exit criteria:** Registration, guest, conversion, OAuth, failure/recovery and cross-device E2E checks; no duplicate player/team or wallet, no privilege bypass; optional birthday independently verified in both game DBs.
+**H2 exit criteria:** Registration, guest, conversion, OAuth, failure/recovery and cross-device E2E checks; no duplicate player/team or wallet, no privilege bypass; optional birthday independently verified in the Tennis Legacy database.
 
 ### H3 — Infrastructure and security
 - **H15 (Low):** Review actual PostgreSQL query/index/connection performance.
@@ -45,7 +45,7 @@ Status values: **Audit**, **Design**, **Implement**, **Test**, **Live verified**
 
 ### H4 — Game quality
 - **H18 (Medium):** Targeted UI consistency and visual polish on friction areas.
-- **H19 (High):** External playtests in both games with task completion, friction log and feedback.
+- **H19 (High):** External playtests in Tennis Legacy with task completion, friction log and feedback.
 - **H20 (Medium):** First-session guide showing what to do after registration or entering as guest.
 - **H21 (Medium):** Demonstrate the unique mechanics of ProPeloton (and analogous Tennis Legacy features) using real gameplay captures.
 **H4 exit criteria:** Repeatable external tasks complete without assistance; high-severity blockers closed; measurable first-session improvement.
@@ -58,12 +58,12 @@ Status values: **Audit**, **Design**, **Implement**, **Test**, **Live verified**
 5. **Quality & release:** player testing, action monitoring, user experience polish, documentation, deployment and live verification.
 
 ## Initial audit — 20 November 2026
-- Both projects use Supabase/PostgreSQL and already have daily visitors, sessions, and page-view tables.
-- Nov 19 stored data: ProPeloton 26 visitors / 29 sessions / 67 page views; Tennis 4 / 6 / 29.
+- Tennis Legacy uses Supabase/PostgreSQL and already has daily visitors, sessions, and page-view tables.
+- Nov 19 Tennis Legacy stored data: 4 visitors / 6 sessions / 29 page views. The ProPeloton metrics belong in Project Saturn, not Helios.
 - Existing platform-metrics cache recently refreshed, but this cache is NOT evidence that the website analytics dashboard refreshes correctly. Source sync last_push_at is null in both projects. H09 remains open.
-- Both registration forms require birthday month and day; birthday year is optional. H06 requires client + database updates.
-- Both use password-based registration/login. Guest conversion and OAuth linking remain unimplemented, not assumed safe.
-- The November 20 audit was read-only. No new Helios user-facing features are marked complete from this document.
+- Tennis Legacy registration requires birthday month and day; birthday year is optional. H06 requires client + database updates.
+- Tennis Legacy currently uses password-based registration/login. Guest conversion and OAuth linking remain unimplemented, not assumed safe.
+- On November 20, the account-to-admin mapping was corrected for the designated existing administrator. Admin-only Analytics sidebar navigation, a recent-navigation activity panel, and a three-table page-view reconciliation panel were implemented; deployment and authenticated browser checks remain pending. New login/guest capabilities remain unimplemented.
 
 ## Tracking and acceptance
-For each H-number record: game, owner, code/SQL PR, migrations, test evidence, live deployment, fallback/rollback, release status. One workstream can ship to one game before the other but never count as complete for **both** until verified in both.
+For each H-number record: game, owner, code/SQL PR, migrations, test evidence, live deployment, fallback/rollback, release status. Each workstream counts as complete only after tests, deployment and authenticated live checks in Tennis Legacy.
