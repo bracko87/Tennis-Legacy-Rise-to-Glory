@@ -23,6 +23,7 @@ import {
 } from 'recharts'
 
 import AdminEventHistory from '../../components/admin/AdminEventHistory'
+import AdminSecurityStatus from '../../components/admin/AdminSecurityStatus'
 import GameLayout from '../../components/layout/GameLayout'
 import { supabase } from '../../lib/supabase'
 
@@ -380,6 +381,8 @@ export default function AdminAnalyticsPage() {
             : ''}
         </p>
         {error && <div className="tlg-admin-analytics-error">{error}</div>}
+
+        <AdminSecurityStatus />
 
         <AdminEventHistory period={period} />
 
