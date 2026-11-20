@@ -113,6 +113,72 @@ export default function AnalyticsTracker() {
   }, [authLoading, location.pathname, user?.id])
 
   useEffect(() => {
+    // Recent page activity for the administrator's live-page report. Official
+    // production hosts only: localhost testing must not affect live analytics.
+    // Send no email, name, IP, or client-controlled registration flags.
+    if (authLoading) return
+    if (!OFFICIAL_ANALYTICS_HOSTS.has(window.location.hostname.toLowerCase())) return
+    if (location.pathname.startsWith('/game/admin/')) return
+
+    const visitorId = getStoredUuid(localStorage, VISITOR_KEY)
+    const sessionId = getStoredUuid(sessionStorage, SESSION_KEY)
+    const path = location.pathname || '/'
+    let active = true
+    let inFlight = false
+    let lastSentAt = 0
+    let lastInteractionAt = document.visibilityState === 'visible' ? Date.now() : 0
+
+    async function recordLivePage() {
+      if (!active || inFlight || document.visibilityState !== 'visible') return
+      const now = Date.now()
+      // An idle tab is NOT continuously counted as a live visitor.
+      if (!lastInteractionAt || now - lastInteractionAt > 90_000 || now - lastSentAt < 25_000) return
+      inFlight = true
+      lastSentAt = now
+      try {
+        const { error } = await supabase.rpc('record_live_page_presence_v1', {
+          p_visitor_id: visitorId,
+          p_session_id: sessionId,
+          p_path: path,
+        })
+        if (error) console.warn('Tennis Legacy live page activity not recorded:', error.message)
+      } catch (error) {
+        console.warn('Tennis Legacy live page activity not recorded:', error)
+      } finally {
+        inFlight = false
+      }
+    }
+
+    function noteLiveInteraction() {
+      if (document.visibilityState !== 'visible') return
+      lastInteractionAt = Date.now()
+      void recordLivePage()
+    }
+
+    function onLiveVisibilityChange() {
+      if (document.visibilityState !== 'visible') {
+        lastInteractionAt = 0
+        // A hidden tab stops heartbeats; existing rows expire within two minutes.
+      }
+    }
+
+    void recordLivePage() // A visible page navigation counts once on entry.
+    window.addEventListener('pointerdown', noteLiveInteraction, { passive: true })
+    window.addEventListener('keydown', noteLiveInteraction)
+    window.addEventListener('scroll', noteLiveInteraction, { passive: true })
+    document.addEventListener('visibilitychange', onLiveVisibilityChange)
+    const interval = window.setInterval(() => { void recordLivePage() }, 30_000)
+    return () => {
+      active = false
+      window.clearInterval(interval)
+      window.removeEventListener('pointerdown', noteLiveInteraction)
+      window.removeEventListener('keydown', noteLiveInteraction)
+      window.removeEventListener('scroll', noteLiveInteraction)
+      document.removeEventListener('visibilitychange', onLiveVisibilityChange)
+    }
+  }, [authLoading, location.pathname, user?.id])
+
+  useEffect(() => {
     // An actual foreground interaction, not an open/background browser tab,
     // qualifies an authenticated human tennis player as recently active.
     if (authLoading || !user?.id || !player?.id) return
