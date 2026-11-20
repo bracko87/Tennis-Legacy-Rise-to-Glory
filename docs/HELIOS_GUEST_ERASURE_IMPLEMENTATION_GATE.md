@@ -67,3 +67,7 @@ Official platform references:
 ## Direct-FK triage audit added
 
 `tests/helios_guest_erasure_readiness_audit.sql` now produces the live direct-FK inventory with review-area groups and a drift signal against the confirmed 188-relationship baseline. Every row remains explicitly `REVIEW_REQUIRED`, and its final readiness status is `NOT_READY_FOR_HARD_DELETE`. Policy details are in `docs/HELIOS_GUEST_ERASURE_FK_CLASSIFICATION.md`. These are **read-only** tools, not an erasure implementation or approval. Full recursive mapping and staging tests still remain.
+
+## Full direct-FK review ledger
+
+The exact 188 direct constraints and their `pg_get_constraintdef()` definitions were read from the live Tennis Legacy **schema metadata only** and committed to `docs/HELIOS_GUEST_ERASURE_DIRECT_FK_LEDGER.md`. The ledger explicitly marks all 188 entries `REVIEW_REQUIRED`. It is more detailed than earlier heuristic summary tables, but is not a full recursive dependency graph or approved deletion policy. Physical guest Auth deletion remains blocked until each dependency is classified and the full-schema fixture passes.
