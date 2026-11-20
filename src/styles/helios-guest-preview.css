@@ -23,3 +23,21 @@
 .tlg-helios-preview-balance{display:flex;align-items:center;gap:10px;margin:22px 0;color:#e5c576}
 .tlg-helios-preview-panel small{display:block;margin-top:18px;opacity:.82;line-height:1.5}
 @media(max-width:650px){.tlg-helios-preview-tabs button{flex:1 1 44%;font-size:13px;padding:11px 8px}}
+
+
+/* Functional readiness: neutral, legible UI on the light game layout. */
+.tlg-helios-preview-alert{color:#3b2e14;background:#fff8df;border-color:#d3ad54}
+.tlg-helios-preview-alert strong{color:#3b2e14}
+.tlg-helios-preview-alert p{color:#51462e}
+.tlg-helios-preview-top,.tlg-helios-preview-top p,.tlg-helios-preview-top a{color:#263849}
+.tlg-helios-preview-readiness{margin:18px 0 8px;padding:18px;border:1px solid #bdc9d4;border-radius:3px;background:#fff;color:#243242}
+.tlg-helios-preview-readiness-header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.tlg-helios-preview-readiness-header strong{font-weight:700;font-size:17px;color:#152537}
+.tlg-helios-preview-readiness-header p{margin:6px 0;font-size:13px;color:#405163;line-height:1.5}
+.tlg-helios-preview-readiness-header button{display:inline-flex;align-items:center;gap:7px;background:#263342;border:1px solid #263342;color:#fff;border-radius:3px;padding:9px 12px;cursor:pointer}
+.tlg-helios-preview-readiness-header button:disabled{opacity:.6;cursor:wait}
+.tlg-helios-preview-readiness-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:14px 0}
+.tlg-helios-preview-readiness-grid>div{background:#f2f5f8;padding:12px;border:1px solid #e1e7ed;border-radius:3px}
+.tlg-helios-preview-readiness-grid dt{font-size:12px;color:#4f6171;font-weight:600}
+.tlg-helios-preview-readiness-grid dd{margin:7px 0 0;font-size:13px;font-weight:700;color:#263342}
+.tlg-helios-preview-readiness small{color:#52606e}
