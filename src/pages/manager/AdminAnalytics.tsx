@@ -25,6 +25,19 @@ import {
 import GameLayout from '../../components/layout/GameLayout'
 import { supabase } from '../../lib/supabase'
 
+interface EconomyReport {
+  generated_at: string
+  timezone: string
+  start_date: string
+  end_date: string
+  definition: string
+  coin_movements: { credits: number; debits: number; entries: number; signup_grants: number; other_credits: number }
+  career_finance: { opening_funds: number; operational_income: number; operational_expenses: number; transaction_entries: number; sponsor_related_entries: number; sponsor_related_net: number }
+  billing: { paid_transactions: number; paid_eur_cents: number; paid_coin_packs: number; paid_premium: number; pending_transactions: number; failed_transactions: number }
+  sponsorships: { sponsor_contracts_signed: number; active_sponsor_contracts_now: number; objective_rewards_recorded: number }
+  current_balances: { wallet_count: number; wallet_coin_balance: number; wallet_negative_balances: number; wallet_vs_latest_ledger_discrepancies: number; human_career_balances: number }
+}
+
 interface GameActivityReport {
   generated_at: string
   timezone: string
@@ -264,6 +277,8 @@ export default function AdminAnalyticsPage() {
   const [period, setPeriod] = useState(30)
   const [dashboard, setDashboard] = useState<AnalyticsDashboard | null>(null)
   const [gameActivity, setGameActivity] = useState<GameActivityReport | null>(null)
+  const [economy, setEconomy] = useState<EconomyReport | null>(null)
+  const [economyError, setEconomyError] = useState<string | null>(null)
   const [gameActivityError, setGameActivityError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -275,9 +290,10 @@ export default function AdminAnalyticsPage() {
     if (!silent) setLoading(true)
 
     try {
-      const [siteResult, gameResult] = await Promise.all([
+      const [siteResult, gameResult, economyResult] = await Promise.all([
         supabase.rpc('get_admin_analytics_dashboard_v1', { p_days: nextPeriod }),
         supabase.rpc('get_admin_tennis_game_activity_v1', { p_days: nextPeriod }),
+        supabase.rpc('get_admin_tennis_economy_v1', { p_days: nextPeriod }),
       ])
       if (request !== requestSequence.current) return
       if (siteResult.error || !siteResult.data) {
@@ -290,6 +306,12 @@ export default function AdminAnalyticsPage() {
       } else {
         setGameActivity(gameResult.data as GameActivityReport)
         setGameActivityError(null)
+      }
+      if (economyResult.error || !economyResult.data) {
+        setEconomyError(economyResult.error?.message || 'Economy metrics could not be loaded.')
+      } else {
+        setEconomy(economyResult.data as EconomyReport)
+        setEconomyError(null)
       }
       setLastLoadedAt(new Date())
       setError(null)
@@ -357,6 +379,60 @@ export default function AdminAnalyticsPage() {
             : ''}
         </p>
         {error && <div className="tlg-admin-analytics-error">{error}</div>}
+
+        <section className="tlg-admin-analytics-panel" aria-label="Tennis Legacy economy and transactions">
+          <h2 style={{ marginBottom: 8 }}>Economy &amp; Transactions</h2>
+          {economyError && <p role="alert" className="tlg-admin-analytics-error">Economy metrics refresh failed: {economyError}</p>}
+          {economy ? (
+            <>
+              <p style={{ fontSize: 12, color: '#667085', marginBottom: 12 }}>
+                Recorded transactions: {economy.start_date} – {economy.end_date} ({economy.timezone})
+              </p>
+              <div className="tlg-admin-analytics-summary">
+                {([
+                  ['Coins granted or earned', economy.coin_movements.credits],
+                  ['Coins spent', economy.coin_movements.debits],
+                  ['Welcome coins issued', economy.coin_movements.signup_grants],
+                  ['Paid transactions', economy.billing.paid_transactions],
+                  ['Paid revenue (€)', asNumber(economy.billing.paid_eur_cents) / 100],
+                  ['Paid Premium orders', economy.billing.paid_premium],
+                  ['Paid coin packs', economy.billing.paid_coin_packs],
+                  ['Career starting funds ($)', economy.career_finance.opening_funds],
+                  ['Career income ($)', economy.career_finance.operational_income],
+                  ['Career expenses ($)', economy.career_finance.operational_expenses],
+                  ['Sponsor payments ($)', economy.career_finance.sponsor_related_net],
+                  ['Sponsor contracts signed', economy.sponsorships.sponsor_contracts_signed],
+                  ['Sponsor objective rewards', economy.sponsorships.objective_rewards_recorded],
+                  ['Pending billing attempts', economy.billing.pending_transactions],
+                  ['Failed billing attempts', economy.billing.failed_transactions],
+                ] as const).map(([label, value]) => (
+                  <article key={label}>
+                    <BarChart3 size={18}/>
+                    <div><span>{label}</span><strong>{wholeNumber.format(asNumber(value))}</strong></div>
+                  </article>
+                ))}
+              </div>
+              <h3 style={{ marginTop: 16, marginBottom: 8 }}>Current balances &amp; integrity</h3>
+              <div className="tlg-admin-analytics-summary">
+                {([
+                  ['Wallet coins', economy.current_balances.wallet_coin_balance],
+                  ['Career balances ($)', economy.current_balances.human_career_balances],
+                  ['Negative coin wallets', economy.current_balances.wallet_negative_balances],
+                  ['Wallet/ledger differences', economy.current_balances.wallet_vs_latest_ledger_discrepancies],
+                  ['Currently active sponsor contracts', economy.sponsorships.active_sponsor_contracts_now],
+                ] as const).map(([label, value]) => (
+                  <article key={label}>
+                    <Activity size={18}/>
+                    <div><span>{label}</span><strong>{wholeNumber.format(asNumber(value))}</strong></div>
+                  </article>
+                ))}
+              </div>
+              <p style={{ fontSize: 12, color: '#667085', marginTop: 10 }}>
+                {economy.definition}
+              </p>
+            </>
+          ) : !economyError ? <p>Loading economy metrics…</p> : null}
+        </section>
 
         <section className="tlg-admin-analytics-panel" aria-label="Recorded tennis gameplay activity">
           <h2 style={{ marginBottom: 8 }}>Game Activity — Tennis Legacy</h2>
