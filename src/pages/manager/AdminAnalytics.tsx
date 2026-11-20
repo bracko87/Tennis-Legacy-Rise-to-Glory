@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Activity,
   BarChart3,
@@ -213,30 +213,46 @@ export default function AdminAnalyticsPage() {
   const [dashboard, setDashboard] = useState<AnalyticsDashboard | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [lastLoadedAt, setLastLoadedAt] = useState<Date | null>(null)
+  const requestSequence = useRef(0)
 
-  async function loadDashboard(nextPeriod = period) {
-    setLoading(true)
-    setError(null)
+  const loadDashboard = useCallback(async (nextPeriod: number, silent = false) => {
+    const request = ++requestSequence.current
+    if (!silent) setLoading(true)
 
-    const { data, error: rpcError } = await supabase.rpc(
-      'get_admin_analytics_dashboard_v1',
-      { p_days: nextPeriod },
-    )
+    try {
+      const { data, error: rpcError } = await supabase.rpc(
+        'get_admin_analytics_dashboard_v1',
+        { p_days: nextPeriod },
+      )
+      if (request !== requestSequence.current) return
+      if (rpcError || !data) throw new Error(rpcError?.message || 'Analytics could not be loaded.')
 
-    if (rpcError || !data) {
-      setDashboard(null)
-      setError(rpcError?.message || 'Analytics could not be loaded.')
-      setLoading(false)
-      return
+      setDashboard(normalizeDashboard(data as AnalyticsDashboard))
+      setLastLoadedAt(new Date())
+      setError(null)
+    } catch (err) {
+      if (request !== requestSequence.current) return
+      setError(err instanceof Error ? err.message : 'Analytics could not be loaded.')
+      // The last successful counts remain visible, marked by an error.
+    } finally {
+      if (request === requestSequence.current) setLoading(false)
     }
-
-    setDashboard(normalizeDashboard(data as AnalyticsDashboard))
-    setLoading(false)
-  }
+  }, [])
 
   useEffect(() => {
     void loadDashboard(period)
-  }, [period])
+    const refreshIfVisible = () => {
+      if (document.visibilityState === 'visible') void loadDashboard(period, true)
+    }
+    const interval = window.setInterval(refreshIfVisible, 60_000)
+    window.addEventListener('focus', refreshIfVisible)
+    return () => {
+      requestSequence.current += 1
+      window.clearInterval(interval)
+      window.removeEventListener('focus', refreshIfVisible)
+    }
+  }, [period, loadDashboard])
 
   const chartData = useMemo(
     () => (dashboard?.daily ?? []).map((point) => ({
@@ -269,6 +285,15 @@ export default function AdminAnalyticsPage() {
           </button>
         </div>
 
+        <p role="status" style={{ margin: '8px 0', fontSize: 12, color: '#586779' }}>
+          {lastLoadedAt
+            ? `Last loaded from database: ${lastLoadedAt.toLocaleTimeString()}`
+            : 'Waiting for first analytics load'}
+          {' · Auto-refresh every 60 seconds while visible'}
+          {dashboard?.generated_at
+            ? ` · Server generated: ${new Date(dashboard.generated_at).toLocaleString()}`
+            : ''}
+        </p>
         {error && <div className="tlg-admin-analytics-error">{error}</div>}
 
         <section className="tlg-admin-analytics-summary">
