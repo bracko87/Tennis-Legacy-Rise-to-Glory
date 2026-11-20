@@ -143,9 +143,9 @@ CREATE TABLE public.tournament_doubles_matches(
  updated_at timestamptz DEFAULT now(),
  UNIQUE(competition_id,round_number,match_number)
 );
-CREATE FUNCTION public.tournament_round_label_v1(text,smallint,smallint,smallint)
+CREATE FUNCTION public.tournament_round_label_v1(text,smallint,integer,smallint)
 RETURNS text LANGUAGE sql IMMUTABLE AS $$ SELECT 'Final'::text $$;
-CREATE FUNCTION public.doubles_round_label_v1(smallint,smallint)
+CREATE FUNCTION public.doubles_round_label_v1(smallint,integer)
 RETURNS text LANGUAGE sql IMMUTABLE AS $$ SELECT 'Final'::text $$;
 CREATE FUNCTION public.schedule_doubles_match_v1(uuid)
 RETURNS void LANGUAGE plpgsql AS $$ BEGIN RETURN; END $$;
