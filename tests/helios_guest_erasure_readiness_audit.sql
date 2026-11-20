@@ -60,4 +60,55 @@ WHERE c.contype='f' AND c.conrelid IN (
  'public.tournament_doubles_matches'::regclass)
 ORDER BY c.conrelid::regclass::text,c.conname;
 
+
+-- Recursive reachability inventory: captures indirect effects when deleting
+-- auth.users -> players -> tournament/team/finance/other dependent tables.
+-- Multiple paths may reach the same table; path count is not row count.
+-- Traversal is cycle-safe (path tracks OIDs), limited to 12 edges and reports
+-- whether the limit was hit. New schema edges require renewed review.
+WITH RECURSIVE dependency_paths AS (
+  SELECT c.conrelid AS child_oid,c.confrelid AS parent_oid,
+         ARRAY[c.confrelid,c.conrelid]::oid[] AS visited,1 AS depth,
+         ARRAY[c.confdeltype]::"char"[] AS delete_behaviors
+  FROM pg_constraint c
+  WHERE c.contype='f'
+    AND c.confrelid IN ('auth.users'::regclass,'public.players'::regclass)
+  UNION ALL
+  SELECT c.conrelid,c.confrelid,p.visited||c.conrelid,p.depth+1,
+         p.delete_behaviors||c.confdeltype
+  FROM dependency_paths p
+  JOIN pg_constraint c ON c.contype='f' AND c.confrelid=p.child_oid
+  WHERE p.depth<12 AND NOT c.conrelid=ANY(p.visited)
+)
+SELECT count(*) AS reachable_constraint_paths,
+       count(DISTINCT child_oid) AS reachable_dependent_tables,
+       max(depth) AS longest_chain,
+       count(*) FILTER(WHERE depth>1) AS indirect_paths,
+       count(*) FILTER(WHERE depth=12) AS traversal_depth_cap_hits,
+       bool_or('c'::"char"=ANY(delete_behaviors)) AS includes_cascade,
+       'REVIEW_REQUIRED__NO_HARD_DELETE'::text AS decision
+FROM dependency_paths;
+
+-- Which *additional* tables are visible only when considering chains?
+-- No personal game records are read.
+WITH RECURSIVE dependency_paths AS (
+ SELECT c.conrelid AS child_oid,ARRAY[c.confrelid,c.conrelid]::oid[] AS visited,1 AS depth
+ FROM pg_constraint c WHERE c.contype='f'
+ AND c.confrelid IN ('auth.users'::regclass,'public.players'::regclass)
+ UNION ALL
+ SELECT c.conrelid,p.visited||c.conrelid,p.depth+1
+ FROM dependency_paths p JOIN pg_constraint c
+ ON c.contype='f' AND c.confrelid=p.child_oid
+ WHERE p.depth<12 AND NOT c.conrelid=ANY(p.visited)
+)
+SELECT child_oid::regclass::text AS indirectly_reachable_table,
+       min(depth) AS shortest_dependency_chain
+FROM dependency_paths
+WHERE child_oid NOT IN (
+ SELECT conrelid FROM pg_constraint
+ WHERE contype='f' AND confrelid IN ('auth.users'::regclass,'public.players'::regclass)
+)
+GROUP BY child_oid ORDER BY child_oid::regclass::text;
+
+
 ROLLBACK;
