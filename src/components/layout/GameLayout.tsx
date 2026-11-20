@@ -16,6 +16,8 @@ import WelcomePremiumTrial from '../premium/WelcomePremiumTrial'
 import GameFooter from './GameFooter'
 import GameHeader from './GameHeader'
 import GameSidebar from './GameSidebar'
+import GuestExpiryNotice from '../guest/GuestExpiryNotice'
+import '../../styles/guest-conversion.css'
 
 export interface GameLayoutProps {
   title: string
@@ -103,6 +105,7 @@ export default function GameLayout({ title, subtitle, children }: GameLayoutProp
         <GameFooter />
         <EarnCoinsDialog open={earnCoinsOpen} onClose={() => setEarnCoinsOpen(false)} />
         <WelcomePremiumTrial />
+        <GuestExpiryNotice />
       </div>
     </div>
   )
