@@ -94,4 +94,14 @@ END;
 $func$;
 
 REVOKE ALL ON FUNCTION control_center_private.helios_guest_erasure_preflight_fixture_v1(uuid)
- FROM PUBLIC, anon, authenticated;
+ FROM PUBLIC;
+DO $acl$
+BEGIN
+ IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname='anon') THEN
+  EXECUTE 'REVOKE ALL ON FUNCTION control_center_private.helios_guest_erasure_preflight_fixture_v1(uuid) FROM anon';
+ END IF;
+ IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN
+  EXECUTE 'REVOKE ALL ON FUNCTION control_center_private.helios_guest_erasure_preflight_fixture_v1(uuid) FROM authenticated';
+ END IF;
+END;
+$acl$;
