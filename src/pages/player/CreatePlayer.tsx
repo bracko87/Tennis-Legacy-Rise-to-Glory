@@ -113,6 +113,21 @@ export default function CreatePlayerPage(): JSX.Element {
   const { user, refreshPlayer } = useAuth()
   const navigate = useNavigate()
 
+  const [guestState, setGuestState] = useState<'loading'|'registered'|'active'|'expired'|'not_enrolled'>('loading')
+  const isGuest = user?.is_anonymous === true
+  const activeGuest = isGuest && guestState === 'active'
+
+  useEffect(() => {
+    if (!user) { setGuestState('loading'); return }
+    let active = true
+    void supabase.rpc('get_my_tennis_guest_trial_v1').then(({data,error}) => {
+      if (!active) return
+      setGuestState(!error && data?.is_guest ? data.state === 'active' ? 'active'
+        : data.state === 'expired' ? 'expired' : 'not_enrolled' : 'registered')
+    }).catch(() => { if (active) setGuestState('not_enrolled') })
+    return () => { active = false }
+  }, [user?.id])
+
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [country, setCountry] = useState('')
@@ -408,11 +423,12 @@ export default function CreatePlayerPage(): JSX.Element {
   const surfaceValid = preferredSurface !== null
   const styleValid = playingStyle !== null
   const handValid = playingHand !== null
-  const identityValid = firstNameValid && lastNameValid && countryValid && homeCityValid
+  const identityValid = firstNameValid && lastNameValid && countryValid && (activeGuest || homeCityValid)
   const profileValid = surfaceValid && styleValid && handValid
-  const formValid = identityValid && profileValid
+  const formValid = identityValid && (activeGuest ? selectedAvatarPath !== null : profileValid)
 
   const currentStep = ONBOARDING_STEPS.find((item) => item.id === step) ?? ONBOARDING_STEPS[0]
+  // Guest setup skips home-city and play-style steps; default styles are supplied on save.
   const surfaceLabel = (value: PreferredSurface | null) => value ? t(`createPlayer.surfaces.${value}`) : t('createPlayer.review.notSelected')
   const styleLabel = (value: PlayingStyle | null) => {
     if (value === 'Aggressive Baseliner') return t('createPlayer.styles.aggressive')
@@ -441,11 +457,12 @@ export default function CreatePlayerPage(): JSX.Element {
     setSaveError(null)
 
     if (step === 2 && !identityValid) return
-    if (step === 4 && !profileValid) return
+    if (step === 4 && !profileValid && !activeGuest) return
+    if (activeGuest && step === 3 && !selectedAvatarPath) return
     if (step >= 5) return
 
     setAttemptedStep(null)
-    setStep((step + 1) as OnboardingStep)
+    setStep((activeGuest && step === 3 ? 5 : step + 1) as OnboardingStep)
     scrollToWizardTop()
   }
 
@@ -453,7 +470,7 @@ export default function CreatePlayerPage(): JSX.Element {
     if (step <= 1 || saving) return
     setAttemptedStep(null)
     setSaveError(null)
-    setStep((step - 1) as OnboardingStep)
+    setStep((activeGuest && step === 5 ? 3 : step - 1) as OnboardingStep)
     scrollToWizardTop()
   }
 
@@ -462,7 +479,7 @@ export default function CreatePlayerPage(): JSX.Element {
     setSubmitted(true)
     setSaveError(null)
 
-    if (!formValid || !user || !preferredSurface || !playingStyle || !playingHand || saving) return
+    if (!formValid || !user || guestState === 'loading' || (isGuest && !activeGuest) || (!activeGuest && (!preferredSurface || !playingStyle || !playingHand)) || saving) return
     setSaving(true)
 
     try {
@@ -472,11 +489,11 @@ export default function CreatePlayerPage(): JSX.Element {
         first_name: cleanFirstName,
         last_name: cleanLastName,
         country_code: country,
-        home_city: homeCity,
+        home_city: activeGuest ? null : homeCity,
         image_path: selectedAvatarPath,
-        preferred_surface: preferredSurface,
-        playing_style: playingStyle,
-        playing_hand: playingHand,
+        preferred_surface: activeGuest ? 'Hard' : preferredSurface,
+        playing_style: activeGuest ? 'All-court' : playingStyle,
+        playing_hand: activeGuest ? 'right' : playingHand,
       })
 
       if (error) {
@@ -731,6 +748,7 @@ export default function CreatePlayerPage(): JSX.Element {
                     </div>
                   </FormField>
 
+                  {!activeGuest && (
                   <FormField
                     id="home-city"
                     label={t('createPlayer.identity.homeCity')}
@@ -811,6 +829,7 @@ export default function CreatePlayerPage(): JSX.Element {
                       )}
                     </div>
                   </FormField>
+                  )}
 
                   <div className="tlg-real-name-policy tlg-real-name-policy-v2" role="note">
                     <AlertTriangle size={20} aria-hidden="true" />
@@ -979,7 +998,7 @@ export default function CreatePlayerPage(): JSX.Element {
                     <div className="tlg-onboarding-review-grid">
                       <div><span>{t('createPlayer.review.tour')}</span><strong>{world}</strong></div>
                       <div><span>{t('createPlayer.review.nationality')}</span><strong>{selectedCountryName}</strong></div>
-                      <div><span>{t('createPlayer.review.homeCity')}</span><strong>{homeCity}</strong></div>
+                      {!activeGuest && <div><span>{t('createPlayer.review.homeCity')}</span><strong>{homeCity}</strong></div>}
                       <div><span>{t('createPlayer.review.portrait')}</span><strong>{selectedAvatar ? t('createPlayer.review.selected') : t('createPlayer.review.none')}</strong></div>
                       <div><span>{t('createPlayer.review.surface')}</span><strong>{surfaceLabel(preferredSurface)}</strong></div>
                       <div><span>{t('createPlayer.review.style')}</span><strong>{styleLabel(playingStyle)}</strong></div>
