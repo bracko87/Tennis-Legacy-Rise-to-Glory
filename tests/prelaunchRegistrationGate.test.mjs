@@ -170,11 +170,11 @@ test('launch popup links to the existing official Tennis Legacy Discord',()=>{
 })
 
 
-test('registration birthday fields match Security form styling and mobile layout', () => {
+test('optional birthday shares Security step styling and mobile layout', () => {
   const register = read('../src/pages/auth/Register.tsx')
   const css = read('../src/styles/onboarding-enhancements.css')
-  const security = register.split('{registerStep === 2 && (')[1].split('{registerStep === 3 && (')[0]
-  const birthday = register.split('{registerStep === 3 && (')[1].split('{status && (')[0]
+  const security = register.split('{registerStep === 2 && (')[1].split('<footer className="tlg-register-wizard-nav">')[0]
+  const birthday = security.split('className="tlg-register-optional-details"')[1]
   assert.ok(security.includes('className="tlg-auth-form-grid"'))
   assert.ok(birthday.includes('className="tlg-auth-form-grid tlg-birthday-form-grid"'))
   assert.doesNotMatch(birthday, /tlg-birthday-panel|tlg-birthday-warning/)

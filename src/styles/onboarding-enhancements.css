@@ -2719,3 +2719,29 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Helios H07: concise two-step signup; birthday gift stays optional and collapsed. */
+.tlg-auth-register-page .tlg-register-optional-details {
+  margin-top: 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid rgba(126, 150, 176, 0.35);
+  border-radius: 0.75rem;
+}
+.tlg-auth-register-page .tlg-register-optional-details > summary {
+  cursor: pointer;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.tlg-auth-register-page .tlg-register-optional-details[open] > summary {
+  margin-bottom: 0.9rem;
+}
+.tlg-auth-register-page .tlg-register-birthday-optional .tlg-auth-form-grid {
+  margin-top: 0.65rem;
+}
+.tlg-auth-register-page .tlg-auth-register-security-note {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  opacity: 0.85;
+  margin-top: 0.8rem;
+}

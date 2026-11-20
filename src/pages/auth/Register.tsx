@@ -37,12 +37,11 @@ interface FormStatus {
   message: string
 }
 
-type RegisterStep = 1 | 2 | 3
+type RegisterStep = 1 | 2
 
 const REGISTER_STEPS: Array<{ id: RegisterStep; title: string; subtitle: string }> = [
   { id: 1, title: 'Account Details', subtitle: 'Username & email' },
-  { id: 2, title: 'Security', subtitle: 'Password' },
-  { id: 3, title: 'Date of Birth (Optional)', subtitle: 'Skip or enter month & day' },
+  { id: 2, title: 'Secure Your Account', subtitle: 'Password & optional gift' },
 ]
 
 export default function RegisterPage() {
@@ -156,10 +155,10 @@ export default function RegisterPage() {
 
     if (registerStep === 1 && !accountStepValid) return
     if (registerStep === 2 && !securityStepValid) return
-    if (registerStep >= 3) return
+    if (registerStep >= 2) return
 
     setAttemptedStep(null)
-    setRegisterStep((registerStep + 1) as RegisterStep)
+    setRegisterStep(2)
   }
 
   function goToPreviousRegistrationStep() {
@@ -172,10 +171,15 @@ export default function RegisterPage() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitted(true)
+    setAttemptedStep(2)
     setStatus(null)
 
     if (!formValid || loading) return
-    setConfirmOpen(true)
+    if (birthdayProvided) {
+      setConfirmOpen(true)
+    } else {
+      void createAccount()
+    }
   }
 
   async function createAccount() {
@@ -247,7 +251,7 @@ export default function RegisterPage() {
             <span className="tlg-auth-eyebrow">Create Account</span>
             <h1>Create your account.<strong> Your player comes next.</strong></h1>
             <p>
-              First create the real account you use to sign in. After email verification, you will create the fictional tennis player for your career.
+              Create your free login in two short steps. No birthday is required. After verifying your email, you can create your tennis player.
             </p>
           </div>
         </section>
@@ -302,17 +306,17 @@ export default function RegisterPage() {
                   <section className="tlg-register-wizard-stage">
                     <header className="tlg-register-wizard-stage-head">
                       <div>
-                        <span>Step {registerStep} of 3</span>
+                        <span>Step {registerStep} of 2</span>
                         <h3>{currentRegisterStep.title}</h3>
                       </div>
-                      <strong>{Math.round((registerStep / 3) * 100)}%</strong>
+                      <strong>{Math.round((registerStep / 2) * 100)}%</strong>
                     </header>
 
                     <div className="tlg-register-wizard-stage-body">
                       {registerStep === 1 && (
                         <div className="tlg-register-step-content">
                           <p className="tlg-register-step-intro">
-                            Create the account identity you will use to sign in. Your tennis player will have a separate name and profile.
+                            Choose an account username and email. You will name your tennis player separately after verification.
                           </p>
 
                           <div className="tlg-auth-form-grid">
@@ -383,7 +387,7 @@ export default function RegisterPage() {
                       {registerStep === 2 && (
                         <div className="tlg-register-step-content">
                           <p className="tlg-register-step-intro">
-                            Choose the password you will use to access this Tennis Legacy account.
+                            Set a secure password to protect your account. Birthday details are entirely optional.
                           </p>
 
                           <div className="tlg-auth-form-grid">
@@ -440,13 +444,23 @@ export default function RegisterPage() {
                             <PasswordRequirement passed={passwordChecks.letter} text="At least one letter" />
                             <PasswordRequirement passed={passwordChecks.number} text="At least one number" />
                           </div>
-                        </div>
-                      )}
-
-                      {registerStep === 3 && (
-                        <div className="tlg-register-step-content">
+                          <p className="tlg-auth-register-security-note">No payment details required. Email verification protects your progress; your player profile is created next.</p>
+                          {submitted && !birthdayValid && (
+                            <p role="alert" className="tlg-auth-status tlg-auth-status-information">
+                              Please provide both a valid birth month and day, or clear all birthday fields to skip the gift.
+                            </p>
+                          )}
+                          {status && (
+                            <div className={`tlg-auth-status ${status.type === 'success' ? 'tlg-auth-status-success' : 'tlg-auth-status-information'}`} role={status.type === 'error' ? 'alert' : 'status'}>
+                              <ShieldCheck size={18} />
+                              <span>{status.message}</span>
+                            </div>
+                          )}
+                          <details className="tlg-register-optional-details">
+                            <summary>Birthday gift (optional) — skip this to register faster</summary>
+                        <div className="tlg-register-birthday-optional">
                           <p className="tlg-register-step-intro">
-                            You can skip your birthday entirely. If you enter a valid month and day, you can receive the annual 20-Coin Birthday Gift. No date means no birthday reward. The year is always optional.
+                            Add your birthday only if you want to qualify for the annual 20-Coin Birthday Gift. Your birth year is optional. No date means no birthday reward.
                           </p>
 
                           <div className="tlg-auth-form-grid tlg-birthday-form-grid">
@@ -509,14 +523,12 @@ export default function RegisterPage() {
                             This information belongs to your account, not your fictional tennis player. If you skip it, no birthday reward is granted. If supplied, your birthday cannot be changed after registration.
                           </p>
 
-                          {status && (
-                            <div className={`tlg-auth-status ${status.type === 'success' ? 'tlg-auth-status-success' : 'tlg-auth-status-information'}`} role={status.type === 'error' ? 'alert' : 'status'}>
-                              <ShieldCheck size={18} />
-                              <span>{status.message}</span>
-                            </div>
-                          )}
+
+                        </div>
+                          </details>
                         </div>
                       )}
+
                     </div>
 
                     <footer className="tlg-register-wizard-nav">
@@ -529,10 +541,10 @@ export default function RegisterPage() {
                       </div>
 
                       <span className="tlg-register-wizard-nav-status">
-                        {registerStep < 3 ? 'Complete this step to continue.' : 'Ready to create your account.'}
+                        {registerStep < 2 ? 'Your tennis player profile comes next, after email verification.' : 'Birthday is optional. You can create your account now.'}
                       </span>
 
-                      {registerStep < 3 ? (
+                      {registerStep < 2 ? (
                         <AppButton
                           type="button"
                           variant="primary"
