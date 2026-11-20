@@ -71,3 +71,9 @@ Official platform references:
 ## Full direct-FK review ledger
 
 The exact 188 direct constraints and their `pg_get_constraintdef()` definitions were read from the live Tennis Legacy **schema metadata only** and committed to `docs/HELIOS_GUEST_ERASURE_DIRECT_FK_LEDGER.md`. The ledger explicitly marks all 188 entries `REVIEW_REQUIRED`. It is more detailed than earlier heuristic summary tables, but is not a full recursive dependency graph or approved deletion policy. Physical guest Auth deletion remains blocked until each dependency is classified and the full-schema fixture passes.
+
+## Exact direct-FK drift gate (2026-11-20)
+
+The schema-only SQL query against the Tennis Legacy Supabase project confirmed 188 direct FKs and the deterministic MD5 signature `846107417041388f01cd703985f631d1`. The checksum is built from sorted parent table, dependent table, constraint name, deletion action and `pg_get_constraintdef`, not user records. The new `tests/helios_guest_erasure_fk_drift_guard.sql` fails with an exception if either the count or the full signature changes. It runs in a read-only transaction and contains no deletion statements.
+
+This baseline is **diagnostic and fail-closed**, not authorization to erase users. Any migration that changes the schema requires a deliberate baseline refresh and repeat safety review. The guard does not cover transitive dependencies, triggers, storage files, GDPR retention requirements, or completed-match integrity, so passing it alone must never activate deletion.
