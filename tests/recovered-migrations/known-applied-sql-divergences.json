@@ -1,0 +1,71 @@
+{
+  "purpose": "Known SQL drift fingerprints identified by read-only applied migration comparison. These are REPLAY BLOCKERS, not approved exceptions. New drift must fail CI.",
+  "snapshot_date": "2026-11-20",
+  "review_status": "REVIEW_REQUIRED",
+  "safe_to_replay": false,
+  "mismatches": [
+    {
+      "name": "harden_tournament_entry_cancellation_and_alerting",
+      "repo_token_fingerprint": "2d32f2295cd12d21",
+      "reason": "Incident cleanup loop missing in repo-version function",
+      "review_status": "REVIEW_REQUIRED",
+      "replay_blocker": true
+    },
+    {
+      "name": "run_critical_incident_reminder_check_every_minute",
+      "repo_token_fingerprint": "f89b23ba10e2651c",
+      "reason": "Applied migration additionally resolves stale cron incident",
+      "review_status": "REVIEW_REQUIRED",
+      "replay_blocker": true
+    },
+    {
+      "name": "training_camp_reliability_balance_health_v1",
+      "repo_token_fingerprint": "654000157ebaea54",
+      "reason": "SQL table alias differs inside pricing lookup",
+      "review_status": "REVIEW_REQUIRED",
+      "replay_blocker": true
+    },
+    {
+      "name": "game_manual_system_health_v1",
+      "repo_token_fingerprint": "2c27bc9eb06ad0fe",
+      "reason": "Game manual PDF URL differs",
+      "review_status": "REVIEW_REQUIRED",
+      "replay_blocker": true
+    },
+    {
+      "name": "allow_authenticated_curated_player_portrait_reads",
+      "repo_token_fingerprint": "fb2275149935fe22",
+      "reason": "Repository adds another storage policy drop",
+      "review_status": "REVIEW_REQUIRED",
+      "replay_blocker": true
+    },
+    {
+      "name": "control_center_dynamic_disk_capacity_v1",
+      "repo_token_fingerprint": "5d0d35bb8d22ae2d",
+      "reason": "Applied source is minimal ALTER TABLE; repository contains additional function definitions",
+      "review_status": "REVIEW_REQUIRED",
+      "replay_blocker": true
+    },
+    {
+      "name": "tennis_system_incident_direct_push",
+      "repo_token_fingerprint": "f1ede866e9711ab7",
+      "reason": "Source case/style and statement structure differ; review required",
+      "review_status": "REVIEW_REQUIRED",
+      "replay_blocker": true
+    },
+    {
+      "name": "public_tennis_home_gallery_20_read",
+      "repo_token_fingerprint": "525b4fb7b1c910bd",
+      "reason": "Repository adds DROP POLICY prior to CREATE POLICY",
+      "review_status": "REVIEW_REQUIRED",
+      "replay_blocker": true
+    },
+    {
+      "name": "premium_statistics_intelligence_v1",
+      "repo_token_fingerprint": "31fb82d6a03cb7cf",
+      "reason": "Applied function declared STABLE; repository declares VOLATILE",
+      "review_status": "REVIEW_REQUIRED",
+      "replay_blocker": true
+    }
+  ]
+}
