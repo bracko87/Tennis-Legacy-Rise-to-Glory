@@ -1,0 +1,23 @@
+name: Helios H08 unresolved migration divergence evidence
+
+on:
+  pull_request:
+    paths:
+      - 'docs/HELIOS_H08_NINE_DIVERGENCE_RECONCILIATION.md'
+      - 'tests/helios_h08_divergence_current_state_readonly.sql'
+      - 'scripts/helios-check-divergence-reconciliation.mjs'
+      - 'tests/recovered-migrations/known-applied-sql-divergences.json'
+      - '.github/workflows/helios-divergence-reconciliation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence-and-release-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check nine unresolved replay blockers and read-only SQL contract
+        run: node scripts/helios-check-divergence-reconciliation.mjs
