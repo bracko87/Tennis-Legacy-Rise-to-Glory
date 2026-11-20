@@ -1,0 +1,76 @@
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import test from 'node:test'
+
+const read = p => readFileSync(new URL('../'+p,import.meta.url),'utf8')
+const retire = read('supabase/migrations/20261120194500_helios_guest_retire_and_walkover.sql')
+const doubles = read('supabase/migrations/20261120195000_helios_guest_double_expiry_opponent_guard.sql')
+const conversion = read('supabase/migrations/20261120195500_helios_retired_guest_conversion_guard.sql')
+const locking = read('supabase/migrations/20261120200000_helios_guest_retirement_lock_order.sql')
+const modal = read('src/components/guest/GuestExpiryNotice.tsx')
+const registration = read('src/pages/auth/GuestRegistration.tsx')
+const hook = read('src/hooks/useGuestTrialDisplay.ts')
+const checklist = read('HELIOS_CHECKLIST.md')
+
+test('H08: worker processes only original unconverted guest accounts after exactly 14 days', () => {
+  assert.match(retire,/t\.expires_at<=now\(\)/)
+  assert.match(retire,/t\.converted_at IS NULL AND t\.retired_at IS NULL/)
+  assert.match(retire,/u\.is_anonymous IS TRUE/)
+  assert.match(retire,/FOR UPDATE OF t SKIP LOCKED/)
+  assert.match(locking,/FOR UPDATE OF u SKIP LOCKED/)
+  assert.match(retire,/pg_try_advisory_xact_lock/)
+  assert.match(retire,/SET retired_at=now\(\),retirement_reason='unconverted_14_day_expiry'/)
+  assert.match(retire,/cron\.schedule\('helios-expired-guest-retirement-v1'/)
+  assert.match(retire,/'\* \* \* \* \*'/)
+  assert.match(retire,/REVOKE ALL ON FUNCTION control_center_private\.retire_expired_tennis_guests_v1/)
+})
+
+test('H08: scheduled singles opponent receives a walkover without overwriting started or completed matches', () => {
+  assert.match(retire,/BEFORE/gi.test(retire) ? /BEFORE/ : /UPDATE public\.tournament_matches m/)
+  assert.match(retire,/m\.status='scheduled'/)
+  assert.match(retire,/m\.started_at IS NULL/)
+  assert.match(retire,/tournament_match_simulations sim/)
+  assert.match(retire,/winner_id=CASE/)
+  assert.match(retire,/THEN m\.player2_id/)
+  assert.match(retire,/THEN m\.player1_id/)
+  assert.match(retire,/THEN 'walkover'/)
+  assert.match(retire,/ELSE 'cancelled'/)
+  assert.match(retire,/completion_reason='guest_trial_expired'/)
+  assert.doesNotMatch(retire,/DELETE FROM public\.tournament_matches/)
+  assert.doesNotMatch(retire,/UPDATE public\.tournament_matches\s+SET status='completed'/)
+})
+
+test('H08: doubles retire teams and never award wins to an expired opponent', () => {
+  assert.match(retire,/UPDATE public\.tournament_doubles_teams t/)
+  assert.match(retire,/SET status='withdrawn'/)
+  assert.match(retire,/UPDATE public\.tournament_doubles_matches m/)
+  assert.match(retire,/winner_team_id=CASE/)
+  assert.match(doubles,/CREATE OR REPLACE FUNCTION control_center_private\.tennis_doubles_team_available_v1/)
+  assert.match(doubles,/u\.is_anonymous AND g\.expires_at<=now\(\)/)
+  assert.match(doubles,/tennis_doubles_team_available_v1\(m\.team2_id\)/)
+  assert.match(doubles,/tennis_doubles_team_available_v1\(m\.team1_id\)/)
+  assert.match(doubles,/WHEN m\.team2_id IS NOT NULL|m\.team2_id IS NOT NULL/)
+})
+
+test('H08: withdraw applications and entries while preserving completed historical rows',()=>{
+  assert.match(retire,/UPDATE public\.tournament_applications a/)
+  assert.match(retire,/status='withdrawn',decision_reason='guest_trial_expired'/)
+  assert.match(retire,/UPDATE public\.tournament_entries/)
+  assert.match(retire,/SET entry_status='withdrawn'/)
+  assert.match(retire,/UPDATE public\.players/)
+  assert.match(retire,/SET moderation_status='rejected'/)
+  assert.doesNotMatch(retire,/DELETE FROM auth\.users|DELETE FROM public\.players/)
+  assert.match(checklist,/not physical `auth\.users` deletion/)
+})
+
+test('H02: retired status blocks identity conversion and frontend registration',()=>{
+  assert.match(conversion,/prevent_retired_tennis_guest_conversion_v1/)
+  assert.match(conversion,/OLD\.is_anonymous IS TRUE AND NEW\.is_anonymous IS FALSE/)
+  assert.match(conversion,/t\.retired_at IS NOT NULL/)
+  assert.match(conversion,/'can_convert',v_retired IS NULL/)
+  assert.match(conversion,/'state',CASE WHEN v_retired IS NOT NULL THEN 'retired'/)
+  assert.match(hook,/\| 'retired' \|/)
+  assert.match(modal,/trial\.state === 'retired'/)
+  assert.match(registration,/status\.retired/)
+  assert.match(registration,/Create a New Permanent Account/)
+})
