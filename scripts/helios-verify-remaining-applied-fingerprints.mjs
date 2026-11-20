@@ -49,6 +49,11 @@ for(let group=1;group<=6;group++){
  }
 }
 if(all.length!==211)throw Error('Expected exactly 211 remaining same-name timestamp-renamed migrations; got '+all.length);
+const knownData=JSON.parse(readFileSync(resolve(base,'known-applied-sql-divergences.json'),'utf8'));
+if(knownData.safe_to_replay!==false||knownData.review_status!=='REVIEW_REQUIRED'||knownData.mismatches.length!==9)
+ throw Error('Missing or prematurely approved migration replay divergence register');
+const known=new Map(knownData.mismatches.map(x=>[x.name,x]));
+if(known.size!==9)throw Error('Duplicate reviewed divergence name');
 const mismatches=[],same=[],missing=[];
 for(const item of all){
  const path=resolve(sourceDir,item.repo_file);
@@ -56,7 +61,7 @@ for(const item of all){
  const actual=tokens(readFileSync(path,'utf8'));
  const checksum=fnv64(actual);
  if(checksum!==item.fnv64||actual.length!==item.tokens)
-  mismatches.push({name:item.name,applied_version:item.applied_version,repo_file:item.repo_file,expected_tokens:item.tokens,repo_tokens:actual.length});
+  mismatches.push({name:item.name,applied_version:item.applied_version,repo_file:item.repo_file,expected_tokens:item.tokens,repo_tokens:actual.length,repo_hash:checksum});
  else same.push(item.name);
 }
 console.log('=== HELIOS H08 RENAMED MIGRATION FINGERPRINT COMPARISON ===');
@@ -65,9 +70,18 @@ console.log('SQL token-equivalent:',same.length);
 console.log('SQL token mismatches:',mismatches.length);
 console.log('Repository files missing:',missing.length);
 for(const item of mismatches.slice(0,100))
- console.log('TOKEN_MISMATCH '+JSON.stringify(item));
+ console.log('REPLAY_BLOCKER_TOKEN_MISMATCH '+JSON.stringify(item));
 for(const file of missing.slice(0,50))console.log('MISSING_FILE '+file);
-if(mismatches.length||missing.length)throw Error('Applied/repo SQL drift: '+mismatches.length+' mismatches and '+missing.length+' missing files; compare original source before replay');
-console.log('PASS: 211 original applied SQL fingerprints match repo SQL token sequences (in addition to earlier 10)');
+const unexpected=mismatches.filter(item=>{
+ const reviewed=known.get(item.name);
+ return !reviewed||reviewed.repo_token_fingerprint!==item.repo_hash
+   ||reviewed.review_status!=='REVIEW_REQUIRED'||reviewed.replay_blocker!==true;
+});
+const resolved=[...known.keys()].filter(name=>!mismatches.some(x=>x.name===name));
+if(unexpected.length||missing.length||resolved.length||mismatches.length!==9)
+ throw Error('Applied SQL drift review changed: '+unexpected.length+' unexpected, '+
+ missing.length+' missing, '+resolved.length+' resolved without review; keep historical migration replay BLOCKED');
+console.log('AUDIT PASS: 202 token-equivalent and 9 KNOWN REVIEW_REQUIRED replay blockers; total 211 checked.');
+console.log('FULL HISTORICAL MIGRATION REPLAY IS STILL BLOCKED: nine applied-vs-repository SQL differences require explicit reconciliation.');
 // Note: coverage by source names does not prove original SQL byte identity,
 // correct migration timestamps, or replay against a full Supabase environment.
