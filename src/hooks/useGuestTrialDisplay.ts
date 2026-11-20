@@ -3,7 +3,7 @@ import { useAuth } from '../auth/AuthContext'
 import { supabase } from '../lib/supabase'
 
 export type GuestTrialDisplay = {
-  state: 'active' | 'expired' | 'not_enrolled' | 'loading'
+  state: 'active' | 'expired' | 'retired' | 'not_enrolled' | 'loading'
   expiresAt: string | null
   daysLeft: number
   pending: boolean
@@ -28,7 +28,7 @@ export function useGuestTrialDisplay(): GuestTrialDisplay {
       const end = typeof data.expires_at === 'string' ? data.expires_at : null
       const left = end ? Math.max(0, Math.ceil((new Date(end).getTime() - Date.now()) / 86400000)) : 0
       setState({
-        state: data.state === 'expired' ? 'expired' : data.state === 'active' ? 'active' : 'not_enrolled',
+        state: data.state === 'retired' ? 'retired' : data.state === 'expired' ? 'expired' : data.state === 'active' ? 'active' : 'not_enrolled',
         expiresAt: end, daysLeft: left, pending: false,
       })
     } catch {
