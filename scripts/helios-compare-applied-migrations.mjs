@@ -33,16 +33,34 @@ const missing=entries.filter(x=>!found.has(x.version));
 const repositoryOnly=[...found.entries()].filter(([version])=>!appliedSet.has(version));
 const renamed=entries.filter(x=>found.has(x.version)&&found.get(x.version)!==x.name);
 const beforeStaff=missing.filter(x=>x.version<'20260903081216');
+const byName=new Map();
+for(const [version,name] of found.entries()){
+ const matches=byName.get(name)||[];
+ matches.push(version);
+ byName.set(name,matches);
+}
+const differentTimestampSameName=missing.filter(x=>byName.has(x.name));
+const genuinelyAbsent=missing.filter(x=>!byName.has(x.name));
+const nameAmbiguity=differentTimestampSameName.filter(x=>byName.get(x.name).length!==1);
+const beforeStaffGenuine=genuinelyAbsent.filter(x=>x.version<'20260903081216');
 console.log('=== HELIOS H08 MIGRATION HISTORY GAP DIAGNOSTIC ===');
 console.log('Applied Supabase versions:',entries.length);
 console.log('Repository migration files:',fileNames.length);
 console.log('Applied versions absent from repository:',missing.length);
 console.log('Repository versions absent from applied snapshot:',repositoryOnly.length);
 console.log('Matching version with differing descriptive names:',renamed.length);
-console.log('Applied versions absent before first staff reference:',beforeStaff.length);
+console.log('Applied versions absent before first staff reference (timestamp only):',beforeStaff.length);
+console.log('Applied absent versions with an existing same-name repo migration:',differentTimestampSameName.length);
+console.log('Applied sources missing by BOTH version and name:',genuinelyAbsent.length);
+console.log('Ambiguous same-name version mappings:',nameAmbiguity.length);
+console.log('Applied sources missing by both version and name before first staff reference:',beforeStaffGenuine.length);
 console.log('Verified original staff foundation SQL MD5:',digest);
-console.log('First 30 missing applied migration versions:');
+console.log('First 30 applied versions absent from repo (timestamp-only):');
 for(const x of missing.slice(0,30))console.log('  '+x.version+'_'+x.name+'.sql');
+console.log('First 30 applied migration sources missing by both timestamp and name:');
+for(const x of genuinelyAbsent.slice(0,30))console.log('  '+x.version+'_'+x.name+'.sql');
+console.log('First 15 matching names with different timestamps:');
+for(const x of differentTimestampSameName.slice(0,15))console.log('  applied='+x.version+' repo='+byName.get(x.name).join(',')+' name='+x.name);
 if(repositoryOnly.length){
  console.log('Repository-only versions (first 20; may be future/unapplied migrations):');
  for(const [v,n] of repositoryOnly.slice(0,20))console.log('  '+v+'_'+n+'.sql');
