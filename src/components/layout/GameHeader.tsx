@@ -4,6 +4,7 @@ import {
   Crown,
   Menu,
   Settings,
+  UserPlus,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -11,6 +12,7 @@ import { useNavigate } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
 import { useCommerce } from '../../hooks/useCommerce'
+import { useGuestTrialDisplay } from '../../hooks/useGuestTrialDisplay'
 import useUnreadNotificationCount from '../../hooks/useUnreadNotificationCount'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
@@ -39,7 +41,8 @@ export default function GameHeader({
   const { t } = useTranslation()
   const { localeTag, formatNumber } = useLocalization()
   const navigate = useNavigate()
-  const { player, signOut } = useAuth()
+  const { user, player, signOut } = useAuth()
+  const guestTrial = useGuestTrialDisplay()
   const { isPremium } = useCommerce()
   const { unreadCount } = useUnreadNotificationCount()
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -151,6 +154,19 @@ export default function GameHeader({
       </div>
 
       <div className="tlg-v4-header-actions">
+        {user?.is_anonymous && (
+          <button
+            type="button"
+            className="tlg-v4-header-action tlg-guest-register-action"
+            aria-label="Register to save your test player and progress"
+            onClick={() => navigate('/guest/register')}
+          >
+            <UserPlus size={17} />
+            <span>Register · Save Progress</span>
+            <small>{guestTrial.state === 'active' ? `${guestTrial.daysLeft}d left` : guestTrial.state === 'expired' ? 'Trial ended' : 'Test Player'}</small>
+          </button>
+        )}
+
         <button
           type="button"
           className="tlg-v4-header-action tlg-v4-notification-button"
