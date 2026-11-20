@@ -1,0 +1,291 @@
+/*
+ * Tennis homepage hero: full-bleed stadium photography.
+ * Scope all rules to the public home hero. All other page sections are unchanged.
+ * Reuse the owner-supplied image already stored under public/marketing.
+ */
+.tlg-home-main .tlg-hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 740px;
+  overflow: hidden;
+  background: #03162b;
+}
+
+/* One uninterrupted background across the entire hero, not a separate picture box. */
+.tlg-home-main .tlg-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--tlg-home-hero-image);
+  background-repeat: no-repeat;
+  background-position: center 9%;
+  background-size: cover;
+  filter: saturate(1.08) contrast(1.05);
+}
+
+/* Keep the photo bright on the right, with a readable dark navy area on the left. */
+.tlg-home-main .tlg-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg,
+      rgba(2, 13, 31, .98) 0%,
+      rgba(2, 13, 31, .96) 17%,
+      rgba(2, 13, 31, .82) 32%,
+      rgba(2, 13, 31, .44) 51%,
+      rgba(2, 13, 31, .10) 75%,
+      rgba(2, 13, 31, .06) 100%),
+    linear-gradient(0deg,
+      rgba(1, 17, 36, .72) 0%,
+      rgba(1, 17, 36, .07) 31%,
+      rgba(1, 17, 36, .04) 77%,
+      rgba(1, 17, 36, .24) 100%);
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-background {
+  z-index: 2;
+  pointer-events: none;
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-grid {
+  display: none;
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-glow-one {
+  opacity: .22;
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-glow-two {
+  opacity: .14;
+}
+
+/* Subtle stadium-style accent streaks near the bottom edge. */
+.tlg-home-main .tlg-hero .tlg-hero-background::before {
+  content: "";
+  position: absolute;
+  bottom: -132px;
+  left: -6%;
+  width: 112%;
+  height: 176px;
+  border-top: 2px solid rgba(113, 207, 255, .67);
+  border-radius: 50% 50% 0 0;
+  transform: rotate(-2.2deg);
+  box-shadow: 0 -8px 26px rgba(19, 139, 225, .09);
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-background::after {
+  content: "";
+  position: absolute;
+  right: -10%;
+  bottom: 72px;
+  width: 82%;
+  height: 1px;
+  transform: rotate(-13deg);
+  transform-origin: right center;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(120, 213, 255, .13) 34%,
+    rgba(120, 213, 255, .47) 67%,
+    transparent);
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-inner {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 740px;
+  padding-top: 76px;
+  padding-bottom: 90px;
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-copy {
+  position: relative;
+  z-index: 4;
+  width: min(100%, 680px);
+  max-width: 680px;
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-eyebrow {
+  color: #b2e4ff;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-eyebrow-icon {
+  color: #a1dcff;
+  border-color: rgba(141, 216, 255, .53);
+  background: rgba(4, 34, 63, .78);
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-title {
+  max-width: 680px;
+  font-size: clamp(3.05rem, 4.45vw, 5.05rem);
+  font-weight: 820;
+  line-height: .99;
+  letter-spacing: -.053em;
+  text-shadow: 0 4px 22px rgba(0, 0, 0, .22);
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-title strong {
+  margin-top: 12px;
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-description {
+  max-width: 570px;
+  margin-top: 26px;
+  color: #e7f2ff;
+  font-size: 1.03rem;
+  line-height: 1.75;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .44);
+}
+
+/* Visual column is replaced by the full-section background; no picture frame remains. */
+.tlg-home-main .tlg-hero .tlg-hero-visual-column {
+  display: none !important;
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-actions > .tlg-btn {
+  min-height: 54px;
+  padding: 0 24px;
+  border-radius: 10px;
+  font-size: .92rem;
+  font-weight: 760;
+  background-image: none;
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-actions > .tlg-btn-primary {
+  color: #061626;
+  border: 1px solid #ffe47b;
+  background: #ffd21a;
+  box-shadow: 0 5px 27px rgba(255, 206, 39, .26);
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-actions > .tlg-btn-primary:hover:not(:disabled) {
+  color: #061626;
+  border-color: #fff0ac;
+  background: #ffe04d;
+  box-shadow: 0 8px 30px rgba(255, 206, 39, .37);
+  transform: translateY(-2px);
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-actions > .tlg-btn-secondary,
+.tlg-home-main .tlg-hero .tlg-hero-actions > .tlg-btn-ghost {
+  color: #f2f8ff;
+  border: 1px solid rgba(173, 211, 244, .40);
+  background: rgba(5, 23, 45, .80);
+  box-shadow: none;
+  backdrop-filter: blur(9px);
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-actions > .tlg-btn-secondary:hover:not(:disabled),
+.tlg-home-main .tlg-hero .tlg-hero-actions > .tlg-btn-ghost:hover:not(:disabled) {
+  color: #ffffff;
+  border-color: rgba(185, 228, 255, .83);
+  background: rgba(14, 43, 72, .93);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .16);
+  transform: translateY(-2px);
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-assurances {
+  border-top-color: rgba(198, 227, 255, .21);
+}
+
+.tlg-home-main .tlg-hero .tlg-hero-assurances div {
+  color: #cce1f5;
+}
+
+@media (max-width: 1023px) {
+  .tlg-home-main .tlg-hero::before {
+    background-position: 57% 10%;
+  }
+
+  .tlg-home-main .tlg-hero::after {
+    background:
+      linear-gradient(90deg, rgba(2, 13, 31, .94), rgba(2, 13, 31, .62) 59%, rgba(2, 13, 31, .23)),
+      linear-gradient(0deg, rgba(1, 17, 36, .70), transparent 44%);
+  }
+
+  .tlg-home-main .tlg-hero .tlg-hero-inner {
+    min-height: 670px;
+    padding-top: 68px;
+    padding-bottom: 75px;
+  }
+}
+
+@media (max-width: 760px) {
+  .tlg-home-main .tlg-hero {
+    min-height: 0;
+  }
+
+  .tlg-home-main .tlg-hero::before {
+    background-position: 59% 7%;
+  }
+
+  .tlg-home-main .tlg-hero::after {
+    background:
+      linear-gradient(90deg, rgba(2, 13, 31, .84), rgba(2, 13, 31, .52)),
+      linear-gradient(0deg, rgba(1, 15, 33, .74), transparent 65%, rgba(1, 15, 33, .25));
+  }
+
+  .tlg-home-main .tlg-hero .tlg-hero-inner {
+    min-height: 0;
+    padding-top: 62px;
+    padding-bottom: 86px;
+  }
+
+  .tlg-home-main .tlg-hero .tlg-hero-copy {
+    width: 100%;
+  }
+
+  .tlg-home-main .tlg-hero .tlg-hero-title {
+    font-size: clamp(2.65rem, 11.5vw, 4.1rem);
+    line-height: 1.03;
+  }
+
+  .tlg-home-main .tlg-hero .tlg-hero-description {
+    font-size: .96rem;
+    line-height: 1.67;
+  }
+
+  .tlg-home-main .tlg-hero .tlg-hero-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .tlg-home-main .tlg-hero .tlg-hero-actions > .tlg-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .tlg-home-main .tlg-hero .tlg-hero-title {
+    font-size: clamp(2.48rem, 11.4vw, 3.25rem);
+  }
+
+  .tlg-home-main .tlg-hero .tlg-hero-inner {
+    padding-top: 52px;
+    padding-bottom: 73px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tlg-home-main .tlg-hero .tlg-hero-actions > .tlg-btn {
+    transition: none;
+  }
+}
