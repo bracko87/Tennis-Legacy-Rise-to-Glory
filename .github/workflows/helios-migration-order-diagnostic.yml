@@ -1,0 +1,20 @@
+name: Helios historical migration ordering diagnostic
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/helios-diagnose-staff-migration-order.mjs'
+      - '.github/workflows/helios-migration-order-diagnostic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-migration-order:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Report first staff_members reference and definition in historical SQL migrations
+        run: node scripts/helios-diagnose-staff-migration-order.mjs
