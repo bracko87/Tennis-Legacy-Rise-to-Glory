@@ -39,3 +39,9 @@ Do **not** call `public.delete_tennis_legacy_account_v1()` on an expired guest u
 The new `tests/helios_guest_tombstone_proof_ephemeral_db.sql` runs transactionally in the disposable PostgreSQL workflow. It models the live `players.owner_user_id ON DELETE CASCADE` relationship, retains and anonymizes an expired guest's public player row, detaches its Auth ownership, removes the synthetic Auth account, and asserts a completed singles match still references the same winner and participant. A converted permanent account is a negative control and must remain unmodified. The entire transaction ends with ROLLBACK.
 
 This is **not** a production migration, full-schema test, legal retention decision, or confirmation that real Auth deletion is safe; actual dependent tables and stored private fields remain to be handled. Results must be confirmed from GitHub CI before claiming the proof passed.
+
+## Additional retirement edge-case regression (PR #47)
+
+`tests/helios_guest_retirement_edge_cases_ephemeral_db.sql` invokes the actual snapshot retirement worker and bracket functions against a disposable PostgreSQL schema, and checks: two expired singles opponents cause cancellation without a fabricated winner; two unavailable doubles teams withdraw and cancel; already in-progress singles stays in-progress; completed historical result/winner stays unchanged; both expired users retire once; re-running the worker does nothing. This fixture is registered in the dedicated GitHub Actions workflow. **Do not call it passed until its new CI run completes.**
+
+An in-progress match being left unchanged during retirement is current worker behavior, **not** a finalized long-term rule for how an active match should conclude after expiry. That policy and any later reconciliation job still require separate design, tests, and full-schema validation.
