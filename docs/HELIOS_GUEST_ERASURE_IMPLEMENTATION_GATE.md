@@ -77,3 +77,39 @@ The exact 188 direct constraints and their `pg_get_constraintdef()` definitions 
 The schema-only SQL query against the Tennis Legacy Supabase project confirmed 188 direct FKs and the deterministic MD5 signature `846107417041388f01cd703985f631d1`. The checksum is built from sorted parent table, dependent table, constraint name, deletion action and `pg_get_constraintdef`, not user records. The new `tests/helios_guest_erasure_fk_drift_guard.sql` fails with an exception if either the count or the full signature changes. It runs in a read-only transaction and contains no deletion statements.
 
 This baseline is **diagnostic and fail-closed**, not authorization to erase users. Any migration that changes the schema requires a deliberate baseline refresh and repeat safety review. The guard does not cover transitive dependencies, triggers, storage files, GDPR retention requirements, or completed-match integrity, so passing it alone must never activate deletion.
+
+
+## Recursive FK audit update — 20 November 2026
+
+A second **read-only** production-schema inspection followed indirect constraints
+starting from `auth.users` and `public.players`, using a cycle-safe OID path:
+
+| Metric | Verified |
+|---|---:|
+| Direct foreign-key constraints | 188 |
+| Distinct directly dependent tables | 156 |
+| Paths through direct and indirect FK chains | 818 |
+| Distinct dependent tables reached recursively | 180 |
+| Tables reached only through indirect relationships | 24 |
+| Longest dependency chain | 5 |
+
+These are **schema paths**, not affected row counts. Examples of newly reached
+tables include `tournament_doubles_matches`, `tournament_match_sets`,
+`national_team_fixtures`, `national_team_division_standings`,
+`national_association_finance_transactions`, `auth.refresh_tokens`,
+and MFA records. A naive Auth delete risks more than the 188 direct FK edges.
+
+`tests/helios_guest_erasure_readiness_audit.sql` now prints the full
+reachable-path summary and indirect-only table list. The new
+`tests/helios_guest_erasure_recursive_fk_drift_guard.sql` throws if the
+818-path / 180-table / depth-5 baseline changes. It currently checks counts
+rather than a reviewed whole-graph checksum, so matching counts **do not
+prove** schema equivalence. The existing direct FK signature guard remains
+necessary. Both queries were executed read-only against the Tennis Legacy
+schema without accessing player rows or modifying production data.
+
+**Release status remains BLOCKED.** No function or SQL migration now in this
+PR physically deletes Auth users or public player records. A treatment
+decision is still required for every affected table plus all private
+credentials, storage assets and historical records; then full-schema
+isolation and end-to-end checks are mandatory.
