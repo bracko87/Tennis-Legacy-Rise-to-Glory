@@ -73,6 +73,14 @@ interface SourceRow {
 }
 
 interface AnalyticsDashboard {
+  onboarding?: {
+    landing_visitors: number
+    registration_opened_visitors: number
+    registration_completed_accounts: number
+    player_created_accounts: number
+    returned_registered_accounts: number
+    data_note: string
+  }
   freshness?: {
     last_pageview_at: string | null
     last_session_at: string | null
@@ -354,6 +362,29 @@ export default function AdminAnalyticsPage() {
               Visitor totals: {wholeNumber.format(asNumber(dashboard.reconciliation.visitor_pageviews))}
               {' · '}Session totals: {wholeNumber.format(asNumber(dashboard.reconciliation.session_pageviews))}
               {' · '}Page totals: {wholeNumber.format(asNumber(dashboard.reconciliation.path_pageviews))}
+            </p>
+          </section>
+        )}
+
+        {dashboard?.onboarding && (
+          <section className="tlg-admin-analytics-panel" aria-label="Player onboarding stages">
+            <h2 style={{ marginBottom: 8 }}>Registration &amp; player onboarding</h2>
+            <div className="tlg-admin-analytics-summary">
+              {([
+                ['Homepage visitors', dashboard.onboarding.landing_visitors],
+                ['Registration opened', dashboard.onboarding.registration_opened_visitors],
+                ['Accounts created', dashboard.onboarding.registration_completed_accounts],
+                ['Tennis players created', dashboard.onboarding.player_created_accounts],
+                ['Returned after 24h', dashboard.onboarding.returned_registered_accounts],
+              ] as const).map(([label, value]) => (
+                <article key={label}>
+                  <UserPlus size={18} />
+                  <div><span>{label}</span><strong>{wholeNumber.format(asNumber(value))}</strong></div>
+                </article>
+              ))}
+            </div>
+            <p style={{ fontSize: 12, color: '#667085', marginTop: 12 }}>
+              {dashboard.onboarding.data_note}
             </p>
           </section>
         )}
