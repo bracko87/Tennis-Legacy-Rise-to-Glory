@@ -1,0 +1,22 @@
+name: Helios remaining applied SQL fingerprint comparison
+
+on:
+  pull_request:
+    paths:
+      - 'tests/recovered-migrations/remaining-applied-fingerprints-*.json'
+      - 'scripts/helios-verify-remaining-applied-fingerprints.mjs'
+      - 'supabase/migrations/**'
+      - '.github/workflows/helios-remaining-applied-sql-fingerprints.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare-renamed-applied-sql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare all 211 remaining applied SQL fingerprints to checked-in migrations
+        run: node scripts/helios-verify-remaining-applied-fingerprints.mjs
