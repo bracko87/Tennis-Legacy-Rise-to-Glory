@@ -1,0 +1,68 @@
+{
+  "explanation": "Exact applied migration SQL from production registry, for isolated historical replay ONLY. Never auto-apply.",
+  "sources": [
+    {
+      "version": "20261001163441",
+      "name": "harden_tournament_entry_cancellation_and_alerting",
+      "md5": "a4412a30271584d202ca2afd889e734b",
+      "length": 14779,
+      "path": "tests/recovered-migrations/applied-divergences/20261001163441_harden_tournament_entry_cancellation_and_alerting.sql"
+    },
+    {
+      "version": "20261001165622",
+      "name": "run_critical_incident_reminder_check_every_minute",
+      "md5": "ab1cf47d04f0e01624a21bf1261bb192",
+      "length": 850,
+      "path": "tests/recovered-migrations/applied-divergences/20261001165622_run_critical_incident_reminder_check_every_minute.sql"
+    },
+    {
+      "version": "20261002112227",
+      "name": "training_camp_reliability_balance_health_v1",
+      "md5": "f28a6ea6f3e3fa19f6d8cc8481056d36",
+      "length": 46282,
+      "path": "tests/recovered-migrations/applied-divergences/20261002112227_training_camp_reliability_balance_health_v1.sql"
+    },
+    {
+      "version": "20261002140831",
+      "name": "game_manual_system_health_v1",
+      "md5": "6412bc9675f583d49c471614acdffdab",
+      "length": 7292,
+      "path": "tests/recovered-migrations/applied-divergences/20261002140831_game_manual_system_health_v1.sql"
+    },
+    {
+      "version": "20261002182344",
+      "name": "allow_authenticated_curated_player_portrait_reads",
+      "md5": "d1b151a24c1be4c1682399a04807478a",
+      "length": 4277,
+      "path": "tests/recovered-migrations/applied-divergences/20261002182344_allow_authenticated_curated_player_portrait_reads.sql"
+    },
+    {
+      "version": "20261012155514",
+      "name": "control_center_dynamic_disk_capacity_v1",
+      "md5": "b576af2e25ebc3acbae2b1559c2e4d94",
+      "length": 163,
+      "path": "tests/recovered-migrations/applied-divergences/20261012155514_control_center_dynamic_disk_capacity_v1.sql"
+    },
+    {
+      "version": "20261013052226",
+      "name": "tennis_system_incident_direct_push",
+      "md5": "9ff7125a1b2be5657572451f589a13e5",
+      "length": 1349,
+      "path": "tests/recovered-migrations/applied-divergences/20261013052226_tennis_system_incident_direct_push.sql"
+    },
+    {
+      "version": "20261019122133",
+      "name": "public_tennis_home_gallery_20_read",
+      "md5": "aedca0a3dec0d0fe9d2c3ea61ea1256e",
+      "length": 685,
+      "path": "tests/recovered-migrations/applied-divergences/20261019122133_public_tennis_home_gallery_20_read.sql"
+    },
+    {
+      "version": "20261020062737",
+      "name": "premium_statistics_intelligence_v1",
+      "md5": "b97a73b4c81ad31884601263b1853859",
+      "length": 3509,
+      "path": "tests/recovered-migrations/applied-divergences/20261020062737_premium_statistics_intelligence_v1.sql"
+    }
+  ]
+}
