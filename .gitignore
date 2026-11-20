@@ -34,3 +34,7 @@ dist-ssr
 .private-life-schema/
 supabase/.temp/
 supabase/.branches/
+
+# Helios local-only guest Auth sandbox and schema dump (may hold function settings).
+.helios-guest-sandbox/
+.helios-guest-schema/
