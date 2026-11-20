@@ -194,6 +194,35 @@ export default function GameSidebar({
           })}
         </nav>
 
+        {isAdmin && (
+          <>
+            {!collapseNav && <div className="tlg-v2-nav-label">Administration</div>}
+            <nav className="tlg-v2-nav tlg-v2-nav-admin" aria-label="Administration">
+              {adminItems.filter((item) => item.key === 'admin-analytics').map((item) => {
+                const active = location.pathname === item.to
+                return (
+                  <Link
+                    key={item.key}
+                    to={item.to}
+                    onClick={onMobileClose}
+                    className={clsx('tlg-v2-nav-link', active && 'tlg-v2-nav-link-active')}
+                    aria-current={active ? 'page' : undefined}
+                    title={collapseNav ? 'Admin Analytics' : undefined}
+                  >
+                    <span className="tlg-v2-nav-icon">{item.icon}</span>
+                    {!collapseNav && (
+                      <span className="tlg-v2-nav-copy">
+                        <strong>Admin Analytics</strong>
+                        <small>Live website &amp; player metrics</small>
+                      </span>
+                    )}
+                  </Link>
+                )
+              })}
+            </nav>
+          </>
+        )}
+
         <div className="tlg-v2-sidebar-footer tlg-v4-sidebar-footer">
           <BugReportButton
             collapsed={collapseNav}
