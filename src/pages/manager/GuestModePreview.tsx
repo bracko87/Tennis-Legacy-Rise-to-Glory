@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { Eye, LockKeyhole, ShieldCheck } from 'lucide-react'
+import { Eye, LockKeyhole, RefreshCw, ShieldCheck } from 'lucide-react'
 import GameLayout from '../../components/layout/GameLayout'
 import TryAsGuestPage from '../auth/TryAsGuest'
+import { supabase } from '../../lib/supabase'
 import '../../styles/helios-guest-preview.css'
 
 type Stage = 'homepage' | 'guest' | 'player' | 'registration'
@@ -21,6 +22,25 @@ const stages: Array<{ id: Stage; label: string }> = [
  */
 export default function GuestModePreviewPage() {
   const [stage, setStage] = useState<Stage>('homepage')
+  const [guestGate, setGuestGate] = useState<'checking' | 'disabled' | 'enabled' | 'error'>('checking')
+  const [lastChecked, setLastChecked] = useState<string | null>(null)
+
+  async function checkGuestGate() {
+    setGuestGate('checking')
+    try {
+      const { data, error } = await supabase.rpc('get_public_tennis_guest_test_status_v1')
+      if (error) setGuestGate('error')
+      else setGuestGate(data === true ? 'enabled' : 'disabled')
+    } catch {
+      setGuestGate('error')
+    } finally {
+      setLastChecked(new Date().toLocaleTimeString())
+    }
+  }
+
+  useEffect(() => {
+    void checkGuestGate()
+  }, [])
   return (
     <GameLayout title="Helios · Guest UI Preview" subtitle="Admin-only visual review — feature disabled for public users">
       <div className="tlg-helios-preview">
@@ -31,6 +51,24 @@ export default function GuestModePreviewPage() {
             <p>These screens are for reviewing the onboarding layout. Guest Mode remains OFF in the server, no trial clock starts and no game or account data is changed.</p>
           </div>
         </div>
+        <section className="tlg-helios-preview-readiness" aria-label="Functional testing readiness">
+          <div className="tlg-helios-preview-readiness-header">
+            <div>
+              <strong>Functional test readiness</strong>
+              <p>This checks the real server feature gate only; it never creates an account or starts a trial.</p>
+            </div>
+            <button type="button" onClick={() => void checkGuestGate()} disabled={guestGate === 'checking'}>
+              <RefreshCw size={15} /> Refresh server status
+            </button>
+          </div>
+          <dl className="tlg-helios-preview-readiness-grid">
+            <div><dt>Public guest enrollment</dt><dd>{guestGate === 'checking' ? 'Checking…' : guestGate === 'enabled' ? 'Enabled — review release gate urgently' : guestGate === 'disabled' ? 'Disabled (safe)' : 'Status unavailable — fail closed'}</dd></div>
+            <div><dt>Anonymous Auth provider</dt><dd>Not verified — staging setup required</dd></div>
+            <div><dt>Full guest lifecycle E2E</dt><dd>Not yet verified in isolated staging</dd></div>
+            <div><dt>Permanent guest erasure</dt><dd>Not implemented — blocked</dd></div>
+          </dl>
+          {lastChecked && <small>Last server status check: {lastChecked}. The other items are outstanding milestones, not live checks.</small>}
+        </section>
         <div className="tlg-helios-preview-top">
           <p><Eye size={18}/> Select a screen to inspect</p>
           <Link to="/game/admin/analytics">Return to Admin Analytics</Link>
