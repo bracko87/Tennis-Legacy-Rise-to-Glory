@@ -87,6 +87,7 @@ import ContactUsPage from './pages/manager/ContactUs'
 import InviteFriendsPage from './pages/manager/InviteFriends'
 import ReferralAdminPage from './pages/manager/ReferralAdmin'
 import AdminAnalyticsPage from './pages/manager/AdminAnalytics'
+import GuestModePreviewPage from './pages/manager/GuestModePreview'
 import AdminSystemHealthPage from './pages/manager/AdminSystemHealth'
 import AdminBugReportsPage from './pages/manager/AdminBugReports'
 import AdminReviewsPage from './pages/manager/AdminReviews'
@@ -258,6 +259,7 @@ export default function App() {
           <Route path="/game/referral-admin" element={<RequirePlayer><ReferralAdminPage /></RequirePlayer>} />
           <Route path="/game/admin/system-health" element={<RequireAdmin><AdminSystemHealthPage /></RequireAdmin>} />
           <Route path="/game/admin/analytics" element={<RequireAdmin><AdminAnalyticsPage /></RequireAdmin>} />
+          <Route path="/game/admin/guest-preview" element={<RequireAdmin><GuestModePreviewPage /></RequireAdmin>} />
           <Route path="/game/admin/bug-reports" element={<RequireAdmin><AdminBugReportsPage /></RequireAdmin>} />
           <Route path="/game/admin/reviews" element={<RequireAdmin><AdminReviewsPage /></RequireAdmin>} />
 
