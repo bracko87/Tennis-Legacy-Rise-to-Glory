@@ -38,67 +38,11 @@ begin
   v_year:=nullif(new.raw_user_meta_data->>'birthday_year','')::integer;
   v_timezone:=coalesce(nullif(btrim(new.raw_user_meta_data->>'birthday_timezone'),''),'UTC');
 
-  -- OAuth identities do not pass the in-game username form.
-  -- Generate a stable unique 23-character handle only for verified
-  -- Google-provider first-time users; email/password stays unchanged.
+  -- New Google identities do not include an in-game username.
   if v_username='' and new.raw_app_meta_data->>'provider'='google' then
     v_username:='google_'||left(replace(new.id::text,'-',''),16);
   end if;
-  if v_username !~ '^[A-Za-z0-9_.-]{3,24}
-
-  -- Fully omitted birthday is allowed, but a partial date is never accepted.
-  if (v_month is null) <> (v_day is null) then
-    raise exception 'Provide both birthday month and day, or leave the birthday blank.';
-  end if;
-  if v_month is null and v_year is not null then
-    raise exception 'A birthday year requires month and day.';
-  end if;
-  if v_month is not null and not v_month between 1 and 12 then
-    raise exception 'Invalid birthday month.';
-  end if;
-  if v_day is not null and not v_day between 1 and 31 then
-    raise exception 'Invalid birthday day.';
-  end if;
-
-  if v_month is null then
-    -- Missing birthday is intentionally stored as NULL; no reward eligibility.
-    null;
-  elsif v_year is not null then
-    if v_year < 1900 or v_year > extract(year from current_date)::integer then
-      raise exception 'Invalid birthday year.';
-    end if;
-
-    begin
-      v_birth_date:=make_date(v_year,v_month,v_day);
-    exception when others then
-      raise exception 'Invalid birthday date.';
-    end;
-
-    if v_birth_date>current_date then
-      raise exception 'Birthday cannot be in the future.';
-    end if;
-  else
-    begin
-      perform make_date(2000,v_month,v_day);
-    exception when others then
-      raise exception 'Invalid birthday date.';
-    end;
-  end if;
-
-  if not exists(select 1 from pg_catalog.pg_timezone_names where name=v_timezone) then
-    v_timezone:='UTC';
-  end if;
-
-  insert into public.profiles(
-    id,username,birthday_month,birthday_day,birthday_year,birthday_timezone
-  ) values (
-    new.id,v_username,v_month,v_day,v_year,v_timezone
-  );
-
-  return new;
-end;
-$function$
- then
+  if v_username !~ '^[A-Za-z0-9_.-]{3,24}$' then
     raise exception 'Invalid username.';
   end if;
 
