@@ -1,0 +1,22 @@
+name: Helios guest erasure history finance policy safety
+
+on:
+  pull_request:
+    paths:
+      - 'docs/HELIOS_GUEST_ERASURE_HISTORY_FINANCE_POLICY.md'
+      - 'docs/HELIOS_GUEST_ERASURE_180_TABLE_TRIAGE_LEDGER.md'
+      - 'scripts/check-helios-erasure-policy.mjs'
+      - '.github/workflows/helios-guest-erasure-history-finance-policy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  policy-safety-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify high-risk table policy coverage and no premature deletion approvals
+        run: node scripts/check-helios-erasure-policy.mjs
