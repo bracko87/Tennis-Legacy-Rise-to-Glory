@@ -73,6 +73,19 @@ interface SourceRow {
 }
 
 interface AnalyticsDashboard {
+  freshness?: {
+    last_pageview_at: string | null
+    last_session_at: string | null
+    recent_sessions_5m: number
+    recent_visitors_5m: number
+    recent_registered_5m: number
+  }
+  reconciliation?: {
+    visitor_pageviews: number
+    session_pageviews: number
+    path_pageviews: number
+    totals_match: boolean
+  }
   generated_at: string
   timezone: string
   period: {
@@ -295,6 +308,55 @@ export default function AdminAnalyticsPage() {
             : ''}
         </p>
         {error && <div className="tlg-admin-analytics-error">{error}</div>}
+
+        {dashboard?.freshness && (
+          <section className="tlg-admin-analytics-panel" aria-label="Recently recorded website activity">
+            <h2 style={{ marginBottom: 8 }}>Recently recorded activity</h2>
+            <p style={{ fontSize: 12, color: '#667085', marginBottom: 14 }}>
+              Browser navigation events seen in the last 5 minutes. These are not live connections:
+              visitors who stay on a page without navigating may not appear.
+            </p>
+            <div className="tlg-admin-analytics-summary" style={{ marginBottom: 12 }}>
+              <article>
+                <Activity size={18} />
+                <div><span>Sessions · 5 min</span>
+                  <strong>{wholeNumber.format(asNumber(dashboard.freshness.recent_sessions_5m))}</strong></div>
+              </article>
+              <article>
+                <UsersRound size={18} />
+                <div><span>Visitors · 5 min</span>
+                  <strong>{wholeNumber.format(asNumber(dashboard.freshness.recent_visitors_5m))}</strong></div>
+              </article>
+              <article>
+                <UserPlus size={18} />
+                <div><span>Registered · 5 min</span>
+                  <strong>{wholeNumber.format(asNumber(dashboard.freshness.recent_registered_5m))}</strong></div>
+              </article>
+            </div>
+            <p style={{ fontSize: 12, color: '#667085' }}>
+              Last recorded page navigation:{' '}
+              {dashboard.freshness.last_pageview_at
+                ? new Date(dashboard.freshness.last_pageview_at).toLocaleString()
+                : 'No recorded events'}
+            </p>
+          </section>
+        )}
+
+        {dashboard?.reconciliation && (
+          <section className="tlg-admin-analytics-panel" aria-label="Analytics data integrity">
+            <h2 style={{ marginBottom: 6 }}>Tracking integrity</h2>
+            <p style={{ fontSize: 13, marginBottom: 6 }}>
+              {dashboard.reconciliation.totals_match
+                ? 'Recorded page-view totals agree across visitors, sessions and pages.'
+                : 'Warning: recorded page-view totals differ across analytics tables.'}
+            </p>
+            <p style={{ fontSize: 12, color: '#667085' }}>
+              Visitor totals: {wholeNumber.format(asNumber(dashboard.reconciliation.visitor_pageviews))}
+              {' · '}Session totals: {wholeNumber.format(asNumber(dashboard.reconciliation.session_pageviews))}
+              {' · '}Page totals: {wholeNumber.format(asNumber(dashboard.reconciliation.path_pageviews))}
+            </p>
+          </section>
+        )}
 
         <section className="tlg-admin-analytics-summary">
           <article><Eye size={18} /><div><span>Unique visitors</span><strong>{wholeNumber.format(summary?.unique_visitors ?? 0)}</strong></div></article>
