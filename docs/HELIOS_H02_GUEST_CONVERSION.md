@@ -1,6 +1,8 @@
 # Project Helios H02 — Guest Registration and Progress Preservation
 
-Status: implemented in code with the guest rollout switch OFF. The email/Google conversion pathways require end-to-end testing and verified Supabase Auth configuration before Guest Mode can be enabled.
+Status: implemented in code with the guest rollout switch OFF.
+
+**Updated guest-removal rule (Nov 20):** conversion must finish before the unconverted guest's automatic retirement at the 14-day boundary. After retirement, the player leaves future competitions, pending matches are handled by walkover, the original guest identity cannot be converted and the player is hidden from active rankings. Until a safe historical archive exists, the original Auth/player records remain in the database rather than being physically hard-deleted. The email/Google conversion pathways require end-to-end testing and verified Supabase Auth configuration before Guest Mode can be enabled.
 
 ## Same-identity conversion
 
@@ -16,8 +18,8 @@ Supabase anonymous accounts are real `auth.users` rows. Preserve the same row an
 
 - During the 14-day trial, show `Register · Save Progress` in the game header and mobile sidebar. Show remaining days when current server-trial data is available.
 - `/guest/register` is an authenticated page, not the ordinary anonymous-only `/register` wizard.
-- After 14 days, game pages display an unclosable expiry overlay linking to `/guest/register`; expiry enforcement remains in server-side gameplay functions, independent of the overlay.
-- Guests can register after expiry, and guest trial/Premium timestamps never change during linking. Once Supabase reports a nonanonymous user, the guest CTA disappears.
+- At 14 days, game pages display an unclosable expiry overlay. The server retires an unconverted guest automatically (checked minutely), withdrawing future tournament entries and awarding opponent walkovers in unstarted scheduled matches. The registration page shows whether retirement has occurred; registration is no longer possible once it has.
+- Guests can register before retirement; once the automatic worker has marked the guest retired, that same player cannot be converted. Earlier Premium timestamps never change during legitimate conversion. Once Supabase reports a nonanonymous user, the guest CTA disappears.
 - Account deletion/recovery and support actions should remain available despite guest expiry.
 - Avoid logging out, clearing browser data, or switching devices before verified conversion; doing so can make unlinked guest progress unrecoverable.
 
@@ -29,11 +31,13 @@ Supabase anonymous accounts are real `auth.users` rows. Preserve the same row an
 - [ ] Validate old and new `auth.users.id` unchanged after email verify, password added, and after Google link. Ensure player ID unchanged and no duplicate players.
 - [ ] Confirm existing rank, money, equipment, staff, sponsor offers, Premium grant date/expiry, taxes and ongoing tournament commitments are unchanged.
 - [ ] Confirm no extra 20-coin signup reward, referral/invite reward, birthday gift, seven-day Premium or second guest period after conversion.
-- [ ] Test active day 1, day 7 Premium expiry, day 14 gameplay expiry, conversion after expiry; ensure gameplay blocked while registration still succeeds.
+- [ ] Test active day 1, day 7 Premium expiry, just before day 14 and worker retirement at day 14. Verify conversion is blocked after retirement while a fresh account can be created, with no repeated Premium or signup grant.
 - [ ] Verify expired guest can't bypass the UI by calling uncovered database RPCs, storage and edge functions.
 - [ ] Test page reload, verification from mobile browser, email not received, email already used, Google account already linked, provider error, and browser data loss warning.
 - [ ] Test persistent CTA visibility on small screens, collapsed sidebar and large desktop header.
 - [ ] Decide one-time welcome-coin timing and unfinished guest retention policy before enabling.
+- [ ] Verify no scheduled/not-started singles or doubles match remains playable for a retired guest, eligible opponent receives walkover, and prior completed match results persist.
+- [ ] Design archival-preserving physical deletion for retired accounts; cascade deletion of auth.users would otherwise destroy player references and completed match history.
 - [ ] Test server-side ranking bottom placement and tournament fairness (currently pending).
 
 The new server conversion status function is current-user-only and returns no email, password, identifiers or auth secrets. Database flags are authoritative; front-end countdown and expiry modal are for guidance only.

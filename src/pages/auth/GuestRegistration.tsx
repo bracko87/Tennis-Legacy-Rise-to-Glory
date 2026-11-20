@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, Navigate } from 'react-router'
+import { Link, Navigate, useNavigate } from 'react-router'
 import { ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import { supabase } from '../../lib/supabase'
@@ -14,11 +14,14 @@ type ConversionStatus = {
   password_set?: boolean
   google_linked?: boolean
   expired?: boolean
+  retired?: boolean
+  can_convert?: boolean
   can_set_password?: boolean
 }
 
 export default function GuestRegistrationPage() {
-  const { user, player, authLoading } = useAuth()
+  const { user, player, authLoading, signOut } = useAuth()
+  const navigate = useNavigate()
   const googleAvailable = useGoogleSignInAvailability()
   const [status, setStatus] = useState<ConversionStatus | null>(null)
   const [email, setEmail] = useState('')
@@ -53,7 +56,7 @@ export default function GuestRegistrationPage() {
 
   async function requestEmail(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!status?.eligible || !status.is_anonymous || loading) return
+    if (!status?.eligible || !status.is_anonymous || status.retired || !status.can_convert || loading) return
     const address = email.trim().toLowerCase()
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) {
       setError('Enter a valid email address.')
@@ -97,7 +100,7 @@ export default function GuestRegistrationPage() {
   }
 
   async function linkGoogle() {
-    if (!googleAvailable || !status?.eligible || !status.is_anonymous || loading) return
+    if (!googleAvailable || !status?.eligible || !status.is_anonymous || status.retired || !status.can_convert || loading) return
     setLoading(true)
     setError(null)
     try {
@@ -124,7 +127,7 @@ export default function GuestRegistrationPage() {
       <section className="tlg-guest-convert-card">
         <span className="tlg-guest-convert-eyebrow"><ShieldCheck size={18}/> Tennis Legacy · Save Your Progress</span>
         <h1>Register and keep your tennis player</h1>
-        <p>Turn your test player into a permanent account. Your ranking, equipment, staff, finances and seven-day Premium history stay with the same player.</p>
+        <p>Register before your 14-day test period ends to keep your tennis player, ranking, equipment, staff, finances and Premium history.</p>
         <p className="tlg-guest-convert-identity"><strong>{player ? `${player.first_name} ${player.last_name}` : 'Your test player'}</strong> · No player reset or second Premium trial</p>
 
         {(checking || authLoading) && <p role="status">Checking your account…</p>}
@@ -135,9 +138,31 @@ export default function GuestRegistrationPage() {
           <p>This session is not a guest-test account. <Link to="/game/overview">Return to the game</Link>.</p>
         )}
 
-        {!checking && status?.eligible && status.is_anonymous && (
+        {!checking && status?.eligible && status.retired && (
+          <section className="tlg-guest-convert-complete" role="status">
+            <h2>Your test player has left the game</h2>
+            <p>The 14-day test finished without permanent registration. Future tournament applications were withdrawn, and unstarted scheduled matches were resolved as walkovers where an opponent was available. This guest player can no longer be converted.</p>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => void (async () => {
+                setLoading(true)
+                try {
+                  await signOut()
+                  navigate('/register', {replace:true})
+                } catch (reason) {
+                  setError(reason instanceof Error ? reason.message : 'Could not sign out')
+                } finally { setLoading(false) }
+              })()}
+            >
+              Create a New Permanent Account
+            </button>
+          </section>
+        )}
+
+        {!checking && status?.eligible && status.is_anonymous && !status.retired && status.can_convert && (
           <>
-            {status.expired && <p className="tlg-guest-convert-notice">Your 14-day test has ended, but registration is still available. Your progress has not been reset.</p>}
+            {status.expired && <p className="tlg-guest-convert-notice">Your 14-day test has ended. Register immediately if your account has not yet been automatically retired.</p>}
             <form onSubmit={event => void requestEmail(event)} className="tlg-guest-convert-form">
               <label htmlFor="guest-permanent-email">Your email address</label>
               <input

@@ -25,8 +25,8 @@
 - A guest may **play for a maximum of 14 calendar days** measured from a server-stored creation timestamp; do not use client clock or browser-only countdown.
 - Show **Test Player** and **days remaining** in the logged-in game interface.
 - Before expiry, guests may convert at any time.
-- On expiry, stop guest gameplay **server-side** and show a prominent **Your testing period has ended** modal offering permanent registration.
-- Expiry should not delete progress at the instant the trial ends. Conversion must remain available after expiry. The retention/grace policy for never-converted guest data requires an explicit product/privacy decision before implementation.
+- On expiry, stop guest gameplay **server-side**. If no successful permanent conversion has occurred, the automatic retirement worker withdraws future participation and grants opponent walkovers in unstarted scheduled matches; the interface explains that registration must happen before auto-retirement.
+- **Updated decision Nov 20:** An unconverted guest is retired automatically at the 14-day deadline (worker checks every minute); already-started/completed matches and historical results are not rewritten. Once `retired_at` is set, the same guest can no longer convert. The user can create a new permanent account instead. A physical Auth/player deletion requires a separate archival and foreign-key preservation solution, because direct Auth deletion cascades the player and nulls historical match participants/winners.
 - Do not allow recurring guest signup/reset to extend the same identity's guest trial.
 
 ## 4. Permanent conversion and navigation
@@ -36,7 +36,7 @@
 - The account link must happen against the **same authenticated guest user identity**, keeping the original user/player identifiers and data relations whenever possible. Never move progress by trusting email, a URL/user-supplied player ID, or a manually rewritten ownership field.
 - Preserve **player appearance, country, name, ranking points/position, training, tournaments/results, finance, equipment, staff, sponsor contracts, notifications and Premium entitlement history** that are legitimately allowed during guest testing.
 - If social sign-in is configured with an email already attached to another game account, **do not automatically merge** two accounts. Provide an explicit conflict/recovery path to avoid progress loss, duplicates or reward abuse.
-- Conversion after the 14-day limit remains available even though guest gameplay is locked.
+- Conversion is available throughout the 14-day trial and only until automated retirement. After the worker marks the unconverted guest retired, the old player's future commitments are withdrawn and cannot be recovered via same-identity registration.
 
 ## 5. Premium trial and economy protection
 
@@ -52,7 +52,7 @@
 - Separate guest creation/player-profile flow from regular email registration. Ensure no accidental official tournament entries or duplicate profile creation.
 - Add abuse defenses: prevent limitless coin/Premium trial farming, reserve appropriate rate limits and identity controls, protect admin functions, and test new-identity creation on different browsers/devices. Avoid claims that browser fingerprinting can guarantee uniqueness.
 - Do not activate Guest Mode until server-side expiry, conversion, reward fairness, ranking and tournament gates pass tests.
-- Test time boundaries: just before day 7, at day 7; just before day 14, at day 14; conversion while active and after expiry; repeated login/refresh/session recovery; Google and password identity linking; mobile header CTA.
+- Test time boundaries: just before day 7, at day 7; just before day 14, at day 14; conversion while active, at expiry before retirement, and blocked after retirement; repeated login/refresh/session recovery; Google and password identity linking; mobile header CTA.
 - Validate what happens when the user clears their browser or switches devices before registration — anonymous test progress may be unrecoverable until linked. Explain this risk plainly within the game.
 
 ## 7. Proposed entry experience
@@ -65,7 +65,7 @@
 
 **7-day Premium:** existing Premium UI shows trial end date. After day 7, Premium ends without affecting 14-day test access.
 
-**Day 14 expiry modal:** `Your 14-day test period has ended. Create a free account to keep your tennis player and progress.` CTA: `Register & Continue`. Existing gameplay behind modal is server-side blocked.
+**Day 14 expiry:** gameplay ends and the backend automatically retires an unconverted guest, withdrawing tournament applications/entries and resolving not-started scheduled matches by walkover for an eligible opponent. If the worker has not yet retired the account, the registration page may still offer conversion; afterward it instead offers a new permanent account. Registration before day 14 is the reliable way to preserve progress.
 
 **After account linking:** guest marker and register CTA disappear. Same tennis career continues, no duplicated player or repeated Premium trial.
 
@@ -92,4 +92,4 @@
 - [ ] H08C Official tournament participation, role/RLS and expiry test coverage
 - [ ] Production and authenticated browser verification before enablement
 
-**Open policy decisions:** treatment of unconverted expired guest data after a privacy-safe retention period; detailed access to official ranked tournaments during guest trial; one-time welcome-coin eligibility for guests vs on conversion. These are implementation safeguards, not permission to invent policy.
+**Open policy decisions:** physical erasure of retired Auth/player data while retaining historical tournament result consistency; detailed access to official ranked tournaments during guest trial; one-time welcome-coin eligibility for guests vs on conversion. These are implementation safeguards, not permission to invent policy.
