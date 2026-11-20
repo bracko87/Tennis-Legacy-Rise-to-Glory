@@ -355,7 +355,7 @@ begin
         group by visitor_id
       ),
       candidates as (
-        select v.visitor_id, max(v.user_id) as user_id
+        select v.visitor_id, max(v.user_id::text)::uuid as user_id
         from public.site_analytics_daily_visitors v
         where v.analytics_date between v_start_date and v_end_date
           and v.user_id is not null
