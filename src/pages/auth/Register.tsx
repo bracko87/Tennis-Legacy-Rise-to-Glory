@@ -42,7 +42,7 @@ type RegisterStep = 1 | 2 | 3
 const REGISTER_STEPS: Array<{ id: RegisterStep; title: string; subtitle: string }> = [
   { id: 1, title: 'Account Details', subtitle: 'Username & email' },
   { id: 2, title: 'Security', subtitle: 'Password' },
-  { id: 3, title: 'Date of Birth', subtitle: 'Month & day' },
+  { id: 3, title: 'Date of Birth (Optional)', subtitle: 'Skip or enter month & day' },
 ]
 
 export default function RegisterPage() {
@@ -134,11 +134,12 @@ export default function RegisterPage() {
     ? new Date(Number(year), Number(month) - 1, Number(day), 12, 0, 0, 0)
     : null
   const birthdayNotFuture = !yearProvided || (birthdayDate ? birthdayDate.getTime() <= Date.now() : false)
-  const birthdayValid = month.length > 0
-    && day.length > 0
-    && Number(day) <= availableDays.length
-    && yearValid
-    && birthdayNotFuture
+  const birthdayProvided = month.length > 0 || day.length > 0 || yearProvided
+  const birthdayComplete = month.length > 0 && day.length > 0
+  const birthdayValid = !birthdayProvided || (
+    birthdayComplete && Number(day) <= availableDays.length
+    && yearValid && birthdayNotFuture
+  )
 
   const accountStepValid = usernameValid && emailValid
   const securityStepValid = passwordValid && confirmPasswordValid
@@ -193,9 +194,9 @@ export default function RegisterPage() {
         emailRedirectTo: `${window.location.origin}/create-player`,
         data: {
           username: username.trim(),
-          birthday_month: Number(month),
-          birthday_day: Number(day),
-          birthday_year: yearProvided ? Number(year) : null,
+          birthday_month: birthdayComplete ? Number(month) : null,
+          birthday_day: birthdayComplete ? Number(day) : null,
+          birthday_year: birthdayComplete && yearProvided ? Number(year) : null,
           birthday_timezone: birthdayTimezone,
           ...(referralCode ? { referral_code: referralCode, referral_browser_hash: referralBrowserHash } : {}),
           ...(inviteToken ? { registration_invite_token: inviteToken } : {}),
@@ -445,15 +446,14 @@ export default function RegisterPage() {
                       {registerStep === 3 && (
                         <div className="tlg-register-step-content">
                           <p className="tlg-register-step-intro">
-                            Month and day are required for the annual account birthday gift. The birth year is optional and is not used for your tennis player's age.
+                            You can skip your birthday entirely. If you enter a valid month and day, you can receive the annual 20-Coin Birthday Gift. No date means no birthday reward. The year is always optional.
                           </p>
 
                           <div className="tlg-auth-form-grid tlg-birthday-form-grid">
                             <FormField
                               id="birth-month"
-                              label="Month"
-                              required
-                              error={submitted && !birthdayValid ? 'Enter a valid month and day. If you provide a year, it must be valid.' : undefined}
+                              label="Month (optional)"
+                              error={submitted && !birthdayValid ? 'Enter both month and day, or leave all birthday fields blank.' : undefined}
                             >
                               <select
                                 id="birth-month"
@@ -471,7 +471,7 @@ export default function RegisterPage() {
                               </select>
                             </FormField>
 
-                            <FormField id="birth-day" label="Day" required>
+                            <FormField id="birth-day" label="Day (optional)">
                               <select
                                 id="birth-day"
                                 value={day}
@@ -506,7 +506,7 @@ export default function RegisterPage() {
                           </div>
 
                           <p className="tlg-birthday-registration-note">
-                            This date belongs to your account, not your fictional tennis player. Month and day cannot be changed after registration. If you enter a year, check it carefully as well.
+                            This information belongs to your account, not your fictional tennis player. If you skip it, no birthday reward is granted. If supplied, your birthday cannot be changed after registration.
                           </p>
 
                           {status && (
@@ -572,16 +572,18 @@ export default function RegisterPage() {
       <GameConfirmDialog
         open={confirmOpen}
         eyebrow="Permanent account information"
-        title="Confirm your account birthday"
-        message={
+        title={birthdayComplete ? "Confirm your account birthday" : "Confirm registration without a birthday"}
+        message={birthdayComplete ? (
           <span>
             You entered <strong>{day} {MONTHS[Math.max(0, Number(month) - 1)]}{yearProvided ? ` ${year}` : ''}</strong>.
-            {yearProvided
-              ? ' This account birthday cannot be changed after registration.'
-              : ' You chose not to provide a birth year. Month and day cannot be changed after registration.'}
+            {' '}Your account birthday cannot be changed after registration.
           </span>
-        }
-        detail="Please correct it now if anything is wrong. The annual 20-Coin Birthday Gift uses the month and day."
+        ) : (
+          <span>You chose not to provide a birthday. You can create an account without one, but you will not receive annual birthday coin rewards.</span>
+        )}
+        detail={birthdayComplete
+          ? "Please correct it now if anything is wrong. The annual 20-Coin Birthday Gift uses the month and day."
+          : "Your account and tennis player can still use the game normally."}
         confirmLabel="Confirm & Create Account"
         cancelLabel="Go back and edit"
         busy={loading}
