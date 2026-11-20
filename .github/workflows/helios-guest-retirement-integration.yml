@@ -1,0 +1,61 @@
+name: Helios H08 disposable guest walkover integration
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/helios-guest-retirement-integration.yml'
+      - 'tests/helios_guest_retirement_ephemeral_db.sql'
+      - 'tests/fixtures/helios_guest_retirement_*.sql'
+      - 'HELIOS_CHECKLIST.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guest-walkover-fixture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: disposable_guest_qa_password
+          POSTGRES_DB: helios_guest_qa
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d helios_guest_qa"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: disposable_guest_qa_password
+      PGDATABASE: helios_guest_qa
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up disposable tournament/player schema
+        run: psql -v ON_ERROR_STOP=1 -f tests/fixtures/helios_guest_retirement_schema.sql
+      - name: Load authoritative production walkover and bracket function snapshots
+        run: |
+          psql -v ON_ERROR_STOP=1 \
+            -f tests/fixtures/helios_guest_retirement_doubles_helper.sql \
+            -f tests/fixtures/helios_guest_retirement_singles_bracket.sql \
+            -f tests/fixtures/helios_guest_retirement_doubles_bracket.sql \
+            -f tests/fixtures/helios_guest_retirement_worker.sql
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE TRIGGER advance_tournament_bracket_v1
+          AFTER UPDATE OF status ON public.tournament_matches
+          FOR EACH ROW
+          EXECUTE FUNCTION public.advance_tournament_bracket_v1();
+          CREATE TRIGGER advance_doubles_bracket_v1
+          AFTER UPDATE OF status ON public.tournament_doubles_matches
+          FOR EACH ROW
+          EXECUTE FUNCTION public.advance_doubles_bracket_v1();
+          SQL
+      - name: Run actual expired guest walkover, bracket and history assertions
+        run: psql -v ON_ERROR_STOP=1 -f tests/helios_guest_retirement_ephemeral_db.sql
