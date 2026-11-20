@@ -73,6 +73,11 @@ interface SourceRow {
 }
 
 interface AnalyticsDashboard {
+  presence?: {
+    active_players_2m: number
+    last_player_active_at: string | null
+    definition: string
+  }
   onboarding?: {
     landing_visitors: number
     registration_opened_visitors: number
@@ -316,6 +321,30 @@ export default function AdminAnalyticsPage() {
             : ''}
         </p>
         {error && <div className="tlg-admin-analytics-error">{error}</div>}
+
+        {dashboard?.presence && (
+          <section className="tlg-admin-analytics-panel" aria-label="Authenticated player activity">
+            <h2 style={{ marginBottom: 8 }}>Active tennis players</h2>
+            <div className="tlg-admin-analytics-summary" style={{ marginBottom: 12 }}>
+              <article>
+                <UsersRound size={18} />
+                <div>
+                  <span>Active players · last 2 min</span>
+                  <strong>{wholeNumber.format(asNumber(dashboard.presence.active_players_2m))}</strong>
+                </div>
+              </article>
+            </div>
+            <p style={{ fontSize: 12, color: '#667085', marginBottom: 6 }}>
+              {dashboard.presence.definition}
+            </p>
+            <p style={{ fontSize: 12, color: '#667085' }}>
+              Latest recorded player interaction:{' '}
+              {dashboard.presence.last_player_active_at
+                ? new Date(dashboard.presence.last_player_active_at).toLocaleString()
+                : 'None recorded yet'}
+            </p>
+          </section>
+        )}
 
         {dashboard?.freshness && (
           <section className="tlg-admin-analytics-panel" aria-label="Recently recorded website activity">
