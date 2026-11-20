@@ -15,13 +15,17 @@
 .tlg-home-main .tlg-hero::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: 0 0 0 22%;
   z-index: 0;
   pointer-events: none;
   background-image: var(--tlg-home-hero-image);
   background-repeat: no-repeat;
-  background-position: center 9%;
+  background-position: 57% 9%;
   background-size: cover;
+  /* Anchor the photograph in the right 78% of the hero: this actually moves
+     both players without enlarging them or cutting off the stadium. */
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, .60) 16%, #000 34%);
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, .60) 16%, #000 34%);
   filter: saturate(1.08) contrast(1.05);
 }
 
@@ -76,22 +80,55 @@
   border-radius: 50% 50% 0 0;
   transform: rotate(-2.2deg);
   box-shadow: 0 -8px 26px rgba(19, 139, 225, .09);
+  animation: tlgHeroArcPulse 5.5s ease-in-out infinite;
 }
 
 .tlg-home-main .tlg-hero .tlg-hero-background::after {
   content: "";
   position: absolute;
-  right: -10%;
+  right: -14%;
   bottom: 72px;
-  width: 82%;
-  height: 1px;
+  width: 88%;
+  height: 2px;
   transform: rotate(-13deg);
   transform-origin: right center;
   background: linear-gradient(90deg,
-    transparent,
-    rgba(120, 213, 255, .13) 34%,
-    rgba(120, 213, 255, .47) 67%,
-    transparent);
+    transparent 0%,
+    rgba(120, 213, 255, 0) 20%,
+    rgba(120, 213, 255, .22) 42%,
+    rgba(120, 213, 255, .90) 52%,
+    rgba(120, 213, 255, .22) 62%,
+    rgba(120, 213, 255, 0) 82%,
+    transparent 100%);
+  box-shadow:
+    0 0 10px rgba(120, 213, 255, .22),
+    0 0 22px rgba(120, 213, 255, .10);
+  animation: tlgHeroSweep 4.2s linear infinite;
+}
+
+/* A second, finer light trace stays behind the hero copy and buttons. */
+.tlg-home-main .tlg-hero .tlg-hero-inner::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  right: -8%;
+  top: 30%;
+  width: 42%;
+  height: 2px;
+  pointer-events: none;
+  transform: rotate(-18deg);
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(130, 220, 255, 0) 18%,
+    rgba(130, 220, 255, .20) 46%,
+    rgba(130, 220, 255, .82) 52%,
+    rgba(130, 220, 255, .18) 58%,
+    rgba(130, 220, 255, 0) 82%,
+    transparent 100%);
+  box-shadow:
+    0 0 12px rgba(130, 220, 255, .18),
+    0 0 30px rgba(130, 220, 255, .08);
+  animation: tlgHeroSweepSecondary 6s linear infinite;
 }
 
 .tlg-home-main .tlg-hero .tlg-hero-inner {
@@ -212,7 +249,8 @@
 
 @media (max-width: 1023px) {
   .tlg-home-main .tlg-hero::before {
-    background-position: 57% 10%;
+    inset: 0 0 0 12%;
+    background-position: 60% 10%;
   }
 
   .tlg-home-main .tlg-hero::after {
@@ -234,7 +272,10 @@
   }
 
   .tlg-home-main .tlg-hero::before {
-    background-position: 59% 7%;
+    inset: 0;
+    background-position: 61% 7%;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 
   .tlg-home-main .tlg-hero::after {
@@ -284,8 +325,50 @@
   }
 }
 
+@keyframes tlgHeroSweep {
+  0% {
+    opacity: 0;
+    transform: translateX(-6%) rotate(-13deg);
+  }
+  10% { opacity: .25; }
+  45% { opacity: .95; }
+  100% {
+    opacity: 0;
+    transform: translateX(8%) rotate(-13deg);
+  }
+}
+
+@keyframes tlgHeroSweepSecondary {
+  0% {
+    opacity: 0;
+    transform: translateX(-10%) rotate(-18deg);
+  }
+  15% { opacity: .18; }
+  50% { opacity: .85; }
+  100% {
+    opacity: 0;
+    transform: translateX(12%) rotate(-18deg);
+  }
+}
+
+@keyframes tlgHeroArcPulse {
+  0%, 100% {
+    opacity: .67;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.18);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tlg-home-main .tlg-hero .tlg-hero-actions > .tlg-btn {
     transition: none;
+  }
+  .tlg-home-main .tlg-hero .tlg-hero-background::before,
+  .tlg-home-main .tlg-hero .tlg-hero-background::after,
+  .tlg-home-main .tlg-hero .tlg-hero-inner::after {
+    animation: none;
   }
 }
