@@ -1,0 +1,22 @@
+name: Helios history finance schema contract safety
+
+on:
+  pull_request:
+    paths:
+      - 'tests/helios_guest_history_finance_schema_contract.sql'
+      - 'scripts/check-helios-history-finance-schema-contract.mjs'
+      - 'docs/HELIOS_GUEST_HISTORY_FINANCE_SCHEMA_CONTRACT.md'
+      - '.github/workflows/helios-history-finance-schema-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-contract-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate metadata-only FK contract and no mutation commands
+        run: node scripts/check-helios-history-finance-schema-contract.mjs
