@@ -25,6 +25,7 @@ import AppButton from '../../components/common/AppButton'
 import FormField from '../../components/common/FormField'
 import { supabase } from '../../lib/supabase'
 import usePublicRegistrationStatus from '../../hooks/usePublicRegistrationStatus'
+import useGoogleSignInAvailability, { startTennisGoogleSignIn } from '../../hooks/useGoogleSignInAvailability'
 
 interface FormStatus {
   type: 'information' | 'success' | 'error'
@@ -33,6 +34,7 @@ interface FormStatus {
 
 export default function LoginPage() {
   const registrationAvailability = usePublicRegistrationStatus()
+  const googleAvailable = useGoogleSignInAvailability()
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -41,6 +43,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [status, setStatus] = useState<FormStatus | null>(null)
 
   useEffect(() => {
@@ -87,6 +90,19 @@ export default function LoginPage() {
     }
 
     navigate(player ? '/game/overview' : '/create-player', { replace: true })
+  }
+
+  async function handleGoogleSignIn() {
+    if (!googleAvailable || googleLoading || loading) return
+    setGoogleLoading(true)
+    setStatus(null)
+    try {
+      await startTennisGoogleSignIn()
+      // The browser navigates to Google; AuthContext loads original player on return.
+    } catch (error) {
+      setStatus({ type: 'error', message: error instanceof Error ? error.message : 'Google Sign-In is unavailable.' })
+      setGoogleLoading(false)
+    }
   }
 
   return (
@@ -157,6 +173,22 @@ export default function LoginPage() {
                 {loading ? t('auth.signingIn') : t('authPages.login.signIn')}
               </AppButton>
             </form>
+
+            {googleAvailable && (
+              <div className="tlg-google-oauth-option">
+                <div className="tlg-auth-divider"><span>or continue without a password</span></div>
+                <button
+                  type="button"
+                  className="tlg-google-oauth-button"
+                  onClick={() => void handleGoogleSignIn()}
+                  disabled={loading || googleLoading}
+                >
+                  <span className="tlg-google-oauth-mark" aria-hidden="true">G</span>
+                  {googleLoading ? 'Connecting to Google…' : 'Continue with Google'}
+                </button>
+                <p>Returning players keep their existing career when their Google identity links to the same account.</p>
+              </div>
+            )}
 
             <div className="tlg-auth-divider"><span>{t('authPages.login.newToGame')}</span></div>
             {registrationAvailability === 'open' ? (
