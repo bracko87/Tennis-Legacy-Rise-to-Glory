@@ -175,6 +175,13 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
 
   useEffect(() => {
     if (!user?.id) return
+    // An anonymous user has no recovery credentials. Signing them out on
+    // inactivity would abandon their career before the server-owned deadline.
+    // Server-side trial/retirement checks still enforce the 14-day limit.
+    if (user.is_anonymous === true) {
+      window.localStorage.removeItem(LAST_ACTIVITY_STORAGE_KEY)
+      return
+    }
 
     let timeoutId: number | null = null
     let locking = false
@@ -263,7 +270,7 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
       document.removeEventListener('visibilitychange', checkOnReturn)
       window.removeEventListener('storage', syncAcrossTabs)
     }
-  }, [user?.id])
+  }, [user?.id, user?.is_anonymous])
 
   const signOut = useCallback(async () => {
     window.localStorage.removeItem(LAST_ACTIVITY_STORAGE_KEY)

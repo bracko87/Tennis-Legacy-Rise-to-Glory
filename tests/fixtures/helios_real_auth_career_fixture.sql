@@ -24,3 +24,12 @@ REVOKE ALL ON public.players FROM PUBLIC,anon,authenticated;
 GRANT SELECT,INSERT ON public.players TO authenticated;
 CREATE POLICY helios_ci_player_select_own ON public.players FOR SELECT TO authenticated USING (owner_user_id=auth.uid());
 CREATE POLICY helios_ci_player_insert_own ON public.players FOR INSERT TO authenticated WITH CHECK (owner_user_id=auth.uid() AND player_type='human');
+
+-- Minimal dependencies needed by the real frontend AuthProvider in CI.
+ALTER TABLE public.players ADD COLUMN preferred_surface text;
+CREATE FUNCTION public.is_app_admin_v1() RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT false $$;
+REVOKE ALL ON FUNCTION public.is_app_admin_v1() FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.is_app_admin_v1() TO authenticated;
+CREATE FUNCTION public.get_public_google_oauth_status_v1() RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT false $$;
+REVOKE ALL ON FUNCTION public.get_public_google_oauth_status_v1() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.get_public_google_oauth_status_v1() TO anon,authenticated;
