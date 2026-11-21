@@ -162,7 +162,8 @@ export default function GameHeader({
             onClick={() => navigate('/guest/register')}
           >
             <UserPlus size={17} />
-            <span>Register · Save Progress</span>
+            <span className="tlg-guest-register-long">Register · Save Progress</span>
+            <span className="tlg-guest-register-short" aria-hidden="true">Register</span>
             <small>{guestTrial.state === 'active' ? `${guestTrial.daysLeft}d left` : guestTrial.state === 'expired' ? 'Trial ended' : 'Guest Player'}</small>
           </button>
         )}

@@ -72,7 +72,7 @@
   width: min(560px, 100%);
   max-height: calc(100dvh - 36px);
   overflow-y: auto;
-  padding: 34px 32px 30px;
+  padding: 38px 32px 30px;
   border: 1px solid rgba(120, 197, 255, .45);
   border-radius: 20px;
   background: linear-gradient(155deg, #0b2946 0%, #061c36 100%);
@@ -96,16 +96,6 @@
 }
 .tlg-registration-launch-modal-close:hover {
   background: rgba(255, 255, 255, .15);
-}
-.tlg-registration-launch-modal-icon {
-  display: grid;
-  place-items: center;
-  width: 54px;
-  height: 54px;
-  margin: 0 auto 15px;
-  border-radius: 14px;
-  background: rgba(19, 136, 232, .23);
-  color: #88d2ff;
 }
 .tlg-registration-launch-modal h2 {
   margin: 8px 0 12px;

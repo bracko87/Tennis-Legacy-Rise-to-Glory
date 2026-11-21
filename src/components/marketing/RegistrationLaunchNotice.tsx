@@ -180,9 +180,6 @@ export default function RegistrationLaunchNotice({ compact = false, modal = fals
             aria-label={copy.closeLabel} onClick={dismiss}>
             <X size={20} aria-hidden="true" />
           </button>
-          <div className="tlg-registration-launch-modal-icon" aria-hidden="true">
-            <CalendarDays size={26} />
-          </div>
           <span className="tlg-registration-launch-eyebrow">{copy.eyebrow}</span>
           <h2 id="tlg-launch-popup-heading">{copy.heading}</h2>
           <p id="tlg-launch-popup-details">{copy.prelaunch}</p>
