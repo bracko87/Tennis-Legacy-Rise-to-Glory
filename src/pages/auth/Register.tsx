@@ -320,7 +320,7 @@ export default function RegisterPage() {
                 </div>
 
                 {googleAvailable && !inviteToken && !getStoredReferralCode() && (
-                  <div className="tlg-google-oauth-option">
+                  <div className="tlg-google-oauth-option" style={{ width: '100%', maxWidth: 680, marginInline: 'auto', textAlign: 'center' }}>
                     <button
                       type="button"
                       className="tlg-google-oauth-button"
