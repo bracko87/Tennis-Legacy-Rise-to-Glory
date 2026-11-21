@@ -1,0 +1,32 @@
+name: Helios local Auth acceptance runner safeguards
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/helios-local-guest-auth-acceptance.mjs'
+      - 'scripts/prepare-helios-guest-sandbox.mjs'
+      - 'tests/helios_guest_local_sandbox_generator.test.mjs'
+      - 'tests/helios_local_guest_auth_acceptance.test.mjs'
+      - 'package.json'
+      - '.github/workflows/helios-local-guest-auth-acceptance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-runner-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install checked-in locked dependencies
+        run: npm ci
+      - name: Validate runner syntax and localhost-only safeguards
+        run: |
+          node --check scripts/helios-local-guest-auth-acceptance.mjs
+          node --test tests/helios_local_guest_auth_acceptance.test.mjs
+          node tests/helios_guest_local_sandbox_generator.test.mjs

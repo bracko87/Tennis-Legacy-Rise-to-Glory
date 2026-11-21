@@ -84,3 +84,15 @@ Google OAuth linking cannot be tested locally until a separate **test OAuth prov
 5. Finish PR #47's history/finance-aware erasure design separately.
 
 No paid Supabase branch has been created, and the production guest switch is unchanged.
+
+## Automated real local Auth acceptance
+
+After restoring the schema into the isolated Helios sandbox and starting local Supabase, run from the repository root:
+
+```cmd
+npm run test:helios-guest-local
+```
+
+This test creates a synthetic local anonymous account, verifies server-owned 14-day guest/7-day Premium durations, duplicate enrollment protection, signed-out and unenrolled access rejection, email-link confirmation using local Mailpit on port 54344, password setup and permanent sign-in with the original Auth ID. The regenerated local config enables email confirmation and manual linking; an older sandbox must have those settings explicitly enabled locally before running this test. Use a current CLI with Mailpit support. The runner rejects nonlocal URLs and privileged JWT keys and does not hard-delete test accounts. Test output contains no email confirmation token or password.
+
+**A full-schema restore and the live local Auth acceptance run are required; offline runner tests are not a substitute.** Browser gameplay, retirement and history-safe physical deletion remain separate release gates. The historical 812-migration replay is a migration-maintenance issue, not required if a verified current schema-only restore can be used instead. Do not export historical SQL or a production schema to the public GitHub repository.
