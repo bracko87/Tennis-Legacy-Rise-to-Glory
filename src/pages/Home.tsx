@@ -223,7 +223,7 @@ export default function HomePage() {
 
                 {guestAvailable && (
                   <Link to="/try-as-guest" className="tlg-btn tlg-btn-primary tlg-btn-large">
-                    Try as Test Player
+                    Try as Guest
                   </Link>
                 )}
                 {registrationAvailability === 'open' && (

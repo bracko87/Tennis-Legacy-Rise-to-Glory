@@ -45,7 +45,7 @@ export default function GuestRegistrationPage() {
       setStatus(data as ConversionStatus)
       setError(null)
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Cannot verify your test session')
+      setError(reason instanceof Error ? reason.message : 'Cannot verify your guest session')
       setStatus(null)
     } finally {
       setChecking(false)
@@ -127,21 +127,21 @@ export default function GuestRegistrationPage() {
       <section className="tlg-guest-convert-card">
         <span className="tlg-guest-convert-eyebrow"><ShieldCheck size={18}/> Tennis Legacy · Save Your Progress</span>
         <h1>Register and keep your tennis player</h1>
-        <p>Register before your 14-day test period ends to keep your tennis player, ranking, equipment, staff, finances and Premium history.</p>
-        <p className="tlg-guest-convert-identity"><strong>{player ? `${player.first_name} ${player.last_name}` : 'Your test player'}</strong> · No player reset or second Premium trial</p>
+        <p>Register before your 14-day guest trial ends to keep your tennis player, ranking, equipment, staff, finances and Premium history.</p>
+        <p className="tlg-guest-convert-identity"><strong>{player ? `${player.first_name} ${player.last_name}` : 'Your guest player'}</strong> · No player reset or second Premium trial</p>
 
         {(checking || authLoading) && <p role="status">Checking your account…</p>}
         {error && <p role="alert" className="tlg-guest-convert-error">{error}</p>}
         {notice && <p role="status" className="tlg-guest-convert-notice">{notice}</p>}
 
         {!checking && status && !status.eligible && (
-          <p>This session is not a guest-test account. <Link to="/game/overview">Return to the game</Link>.</p>
+          <p>This session is not a guest account. <Link to="/game/overview">Return to the game</Link>.</p>
         )}
 
         {!checking && status?.eligible && status.retired && (
           <section className="tlg-guest-convert-complete" role="status">
-            <h2>Your test player has left the game</h2>
-            <p>The 14-day test finished without permanent registration. Future tournament applications were withdrawn, and unstarted scheduled matches were resolved as walkovers where an opponent was available. This guest player can no longer be converted.</p>
+            <h2>Your guest player has left the game</h2>
+            <p>The 14-day guest trial finished without permanent registration. Future tournament applications were withdrawn, and unstarted scheduled matches were resolved as walkovers where an opponent was available. This guest player can no longer be converted.</p>
             <button
               type="button"
               disabled={loading}
@@ -162,7 +162,7 @@ export default function GuestRegistrationPage() {
 
         {!checking && status?.eligible && status.is_anonymous && !status.retired && status.can_convert && (
           <>
-            {status.expired && <p className="tlg-guest-convert-notice">Your 14-day test has ended. Register immediately if your account has not yet been automatically retired.</p>}
+            {status.expired && <p className="tlg-guest-convert-notice">Your 14-day guest trial has ended. Register immediately if your account has not yet been automatically retired.</p>}
             <form onSubmit={event => void requestEmail(event)} className="tlg-guest-convert-form">
               <label htmlFor="guest-permanent-email">Your email address</label>
               <input

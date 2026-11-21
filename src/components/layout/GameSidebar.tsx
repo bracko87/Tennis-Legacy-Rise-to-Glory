@@ -229,7 +229,7 @@ export default function GameSidebar({
         <div className="tlg-v2-sidebar-footer tlg-v4-sidebar-footer">
           {user?.is_anonymous && (
             <Link to="/guest/register" className="tlg-v2-nav-link tlg-guest-sidebar-register"
-              onClick={onMobileClose} title="Register to save your test player">
+              onClick={onMobileClose} title="Register to save your guest player">
               <span className="tlg-v2-nav-icon"><UserPlus size={17}/></span>
               {!collapseNav && <span className="tlg-v2-nav-copy">
                 <strong>Register · Save Progress</strong>

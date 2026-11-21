@@ -17,14 +17,14 @@ export default function GuestExpiryNotice() {
         aria-describedby="tlg-guest-expiry-description">
         <ShieldAlert size={30} aria-hidden="true"/>
         <h2 id="tlg-guest-expiry-heading">
-          {trial.state === 'retired' ? 'Your test player has been retired' : trial.state === 'expired' ? 'Your 14-day test period has ended' : 'Test session unavailable'}
+          {trial.state === 'retired' ? 'Your guest player has been retired' : trial.state === 'expired' ? 'Your 14-day guest trial has ended' : 'Guest session unavailable'}
         </h2>
         <p id="tlg-guest-expiry-description">
           {trial.state === 'retired'
-            ? 'Your test period ended without permanent registration. Your player has been withdrawn from future competitions; opponents receive walkover wins for unstarted scheduled matches. You can create a new permanent account.'
+            ? 'Your guest trial ended without permanent registration. Your player has been withdrawn from future competitions; opponents receive walkover wins for unstarted scheduled matches. You can create a new permanent account.'
             : trial.state === 'expired'
-              ? 'Your test period has ended. If automatic retirement has not yet been completed, you can still register to save your player.'
-              : 'This test session is unavailable. Open the account page to check your options.'}
+              ? 'Your guest trial has ended. If automatic retirement has not yet been completed, you can still register to save your player.'
+              : 'This guest session is unavailable. Open the account page to check your options.'}
         </p>
         <button type="button" onClick={() => navigate('/guest/register')}>
           {trial.state === 'retired' ? 'View Account Options' : 'Register & Continue'}

@@ -10,7 +10,7 @@ type Stage = 'homepage' | 'guest' | 'player' | 'registration'
 
 const stages: Array<{ id: Stage; label: string }> = [
   { id: 'homepage', label: 'Homepage entry' },
-  { id: 'guest', label: 'Test Player entry' },
+  { id: 'guest', label: 'Guest Player entry' },
   { id: 'player', label: 'Create Player' },
   { id: 'registration', label: 'Save Progress' },
 ]
@@ -92,7 +92,7 @@ export default function GuestModePreviewPage() {
               <div className="tlg-helios-preview-actions">
                 <button disabled>Sign In</button>
                 <button disabled>Explore the Game</button>
-                <button className="is-primary" disabled>Try as Test Player</button>
+                <button className="is-primary" disabled>Try as Guest</button>
                 <button disabled>Create Account</button>
               </div>
               <small>Public homepage does not display the guest button while the server switch is OFF.</small>
@@ -101,7 +101,7 @@ export default function GuestModePreviewPage() {
           {stage === 'guest' && <TryAsGuestPage previewOnly />}
           {stage === 'player' && (
             <section className="tlg-helios-preview-panel">
-              <p className="tlg-helios-preview-kicker">TEST PLAYER · PROFILE SETUP</p>
+              <p className="tlg-helios-preview-kicker">GUEST PLAYER · PROFILE SETUP</p>
               <h2>Create your tennis player</h2>
               <p>A guest will choose a player name, country and appearance. No city, email or birthday is required to begin.</p>
               <div className="tlg-helios-preview-fields">
@@ -110,7 +110,7 @@ export default function GuestModePreviewPage() {
                 <label>Country<select disabled defaultValue=""><option value="">Choose a country</option></select></label>
                 <label>Appearance<select disabled defaultValue=""><option value="">Choose an appearance</option></select></label>
               </div>
-              <button className="is-primary" disabled>Create Test Player (Preview Only)</button>
+              <button className="is-primary" disabled>Create Guest Player (Preview Only)</button>
               <small>Visual review only. The actual Create Player wizard must be verified with an enrolled guest in staging before launch.</small>
             </section>
           )}
@@ -118,7 +118,7 @@ export default function GuestModePreviewPage() {
             <section className="tlg-helios-preview-panel">
               <p className="tlg-helios-preview-kicker">GUEST ACCOUNT · SAVE PROGRESS</p>
               <h2>Register and keep your tennis player</h2>
-              <p>Your 14-day test includes seven days of Premium. Register before expiry to keep your player, rankings, equipment, staff and finances.</p>
+              <p>Your 14-day guest trial includes seven days of Premium. Register before expiry to keep your player, rankings, equipment, staff and finances.</p>
               <div className="tlg-helios-preview-balance"><ShieldCheck size={18}/> Existing player and game progress stay on the same account.</div>
               <div className="tlg-helios-preview-fields">
                 <label>Email address<input disabled type="email" placeholder="you@example.com" /></label>

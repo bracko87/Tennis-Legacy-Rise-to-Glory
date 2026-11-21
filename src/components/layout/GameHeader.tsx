@@ -158,12 +158,12 @@ export default function GameHeader({
           <button
             type="button"
             className="tlg-v4-header-action tlg-guest-register-action"
-            aria-label="Register to save your test player and progress"
+            aria-label="Register to save your guest player and progress"
             onClick={() => navigate('/guest/register')}
           >
             <UserPlus size={17} />
             <span>Register · Save Progress</span>
-            <small>{guestTrial.state === 'active' ? `${guestTrial.daysLeft}d left` : guestTrial.state === 'expired' ? 'Trial ended' : 'Test Player'}</small>
+            <small>{guestTrial.state === 'active' ? `${guestTrial.daysLeft}d left` : guestTrial.state === 'expired' ? 'Trial ended' : 'Guest Player'}</small>
           </button>
         )}
 

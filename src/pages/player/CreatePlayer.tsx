@@ -542,7 +542,7 @@ export default function CreatePlayerPage(): JSX.Element {
 
         <div className="tlg-onboarding-topbar-actions">
           <div className="tlg-onboarding-account-state">
-            <span>{activeGuest ? 'Test Player · 14-day limit' : t('createPlayer.top.accountVerified')}</span>
+            <span>{activeGuest ? 'Guest Player · 14-day limit' : t('createPlayer.top.accountVerified')}</span>
             <strong>{activeGuest ? 'Guest session' : user?.email ?? t('createPlayer.top.authenticated')}</strong>
           </div>
 
@@ -587,13 +587,13 @@ export default function CreatePlayerPage(): JSX.Element {
 
         {isGuest && guestState !== 'active' && (
           <div className="tlg-auth-status tlg-auth-status-information" role="alert">
-            {guestState === 'loading' ? 'Checking your test session…' :
-              'Your test player is unavailable until Guest Mode is enabled and your 14-day trial is active. No player data has been created.'}
+            {guestState === 'loading' ? 'Checking your guest session…' :
+              'Your guest player is unavailable until Guest Mode is enabled and your 14-day trial is active. No player data has been created.'}
           </div>
         )}
         {activeGuest && (
           <div className="tlg-auth-status tlg-auth-status-success" role="status">
-            Test Player: choose your name, country and appearance. Your introductory Premium trial is handled separately. Register later to save progress.
+            Guest Player: choose your name, country and appearance. Your introductory Premium trial is handled separately. Register later to save progress.
           </div>
         )}
         <form className="tlg-onboarding-wizard" onSubmit={handleCreate} noValidate>

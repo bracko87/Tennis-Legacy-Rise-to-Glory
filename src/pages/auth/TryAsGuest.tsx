@@ -47,15 +47,16 @@ export default function TryAsGuestPage({ previewOnly = false }: { readonly previ
       // Enroll the current authenticated anonymous user only; repeated calls
       // cannot extend its server-issued 14-day deadline.
       const { data, error: trialError } = await supabase.rpc('enroll_my_tennis_guest_trial_v1')
-      if (trialError || !data) throw trialError ?? new Error('Could not enroll test player')
+      if (trialError || !data) throw trialError ?? new Error('Could not enroll guest player')
       if (data.state === 'expired') {
-        setError('This test period has ended. Please register to save your existing progress.')
+        setError('This guest trial has ended. Please register to save your existing progress.')
         return
       }
       if (data.state !== 'active') throw new Error('Guest session not active')
       navigate('/create-player', { replace: true })
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Unable to create your test player.')
+      const message = reason instanceof Error ? reason.message : 'Unable to create your guest player.'
+      setError(/anonymous sign-ins are disabled/i.test(message) ? 'Guest sign-in is temporarily unavailable. Please try again later or create a permanent account.' : message)
     } finally {
       setBusy(false)
     }
@@ -68,11 +69,11 @@ export default function TryAsGuestPage({ previewOnly = false }: { readonly previ
   return (
     <main className="tlg-guest-entry">
       <section className="tlg-guest-entry-card">
-        <span className="tlg-guest-entry-label"><UserRound size={18}/> Tennis Legacy · Test Player</span>
+        <span className="tlg-guest-entry-label"><UserRound size={18}/> Tennis Legacy · Guest Player</span>
         <h1>Try Tennis Legacy without registering</h1>
         <p>Create your own tennis player with a name, country and appearance. No email, password, city or birthday is needed to begin.</p>
         <div className="tlg-guest-entry-facts">
-          <span>14 days to test the game</span>
+          <span>14 days of guest access</span>
           <span>7 days of Premium after eligibility checks</span>
           <span>Register later to keep your player</span>
         </div>
@@ -83,7 +84,7 @@ export default function TryAsGuestPage({ previewOnly = false }: { readonly previ
         {error && <p role="alert" className="tlg-auth-status tlg-auth-status-information">{error}</p>}
         {previewOnly && <p role="status" className="tlg-auth-status tlg-auth-status-information">Admin UI preview only — no account is created, no trial starts and no data is saved.</p>}
         {!previewOnly && checked && !available && (
-          <p role="status">Test Player access is not available yet. You can still register a permanent account.</p>
+          <p role="status">Guest Player access is not available yet. You can still register a permanent account.</p>
         )}
         <div className="tlg-guest-entry-actions">
           <button
@@ -92,7 +93,7 @@ export default function TryAsGuestPage({ previewOnly = false }: { readonly previ
             onClick={() => void begin()}
             disabled={previewOnly || !available || busy || authLoading}
           >
-            {previewOnly ? 'Create Test Player (Preview Only)' : busy ? 'Creating your test session…' : 'Create Test Player'}
+            {previewOnly ? 'Create Guest Player (Preview Only)' : busy ? 'Creating your guest session…' : 'Create Guest Player'}
             <ArrowRight size={17}/>
           </button>
           {previewOnly ? <span className="tlg-btn tlg-btn-secondary tlg-btn-large" aria-disabled="true">Create a Permanent Account</span> : <Link to="/register" className="tlg-btn tlg-btn-secondary tlg-btn-large">Create a Permanent Account</Link>}
