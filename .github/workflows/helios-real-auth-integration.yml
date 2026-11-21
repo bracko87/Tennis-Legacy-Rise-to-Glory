@@ -5,7 +5,8 @@ on:
     paths:
       - 'scripts/prepare-helios-real-auth-ci.mjs'
       - 'scripts/helios-local-guest-auth-acceptance.mjs'
-      - 'tests/fixtures/helios_real_auth_ci_schema.sql'
+      - 'tests/fixtures/helios_real_auth*.sql'
+      - 'tests/fixtures/helios_guest_retirement_*.sql'
       - '.github/workflows/helios-real-auth-integration.yml'
       - 'supabase/migrations/*helios*guest*.sql'
   workflow_dispatch:
@@ -37,6 +38,7 @@ jobs:
       - name: Exercise actual anonymous Auth, trial and email confirmation
         env:
           HELIOS_CI_LOCAL_CLI: '1'
+          HELIOS_CI_CAREER: '1'
         run: npm run test:helios-guest-local
       - name: Stop disposable local containers
         if: always()
