@@ -10,7 +10,8 @@
     "check:seo": "node scripts/check-seo.mjs",
     "check:mobile-routes": "node scripts/check-mobile-routes.mjs",
     "dev:private-life": "node scripts/private-life-dev.mjs",
-    "dev:helios-guest": "node scripts/helios-guest-dev.mjs"
+    "dev:helios-guest": "node scripts/helios-guest-dev.mjs",
+    "test:helios-guest-local": "node scripts/helios-local-guest-auth-acceptance.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
