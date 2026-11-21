@@ -23,6 +23,11 @@ BEGIN
    IF NOT EXISTS(SELECT 1 FROM auth.users WHERE id=uid AND is_anonymous) THEN RAISE EXCEPTION 'Expected synthetic real Auth guest'; END IF;
    INSERT INTO public.helios_ci_equipment VALUES(p,73);
    INSERT INTO public.helios_ci_career_finance VALUES(p,1234);
+   BEGIN
+     PERFORM control_center_private.helios_ci_erase_retired_guest(uid);
+     RAISE EXCEPTION 'Active guest erasure was not rejected';
+   EXCEPTION WHEN insufficient_privilege THEN NULL;
+   END;
  ELSIF ph='verify_converted' THEN
    IF NOT EXISTS(SELECT 1 FROM auth.users WHERE id=uid AND NOT is_anonymous)
       OR NOT EXISTS(SELECT 1 FROM control_center_private.tennis_guest_trials_v1 WHERE user_id=uid AND converted_at IS NOT NULL AND retired_at IS NULL)
@@ -30,6 +35,11 @@ BEGIN
       OR NOT EXISTS(SELECT 1 FROM public.helios_ci_career_finance WHERE player_id=p AND balance=1234)
       OR NOT EXISTS(SELECT 1 FROM public.tennis_premium_trials_v1 WHERE user_id=uid AND expires_at=started_at+interval '7 days')
    THEN RAISE EXCEPTION 'Conversion lost original ownership, progress or Premium'; END IF;
+   BEGIN
+     PERFORM control_center_private.helios_ci_erase_retired_guest(uid);
+     RAISE EXCEPTION 'Converted guest erasure was not rejected';
+   EXCEPTION WHEN insufficient_privilege THEN NULL;
+   END;
  ELSIF ph='expire' THEN
    SELECT id INTO a FROM public.players WHERE player_type='ai' ORDER BY id LIMIT 1;
    SELECT id INTO b FROM public.players WHERE player_type='ai' AND id<>a ORDER BY id LIMIT 1;
@@ -84,6 +94,25 @@ BEGIN
      OR NOT EXISTS(SELECT 1 FROM public.helios_ci_career_finance WHERE player_id=p AND balance=1234)
    THEN RAISE EXCEPTION 'Retirement must not silently delete Auth or career records'; END IF;
  ELSIF ph='erase' THEN
+   -- Explicitly prove paid/unfinished records are held, using subtransactions
+   -- so that the artificial blocking record is rolled back automatically.
+   BEGIN
+     INSERT INTO public.billing_transactions(user_id,kind,status) VALUES(uid,'premium_invoice','paid');
+     PERFORM control_center_private.helios_ci_erase_retired_guest(uid);
+     RAISE EXCEPTION 'Paid guest erasure was not rejected';
+   EXCEPTION WHEN raise_exception THEN
+     IF SQLERRM <> 'Financial records need separate retention review' THEN RAISE; END IF;
+   END;
+   BEGIN
+     UPDATE public.tournament_matches SET status='in_progress' WHERE player1_id=p AND match_number=99;
+     PERFORM control_center_private.helios_ci_erase_retired_guest(uid);
+     RAISE EXCEPTION 'In-progress guest erasure was not rejected';
+   EXCEPTION WHEN raise_exception THEN
+     IF SQLERRM <> 'Unfinished competition activity' THEN RAISE; END IF;
+   END;
+   IF NOT EXISTS(SELECT 1 FROM auth.users WHERE id=uid)
+      OR NOT EXISTS(SELECT 1 FROM public.helios_ci_equipment WHERE player_id=p AND condition_percent=73)
+   THEN RAISE EXCEPTION 'Rejected erasure mutated account records'; END IF;
    PERFORM control_center_private.helios_ci_erase_retired_guest(uid);
    IF EXISTS(SELECT 1 FROM auth.users WHERE id=uid)
       OR EXISTS(SELECT 1 FROM auth.sessions WHERE user_id=uid)
