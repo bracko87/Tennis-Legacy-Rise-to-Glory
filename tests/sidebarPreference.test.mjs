@@ -17,9 +17,9 @@ function storageFixture() {
   }
 }
 
-test('sidebar starts expanded until the user collapses it', () => {
+test('sidebar starts collapsed until the user expands it', () => {
   const storage = storageFixture()
-  assert.equal(readSidebarCollapsed(storage), false)
+  assert.equal(readSidebarCollapsed(storage), true)
   assert.equal(storage.values.size, 0)
 })
 
@@ -38,14 +38,14 @@ test('collapsed preference survives new layout mounts and remains until explicit
 test('invalid values and unavailable browser storage fail safely', () => {
   const storage = storageFixture()
   storage.values.set(GAME_SIDEBAR_PREFERENCE_KEY, 'invalid')
-  assert.equal(readSidebarCollapsed(storage), false)
-  assert.equal(readSidebarCollapsed(null), false)
+  assert.equal(readSidebarCollapsed(storage), true)
+  assert.equal(readSidebarCollapsed(null), true)
   assert.doesNotThrow(() => saveSidebarCollapsed(true, null))
   const blocked = {
     getItem() { throw new Error('Storage access denied') },
     setItem() { throw new Error('Storage access denied') },
   }
-  assert.equal(readSidebarCollapsed(blocked), false)
+  assert.equal(readSidebarCollapsed(blocked), true)
   assert.doesNotThrow(() => saveSidebarCollapsed(true, blocked))
 })
 
@@ -55,4 +55,13 @@ test('GameLayout initializes from preference and saves the choice; mobile drawer
   assert.match(layout, /saveSidebarCollapsed\(sidebarCollapsed\)/)
   assert.match(layout, /setSidebarCollapsed\(\(value\) => !value\)/)
   assert.match(layout, /const \[sidebarMobileOpen, setSidebarMobileOpen\] = useState\(false\)/)
+})
+
+test('legacy expanded default does not prevent the new collapsed default; explicit expansion persists', () => {
+  const storage = storageFixture()
+  storage.values.set('tlg:game-sidebar-collapsed', '0')
+  assert.equal(readSidebarCollapsed(storage), true)
+  saveSidebarCollapsed(false, storage)
+  assert.equal(readSidebarCollapsed(storage), false)
+  assert.equal(readSidebarCollapsed(storage), false)
 })
