@@ -65,3 +65,11 @@ Updated: 20 November 2026. Checked = code/DB task complete, **not** automaticall
 - **H10** Registration and player creation activity totals: live database RPC migration applied, source/UI migration and tests in Helios feature branch; release and live UI checks are pending.
 - Baseline for 7-day window ending Nov 20 (Berlin): 35 homepage visitors, 1 registration-page visitor, 2 accounts created, 2 human player accounts created, 1 registered account seen returning after 24h. They are *independent period counts*, not a causal funnel. Do not calculate a conversion percentage from them.
 - Next: review/merge the PASSED isolated retirement fixture, design physical guest-account erasure with a privacy-safe historical result archive and audit of 188 foreign keys, test two simultaneously expired opponents and in-progress matches, then verify anonymous signup, Premium and same-ID conversion. Guest Mode remains disabled.
+
+
+### 21 November 2026 — verified Guest lifecycle and deleted-identity guard
+
+- [x] Real disposable Supabase Auth: anonymous signup, 14-day trial, seven-day Premium, confirmed email conversion with unchanged Auth/player ID and synthetic records, expiration, retirement and tournament walkovers (PRs #80–81).
+- [x] Real disposable Auth physical erasure prototype: removes synthetic user/session/private fixture records, preserves detached competition history, rejects active/converted/paid/in-progress careers, refuses stale JWT at the shared gameplay guard (PR #82; CI run 44885725384).
+- [x] Production shared gameplay access guard hardened by applied migration `20261121084252_helios_h08_deny_deleted_guest_identity.sql` (source mirrored exactly from applied history). Read-only verification confirms missing synthetic identity denied, authenticated EXECUTE granted, anon EXECUTE denied, 83 public function callers, and public guest gate OFF. No production accounts deleted.
+- [ ] Full current-schema isolated restore and real gameplay/erasure coverage, production storage/private-data and financial retention review, actual browser and Google linking verification, and final public activation. Representative fixture passes are not a full production erasure certification. Keep Guest Mode and hard deletion disabled.
