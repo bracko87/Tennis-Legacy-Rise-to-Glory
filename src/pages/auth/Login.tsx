@@ -147,6 +147,22 @@ export default function LoginPage() {
 
             <p className="tlg-auth-card-description">{t('authPages.login.cardBody')}</p>
 
+            {googleAvailable && (
+              <div className="tlg-google-oauth-option">
+                <button
+                  type="button"
+                  className="tlg-google-oauth-button"
+                  onClick={() => void handleGoogleSignIn()}
+                  disabled={loading || googleLoading}
+                >
+                  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 48 48" focusable="false"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.6c3.9-3.6 6.1-8.8 6.1-15z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.5l-6.6-5.1c-1.8 1.2-4.1 2-6.9 2-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20 20 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.6 28a12 12 0 0 1 0-8V14.7H5.8a20 20 0 0 0 0 18.6z"/><path fill="#EA4335" d="M24 11.6c3 0 5.7 1 7.8 3.1l5.9-5.9A19.3 19.3 0 0 0 24 4 20 20 0 0 0 5.8 14.7l6.8 5.3A12 12 0 0 1 24 11.6z"/></svg>
+                  {googleLoading ? 'Connecting to Google…' : 'Continue with Google'}
+                </button>
+                <p>Returning players keep their existing career when their Google identity links to the same account.</p>
+              </div>
+            )}
+            {googleAvailable && <p className="tlg-auth-divider">Or continue with email</p>}
+
             <form className="tlg-auth-form" onSubmit={handleSubmit} noValidate>
               <FormField id="login-email" label={t('auth.email')} required error={submitted && !emailValid ? t('authPages.login.emailError') : undefined}>
                 <div className="tlg-input-shell">
@@ -174,21 +190,6 @@ export default function LoginPage() {
               </AppButton>
             </form>
 
-            {googleAvailable && (
-              <div className="tlg-google-oauth-option">
-                <div className="tlg-auth-divider"><span>or continue without a password</span></div>
-                <button
-                  type="button"
-                  className="tlg-google-oauth-button"
-                  onClick={() => void handleGoogleSignIn()}
-                  disabled={loading || googleLoading}
-                >
-                  <span className="tlg-google-oauth-mark" aria-hidden="true">G</span>
-                  {googleLoading ? 'Connecting to Google…' : 'Continue with Google'}
-                </button>
-                <p>Returning players keep their existing career when their Google identity links to the same account.</p>
-              </div>
-            )}
 
             <div className="tlg-auth-divider"><span>{t('authPages.login.newToGame')}</span></div>
             {registrationAvailability === 'open' ? (
