@@ -163,6 +163,14 @@ export default function GuestRegistrationPage() {
         {!checking && status?.eligible && status.is_anonymous && !status.retired && status.can_convert && (
           <>
             {status.expired && <p className="tlg-guest-convert-notice">Your 14-day guest trial has ended. Register immediately if your account has not yet been automatically retired.</p>}
+            {googleAvailable && (
+              <button type="button" className="tlg-guest-convert-google" disabled={loading} onClick={() => void linkGoogle()}>
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 48 48" focusable="false"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.6c3.9-3.6 6.1-8.8 6.1-15z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.5l-6.6-5.1c-1.8 1.2-4.1 2-6.9 2-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20 20 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.6 28a12 12 0 0 1 0-8V14.7H5.8a20 20 0 0 0 0 18.6z"/><path fill="#EA4335" d="M24 11.6c3 0 5.7 1 7.8 3.1l5.9-5.9A19.3 19.3 0 0 0 24 4 20 20 0 0 0 5.8 14.7l6.8 5.3A12 12 0 0 1 24 11.6z"/></svg>
+                Continue with Google
+              </button>
+            )}
+            {googleAvailable && <p className="tlg-guest-convert-help">Or continue with email</p>}
+
             <form onSubmit={event => void requestEmail(event)} className="tlg-guest-convert-form">
               <label htmlFor="guest-permanent-email">Your email address</label>
               <input
@@ -173,11 +181,6 @@ export default function GuestRegistrationPage() {
               <button type="submit" disabled={loading}>Verify Email &amp; Save My Progress <ArrowRight size={17}/></button>
             </form>
             <p className="tlg-guest-convert-help">Check your email before setting a password. Do not sign out or clear this browser's data while verification is pending.</p>
-            {googleAvailable && (
-              <button type="button" className="tlg-guest-convert-google" disabled={loading} onClick={() => void linkGoogle()}>
-                Connect this guest player with Google
-              </button>
-            )}
             <p className="tlg-guest-convert-help">If this email or Google account already belongs to a different Tennis Legacy account, linking may be refused. We will not merge or overwrite two players automatically.</p>
           </>
         )}
