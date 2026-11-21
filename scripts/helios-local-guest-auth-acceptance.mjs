@@ -77,7 +77,7 @@ async function main(){
   const {origin,key}=parseStatus(result)
   const ciCareer=process.env.GITHUB_ACTIONS==='true'&&process.env.HELIOS_CI_CAREER==='1'
   function localSql(phase,uid='00000000-0000-0000-0000-000000000000'){
-    if(!ciCareer||!/^[0-9a-f-]{36}$/i.test(uid)||!['gate_off','gate_on','seed','verify_converted','expire','retire','verify_retired'].includes(phase))throw Error('CI-only fixture mutation rejected')
+    if(!ciCareer||!/^[0-9a-f-]{36}$/i.test(uid)||!['gate_off','gate_on','seed','verify_converted','expire','retire','verify_retired','erase'].includes(phase))throw Error('CI-only fixture mutation rejected')
     const script=readFileSync(resolve(root,'tests/fixtures/helios_real_auth_career_phases.sql'),'utf8')
     try{execFileSync('docker',['exec','-i','supabase_db_tennis_helios_guest_sandbox','psql','-X','-w','-U','postgres','-d','postgres','-v','ON_ERROR_STOP=1','-v','guest_id='+uid,'-v','phase='+phase],{input:script,encoding:'utf8',timeout:60000,stdio:['pipe','pipe','pipe']})}
     catch(e){throw Error('Career fixture phase '+phase+' failed: '+String(e.stderr||'').slice(-1000))}
@@ -240,10 +240,25 @@ async function main(){
       assert.ok(attempt.error,'Retired identity must not convert using real Auth')
     }
     localSql('verify_retired',expiredId)
+    if(process.env.HELIOS_CI_ERASURE==='1'){
+      // Capture the real, still-issued JWT before physically deleting the
+      // synthetic Auth row. Use a raw request to bypass client auto-refresh.
+      const session=await client.auth.getSession()
+      const jwt=session.data.session?.access_token
+      assert.ok(jwt,'Real guest JWT missing')
+      localSql('erase',expiredId)
+      const response=await restrictedFetch(origin+'/rest/v1/rpc/assert_my_tennis_guest_access_v1',{
+        method:'POST',headers:{apikey:key,Authorization:'Bearer '+jwt,'Content-Type':'application/json'},body:'{}'
+      })
+      assert.ok(!response.ok,'Deleted user JWT must never pass the gameplay guard')
+      const body=await response.json()
+      assert.equal(body.code,'42501','Expected explicit DB access refusal')
+      console.log('PASS physical deletion of synthetic Auth identity, session and personal fixture records; pseudonymous history and stale JWT rejection verified')
+    }
     await client.auth.signOut({scope:'local'})
     console.log('PASS real expired JWT blocked, no renewed trial, retirement/withdrawal/singles doubles walkovers and history preserved, retired Auth conversion rejected')
   }
-  console.log('LIMIT: real Auth and representative career/tournament fixture, not browser UI, complete production schema or physical data erasure verification.')
+  console.log('LIMIT: real Auth and representative career/tournament fixture, not browser UI, complete production schema or production-wide data erasure verification.')
   console.log('The synthetic account stays in the disposable local stack; no deletion is attempted.')
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))

@@ -83,6 +83,22 @@ BEGIN
      OR NOT EXISTS(SELECT 1 FROM public.helios_ci_equipment WHERE player_id=p AND condition_percent=73)
      OR NOT EXISTS(SELECT 1 FROM public.helios_ci_career_finance WHERE player_id=p AND balance=1234)
    THEN RAISE EXCEPTION 'Retirement must not silently delete Auth or career records'; END IF;
+ ELSIF ph='erase' THEN
+   PERFORM control_center_private.helios_ci_erase_retired_guest(uid);
+   IF EXISTS(SELECT 1 FROM auth.users WHERE id=uid)
+      OR EXISTS(SELECT 1 FROM auth.sessions WHERE user_id=uid)
+      OR EXISTS(SELECT 1 FROM public.profiles WHERE id=uid)
+      OR EXISTS(SELECT 1 FROM control_center_private.tennis_guest_trials_v1 WHERE user_id=uid)
+      OR EXISTS(SELECT 1 FROM public.tennis_premium_trials_v1 WHERE user_id=uid)
+      OR EXISTS(SELECT 1 FROM public.helios_ci_equipment WHERE player_id=p)
+      OR EXISTS(SELECT 1 FROM public.helios_ci_career_finance WHERE player_id=p)
+   THEN RAISE EXCEPTION 'Erased fixture identity or gameplay records remain'; END IF;
+   IF NOT EXISTS(SELECT 1 FROM public.players WHERE id=p AND owner_user_id IS NULL
+     AND first_name='Retired' AND last_name='Guest' AND image_path IS NULL AND moderation_status='rejected')
+     OR NOT EXISTS(SELECT 1 FROM public.tournament_matches WHERE player1_id=p AND match_number=99 AND status='completed' AND winner_id=player2_id)
+     OR NOT EXISTS(SELECT 1 FROM public.tournament_matches WHERE player1_id=p AND match_number=1 AND status='walkover' AND winner_id=player2_id)
+     OR NOT EXISTS(SELECT 1 FROM public.tournament_doubles_teams t JOIN public.tournament_doubles_matches m ON m.team1_id=t.id WHERE t.player1_id=p AND m.status='walkover' AND m.winner_team_id=m.team2_id)
+   THEN RAISE EXCEPTION 'Erasure must preserve pseudonymous competition history'; END IF;
  ELSIF ph='verify_retired' THEN
    IF NOT EXISTS(SELECT 1 FROM auth.users WHERE id=uid AND is_anonymous)
      OR NOT EXISTS(SELECT 1 FROM control_center_private.tennis_guest_trials_v1 WHERE user_id=uid AND retired_at IS NOT NULL AND converted_at IS NULL)

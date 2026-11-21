@@ -6,6 +6,7 @@ on:
       - 'scripts/prepare-helios-real-auth-ci.mjs'
       - 'scripts/helios-local-guest-auth-acceptance.mjs'
       - 'tests/fixtures/helios_real_auth*.sql'
+      - 'tests/fixtures/helios_guest_deleted_identity_guard_candidate.sql'
       - 'tests/fixtures/helios_guest_retirement_*.sql'
       - '.github/workflows/helios-real-auth-integration.yml'
       - 'supabase/migrations/*helios*guest*.sql'
@@ -39,6 +40,7 @@ jobs:
         env:
           HELIOS_CI_LOCAL_CLI: '1'
           HELIOS_CI_CAREER: '1'
+          HELIOS_CI_ERASURE: '1'
         run: npm run test:helios-guest-local
       - name: Stop disposable local containers
         if: always()
