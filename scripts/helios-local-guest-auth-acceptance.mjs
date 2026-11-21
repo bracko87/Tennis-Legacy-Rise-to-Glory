@@ -110,14 +110,66 @@ async function main(){
   const update=await client.auth.updateUser({email},{emailRedirectTo:'http://127.0.0.1:8002/guest/register'})
   if(update.error)throw Error('Local email-link request failed: '+(update.error.code||'unknown'))
   assert.equal(update.data.user.id,id,'Email link request replaced Auth identity')
-  // Confirmation depends on local SMTP. Do not silently bypass it or use a
-  // service role to force conversion; actual browser linking remains an E2E gate.
-  const pending=await rpc(client,'get_my_tennis_guest_conversion_status_v1')
-  assert.equal(pending.eligible,true)
-  console.log('PASS local email-link request retains identity.')
-  console.log('LIMIT: Complete the confirmation in LOCAL Mailpit and browser. This does not certify confirmed conversion, gameplay, expiration, hard deletion or full-schema restoration.')
-  console.log('The synthetic account stays in the disposable local stack; no deletion is attempted.')
+  // Retrieve only the message addressed to the unique synthetic email from
+  // the LOCAL Mailpit API. Never follow an arbitrary URL or log the token.
+  const mailBase='http://127.0.0.1:54344'
+  async function mailJson(path){
+    const u=requireLocalUrl(mailBase+path,54344)
+    const response=await fetch(u,{redirect:'error',signal:AbortSignal.timeout(5000)})
+    if(!response.ok)throw Error('Local Mailpit API returned '+response.status)
+    return response.json()
+  }
+  let verification
+  for(let attempt=0;attempt<20&&!verification;attempt++){
+    const list=await mailJson('/api/v1/search?query='+encodeURIComponent('to:'+email))
+    for(const msg of list.messages||[]){
+      if(!msg.To?.some(x=>x.Address?.toLowerCase()===email))continue
+      const full=await mailJson('/api/v1/message/'+encodeURIComponent(msg.ID))
+      const body=String(full.Text||'')+'\n'+String(full.HTML||'').replace(/&amp;/g,'&')
+      for(const match of body.matchAll(/https?:\/\/[^\s<>"']+/g)){
+        let url
+        try{url=requireLocalUrl(match[0],54341)}catch{continue}
+        if(url.pathname==='/auth/v1/verify'&&url.searchParams.get('type')==='email_change'){
+          verification=url.searchParams.get('token')
+          if(verification)break
+        }
+      }
+      if(verification)break
+    }
+    if(!verification)await new Promise(r=>setTimeout(r,1000))
+  }
+  if(!verification)throw Error('No local email-change confirmation link received in Mailpit')
+  const verified=await client.auth.verifyOtp({token_hash:verification,type:'email_change'})
+  if(verified.error)throw Error('Local email verification failed: '+(verified.error.code||'unknown'))
+  const linked=await client.auth.getUser()
+  if(linked.error)throw Error('Local verified identity unavailable')
+  assert.equal(linked.data.user.id,id,'Email verification must retain original Auth ID')
+  assert.equal(linked.data.user.is_anonymous,false)
+  const converted=await rpc(client,'get_my_tennis_guest_conversion_status_v1')
+  assert.equal(converted.eligible,true)
+  assert.equal(converted.email_verified,true)
+  assert.equal(converted.is_anonymous,false)
+  assert.ok(converted.converted_at,'Conversion timestamp required')
+  assert.equal(Date.parse(converted.started_at),Date.parse(first.started_at))
+  assert.equal(Date.parse(converted.expires_at),Date.parse(first.expires_at))
+  const password='HeliosQA-'+randomUUID()+'-9'
+  const pass=await client.auth.updateUser({password})
+  if(pass.error)throw Error('Local password setup failed: '+(pass.error.code||'unknown'))
+  assert.equal(pass.data.user.id,id)
+  const finalStatus=await rpc(client,'get_my_tennis_guest_conversion_status_v1')
+  assert.equal(finalStatus.password_set,true)
+  assert.equal(finalStatus.converted_at,converted.converted_at)
+  const afterConversion=await client.rpc('enroll_my_tennis_guest_trial_v1')
+  assert.ok(afterConversion.error,'Permanent identity cannot re-enroll as guest')
   await client.auth.signOut({scope:'local'})
+  const login=await client.auth.signInWithPassword({email,password})
+  if(login.error)throw Error('Local permanent account sign-in failed: '+(login.error.code||'unknown'))
+  assert.equal(login.data.user.id,id,'Permanent sign-in must retain original Auth ID')
+  assert.equal(login.data.user.is_anonymous,false)
+  await client.auth.signOut({scope:'local'})
+  console.log('PASS confirmed local email conversion, password setup, permanent sign-in and no second trial.')
+  console.log('LIMIT: This is a real Auth/RPC integration test, not browser UI, full gameplay, expiry retirement or physical data erasure verification.')
+  console.log('The synthetic account stays in the disposable local stack; no deletion is attempted.')
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))
  main().catch(e=>{console.error('FAIL Helios real local Auth: '+e.message);process.exitCode=1})
