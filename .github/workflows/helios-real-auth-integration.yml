@@ -1,0 +1,44 @@
+name: Helios real Auth and identity conversion integration
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/prepare-helios-real-auth-ci.mjs'
+      - 'scripts/helios-local-guest-auth-acceptance.mjs'
+      - 'tests/fixtures/helios_real_auth_ci_schema.sql'
+      - '.github/workflows/helios-real-auth-integration.yml'
+      - 'supabase/migrations/*helios*guest*.sql'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-auth-fixture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.108.0
+      - name: Install locked application dependencies
+        run: npm ci
+      - name: Create isolated fixture with real guest SQL
+        run: node scripts/prepare-helios-real-auth-ci.mjs
+      - name: Start disposable local Supabase (no project linking)
+        working-directory: .helios-guest-sandbox
+        run: |
+          supabase start --help
+          supabase start -x realtime,storage-api,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor >/tmp/helios-start.log 2>&1 || { tail -n 20 /tmp/helios-start.log | sed -E 's/(eyJ[a-zA-Z0-9._-]+|sb_(secret|publishable)_[a-zA-Z0-9_-]+)/[redacted]/g'; exit 1; }
+      - name: Exercise actual anonymous Auth, trial and email confirmation
+        env:
+          HELIOS_CI_LOCAL_CLI: '1'
+        run: npm run test:helios-guest-local
+      - name: Stop disposable local containers
+        if: always()
+        working-directory: .helios-guest-sandbox
+        run: supabase stop --no-backup

@@ -68,7 +68,9 @@ async function main(){
   if(/cwfznmroiqcyhfkfcrow/.test(config))throw Error('Production project reference in sandbox configuration')
   let result
   try{
-    result=process.platform==='win32'
+    result=process.env.GITHUB_ACTIONS==='true'&&process.env.HELIOS_CI_LOCAL_CLI==='1'
+      ?execFileSync('supabase',['status','-o','env'],{cwd:sandbox,encoding:'utf8',timeout:30000,stdio:['ignore','pipe','pipe']})
+      :process.platform==='win32'
       ?execFileSync('cmd.exe',['/d','/s','/c','npx supabase status -o env'],{cwd:sandbox,encoding:'utf8',timeout:30000,stdio:['ignore','pipe','pipe'],windowsHide:true})
       :execFileSync('npx',['supabase','status','-o','env'],{cwd:sandbox,encoding:'utf8',timeout:30000,stdio:['ignore','pipe','pipe']})
   }catch{throw Error('Local Supabase stack is not running; start the isolated sandbox first')}
@@ -106,7 +108,7 @@ async function main(){
   if(user.error)throw Error('Local session retrieval failed')
   assert.equal(user.data.user.id,id)
   console.log('PASS real 14-day guest, 7-day Premium, unchanged repeated enrollment and same Auth identity')
-  const email='helios-qa-'+randomUUID()+'@example.invalid'
+  const email='helios-qa-'+randomUUID()+'@example.com'
   const update=await client.auth.updateUser({email},{emailRedirectTo:'http://127.0.0.1:8002/guest/register'})
   if(update.error)throw Error('Local email-link request failed: '+(update.error.code||'unknown'))
   assert.equal(update.data.user.id,id,'Email link request replaced Auth identity')
