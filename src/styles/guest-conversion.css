@@ -35,7 +35,12 @@
 .tlg-guest-convert {
   min-height: 100dvh;
   padding: clamp(24px,4vw,56px) 16px;
-  background: var(--tl3-canvas, #f4f7fa);
+  background-color: var(--tl3-canvas, #f4f7fa);
+  /* Keep the branded image at 20% visibility behind every registration step. */
+  background-image: linear-gradient(rgba(244, 247, 250, .80), rgba(244, 247, 250, .80)), url("https://cwfznmroiqcyhfkfcrow.supabase.co/storage/v1/object/sign/Admin/Branding/5b2624f8-91ab-4801-9dc7-bc004d7549e4.png?token=eyJraWQiOiJmYWIyM2E5ZS02NDA1LTQxNjUtODVmNC0wNzZjZjA4NDgyYmQiLCJhbGciOiJIUzUxMiJ9.eyJ1cmwiOiJBZG1pbi9CcmFuZGluZy81YjI2MjRmOC05MWFiLTQ4MDEtOWRjNy1iYzAwNGQ3NTQ5ZTQucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5NTI5MTAxMCwiZXhwIjo0OTE3MzU1MDEwfQ.kkM5oRsAlDUxqSFRAa_ocBVUnloRArDDSk-FdXE_Hi-cLT3Je-R70kayCE5Na3L6TRRpQK459zdknBobTwrgWQ");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
   color: var(--tl3-ink, #142235);
   display: grid;
   place-items: center;
