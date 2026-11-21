@@ -14,6 +14,7 @@ on:
       - 'tests/fixtures/helios_guest_deleted_identity_guard_candidate.sql'
       - 'tests/fixtures/helios_guest_retirement_*.sql'
       - 'tests/fixtures/helios_guest_core_erasure_candidate.sql'
+      - 'tests/fixtures/helios_guest_production_release_candidate.sql'
       - 'tests/fixtures/helios_guest_history_owner_candidate.sql'
       - '.github/workflows/helios-real-auth-integration.yml'
       - 'supabase/migrations/*helios*guest*.sql'

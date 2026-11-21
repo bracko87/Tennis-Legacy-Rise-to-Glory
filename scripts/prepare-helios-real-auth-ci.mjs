@@ -28,6 +28,12 @@ const career=fs.readFileSync(path.join(root,'tests','fixtures','helios_guest_ret
 const startCareer=career.indexOf('CREATE TABLE public.players(')
 if(startCareer<0)throw Error('Missing disposable tournament fixture')
 const fixture=(name)=>fs.readFileSync(path.join(root,'tests','fixtures',name),'utf8')
+const release=fixture('helios_guest_production_release_candidate.sql')
+const scheduleMarker='-- Cron starts inert:'
+const cronStart=release.indexOf(scheduleMarker)
+if(cronStart<0||!release.slice(cronStart).includes("cron.schedule('helios-expired-guest-erasure-v1','*/5 * * * *'"))throw Error('Release scheduler contract changed.')
+// The disposable fixture exercises the exact worker and switch. It deliberately does not install a real cron job.
+const releaseWithoutCron=release.slice(0,cronStart)
 const files=[
  ['20261121000000_fixture.sql',fs.readFileSync(path.join(root,'tests','fixtures','helios_real_auth_ci_schema.sql'),'utf8')],
  ['20261121000001_guest_foundation.sql',source('20261120133000_helios_h01_guest_trial_foundation.sql')],
@@ -41,8 +47,7 @@ const files=[
  ['20261121000008_guest_player.sql',source('20261120142000_helios_h01_guest_player_creation.sql')+'\nCREATE TRIGGER helios_ci_home_city BEFORE INSERT OR UPDATE ON public.players FOR EACH ROW EXECUTE FUNCTION public.validate_player_home_city_v1();\n'],
  ['20261121000009_real_worker.sql',fixture('helios_guest_retirement_doubles_helper.sql')+fixture('helios_guest_retirement_singles_bracket.sql')+fixture('helios_guest_retirement_doubles_bracket.sql')+source('20261120200000_helios_guest_retirement_lock_order.sql')+'\nCREATE TRIGGER advance_tournament_bracket_v1 AFTER UPDATE OF status ON public.tournament_matches FOR EACH ROW EXECUTE FUNCTION public.advance_tournament_bracket_v1();\nCREATE TRIGGER advance_doubles_bracket_v1 AFTER UPDATE OF status ON public.tournament_doubles_matches FOR EACH ROW EXECUTE FUNCTION public.advance_doubles_bracket_v1();\nREVOKE ALL ON FUNCTION control_center_private.retire_expired_tennis_guests_v1(integer) FROM PUBLIC,anon,authenticated;\n'],
  ['20261121000010_deleted_identity_guard.sql',source('20261121084252_helios_h08_deny_deleted_guest_identity.sql')],
- ['20261121000011_history_owner_candidate.sql',fixture('helios_guest_history_owner_candidate.sql')],
- ['20261121000012_core_erasure.sql',fixture('helios_guest_core_erasure_candidate.sql')],
+ ['20261121000011_release_worker.sql',releaseWithoutCron],
  ['20261121000013_erasure_prototype.sql',fixture('helios_real_auth_erasure_prototype.sql')],
  ['20261121000014_enable_local_gate.sql','UPDATE public.registration_control SET guest_test_enabled=true WHERE singleton_id=true;\n'],
 ]

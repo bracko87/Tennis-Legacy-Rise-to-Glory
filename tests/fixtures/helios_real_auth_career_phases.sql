@@ -129,6 +129,14 @@ BEGIN
      OR NOT EXISTS(SELECT 1 FROM public.player_career_finance_accounts WHERE player_id=p AND balance=1234)
    THEN RAISE EXCEPTION 'Retirement must not silently delete Auth or career records'; END IF;
  ELSIF ph='erase' THEN
+   IF control_center_private.erase_expired_tennis_guests_v1(20)->>'status'<>'disabled' THEN RAISE EXCEPTION 'Erasure switch must default to disabled'; END IF;
+   BEGIN
+     PERFORM control_center_private.helios_ci_erase_retired_guest(uid);
+     RAISE EXCEPTION 'Disabled direct erasure was not rejected';
+   EXCEPTION WHEN insufficient_privilege THEN NULL;
+   END;
+   IF NOT EXISTS(SELECT 1 FROM auth.users WHERE id=uid) THEN RAISE EXCEPTION 'Disabled worker modified account'; END IF;
+   UPDATE control_center_private.tennis_guest_erasure_control_v1 SET enabled=true WHERE singleton_id;
    SELECT staff_id INTO STRICT staff FROM public.player_staff_contracts WHERE player_id=p;
    SELECT id INTO STRICT conv FROM public.player_conversations WHERE player_one_id=p;
    BEGIN
@@ -185,7 +193,17 @@ BEGIN
    IF NOT EXISTS(SELECT 1 FROM auth.users WHERE id=uid)
       OR NOT EXISTS(SELECT 1 FROM public.player_equipment_inventory WHERE player_id=p AND condition=73)
    THEN RAISE EXCEPTION 'Rejected erasure mutated account records'; END IF;
-   SELECT control_center_private.helios_guest_erasure_batch_candidate(10) INTO result;
+   -- Hold, classify and defer one synthetic account, then resolve the hold.
+   INSERT INTO public.tennis_clubs(owner_player_id) VALUES(p);
+   SELECT control_center_private.erase_expired_tennis_guests_v1(10) INTO result;
+   IF (result->>'held')::int IS DISTINCT FROM 1 OR (result->>'erased')::int IS DISTINCT FROM 0
+     OR NOT EXISTS(SELECT 1 FROM control_center_private.tennis_guest_trials_v1 WHERE user_id=uid AND erasure_hold_code='governance' AND erasure_attempts=1 AND erasure_next_attempt_at>now())
+   THEN RAISE EXCEPTION 'Held-account classification failed: %',result; END IF;
+   SELECT control_center_private.erase_expired_tennis_guests_v1(10) INTO result;
+   IF (result->>'held')::int IS DISTINCT FROM 0 OR (result->>'erased')::int IS DISTINCT FROM 0 THEN RAISE EXCEPTION 'Retry delay failed'; END IF;
+   DELETE FROM public.tennis_clubs WHERE owner_player_id=p;
+   UPDATE control_center_private.tennis_guest_trials_v1 SET erasure_next_attempt_at=now()-interval '1 minute' WHERE user_id=uid;
+   SELECT control_center_private.erase_expired_tennis_guests_v1(10) INTO result;
    IF (result->>'erased')::int IS DISTINCT FROM 1 OR (result->>'held')::int IS DISTINCT FROM 0
    THEN RAISE EXCEPTION 'Consolidated batch failed: %',result; END IF;
    IF NOT EXISTS(SELECT 1 FROM public.staff_members WHERE id=staff AND status='available' AND current_player_id IS NULL)
