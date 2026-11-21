@@ -108,3 +108,59 @@ BEGIN
  END LOOP;
 END
 $qa$;
+
+-- Consolidated domain fixture: production names and representative FK ordering.
+CREATE TABLE public.staff_members(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),current_player_id uuid REFERENCES public.players(id) ON DELETE SET NULL,status text DEFAULT 'available',updated_at timestamptz DEFAULT now());
+CREATE TABLE public.player_staff_contracts(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,staff_id uuid REFERENCES public.staff_members(id),status text DEFAULT 'active');
+CREATE TABLE public.staff_negotiations(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,accepted_contract_id uuid REFERENCES public.player_staff_contracts(id) ON DELETE SET NULL);
+CREATE TABLE public.staff_negotiation_offers(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,negotiation_id uuid REFERENCES public.staff_negotiations(id) ON DELETE CASCADE);
+CREATE TABLE public.staff_financial_events(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,contract_id uuid REFERENCES public.player_staff_contracts(id) ON DELETE CASCADE);
+CREATE TABLE public.player_training_camp_bookings(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),player_id uuid REFERENCES public.players(id) ON DELETE CASCADE);
+CREATE TABLE public.player_training_camp_days(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,booking_id uuid REFERENCES public.player_training_camp_bookings(id) ON DELETE CASCADE);
+CREATE TABLE public.player_training_camp_staff(booking_id uuid REFERENCES public.player_training_camp_bookings(id) ON DELETE CASCADE,contract_id uuid REFERENCES public.player_staff_contracts(id) ON DELETE RESTRICT);
+CREATE TABLE public.player_sponsor_offers(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),player_id uuid REFERENCES public.players(id) ON DELETE CASCADE);
+CREATE TABLE public.player_sponsor_contracts(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,offer_id uuid REFERENCES public.player_sponsor_offers(id) ON DELETE RESTRICT);
+ALTER TABLE public.player_sponsor_offers ADD COLUMN renewal_previous_contract_id uuid REFERENCES public.player_sponsor_contracts(id) ON DELETE SET NULL;
+CREATE TABLE public.player_sponsor_objectives(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,contract_id uuid REFERENCES public.player_sponsor_contracts(id) ON DELETE CASCADE);
+CREATE TABLE public.player_sponsor_renewal_reservations_v1(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,offer_id uuid REFERENCES public.player_sponsor_offers(id) ON DELETE CASCADE,activated_contract_id uuid REFERENCES public.player_sponsor_contracts(id) ON DELETE SET NULL);
+CREATE TABLE public.player_technical_sponsor_offers(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),player_id uuid REFERENCES public.players(id) ON DELETE CASCADE);
+CREATE TABLE public.player_technical_sponsor_contracts(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,offer_id uuid REFERENCES public.player_technical_sponsor_offers(id) ON DELETE SET NULL);
+CREATE TABLE public.technical_sponsor_equipment_claims(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,contract_id uuid REFERENCES public.player_technical_sponsor_contracts(id) ON DELETE RESTRICT,inventory_id uuid REFERENCES public.player_equipment_inventory(id) ON DELETE RESTRICT);
+CREATE TABLE public.player_equipment_match_setup_accessories(setup_id uuid REFERENCES public.player_equipment_match_setups(id) ON DELETE CASCADE,inventory_id uuid REFERENCES public.player_equipment_inventory(id) ON DELETE CASCADE);
+CREATE TABLE public.private_life_player_assets(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,purchase_transaction_id uuid REFERENCES public.career_finance_transactions(id));
+CREATE TABLE public.private_life_asset_events(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,player_asset_id uuid REFERENCES public.private_life_player_assets(id) ON DELETE CASCADE,finance_transaction_id uuid REFERENCES public.career_finance_transactions(id));
+CREATE TABLE public.private_life_asset_sale_listings(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,player_asset_id uuid REFERENCES public.private_life_player_assets(id) ON DELETE CASCADE,finance_transaction_id uuid REFERENCES public.career_finance_transactions(id));
+CREATE TABLE public.private_life_investment_trades(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,finance_transaction_id uuid REFERENCES public.career_finance_transactions(id));
+CREATE TABLE public.player_private_jet_positions(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,owned_asset_id uuid REFERENCES public.private_life_player_assets(id) ON DELETE CASCADE);
+CREATE TABLE public.career_tax_periods(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,transaction_id uuid REFERENCES public.career_finance_transactions(id) ON DELETE SET NULL);
+CREATE TABLE public.national_association_memberships(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL);
+CREATE TABLE public.national_team_chat_presence(player_id uuid REFERENCES public.players(id) ON DELETE RESTRICT,user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,membership_id uuid REFERENCES public.national_association_memberships(id) ON DELETE CASCADE);
+CREATE TABLE public.national_team_chat_messages(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE);
+CREATE TABLE public.national_captain_candidates(player_id uuid REFERENCES public.players(id) ON DELETE RESTRICT,user_id uuid REFERENCES auth.users(id) ON DELETE RESTRICT);
+CREATE TABLE public.national_captain_terms(player_id uuid REFERENCES public.players(id) ON DELETE RESTRICT,user_id uuid REFERENCES auth.users(id) ON DELETE RESTRICT);
+CREATE TABLE public.national_association_contributions(user_id uuid REFERENCES auth.users(id) ON DELETE RESTRICT,membership_id uuid REFERENCES public.national_association_memberships(id) ON DELETE RESTRICT);
+CREATE TABLE public.national_captain_votes(voter_user_id uuid REFERENCES auth.users(id) ON DELETE RESTRICT);
+CREATE TABLE public.tennis_clubs(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),owner_player_id uuid REFERENCES public.players(id) ON DELETE RESTRICT);
+CREATE TABLE public.tennis_club_requests(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,created_by_player_id uuid REFERENCES public.players(id) ON DELETE CASCADE);
+CREATE TABLE public.tournament_doubles_partner_invitations(inviter_player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,invitee_player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,inviter_user_id uuid,invitee_user_id uuid);
+CREATE TABLE public.player_conversations(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),player_one_id uuid REFERENCES public.players(id) ON DELETE CASCADE,player_two_id uuid REFERENCES public.players(id) ON DELETE CASCADE);
+CREATE TABLE public.player_messages(conversation_id uuid REFERENCES public.player_conversations(id) ON DELETE CASCADE,sender_player_id uuid REFERENCES public.players(id) ON DELETE CASCADE,body text);
+CREATE TABLE public.avatar_replacement_requests(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,player_id uuid REFERENCES public.players(id) ON DELETE CASCADE);
+CREATE TABLE public.avatar_replacement_request_history(request_id uuid REFERENCES public.avatar_replacement_requests(id) ON DELETE CASCADE);
+CREATE TABLE public.tennis_club_chat_messages(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE);
+CREATE TABLE public.tennis_club_chat_read_state_v1(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE);
+CREATE TABLE public.tennis_club_memberships(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE);
+CREATE TABLE public.player_opponent_scouting_tasks(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE);
+CREATE TABLE public.tournament_doubles_partner_listings(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE);
+CREATE TABLE public.player_premium_season_targets(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE);
+CREATE TABLE public.player_premium_tournament_watches(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE);
+CREATE TABLE public.player_match_condition_events(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE);
+CREATE TABLE public.player_doubles_match_condition_events(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE);
+CREATE TABLE public.private_life_investment_positions(player_id uuid REFERENCES public.players(id) ON DELETE CASCADE);
+CREATE TABLE public.referral_activity_days(user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE);
+CREATE TABLE public.birthday_email_outbox(user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE);
+DO $qa$ DECLARE r record; BEGIN
+ FOR r IN SELECT tablename FROM pg_tables WHERE schemaname='public' LOOP
+   EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY',r.tablename);
+ END LOOP;
+END $qa$;

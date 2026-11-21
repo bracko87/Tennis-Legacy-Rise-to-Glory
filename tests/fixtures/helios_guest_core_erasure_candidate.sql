@@ -6,7 +6,7 @@ CREATE FUNCTION control_center_private.helios_candidate_erase_owned_scope(
  target_table regclass, target_key name, target_id uuid
 ) RETURNS void LANGUAGE plpgsql SECURITY INVOKER SET search_path TO 'pg_catalog','pg_temp'
 AS $scope$
-DECLARE fk record; join_sql text; has_child boolean;
+DECLARE fk record; join_sql text; has_child boolean; has_target boolean;
 BEGIN
  IF current_user<>'postgres' OR auth.uid() IS NOT NULL THEN
    RAISE EXCEPTION 'Private server context required' USING errcode='42501';
@@ -14,6 +14,8 @@ BEGIN
  IF NOT EXISTS(SELECT 1 FROM pg_attribute WHERE attrelid=target_table AND attname=target_key
        AND atttypid='uuid'::regtype AND attnum>0 AND NOT attisdropped)
  THEN RAISE EXCEPTION 'Unexpected cleanup scope schema'; END IF;
+ EXECUTE format('SELECT EXISTS(SELECT 1 FROM %s WHERE %I=$1)',target_table,target_key) INTO has_target USING target_id;
+ IF NOT has_target THEN RETURN; END IF;
  -- Lock the exact rows; a concurrent FK insertion must serialize with delete.
  EXECUTE format('SELECT 1 FROM %s WHERE %I=$1 FOR UPDATE',target_table,target_key) USING target_id;
  FOR fk IN SELECT oid,conrelid,conkey,confkey FROM pg_constraint
@@ -41,7 +43,7 @@ CREATE FUNCTION control_center_private.helios_core_guest_erasure_candidate(p_use
 RETURNS void LANGUAGE plpgsql SECURITY INVOKER
 SET search_path TO 'pg_catalog','pg_temp'
 AS $fn$
-DECLARE p uuid; tbl text; key_col name; fk record; has_row boolean; claim text;
+DECLARE p uuid; tbl text; key_col name; fk record; has_row boolean; claim text; child_id uuid; shared record;
 BEGIN
  IF current_user<>'postgres' OR auth.uid() IS NOT NULL THEN
    RAISE EXCEPTION 'Private server context required' USING errcode='42501';
@@ -79,10 +81,74 @@ BEGIN
    OR EXISTS(SELECT 1 FROM public.tournament_entries WHERE player_id=p AND entry_status='active')
    OR EXISTS(SELECT 1 FROM public.tournament_applications WHERE player_id=p AND status IN('applied','accepted_main_draw','accepted_qualification'))
    THEN RAISE EXCEPTION 'Unfinished competition activity'; END IF;
+   -- Shared governance is deliberately not reassigned by a cleanup job.
+   IF EXISTS(SELECT 1 FROM public.tennis_clubs WHERE owner_player_id=p)
+   OR EXISTS(SELECT 1 FROM public.national_captain_terms WHERE player_id=p OR user_id=p_user)
+   OR EXISTS(SELECT 1 FROM public.national_captain_candidates WHERE player_id=p OR user_id=p_user)
+   OR EXISTS(SELECT 1 FROM public.national_association_contributions WHERE user_id=p_user)
+   OR EXISTS(SELECT 1 FROM public.national_captain_votes WHERE voter_user_id=p_user)
+   THEN RAISE EXCEPTION 'Shared governance requires operator review'; END IF;
    -- Detach first: actual player UPDATE hooks can recreate personal rows.
    -- Do not change country/world or official result references.
    UPDATE public.players SET owner_user_id=NULL,first_name='Retired',last_name='Guest',
      image_path=NULL,home_city=NULL,guest_history_erased_at=now() WHERE id=p;
+   -- Clear owned children before deleting their parents; the helper refuses
+   -- any still-referencing child (including a different player's data).
+   FOR child_id IN SELECT id FROM public.player_training_camp_bookings WHERE player_id=p FOR UPDATE LOOP
+     PERFORM control_center_private.helios_candidate_erase_owned_scope('public.player_training_camp_staff'::regclass,'booking_id',child_id);
+   END LOOP;
+   FOR child_id IN SELECT id FROM public.player_equipment_match_setups WHERE player_id=p FOR UPDATE LOOP
+     PERFORM control_center_private.helios_candidate_erase_owned_scope('public.player_equipment_match_setup_accessories'::regclass,'setup_id',child_id);
+   END LOOP;
+   -- Lock staff before removing contracts; do not release anyone under a different career.
+   FOR shared IN SELECT id FROM public.staff_members WHERE current_player_id=p FOR UPDATE LOOP
+     IF EXISTS(SELECT 1 FROM public.player_staff_contracts WHERE staff_id=shared.id AND player_id<>p AND status='active')
+     THEN RAISE EXCEPTION 'Shared staff contract requires review'; END IF;
+     UPDATE public.staff_members SET current_player_id=NULL,status='available',updated_at=now()
+       WHERE id=shared.id AND current_player_id=p;
+   END LOOP;
+   -- Remove guest-authored private messages, not the other player's messages.
+   PERFORM control_center_private.helios_candidate_erase_owned_scope('public.player_messages'::regclass,'sender_player_id',p);
+   FOR child_id IN SELECT id FROM public.player_conversations c WHERE p IN(c.player_one_id,c.player_two_id)
+     AND NOT EXISTS(SELECT 1 FROM public.player_messages m WHERE m.conversation_id=c.id) FOR UPDATE LOOP
+     PERFORM control_center_private.helios_candidate_erase_owned_scope('public.player_conversations'::regclass,'id',child_id);
+   END LOOP;
+   -- Relationship requests may be removed for the departing participant; no
+   -- existing club or other member is deleted.
+   PERFORM control_center_private.helios_candidate_erase_owned_scope('public.tennis_club_requests'::regclass,'player_id',p);
+   PERFORM control_center_private.helios_candidate_erase_owned_scope('public.tennis_club_requests'::regclass,'created_by_player_id',p);
+   PERFORM control_center_private.helios_candidate_erase_owned_scope('public.tournament_doubles_partner_invitations'::regclass,'inviter_player_id',p);
+   PERFORM control_center_private.helios_candidate_erase_owned_scope('public.tournament_doubles_partner_invitations'::regclass,'invitee_player_id',p);
+   -- Break only this guest's sponsor renewal links; other careers still block.
+   UPDATE public.player_sponsor_offers SET renewal_previous_contract_id=NULL
+     WHERE player_id=p AND renewal_previous_contract_id IN(SELECT id FROM public.player_sponsor_contracts WHERE player_id=p);
+   FOREACH tbl IN ARRAY ARRAY['technical_sponsor_equipment_claims',
+ 'player_sponsor_renewal_reservations_v1',
+ 'player_sponsor_objectives',
+ 'player_sponsor_contracts',
+ 'player_sponsor_offers',
+ 'player_technical_sponsor_contracts',
+ 'player_technical_sponsor_offers',
+ 'player_training_camp_days',
+ 'player_training_camp_bookings',
+ 'staff_negotiation_offers',
+ 'staff_negotiations',
+ 'staff_financial_events',
+ 'player_staff_contracts',
+ 'national_team_chat_presence',
+ 'national_team_chat_messages',
+ 'national_association_memberships',
+ 'tennis_club_chat_messages',
+ 'tennis_club_chat_read_state_v1',
+ 'tennis_club_memberships',
+ 'player_opponent_scouting_tasks',
+ 'tournament_doubles_partner_listings',
+ 'player_premium_season_targets',
+ 'player_premium_tournament_watches',
+ 'player_match_condition_events',
+ 'player_doubles_match_condition_events'] LOOP
+     PERFORM control_center_private.helios_candidate_erase_owned_scope(('public.'||tbl)::regclass,'player_id',p);
+   END LOOP;
    FOREACH tbl IN ARRAY ARRAY['tournament_applications',
  'player_tournament_preparation_plans',
  'player_tournament_match_tactics',
@@ -118,13 +184,25 @@ BEGIN
  'player_tutorial_progress',
  'player_location_state',
  'player_avatar_reservations',
+ 'player_private_jet_positions',
+ 'private_life_asset_events',
+ 'private_life_asset_sale_listings',
+ 'private_life_investment_trades',
+ 'private_life_investment_positions',
+ 'private_life_player_assets',
+ 'career_tax_periods',
  'career_finance_transactions',
  'player_career_finance_accounts',
  'new_player_initialization_audit'] LOOP
      PERFORM control_center_private.helios_candidate_erase_owned_scope(('public.'||tbl)::regclass,'player_id',p);
    END LOOP;
  END IF;
- FOREACH tbl IN ARRAY ARRAY['user_notifications',
+ FOR child_id IN SELECT id FROM public.avatar_replacement_requests WHERE user_id=p_user FOR UPDATE LOOP
+   PERFORM control_center_private.helios_candidate_erase_owned_scope('public.avatar_replacement_request_history'::regclass,'request_id',child_id);
+ END LOOP;
+ FOREACH tbl IN ARRAY ARRAY['referral_activity_days',
+ 'birthday_email_outbox',
+ 'avatar_replacement_requests','user_notifications',
  'notification_preferences',
  'user_interface_preferences_v1',
  'user_language_preferences',
@@ -183,15 +261,71 @@ BEGIN
  'player_doubles_ranking_contributions.player_id',
  'player_rankings.player_id',
  'player_doubles_rankings.player_id',
- 'tournament_match_player_stats.player_id'])
+ 'tournament_match_player_stats.player_id','player_conversations.player_one_id','player_conversations.player_two_id'])
      THEN CONTINUE; END IF;
      EXECUTE format('SELECT EXISTS(SELECT 1 FROM %s WHERE %I=$1)',fk.conrelid::regclass,fk.col)
        INTO has_row USING p;
    END IF;
    IF has_row THEN RAISE EXCEPTION 'Unreviewed identity dependency: %.%.%',fk.nspname,fk.relname,fk.col; END IF;
  END LOOP;
+ -- Explicit non-FK identity columns must not silently leak an old account ID.
+ FOR fk IN SELECT n.nspname,r.relname,a.attname AS col
+ FROM pg_attribute a JOIN pg_class r ON r.oid=a.attrelid
+ JOIN pg_namespace n ON n.oid=r.relnamespace
+ WHERE n.nspname IN('public','control_center_private') AND r.relkind IN('r','p')
+   AND a.attnum>0 AND NOT a.attisdropped AND a.atttypid='uuid'::regtype
+   AND a.attname ~ '(user_id|player_id|player[12]_id|owner_id|sender_id|recipient_id)
+ IF NOT FOUND THEN RAISE EXCEPTION 'Auth deletion failed'; END IF;
+END;
+$fn$;
+REVOKE ALL ON FUNCTION control_center_private.helios_core_guest_erasure_candidate(uuid) FROM PUBLIC,anon,authenticated;
+
+   AND NOT EXISTS(SELECT 1 FROM pg_constraint con WHERE con.conrelid=r.oid AND con.contype='f' AND a.attnum=ANY(con.conkey))
+ LOOP
+   IF fk.col ~ '(user_id|owner_id|sender_id|recipient_id)
+ IF NOT FOUND THEN RAISE EXCEPTION 'Auth deletion failed'; END IF;
+END;
+$fn$;
+REVOKE ALL ON FUNCTION control_center_private.helios_core_guest_erasure_candidate(uuid) FROM PUBLIC,anon,authenticated;
+ THEN
+     EXECUTE format('SELECT EXISTS(SELECT 1 FROM %I.%I WHERE %I=$1)',fk.nspname,fk.relname,fk.col) INTO has_row USING p_user;
+   ELSIF p IS NOT NULL THEN
+     -- Some representative CI history columns lack live-schema FKs.
+     IF fk.nspname='public' AND fk.relname='tournament_qualifier_slots' AND fk.col='filled_player_id' THEN CONTINUE; END IF;
+     EXECUTE format('SELECT EXISTS(SELECT 1 FROM %I.%I WHERE %I=$1)',fk.nspname,fk.relname,fk.col) INTO has_row USING p;
+   ELSE CONTINUE; END IF;
+   IF has_row THEN RAISE EXCEPTION 'Unreviewed non-FK identity dependency: %.%.%',fk.nspname,fk.relname,fk.col; END IF;
+ END LOOP;
  DELETE FROM auth.users WHERE id=p_user AND is_anonymous IS TRUE;
  IF NOT FOUND THEN RAISE EXCEPTION 'Auth deletion failed'; END IF;
 END;
 $fn$;
 REVOKE ALL ON FUNCTION control_center_private.helios_core_guest_erasure_candidate(uuid) FROM PUBLIC,anon,authenticated;
+
+-- Bounded private batch candidate. No cron job or production activation.
+-- A single failed account rolls back its own changes and does not stop others.
+CREATE FUNCTION control_center_private.helios_guest_erasure_batch_candidate(p_max integer DEFAULT 20)
+RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path TO 'pg_catalog','pg_temp'
+AS $batch$
+DECLARE g record; erased integer:=0; held integer:=0;
+BEGIN
+ IF current_user<>'postgres' OR auth.uid() IS NOT NULL THEN RAISE EXCEPTION 'Private server context required' USING errcode='42501'; END IF;
+ IF NOT pg_try_advisory_xact_lock(hashtextextended('helios-guest-erasure-batch-v1',0)) THEN
+   RETURN jsonb_build_object('status','busy','erased',0,'held',0);
+ END IF;
+ FOR g IN SELECT t.user_id FROM control_center_private.tennis_guest_trials_v1 t
+   JOIN auth.users u ON u.id=t.user_id
+   WHERE u.is_anonymous AND t.converted_at IS NULL AND t.retired_at IS NOT NULL AND t.expires_at<=now()
+   ORDER BY t.expires_at,t.user_id LIMIT least(greatest(coalesce(p_max,20),1),100)
+   FOR UPDATE OF u SKIP LOCKED
+ LOOP
+   BEGIN
+     PERFORM control_center_private.helios_core_guest_erasure_candidate(g.user_id);
+     erased:=erased+1;
+   EXCEPTION WHEN OTHERS THEN held:=held+1;
+   END;
+ END LOOP;
+ RETURN jsonb_build_object('status','processed','erased',erased,'held',held);
+END;
+$batch$;
+REVOKE ALL ON FUNCTION control_center_private.helios_guest_erasure_batch_candidate(integer) FROM PUBLIC,anon,authenticated;

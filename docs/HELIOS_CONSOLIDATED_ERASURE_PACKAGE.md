@@ -1,0 +1,5 @@
+# Consolidated guest cleanup candidate
+
+One package adds ordered cleanup for private sponsor and staff contracts, camp bookings, assets/investments, ordinary club participation, national chat/memberships, partner invitations and guest-authored messages. Staff attached to the retired player is released only if no other active contract exists. Other participants' messages remain. Child references are checked before deleting parents. The private bounded batch processes retired anonymous accounts independently and rolls each failed account back; it is not scheduled or deployed yet.
+
+Explicit holds remain for real-currency payments, coin records, Storage uploads, shared club ownership and national governance, unknown FK or non-FK references, and unfinished competitions. These cannot safely be destroyed or reassigned automatically without a product/retention rule. This is a candidate tested via disposable fixture; full real-database verification and worker activation are separate release gates. No operator computer setup is needed.

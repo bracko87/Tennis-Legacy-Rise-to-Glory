@@ -8,7 +8,7 @@ DO $qa$
 DECLARE uid uuid:=current_setting('helios.qa_guest')::uuid;
  ph text:=current_setting('helios.qa_phase');
  p uuid; a uuid; b uuid; c uuid; comp uuid; future_comp uuid; m uuid;
- team_guest uuid; team_other uuid; result jsonb;
+ team_guest uuid; team_other uuid; result jsonb; staff uuid; contract uuid; booking uuid; offer uuid; sponsor uuid; asset uuid; fin uuid; conv uuid; club uuid;
 BEGIN
  IF to_regclass('control_center_private.helios_real_auth_ci_marker') IS NULL
  THEN RAISE EXCEPTION 'CI database marker missing'; END IF;
@@ -34,6 +34,22 @@ BEGIN
    INSERT INTO public.site_analytics_daily_sessions(user_id) VALUES(uid);
    INSERT INTO public.site_analytics_daily_visitors(user_id) VALUES(uid);
    INSERT INTO public.player_career_finance_accounts VALUES(p,1234);
+   INSERT INTO public.staff_members(current_player_id,status) VALUES(p,'employed') RETURNING id INTO staff;
+   INSERT INTO public.player_staff_contracts(player_id,staff_id) VALUES(p,staff) RETURNING id INTO contract;
+   INSERT INTO public.player_training_camp_bookings(player_id) VALUES(p) RETURNING id INTO booking;
+   INSERT INTO public.player_training_camp_staff VALUES(booking,contract);
+   INSERT INTO public.player_training_camp_days VALUES(p,booking);
+   INSERT INTO public.player_sponsor_offers(player_id) VALUES(p) RETURNING id INTO offer;
+   INSERT INTO public.player_sponsor_contracts(player_id,offer_id) VALUES(p,offer) RETURNING id INTO sponsor;
+   UPDATE public.player_sponsor_offers SET renewal_previous_contract_id=sponsor WHERE id=offer;
+   INSERT INTO public.player_sponsor_objectives VALUES(p,sponsor);
+   SELECT id INTO fin FROM public.career_finance_transactions WHERE player_id=p LIMIT 1;
+   INSERT INTO public.private_life_player_assets(player_id,purchase_transaction_id) VALUES(p,fin) RETURNING id INTO asset;
+   INSERT INTO public.private_life_asset_events VALUES(p,asset,fin);
+   INSERT INTO public.private_life_asset_sale_listings VALUES(p,asset,fin);
+   SELECT id INTO a FROM public.players WHERE player_type='ai' ORDER BY id LIMIT 1;
+   INSERT INTO public.player_conversations(player_one_id,player_two_id) VALUES(p,a) RETURNING id INTO conv;
+   INSERT INTO public.player_messages VALUES(conv,p,'guest fixture message'),(conv,a,'other player fixture message');
    BEGIN
      UPDATE public.players SET owner_user_id=NULL,moderation_status='rejected',first_name='Retired',
        last_name='Guest',image_path=NULL,home_city=NULL,guest_history_erased_at=now() WHERE id=p;
@@ -113,6 +129,15 @@ BEGIN
      OR NOT EXISTS(SELECT 1 FROM public.player_career_finance_accounts WHERE player_id=p AND balance=1234)
    THEN RAISE EXCEPTION 'Retirement must not silently delete Auth or career records'; END IF;
  ELSIF ph='erase' THEN
+   SELECT staff_id INTO STRICT staff FROM public.player_staff_contracts WHERE player_id=p;
+   SELECT id INTO STRICT conv FROM public.player_conversations WHERE player_one_id=p;
+   BEGIN
+     INSERT INTO public.tennis_clubs(owner_player_id) VALUES(p);
+     PERFORM control_center_private.helios_ci_erase_retired_guest(uid);
+     RAISE EXCEPTION 'Club ownership should be held';
+   EXCEPTION WHEN raise_exception THEN
+     IF SQLERRM <> 'Shared governance requires operator review' THEN RAISE; END IF;
+   END;
    SELECT id INTO a FROM public.players WHERE player_type='ai' ORDER BY id LIMIT 1;
    BEGIN
      INSERT INTO public.player_equipment_loadouts(player_id,racket_inventory_id)
@@ -160,7 +185,17 @@ BEGIN
    IF NOT EXISTS(SELECT 1 FROM auth.users WHERE id=uid)
       OR NOT EXISTS(SELECT 1 FROM public.player_equipment_inventory WHERE player_id=p AND condition=73)
    THEN RAISE EXCEPTION 'Rejected erasure mutated account records'; END IF;
-   PERFORM control_center_private.helios_ci_erase_retired_guest(uid);
+   SELECT control_center_private.helios_guest_erasure_batch_candidate(10) INTO result;
+   IF (result->>'erased')::int IS DISTINCT FROM 1 OR (result->>'held')::int IS DISTINCT FROM 0
+   THEN RAISE EXCEPTION 'Consolidated batch failed: %',result; END IF;
+   IF NOT EXISTS(SELECT 1 FROM public.staff_members WHERE id=staff AND status='available' AND current_player_id IS NULL)
+   OR EXISTS(SELECT 1 FROM public.player_staff_contracts WHERE player_id=p)
+   OR EXISTS(SELECT 1 FROM public.player_training_camp_bookings WHERE player_id=p)
+   OR EXISTS(SELECT 1 FROM public.player_sponsor_contracts WHERE player_id=p)
+   OR EXISTS(SELECT 1 FROM public.private_life_player_assets WHERE player_id=p)
+   OR EXISTS(SELECT 1 FROM public.player_messages WHERE sender_player_id=p)
+   OR NOT EXISTS(SELECT 1 FROM public.player_messages WHERE conversation_id=conv AND body='other player fixture message')
+   THEN RAISE EXCEPTION 'Consolidated domain cleanup failed'; END IF;
    IF EXISTS(SELECT 1 FROM auth.users WHERE id=uid)
       OR EXISTS(SELECT 1 FROM auth.sessions WHERE user_id=uid)
       OR EXISTS(SELECT 1 FROM public.profiles WHERE id=uid)
