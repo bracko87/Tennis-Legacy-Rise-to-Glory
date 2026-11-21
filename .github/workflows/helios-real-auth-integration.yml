@@ -4,6 +4,11 @@ on:
   pull_request:
     paths:
       - 'scripts/prepare-helios-real-auth-ci.mjs'
+      - 'scripts/helios-guest-browser-ci.mjs'
+      - 'tests/browser/helios-guest-harness.tsx'
+      - 'src/auth/AuthContext.tsx'
+      - 'src/pages/auth/TryAsGuest.tsx'
+      - 'src/pages/auth/GuestRegistration.tsx'
       - 'scripts/helios-local-guest-auth-acceptance.mjs'
       - 'tests/fixtures/helios_real_auth*.sql'
       - 'tests/fixtures/helios_guest_deleted_identity_guard_candidate.sql'
@@ -42,6 +47,12 @@ jobs:
           HELIOS_CI_CAREER: '1'
           HELIOS_CI_ERASURE: '1'
         run: npm run test:helios-guest-local
+      - name: Install pinned isolated browser test tool
+        run: |
+          npm install --prefix /tmp/helios-browser-tools --no-audit --no-fund --save-exact playwright@1.56.1
+          /tmp/helios-browser-tools/node_modules/.bin/playwright install --with-deps chromium
+      - name: Exercise real guest frontend in Chromium
+        run: node scripts/helios-guest-browser-ci.mjs
       - name: Stop disposable local containers
         if: always()
         working-directory: .helios-guest-sandbox
