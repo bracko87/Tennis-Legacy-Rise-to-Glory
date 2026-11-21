@@ -40,7 +40,9 @@ const files=[
  ['20261121000007_career.sql',career.slice(startCareer)+fixture('helios_real_auth_career_fixture.sql')],
  ['20261121000008_guest_player.sql',source('20261120142000_helios_h01_guest_player_creation.sql')+'\nCREATE TRIGGER helios_ci_home_city BEFORE INSERT OR UPDATE ON public.players FOR EACH ROW EXECUTE FUNCTION public.validate_player_home_city_v1();\n'],
  ['20261121000009_real_worker.sql',fixture('helios_guest_retirement_doubles_helper.sql')+fixture('helios_guest_retirement_singles_bracket.sql')+fixture('helios_guest_retirement_doubles_bracket.sql')+source('20261120200000_helios_guest_retirement_lock_order.sql')+'\nCREATE TRIGGER advance_tournament_bracket_v1 AFTER UPDATE OF status ON public.tournament_matches FOR EACH ROW EXECUTE FUNCTION public.advance_tournament_bracket_v1();\nCREATE TRIGGER advance_doubles_bracket_v1 AFTER UPDATE OF status ON public.tournament_doubles_matches FOR EACH ROW EXECUTE FUNCTION public.advance_doubles_bracket_v1();\nREVOKE ALL ON FUNCTION control_center_private.retire_expired_tennis_guests_v1(integer) FROM PUBLIC,anon,authenticated;\n'],
- ['20261121000010_enable_local_gate.sql','UPDATE public.registration_control SET guest_test_enabled=true WHERE singleton_id=true;\n'],
+ ['20261121000010_deleted_identity_guard.sql',fixture('helios_guest_deleted_identity_guard_candidate.sql')],
+ ['20261121000011_erasure_prototype.sql',fixture('helios_real_auth_erasure_prototype.sql')],
+ ['20261121000012_enable_local_gate.sql','UPDATE public.registration_control SET guest_test_enabled=true WHERE singleton_id=true;\n'],
 ]
 fs.mkdirSync(migrations,{recursive:true})
 fs.writeFileSync(path.join(target,'supabase','config.toml'),config)
