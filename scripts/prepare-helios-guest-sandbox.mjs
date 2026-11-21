@@ -64,7 +64,18 @@ let config = baseConfig
   .replace(/\b54323\b/g, '54343')
   .replace(/\b54324\b/g, '54344')
   .replace(/\b8000\b/g, '8002')
-config = config.replace('[auth]\n', '[auth]\nenable_anonymous_sign_ins = true\n')
+// Use actual local email confirmation and manual identity linking, matching the
+// production linking flow. The local SMTP service captures all messages.
+config = config.replace('[auth]\n', '[auth]\nenable_anonymous_sign_ins = true\nenable_manual_linking = true\n')
+config = config.replace('additional_redirect_urls = ["http://localhost:8002", "http://127.0.0.1:8002"]',
+  'additional_redirect_urls = ["http://localhost:8002", "http://127.0.0.1:8002", "http://127.0.0.1:8002/guest/register", "http://localhost:8002/guest/register"]')
+if (!config.includes('[auth.email]')) {
+  config += '\n[auth.email]\nenable_confirmations = true\n'
+} else if (!/enable_confirmations\s*=\s*true/.test(config)) {
+  fail('Local acceptance requires email confirmations enabled in config.')
+}
+if (!config.includes('enable_manual_linking = true'))
+  fail('Could not enable LOCAL manual identity linking.')
 if (!config.includes('enable_anonymous_sign_ins = true'))
   fail('Could not enable LOCAL anonymous Auth.')
 const triggerSql = `-- HELIOS LOCAL SANDBOX ONLY; never apply to a remote project.
