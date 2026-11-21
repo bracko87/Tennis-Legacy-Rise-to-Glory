@@ -274,23 +274,12 @@ BEGIN
  JOIN pg_namespace n ON n.oid=r.relnamespace
  WHERE n.nspname IN('public','control_center_private') AND r.relkind IN('r','p')
    AND a.attnum>0 AND NOT a.attisdropped AND a.atttypid='uuid'::regtype
-   AND a.attname ~ '(user_id|player_id|player[12]_id|owner_id|sender_id|recipient_id)
- IF NOT FOUND THEN RAISE EXCEPTION 'Auth deletion failed'; END IF;
-END;
-$fn$;
-REVOKE ALL ON FUNCTION control_center_private.helios_core_guest_erasure_candidate(uuid) FROM PUBLIC,anon,authenticated;
-
+   AND a.attname ~ '(user_id|player_id|player[12]_id|owner_id|sender_id|recipient_id)$'
    AND NOT EXISTS(SELECT 1 FROM pg_constraint con WHERE con.conrelid=r.oid AND con.contype='f' AND a.attnum=ANY(con.conkey))
  LOOP
-   IF fk.col ~ '(user_id|owner_id|sender_id|recipient_id)
- IF NOT FOUND THEN RAISE EXCEPTION 'Auth deletion failed'; END IF;
-END;
-$fn$;
-REVOKE ALL ON FUNCTION control_center_private.helios_core_guest_erasure_candidate(uuid) FROM PUBLIC,anon,authenticated;
- THEN
+   IF fk.col ~ '(user_id|owner_id|sender_id|recipient_id)$' THEN
      EXECUTE format('SELECT EXISTS(SELECT 1 FROM %I.%I WHERE %I=$1)',fk.nspname,fk.relname,fk.col) INTO has_row USING p_user;
    ELSIF p IS NOT NULL THEN
-     -- Some representative CI history columns lack live-schema FKs.
      IF fk.nspname='public' AND fk.relname='tournament_qualifier_slots' AND fk.col='filled_player_id' THEN CONTINUE; END IF;
      EXECUTE format('SELECT EXISTS(SELECT 1 FROM %I.%I WHERE %I=$1)',fk.nspname,fk.relname,fk.col) INTO has_row USING p;
    ELSE CONTINUE; END IF;
