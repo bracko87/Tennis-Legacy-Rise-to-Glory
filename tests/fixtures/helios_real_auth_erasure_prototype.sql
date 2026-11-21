@@ -16,7 +16,11 @@ BEGIN
  FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'Not eligible for erasure' USING errcode='42501'; END IF;
  IF EXISTS(SELECT 1 FROM public.billing_transactions WHERE user_id=p_user)
- OR EXISTS(SELECT 1 FROM public.premium_memberships WHERE user_id=p_user)
+ OR EXISTS(SELECT 1 FROM public.premium_memberships WHERE user_id=p_user
+ AND (plan_code IS DISTINCT FROM 'free' OR status IS DISTINCT FROM 'active'
+ OR monthly_price_eur_cents<>0 OR coalesce(billing_amount_eur_cents,0)<>0
+ OR current_period_end IS NOT NULL OR stripe_customer_id IS NOT NULL
+ OR stripe_subscription_id IS NOT NULL OR stripe_price_id IS NOT NULL))
  THEN RAISE EXCEPTION 'Financial records need separate retention review'; END IF;
  SELECT id INTO STRICT p FROM public.players WHERE owner_user_id=p_user AND player_type='human' AND moderation_status='rejected';
  IF EXISTS(SELECT 1 FROM public.tournament_matches
@@ -30,7 +34,7 @@ BEGIN
  DELETE FROM public.helios_ci_equipment WHERE player_id=p;
  DELETE FROM public.helios_ci_career_finance WHERE player_id=p;
  UPDATE public.players SET owner_user_id=NULL,first_name='Retired',last_name='Guest',
-  image_path=NULL,home_city=NULL WHERE id=p;
+  image_path=NULL,home_city=NULL,guest_history_erased_at=now() WHERE id=p;
  DELETE FROM public.tennis_premium_trials_v1 WHERE user_id=p_user;
  DELETE FROM public.tennis_premium_trial_claims_v1 WHERE email_claim_hash=md5('tennis-guest-premium-v1:'||p_user::text)
  AND NOT EXISTS(SELECT 1 FROM public.tennis_premium_trials_v1 WHERE email_claim_hash=md5('tennis-guest-premium-v1:'||p_user::text));

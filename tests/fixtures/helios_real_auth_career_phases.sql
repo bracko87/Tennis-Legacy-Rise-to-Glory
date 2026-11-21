@@ -21,8 +21,16 @@ BEGIN
  SELECT id INTO STRICT p FROM public.players WHERE owner_user_id=uid AND player_type='human';
  IF ph='seed' THEN
    IF NOT EXISTS(SELECT 1 FROM auth.users WHERE id=uid AND is_anonymous) THEN RAISE EXCEPTION 'Expected synthetic real Auth guest'; END IF;
+   -- Production signup initializes an ordinary free membership row.
+   INSERT INTO public.premium_memberships(user_id) VALUES(uid);
    INSERT INTO public.helios_ci_equipment VALUES(p,73);
    INSERT INTO public.helios_ci_career_finance VALUES(p,1234);
+   BEGIN
+     UPDATE public.players SET owner_user_id=NULL,moderation_status='rejected',first_name='Retired',
+       last_name='Guest',image_path=NULL,home_city=NULL,guest_history_erased_at=now() WHERE id=p;
+     RAISE EXCEPTION 'Active guest history transition was not rejected';
+   EXCEPTION WHEN insufficient_privilege THEN NULL;
+   END;
    BEGIN
      PERFORM control_center_private.helios_ci_erase_retired_guest(uid);
      RAISE EXCEPTION 'Active guest erasure was not rejected';
@@ -94,6 +102,18 @@ BEGIN
      OR NOT EXISTS(SELECT 1 FROM public.helios_ci_career_finance WHERE player_id=p AND balance=1234)
    THEN RAISE EXCEPTION 'Retirement must not silently delete Auth or career records'; END IF;
  ELSIF ph='erase' THEN
+   BEGIN
+     UPDATE public.premium_memberships SET plan_code='premium',monthly_price_eur_cents=999 WHERE user_id=uid;
+     PERFORM control_center_private.helios_ci_erase_retired_guest(uid);
+     RAISE EXCEPTION 'Paid guest membership erasure was not rejected';
+   EXCEPTION WHEN raise_exception THEN
+     IF SQLERRM <> 'Financial records need separate retention review' THEN RAISE; END IF;
+   END;
+   BEGIN
+     UPDATE public.players SET owner_user_id=NULL WHERE id=p;
+     RAISE EXCEPTION 'Unmarked ownerless human was not rejected';
+   EXCEPTION WHEN check_violation THEN NULL;
+   END;
    -- Explicitly prove paid/unfinished records are held, using subtransactions
    -- so that the artificial blocking record is rolled back automatically.
    BEGIN
@@ -117,17 +137,23 @@ BEGIN
    IF EXISTS(SELECT 1 FROM auth.users WHERE id=uid)
       OR EXISTS(SELECT 1 FROM auth.sessions WHERE user_id=uid)
       OR EXISTS(SELECT 1 FROM public.profiles WHERE id=uid)
+      OR EXISTS(SELECT 1 FROM public.premium_memberships WHERE user_id=uid)
       OR EXISTS(SELECT 1 FROM control_center_private.tennis_guest_trials_v1 WHERE user_id=uid)
       OR EXISTS(SELECT 1 FROM public.tennis_premium_trials_v1 WHERE user_id=uid)
       OR EXISTS(SELECT 1 FROM public.helios_ci_equipment WHERE player_id=p)
       OR EXISTS(SELECT 1 FROM public.helios_ci_career_finance WHERE player_id=p)
    THEN RAISE EXCEPTION 'Erased fixture identity or gameplay records remain'; END IF;
    IF NOT EXISTS(SELECT 1 FROM public.players WHERE id=p AND owner_user_id IS NULL
-     AND first_name='Retired' AND last_name='Guest' AND image_path IS NULL AND moderation_status='rejected')
+     AND first_name='Retired' AND last_name='Guest' AND image_path IS NULL AND moderation_status='rejected' AND guest_history_erased_at IS NOT NULL)
      OR NOT EXISTS(SELECT 1 FROM public.tournament_matches WHERE player1_id=p AND match_number=99 AND status='completed' AND winner_id=player2_id)
      OR NOT EXISTS(SELECT 1 FROM public.tournament_matches WHERE player1_id=p AND match_number=1 AND status='walkover' AND winner_id=player2_id)
      OR NOT EXISTS(SELECT 1 FROM public.tournament_doubles_teams t JOIN public.tournament_doubles_matches m ON m.team1_id=t.id WHERE t.player1_id=p AND m.status='walkover' AND m.winner_team_id=m.team2_id)
    THEN RAISE EXCEPTION 'Erasure must preserve pseudonymous competition history'; END IF;
+   BEGIN
+     UPDATE public.players SET guest_history_erased_at=NULL WHERE id=p;
+     RAISE EXCEPTION 'Historical marker removed unexpectedly';
+   EXCEPTION WHEN insufficient_privilege THEN NULL;
+   END;
  ELSIF ph='verify_retired' THEN
    IF NOT EXISTS(SELECT 1 FROM auth.users WHERE id=uid AND is_anonymous)
      OR NOT EXISTS(SELECT 1 FROM control_center_private.tennis_guest_trials_v1 WHERE user_id=uid AND retired_at IS NOT NULL AND converted_at IS NULL)
