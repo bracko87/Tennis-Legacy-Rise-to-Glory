@@ -7,7 +7,7 @@ SELECT set_config('helios.qa_phase', :'phase', true);
 DO $qa$
 DECLARE uid uuid:=current_setting('helios.qa_guest')::uuid;
  ph text:=current_setting('helios.qa_phase');
- p uuid; a uuid; b uuid; c uuid; comp uuid; m uuid;
+ p uuid; a uuid; b uuid; c uuid; comp uuid; future_comp uuid; m uuid;
  team_guest uuid; team_other uuid; result jsonb;
 BEGIN
  IF to_regclass('control_center_private.helios_real_auth_ci_marker') IS NULL
@@ -47,19 +47,36 @@ BEGIN
    VALUES(comp,1,'Semifinal',1,4,1,1,team_guest,team_other,'scheduled');
    INSERT INTO public.tournament_applications(competition_id,player_id,status) VALUES(comp,p,'accepted_main_draw');
    INSERT INTO public.tournament_entries(competition_id,player_id,entry_status) VALUES(comp,p,'active');
+   -- The bracket trigger eliminates a losing player in the current draw.
+   -- Test withdrawal separately using a future entry with no played match.
+   INSERT INTO public.tournament_world_competitions(tournament_edition_id,world)
+    SELECT tournament_edition_id,world FROM public.tournament_world_competitions WHERE id=comp RETURNING id INTO future_comp;
+   INSERT INTO public.tournament_entries(competition_id,player_id,entry_status) VALUES(future_comp,p,'active');
+   INSERT INTO public.tournament_applications(competition_id,player_id,status) VALUES(future_comp,p,'applied');
    UPDATE control_center_private.tennis_guest_trials_v1 SET started_at=now()-interval '15 days',expires_at=now()-interval '1 day' WHERE user_id=uid AND converted_at IS NULL;
    UPDATE public.tennis_premium_trials_v1 SET started_at=now()-interval '15 days',expires_at=now()-interval '8 days' WHERE user_id=uid;
  ELSIF ph='retire' THEN
    SELECT control_center_private.retire_expired_tennis_guests_v1(10) INTO result;
    IF (result->>'retired_guests')::int IS DISTINCT FROM 1 THEN RAISE EXCEPTION 'Expected exactly one retired real-auth guest'; END IF;
    IF NOT EXISTS(SELECT 1 FROM public.tournament_matches WHERE player1_id=p AND match_number=1 AND status='walkover' AND winner_id=player2_id)
-     OR NOT EXISTS(SELECT 1 FROM public.tournament_matches WHERE player1_id=p AND match_number=99 AND status='completed' AND winner_id=player2_id)
-     OR NOT EXISTS(SELECT 1 FROM public.tournament_matches h JOIN public.tournament_matches n ON n.competition_id=h.competition_id AND n.round_number=2 AND (n.player1_id=h.winner_id OR n.player2_id=h.winner_id) WHERE h.player1_id=p AND h.match_number=1)
-     OR NOT EXISTS(SELECT 1 FROM public.tournament_doubles_teams t JOIN public.tournament_doubles_matches m ON m.team1_id=t.id WHERE t.player1_id=p AND t.status='withdrawn' AND m.status='walkover' AND m.winner_team_id=m.team2_id)
-     OR NOT EXISTS(SELECT 1 FROM public.tournament_applications WHERE player_id=p AND status='withdrawn')
-     OR NOT EXISTS(SELECT 1 FROM public.tournament_entries WHERE player_id=p AND entry_status='withdrawn')
-     OR NOT EXISTS(SELECT 1 FROM public.players WHERE id=p AND moderation_status='rejected')
-   THEN RAISE EXCEPTION 'Real Auth guest retirement did not preserve history and resolve scheduled entries'; END IF;
+   THEN RAISE EXCEPTION 'Singles walkover winner incorrect'; END IF;
+   IF NOT EXISTS(SELECT 1 FROM public.tournament_matches WHERE player1_id=p AND match_number=99 AND status='completed' AND winner_id=player2_id)
+   THEN RAISE EXCEPTION 'Completed match history changed'; END IF;
+   IF NOT EXISTS(SELECT 1 FROM public.tournament_matches h JOIN public.tournament_matches n ON n.competition_id=h.competition_id AND n.round_number=2 AND (n.player1_id=h.winner_id OR n.player2_id=h.winner_id) WHERE h.player1_id=p AND h.match_number=1)
+   THEN RAISE EXCEPTION 'Singles bracket advancement missing'; END IF;
+   IF NOT EXISTS(SELECT 1 FROM public.tournament_doubles_teams t JOIN public.tournament_doubles_matches m ON m.team1_id=t.id WHERE t.player1_id=p AND t.status='withdrawn' AND m.status='walkover' AND m.winner_team_id=m.team2_id)
+   THEN RAISE EXCEPTION 'Doubles walkover or team withdrawal incorrect'; END IF;
+   IF (SELECT count(*) FROM public.tournament_applications WHERE player_id=p AND status='withdrawn')<>2
+   THEN RAISE EXCEPTION 'Accepted or future application not withdrawn'; END IF;
+   SELECT competition_id INTO STRICT comp FROM public.tournament_matches WHERE player1_id=p AND match_number=1;
+   IF NOT EXISTS(SELECT 1 FROM public.tournament_entries WHERE player_id=p AND competition_id=comp AND entry_status='eliminated')
+   THEN RAISE EXCEPTION 'Walkover loser must be eliminated in current draw'; END IF;
+   IF NOT EXISTS(SELECT 1 FROM public.tournament_entries WHERE player_id=p AND competition_id<>comp AND entry_status='withdrawn')
+   THEN RAISE EXCEPTION 'Future entry must be withdrawn'; END IF;
+   IF EXISTS(SELECT 1 FROM public.tournament_entries WHERE player_id=p AND entry_status='active')
+   THEN RAISE EXCEPTION 'Retired player has active tournament entry'; END IF;
+   IF NOT EXISTS(SELECT 1 FROM public.players WHERE id=p AND moderation_status='rejected')
+   THEN RAISE EXCEPTION 'Retirement moderation marker missing'; END IF;
    SELECT control_center_private.retire_expired_tennis_guests_v1(10) INTO result;
    IF (result->>'retired_guests')::int IS DISTINCT FROM 0 THEN RAISE EXCEPTION 'Retirement must be idempotent'; END IF;
    IF NOT EXISTS(SELECT 1 FROM auth.users WHERE id=uid AND is_anonymous)
