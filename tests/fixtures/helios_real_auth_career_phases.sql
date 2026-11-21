@@ -23,8 +23,17 @@ BEGIN
    IF NOT EXISTS(SELECT 1 FROM auth.users WHERE id=uid AND is_anonymous) THEN RAISE EXCEPTION 'Expected synthetic real Auth guest'; END IF;
    -- Production signup initializes an ordinary free membership row.
    INSERT INTO public.premium_memberships(user_id) VALUES(uid);
-   INSERT INTO public.helios_ci_equipment VALUES(p,73);
-   INSERT INTO public.helios_ci_career_finance VALUES(p,1234);
+   INSERT INTO public.player_equipment_inventory(player_id,condition) VALUES(p,73);
+   INSERT INTO public.player_equipment_loadouts(player_id,racket_inventory_id)
+     SELECT p,id FROM public.player_equipment_inventory WHERE player_id=p;
+   INSERT INTO public.player_skills VALUES(p);
+   INSERT INTO public.player_location_state VALUES(p);
+   INSERT INTO public.new_player_initialization_audit VALUES(p,uid);
+   INSERT INTO public.career_finance_transactions(player_id,amount) VALUES(p,1234);
+   INSERT INTO public.user_wallets(user_id) VALUES(uid);
+   INSERT INTO public.site_analytics_daily_sessions(user_id) VALUES(uid);
+   INSERT INTO public.site_analytics_daily_visitors(user_id) VALUES(uid);
+   INSERT INTO public.player_career_finance_accounts VALUES(p,1234);
    BEGIN
      UPDATE public.players SET owner_user_id=NULL,moderation_status='rejected',first_name='Retired',
        last_name='Guest',image_path=NULL,home_city=NULL,guest_history_erased_at=now() WHERE id=p;
@@ -39,8 +48,8 @@ BEGIN
  ELSIF ph='verify_converted' THEN
    IF NOT EXISTS(SELECT 1 FROM auth.users WHERE id=uid AND NOT is_anonymous)
       OR NOT EXISTS(SELECT 1 FROM control_center_private.tennis_guest_trials_v1 WHERE user_id=uid AND converted_at IS NOT NULL AND retired_at IS NULL)
-      OR NOT EXISTS(SELECT 1 FROM public.helios_ci_equipment WHERE player_id=p AND condition_percent=73)
-      OR NOT EXISTS(SELECT 1 FROM public.helios_ci_career_finance WHERE player_id=p AND balance=1234)
+      OR NOT EXISTS(SELECT 1 FROM public.player_equipment_inventory WHERE player_id=p AND condition=73)
+      OR NOT EXISTS(SELECT 1 FROM public.player_career_finance_accounts WHERE player_id=p AND balance=1234)
       OR NOT EXISTS(SELECT 1 FROM public.tennis_premium_trials_v1 WHERE user_id=uid AND expires_at=started_at+interval '7 days')
    THEN RAISE EXCEPTION 'Conversion lost original ownership, progress or Premium'; END IF;
    BEGIN
@@ -57,8 +66,10 @@ BEGIN
    VALUES(comp,'main_draw',1,'Semifinal',1,4,1,1,p,a,'scheduled');
    INSERT INTO public.tournament_matches(competition_id,draw_type,round_number,round_label,match_number,bracket_size,scheduled_season_week,scheduled_day,player1_id,player2_id,winner_id,status,started_at,completed_at)
    VALUES(comp,'main_draw',1,'Historical',99,2,1,1,p,b,b,'completed',now()-interval '3 hours',now()-interval '1 hour');
+   INSERT INTO public.player_tournament_results VALUES(p,comp,20),(b,comp,40);
    INSERT INTO public.tournament_doubles_teams(competition_id,world,player1_id,player2_id,status,entry_source,combined_ranking_points_snapshot,entry_strength_snapshot)
    VALUES(comp,'ATP',p,b,'active','human',0,0) RETURNING id INTO team_guest;
+   INSERT INTO public.player_doubles_tournament_results VALUES(p,team_guest,10),(b,team_guest,10);
    INSERT INTO public.tournament_doubles_teams(competition_id,world,player1_id,player2_id,status,entry_source,combined_ranking_points_snapshot,entry_strength_snapshot)
    VALUES(comp,'ATP',a,c,'active','ai',0,0) RETURNING id INTO team_other;
    INSERT INTO public.tournament_doubles_matches(competition_id,round_number,round_label,match_number,bracket_size,scheduled_season_week,scheduled_day,team1_id,team2_id,status)
@@ -98,10 +109,26 @@ BEGIN
    SELECT control_center_private.retire_expired_tennis_guests_v1(10) INTO result;
    IF (result->>'retired_guests')::int IS DISTINCT FROM 0 THEN RAISE EXCEPTION 'Retirement must be idempotent'; END IF;
    IF NOT EXISTS(SELECT 1 FROM auth.users WHERE id=uid AND is_anonymous)
-     OR NOT EXISTS(SELECT 1 FROM public.helios_ci_equipment WHERE player_id=p AND condition_percent=73)
-     OR NOT EXISTS(SELECT 1 FROM public.helios_ci_career_finance WHERE player_id=p AND balance=1234)
+     OR NOT EXISTS(SELECT 1 FROM public.player_equipment_inventory WHERE player_id=p AND condition=73)
+     OR NOT EXISTS(SELECT 1 FROM public.player_career_finance_accounts WHERE player_id=p AND balance=1234)
    THEN RAISE EXCEPTION 'Retirement must not silently delete Auth or career records'; END IF;
  ELSIF ph='erase' THEN
+   SELECT id INTO a FROM public.players WHERE player_type='ai' ORDER BY id LIMIT 1;
+   BEGIN
+     INSERT INTO public.player_equipment_loadouts(player_id,racket_inventory_id)
+       SELECT a,id FROM public.player_equipment_inventory WHERE player_id=p;
+     PERFORM control_center_private.helios_ci_erase_retired_guest(uid);
+     RAISE EXCEPTION 'Shared inventory dependency was not rejected';
+   EXCEPTION WHEN raise_exception THEN
+     IF SQLERRM NOT LIKE 'Shared or unresolved dependent record:%' THEN RAISE; END IF;
+   END;
+   BEGIN
+     INSERT INTO public.helios_ci_unreviewed_dependency VALUES(p);
+     PERFORM control_center_private.helios_ci_erase_retired_guest(uid);
+     RAISE EXCEPTION 'Unknown FK dependency was not rejected';
+   EXCEPTION WHEN raise_exception THEN
+     IF SQLERRM NOT LIKE 'Unreviewed identity dependency:%' THEN RAISE; END IF;
+   END;
    BEGIN
      UPDATE public.premium_memberships SET plan_code='premium',monthly_price_eur_cents=999 WHERE user_id=uid;
      PERFORM control_center_private.helios_ci_erase_retired_guest(uid);
@@ -131,7 +158,7 @@ BEGIN
      IF SQLERRM <> 'Unfinished competition activity' THEN RAISE; END IF;
    END;
    IF NOT EXISTS(SELECT 1 FROM auth.users WHERE id=uid)
-      OR NOT EXISTS(SELECT 1 FROM public.helios_ci_equipment WHERE player_id=p AND condition_percent=73)
+      OR NOT EXISTS(SELECT 1 FROM public.player_equipment_inventory WHERE player_id=p AND condition=73)
    THEN RAISE EXCEPTION 'Rejected erasure mutated account records'; END IF;
    PERFORM control_center_private.helios_ci_erase_retired_guest(uid);
    IF EXISTS(SELECT 1 FROM auth.users WHERE id=uid)
@@ -140,14 +167,24 @@ BEGIN
       OR EXISTS(SELECT 1 FROM public.premium_memberships WHERE user_id=uid)
       OR EXISTS(SELECT 1 FROM control_center_private.tennis_guest_trials_v1 WHERE user_id=uid)
       OR EXISTS(SELECT 1 FROM public.tennis_premium_trials_v1 WHERE user_id=uid)
-      OR EXISTS(SELECT 1 FROM public.helios_ci_equipment WHERE player_id=p)
-      OR EXISTS(SELECT 1 FROM public.helios_ci_career_finance WHERE player_id=p)
+      OR EXISTS(SELECT 1 FROM public.player_equipment_inventory WHERE player_id=p)
+      OR EXISTS(SELECT 1 FROM public.player_career_finance_accounts WHERE player_id=p)
+      OR EXISTS(SELECT 1 FROM public.player_equipment_loadouts WHERE player_id=p)
+      OR EXISTS(SELECT 1 FROM public.player_skills WHERE player_id=p)
+      OR EXISTS(SELECT 1 FROM public.player_location_state WHERE player_id=p)
+      OR EXISTS(SELECT 1 FROM public.new_player_initialization_audit WHERE player_id=p OR user_id=uid)
+      OR EXISTS(SELECT 1 FROM public.career_finance_transactions WHERE player_id=p)
+      OR EXISTS(SELECT 1 FROM public.user_wallets WHERE user_id=uid)
+      OR EXISTS(SELECT 1 FROM public.site_analytics_daily_sessions WHERE user_id=uid)
+      OR EXISTS(SELECT 1 FROM public.site_analytics_daily_visitors WHERE user_id=uid)
    THEN RAISE EXCEPTION 'Erased fixture identity or gameplay records remain'; END IF;
    IF NOT EXISTS(SELECT 1 FROM public.players WHERE id=p AND owner_user_id IS NULL
      AND first_name='Retired' AND last_name='Guest' AND image_path IS NULL AND moderation_status='rejected' AND guest_history_erased_at IS NOT NULL)
      OR NOT EXISTS(SELECT 1 FROM public.tournament_matches WHERE player1_id=p AND match_number=99 AND status='completed' AND winner_id=player2_id)
      OR NOT EXISTS(SELECT 1 FROM public.tournament_matches WHERE player1_id=p AND match_number=1 AND status='walkover' AND winner_id=player2_id)
      OR NOT EXISTS(SELECT 1 FROM public.tournament_doubles_teams t JOIN public.tournament_doubles_matches m ON m.team1_id=t.id WHERE t.player1_id=p AND m.status='walkover' AND m.winner_team_id=m.team2_id)
+     OR NOT EXISTS(SELECT 1 FROM public.player_tournament_results WHERE player_id=p AND ranking_points_earned=20)
+     OR NOT EXISTS(SELECT 1 FROM public.player_doubles_tournament_results WHERE player_id=p AND ranking_points_earned=10)
    THEN RAISE EXCEPTION 'Erasure must preserve pseudonymous competition history'; END IF;
    BEGIN
      UPDATE public.players SET guest_history_erased_at=NULL WHERE id=p;
