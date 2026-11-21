@@ -21,7 +21,10 @@ CREATE TABLE public.billing_transactions(
 );
 CREATE TABLE public.premium_memberships(
  user_id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
- plan_code text, status text, current_period_end timestamptz
+ plan_code text NOT NULL DEFAULT 'free', status text NOT NULL DEFAULT 'active',
+ current_period_end timestamptz, monthly_price_eur_cents integer NOT NULL DEFAULT 0,
+ stripe_customer_id text, stripe_subscription_id text, stripe_price_id text,
+ billing_amount_eur_cents integer
 );
 CREATE TABLE public.tennis_premium_trial_claims_v1(email_claim_hash text PRIMARY KEY);
 CREATE TABLE public.tennis_premium_trials_v1(

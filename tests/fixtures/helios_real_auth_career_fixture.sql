@@ -33,3 +33,9 @@ GRANT EXECUTE ON FUNCTION public.is_app_admin_v1() TO authenticated;
 CREATE FUNCTION public.get_public_google_oauth_status_v1() RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT false $$;
 REVOKE ALL ON FUNCTION public.get_public_google_oauth_status_v1() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_public_google_oauth_status_v1() TO anon,authenticated;
+
+-- Verified production invariant, missing in the older representative fixture.
+ALTER TABLE public.players ADD CONSTRAINT players_owner_by_type_check CHECK (
+ (player_type='human' AND owner_user_id IS NOT NULL)
+ OR (player_type='ai' AND owner_user_id IS NULL)
+);
