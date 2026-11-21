@@ -18,6 +18,7 @@ import { useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { useLocalization } from '../i18n/LocalizationProvider'
 import { supabase } from '../lib/supabase'
+import WelcomePremiumTrial from '../components/premium/WelcomePremiumTrial'
 import {
   TUTORIAL_PHASES,
   TUTORIAL_STEPS,
@@ -96,6 +97,19 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const targetElementRef = useRef<HTMLElement | null>(null)
   const progressLoadedForPlayer = useRef<string | null>(null)
 
+  // Key the acknowledgement state to the current career. A new player starts
+  // blocked before any asynchronous Premium status check can finish.
+  const noticeScope = user?.id && player?.id ? user.id + ':' + player.id : null
+  const [noticeState, setNoticeState] = useState<{ scope: string; blocking: boolean } | null>(null)
+  const premiumNoticeBlocking = !noticeScope || noticeState?.scope !== noticeScope || noticeState.blocking
+  const reportPremiumNotice = useCallback((blocking: boolean) => {
+    if (!noticeScope) return
+    setNoticeState(current => current?.scope === noticeScope && current.blocking === blocking
+      ? current
+      : { scope: noticeScope, blocking })
+  }, [noticeScope])
+  const inGame = location.pathname.startsWith('/game/')
+
   const currentStep = TUTORIAL_STEPS[currentStepIndex] ?? null
   const resources = useMemo(() => getTutorialResources(locale), [locale])
 
@@ -144,10 +158,14 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       return
     }
 
+    // Do not consume the one-time automatic tutorial launch before the notice.
+    if (premiumNoticeBlocking || !inGame) return
     if (progressLoadedForPlayer.current === player.id) return
     progressLoadedForPlayer.current = player.id
 
     let cancelled = false
+    let progressResolved = false
+    const loadingPlayerId = player.id
 
     async function loadProgress() {
       setStatus('loading')
@@ -158,6 +176,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
         .maybeSingle()
 
       if (cancelled) return
+      progressResolved = true
 
       if (error) {
         console.error('Unable to load tutorial progress:', error.message)
@@ -221,8 +240,13 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     }
 
     void loadProgress()
-    return () => { cancelled = true }
-  }, [player?.id, user?.last_sign_in_at])
+    return () => {
+      cancelled = true
+      if (!progressResolved && progressLoadedForPlayer.current === loadingPlayerId) {
+        progressLoadedForPlayer.current = null
+      }
+    }
+  }, [player?.id, user?.last_sign_in_at, premiumNoticeBlocking, inGame])
 
   useEffect(() => {
     if (!player?.id) return
@@ -264,7 +288,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   }, [nextCompetitionId, player?.id])
 
   useEffect(() => {
-    if (status !== 'active' || !currentStep || !location.pathname.startsWith('/game/')) return
+    if (premiumNoticeBlocking || status !== 'active' || !currentStep || !location.pathname.startsWith('/game/')) return
 
     const usesTournament = ['next-tournament', 'next-tournament-doubles', 'tournament-preparation'].includes(currentStep.route)
     if (usesTournament && !tournamentLookupDone) return
@@ -292,10 +316,11 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     resolveRoute,
     status,
     tournamentLookupDone,
+    premiumNoticeBlocking,
   ])
 
   useEffect(() => {
-    if (status !== 'active' || !currentStep || !location.pathname.startsWith('/game/')) {
+    if (premiumNoticeBlocking || status !== 'active' || !currentStep || !location.pathname.startsWith('/game/')) {
       setTargetRect(null)
       setTargetReady(false)
       targetElementRef.current = null
@@ -363,7 +388,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('resize', onResize)
       window.removeEventListener('scroll', onScroll, true)
     }
-  }, [currentStep, location.pathname, location.search, status])
+  }, [currentStep, location.pathname, location.search, status, premiumNoticeBlocking])
 
   const goToStep = useCallback(async (index: number, completed = completedStepIds) => {
     const nextIndex = clamp(index, 0, TUTORIAL_STEPS.length - 1)
@@ -464,8 +489,8 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     status,
   ])
 
-  const tutorialUiVisible = status === 'active' && currentStep && location.pathname.startsWith('/game/')
-  const pausedUiVisible = status === 'paused'
+  const tutorialUiVisible = !premiumNoticeBlocking && status === 'active' && currentStep && inGame
+  const pausedUiVisible = !premiumNoticeBlocking && status === 'paused'
     && Boolean(player?.id)
     && window.sessionStorage.getItem(tutorialSessionKey(player!.id, user?.last_sign_in_at)) === '1'
     && location.pathname.startsWith('/game/')
@@ -473,6 +498,11 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   return (
     <TutorialContext.Provider value={value}>
       {children}
+      {noticeScope && <WelcomePremiumTrial
+        key={noticeScope}
+        visible={inGame}
+        onBlockingChange={reportPremiumNotice}
+      />}
       {tutorialUiVisible && createPortal(
         <TutorialOverlay
           step={currentStep}

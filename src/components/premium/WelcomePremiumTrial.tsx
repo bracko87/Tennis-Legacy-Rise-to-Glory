@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import { Check, Clock3, Crown, Gift, LockKeyhole, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
@@ -10,10 +10,16 @@ import { supabase } from '../../lib/supabase'
  * One-time, persisted across browsers/devices. The server owns both the
  * entitlement and the dismissed flags. Never infer Premium from localStorage.
  */
-export default function WelcomePremiumTrial() {
+export default function WelcomePremiumTrial({
+  visible,
+  onBlockingChange,
+}: {
+  visible: boolean
+  onBlockingChange: (blocking: boolean) => void
+}) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { trial, isPaidPremium, refresh } = useCommerce()
+  const { trial, isPaidPremium, loading, refresh } = useCommerce()
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
@@ -22,7 +28,14 @@ export default function WelcomePremiumTrial() {
     return () => window.clearInterval(timer)
   }, [refresh])
 
-  if (isPaidPremium || (!trial?.show_welcome && !trial?.show_expired)) return null
+  // A single commerce snapshot determines both the dialog and tutorial gate.
+  // Layout effect publishes before the browser paints, including late refreshes.
+  const showNotice = !isPaidPremium && Boolean(trial?.show_welcome || trial?.show_expired)
+  useLayoutEffect(() => {
+    onBlockingChange(loading || showNotice || busy)
+  }, [loading, showNotice, busy, onBlockingChange])
+
+  if (!visible || !showNotice || !trial) return null
   const welcome = trial.show_welcome === true
   const expires = trial.expires_at ? new Date(trial.expires_at) : null
   const expiryText = expires && Number.isFinite(expires.getTime())
@@ -32,16 +45,19 @@ export default function WelcomePremiumTrial() {
   async function dismiss(goToPlans: boolean) {
     if (busy) return
     setBusy(true)
-    const { error } = await supabase.rpc('get_my_tennis_premium_trial_v1', {
-      p_action: welcome ? 'dismiss_welcome' : 'dismiss_expired',
-    })
-    setBusy(false)
-    if (error) {
-      console.error('Could not acknowledge Premium trial notice:', error.message)
-      return
+    try {
+      const { error } = await supabase.rpc('get_my_tennis_premium_trial_v1', {
+        p_action: welcome ? 'dismiss_welcome' : 'dismiss_expired',
+      })
+      if (error) {
+        console.error('Could not acknowledge Premium trial notice:', error.message)
+        return
+      }
+      await refresh()
+      if (goToPlans) navigate('/game/pro-packages')
+    } finally {
+      setBusy(false)
     }
-    await refresh()
-    if (goToPlans) navigate('/game/pro-packages')
   }
 
   return (

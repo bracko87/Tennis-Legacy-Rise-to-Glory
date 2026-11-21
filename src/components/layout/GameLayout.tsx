@@ -12,7 +12,6 @@ import { lockBodyScroll } from '../../lib/bodyScrollLock'
 import { readSidebarCollapsed, saveSidebarCollapsed } from '../../lib/sidebarPreference'
 import { supabase } from '../../lib/supabase'
 import EarnCoinsDialog from '../rewards/EarnCoinsDialog'
-import WelcomePremiumTrial from '../premium/WelcomePremiumTrial'
 import GameFooter from './GameFooter'
 import GameHeader from './GameHeader'
 import GameSidebar from './GameSidebar'
@@ -104,7 +103,6 @@ export default function GameLayout({ title, subtitle, children }: GameLayoutProp
 
         <GameFooter />
         <EarnCoinsDialog open={earnCoinsOpen} onClose={() => setEarnCoinsOpen(false)} />
-        <WelcomePremiumTrial />
         <GuestExpiryNotice />
       </div>
     </div>
