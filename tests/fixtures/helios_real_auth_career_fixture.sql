@@ -99,8 +99,7 @@ CREATE TABLE public.referral_user_devices(user_id uuid REFERENCES auth.users(id)
 CREATE TABLE control_center_private.tennis_active_player_presence_v1(user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE);
 CREATE TABLE public.site_analytics_daily_sessions(visitor_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),user_id uuid);
 CREATE TABLE public.site_analytics_daily_visitors(visitor_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),user_id uuid);
-CREATE SCHEMA IF NOT EXISTS storage;
-CREATE TABLE IF NOT EXISTS storage.objects(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),owner uuid,owner_id text);
+-- Supabase initializes its own protected Storage schema. Never create fake managed tables.
 DO $qa$
 DECLARE t record;
 BEGIN

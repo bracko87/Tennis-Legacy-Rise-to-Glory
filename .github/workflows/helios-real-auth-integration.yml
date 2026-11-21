@@ -13,6 +13,8 @@ on:
       - 'tests/fixtures/helios_real_auth*.sql'
       - 'tests/fixtures/helios_guest_deleted_identity_guard_candidate.sql'
       - 'tests/fixtures/helios_guest_retirement_*.sql'
+      - 'tests/fixtures/helios_guest_core_erasure_candidate.sql'
+      - 'tests/fixtures/helios_guest_history_owner_candidate.sql'
       - '.github/workflows/helios-real-auth-integration.yml'
       - 'supabase/migrations/*helios*guest*.sql'
   workflow_dispatch:
@@ -40,7 +42,7 @@ jobs:
         working-directory: .helios-guest-sandbox
         run: |
           supabase start --help
-          supabase start -x realtime,storage-api,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor >/tmp/helios-start.log 2>&1 || { tail -n 20 /tmp/helios-start.log | sed -E 's/(eyJ[a-zA-Z0-9._-]+|sb_(secret|publishable)_[a-zA-Z0-9_-]+)/[redacted]/g'; exit 1; }
+          supabase start -x realtime,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor >/tmp/helios-start.log 2>&1 || { tail -n 20 /tmp/helios-start.log | sed -E 's/(eyJ[a-zA-Z0-9._-]+|sb_(secret|publishable)_[a-zA-Z0-9_-]+)/[redacted]/g'; exit 1; }
       - name: Exercise actual anonymous Auth, trial and email confirmation
         env:
           HELIOS_CI_LOCAL_CLI: '1'
