@@ -75,10 +75,36 @@ async function main(){
       :execFileSync('npx',['supabase','status','-o','env'],{cwd:sandbox,encoding:'utf8',timeout:30000,stdio:['ignore','pipe','pipe']})
   }catch{throw Error('Local Supabase stack is not running; start the isolated sandbox first')}
   const {origin,key}=parseStatus(result)
+  const ciCareer=process.env.GITHUB_ACTIONS==='true'&&process.env.HELIOS_CI_CAREER==='1'
+  function localSql(phase,uid='00000000-0000-0000-0000-000000000000'){
+    if(!ciCareer||!/^[0-9a-f-]{36}$/i.test(uid)||!['gate_off','gate_on','seed','verify_converted','expire','retire','verify_retired'].includes(phase))throw Error('CI-only fixture mutation rejected')
+    const script=readFileSync(resolve(root,'tests/fixtures/helios_real_auth_career_phases.sql'),'utf8')
+    try{execFileSync('docker',['exec','-i','supabase_db_tennis_helios_guest_sandbox','psql','-X','-w','-U','postgres','-d','postgres','-v','ON_ERROR_STOP=1','-v','guest_id='+uid,'-v','phase='+phase],{input:script,encoding:'utf8',timeout:60000,stdio:['pipe','pipe','pipe']})}
+    catch(e){throw Error('Career fixture phase '+phase+' failed: '+String(e.stderr||'').slice(-1000))}
+  }
+  async function createCareer(client,uid){
+    const values={owner_user_id:uid,first_name:'Synthetic',last_name:'Guest',country_code:'DE',world:'ATP',image_path:'fixtures/avatar.webp',player_type:'human',home_city:null}
+    const created=await client.from('players').insert(values).select('id,owner_user_id,home_city').single()
+    if(created.error)throw Error('Guest player creation failed: '+created.error.code)
+    assert.equal(created.data.owner_user_id,uid)
+    assert.equal(created.data.home_city,null)
+    const duplicate=await client.from('players').insert(values)
+    assert.equal(duplicate.error?.code,'23505','Duplicate owned guest player must be rejected')
+    localSql('seed',uid)
+    return created.data.id
+  }
   const client=createClient(origin,key,{
     auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},
     global:{fetch:restrictedFetch}
   })
+  if(ciCareer){
+    localSql('gate_off')
+    assert.equal(await rpc(client,'get_public_tennis_guest_test_status_v1'),false)
+    const denied=await client.auth.signInAnonymously()
+    assert.ok(denied.error,'Disabled gate must reject actual Auth signup')
+    localSql('gate_on')
+    console.log('PASS actual Auth signup denied when guest gate is disabled')
+  }
   assert.equal(await rpc(client,'get_public_tennis_guest_test_status_v1'),true,'Local guest switch must be enabled')
   const unauthEnrol=await client.rpc('enroll_my_tennis_guest_trial_v1')
   assert.ok(unauthEnrol.error,'Signed-out enrollment must fail')
@@ -108,10 +134,13 @@ async function main(){
   if(user.error)throw Error('Local session retrieval failed')
   assert.equal(user.data.user.id,id)
   console.log('PASS real 14-day guest, 7-day Premium, unchanged repeated enrollment and same Auth identity')
+  const careerId=ciCareer?await createCareer(client,id):null
+  if(ciCareer)console.log('PASS actual owned guest player with null city and duplicate prevention')
   const email='helios-qa-'+randomUUID()+'@example.com'
   const update=await client.auth.updateUser({email},{emailRedirectTo:'http://127.0.0.1:8002/guest/register'})
   if(update.error)throw Error('Local email-link request failed: '+(update.error.code||'unknown'))
   assert.equal(update.data.user.id,id,'Email link request replaced Auth identity')
+  async function getVerification(email){
   // Retrieve only the message addressed to the unique synthetic email from
   // the LOCAL Mailpit API. Never follow an arbitrary URL or log the token.
   const mailBase='http://127.0.0.1:54344'
@@ -141,7 +170,9 @@ async function main(){
     if(!verification)await new Promise(r=>setTimeout(r,1000))
   }
   if(!verification)throw Error('No local email-change confirmation link received in Mailpit')
-  const verified=await client.auth.verifyOtp({token_hash:verification,type:'email_change'})
+  return verification
+  }
+  const verified=await client.auth.verifyOtp({token_hash:await getVerification(email),type:'email_change'})
   if(verified.error)throw Error('Local email verification failed: '+(verified.error.code||'unknown'))
   const linked=await client.auth.getUser()
   if(linked.error)throw Error('Local verified identity unavailable')
@@ -168,9 +199,51 @@ async function main(){
   if(login.error)throw Error('Local permanent account sign-in failed: '+(login.error.code||'unknown'))
   assert.equal(login.data.user.id,id,'Permanent sign-in must retain original Auth ID')
   assert.equal(login.data.user.is_anonymous,false)
+  if(ciCareer){
+    const kept=await client.from('players').select('id,owner_user_id').single()
+    if(kept.error)throw Error('Converted career is not readable')
+    assert.equal(kept.data.id,careerId)
+    assert.equal(kept.data.owner_user_id,id)
+    localSql('verify_converted',id)
+    console.log('PASS real Auth conversion retains player ID, synthetic finance/equipment and original Premium')
+  }
   await client.auth.signOut({scope:'local'})
   console.log('PASS confirmed local email conversion, password setup, permanent sign-in and no second trial.')
-  console.log('LIMIT: This is a real Auth/RPC integration test, not browser UI, full gameplay, expiry retirement or physical data erasure verification.')
+  if(ciCareer){
+    const next=await client.auth.signInAnonymously()
+    if(next.error)throw Error('Second real anonymous signup failed: '+next.error.code)
+    const expiredId=next.data.user.id
+    assert.notEqual(expiredId,id)
+    await rpc(client,'enroll_my_tennis_guest_trial_v1')
+    await createCareer(client,expiredId)
+    localSql('expire',expiredId)
+    const expired=await rpc(client,'get_my_tennis_guest_trial_v1')
+    assert.equal(expired.state,'expired')
+    assert.equal(expired.can_play,false)
+    const denied=await client.rpc('assert_my_tennis_guest_access_v1')
+    assert.ok(denied.error,'Expired JWT must not authorize gameplay')
+    const repeat=await rpc(client,'enroll_my_tennis_guest_trial_v1')
+    assert.equal(repeat.state,'expired')
+    assert.equal(repeat.premium_trial_active,false)
+    assert.equal(Date.parse(repeat.expires_at),Date.parse(expired.expires_at))
+    localSql('retire',expiredId)
+    const retired=await rpc(client,'get_my_tennis_guest_trial_v1')
+    assert.equal(retired.state,'retired')
+    assert.equal(retired.can_convert,false)
+    const status=await rpc(client,'get_my_tennis_guest_conversion_status_v1')
+    assert.equal(status.retired,true)
+    assert.equal(status.can_convert,false)
+    const address='helios-retired-'+randomUUID()+'@example.com'
+    const request=await client.auth.updateUser({email:address},{emailRedirectTo:'http://127.0.0.1:8002/guest/register'})
+    if(!request.error){
+      const attempt=await client.auth.verifyOtp({token_hash:await getVerification(address),type:'email_change'})
+      assert.ok(attempt.error,'Retired identity must not convert using real Auth')
+    }
+    localSql('verify_retired',expiredId)
+    await client.auth.signOut({scope:'local'})
+    console.log('PASS real expired JWT blocked, no renewed trial, retirement/withdrawal/singles doubles walkovers and history preserved, retired Auth conversion rejected')
+  }
+  console.log('LIMIT: real Auth and representative career/tournament fixture, not browser UI, complete production schema or physical data erasure verification.')
   console.log('The synthetic account stays in the disposable local stack; no deletion is attempted.')
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))
