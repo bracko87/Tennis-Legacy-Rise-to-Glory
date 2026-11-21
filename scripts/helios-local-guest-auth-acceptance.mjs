@@ -1,6 +1,6 @@
 // Real Auth + PostgREST acceptance test. Requires the restored LOCAL Helios stack.
-// No live database connection, no service-role token, no hard deletion.
-// The test creates one synthetic account in the local sandbox.
+// No production database connection or service-role token.
+// CI-only marker-gated erasure tests delete synthetic local accounts only.
 import assert from 'node:assert/strict'
 import {readFileSync,existsSync} from 'node:fs'
 import {resolve,dirname} from 'node:path'
@@ -259,7 +259,7 @@ async function main(){
     console.log('PASS real expired JWT blocked, no renewed trial, retirement/withdrawal/singles doubles walkovers and history preserved, retired Auth conversion rejected')
   }
   console.log('LIMIT: real Auth and representative career/tournament fixture, not browser UI, complete production schema or production-wide data erasure verification.')
-  console.log('The synthetic account stays in the disposable local stack; no deletion is attempted.')
+  console.log('All test identities and any retained history are confined to the disposable local stack.')
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))
  main().catch(e=>{console.error('FAIL Helios real local Auth: '+e.message);process.exitCode=1})
