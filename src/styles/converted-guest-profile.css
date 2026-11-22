@@ -41,7 +41,8 @@
   background: #0b6fc8;
   color: white;
   padding: 0 15px;
-  font-size: .75rem;
+  font-size: .68rem;
+  font-family: inherit;
   font-weight: 700;
   cursor: pointer;
 }
@@ -50,15 +51,16 @@
 .tlg-converted-profile-actions button:disabled,
 .tlg-converted-fields button:disabled { opacity: .5; cursor: not-allowed; }
 .tlg-converted-profile-modal small { display: block; color: #60798a; }
-.tlg-converted-fields { padding: 18px 22px 22px; display: grid; gap: 18px; }
-.tlg-converted-fields > p { font-size: .78rem; color: #506c7f; margin: 0; }
-.tlg-converted-fields fieldset { border: 1px solid #dfebf2; border-radius: 9px; padding: 15px; min-width: 0; }
-.tlg-converted-fields legend { font-size: .8rem; font-weight: 700; color: #153c56; padding: 0 7px; }
+.tlg-converted-fields { padding: 18px 22px 22px; display: grid; gap: 12px; color: #203d54; font-family: inherit; font-size: .69rem; }
+.tlg-converted-fields > p { font-size: .69rem; color: #506c7f; margin: 0; }
+.tlg-converted-fields fieldset { border: 1px solid #dfebf2; border-radius: 9px; padding: 12px 14px; min-width: 0; }
+.tlg-converted-fields legend { font-size: .68rem; font-weight: 700; color: #153c56; padding: 0 7px; }
 .tlg-converted-fields .field-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
-.tlg-converted-fields label { min-width: 130px; display: grid; gap: 6px; font-size: .72rem; font-weight: 700; }
+.tlg-converted-fields .field-row > p { flex-basis: 100%; margin: 0; }
+.tlg-converted-fields label { min-width: 130px; display: grid; gap: 6px; font-size: .68rem; font-weight: 700; }
 .tlg-converted-fields input,
-.tlg-converted-fields select { min-height: 40px; min-width: 0; max-width: 100%; border: 1px solid #cbdce6; border-radius: 6px; padding: 0 10px; font: inherit; font-size: .8rem; background: white; color: #193a51; }
-.tlg-converted-fields p { color: #566f7e; line-height: 1.6; margin: 5px 0; }
+.tlg-converted-fields select { min-height: 40px; min-width: 0; max-width: 100%; border: 1px solid #cbdce6; border-radius: 6px; padding: 0 10px; font-family: inherit; font-size: .73rem; background: white; color: #193a51; }
+.tlg-converted-fields p { color: #566f7e; font-size: .69rem; line-height: 1.55; margin: 5px 0; }
 .tlg-converted-fields .field-error { color: #a32222; }
 .tlg-converted-fields .field-status { color: #16643d; }
 .tlg-converted-fields .field-row button { flex: 0 0 auto; }
@@ -67,3 +69,11 @@
   .tlg-converted-fields .field-row { align-items: stretch; }
   .tlg-converted-fields .field-row label { width: 100%; }
 }
+
+/* Keep account completion typography aligned with the existing Player & Account page. */
+.tlg-account-page .tlg-converted-fields,
+.tlg-account-page .tlg-converted-fields * { font-family: inherit; }
+.tlg-converted-complete-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 8px 0; }
+.tlg-converted-complete-row strong { font-size: .76rem; color: #203d54; }
+.tlg-converted-complete-row p { font-size: .69rem; }
+@media (max-width: 600px) { .tlg-converted-fields { padding: 14px; } .tlg-converted-complete-row button { width: 100%; } }
