@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router'
-import { ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react'
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
+import { ArrowRight, CheckCircle2, MailCheck, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import { supabase } from '../../lib/supabase'
 import useGoogleSignInAvailability from '../../hooks/useGoogleSignInAvailability'
@@ -22,6 +22,7 @@ type ConversionStatus = {
 export default function GuestRegistrationPage() {
   const { user, player, authLoading, signOut } = useAuth()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const googleAvailable = useGoogleSignInAvailability()
   const [status, setStatus] = useState<ConversionStatus | null>(null)
   const [email, setEmail] = useState('')
@@ -30,6 +31,8 @@ export default function GuestRegistrationPage() {
   const [loading, setLoading] = useState(false)
   const [checking, setChecking] = useState(true)
   const [notice, setNotice] = useState<string | null>(null)
+  const [pendingEmail, setPendingEmail] = useState('')
+  const [registeredNow, setRegisteredNow] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
@@ -43,16 +46,52 @@ export default function GuestRegistrationPage() {
       const { data, error: rpcError } = await supabase.rpc('get_my_tennis_guest_conversion_status_v1')
       if (rpcError || !data) throw rpcError ?? new Error('Conversion status unavailable')
       setStatus(data as ConversionStatus)
-      setError(null)
+      return data as ConversionStatus
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Cannot verify your guest session')
       setStatus(null)
+      return null
     } finally {
       setChecking(false)
     }
   }, [user?.id])
 
   useEffect(() => { void refresh() }, [refresh])
+
+  // OAuth errors return in URL query parameters; explain them instead of silently
+  // dropping the player back onto the email-entry form.
+  useEffect(() => {
+    const code = searchParams.get('error_code') || searchParams.get('error')
+    const description = searchParams.get('error_description') || ''
+    if (!code && !description) return
+    if (/identity_already_exists|already.linked|identity.*another/i.test(code + ' ' + description)) {
+      setError('This Google account is already linked to another Tennis Legacy account. Your guest player was not transferred. Choose a different Google account or an unused email address.')
+    } else {
+      setError(description.replace(/\+/g, ' ') || 'The verification link could not be completed. Refresh your account status or request a new email.')
+    }
+    setSearchParams(previous => {
+      const next = new URLSearchParams(previous)
+      for (const key of ['error', 'error_code', 'error_description']) next.delete(key)
+      return next
+    }, { replace: true })
+  }, [searchParams, setSearchParams])
+
+  // Auth callbacks may return with updated identity in the same tab.
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(event => {
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+        window.setTimeout(() => { void refresh() }, 0)
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [refresh])
+
+  useEffect(() => {
+    if (!registeredNow) return
+    const timer = window.setTimeout(() => navigate(player ? '/game/overview' : '/create-player', { replace: true }), 2500)
+    return () => window.clearTimeout(timer)
+  }, [registeredNow, navigate, player?.id])
+
 
   async function requestEmail(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
