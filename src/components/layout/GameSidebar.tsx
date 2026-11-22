@@ -104,6 +104,7 @@ export default function GameSidebar({
     return location.pathname.replace('/game/', '').replaceAll('-', ' ') || 'Game'
   })()
   async function handleSignOut() {
+    if (user?.is_anonymous) return
     try {
       await signOut()
     } finally {
@@ -247,7 +248,9 @@ export default function GameSidebar({
             type="button"
             className="tlg-v4-signout-button"
             onClick={() => void handleSignOut()}
-            title={t('nav.signOut')}
+            disabled={user?.is_anonymous === true}
+            style={user?.is_anonymous ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+            title={user?.is_anonymous ? 'Logout disabled during guest trial. Close your browser or register to keep your player.' : t('nav.signOut')}
           >
             <LogOut size={16} />
             {!collapseNav && <span>{t('nav.signOut')}</span>}
