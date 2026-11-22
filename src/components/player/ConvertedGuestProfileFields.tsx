@@ -42,6 +42,13 @@ export default function ConvertedGuestProfileFields() {
   useEffect(() => { void reload() }, [reload])
 
   useEffect(() => {
+    if (status?.eligible && window.location.hash === '#profile-completion') {
+      document.getElementById('profile-completion')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [status?.eligible])
+
+
+  useEffect(() => {
     if (!status?.eligible || !player?.country_code) { setCities([]); return }
     let active = true
     void supabase.rpc('get_player_home_city_options_v1', { p_country_code: player.country_code })
