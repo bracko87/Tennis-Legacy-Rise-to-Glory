@@ -12,6 +12,11 @@ export const manualCoreChaptersSr: ManualChapter[] = [
         'Tennis Legacy: Rise to Glory je trajna menadžerska igra profesionalne teniske karijere. Upravljaš jednim ljudskim igračem u ATP ili WTA svetu, planiraš razvoj, prijavljuješ turnire, upravljaš putovanjima i opremom, gradiš stručni tim, vodiš finansije i reaguješ na zdravlje, rang-listu i kalendarske obaveze kroz više sezona igre.',
         'ATP i WTA su odvojeni takmičarski svetovi za singl i dubl rang-liste. Društveni sistemi, kao što su Teniski klubovi, mogu imati članove sa oba tura, dok prijave, rang-lista i rezultati ostaju vezani za tur konkretnog igrača.',
       ]}),
+      s('Igra kao gost ili registracija', { paragraphs: [
+        'Na početnoj stranici izaberi Try as Guest da kreiraš privremenu karijeru bez registracije adrese e-pošte. Probni period traje 14 stvarnih dana, nezavisno od vremena u igri. Vrati se preko Continue as Guest u istom pregledaču.',
+        'Da zadržiš igrača, registruj se pre isteka roka iz postojeće gostujuće sesije. Nemoj kreirati poseban nalog. Odjava, brisanje podataka pregledača ili promena pregledača mogu trajno prekinuti pristup neregistrovanoj gostujućoj karijeri.',
+        'Po isteku gost gubi pristup i igrač se uklanja iz aktivnog takmičenja. Automatsko brisanje sledi kada je moguće sačuvati podatke drugih igrača. Gosti počinju sa nula Coina i ne mogu kupovati pravim novcem. Besplatan Premium probni period za naloge koji ispunjavaju uslove traje sedam stvarnih dana i odvojen je od gostujućeg roka od 14 dana.',
+      ], links: [{ label: 'Registruj se i sačuvaj gostujuću karijeru', href: '/guest/register' }] }),
       s('Preporučen redosled u prvoj sesiji', { steps: [
         'Otvori Pregled i proveri trenutni datum igre, rang, spremnost, Career Cash, sledeću obavezu i lična obaveštenja.',
         'Otvori Veštine da razumeš tehnički, fizički i trenutni profil spremnosti igrača.',
@@ -54,7 +59,7 @@ export const manualCoreChaptersSr: ManualChapter[] = [
       s('Tačan početni paket', { table: {
         headers: ['Sistem', 'Početno stanje'],
         rows: [
-          ['Career Cash', '$25.000 USD'], ['Coini', '20 Coina, dodeljuju se jednom'], ['Poeni singl rang-liste', '0'],
+          ['Career Cash', '$25.000 USD'], ['Coini', '20 Coina jednom za trajne naloge koji ispunjavaju uslove; 0 za goste'], ['Poeni singl rang-liste', '0'],
           ['Poeni dubl rang-liste', '0'], ['Redovni trening', 'Nije podešen'], ['Stručni tim', 'Nema'],
           ['Glavni sponzor', 'Nema'], ['Tehnički sponzori', 'Nema'], ['Nacionalni savez', 'Nije član'],
           ['Teniski klub', 'Nije član'], ['Kalendarske obaveze', 'Nema'], ['Umor', '0'], ['Oštrina', '50'],
@@ -68,7 +73,7 @@ export const manualCoreChaptersSr: ManualChapter[] = [
         ],
       }}),
       s('Jednokratna inicijalizacija', { paragraphs: [
-        'Inicijalizacija karijere je idempotentna. Osvežavanje, ponovni pokušaj ili ponovno otvaranje igre ne sme da duplira početnih $25.000, 20 Coina, početnu opremu ili Premium apartman. Audit inicijalizacije beleži primenjenu verziju početne šeme.',
+        'Inicijalizacija karijere je idempotentna. Osvežavanje, ponovni pokušaj ili ponovno otvaranje igre ne sme da duplira početnih $25.000, 20 Coina za trajne naloge koji ispunjavaju uslove, početnu opremu ili Premium apartman. Audit inicijalizacije beleži primenjenu verziju početne šeme.',
       ]}),
       s('Restart ili brisanje naloga', { paragraphs: [
         'Igrač i nalog sadrži destruktivne opcije za restart i trajno brisanje. Koristi ih samo ako zaista želiš da ukloniš trenutno stanje karijere. Početni Coini su zaštićeni od dupliranja prostim osvežavanjem ili ponovnim pokušajem.',
