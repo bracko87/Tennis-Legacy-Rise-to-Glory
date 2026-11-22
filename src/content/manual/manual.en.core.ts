@@ -12,6 +12,11 @@ export const manualCoreChapters: ManualChapter[] = [
         'Tennis Legacy: Rise to Glory is a persistent professional tennis career-management game. You control one human player in either the ATP or WTA world, plan development, enter tournaments, manage travel and equipment, build a staff team, handle finances, and react to health, ranking and calendar pressure over multiple game seasons.',
         'ATP and WTA are separate competitive worlds for singles and doubles rankings. Social systems such as Tennis Clubs can include members from both tours, while tournament entry, ranking and results remain tied to the player\'s own tour.',
       ]}),
+      s('Try as Guest or register', { paragraphs: [
+        'Choose Try as Guest on the homepage to create a temporary career without registering an email address. The trial lasts 14 real days, regardless of the game clock. Return through Continue as Guest in the same browser.',
+        'To keep your player, use Register to keep your player before the deadline. Complete registration from your existing guest session; do not start a separate account. Signing out, clearing browser data or changing browsers can permanently interrupt access to an unregistered guest career.',
+        'After expiry the guest loses access and is removed from active competition; automatic deletion follows when it can safely preserve other players’ records. Guest accounts start with zero Coins and cannot make real-money purchases. Eligible free Premium trials last seven real days; they are separate from the 14-day guest deadline.',
+      ], links: [{ label: 'Register to keep your guest career', href: '/guest/register' }] }),
       s('Recommended first-session order', { steps: [
         'Open Overview and check the current game date, ranking, readiness, Career Cash, next commitment and personal notifications.',
         'Open Skills to understand the player\'s technical, physical and readiness profile.',
@@ -54,7 +59,7 @@ export const manualCoreChapters: ManualChapter[] = [
       s('Exact Day-1 package', { table: {
         headers: ['System', 'Starting state'],
         rows: [
-          ['Career Cash', '$25,000 USD'], ['Coins', '20 Coins, granted once'], ['Singles ranking points', '0'],
+          ['Career Cash', '$25,000 USD'], ['Coins', '20 Coins for eligible permanent accounts, granted once; 0 for guests'], ['Singles ranking points', '0'],
           ['Doubles ranking points', '0'], ['Regular training', 'Not configured'], ['Staff', 'None'],
           ['Main sponsor', 'None'], ['Technical sponsors', 'None'], ['National Association', 'Not joined'],
           ['Tennis Club', 'Not joined'], ['Calendar commitments', 'None'], ['Fatigue', '0'], ['Sharpness', '50'],
@@ -68,7 +73,7 @@ export const manualCoreChapters: ManualChapter[] = [
         ],
       }}),
       s('One-time initialization', { paragraphs: [
-        'Career initialization is idempotent. Refreshing, retrying or re-opening the game must not duplicate the $25,000 opening balance, the 20-Coin grant, starter gear or a Premium starter apartment. The initialization audit records the applied scheme version.',
+        'Career initialization is idempotent. Refreshing, retrying or re-opening the game must not duplicate the $25,000 opening balance, the eligible permanent-account 20-Coin grant, starter gear or a Premium starter apartment. The initialization audit records the applied scheme version.',
       ]}),
       s('Restarting or deleting an account', { paragraphs: [
         'Player & Account contains destructive restart and permanent deletion actions. Use them only when you intend to remove the current career state. Starting Coins are protected against simple retry/refresh duplication and are not intended as a repeatable farming method.',
