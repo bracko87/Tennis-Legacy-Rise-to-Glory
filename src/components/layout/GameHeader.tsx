@@ -111,6 +111,7 @@ export default function GameHeader({
   }
 
   async function handleLogout() {
+    if (user?.is_anonymous) return
     setSettingsOpen(false)
     await signOut()
     navigate('/', { replace: true })
@@ -247,8 +248,8 @@ export default function GameHeader({
                 <span><strong>{t('header.inviteFriends')}</strong><small>{t('header.inviteFriendsDesc')}</small></span>
               </button>
 
-              <button type="button" className="tlg-v4-settings-row" onClick={handleLogout}>
-                <span><strong>{t('header.logout')}</strong><small>{t('header.logoutDesc')}</small></span>
+              <button type="button" className="tlg-v4-settings-row" onClick={handleLogout} disabled={user?.is_anonymous === true} title={user?.is_anonymous ? "Close your browser instead, or register to keep your guest player." : undefined} style={user?.is_anonymous ? { opacity: 0.5, cursor: "not-allowed" } : undefined}>
+                <span><strong>{t('header.logout')}</strong><small>{user?.is_anonymous ? 'Disabled during guest trial. Register to enable logout.' : t('header.logoutDesc')}</small></span>
               </button>
             </div>
           )}
