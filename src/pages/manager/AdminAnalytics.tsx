@@ -127,6 +127,12 @@ interface AnalyticsDashboard {
     landing_visitors: number
     registration_opened_visitors: number
     registration_completed_accounts: number
+    guest_opened_visitors?: number
+    direct_registration_accounts?: number
+    guest_started_accounts?: number
+    guest_converted_accounts?: number
+    active_guest_accounts?: number
+    guest_player_created_accounts?: number
     player_created_accounts: number
     returned_registered_accounts: number
     data_note: string
@@ -565,7 +571,7 @@ export default function AdminAnalyticsPage() {
 
         {dashboard?.linked_funnel && (
           <section className="tlg-admin-analytics-panel" aria-label="Linked onboarding journey">
-            <h2 style={{ marginBottom: 8 }}>Browser-linked registration journey</h2>
+            <h2 style={{ marginBottom: 8 }}>Browser-linked direct registration journey</h2>
             <div className="tlg-admin-analytics-summary">
               {([
                 ['Homepage browsers', dashboard.linked_funnel.homepage_browser_ids],
@@ -593,13 +599,19 @@ export default function AdminAnalyticsPage() {
               {([
                 ['Homepage visitors', dashboard.onboarding.landing_visitors],
                 ['Registration opened', dashboard.onboarding.registration_opened_visitors],
-                ['Accounts created', dashboard.onboarding.registration_completed_accounts],
-                ['Tennis players created', dashboard.onboarding.player_created_accounts],
+                ['Permanent registrations', dashboard.onboarding.registration_completed_accounts],
+                ['Direct registrations', dashboard.onboarding.direct_registration_accounts],
+                ['Guest mode opened', dashboard.onboarding.guest_opened_visitors],
+                ['Guest trials started', dashboard.onboarding.guest_started_accounts],
+                ['Guest conversions', dashboard.onboarding.guest_converted_accounts],
+                ['Current active guests', dashboard.onboarding.active_guest_accounts],
+                ['Permanent accounts with careers created in period', dashboard.onboarding.player_created_accounts],
+                ['Careers created while a guest', dashboard.onboarding.guest_player_created_accounts],
                 ['Returned after 24h', dashboard.onboarding.returned_registered_accounts],
               ] as const).map(([label, value]) => (
                 <article key={label}>
                   <UserPlus size={18} />
-                  <div><span>{label}</span><strong>{wholeNumber.format(asNumber(value))}</strong></div>
+                  <div><span>{label}</span><strong>{value == null ? '—' : wholeNumber.format(asNumber(value))}</strong></div>
                 </article>
               ))}
             </div>
