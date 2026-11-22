@@ -60,7 +60,7 @@ export default function MarketingHeader() {
   const [signingOut, setSigningOut] = useState(false)
   const languageRef = useRef<HTMLDivElement | null>(null)
 
-  const dashboardPath = player ? '/game/overview' : '/create-player'
+  const dashboardPath = user?.is_anonymous ? '/try-as-guest' : player ? '/game/overview' : '/create-player'
   const activeLanguage = LANGUAGE_META[locale]
 
   useEffect(() => {
@@ -103,7 +103,7 @@ export default function MarketingHeader() {
   }
 
   async function handleSignOut() {
-    if (signingOut) return
+    if (signingOut || user?.is_anonymous) return
     setSigningOut(true)
 
     try {
@@ -152,13 +152,15 @@ export default function MarketingHeader() {
                 type="button"
                 className="tlg-btn tlg-btn-ghost tlg-btn-small tlg-header-signin"
                 onClick={() => void handleSignOut()}
-                disabled={signingOut}
+                disabled={signingOut || user?.is_anonymous === true}
+                title={user?.is_anonymous ? 'Logout disabled during guest trial. Close your browser or register to keep your player.' : undefined}
+                style={user?.is_anonymous ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
               >
                 <LogOut size={15} />
                 {signingOut ? t('marketing.signingOut') : t('marketing.signOut')}
               </button>
               <Link to={dashboardPath} className="tlg-btn tlg-btn-primary tlg-btn-small">
-                {player ? t('marketing.dashboard') : t('marketing.createPlayer')}
+                {user?.is_anonymous ? 'Continue as Guest' : player ? t('marketing.dashboard') : t('marketing.createPlayer')}
               </Link>
             </>
           ) : (
@@ -255,13 +257,15 @@ export default function MarketingHeader() {
                     className="tlg-btn tlg-btn-primary tlg-btn-full"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    {player ? t('marketing.dashboard') : t('marketing.createPlayer')}
+                    {user?.is_anonymous ? 'Continue as Guest' : player ? t('marketing.dashboard') : t('marketing.createPlayer')}
                   </Link>
                   <button
                     type="button"
                     className="tlg-btn tlg-btn-secondary tlg-btn-full"
                     onClick={() => void handleSignOut()}
-                    disabled={signingOut}
+                    disabled={signingOut || user?.is_anonymous === true}
+                title={user?.is_anonymous ? 'Logout disabled during guest trial. Close your browser or register to keep your player.' : undefined}
+                style={user?.is_anonymous ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
                   >
                     {signingOut ? t('marketing.signingOut') : t('marketing.signOut')}
                   </button>
