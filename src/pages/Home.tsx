@@ -31,6 +31,7 @@ import {
   Zap,
 } from 'lucide-react'
 
+import { useAuth } from '../auth/AuthContext'
 import MarketingHeader from '../components/layout/MarketingHeader'
 import BetaDisclaimer from '../components/marketing/BetaDisclaimer'
 import RegistrationLaunchNotice from '../components/marketing/RegistrationLaunchNotice'
@@ -118,6 +119,8 @@ const managementFeatures = [
 export default function HomePage() {
   const registrationAvailability = usePublicRegistrationStatus()
   const guestAvailable = useTennisGuestAvailability()
+  const { user, authLoading } = useAuth()
+  const returningGuest = user?.is_anonymous === true
   const { t } = useTranslation()
   const { locale } = useLocalization()
   const galleryText = screenshotCopy[locale] ?? screenshotCopy.en
@@ -221,14 +224,14 @@ export default function HomePage() {
                   {t('home.hero.explore')}
                 </button>
 
-                {guestAvailable && (
+                {!authLoading && (returningGuest || (!user && guestAvailable)) && (
                   <Link to="/try-as-guest" className="tlg-btn tlg-btn-primary tlg-btn-large">
-                    Try as Guest
+                    {returningGuest ? 'Continue as Guest' : 'Try as Guest'}
                   </Link>
                 )}
-                {registrationAvailability === 'open' && (
-                  <Link to="/register" className="tlg-btn tlg-btn-primary tlg-btn-large">
-                    {t('authPages.login.createAccount')}
+                {!authLoading && (returningGuest || (!user && registrationAvailability === 'open')) && (
+                  <Link to={returningGuest ? '/guest/register' : '/register'} className="tlg-btn tlg-btn-primary tlg-btn-large">
+                    {returningGuest ? 'Register to keep your player' : t('authPages.login.createAccount')}
                   </Link>
                 )}
               </div>
