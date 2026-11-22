@@ -45,6 +45,15 @@ If desired, run npm run dev for UI smoke testing on port 8001. It uses LIVE Supa
 - Migration code committed; backend functions live. Frontend changes are committed but **NOT deployed by the previous Netlify production deploy**; a fresh local build and intentional single deployment are needed for this feature.
 - Once deployed, verify converted-player reminder, field saving and reloading, existing saved birthday locked, and responsive mobile view before calling H22 accepted.
 
+## H22 UX corrections after 22 November 2026 screenshots
+- Converted guest's birthday confirmation uses existing GameConfirmDialog (no native window.confirm); valid-date confirmation remains one-time database-protected.
+- The account-completion panel matches Player & Account type sizes and font, shows a compact completed summary once username/birthday/city are saved, and provides an edit-city action.
+- Guest email conversion: post-request UI distinguishes server-confirmed account linking from a pending verification email, shows the requested address, offers resend and edit, and preserves pending state in this tab on refresh.
+- OAuth redirect errors are displayed, including identity-already-linked-to-another-user; account ownership is never silently merged.
+- After password or Google conversion, display saved-progress confirmation then navigate to existing career automatically; a manual Continue to player button remains.
+- Supabase auth logs showed an identity-already-linked error on Google attempt and successfully converted email identities. Auth records cannot alone prove that SMTP actually delivered a confirmation email. Verify mail provider configuration, delivery and allowed redirect URL separately.
+- New frontend changes require the owner's fresh local build; previous Netlify deployment does not include them. No production deployment was run for these corrections.
+
 ## Mandatory remaining checks
 - [ ] Guest purchase buttons disabled, free trial features accessible, conversion link works.
 - [ ] Permanent player can navigate training, calendar, equipment and finances; read-only UI checks where possible before launch.
