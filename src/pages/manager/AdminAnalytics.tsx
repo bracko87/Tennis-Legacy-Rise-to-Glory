@@ -36,6 +36,12 @@ interface EconomyReport {
   end_date: string
   definition: string
   coin_movements: { credits: number; debits: number; entries: number; signup_grants: number; other_credits: number }
+  coin_sources?: { entry_type: string; credits: number; debits: number; entries: number }[]
+  birthday_rewards?: { awards: number; coins_awarded: number }
+  premium?: { active_paid_memberships: number; active_free_trials: number; reserved_trials: number; expired_trials: number; expiring_paid_memberships_7d: number }
+  guest_integrity?: { guest_wallets: number; guest_coin_balance: number; guest_nonzero_wallets: number; positive_wallets_without_ledger: number }
+  career_by_current_account_type?: { account_type: string; currency: string; careers: number; balance: number; opening_funds: number; operational_income: number; operational_expenses: number }[]
+  billing_notes?: string
   career_finance: { opening_funds: number; operational_income: number; operational_expenses: number; transaction_entries: number; sponsor_related_entries: number; sponsor_related_net: number }
   billing: { paid_transactions: number; paid_eur_cents: number; paid_coin_packs: number; paid_premium: number; pending_transactions: number; failed_transactions: number }
   sponsorships: { sponsor_contracts_signed: number; active_sponsor_contracts_now: number; objective_rewards_recorded: number }
@@ -419,10 +425,12 @@ export default function AdminAnalyticsPage() {
               <div className="tlg-admin-analytics-summary">
                 {([
                   ['Coins granted or earned', economy.coin_movements.credits],
-                  ['Coins spent', economy.coin_movements.debits],
+                  ['Coin debits', economy.coin_movements.debits],
                   ['Welcome coins issued', economy.coin_movements.signup_grants],
+                  ['Birthday reward awards', economy.birthday_rewards?.awards],
+                  ['Birthday coins issued', economy.birthday_rewards?.coins_awarded],
                   ['Paid transactions', economy.billing.paid_transactions],
-                  ['Paid revenue', asNumber(economy.billing.paid_eur_cents) / 100],
+                  ['Recorded gross paid revenue', asNumber(economy.billing.paid_eur_cents) / 100],
                   ['Paid Premium orders', economy.billing.paid_premium],
                   ['Paid coin packs', economy.billing.paid_coin_packs],
                   ['Career starting funds ($)', economy.career_finance.opening_funds],
@@ -436,9 +444,9 @@ export default function AdminAnalyticsPage() {
                 ] as const).map(([label, value]) => (
                   <article key={label}>
                     <BarChart3 size={18}/>
-                    <div><span>{label}</span><strong>{label === 'Paid revenue'
+                    <div><span>{label}</span><strong>{label === 'Recorded gross paid revenue'
                       ? new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' }).format(asNumber(value))
-                      : wholeNumber.format(asNumber(value))}</strong></div>
+                      : value == null ? '—' : wholeNumber.format(asNumber(value))}</strong></div>
                   </article>
                 ))}
               </div>
@@ -449,14 +457,44 @@ export default function AdminAnalyticsPage() {
                   ['Career balances ($)', economy.current_balances.human_career_balances],
                   ['Negative coin wallets', economy.current_balances.wallet_negative_balances],
                   ['Wallet/ledger differences', economy.current_balances.wallet_vs_latest_ledger_discrepancies],
+                  ['Guest wallets', economy.guest_integrity?.guest_wallets],
+                  ['Guest wallet coins', economy.guest_integrity?.guest_coin_balance],
+                  ['Nonzero guest wallets', economy.guest_integrity?.guest_nonzero_wallets],
+                  ['Positive wallets without ledger', economy.guest_integrity?.positive_wallets_without_ledger],
                   ['Currently active sponsor contracts', economy.sponsorships.active_sponsor_contracts_now],
                 ] as const).map(([label, value]) => (
                   <article key={label}>
                     <Activity size={18}/>
-                    <div><span>{label}</span><strong>{wholeNumber.format(asNumber(value))}</strong></div>
+                    <div><span>{label}</span><strong>{value == null ? '—' : wholeNumber.format(asNumber(value))}</strong></div>
                   </article>
                 ))}
               </div>
+              {(economy.current_balances.wallet_negative_balances > 0 || economy.current_balances.wallet_vs_latest_ledger_discrepancies > 0 || (economy.guest_integrity?.guest_nonzero_wallets ?? 0) > 0 || (economy.guest_integrity?.positive_wallets_without_ledger ?? 0) > 0) && <p role="alert" className="tlg-admin-analytics-error">Financial integrity warning: review the wallet and ledger anomalies shown above. These are investigation signals.</p>}
+              {economy.premium && <>
+                <h3 style={{ marginTop: 16 }}>Premium memberships &amp; trials (current)</h3>
+                <div className="tlg-admin-analytics-summary">
+                  {([
+                    ['Active paid memberships', economy.premium.active_paid_memberships],
+                    ['Active free trials', economy.premium.active_free_trials],
+                    ['Trials reserved for launch', economy.premium.reserved_trials],
+                    ['Expired free trials', economy.premium.expired_trials],
+                    ['Paid memberships ending in 7 days', economy.premium.expiring_paid_memberships_7d],
+                  ] as const).map(([label, value]) => <article key={label}><Activity size={18}/><div><span>{label}</span><strong>{value == null ? '—' : wholeNumber.format(asNumber(value))}</strong></div></article>)}
+                </div>
+              </>}
+              {economy.coin_sources && <div style={{ overflowX: 'auto', marginTop: 16 }}>
+                <h3>Coin movements by source</h3>
+                <table style={{ width: '100%', textAlign: 'left' }}><thead><tr><th>Source</th><th>Entries</th><th>Credits</th><th>Debits</th></tr></thead><tbody>
+                  {economy.coin_sources.map(row => <tr key={row.entry_type}><td>{row.entry_type.replaceAll('_', ' ')}</td><td>{wholeNumber.format(asNumber(row.entries))}</td><td>{wholeNumber.format(asNumber(row.credits))}</td><td>{wholeNumber.format(asNumber(row.debits))}</td></tr>)}
+                </tbody></table>
+              </div>}
+              {economy.career_by_current_account_type && <div style={{ overflowX: 'auto', marginTop: 16 }}>
+                <h3>Virtual career finances by current account type</h3>
+                <table style={{ width: '100%', textAlign: 'left' }}><thead><tr><th>Account type</th><th>Currency</th><th>Careers</th><th>Current balance</th><th>Opening funds</th><th>Income</th><th>Expenses</th></tr></thead><tbody>
+                  {economy.career_by_current_account_type.map(row => <tr key={row.account_type + row.currency}><td>{row.account_type}</td><td>{row.currency}</td>{[row.careers,row.balance,row.opening_funds,row.operational_income,row.operational_expenses].map((value,i) => <td key={i}>{wholeNumber.format(asNumber(value))}</td>)}</tr>)}
+                </tbody></table>
+              </div>}
+              {economy.billing_notes && <p style={{ fontSize: 12, color: '#667085' }}>{economy.billing_notes}</p>}
               <p style={{ fontSize: 12, color: '#667085', marginTop: 10 }}>
                 {economy.definition}
               </p>
