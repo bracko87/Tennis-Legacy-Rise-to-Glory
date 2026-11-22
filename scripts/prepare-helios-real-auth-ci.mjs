@@ -48,6 +48,7 @@ const files=[
  ['20261121000009_real_worker.sql',fixture('helios_guest_retirement_doubles_helper.sql')+fixture('helios_guest_retirement_singles_bracket.sql')+fixture('helios_guest_retirement_doubles_bracket.sql')+source('20261120200000_helios_guest_retirement_lock_order.sql')+'\nCREATE TRIGGER advance_tournament_bracket_v1 AFTER UPDATE OF status ON public.tournament_matches FOR EACH ROW EXECUTE FUNCTION public.advance_tournament_bracket_v1();\nCREATE TRIGGER advance_doubles_bracket_v1 AFTER UPDATE OF status ON public.tournament_doubles_matches FOR EACH ROW EXECUTE FUNCTION public.advance_doubles_bracket_v1();\nREVOKE ALL ON FUNCTION control_center_private.retire_expired_tennis_guests_v1(integer) FROM PUBLIC,anon,authenticated;\n'],
  ['20261121000010_deleted_identity_guard.sql',source('20261121084252_helios_h08_deny_deleted_guest_identity.sql')],
  ['20261121000011_release_worker.sql',releaseWithoutCron],
+ ['20261121000012_erasure_lock_fix.sql',source('20261122081913_helios_guest_erasure_skip_locked_trial.sql')],
  ['20261121000013_erasure_prototype.sql',fixture('helios_real_auth_erasure_prototype.sql')],
  ['20261121000014_enable_local_gate.sql','UPDATE public.registration_control SET guest_test_enabled=true WHERE singleton_id=true;\n'],
 ]
