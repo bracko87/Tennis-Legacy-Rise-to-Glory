@@ -14,7 +14,7 @@ import '../../styles/guest-entry.css'
  */
 export default function TryAsGuestPage({ previewOnly = false }: { readonly previewOnly?: boolean }) {
   const available = useTennisGuestAvailability()
-  const { user, player, authLoading } = useAuth()
+  const { user, player, authLoading, playerLoading } = useAuth()
   const navigate = useNavigate()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -30,7 +30,7 @@ export default function TryAsGuestPage({ previewOnly = false }: { readonly previ
   }, [])
 
   async function begin() {
-    if (previewOnly || !available || busy || authLoading) return
+    if (previewOnly || (!available && !user?.is_anonymous) || busy || authLoading || playerLoading) return
     setError(null)
     setBusy(true)
     try {
@@ -53,7 +53,7 @@ export default function TryAsGuestPage({ previewOnly = false }: { readonly previ
         return
       }
       if (data.state !== 'active') throw new Error('Guest session not active')
-      navigate('/create-player', { replace: true })
+      navigate(player ? '/game/overview' : '/create-player', { replace: true })
     } catch (reason) {
       const message = reason instanceof Error ? reason.message : 'Unable to create your guest player.'
       setError(/anonymous sign-ins are disabled/i.test(message) ? 'Guest sign-in is temporarily unavailable. Please try again later or create a permanent account.' : message)
@@ -91,12 +91,12 @@ export default function TryAsGuestPage({ previewOnly = false }: { readonly previ
             className="tlg-btn tlg-btn-primary tlg-btn-large"
             type="button"
             onClick={() => void begin()}
-            disabled={previewOnly || !available || busy || authLoading}
+            disabled={previewOnly || (!available && !user?.is_anonymous) || busy || authLoading || playerLoading}
           >
-            {previewOnly ? 'Create Guest Player (Preview Only)' : busy ? 'Creating your guest session…' : 'Create Guest Player'}
+            {previewOnly ? 'Create Guest Player (Preview Only)' : busy ? 'Checking your guest session…' : user?.is_anonymous ? 'Continue as Guest' : 'Create Guest Player'}
             <ArrowRight size={17}/>
           </button>
-          {previewOnly ? <span className="tlg-btn tlg-btn-secondary tlg-btn-large" aria-disabled="true">Create a Permanent Account</span> : <Link to="/register" className="tlg-btn tlg-btn-secondary tlg-btn-large">Create a Permanent Account</Link>}
+          {previewOnly ? <span className="tlg-btn tlg-btn-secondary tlg-btn-large" aria-disabled="true">Create a Permanent Account</span> : <Link to={user?.is_anonymous ? "/guest/register" : "/register"} className="tlg-btn tlg-btn-secondary tlg-btn-large">Create a Permanent Account</Link>}
           {!previewOnly && <Link to="/">Back to Homepage</Link>}
         </div>
       </section>
