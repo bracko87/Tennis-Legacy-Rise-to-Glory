@@ -21,6 +21,7 @@ import { useNavigate } from 'react-router'
 import { useAuth } from '../../auth/AuthContext'
 import GameLayout from '../../components/layout/GameLayout'
 import AvatarReplacementCancelControl from '../../components/player/AvatarReplacementCancelControl'
+import ConvertedGuestProfileFields from '../../components/player/ConvertedGuestProfileFields'
 import AvatarReplacementRequestPanel from '../../components/player/AvatarReplacementRequestPanel'
 import usePlayerAvatarUrl from '../../hooks/usePlayerAvatarUrl'
 import { supabase } from '../../lib/supabase'
@@ -248,6 +249,8 @@ export function PlayerAccountPage() {
             </div>
           </div>
         </section>
+
+        <ConvertedGuestProfileFields />
 
         <div className="tlg-avatar-request-combined">
           <AvatarReplacementRequestPanel />
