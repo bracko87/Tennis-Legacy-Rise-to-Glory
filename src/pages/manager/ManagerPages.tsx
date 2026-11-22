@@ -183,7 +183,7 @@ export function PlayerAccountPage() {
     }
 
     try {
-      await signOut()
+      await signOut('account-deleted')
     } finally {
       navigate('/', { replace: true })
     }
