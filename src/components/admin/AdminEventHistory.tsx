@@ -22,7 +22,7 @@ type HistoryData = {
   definition: string
   retention: string
 }
-const CATEGORIES = ['all','system','admin','coins','billing','career','training','tournament','staff','sponsor'] as const
+const CATEGORIES = ['all','system','admin','account','premium','coins','billing','career','training','tournament','staff','sponsor'] as const
 const PAGE_SIZE = 25
 
 export default function AdminEventHistory({ period }: { readonly period: number }) {
@@ -74,7 +74,7 @@ export default function AdminEventHistory({ period }: { readonly period: number 
     <section className="tlg-admin-analytics-panel" aria-label="Searchable administrator event history">
       <h2 style={{ marginBottom: 8 }}>Event &amp; Audit History</h2>
       <p style={{ marginBottom: 12, fontSize: 12, color: '#667085' }}>
-        Search previously recorded administrative, gameplay and economy events.
+        Search recorded administrative, account lifecycle, Premium, gameplay and economy events.
         The history uses the reporting period selected above. Only administrators can access these records.
       </p>
       <form onSubmit={runSearch} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 12 }}>
