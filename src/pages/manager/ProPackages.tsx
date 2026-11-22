@@ -117,6 +117,7 @@ export default function ProPackagesPage() {
   const careerLabels = careerIntelligenceLabels(i18n.resolvedLanguage ?? i18n.language)
   const { formatDate, locale, localeTag } = useLocalization()
   const { user } = useAuth()
+  const isGuest = user?.is_anonymous === true
   const commerce = useCommerce()
   const [billing, setBilling] = useState<BillingTransaction[]>([])
   const [ledger, setLedger] = useState<CoinLedgerEntry[]>([])
@@ -183,6 +184,11 @@ export default function ProPackagesPage() {
   async function openStripeCheckout(catalogCode: string) {
     if (!user) {
       showStripeNotice(t('commercePage.signInAgain'))
+      return
+    }
+
+    if (isGuest) {
+      showStripeNotice(locale === 'de' ? 'Registriere zuerst ein dauerhaftes Konto.' : 'Register a permanent account before making a purchase.')
       return
     }
 
@@ -298,6 +304,15 @@ export default function ProPackagesPage() {
           </div>
         )}
 
+        {isGuest && (
+          <div className="tlg-commerce-notice" role="status">
+            <Info size={17} aria-hidden="true" />
+            <span>{locale === 'de' ? 'Käufe sind erst nach der Registrierung möglich. Dein Gastfortschritt bleibt erhalten.' : 'Purchases require a permanent account. Register to keep your guest progress.'}{' '}
+              <Link to="/guest/register">{locale === 'de' ? 'Jetzt registrieren' : 'Register & save progress'}</Link>
+            </span>
+          </div>
+        )}
+
         <aside className="tlg-commerce-policy-notice" aria-label={locale === 'de' ? 'Kaufbedingungen' : 'Purchase terms'}>
           <Info size={19} aria-hidden="true" />
           <p>
@@ -355,6 +370,7 @@ export default function ProPackagesPage() {
               <small>{t('commercePage.everyThreeMonths', { monthly: money(mainPremiumOffer.monthlyEquivalentCents) })}</small>
               <button
                 type="button"
+                disabled={isGuest}
                 onClick={() => {
                   if (commerce.isPaidPremium) {
                     const portalUrl = commerceSettings?.stripe_customer_portal_url
@@ -380,6 +396,7 @@ export default function ProPackagesPage() {
                   <small>{offer.months === 1 ? t('commercePage.perMonth') : t('commercePage.perYearMonthly', { monthly: money(offer.monthlyEquivalentCents) })}</small>
                   <button
                     type="button"
+                    disabled={isGuest}
                     onClick={() => {
                       if (commerce.isPaidPremium) {
                         const portalUrl = commerceSettings?.stripe_customer_portal_url
@@ -438,6 +455,7 @@ export default function ProPackagesPage() {
                 <small>{t('commercePage.perCoin', { price: formatPurchasePrice(pack.price / pack.coins, localeTag, 'EUR') })}</small>
                 <button
                   type="button"
+                  disabled={isGuest}
                   onClick={() => void openStripeCheckout(pack.code)}
                 >
                   {t('commercePage.buyNow')}
