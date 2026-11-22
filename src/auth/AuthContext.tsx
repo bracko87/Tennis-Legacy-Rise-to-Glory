@@ -36,7 +36,7 @@ interface AuthContextValue {
   adminLoading: boolean
   refreshPlayer: () => Promise<TennisPlayerRecord | null>
   refreshAdminAccess: () => Promise<boolean>
-  signOut: () => Promise<void>
+  signOut: (reason?: 'account-deleted') => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -272,7 +272,15 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     }
   }, [user?.id, user?.is_anonymous])
 
-  const signOut = useCallback(async () => {
+  const signOut = useCallback(async (reason?: 'account-deleted') => {
+    // A live guest has no recovery credentials. Preserve the browser session
+    // until registration, retirement, or explicit account deletion.
+    if (user?.is_anonymous === true && reason !== 'account-deleted') {
+      const { data, error } = await supabase.rpc('get_my_tennis_guest_conversion_status_v1')
+      if (error || data?.retired !== true) {
+        throw new Error('Guest sign-out is disabled to protect your player. Close the browser and return here, or register to keep your progress.')
+      }
+    }
     window.localStorage.removeItem(LAST_ACTIVITY_STORAGE_KEY)
     activeUserIdRef.current = null
     const { error } = await supabase.auth.signOut()
@@ -280,7 +288,7 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     setUser(null)
     setPlayer(null)
     setIsAdmin(false)
-  }, [])
+  }, [user?.is_anonymous])
 
   const value = useMemo<AuthContextValue>(
     () => ({
