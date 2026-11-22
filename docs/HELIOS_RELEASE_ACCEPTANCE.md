@@ -54,6 +54,13 @@ If desired, run npm run dev for UI smoke testing on port 8001. It uses LIVE Supa
 - Supabase auth logs showed an identity-already-linked error on Google attempt and successfully converted email identities. Auth records cannot alone prove that SMTP actually delivered a confirmation email. Verify mail provider configuration, delivery and allowed redirect URL separately.
 - New frontend changes require the owner's fresh local build; previous Netlify deployment does not include them. No production deployment was run for these corrections.
 
+## Guest conversion email delivery – open provider acceptance item
+- Frontend now shows requested/verified email states, resend/change-address controls, callback Google conflict messages and post-registration return to the original player, with no native birthday dialog.
+- The live log showed a Google identity conflict; the UI now explains this explicitly instead of implying an account merge.
+- Branded **Change Email Address** template and exact configuration checklist are prepared in [TENNIS_GUEST_EMAIL_VERIFICATION.md](TENNIS_GUEST_EMAIL_VERIFICATION.md).
+- **IMPORTANT:** The Supabase connection does not expose the dashboard's email confirmation toggle, SMTP sender/delivery or redirect URL configuration, so these have not been modified. Do not claim emails are delivered or redirects work end-to-end until the owner verifies settings and completes one real mailbox test.
+- Updated frontend source is committed, but a fresh local production build and an intentional single Netlify deploy are required to publish it.
+
 ## Mandatory remaining checks
 - [ ] Guest purchase buttons disabled, free trial features accessible, conversion link works.
 - [ ] Permanent player can navigate training, calendar, equipment and finances; read-only UI checks where possible before launch.
