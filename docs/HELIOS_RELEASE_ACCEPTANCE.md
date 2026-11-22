@@ -11,6 +11,12 @@ Feature freeze: only release blockers. No Redis, Docker installation, paid infra
 - Stripe webhook active; payment processing restricted to privileged roles. No real payment or refund has been tested.
 - Production database healthy; no current career processing errors in the inspected state. Zero match simulation and training records while paused; this is not proof of gameplay execution.
 
+## Release candidate evidence (22 November 2026, commit 14a8ffc)
+- Owner confirmed production build succeeded after standard npm audit fix and removal of unused Zod. Production dependency audit: 0 reported vulnerabilities; full audit: 3 moderate development dependency findings. Package manifest and lockfile committed and pushed.
+- Owner ran npm run check:serve successfully: 5,040 paired fixed-seed scenarios (2,520 ATP and 2,520 WTA), covering hard/clay/grass and elite/futures. All programmed assertions passed. Candidate average aces per player: ATP 4.32, WTA 3.33; average games: ATP 23.78, WTA 23.40. Winner changed in 1,286 paired scenarios (25.52%). Independent proxy only; not production engine acceptance.
+- Existing tests/serve_realism_v3_db_smoke.sql explicitly requires an isolated environment and completed match samples; no execution against paused production, which has no completed matches. Full simulation acceptance remains open.
+- No production deployment triggered by these tests.
+
 ## Final build (Windows CMD, existing repository)
 Stop dev server with Ctrl+C. Run:
 ```cmd
