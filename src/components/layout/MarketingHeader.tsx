@@ -103,13 +103,17 @@ export default function MarketingHeader() {
   }
 
   async function handleSignOut() {
-    if (signingOut || user?.is_anonymous) return
+    if (signingOut) return
+    const guest = user?.is_anonymous === true
+    if (guest && !window.confirm('Signing out of your guest account may permanently prevent you from accessing this player. Register first to keep your progress, or cancel and simply close your browser. Do you want to sign out anyway?')) return
     setSigningOut(true)
 
     try {
-      await signOut()
+      await signOut(guest ? 'guest-homepage-confirmed' : undefined)
       setMobileMenuOpen(false)
       navigate('/login', { replace: true })
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'Unable to sign out. Please try again.')
     } finally {
       setSigningOut(false)
     }
@@ -152,9 +156,8 @@ export default function MarketingHeader() {
                 type="button"
                 className="tlg-btn tlg-btn-ghost tlg-btn-small tlg-header-signin"
                 onClick={() => void handleSignOut()}
-                disabled={signingOut || user?.is_anonymous === true}
-                title={user?.is_anonymous ? 'Logout disabled during guest trial. Close your browser or register to keep your player.' : undefined}
-                style={user?.is_anonymous ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                disabled={signingOut}
+                title={user?.is_anonymous ? 'Sign out of guest account (confirmation required)' : undefined}
               >
                 <LogOut size={15} />
                 {signingOut ? t('marketing.signingOut') : t('marketing.signOut')}
@@ -263,9 +266,8 @@ export default function MarketingHeader() {
                     type="button"
                     className="tlg-btn tlg-btn-secondary tlg-btn-full"
                     onClick={() => void handleSignOut()}
-                    disabled={signingOut || user?.is_anonymous === true}
-                title={user?.is_anonymous ? 'Logout disabled during guest trial. Close your browser or register to keep your player.' : undefined}
-                style={user?.is_anonymous ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                    disabled={signingOut}
+                title={user?.is_anonymous ? 'Sign out of guest account (confirmation required)' : undefined}
                   >
                     {signingOut ? t('marketing.signingOut') : t('marketing.signOut')}
                   </button>
