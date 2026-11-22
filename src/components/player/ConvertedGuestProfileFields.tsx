@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useAuth } from '../../auth/AuthContext'
+import GameConfirmDialog from '../common/GameConfirmDialog'
 import { supabase } from '../../lib/supabase'
 import '../../styles/converted-guest-profile.css'
 
@@ -24,6 +25,8 @@ export default function ConvertedGuestProfileFields() {
   const [city, setCity] = useState('')
   const [cities, setCities] = useState<CityOption[]>([])
   const [busy, setBusy] = useState(false)
+  const [birthdayConfirmOpen, setBirthdayConfirmOpen] = useState(false)
+  const [editSavedCity, setEditSavedCity] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -78,14 +81,25 @@ export default function ConvertedGuestProfileFields() {
     finish()
   }
 
-  async function saveBirthday(event: FormEvent<HTMLFormElement>) {
+  function requestBirthdayConfirmation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (busy) return
     if (!month || !day || (year && !/^\d{4}$/.test(year))) {
       setError('Enter a valid birth month and day. The year is optional.')
       return
     }
-    if (!window.confirm('Save this birthday permanently? It can only be entered once and cannot be edited afterward.')) return
+    const date = new Date(Date.UTC(Number(year || 2000), Number(month) - 1, Number(day)))
+    if (date.getUTCMonth() !== Number(month) - 1 || date.getUTCDate() !== Number(day) ||
+        (year && (Number(year) < 1900 || date.getUTCFullYear() !== Number(year) || date > new Date()))) {
+      setError('Please enter a real calendar date. The year can be left empty.')
+      return
+    }
+    setError(null)
+    setBirthdayConfirmOpen(true)
+  }
+
+  async function confirmBirthday() {
+    if (busy) return
     start()
     const { error: rpcError } = await supabase.rpc('set_my_tennis_converted_birthday_v1', {
       p_month: Number(month),
@@ -94,7 +108,7 @@ export default function ConvertedGuestProfileFields() {
       p_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
     })
     if (rpcError) setError(rpcError.message)
-    else { setNotice('Birthday saved permanently. Future eligible birthdays can receive the annual gift.'); await reload() }
+    else { setBirthdayConfirmOpen(false); setNotice('Birthday saved permanently. Future eligible birthdays can receive the annual gift.'); await reload() }
     finish()
   }
 
@@ -117,8 +131,10 @@ export default function ConvertedGuestProfileFields() {
   }
 
   if (!status?.eligible) return null
+  const allComplete = !!status.username_confirmed && !!status.birthday_set && !!status.home_city
 
   return (
+    <>
     <section id="profile-completion" className="tlg-account-section">
       <header className="tlg-account-section-head">
         <div>
@@ -128,6 +144,12 @@ export default function ConvertedGuestProfileFields() {
         </div>
       </header>
       <div className="tlg-converted-fields">
+        {allComplete && !editSavedCity ? (
+          <div className="tlg-converted-complete-row" role="status">
+            <div><strong>Account details completed</strong><p>Username: {status.username} · Birthday: saved and locked · Player home city: {status.home_city}</p></div>
+            <button type="button" className="secondary" onClick={() => setEditSavedCity(true)}>Change home city</button>
+          </div>
+        ) : <>
         <fieldset>
           <legend>Account username</legend>
           {status.username_confirmed ? (
@@ -149,7 +171,7 @@ export default function ConvertedGuestProfileFields() {
           {status.birthday_set ? (
             <p>Birthday saved. It is permanently locked and cannot be changed.</p>
           ) : (
-            <form onSubmit={(event) => void saveBirthday(event)}>
+            <form onSubmit={requestBirthdayConfirmation}>
               <p>Only converted Guest Players with a missing birthday can enter one now. This is your account birthday, not the fictional player's. No birthday means no annual Birthday Gift.</p>
               <div className="field-row">
                 <label>Month
@@ -187,9 +209,24 @@ export default function ConvertedGuestProfileFields() {
           {status.home_city && <p>Current player home city: <strong>{status.home_city}</strong>.</p>}
         </fieldset>
 
+        </>}
         {notice && <p className="field-status" role="status">{notice}</p>}
         {error && <p className="field-error" role="alert">{error}</p>}
       </div>
     </section>
+    <GameConfirmDialog
+      open={birthdayConfirmOpen}
+      eyebrow="Account security"
+      title="Confirm your birthday"
+      tone="warning"
+      busy={busy}
+      confirmLabel="Save birthday permanently"
+      cancelLabel="Go back and edit"
+      message={<span>You entered <strong>{month.padStart(2,'0')}/{day.padStart(2,'0')}{year ? `/${year}` : ''}</strong>. This is the birthday for your account, not your tennis player.</span>}
+      detail="This information can only be saved once. After confirming, it cannot be corrected or changed."
+      onConfirm={() => void confirmBirthday()}
+      onCancel={() => { if (!busy) setBirthdayConfirmOpen(false) }}
+    />
+    </>
   )
 }
