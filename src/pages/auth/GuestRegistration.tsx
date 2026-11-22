@@ -110,8 +110,14 @@ export default function GuestRegistrationPage() {
         { emailRedirectTo: new URL('/guest/register', window.location.origin).toString() }
       )
       if (updateError) throw updateError
-      setNotice('Verification email requested. Open the link in this browser to link your guest player, then return here to set a password.')
-      await refresh()
+      const checked = await refresh()
+      if (checked?.eligible && !checked.is_anonymous) {
+        setPendingEmail('')
+        setNotice('Your email is linked to this guest player. Continue below by creating a password for your permanent account.')
+      } else {
+        setPendingEmail(address)
+        setNotice('Your verification request was accepted. Check your inbox and spam folder. If email confirmation is required, open the verification link in this browser. Delivery may take a few minutes.')
+      }
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Unable to send verification')
     } finally { setLoading(false) }
@@ -131,7 +137,8 @@ export default function GuestRegistrationPage() {
       if (updateError) throw updateError
       setPassword('')
       setConfirm('')
-      setNotice('Your account now has an email and password. Your tennis player and progress remain attached to this account.')
+      setNotice('Registration complete. Your player, equipment, rankings and progress remain attached to your permanent account. Returning to your player…')
+      setRegisteredNow(true)
       await refresh()
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Unable to set password')
@@ -142,6 +149,7 @@ export default function GuestRegistrationPage() {
     if (!googleAvailable || !status?.eligible || !status.is_anonymous || status.retired || !status.can_convert || loading) return
     setLoading(true)
     setError(null)
+    setNotice('Connecting your existing guest career to Google…')
     try {
       // Link to the CURRENT guest user, never signInWithOAuth (which can
       // silently replace the session with another account).
@@ -152,6 +160,7 @@ export default function GuestRegistrationPage() {
       if (linkError) throw linkError
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Unable to link Google identity')
+      setNotice(null)
       setLoading(false)
     }
   }
@@ -160,6 +169,20 @@ export default function GuestRegistrationPage() {
 
   const linked = status?.eligible && !status.is_anonymous
   const complete = linked && (status?.password_set || status?.google_linked)
+
+  async function resendVerification() {
+    if (!pendingEmail || loading || !status?.is_anonymous) return
+    setLoading(true)
+    setError(null)
+    const { error: resendError } = await supabase.auth.resend({
+      type: 'email_change',
+      email: pendingEmail,
+      options: { emailRedirectTo: new URL('/guest/register', window.location.origin).toString() },
+    })
+    if (resendError) setError(resendError.message)
+    else setNotice('Another verification request was accepted. Check your inbox and spam folder for the confirmation email.')
+    setLoading(false)
+  }
 
   return (
     <main className="tlg-guest-convert">
@@ -210,16 +233,29 @@ export default function GuestRegistrationPage() {
             )}
             {googleAvailable && <p className="tlg-guest-convert-help">Or continue with email</p>}
 
-            <form onSubmit={event => void requestEmail(event)} className="tlg-guest-convert-form">
+            {pendingEmail && (
+              <div className="tlg-guest-email-pending" role="status">
+                <MailCheck size={23} aria-hidden="true" />
+                <div>
+                  <strong>Check your email</strong>
+                  <p>Verification was requested for <strong>{pendingEmail}</strong>. Follow the confirmation link in this browser to keep this player.</p>
+                  <div className="tlg-guest-pending-actions">
+                    <button type="button" disabled={loading} onClick={() => void resendVerification()}>Resend email</button>
+                    <button type="button" disabled={loading} onClick={() => { setPendingEmail(''); setNotice(null) }}>Use another address</button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {!pendingEmail && <form onSubmit={event => void requestEmail(event)} className="tlg-guest-convert-form">
               <label htmlFor="guest-permanent-email">Your email address</label>
               <input
                 id="guest-permanent-email" type="email" autoComplete="email"
                 value={email} onChange={e => setEmail(e.target.value)} required
                 placeholder="you@example.com"
               />
-              <button type="submit" disabled={loading}>Verify Email &amp; Save My Progress <ArrowRight size={17}/></button>
-            </form>
-            <p className="tlg-guest-convert-help">Check your email before setting a password. Do not sign out or clear this browser's data while verification is pending.</p>
+              <button type="submit" disabled={loading}>{loading ? 'Requesting verification…' : 'Send verification email'} <ArrowRight size={17}/></button>
+            </form>}
+            <p className="tlg-guest-convert-help">Your guest career is preserved during verification. Do not sign out or clear this browser's data. After the email is verified, this page will let you set a password. Whether an email is required depends on your account provider settings.</p>
             <p className="tlg-guest-convert-help">If this email or Google account already belongs to a different Tennis Legacy account, linking may be refused. We will not merge or overwrite two players automatically.</p>
           </>
         )}
@@ -237,7 +273,7 @@ export default function GuestRegistrationPage() {
               id="guest-confirm-password" type="password" autoComplete="new-password"
               value={confirm} onChange={e => setConfirm(e.target.value)} minLength={10} required
             />
-            <button type="submit" disabled={loading}>Save Password &amp; Complete Registration</button>
+            <button type="submit" disabled={loading}>{loading ? 'Saving permanent account…' : 'Save password & finish registration'}</button>
           </form>
         )}
 
@@ -249,7 +285,8 @@ export default function GuestRegistrationPage() {
           <div className="tlg-guest-convert-complete">
             <CheckCircle2 size={28}/>
             <h2>Progress saved to your permanent account</h2>
-            <p>You can now sign in again using the method you linked. No second Premium trial has been created.</p>
+            <p>Your tennis player and progress are saved. No second Premium trial has been created. Returning you to your player.</p>
+            <button type="button" onClick={() => navigate(player ? '/game/overview' : '/create-player', { replace: true })}>Continue to my player <ArrowRight size={17} /></button>
           </div>
         )}
 
