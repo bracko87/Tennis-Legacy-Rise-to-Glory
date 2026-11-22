@@ -73,8 +73,9 @@ export default function GuestRegistrationPage() {
   // OAuth errors return in URL query parameters; explain them instead of silently
   // dropping the player back onto the email-entry form.
   useEffect(() => {
-    const code = searchParams.get('error_code') || searchParams.get('error')
-    const description = searchParams.get('error_description') || ''
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+    const code = searchParams.get('error_code') || searchParams.get('error') || hash.get('error_code') || hash.get('error')
+    const description = searchParams.get('error_description') || hash.get('error_description') || ''
     if (!code && !description) return
     if (/identity_already_exists|already.linked|identity.*another/i.test(code + ' ' + description)) {
       setError('This Google account is already linked to another Tennis Legacy account. Your guest player was not transferred. Choose a different Google account or an unused email address.')
@@ -86,6 +87,7 @@ export default function GuestRegistrationPage() {
       for (const key of ['error', 'error_code', 'error_description']) next.delete(key)
       return next
     }, { replace: true })
+    if (hash.has('error') || hash.has('error_code')) window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search)
   }, [searchParams, setSearchParams])
 
   // Auth callbacks may return with updated identity in the same tab.
@@ -277,7 +279,10 @@ export default function GuestRegistrationPage() {
 
         {!checking && status?.eligible && !status.is_anonymous && !complete && status.can_set_password && (
           <form onSubmit={event => void addPassword(event)} className="tlg-guest-convert-form">
-            <p><CheckCircle2 size={17}/> Email linked to this guest account. Add a password to finish registration.</p>
+            <div className="tlg-guest-convert-verified" role="status">
+              <CheckCircle2 size={19} aria-hidden="true" />
+              <div><strong>Email linked successfully</strong><p>Your original tennis career is safe. Create a password to finish your permanent account.</p></div>
+            </div>
             <label htmlFor="guest-permanent-password">New password</label>
             <input
               id="guest-permanent-password" type="password" autoComplete="new-password"
