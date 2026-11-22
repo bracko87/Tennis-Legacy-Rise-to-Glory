@@ -134,6 +134,8 @@ interface AnalyticsDashboard {
   }
   presence?: {
     active_players_2m: number
+    active_guest_players_2m?: number
+    active_total_players_2m?: number
     last_player_active_at: string | null
     definition: string
   }
@@ -563,8 +565,22 @@ export default function AdminAnalyticsPage() {
               <article>
                 <UsersRound size={18} />
                 <div>
-                  <span>Active players · last 2 min</span>
+                  <span>Active permanent players · last 2 min</span>
                   <strong>{wholeNumber.format(asNumber(dashboard.presence.active_players_2m))}</strong>
+                </div>
+              </article>
+              <article>
+                <UsersRound size={18} />
+                <div>
+                  <span>Active guest players · last 2 min</span>
+                  <strong>{dashboard.presence.active_guest_players_2m == null ? '—' : wholeNumber.format(dashboard.presence.active_guest_players_2m)}</strong>
+                </div>
+              </article>
+              <article>
+                <UsersRound size={18} />
+                <div>
+                  <span>Total active players · last 2 min</span>
+                  <strong>{dashboard.presence.active_total_players_2m == null ? '—' : wholeNumber.format(dashboard.presence.active_total_players_2m)}</strong>
                 </div>
               </article>
             </div>
