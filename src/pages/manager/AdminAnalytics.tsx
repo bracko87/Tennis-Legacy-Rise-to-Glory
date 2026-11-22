@@ -50,6 +50,14 @@ interface GameActivityReport {
   training_sessions: number
   tournament_applications: number
   completed_matches: number
+  completed_singles_matches?: number
+  completed_doubles_matches?: number
+  human_walkovers?: number
+  human_cancelled_matches?: number
+  ai_only_completed_matches?: number
+  guest_involved_completed_matches?: number
+  permanent_involved_completed_matches?: number
+  activity_by_player_type?: Record<string, { permanent: number; guest: number; ai: number; unknown: number }>
   staff_contracts_signed: number
   nonstarter_equipment_acquired: number
   skill_history_updates: number
@@ -474,6 +482,13 @@ export default function AdminAnalyticsPage() {
                   ['Training sessions', gameActivity.training_sessions],
                   ['Tournament applications', gameActivity.tournament_applications],
                   ['Completed matches involving players', gameActivity.completed_matches],
+                  ['Completed singles', gameActivity.completed_singles_matches],
+                  ['Completed doubles', gameActivity.completed_doubles_matches],
+                  ['Walkovers involving humans', gameActivity.human_walkovers],
+                  ['Cancellations involving humans', gameActivity.human_cancelled_matches],
+                  ['AI-only completed matches', gameActivity.ai_only_completed_matches],
+                  ['Matches involving guests', gameActivity.guest_involved_completed_matches],
+                  ['Matches involving permanent players', gameActivity.permanent_involved_completed_matches],
                   ['Staff contracts signed', gameActivity.staff_contracts_signed],
                   ['Equipment acquired (not starter)', gameActivity.nonstarter_equipment_acquired],
                   ['Recorded skill changes', gameActivity.skill_history_updates],
@@ -481,10 +496,16 @@ export default function AdminAnalyticsPage() {
                 ] as const).map(([label, value]) => (
                   <article key={label}>
                     <Activity size={18}/>
-                    <div><span>{label}</span><strong>{wholeNumber.format(asNumber(value))}</strong></div>
+                    <div><span>{label}</span><strong>{value == null ? '—' : wholeNumber.format(asNumber(value))}</strong></div>
                   </article>
                 ))}
               </div>
+              {gameActivity.activity_by_player_type && <div style={{ overflowX: 'auto', marginTop: 16 }}>
+                <table style={{ width: '100%', textAlign: 'left' }}>
+                  <thead><tr><th>Recorded activity</th><th>Permanent</th><th>Guest</th><th>AI</th><th>Unknown</th></tr></thead>
+                  <tbody>{Object.entries(gameActivity.activity_by_player_type).map(([key, counts]) => <tr key={key}><td>{key.replaceAll('_', ' ')}</td><td>{wholeNumber.format(asNumber(counts.permanent))}</td><td>{wholeNumber.format(asNumber(counts.guest))}</td><td>{wholeNumber.format(asNumber(counts.ai))}</td><td>{wholeNumber.format(asNumber(counts.unknown))}</td></tr>)}</tbody>
+                </table>
+              </div>}
               <p style={{ fontSize: 12, color: '#667085', marginTop: 12 }}>
                 Last recorded gameplay action: {gameActivity.last_gameplay_event_at
                   ? new Date(gameActivity.last_gameplay_event_at).toLocaleString()
