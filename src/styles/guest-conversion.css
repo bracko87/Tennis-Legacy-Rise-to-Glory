@@ -173,3 +173,42 @@
 @media(max-width: 360px) {
   .tlg-v4-header-actions .tlg-guest-register-action > .tlg-guest-register-short { display: none; }
 }
+
+/* Registered guest email verification state — matching Tennis Legacy light panels. */
+.tlg-guest-email-pending {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px;
+  margin: 14px 0;
+  border: 1px solid #bcd9ea;
+  border-radius: 9px;
+  background: #eff7fc;
+  color: #203d54;
+  font-family: inherit;
+}
+.tlg-guest-email-pending > svg { flex: none; color: #0b6fc8; margin-top: 2px; }
+.tlg-guest-email-pending > div { min-width: 0; flex: 1; }
+.tlg-guest-email-pending strong { font-size: .78rem; font-weight: 750; overflow-wrap: anywhere; }
+.tlg-guest-convert-card .tlg-guest-email-pending p { font-size: .75rem; margin: 6px 0 11px; }
+.tlg-guest-pending-actions { display: flex; gap: 9px; flex-wrap: wrap; }
+.tlg-guest-pending-actions button {
+  border: 1px solid #a2cbe4;
+  border-radius: 7px;
+  padding: 8px 12px;
+  background: #fff;
+  color: #155988;
+  font-family: inherit;
+  font-size: .72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.tlg-guest-pending-actions button:hover { background: #e1f0f9; }
+.tlg-guest-pending-actions button:disabled { opacity: .5; cursor: not-allowed; }
+.tlg-guest-convert-card .tlg-guest-convert-complete button { width: 100%; }
+.tlg-guest-convert-card .tlg-guest-convert-form input { font-family: inherit; font-size: .78rem; }
+.tlg-guest-convert-card button { font-family: inherit; }
+@media (max-width: 520px) {
+  .tlg-guest-email-pending { flex-direction: column; }
+  .tlg-guest-pending-actions button { flex: 1 1 100%; }
+}
