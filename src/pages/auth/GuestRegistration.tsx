@@ -32,6 +32,7 @@ export default function GuestRegistrationPage() {
   const [checking, setChecking] = useState(true)
   const [notice, setNotice] = useState<string | null>(null)
   const [pendingEmail, setPendingEmail] = useState('')
+  const pendingEmailKey = user?.id ? `tlg:guest-verification-pending:${user.id}` : ''
   const [registeredNow, setRegisteredNow] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -57,6 +58,17 @@ export default function GuestRegistrationPage() {
   }, [user?.id])
 
   useEffect(() => { void refresh() }, [refresh])
+
+  // Keep the verification screen visible if the player refreshes the browser.
+  useEffect(() => {
+    if (!pendingEmailKey) return
+    if (user?.is_anonymous) {
+      setPendingEmail(window.sessionStorage.getItem(pendingEmailKey) ?? '')
+    } else {
+      window.sessionStorage.removeItem(pendingEmailKey)
+      setPendingEmail('')
+    }
+  }, [pendingEmailKey, user?.is_anonymous])
 
   // OAuth errors return in URL query parameters; explain them instead of silently
   // dropping the player back onto the email-entry form.
@@ -87,10 +99,11 @@ export default function GuestRegistrationPage() {
   }, [refresh])
 
   useEffect(() => {
-    if (!registeredNow) return
+    const linkedComplete = status?.eligible && !status.is_anonymous && (status.password_set || status.google_linked)
+    if (!registeredNow && !linkedComplete) return
     const timer = window.setTimeout(() => navigate(player ? '/game/overview' : '/create-player', { replace: true }), 2500)
     return () => window.clearTimeout(timer)
-  }, [registeredNow, navigate, player?.id])
+  }, [registeredNow, status?.eligible, status?.is_anonymous, status?.password_set, status?.google_linked, navigate, player?.id])
 
 
   async function requestEmail(event: FormEvent<HTMLFormElement>) {
@@ -113,9 +126,11 @@ export default function GuestRegistrationPage() {
       const checked = await refresh()
       if (checked?.eligible && !checked.is_anonymous) {
         setPendingEmail('')
+        if (pendingEmailKey) window.sessionStorage.removeItem(pendingEmailKey)
         setNotice('Your email is linked to this guest player. Continue below by creating a password for your permanent account.')
       } else {
         setPendingEmail(address)
+        if (pendingEmailKey) window.sessionStorage.setItem(pendingEmailKey, address)
         setNotice('Your verification request was accepted. Check your inbox and spam folder. If email confirmation is required, open the verification link in this browser. Delivery may take a few minutes.')
       }
     } catch (reason) {
@@ -241,7 +256,7 @@ export default function GuestRegistrationPage() {
                   <p>Verification was requested for <strong>{pendingEmail}</strong>. Follow the confirmation link in this browser to keep this player.</p>
                   <div className="tlg-guest-pending-actions">
                     <button type="button" disabled={loading} onClick={() => void resendVerification()}>Resend email</button>
-                    <button type="button" disabled={loading} onClick={() => { setPendingEmail(''); setNotice(null) }}>Use another address</button>
+                    <button type="button" disabled={loading} onClick={() => { setPendingEmail(''); if (pendingEmailKey) window.sessionStorage.removeItem(pendingEmailKey); setNotice(null) }}>Use another address</button>
                   </div>
                 </div>
               </div>
