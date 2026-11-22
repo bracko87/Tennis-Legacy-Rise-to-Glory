@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import {readFileSync,existsSync} from 'node:fs'
 import {resolve,dirname} from 'node:path'
 import {fileURLToPath} from 'node:url'
-import {execFileSync} from 'node:child_process'
+import {execFileSync,spawn} from 'node:child_process'
 import {randomUUID} from 'node:crypto'
 import {createClient} from '@supabase/supabase-js'
 
@@ -81,6 +81,39 @@ async function main(){
     const script=readFileSync(resolve(root,'tests/fixtures/helios_real_auth_career_phases.sql'),'utf8')
     try{execFileSync('docker',['exec','-i','supabase_db_tennis_helios_guest_sandbox','psql','-X','-w','-U','postgres','-d','postgres','-v','ON_ERROR_STOP=1','-v','guest_id='+uid,'-v','phase='+phase],{input:script,encoding:'utf8',timeout:60000,stdio:['pipe','pipe','pipe']})}
     catch(e){throw Error('Career fixture phase '+phase+' failed: '+String(e.stderr||'').slice(-1000))}
+  }
+  async function verifyErasureLock(uid){
+    if(!ciCareer||!process.env.HELIOS_CI_ERASURE||!/^[0-9a-f-]{36}$/i.test(uid))throw Error('CI-only lock test rejected')
+    const args=['exec','-i','supabase_db_tennis_helios_guest_sandbox','psql','-X','-qAt','-w','-U','postgres','-d','postgres','-v','ON_ERROR_STOP=1']
+    const locker=spawn('docker',args,{stdio:['pipe','pipe','pipe']})
+    let output=''
+    try{
+      await new Promise((resolve,reject)=>{
+        const timer=setTimeout(()=>reject(Error('Timed out acquiring fixture trial lock')),15000)
+        const finish=(err)=>{clearTimeout(timer);if(err)reject(err);else resolve()}
+        locker.once('error',finish)
+        locker.once('exit',()=>finish(Error('Fixture lock session exited prematurely')))
+        locker.stdout.on('data',chunk=>{
+          output+=String(chunk)
+          if(output.includes('HELIOS_TRIAL_LOCKED'))finish()
+        })
+        locker.stderr.resume()
+        locker.stdin.on('error',finish)
+        locker.stdin.write("BEGIN; SELECT user_id FROM control_center_private.tennis_guest_trials_v1 WHERE user_id='"+uid+"'::uuid FOR UPDATE;\n\\echo HELIOS_TRIAL_LOCKED\n")
+      })
+      const sql="BEGIN; UPDATE control_center_private.tennis_guest_erasure_control_v1 SET enabled=true WHERE singleton_id; SELECT control_center_private.erase_expired_tennis_guests_v1(20); ROLLBACK;"
+      const raw=execFileSync('docker',args,{input:sql,encoding:'utf8',timeout:15000,stdio:['pipe','pipe','pipe']})
+      const result=JSON.parse(raw.trim())
+      assert.deepEqual(result,{status:'processed',erased:0,held:0},'Locked trial must be skipped without aborting batch')
+      console.log('PASS retired trial lock contention skipped safely')
+    }finally{
+      if(!locker.stdin.destroyed)locker.stdin.end('ROLLBACK;\n')
+      // Wait for the lock session to release its database transaction.
+      if(locker.exitCode===null && locker.signalCode===null)await new Promise(resolve=>{
+        const timer=setTimeout(()=>locker.kill(),5000)
+        locker.once('exit',()=>{clearTimeout(timer);resolve()})
+      })
+    }
   }
   async function createCareer(client,uid){
     const values={owner_user_id:uid,first_name:'Synthetic',last_name:'Guest',country_code:'DE',world:'ATP',image_path:'fixtures/avatar.webp',player_type:'human',home_city:null}
@@ -246,6 +279,7 @@ async function main(){
       const session=await client.auth.getSession()
       const jwt=session.data.session?.access_token
       assert.ok(jwt,'Real guest JWT missing')
+      await verifyErasureLock(expiredId)
       localSql('erase',expiredId)
       const response=await restrictedFetch(origin+'/rest/v1/rpc/assert_my_tennis_guest_access_v1',{
         method:'POST',headers:{apikey:key,Authorization:'Bearer '+jwt,'Content-Type':'application/json'},body:'{}'
