@@ -280,6 +280,7 @@ export const manualCareerChaptersDe: ManualChapter[] = [
         'Es gibt keine einzig richtige Antwort. Die Startausrüstung reicht zum Spielen, daher können frühe Ausgaben auf Training, Turnierreisen/-hotels, sorgfältig ausgewählte Teammitglieder oder gezielte Ausrüstungsupgrades konzentriert werden. Prüfe kommende Kosten, bevor du zu viel Geld bindest.',
       ]}),
       s('Wofür sind die ersten 20 Coins?', { paragraphs: [
+        'Nur berechtigte Dauerkonten erhalten die Start-Coins. Gastkonten starten mit null Coins.',
         'Sie führen die Coin-Wallet ein und können für optionale Coin-basierte Systeme gespart werden. Einen Tennisclub zu erstellen kostet derzeit 50 Coins, daher reicht die Startgutschrift bewusst nicht für eine sofortige Clubgründung.',
       ]}),
       s('Kann ich die Premium-Startwohnung verkaufen?', { paragraphs: [
