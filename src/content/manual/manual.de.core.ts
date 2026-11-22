@@ -12,6 +12,11 @@ export const manualCoreChaptersDe: ManualChapter[] = [
         'Tennis Legacy: Rise to Glory ist ein dauerhaftes Karrieremanagement-Spiel im professionellen Tennis. Du steuerst einen menschlichen Spieler in der ATP- oder WTA-Welt, planst seine Entwicklung, meldest Turniere, verwaltest Reisen und Ausrüstung, baust ein Betreuungsteam auf, steuerst die Finanzen und reagierst über mehrere Spielsaisons auf Gesundheit, Rangliste und Kalenderdruck.',
         'ATP und WTA sind getrennte Wettbewerbswelten für Einzel- und Doppelranglisten. Soziale Systeme wie Tennisclubs können Mitglieder aus beiden Touren umfassen, während Turniermeldungen, Ranglisten und Ergebnisse immer an die eigene Tour des Spielers gebunden bleiben.',
       ]}),
+      s('Als Gast spielen oder registrieren', { paragraphs: [
+        'Wähle auf der Startseite Als Gast spielen, um ohne Registrierung einer E-Mail-Adresse eine vorläufige Karriere zu erstellen. Die Testphase dauert 14 reale Tage, unabhängig von der Spielzeit. Nutze im selben Browser Als Gast fortfahren.',
+        'Um deinen Spieler zu behalten, registriere dich vor Ablauf der Frist über die vorhandene Gastsitzung. Erstelle kein separates Konto. Abmelden, Löschen der Browserdaten oder ein Browserwechsel können den Zugang zu einer nicht registrierten Gastkarriere dauerhaft unterbrechen.',
+        'Nach Ablauf endet der Gastzugang; der Spieler wird aus dem aktiven Wettbewerb entfernt. Die automatische Löschung erfolgt, sobald die Daten anderer Spieler geschützt bleiben. Gäste starten mit null Coins und können keine Echtgeldkäufe tätigen. Berechtigte kostenlose Premium-Testphasen dauern sieben reale Tage und sind von der 14-tägigen Gastfrist getrennt.',
+      ], links: [{ label: 'Registrieren und Gastkarriere behalten', href: '/guest/register' }] }),
       s('Empfohlene Reihenfolge in der ersten Sitzung', { steps: [
         'Öffne Übersicht und prüfe aktuelles Spieldatum, Rangliste, Bereitschaft, Karriereguthaben, nächste Verpflichtung und persönliche Benachrichtigungen.',
         'Öffne Fähigkeiten, um das technische, körperliche und Bereitschaftsprofil des Spielers zu verstehen.',
@@ -54,7 +59,7 @@ export const manualCoreChaptersDe: ManualChapter[] = [
       s('Exaktes Startpaket am ersten Tag', { table: {
         headers: ['System', 'Startzustand'],
         rows: [
-          ['Karriereguthaben', '25.000 USD'], ['Coins', '20 Coins, einmalig gutgeschrieben'], ['Einzel-Ranglistenpunkte', '0'],
+          ['Karriereguthaben', '25.000 USD'], ['Coins', '20 Coins einmalig für berechtigte Dauerkonten; 0 für Gäste'], ['Einzel-Ranglistenpunkte', '0'],
           ['Doppel-Ranglistenpunkte', '0'], ['Reguläres Training', 'Nicht konfiguriert'], ['Team', 'Keines'],
           ['Hauptsponsor', 'Keiner'], ['Technische Sponsoren', 'Keine'], ['Nationalverband', 'Nicht beigetreten'],
           ['Tennisclub', 'Nicht beigetreten'], ['Kalenderverpflichtungen', 'Keine'], ['Ermüdung', '0'], ['Schärfe', '50'],
@@ -68,7 +73,7 @@ export const manualCoreChaptersDe: ManualChapter[] = [
         ],
       }}),
       s('Einmalige Initialisierung', { paragraphs: [
-        'Die Karriereinitialisierung ist idempotent. Aktualisieren, erneutes Versuchen oder erneutes Öffnen des Spiels darf weder das Startguthaben von 25.000 USD noch die 20 Coins, die Startausrüstung oder eine Premium-Startwohnung duplizieren. Das Initialisierungsprotokoll speichert die angewendete Schemaversion.',
+        'Die Karriereinitialisierung ist idempotent. Aktualisieren, erneutes Versuchen oder erneutes Öffnen des Spiels darf weder das Startguthaben von 25.000 USD noch die 20 Coins für berechtigte Dauerkonten, die Startausrüstung oder eine Premium-Startwohnung duplizieren. Das Initialisierungsprotokoll speichert die angewendete Schemaversion.',
       ]}),
       s('Karriere neu starten oder Konto löschen', { paragraphs: [
         'Spieler & Konto enthält destruktive Aktionen zum Neustart und zur endgültigen Löschung. Verwende sie nur, wenn du den aktuellen Karrierestatus wirklich entfernen möchtest. Start-Coins sind gegen einfache Wiederholungen durch Aktualisieren oder erneute Versuche geschützt und nicht als wiederholbare Farming-Methode gedacht.',
