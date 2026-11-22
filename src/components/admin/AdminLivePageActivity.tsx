@@ -8,6 +8,8 @@ interface LivePageRow {
   visitors: number
   registered: number
   anonymous: number
+  guests?: number
+  signed_out?: number
 }
 
 interface LivePagesReport {
@@ -16,6 +18,8 @@ interface LivePagesReport {
   active_visitors: number
   registered: number
   anonymous: number
+  guests?: number
+  signed_out?: number
   pages: LivePageRow[]
   definition: string
 }
@@ -31,6 +35,8 @@ function readReport(raw: LivePagesReport): LivePagesReport {
     active_visitors: safeCount(raw.active_visitors),
     registered: safeCount(raw.registered),
     anonymous: safeCount(raw.anonymous),
+    guests: raw.guests == null ? undefined : safeCount(raw.guests),
+    signed_out: raw.signed_out == null ? undefined : safeCount(raw.signed_out),
     window_seconds: safeCount(raw.window_seconds),
     pages: Array.isArray(raw.pages)
       ? raw.pages.map((row) => ({
@@ -38,6 +44,8 @@ function readReport(raw: LivePagesReport): LivePagesReport {
           visitors: safeCount(row.visitors),
           registered: safeCount(row.registered),
           anonymous: safeCount(row.anonymous),
+          guests: row.guests == null ? undefined : safeCount(row.guests),
+          signed_out: row.signed_out == null ? undefined : safeCount(row.signed_out),
         }))
       : [],
   }
@@ -130,9 +138,10 @@ export default function AdminLivePageActivity({
             </article>
             <article>
               <UsersRound size={18} />
-              <div><span>Guests / anonymous</span><strong>{report.anonymous.toLocaleString()}</strong></div>
+              <div><span>{report.signed_out == null ? 'Guests / anonymous' : 'Signed-out browsers'}</span><strong>{(report.signed_out ?? report.anonymous).toLocaleString()}</strong></div>
             </article>
           </div>
+          {report.guests != null && <p style={{ fontSize: 13, marginBottom: 12 }}><strong>Guest browsers: {report.guests.toLocaleString()}</strong></p>}
           {report.pages.length ? (
             <div style={{ display: 'grid', gap: 10 }}>
               <div style={{
@@ -153,6 +162,7 @@ export default function AdminLivePageActivity({
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <strong>{row.visitors.toLocaleString()}</strong>
+                    {row.guests != null && <small style={{ display: 'block' }}>Registered {row.registered} · Guest {row.guests} · Signed out {row.signed_out ?? 0}</small>}
                     <div style={{ height: 5, marginTop: 6, background: '#edf3f9', borderRadius: 8, overflow: 'hidden' }}>
                       <div style={{ width: `${(100 * row.visitors) / maxVisitors}%`, height: '100%', background: '#238bca' }} />
                     </div>
