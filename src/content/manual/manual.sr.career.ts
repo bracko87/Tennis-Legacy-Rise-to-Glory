@@ -280,6 +280,7 @@ export const manualCareerChaptersSr: ManualChapter[] = [
         'Ne postoji jedan tačan odgovor. Početna oprema je dovoljna za igru, pa rano trošenje može ići na trening, putovanja/hotele, pažljivo izabrano osoblje ili ciljane nadogradnje opreme. Pre velike obaveze proveri buduće troškove.',
       ]}),
       s('Čemu služi prvih 20 Coina?', { paragraphs: [
+        'Početne Coine dobijaju samo trajni nalozi koji ispunjavaju uslove. Gostujući nalozi počinju sa nula Coina.',
         'Oni uvode Coin novčanik i mogu se sačuvati za opcione sisteme. Kreiranje Teniskog kluba trenutno košta 50 Coina, pa početna nagrada namerno nije dovoljna da odmah napraviš klub.',
       ]}),
       s('Mogu li prodati Premium početni apartman?', { paragraphs: [
