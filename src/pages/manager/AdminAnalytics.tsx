@@ -64,6 +64,8 @@ interface AnalyticsSummary {
   pageviews: number
   sessions: number
   registered_active_users: number
+  active_guest_users?: number
+  active_admin_users?: number
   anonymous_visitors: number
   new_registrations: number
   total_registered_users: number
@@ -611,16 +613,18 @@ export default function AdminAnalyticsPage() {
           <article><Eye size={18} /><div><span>Unique visitors</span><strong>{wholeNumber.format(summary?.unique_visitors ?? 0)}</strong></div></article>
           <article><MousePointerClick size={18} /><div><span>Pageviews</span><strong>{wholeNumber.format(summary?.pageviews ?? 0)}</strong></div></article>
           <article><Activity size={18} /><div><span>Sessions</span><strong>{wholeNumber.format(summary?.sessions ?? 0)}</strong></div></article>
-          <article><UsersRound size={18} /><div><span>Active registered</span><strong>{wholeNumber.format(summary?.registered_active_users ?? 0)}</strong></div></article>
+          <article><UsersRound size={18} /><div><span>Active permanent accounts</span><strong>{wholeNumber.format(summary?.registered_active_users ?? 0)}</strong></div></article>
           <article><UserPlus size={18} /><div><span>New registrations</span><strong>{wholeNumber.format(summary?.new_registrations ?? 0)}</strong></div></article>
-          <article><BarChart3 size={18} /><div><span>Total accounts</span><strong>{wholeNumber.format(summary?.total_registered_users ?? 0)}</strong></div></article>
+          <article><BarChart3 size={18} /><div><span>Permanent accounts (excl. admins)</span><strong>{wholeNumber.format(summary?.total_registered_users ?? 0)}</strong></div></article>
         </section>
 
         <section className="tlg-admin-analytics-active-strip">
-          <article><span>DAU</span><strong>{wholeNumber.format(summary?.dau ?? 0)}</strong><small>registered players today</small></article>
-          <article><span>WAU</span><strong>{wholeNumber.format(summary?.wau ?? 0)}</strong><small>registered players · 7 days</small></article>
-          <article><span>MAU</span><strong>{wholeNumber.format(summary?.mau ?? 0)}</strong><small>registered players · 30 days</small></article>
+          <article><span>DAU</span><strong>{wholeNumber.format(summary?.dau ?? 0)}</strong><small>permanent accounts active today</small></article>
+          <article><span>WAU</span><strong>{wholeNumber.format(summary?.wau ?? 0)}</strong><small>permanent accounts · 7 days</small></article>
+          <article><span>MAU</span><strong>{wholeNumber.format(summary?.mau ?? 0)}</strong><small>permanent accounts · 30 days</small></article>
           <article><span>Anonymous</span><strong>{wholeNumber.format(summary?.anonymous_visitors ?? 0)}</strong><small>unique visitors in window</small></article>
+          <article><span>Active guests</span><strong>{summary?.active_guest_users == null ? '—' : wholeNumber.format(summary.active_guest_users)}</strong><small>guest accounts in window</small></article>
+          <article><span>Active admins</span><strong>{summary?.active_admin_users == null ? '—' : wholeNumber.format(summary.active_admin_users)}</strong><small>administrator accounts in window</small></article>
         </section>
 
         <section className="tlg-admin-analytics-panel tlg-admin-analytics-trend">
