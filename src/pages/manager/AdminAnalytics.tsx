@@ -131,6 +131,7 @@ interface AnalyticsDashboard {
     direct_registration_accounts?: number
     guest_started_accounts?: number
     guest_converted_accounts?: number
+    erased_guest_accounts?: number
     active_guest_accounts?: number
     guest_player_created_accounts?: number
     player_created_accounts: number
@@ -604,6 +605,7 @@ export default function AdminAnalyticsPage() {
                 ['Guest mode opened', dashboard.onboarding.guest_opened_visitors],
                 ['Guest trials started', dashboard.onboarding.guest_started_accounts],
                 ['Guest conversions', dashboard.onboarding.guest_converted_accounts],
+                ['Expired guests erased', dashboard.onboarding.erased_guest_accounts],
                 ['Current active guests', dashboard.onboarding.active_guest_accounts],
                 ['Permanent accounts with careers created in period', dashboard.onboarding.player_created_accounts],
                 ['Careers created while a guest', dashboard.onboarding.guest_player_created_accounts],
