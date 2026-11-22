@@ -27,6 +27,16 @@ npm audit
 Record the commit and build exit status. Assess audit findings including production vs development dependency scope; do not run audit fix --force blindly.
 If desired, run npm run dev for UI smoke testing on port 8001. It uses LIVE Supabase; use designated test accounts only. Do not change the launch clock or use real payments.
 
+## Final targeted verification (22 November 2026)
+- Presence fields active_players_2m, active_guest_players_2m, active_total_players_2m match the live database output and AdminAnalytics source.
+- Scheduled jobs: 49 latest completed successfully, 0 failed, initial launch worker not yet due. Registration/email, Google and guest admission enabled; maintenance off; clock paused at Season 1 Jan 1 00:00, configured speed 2x; launch gate 2026-12-01 06:00 UTC.
+- Security advisor returned 0 ERROR, 139 WARN, 1 INFO before the final birthday guard; this is not complete security certification.
+- Birthday award and scheduled processor explicitly exclude anonymous/deleted accounts; privileged test invocation for active guest denied before any wallet or reward writes; guest reward rows and nonzero guest wallets both 0. Migration committed as d229e43.
+- Official manual updated EN/DE/SR v1.1, retaining existing searchable chapters and PDF export; guest rules and starting allocation corrected against live records. Final browser/build validation still required.
+- Demonstration recording plan committed as docs/HELIOS_GAMEPLAY_DEMOS.md. Footage not yet produced.
+- Connected tools do not expose backup listing or latest successful recovery point; owner must verify in Supabase dashboard. No restore, live payment, clock advancement or Netlify deploy performed.
+- Feature development frozen. Final local build and single deployment require owner action; no claim of production acceptance until verified.
+
 ## Mandatory remaining checks
 - [ ] Guest purchase buttons disabled, free trial features accessible, conversion link works.
 - [ ] Permanent player can navigate training, calendar, equipment and finances; read-only UI checks where possible before launch.
