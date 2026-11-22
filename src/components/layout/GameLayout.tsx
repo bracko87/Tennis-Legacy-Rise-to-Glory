@@ -16,6 +16,7 @@ import GameFooter from './GameFooter'
 import GameHeader from './GameHeader'
 import GameSidebar from './GameSidebar'
 import GuestExpiryNotice from '../guest/GuestExpiryNotice'
+import ConvertedGuestProfileReminder from '../guest/ConvertedGuestProfileReminder'
 import '../../styles/guest-conversion.css'
 
 export interface GameLayoutProps {
@@ -104,6 +105,7 @@ export default function GameLayout({ title, subtitle, children }: GameLayoutProp
         <GameFooter />
         <EarnCoinsDialog open={earnCoinsOpen} onClose={() => setEarnCoinsOpen(false)} />
         <GuestExpiryNotice />
+        <ConvertedGuestProfileReminder />
       </div>
     </div>
   )
