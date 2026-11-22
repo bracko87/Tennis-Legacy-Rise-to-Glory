@@ -4,7 +4,7 @@
  * Premium marketing homepage for Tennis Legacy: Rise to Glory.
  */
 
-import { useEffect, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocalization } from '../i18n/LocalizationProvider'
 import type { AppLocale } from '../i18n'
@@ -121,6 +121,25 @@ export default function HomePage() {
   const guestAvailable = useTennisGuestAvailability()
   const { user, authLoading } = useAuth()
   const returningGuest = user?.is_anonymous === true
+  const [guestTrial, setGuestTrial] = useState<{ userId: string; state: string; expiresAt: number } | null>(null)
+  const [guestNow, setGuestNow] = useState(Date.now)
+  useEffect(() => {
+    if (!returningGuest || !user?.id) return
+    let cancelled = false
+    const userId = user.id
+    void supabase.rpc('get_my_tennis_guest_trial_v1').then(({ data, error }) => {
+      if (!cancelled && !error && data) {
+        const expiresAt = Date.parse(data.expires_at)
+        setGuestTrial({ userId, state: data.state, expiresAt })
+      }
+    })
+    const timer = window.setInterval(() => setGuestNow(Date.now()), 30_000)
+    return () => { cancelled = true; window.clearInterval(timer) }
+  }, [returningGuest, user?.id])
+  const currentTrial = returningGuest && guestTrial?.userId === user?.id ? guestTrial : null
+  const guestDays = currentTrial?.state === 'active' && Number.isFinite(currentTrial.expiresAt)
+    ? Math.max(0, Math.min(14, Math.ceil((currentTrial.expiresAt - guestNow) / 86_400_000)))
+    : null
   const { t } = useTranslation()
   const { locale } = useLocalization()
   const galleryText = screenshotCopy[locale] ?? screenshotCopy.en
@@ -235,6 +254,12 @@ export default function HomePage() {
                   </Link>
                 )}
               </div>
+
+              {returningGuest && guestDays !== null && (
+                <p className="tlg-prelaunch-registration-note" role="status">
+                  {guestDays > 0 ? `Welcome back! ${guestDays} of 14 guest trial days remaining. Continue in this browser or register to keep your player.` : 'Your guest trial has ended.'}
+                </p>
+              )}
 
               {registrationAvailability === 'closed' && (
                 <p className="tlg-prelaunch-registration-note" role="status">
