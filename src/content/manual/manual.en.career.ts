@@ -280,6 +280,7 @@ export const manualCareerChapters: ManualChapter[] = [
         'There is no single correct answer. Starter equipment is sufficient to play, so early spending can focus on training, tournament travel/hotels, carefully selected staff or targeted equipment upgrades. Check upcoming costs before committing too much cash.',
       ]}),
       s('What are the first 20 Coins for?', { paragraphs: [
+        'Only eligible permanent accounts receive the starting Coin grant. Guest accounts start with zero Coins.',
         'They introduce the Coin wallet and can be saved for optional Coin-based systems. Creating a Tennis Club currently costs 50 Coins, so the starting grant is intentionally not enough to create a club immediately.',
       ]}),
       s('Can I sell the Premium starter apartment?', { paragraphs: [
