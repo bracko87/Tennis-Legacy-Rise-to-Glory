@@ -37,6 +37,14 @@ If desired, run npm run dev for UI smoke testing on port 8001. It uses LIVE Supa
 - Connected tools do not expose backup listing or latest successful recovery point; owner must verify in Supabase dashboard. No restore, live payment, clock advancement or Netlify deploy performed.
 - Feature development frozen. Final local build and single deployment require owner action; no claim of production acceptance until verified.
 
+## H22: converted Guest Player profile completion
+- Added a non-blocking Overview reminder for accounts with a recorded guest-to-permanent conversion, with a link to Player & Account. Existing guest careers and non-converted permanent accounts are unaffected.
+- Account completion supports confirming/replacing the generated username once; entering a missing real-world account birthday once (month/day, optional year, timezone); and choosing a home city from the player's country. “Maybe later” automatically assigns an available same-country city if none exists and dismisses the modal; the city remains editable afterward.
+- Birthday immutability remains enforced by the database. A completely blank birthday can be filled once only for a registered converted guest. Previously supplied birthdays cannot be overwritten.
+- DB tests in rollback passed: one-time username and birthday, second-change rejection, valid country city selection, reminder dismissal, active guest and ordinary permanent account denial, null/impossible date rejection. No persisted test modifications.
+- Migration code committed; backend functions live. Frontend changes are committed but **NOT deployed by the previous Netlify production deploy**; a fresh local build and intentional single deployment are needed for this feature.
+- Once deployed, verify converted-player reminder, field saving and reloading, existing saved birthday locked, and responsive mobile view before calling H22 accepted.
+
 ## Mandatory remaining checks
 - [ ] Guest purchase buttons disabled, free trial features accessible, conversion link works.
 - [ ] Permanent player can navigate training, calendar, equipment and finances; read-only UI checks where possible before launch.
