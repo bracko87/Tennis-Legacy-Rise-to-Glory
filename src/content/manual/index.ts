@@ -15,8 +15,8 @@ const englishManual: GameManualDocument = {
     shortTitle: 'Full Game Manual',
     language: 'English',
     locale: 'en',
-    version: '1.0',
-    updated: '2026-10-09',
+    version: '1.1',
+    updated: '2026-11-22',
     sourceNotice: 'English is the source edition. Future locale files can reuse the same chapter and section identifiers.',
   },
   chapters: [
@@ -32,8 +32,8 @@ const serbianManual: GameManualDocument = {
     shortTitle: 'Kompletan priručnik',
     language: 'Srpski (latinica)',
     locale: 'sr',
-    version: '1.0',
-    updated: '2026-10-09',
+    version: '1.1',
+    updated: '2026-11-22',
     sourceNotice: 'Srpsko izdanje prati iste identifikatore poglavlja i odeljaka kao engleski izvor i koristi srpsku latinicu.',
   },
   chapters: [
@@ -49,8 +49,8 @@ const germanManual: GameManualDocument = {
     shortTitle: 'Vollständiges Spielhandbuch',
     language: 'Deutsch',
     locale: 'de',
-    version: '1.0',
-    updated: '2026-10-09',
+    version: '1.1',
+    updated: '2026-11-22',
     sourceNotice: 'Die deutsche Ausgabe verwendet dieselben Kapitel- und Abschnittskennungen wie die englische Ausgangsausgabe.',
   },
   chapters: [
