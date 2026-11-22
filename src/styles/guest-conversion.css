@@ -212,3 +212,18 @@
   .tlg-guest-email-pending { flex-direction: column; }
   .tlg-guest-pending-actions button { flex: 1 1 100%; }
 }
+
+.tlg-guest-convert-verified {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  margin: 4px 0 10px;
+  border: 1px solid #bce0cc;
+  border-radius: 8px;
+  background: #effaf2;
+  color: #1b6544;
+}
+.tlg-guest-convert-verified svg { flex: none; margin-top: 2px; }
+.tlg-guest-convert-verified strong { display: block; font-size: .8rem; }
+.tlg-guest-convert-card .tlg-guest-convert-verified p { margin: 3px 0 0; font-size: .74rem; color: #2a6b4c; }
