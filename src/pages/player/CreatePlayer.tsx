@@ -27,6 +27,7 @@ import { COUNTRIES } from '../../data/countries'
 import { useLocalization } from '../../i18n/LocalizationProvider'
 import { supabase } from '../../lib/supabase'
 import { isPortraitReservationConflict } from '../../lib/playerCreationConflict'
+import { normalizePlayerName } from '../../lib/playerName'
 import '../../styles/create-player-enhancements.css'
 
 type PlayerWorld = 'ATP' | 'WTA'
@@ -414,8 +415,8 @@ export default function CreatePlayerPage(): JSX.Element {
 
   const selectedCountryName = selectedCountry?.displayName ?? t('createPlayer.identity.countryNotSelected')
   const availableAvatarCount = avatars.length
-  const cleanFirstName = firstName.trim()
-  const cleanLastName = lastName.trim()
+  const cleanFirstName = normalizePlayerName(firstName)
+  const cleanLastName = normalizePlayerName(lastName, true)
   const firstNameValid = cleanFirstName.length >= 2 && NAME_PATTERN.test(cleanFirstName)
   const lastNameValid = cleanLastName.length >= 2 && NAME_PATTERN.test(cleanLastName)
   const countryValid = country.length === 2
@@ -663,6 +664,7 @@ export default function CreatePlayerPage(): JSX.Element {
                         id="first-name"
                         value={firstName}
                         onChange={(event) => { setFirstName(event.target.value); setSaveError(null) }}
+                        onBlur={() => setFirstName(normalizePlayerName(firstName))}
                         className={`tlg-input ${(attemptedStep === 2 || submitted) && !firstNameValid ? 'tlg-input-error' : ''}`}
                         placeholder={t('createPlayer.identity.firstPlaceholder')}
                         maxLength={40}
@@ -680,6 +682,7 @@ export default function CreatePlayerPage(): JSX.Element {
                         id="last-name"
                         value={lastName}
                         onChange={(event) => { setLastName(event.target.value); setSaveError(null) }}
+                        onBlur={() => setLastName(normalizePlayerName(lastName, true))}
                         className={`tlg-input ${(attemptedStep === 2 || submitted) && !lastNameValid ? 'tlg-input-error' : ''}`}
                         placeholder={t('createPlayer.identity.lastPlaceholder')}
                         maxLength={40}
@@ -1081,7 +1084,7 @@ export default function CreatePlayerPage(): JSX.Element {
             </div>
             <div className="tlg-player-preview-copy">
               <p className="tlg-page-heading-eyebrow">{t('createPlayer.review.yourCareer')}</p>
-              <h3>{`${firstName} ${lastName}`.trim() || t('createPlayer.review.yourPlayer')}</h3>
+              <h3>{`${cleanFirstName} ${cleanLastName}`.trim() || t('createPlayer.review.yourPlayer')}</h3>
               <p className="tlg-player-preview-country">
                 {selectedCountry && <CountryFlag code={selectedCountry.code} name={selectedCountry.displayName} />}
                 <span>{selectedCountryName}</span>
