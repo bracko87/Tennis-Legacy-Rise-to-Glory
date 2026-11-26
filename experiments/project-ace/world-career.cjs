@@ -11,6 +11,7 @@ function prepare(s,job,day){
  for(let i=0;i<2;i++){
   const id=job.playerKeys[i],support=s.worldSupport.players[id];if(!support)continue;
   const p=job.fixture.checkpoint.players[i];
+  if(s.worldSupport.health?.performanceEffects)require('./health-performance.cjs').apply(p,support.injuries,day);
   if(support.inventory){
    const {ratings}=h.resolveGear(support.inventory,support.loadout);
    p.equipment='standard';

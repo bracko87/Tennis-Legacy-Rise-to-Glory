@@ -1,6 +1,7 @@
 'use strict';
 // Explicit synthetic health snapshots only. No RPCs or production writes.
 const {injuryReview,recoveryReview}=require('./career-processing-review.cjs'),{eligibility}=require('./career-support.cjs');
+const performance=require('./health-performance.cjs');
 const clone=x=>JSON.parse(JSON.stringify(x));
 const ensure=(x,m)=>{if(!x)throw Error(m);};
 const validDay=x=>Number.isSafeInteger(x)&&x>=0;
@@ -12,6 +13,7 @@ function init(draw,config,day){
  injuryReview({player_id:'validation',match_id:'validation',absolute_day:day,risk_percent:0,catalog:opts.catalog});
  const active=opts.catalog.filter(x=>x.is_active===true&&x.contexts?.includes('match'));
  ensure(active.every(x=>x.recovery_min_days>=Math.max(x.training_out_max_days,x.tournament_out_max_days)),'Recovery range must cover clearance dates');
+ if(opts.performanceEffects===true)for(const row of active)performance.validate(row.base_performance_penalty,row.skill_effects);
  const players=draw.worldSupport.players;
  ensure(draw.roster.every(x=>Object.hasOwn(players,x.id)),'Explicit health support required for every entrant');
  for(const [id,p] of Object.entries(players)){
@@ -21,9 +23,10 @@ function init(draw,config,day){
    ensure(typeof x.key==='string'&&x.key.length>0&&x.key.length<=200&&!keys.has(x.key),'Unique imported health key required');keys.add(x.key);
    ensure(['injury','illness'].includes(x.kind)&&validDay(x.onsetDay)&&x.onsetDay<=day&&validDay(x.trainingReturnDay)&&x.trainingReturnDay>=x.onsetDay&&x.tournamentReturnDay>=x.onsetDay&&x.fullRecoveryDay>=x.trainingReturnDay,'Invalid health snapshot dates');
    ensure(x.status!=='recovered'||x.fullRecoveryDay<=day,'Premature recovered snapshot');
+   if(opts.performanceEffects===true)performance.validate(x.performancePenalty,x.skillEffects);
   }
  }
- draw.worldSupport.health={competition:config.competition,catalog:clone(opts.catalog),lastDay:day,rolls:[]};
+ draw.worldSupport.health={competition:config.competition,catalog:clone(opts.catalog),lastDay:day,rolls:[],...(opts.performanceEffects===true?{performanceEffects:true}:{})};
  draw.healthNotices=[];
  // Normalize past due imported records without emitting old notifications.
  recover(draw,day);
@@ -60,6 +63,7 @@ function completed(draw,id,receipt,risk){
  h.rolls.push(roll.result);
  const i=roll.result.injury;if(!i)return;
  const record={key:roll.result.key,kind:'injury',code:i.injury_code,severity:i.severity,status:i.status,onsetDay:i.onset_absolute_day,trainingReturnDay:i.training_return_absolute_day,tournamentReturnDay:i.tournament_return_absolute_day,fullRecoveryDay:i.expected_full_recovery_absolute_day,progressPercent:0};
+ if(h.performanceEffects){record.performancePenalty=i.performance_penalty;record.skillEffects=clone(h.catalog.find(x=>x.code===i.injury_code).skill_effects);}
  p.injuries.push(record);notice(draw,id,record,'injury_detected',day);
 }
 module.exports={init,recover,completed};
