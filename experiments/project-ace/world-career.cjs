@@ -28,6 +28,7 @@ function complete(s,p,receipt,delta){
  const event={matchId:receipt.matchId,playerId:p.id,day:s.worldSupport.day,injuryRiskPercent:risk,wear:[]};
  if(support.inventory){const r=h.wear(support.inventory,support.loadout,support.catalogWear?wearUnits(support.inventory,support.loadout,s.surface,support.bagProtectionPct):support.wearPerMatch);support.inventory=r.inventory;support.loadout=r.loadout;event.wear=r.events;}
  s.worldSupport.events.push(event);
+ require('./health-lifecycle.cjs').completed(s,p.id,receipt,risk);
  return {...delta,gain,after};
 }
 function validate(config,ids,day){

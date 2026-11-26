@@ -2,7 +2,7 @@
 // One private state owns calendar, draw, career support and reward ledger.
 // Every mutation returns a new state; caller saves the entire state atomically.
 const d=require('./tournament-draw.cjs'),c=require('./world-clock.cjs'),g=require('./schedule-gate.cjs'),l=require('./isolated-settlement.cjs'),h=require('./world-career.cjs'),a=require('./match-service.cjs');
-const medical=require('./health-walkover.cjs');
+const medical=require('./health-walkover.cjs'),healthLifecycle=require('./health-lifecycle.cjs');
 const clone=x=>JSON.parse(JSON.stringify(x));
 const fail=(m,status=400)=>{const e=Error(m);e.status=status;throw e;};
 function create(args,p,policy,raw){
@@ -20,6 +20,7 @@ function create(args,p,policy,raw){
  if(draw.groups.length){required.push('qualified_bonus','qualifying_final_loss');for(const group of draw.groups)for(let r=1;r<Math.log2(group.players.length);r++)required.push('qualifying_round_'+r+'_loss');}
  if(required.some(x=>!rewards.has(x))||config.rewards.some(x=>!Number.isSafeInteger(x.ranking_points)||x.ranking_points<0||!Number.isSafeInteger(x.prize_money_usd)||x.prize_money_usd<0)||rewards.size!==config.rewards.length)fail('Incomplete or invalid reward table');
  config.humanPlayers=[draw.managedPlayer,draw.peerPlayer].filter(Boolean);
+ healthLifecycle.init(draw,config,Math.floor(clock.gameSeconds/c.DAY));
  return {version:1,kind:'world',clock,anchor:clock,draw,config,admissions:[],completed:[],gates:[],ledger:l.create()};
 }
 function access(s,p,policy){return d.access(s.draw,p,policy);}
@@ -35,6 +36,7 @@ function tick(state,raw,p,policy){
  if(now<state.clock.realMs||clock.gameSeconds<state.clock.gameSeconds||now===state.clock.realMs&&clock.gameSeconds!==state.clock.gameSeconds)fail('Clock rollback or inconsistent sample',409);
  const s=clone(state);s.clock=clock;
  const day=Math.floor(clock.gameSeconds/c.DAY);s.draw.worldSupport.day=day;
+ healthLifecycle.recover(s.draw,day);
  s.draw=d.advance(s.draw,p,policy,now);
  for(const r of s.draw.scheduler.receipts)if(!s.completed.some(x=>x.id===r.matchId)){
   const admission=s.admissions.find(x=>x.id===r.matchId);if(!admission)fail('Result without admission',409);
@@ -73,7 +75,7 @@ function summary(s,p,policy,now){
  observed(s,now);
  const who=access(s,p,policy),v=d.summary(s.draw,p,policy,now),player=who.player;
  const game=s.clock.gameSeconds,career=s.draw.worldSupport.players[player];
- return {...v,world:{season:Math.floor(game/(c.DAY*c.SEASON))+1,absoluteDay:Math.floor(game/c.DAY),minute:Math.floor(game/60)%1440,speed:s.clock.speed,synthetic:true},matches:v.matches.map(m=>({...m,gameSlot:s.config.slots.find(x=>x.id===m.id),gate:s.gates.find(x=>x.id===m.id)?.status??'waiting'})),career:{...(s.config.medicalWalkovers===true?{healthNotices:(s.draw.healthNotices??[]).filter(n=>n.playerId===player)}:{}),points:l.points(s.ledger,player),results:s.ledger.results.filter(x=>x.player===player),transactions:s.ledger.transactions.filter(x=>x.player===player),balance:s.ledger.balances.find(x=>x.player===player)?.balance??s.config.openingBalances?.[player]??0,condition:s.draw.roster.find(x=>x.id===player)?.profile.fatigue??null,support:career?{inventory:career.inventory,loadout:career.loadout,events:s.draw.worldSupport.events.filter(x=>x.playerId===player)}:null}};
+ return {...v,world:{season:Math.floor(game/(c.DAY*c.SEASON))+1,absoluteDay:Math.floor(game/c.DAY),minute:Math.floor(game/60)%1440,speed:s.clock.speed,synthetic:true},matches:v.matches.map(m=>({...m,gameSlot:s.config.slots.find(x=>x.id===m.id),gate:s.gates.find(x=>x.id===m.id)?.status??'waiting'})),career:{...(s.config.medicalWalkovers===true?{healthNotices:(s.draw.healthNotices??[]).filter(n=>n.playerId===player),...(s.draw.worldSupport.health?{healthRecords:clone(career?.injuries??[])}:{})}:{}),points:l.points(s.ledger,player),results:s.ledger.results.filter(x=>x.player===player),transactions:s.ledger.transactions.filter(x=>x.player===player),balance:s.ledger.balances.find(x=>x.player===player)?.balance??s.config.openingBalances?.[player]??0,condition:s.draw.roster.find(x=>x.id===player)?.profile.fatigue??null,support:career?{inventory:career.inventory,loadout:career.loadout,events:s.draw.worldSupport.events.filter(x=>x.playerId===player)}:null}};
 }
 function matchView(s,id,p,policy,now){observed(s,now);const v=d.matchView(s.draw,id,p,policy,now);return {...v,gameSlot:s.config.slots.find(x=>x.id===id),gate:s.gates.find(x=>x.id===id)?.status??'waiting'};}
 function command(s,id,p,policy,now,action,targetGame,patch){observed(s,now);const next=clone(s);next.draw=d.command(next.draw,id,p,policy,now,action,targetGame,patch);return next;}
