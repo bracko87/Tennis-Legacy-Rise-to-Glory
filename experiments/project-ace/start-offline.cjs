@@ -29,7 +29,8 @@ function makeOfflineAuth({email,password,peerPassword=null,now=Date.now}){
   if(!s||s.expires<=now()){sessions.delete(token);return null;}
   return {...s.principal};
  }
- return {policy,login,authenticate};
+ async function logout(header){if(typeof header==='string'&&/^Bearer [A-Za-z0-9_-]{43}$/.test(header))sessions.delete(header.slice(7));}
+ return {policy,login,authenticate,logout};
 }
 function start(){
  const email=(process.env.ACE_ADMIN_EMAIL||'').trim().toLowerCase();
