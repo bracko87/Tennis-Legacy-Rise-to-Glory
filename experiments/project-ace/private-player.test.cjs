@@ -1,0 +1,12 @@
+'use strict';
+const assert=require('node:assert/strict'),{demo}=require('./tournament-http.cjs'),{importPlayer}=require('./legacy-snapshot.cjs');
+const raw={schema:'ace-player-v1',...require('./sample-legacy-snapshot.json').players[0]};
+const imported=importPlayer(raw,'clay');
+const args=demo({surface:'clay'},1000,5,raw);
+assert.deepEqual(args.entrants[0].profile,imported);
+assert.equal(args.entrants[0].profile.recovery,raw.skills.recovery);
+assert.equal(args.entrants[0].id,'p0');
+assert.equal('player_id' in args.entrants[0].profile,false);
+assert.equal(args.entrants.length,7);
+assert.throws(()=>importPlayer({...raw,skills:{...raw.skills,player_id:'wrong'}},'hard'));
+console.log('PASS private player import, surface-specific ratings, anonymized local key and validation');

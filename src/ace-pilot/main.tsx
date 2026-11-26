@@ -1,0 +1,54 @@
+import {useState,useEffect,useRef} from 'react'
+import {createRoot} from 'react-dom/client'
+import '../styles/tournament-match-replay-score-v2.css'
+import './pilot.css'
+
+type Json = any
+const choices:Record<string,string[]>={approach:['Defensive','Balanced','Aggressive'],rally:['Shorten points','Balanced rallies','Extend rallies'],serve:['Safe first serve','Balanced','Power serving'],returnGame:['Safe return','Balanced','Attack second serve'],target:['Automatic','Backhand','Forehand','Movement','Stamina']}
+const defaults={approach:'Balanced',rally:'Balanced rallies',serve:'Balanced',returnGame:'Balanced',target:'Automatic'}
+const label=(k:string)=>({approach:'Approach',rally:'Rally length',serve:'Serve',returnGame:'Return',target:'Target'} as Record<string,string>)[k]||k
+function point(a:number,b:number,tb:boolean){return tb?String(a):a>=3&&b>=3?a>b?'AD':'40':['0','15','30','40'][Math.min(a,3)]}
+async function api(url:string,token:string,method='GET',body?:Json,signal?:AbortSignal){
+ const r=await fetch(url,{method,headers:{...(token?{Authorization:'Bearer '+token}:{}),...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',signal})
+ const data=await r.json();if(!r.ok)throw Object.assign(Error(data.error||'Request failed'),{status:r.status});return data
+}
+function App(){
+ const [token,setToken]=useState(''),[source,setSource]=useState(''),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[draw,setDraw]=useState<Json>(null),[match,setMatch]=useState<Json>(null),[selected,setSelected]=useState(''),[error,setError]=useState(''),[empty,setEmpty]=useState(false),[surface,setSurface]=useState('hard'),[mode,setMode]=useState('hybrid'),[pace,setPace]=useState('standard'),[draft,setDraft]=useState<Record<string,string>>({...defaults}),[dirty,setDirty]=useState(false),[busy,setBusy]=useState(false)
+ const generation=useRef(0),lock=useRef(false)
+ function logout(){generation.current++;setToken('');setSource('');setDraw(null);setMatch(null);setSelected('');setEmpty(false);setDirty(false);setPassword('');setError('')}
+ function select(id:string){setSelected(id);setMatch(null);setDirty(false);setDraft({...defaults})}
+ useEffect(()=>{
+  if(!token)return
+  let dead=false;let timer:ReturnType<typeof setTimeout>;const abort=new AbortController()
+  async function poll(){try{
+   if(lock.current)return
+   const d=await api('/api/draw',token,'GET',undefined,abort.signal);if(dead)return
+   setDraw(d);setEmpty(false)
+   const own=d.matches.find((m:Json)=>m.players.includes(d.managedPlayer)&&m.status!=='completed')
+   const id=selected||own?.id||d.matches.find((m:Json)=>m.status==='live')?.id||d.matches.at(-1)?.id
+   if(!selected&&id){select(id);return}
+   if(id){let m=await api('/api/match?id='+encodeURIComponent(id),token,'GET',undefined,abort.signal);if(dead)return
+    if(m.managed&&m.status==='live')m=await api('/api/heartbeat?id='+encodeURIComponent(id),token,'POST',{},abort.signal)
+    if(!dead){setMatch(m);if(!dirty)setDraft({...defaults,...m.activeTactics,...m.ownPending})}}
+  }catch(e:any){if(!dead){if(e.status===404)setEmpty(true);else if(e.status===403)logout();else if(e.name!=='AbortError')setError(e.message)}}finally{if(!dead)timer=setTimeout(poll,1000)}}
+  void poll();return()=>{dead=true;abort.abort();clearTimeout(timer)}
+ },[token,selected,dirty])
+ async function action(fn:()=>Promise<void>){if(lock.current)return;lock.current=true;setBusy(true);setError('');try{await fn()}catch(e:any){setError(e.message)}finally{lock.current=false;setBusy(false)}}
+ const names:Record<string,string>=Object.fromEntries((draw?.entrants||[]).map((p:Json)=>[p.id,p.name]))
+ const count=match?.bestOf||3
+ const grid={gridTemplateColumns:'minmax(200px,1fr) repeat('+(count+2)+', minmax(44px,70px))'}
+ const playable=match&&match.status==='live'&&match.managed&&match.coachingMode!=='auto'
+ return <main className="ace-react">
+ <header><small>TENNIS LEGACY / PRIVATE DEVELOPMENT</small><h1>Project Ace · Tournament</h1><p>Isolated React pilot — no official career effects</p>{token&&<button onClick={logout}>Sign out</button>}</header>
+ {error&&<p role="alert">{error}</p>}
+ {!token?<section><h2>Local administrator</h2><form onSubmit={e=>{e.preventDefault();void action(async()=>{const s=await api('/api/login','','POST',{email,password});setToken(s.token);setSource(s.profileSource);setPassword('')})}}><label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required/></label><label>Temporary local password<input type="password" value={password} onChange={e=>setPassword(e.target.value)} required/></label><button disabled={busy}>Sign in</button></form></section>:<>
+ <p>{source==='private-import'?'Private imported profile for new tournament':'Synthetic profiles'} · Local test only</p>
+ {empty&&<section><h2>Schedule private tournament</h2><form onSubmit={e=>{e.preventDefault();void action(async()=>{const d=await api('/api/draw',token,'POST',{surface,mode,pace,delaySeconds:60});setDraw(d);setEmpty(false)})}}><label>Surface<select value={surface} onChange={e=>setSurface(e.target.value)}>{['hard','clay','grass'].map(x=><option key={x}>{x}</option>)}</select></label><label>Speed<select value={pace} onChange={e=>setPace(e.target.value)}><option value="standard">Standard (4–7s)</option><option value="fast">Fast (2s)</option></select></label><label>Coaching<select value={mode} onChange={e=>setMode(e.target.value)}>{['hybrid','manual','auto'].map(x=><option key={x}>{x}</option>)}</select></label><button disabled={busy}>Create tournament</button></form></section>}
+ {draw&&<section><h2>{draw.phase==='completed'?'Champion: '+names[draw.champion]:draw.phase.replace('_',' ')+' · Round '+draw.round}</h2><p>{draw.results.length} matches completed</p><div className="draw-list">{draw.matches.map((m:Json)=><button key={m.id} aria-pressed={selected===m.id} onClick={()=>select(m.id)}><small>{m.phase.replace('_',' ')} · R{m.round} · {m.status}</small><strong>{m.players.map((id:string)=>names[id]).join(' vs ')}</strong>{m.winner&&<span>Winner: {names[m.winner]}</span>}{m.players.includes(draw.managedPlayer)&&<span>Your match</span>}</button>)}</div></section>}
+ {match&&<section><h2>{match.managed?'Your match':'Spectating'} · {match.status}</h2>{match.status==='scheduled'?<p>{match.delayed?'Waiting for player or court':'Scheduled: '+new Date(match.requestedAt).toLocaleTimeString()}</p>:<>
+ <div className="tlg-replay-score-table-wrap"><div className="tlg-replay-score-table"><div className="tlg-replay-score-header" style={grid}><span>Player</span>{Array.from({length:count},(_,i)=><span key={i}>Set {i+1}</span>)}<span>Games</span><span>Point</span></div>{match.players.map((p:Json,i:number)=><div key={i} className="tlg-replay-score-row" style={grid}><div className="tlg-replay-score-player"><div className="tlg-replay-score-avatar"><span>{p.name.split(' ').map((s:string)=>s[0]).slice(0,2).join('')}</span></div><div className="tlg-replay-score-identity"><strong>{p.name}</strong><div>{match.server===i?'Serving':''} {match.winner===i?'Winner':''}</div></div></div>{Array.from({length:count},(_,n)=><span key={n} className="set-cell">{match.completedSets[n]?.games[i]??'—'}</span>)}<span className="result-cell">{match.status==='completed'?'—':match.games[i]}</span><span className="point-cell">{match.status==='completed'?'—':point(match.points[i],match.points[1-i],match.tiebreak)}</span></div>)}</div></div>
+ <div className="match-columns"><div><h3>Player conditions</h3>{match.players.map((p:Json,i:number)=><article key={i}><strong>{p.name}</strong>{['energy','fatigue','focus','confidence','movement','serve','rally','momentum'].map(k=><div key={k} className="metric"><span>{k}</span><progress max={100} value={p[k]}/><span>{Math.round(p[k])}</span></div>)}</article>)}<h3>Statistics</h3>{match.stats.map((p:Json,i:number)=><p key={i}>{match.players[i].name}: {p.points} points · {p.aces} aces · {p.doubleFaults} double faults · {p.unforcedErrors} unforced errors</p>)}<h3>Recent points</h3><ol>{match.events.filter((e:Json)=>e.kind==='point').slice(-12).reverse().map((e:Json)=><li key={e.number}>{match.players[e.winner].name} {e.ace?'serves an ace':'wins point'} · {e.points.join('–')}</li>)}</ol></div><div><h3>Live coaching</h3>{playable?<><p>Next coaching game: {match.nextCoachingGame}</p><p>Active: {Object.entries(match.activeTactics||{}).map(([k,v])=>label(k)+': '+v).join(' · ')}</p>{match.ownPending&&<p>Queued: {Object.values(match.ownPending).join(' · ')}</p>}{(match.recommendations||[]).map((a:Json)=><article key={a.title}><strong>{a.title}</strong><p>{a.reason}</p><button onClick={()=>{setDirty(true);setDraft(v=>({...v,...a.patch}))}}>Use suggestion</button></article>)}<form onSubmit={e=>{e.preventDefault();const id=selected,target=match.nextCoachingGame,g=generation.current;void action(async()=>{const m=await api('/api/coach?id='+encodeURIComponent(id),token,'POST',{targetGame:target,tactics:draft});if(g===generation.current){setMatch(m);setDirty(false)}})}}>{Object.entries(choices).map(([k,opts])=><label key={k}>{label(k)}<select value={draft[k]} onChange={e=>{setDirty(true);setDraft(v=>({...v,[k]:e.target.value}))}}>{opts.map(v=><option key={v}>{v}</option>)}</select></label>)}<button disabled={busy}>Send next-game instructions</button></form></>:<p>Coaching unavailable for this match or mode.</p>}</div></div></>}</section>}
+ </>}
+ </main>
+}
+createRoot(document.getElementById('root')!).render(<App/>)

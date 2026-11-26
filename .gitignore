@@ -38,3 +38,7 @@ supabase/.branches/
 # Helios local-only guest Auth sandbox and schema dump (may hold function settings).
 .helios-guest-sandbox/
 .helios-guest-schema/
+
+# Local-only Ace React build and private player snapshots
+/experiments/project-ace/react-dist/
+/experiments/project-ace/private-player*.json

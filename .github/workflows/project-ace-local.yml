@@ -5,6 +5,8 @@ on:
     paths:
       - 'experiments/project-ace/**'
       - '.github/workflows/project-ace-local.yml'
+      - 'src/ace-pilot/**'
+      - 'scripts/build-ace-pilot.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -34,6 +36,11 @@ jobs:
           node experiments/project-ace/tournament-lifecycle.test.cjs
           node experiments/project-ace/tournament-draw.test.cjs
           node experiments/project-ace/tournament-http.test.cjs
+          node experiments/project-ace/private-player.test.cjs
           node --check experiments/project-ace/tournament.js
           node --check experiments/project-ace/ace.js
           node --check experiments/project-ace/start-local.cjs
+      - name: Build isolated React interface
+        run: |
+          npm ci --ignore-scripts
+          node scripts/build-ace-pilot.mjs
