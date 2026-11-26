@@ -7,8 +7,20 @@ const copy=x=>JSON.parse(JSON.stringify(x));
 const fail=(message,status)=>{const e=Error(message);e.status=status;throw e;};
 const modes=['manual','auto','hybrid'];
 const POINT_MS=2000, BREAK_MS=5000, PRESENCE_MS=30000;
-const PACES=Object.freeze({fast:Object.freeze({pointMs:2000,breakMs:5000}),balanced:Object.freeze({pointMs:4000,breakMs:12000}),coaching:Object.freeze({pointMs:6000,breakMs:20000}),extended:Object.freeze({pointMs:8000,breakMs:30000})});
+const PACES=Object.freeze({standard:Object.freeze({pointMinMs:4000,pointMaxMs:7000,breakMs:5000}),fast:Object.freeze({pointMs:2000,breakMs:5000}),balanced:Object.freeze({pointMs:4000,breakMs:12000}),coaching:Object.freeze({pointMs:6000,breakMs:20000}),extended:Object.freeze({pointMs:8000,breakMs:30000})});
 const paceFor=r=>PACES[r.pace??'fast'];
+// Independent timing stream: never consume the simulation RNG or use point outcomes.
+function pointDelay(r,number){
+ const pace=paceFor(r);if(pace.pointMs!==undefined)return pace.pointMs;
+ let x=(r.timingSeed^Math.imul(number,0x9e3779b1))>>>0;
+ x=Math.imul(x^(x>>>16),0x85ebca6b)>>>0;
+ x=Math.imul(x^(x>>>13),0xc2b2ae35)>>>0;
+ x=(x^(x>>>16))>>>0;
+ return pace.pointMinMs+1000*(x%4);
+}
+function pointAt(r,index){
+ return r.active.revealAt?.[index]??(r.active.startAt+(index+1)*paceFor(r).pointMs);
+}
 function canUse(principal,policy){
  return !!(policy.enabled && principal && principal.verified===true && principal.isAdmin===true && principal.id===policy.adminId);
 }
@@ -28,7 +40,7 @@ function createFixture({id,players,seed,startAt,opponentId=null,surface='hard',p
  if(typeof id!=='string'||!id||!Array.isArray(coachingModes)||coachingModes.length!==2||coachingModes.some(m=>!modes.includes(m)))fail('Invalid fixture',400);
  if(opponentId!==null&&(!policy.multiplayerTest||opponentId!==policy.syntheticId||opponentId===principal.id))fail('Forbidden opponent',403);
  if(opponentId===null&&coachingModes[1]!=='auto')fail('AI must use automatic coaching',400);
- return {id,pace,owners:[principal.id,opponentId],modes:[...coachingModes],lastSeen:[null,null],lastNow:now,startAt,nextAt:startAt,checkpoint:engine.createMatch({players,seed,surface}),active:null,queued:[null,null],applied:[null,null],revision:0};
+ return {id,pace,timingSeed:(seed^0xa53c9e71)>>>0,owners:[principal.id,opponentId],modes:[...coachingModes],lastSeen:[null,null],lastNow:now,startAt,nextAt:startAt,checkpoint:engine.createMatch({players,seed,surface}),active:null,queued:[null,null],applied:[null,null],revision:0};
 }
 function ai(s,i){
  const base=engine.observable(s);
@@ -47,7 +59,9 @@ function startGame(r,at){
  }
  const after=engine.stepGame(s),events=after.events.slice(s.events.length);
  const points=events.filter(e=>e.kind==='point');
- r.active={startAt:at,endAt:at+points.length*paceFor(r).pointMs,after,points};
+ let endAt=at;
+ const revealAt=points.map(e=>endAt+=pointDelay(r,e.number));
+ r.active={startAt:at,endAt,after,points,revealAt};
  r.nextAt=null;r.revision++;
 }
 function advance(record,now){
@@ -86,8 +100,8 @@ function cleanEvent(e){
 function view(record,principal,policy,now){
  const side=sideFor(record,principal,policy),r=advance(record,now),s=r.checkpoint;
  const base=engine.observable(s);
- const visible=r.active?r.active.points.slice(0,Math.floor((now-r.active.startAt)/paceFor(r).pointMs)):[];
- // Use only revealed point results to increment stats; conditions update at game end.
+ const visible=r.active?r.active.points.filter((_,i)=>pointAt(r,i)<=now):[];
+ // Use only revealed point results to update statistics and conditions.
  for(const e of visible){const st=base.stats[e.server];st.servicePoints++;if(e.first)st.firstIn++;if(e.ace)st.aces++;if(e.df)st.doubleFaults++;if(e.ue)base.stats[1-e.winner].unforcedErrors++;base.stats[e.winner].points++;}
  const events=[...base.events,...visible].map(cleanEvent).filter(Boolean);
  const last=visible[visible.length-1];
@@ -98,9 +112,9 @@ function view(record,principal,policy,now){
  const tb=!!r.active&&s.games[0]===6&&s.games[1]===6;
  const n=visible.length,server=r.active?(tb&&n>0?(Math.floor((n-1)/2)%2===0?1-s.nextServer:s.nextServer):s.nextServer):null;
  const timing=paceFor(r);
- const nextPointAt=r.active?r.active.startAt+(visible.length+1)*timing.pointMs:null;
+ const nextPointAt=r.active?pointAt(r,visible.length):null;
  // Never expose the hidden game end timestamp or the number of unrevealed points.
  const nextGameAt=r.active?null:r.nextAt;
- return {id:r.id,side,pace:r.pace??'fast',pointMs:timing.pointMs,breakMs:timing.breakMs,serverNow:now,nextPointAt,nextGameAt,surface:s.surface,opponentType:r.owners[1]?'human':'ai',opponentOnline:r.owners[1]!==null&&r.lastSeen[1-side]!==null&&now-r.lastSeen[1-side]<=PRESENCE_MS,revision:r.revision,status:s.status==='completed'?'completed':now<r.startAt?'scheduled':'live',startAt:r.startAt,gameNumber:s.gameNumber+(r.active?1:0),sets:base.sets,games:base.games,points:last?last.points:[0,0],tiebreak:tb,server,phase:s.status==='completed'?'completed':now<r.startAt?'scheduled':r.active?'playing':'between-games',completedSets:base.completedSets,winner:base.winner,players,stats:base.stats,recommendations:s.status==='completed'?[]:recommendations(players,base.stats,side,base.totalPoints+visible.length),ownHistory,activeTactics:copy(r.applied[side]?.tactics||s.tactics[side]),totalPoints:base.totalPoints+visible.length,events,ownTactics:copy(r.applied[side]),ownPending:copy(r.queued[side]),coachingMode:r.modes[side],nextCoachingGame:s.status==='completed'?null:s.gameNumber+(r.active?2:1)};
+ return {id:r.id,side,pace:r.pace??'fast',pointMs:timing.pointMs??null,pointMinMs:timing.pointMinMs??timing.pointMs,pointMaxMs:timing.pointMaxMs??timing.pointMs,breakMs:timing.breakMs,serverNow:now,nextPointAt,nextGameAt,surface:s.surface,opponentType:r.owners[1]?'human':'ai',opponentOnline:r.owners[1]!==null&&r.lastSeen[1-side]!==null&&now-r.lastSeen[1-side]<=PRESENCE_MS,revision:r.revision,status:s.status==='completed'?'completed':now<r.startAt?'scheduled':'live',startAt:r.startAt,gameNumber:s.gameNumber+(r.active?1:0),sets:base.sets,games:base.games,points:last?last.points:[0,0],tiebreak:tb,server,phase:s.status==='completed'?'completed':now<r.startAt?'scheduled':r.active?'playing':'between-games',completedSets:base.completedSets,winner:base.winner,players,stats:base.stats,recommendations:s.status==='completed'?[]:recommendations(players,base.stats,side,base.totalPoints+visible.length),ownHistory,activeTactics:copy(r.applied[side]?.tactics||s.tactics[side]),totalPoints:base.totalPoints+visible.length,events,ownTactics:copy(r.applied[side]),ownPending:copy(r.queued[side]),coachingMode:r.modes[side],nextCoachingGame:s.status==='completed'?null:s.gameNumber+(r.active?2:1)};
 }
 module.exports={createFixture,advance,heartbeat,coach,view,canUse,POINT_MS,BREAK_MS,PACES};

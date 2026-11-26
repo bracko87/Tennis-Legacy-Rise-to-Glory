@@ -20,7 +20,7 @@ async function run(){
   const B=(await req('/api/login','POST',{email:'ace-peer@example.invalid',password:'peer-pass'})).body;
   assert.equal(A.multiplayerEnabled,true);assert.equal(B.admin,false);
   assert.equal((await req('/api/heartbeat','POST',{},B.token)).status,404);
-  const ai=await req('/api/fixture','POST',{delaySeconds:5},A.token);assert.equal(ai.status,201);assert.equal(ai.body.pace,'balanced');assert.equal(ai.body.pointMs,4000);assert.equal(ai.body.breakMs,12000);
+  const ai=await req('/api/fixture','POST',{delaySeconds:5},A.token);assert.equal(ai.status,201);assert.equal(ai.body.pace,'standard');assert.equal(ai.body.pointMinMs,4000);assert.equal(ai.body.pointMaxMs,7000);assert.equal(ai.body.breakMs,5000);
   assert.equal((await req('/api/heartbeat','POST',{},B.token)).status,404);
   now=4000000;assert.equal((await req('/api/fixture','GET',undefined,A.token)).body.status,'completed');
   const created=await req('/api/fixture','POST',{pace:'fast',delaySeconds:10,humanOpponent:true,mode:'manual',peerMode:'manual',surface:'grass',playerPreset:'power',opponentPreset:'defensive'},A.token);
