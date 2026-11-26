@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),http=require('node:http');
 const {handler,demo}=require('./tournament-http.cjs'),{makeOfflineAuth}=require('./start-offline.cjs'),d=require('./tournament-draw.cjs');
 async function run(){
  let now=1000,state=null;
- const auth=makeOfflineAuth({email:'test@example.invalid',password:'test-pass',peerPassword:'peer-pass',now:()=>now});
+ const auth=makeOfflineAuth({email:'test@example.invalid',password:'test-pass',now:()=>now});
  const server=http.createServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));
  const port=server.address().port,base='http://127.0.0.1:'+port;
  const store={read:()=>state,save:s=>{state=s;}};

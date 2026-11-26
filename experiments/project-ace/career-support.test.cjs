@@ -1,0 +1,16 @@
+'use strict';
+const assert=require('node:assert/strict'),h=require('./career-support.cjs'),{fixtureProfiles}=require('./profiles.cjs');
+const items=[{id:'r1',type:'racket',condition:21},{id:'r2',type:'racket',condition:80},{id:'s',type:'shoes',condition:70},{id:'a',type:'apparel',condition:70}],loadout={racket:'r1',shoes:'s',apparel:'a'};
+assert.deepEqual(h.resolveGear(items,loadout).ratings,{serve:1,return:1,rally:1});
+const low=h.wear(items,loadout,{racket:2});assert.equal(low.events[0].type,'low');assert.equal(h.wear(low.inventory,low.loadout,{racket:1}).events.length,0);
+const broken=h.wear(low.inventory,low.loadout,{racket:19});assert.equal(broken.loadout.racket,'r2');assert.equal(broken.inventory.some(x=>x.id==='r1'),false);assert.equal(items[0].condition,21);
+const missing=h.resolveGear(items,{racket:'s'});assert.equal(missing.ratings.serve,.65*.97);assert.equal(missing.ratings.return,.65*.93*.97);
+const p={...fixtureProfiles()[0],fatigue:80,fitness:40,recovery:40,movement:40};
+assert.ok(h.injuryRisk(p,{minutes:180,heat:.5,activeInjuries:1})>h.injuryRisk({...p,fatigue:10}));
+assert.ok(h.injuryRisk(p,{support:{injuryReduction:.12}})<h.injuryRisk(p));
+assert.equal(h.adjustedGain(20,{matchFatigueReduction:.10}),18);
+assert.ok(h.dayOff(p,{recoveryMultiplier:1.2}).fatigue<h.dayOff(p).fatigue);
+assert.equal(h.eligibility([{status:'active',tournamentReturnDay:12,fullRecoveryDay:20}],11).eligible,false);
+assert.deepEqual(h.eligibility([{status:'recovering',tournamentReturnDay:12,fullRecoveryDay:20}],12),{eligible:true,active:1});
+assert.throws(()=>h.staff({injuryReduction:1}));assert.throws(()=>h.wear(items,loadout,{racket:-1}));
+console.log('PASS resolved gear, wear/retirement/replacement, staff bounds, injury risk/eligibility and explicit day-off recovery');

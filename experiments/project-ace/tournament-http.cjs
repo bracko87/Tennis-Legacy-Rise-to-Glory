@@ -2,13 +2,13 @@
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {importPlayer}=require('./legacy-snapshot.cjs');
 const d=require('./tournament-draw.cjs'),{open}=require('./tournament-store.cjs'),{fixtureProfiles}=require('./profiles.cjs'),{canUse}=require('./match-service.cjs');
-function demo({surface='hard',pace='standard',delaySeconds=60,mode='hybrid'}={},now,seed,privatePlayer=null){
- if(!['hard','clay','grass'].includes(surface)||!['standard','fast'].includes(pace)||!['hybrid','manual','auto'].includes(mode)||!Number.isInteger(delaySeconds)||delaySeconds<5||delaySeconds>86400)throw Object.assign(Error('Invalid tournament settings'),{status:400});
+function demo({surface='hard',pace='standard',delaySeconds=60,mode='hybrid',peerMode='hybrid'}={},now,seed,privatePlayer=null,peerEnabled=false){
+ if(!['hard','clay','grass'].includes(surface)||!['standard','fast'].includes(pace)||!['hybrid','manual','auto'].includes(mode)||!['hybrid','manual','auto'].includes(peerMode)||!Number.isInteger(delaySeconds)||delaySeconds<5||delaySeconds>86400)throw Object.assign(Error('Invalid tournament settings'),{status:400});
  const names=['Your Ace Player','Rally Specialist','Power Server','All-court Challenger','Clay Specialist','Baseline Attacker','Qualifier Hopeful'];
  const presets=['balanced','defensive','power','balanced','defensive','aggressive','balanced'];
  const entrants=names.map((name,i)=>({id:'p'+i,profile:{...fixtureProfiles(presets[i],'balanced',surface,false,{})[0],name}}));
  if(privatePlayer)entrants[0].profile=importPlayer(privatePlayer,surface);
- return {entrants,mainSlots:['p0',{qualifier:'Q1'},'p1','p2'],qualification:[{id:'Q1',players:['p3','p4','p5','p6']}],courts:['court-1','court-2'],startAt:now+delaySeconds*1000,seed,surface,pace,mainBestOf:3,roundGapMs:60000,managedPlayer:'p0',managedMode:mode};
+ return {entrants,mainSlots:['p0',{qualifier:'Q1'},'p1','p2'],qualification:[{id:'Q1',players:['p3','p4','p5','p6']}],courts:['court-1','court-2'],startAt:now+delaySeconds*1000,seed,surface,pace,mainBestOf:3,roundGapMs:60000,managedPlayer:'p0',managedMode:mode,peerPlayer:peerEnabled?'p2':null,peerMode};
 }
 function handler({auth,getStore,createStore,privatePlayer=null,reactDir=null,now=Date.now,port=8766}){
  const host='127.0.0.1:'+port,origin='http://'+host;
@@ -24,16 +24,17 @@ function handler({auth,getStore,createStore,privatePlayer=null,reactDir=null,now
   const file={'/':'tournament.html','/tournament.js':'tournament.js','/ace.css':'ace.css'}[url.pathname];
   if(req.method==='GET'&&file){res.writeHead(200,{'Content-Type':file.endsWith('.html')?'text/html; charset=utf-8':file.endsWith('.js')?'text/javascript; charset=utf-8':'text/css; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"});return res.end(fs.readFileSync(path.join(__dirname,file)));}
   if(req.method==='POST'&&(req.headers.origin!==origin||!/^application\/json(?:;|$)/i.test(req.headers['content-type']||'')))return send(res,403,{error:'Forbidden POST'});
-  if(url.pathname==='/api/login'&&req.method==='POST'){const x=await body(req),session=await auth.login(x.email,x.password);return session?.admin?send(res,200,{...session,profileSource:privatePlayer?'private-import':'synthetic'}):send(res,403,{error:'Local administrator required'});}
-  const p=await auth.authenticate(req.headers.authorization);if(!canUse(p,auth.policy))return send(res,403,{error:'Forbidden'});
+  if(url.pathname==='/api/login'&&req.method==='POST'){const x=await body(req),session=await auth.login(x.email,x.password);return session&&(session.admin||auth.policy.multiplayerTest)?send(res,200,{...session,profileSource:session.admin&&privatePlayer?'private-import':'synthetic',peerEnabled:auth.policy.multiplayerTest===true}):send(res,403,{error:'Local tournament account required'});}
+  const p=await auth.authenticate(req.headers.authorization);if(!canUse(p,auth.policy)&&!(auth.policy.enabled&&auth.policy.multiplayerTest&&p?.verified===true&&p.synthetic===true&&p.id===auth.policy.syntheticId))return send(res,403,{error:'Forbidden'});
   const x=req.method==='POST'?await body(req):{},t=now(),store=getStore();
   if(url.pathname==='/api/draw'&&req.method==='POST'){
+   if(!canUse(p,auth.policy))return send(res,403,{error:'Only the administrator can create a tournament'});
    if(store)return send(res,409,{error:'Existing tournament retained; use a separate state directory for another tournament'});
-   const state=d.create(demo(x,t,crypto.randomInt(0,4294967296),privatePlayer),p,auth.policy,t);
+   const state=d.create(demo(x,t,crypto.randomInt(0,4294967296),privatePlayer,auth.policy.multiplayerTest===true),p,auth.policy,t);
    createStore(state);return send(res,201,d.summary(state,p,auth.policy,t));
   }
   if(!store)return send(res,404,{error:'No private tournament'});
-  let s=d.advance(store.read(),p,auth.policy,t);
+  const raw=store.read(),info=d.access(raw,p,auth.policy);let s=d.advance(raw,info.worker,auth.policy,t);
   if(url.pathname==='/api/draw'&&req.method==='GET'){store.save(s);return send(res,200,d.summary(s,p,auth.policy,t));}
   const id=url.searchParams.get('id');
   if(url.pathname==='/api/match'&&req.method==='GET'){const v=d.matchView(s,id,p,auth.policy,t);store.save(s);return send(res,200,v);}
