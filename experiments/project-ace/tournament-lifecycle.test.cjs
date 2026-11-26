@@ -1,0 +1,38 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
+const t=require('./tournament-lifecycle.cjs'),{open}=require('./tournament-store.cjs'),{fixtureProfiles}=require('./profiles.cjs');
+const admin={id:'a',verified:true,isAdmin:true},peer={id:'b',verified:true,synthetic:true},other={id:'x',verified:true,isAdmin:true};
+const policy={enabled:true,adminId:'a',syntheticId:'b',multiplayerTest:true};
+const add=(s,id,court,players,at=1000,peerMode=false)=>t.schedule(s,{id,courtKey:court,playerKeys:players,players:fixtureProfiles(),startAt:at,seed:42,pace:'standard',opponentId:peerMode?'b':null,coachingModes:peerMode?['manual','manual']:['hybrid','auto']},admin,policy,0);
+let s=t.create(0);
+s=add(s,'A','court1',['p1','p2'],1000,true);
+s=add(s,'B','court1',['p3','p4']);
+s=add(s,'C','court2',['p1','p5']);
+s=add(s,'D','court3',['p6','p7']);
+assert.throws(()=>add(s,'A','court9',['x','y']),/duplicate/);
+assert.throws(()=>t.summary(s,other,policy,0),/Forbidden/);
+assert.throws(()=>t.view(s,'D',peer,policy,0),/Forbidden/);
+const original=JSON.stringify(s),at=t.advance(s,1000);
+assert.equal(JSON.stringify(s),original);
+assert.deepEqual(at.jobs.map(j=>j.status),['live','scheduled','scheduled','live']);
+assert.equal(t.view(at,'B',admin,policy,1000).delayed,true);
+assert.equal(t.view(at,'A',peer,policy,1000).winner,null);
+assert.equal(t.view(at,'A',peer,policy,1000).events.length,0);
+let coached=t.command(at,'A',admin,policy,1001,'coach',2,{serve:'Power serving'});
+coached=t.command(coached,'A',peer,policy,1001,'coach',2,{rally:'Extend rallies'});
+assert.equal(t.view(coached,'A',admin,policy,1001).ownPending.serve,'Power serving');
+assert.equal(t.view(coached,'A',peer,policy,1001).ownPending.rally,'Extend rallies');
+assert.throws(()=>t.command(coached,'B',admin,policy,1001,'coach',1,{serve:'Power serving'}),/not live/);
+const end=t.advance(coached,10000000),split=t.advance(t.advance(JSON.parse(JSON.stringify(coached)),90000),10000000);
+assert.deepEqual(end,split);
+assert.equal(end.receipts.length,4);assert.equal(new Set(end.receipts.map(r=>r.matchId)).size,4);
+const [A,B,C,D]=end.jobs;assert.equal(D.actualStartAt,1000);
+assert.ok(B.actualStartAt>=A.completedAt+15000);assert.ok(C.actualStartAt>=A.completedAt+60000);
+assert.ok(end.jobs.every(j=>j.status==='completed'));
+assert.deepEqual(t.advance(end,10000001).receipts,end.receipts);
+assert.throws(()=>t.advance(end,9999999),/backwards/);
+assert.equal(t.view(end,'A',admin,policy,10000000).winner,t.view(end,'A',peer,policy,10000000).winner);
+const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ace-tournament-'));let disk;
+try{disk=open(dir,coached);assert.throws(()=>open(dir),/EEXIST/);disk.tick(90000);disk.close();disk=open(dir);assert.deepEqual(disk.tick(10000000),end);disk.close();disk=open(dir);assert.equal(disk.tick(10000001).receipts.length,4);disk.close();}
+finally{disk?.close();fs.rmSync(dir,{recursive:true,force:true});}
+console.log('PASS isolated multi-match scheduler, simultaneous courts, shared player/court blocking, rest, offline catch-up, coaching, permissions, persistence and exactly-once receipts');
