@@ -7,6 +7,11 @@ on:
       - '.github/workflows/project-ace-local.yml'
       - 'src/ace-pilot/**'
       - 'scripts/build-ace-pilot.mjs'
+      - 'scripts/build.mjs'
+      - 'src/App.tsx'
+      - 'src/components/layout/GameSidebar.tsx'
+      - 'src/lib/aceReviewFlag.ts'
+      - 'src/pages/manager/AceReview.tsx'
   workflow_dispatch:
 permissions:
   contents: read
@@ -52,3 +57,7 @@ jobs:
         run: |
           npm ci --ignore-scripts
           node scripts/build-ace-pilot.mjs
+      - name: Verify actual app review build guard and compile
+        run: |
+          node experiments/project-ace/app-build-guard.test.cjs
+          TL_ACE_REVIEW=1 TL_SUPABASE_URL=http://127.0.0.1:54321 TL_SUPABASE_PUBLISHABLE_KEY=sb_publishable_disposable_review node scripts/build.mjs --compile-local
