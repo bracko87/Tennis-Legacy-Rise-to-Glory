@@ -81,7 +81,9 @@ BEGIN
   IF match_row.competition<>comp OR f.competition_id<>comp OR match_row.owner IS DISTINCT FROM 'ace' OR match_row.status<>'completed' OR e.engine<>'ace'
   OR match_row.player1 IS DISTINCT FROM m->>'player1_id' OR match_row.player2 IS DISTINCT FROM m->>'player2_id' OR e.winner IS DISTINCT FROM m->>'winner_id'
   OR e.receipt IS DISTINCT FROM m OR EXISTS(SELECT 1 FROM ace_cutover_review.handoffs WHERE match_id=match_row.id AND resolution IS NULL) THEN RAISE EXCEPTION 'owned receipt mismatch'; END IF;
-  IF m->>'completion_reason' IS NOT NULL OR coalesce((m->>'actual_duration_minutes')::int,0)<=0 OR jsonb_typeof(m->'sets') IS DISTINCT FROM 'array' OR jsonb_array_length(m->'sets')=0 OR jsonb_typeof(m->'stats') IS DISTINCT FROM 'array' OR jsonb_array_length(m->'stats')<>2 THEN RAISE EXCEPTION 'unsupported terminal receipt'; END IF;
+  IF m->>'completion_reason'='health_walkover' THEN
+   IF match_row.started OR NOT EXISTS(SELECT 1 FROM ace_cutover_review.medical_snapshots h WHERE h.match_id=match_row.id AND h.receipt=m) THEN RAISE EXCEPTION 'unverified medical receipt'; END IF;
+  ELSIF m->>'completion_reason' IS NOT NULL OR coalesce((m->>'actual_duration_minutes')::int,0)<=0 OR jsonb_typeof(m->'sets') IS DISTINCT FROM 'array' OR jsonb_array_length(m->'sets')=0 OR jsonb_typeof(m->'stats') IS DISTINCT FROM 'array' OR jsonb_array_length(m->'stats')<>2 THEN RAISE EXCEPTION 'unsupported terminal receipt'; END IF;
   PERFORM ace_review.claim_finalization(match_row.id,comp,'ace',match_row.player1,match_row.player2,f.feeder1,f.feeder2);
  END LOOP;
  IF (SELECT count(DISTINCT x->>'player_id') FROM jsonb_array_elements(p_payload->'results') x)<>jsonb_array_length(p_payload->'results') THEN RAISE EXCEPTION 'duplicate result'; END IF;

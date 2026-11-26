@@ -33,4 +33,5 @@ async function run(){
  assert.equal(await db.sql('SELECT count(*) FROM ace_review.finalized_matches WHERE competition_id='+lit(y.competition_id)+';'),'0');
  console.log('PASS official-shaped medical projection, frozen evidence, zero-play effects, stage rewards, atomic finalization and rejection of fabricated duration');
 }
-run().catch(e=>{console.error(e);process.exitCode=1});
+module.exports={fixture};
+if(require.main===module)run().catch(e=>{console.error(e);process.exitCode=1});
