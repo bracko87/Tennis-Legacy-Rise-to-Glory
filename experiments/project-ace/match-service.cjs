@@ -7,7 +7,7 @@ const copy=x=>JSON.parse(JSON.stringify(x));
 const fail=(message,status)=>{const e=Error(message);e.status=status;throw e;};
 const modes=['manual','auto','hybrid'];
 const POINT_MS=2000, BREAK_MS=5000, PRESENCE_MS=30000;
-const PACES=Object.freeze({fast:Object.freeze({pointMs:2000,breakMs:5000}),coaching:Object.freeze({pointMs:6000,breakMs:20000}),extended:Object.freeze({pointMs:8000,breakMs:30000})});
+const PACES=Object.freeze({fast:Object.freeze({pointMs:2000,breakMs:5000}),balanced:Object.freeze({pointMs:4000,breakMs:12000}),coaching:Object.freeze({pointMs:6000,breakMs:20000}),extended:Object.freeze({pointMs:8000,breakMs:30000})});
 const paceFor=r=>PACES[r.pace??'fast'];
 function canUse(principal,policy){
  return !!(policy.enabled && principal && principal.verified===true && principal.isAdmin===true && principal.id===policy.adminId);

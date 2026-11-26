@@ -6,7 +6,7 @@ const policy={enabled:true,adminId:'a',syntheticId:'b',multiplayerTest:true};
 const admin={id:'a',verified:true,isAdmin:true},peer={id:'b',verified:true,synthetic:true};
 const make=pace=>a.createFixture({id:'pacing',players:fixtureProfiles(),seed:6,startAt:60000,opponentId:'b',coachingModes:['manual','manual'],pace},admin,policy,0);
 assert.throws(()=>make('bogus'),/Invalid match pace/);
-for(const name of ['fast','coaching','extended']){
+for(const name of ['fast','balanced','coaching','extended']){
  const timing=a.PACES[name],r=make(name),start=r.startAt;
  let s=a.advance(r,start),v=a.view(s,admin,policy,start);
  assert.equal(v.nextPointAt,start+timing.pointMs);assert.equal(v.nextGameAt,null);assert.equal(v.totalPoints,0);assert.equal('endAt' in v,false);
@@ -22,7 +22,9 @@ for(const name of ['fast','coaching','extended']){
  assert.equal(s.applied[0].game,2);assert.equal(s.applied[1].game,2);
  assert.equal(s.active.after.tactics[0].rally,'Extend rallies');assert.equal(s.active.after.tactics[1].rally,'Shorten points');
 }
-const fast=a.advance(make('fast'),10000000),slow=a.advance(make('coaching'),10000000);
+assert.deepEqual(a.PACES.balanced,{pointMs:4000,breakMs:12000});
+const fast=a.advance(make('fast'),10000000),slow=a.advance(make('coaching'),10000000),middle=a.advance(make('balanced'),10000000);
+assert.deepEqual(fast.checkpoint,middle.checkpoint);
 assert.deepEqual(fast.checkpoint,slow.checkpoint);
 const legacy=make('fast');delete legacy.pace;assert.equal(a.view(legacy,admin,policy,60000).pointMs,2000);
 console.log('PASS configurable pacing, point visibility, full coaching window, simultaneous commands, persisted timing, legacy records and same-seed score invariance');
