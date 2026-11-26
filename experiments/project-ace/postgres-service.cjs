@@ -24,13 +24,14 @@ function createService({store,principal,policy,now=Date.now,clock=(s,ms)=>({serv
   }
  }
  async function summary(p){const row=await read();return {revision:row.revision,...w.summary(row.state,p,policy,row.state.clock.realMs)};}
- async function match(id,p){const row=await read();return {revision:row.revision,...w.matchView(row.state,id,p,policy,row.state.clock.realMs)};}
+ function committedMatch(state,id,p,revision){const v=w.matchView(state,id,p,policy,state.clock.realMs);return {...v,matchRevision:v.revision,revision};}
+ async function match(id,p){const row=await read();return committedMatch(row.state,id,p,row.revision);}
  async function command(id,p,action,targetGame,patch){
   const row=await read();w.access(row.state,p,policy);
   const state=next(row);
   const out=w.command(state,id,p,policy,state.clock.realMs,action,targetGame,patch);
   const revision=await store.save(row.revision,out); // Never retry a user command.
-  return {revision,...w.matchView(out,id,p,policy,out.clock.realMs)};
+  return committedMatch(out,id,p,revision);
  }
  return {tick,summary,match,command};
 }

@@ -11,7 +11,7 @@ permissions:
 jobs:
   postgres-review:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 12
     services:
       postgres:
         image: postgres:16
@@ -48,3 +48,15 @@ jobs:
           node experiments/project-ace/postgres-http.test.cjs
           node experiments/project-ace/app-review.test.cjs
           node experiments/project-ace/app-coaching.test.cjs
+      - name: Build isolated browser and install pinned Chromium driver
+        run: |
+          npm ci --ignore-scripts
+          node scripts/build-ace-pilot.mjs
+          npm install --prefix "$RUNNER_TEMP/ace-browser" --no-package-lock --ignore-scripts playwright@1.56.1
+          "$RUNNER_TEMP/ace-browser/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Real Chromium isolated acceptance
+        env:
+          ACE_REVIEW_DB: '1'
+          ACE_REVIEW_DB_PASSWORD: ace-disposable-worker
+          ACE_REVIEW_DB_PORT: '55432'
+        run: NODE_PATH="$RUNNER_TEMP/ace-browser/node_modules" node experiments/project-ace/browser-acceptance.test.cjs

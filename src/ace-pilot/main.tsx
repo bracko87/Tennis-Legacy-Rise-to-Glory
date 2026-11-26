@@ -29,7 +29,7 @@ function App(){
    if(!selected&&id){setSelected(id);return}
    if(id){let m=await api('/api/match?id='+encodeURIComponent(id),token,'GET',undefined,abort.signal);if(dead)return
     if(m.managed&&m.status==='live'&&(lastHeartbeat.current.id!==id||Date.now()-lastHeartbeat.current.at>=10000)){m=await api('/api/heartbeat?id='+encodeURIComponent(id),token,'POST',{},abort.signal);lastHeartbeat.current={id,at:Date.now()}}
-    if(!dead){setMatch(m);if(!dirty)setDraft({...defaults,...m.activeTactics,...m.ownPending})}}
+    if(!dead&&!lock.current){setMatch(m);if(!dirty)setDraft({...defaults,...m.activeTactics,...m.ownPending})}}
   }catch(e:any){if(!dead){if(e.status===404)setEmpty(true);else if(e.status===403)logout();else if(e.name!=='AbortError')setError(e.message)}}finally{if(!dead)timer=setTimeout(poll,1000)}}
   void poll();return()=>{dead=true;abort.abort();clearTimeout(timer)}
  },[token,selected,dirty])

@@ -25,7 +25,7 @@ async function run(){
   admin=false;assert.equal((await req(route,'POST',patch)).status,403);admin=true;
   assert.deepEqual(await store.read(),prior);
   const cmd=await req(route,'POST',patch);assert.equal(cmd.status,200);assert.equal(cmd.body.ownPending.serve,'Power serving');
-  const saved=await store.read();assert.equal(saved.revision,cmd.body.revision);
+  const saved=await store.read();assert.equal(saved.revision,cmd.body.revision);assert.ok(Number.isInteger(cmd.body.matchRevision));assert.equal((await req('/api/match?id='+id)).body.revision,saved.revision);
   const stale=await req(route,'POST',{targetGame:target+1,tactics:{serve:'Balanced'}});assert.equal(stale.status,409);assert.deepEqual(await store.read(),saved);
   const job=saved.state.draw.scheduler.jobs.find(j=>j.id===id);ms=job.fixture.active.endAt+5000;await worker.tick();
   const applied=(await req('/api/match?id='+id)).body;assert.equal(applied.activeTactics.serve,'Power serving');
