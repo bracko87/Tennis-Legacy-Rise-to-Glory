@@ -1,0 +1,27 @@
+name: Ace local prototype verification
+on:
+  push:
+    branches: [project-ace]
+    paths:
+      - 'experiments/project-ace/**'
+      - '.github/workflows/project-ace-local.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Native Node tests (no production credentials)
+        run: |
+          node experiments/project-ace/engine.test.cjs
+          node experiments/project-ace/match-service.test.cjs
+          node experiments/project-ace/local-auth.test.cjs
+          node experiments/project-ace/local-http.test.cjs
+          node --check experiments/project-ace/ace.js
+          node --check experiments/project-ace/start-local.cjs
