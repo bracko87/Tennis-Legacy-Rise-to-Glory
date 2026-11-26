@@ -42,4 +42,6 @@ jobs:
           ACE_REVIEW_DB: '1'
           ACE_REVIEW_DB_PASSWORD: ace-disposable-worker
           ACE_REVIEW_DB_PORT: '55432'
-        run: node experiments/project-ace/postgres-worker.test.cjs
+        run: |
+          node experiments/project-ace/postgres-worker.test.cjs
+          node experiments/project-ace/postgres-service.test.cjs

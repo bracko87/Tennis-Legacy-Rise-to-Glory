@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),{open,connection,mutate}=require('./postgres-store.cjs');
 const w=require('./world-worker.cjs'),demo=require('./world-demo.cjs'),{demo:drawArgs}=require('./tournament-http.cjs'),c=require('./world-clock.cjs');
 const p={id:'a',verified:true,isAdmin:true},policy={enabled:true,adminId:'a'};
-const raw=(ms,day,hour=10)=>({server_now:new Date(ms).toISOString(),game_total_seconds:c.slot(1,1,day,hour*60),speed_multiplier:60});
+const raw=(ms,day,hour=10)=>({server_now:new Date(ms).toISOString(),game_total_seconds:c.slot(1,1+Math.floor((day-1)/7),(day-1)%7+1,hour*60),speed_multiplier:60});
 const clone=x=>JSON.parse(JSON.stringify(x));
 async function run(){
  const db=connection(),store=open('world-ci',db),args=drawArgs({pace:'fast',delaySeconds:5},0,33);
@@ -22,7 +22,7 @@ async function run(){
   const updated=await mutate(current,s=>w.tick(s,raw(ms,day,hour),p,policy));
   assert.deepEqual(updated.state,expected);assert.deepEqual((await current.read()).state,expected);
  }
- const done=await store.read();assert.equal(done.state.draw.phase,'completed');assert.equal(done.state.draw.scheduler.receipts.length,6);assert.equal(done.state.ledger.transactions.length,1);
+ const done=await store.read();assert.equal(done.state.draw.phase,'completed');assert.equal(done.state.draw.scheduler.receipts.length,6);assert.equal(done.state.ledger.transactions.length,1);assert.equal(done.state.ledger.results.length,7);assert.ok(done.state.ledger.results.every(r=>r.status==='published'));
  const invalid=clone(done.state);invalid.ledger.transactions[0].amount++;
  await assert.rejects(store.save(done.revision,invalid),/rejected/);
  assert.deepEqual(await store.read(),done);
