@@ -73,7 +73,7 @@ export default function AceReviewPage(){
  <h4>Statistics</h4>{match.stats.map((p:any,i:number)=><p key={i}>{match.players[i].name}: {p.points} points · {p.aces} aces · {p.doubleFaults} double faults · {p.unforcedErrors} unforced errors</p>)}
  <h4>Live coaching</h4>{playable?<><p>Next coaching game: {match.nextCoachingGame}</p><p>Active: {Object.entries(match.activeTactics||{}).map(([k,v])=>(labels[k]||k)+': '+v).join(' · ')}</p>{match.ownPending&&<p>Queued: {Object.values(match.ownPending).join(' · ')}</p>}
  {(match.recommendations||[]).map((a:any)=><article key={a.title}><strong>{a.title}</strong><p>{a.reason}</p><button type="button" disabled={busy} onClick={()=>{setDirty(true);setDraft(v=>({...v,...a.patch}))}}>Use suggestion</button></article>)}
- <form onSubmit={e=>{e.preventDefault();void coach()}}>{Object.entries(choices).map(([k,opts])=><label key={k}>{labels[k]} <select value={draft[k]} disabled={busy} onChange={e=>{setDirty(true);setDraft(v=>({...v,[k]:e.target.value}))}}>{opts.map(v=><option key={v}>{v}</option>)}</select></label>)}<button disabled={busy}>Send next-game instructions</button></form></>:<p>Coaching unavailable for this match or mode.</p>}</>}
+ <form onSubmit={e=>{e.preventDefault();void coach()}}>{Object.entries(choices).map(([k,opts])=><label key={k}>{labels[k]} <select aria-label={labels[k]} value={draft[k]} disabled={busy} onChange={e=>{setDirty(true);setDraft(v=>({...v,[k]:e.target.value}))}}>{opts.map(v=><option key={v}>{v}</option>)}</select></label>)}<button disabled={busy}>Send next-game instructions</button></form></>:<p>Coaching unavailable for this match or mode.</p>}</>}
  </section>}</>}
  </section></GameLayout>
 }

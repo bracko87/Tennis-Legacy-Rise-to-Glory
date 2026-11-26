@@ -116,4 +116,85 @@ BEGIN
 END $stage$;
 REVOKE ALL ON FUNCTION ace_review.stage_settlement(jsonb) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION ace_review.stage_settlement(jsonb) TO ace_review_worker;
+-- Isolated rehearsal of an exclusive engine ownership and atomic finalization contract.
+-- Never connected to public.tournament_matches or either production engine.
+CREATE TABLE ace_review.finalization_claims (
+ match_id text PRIMARY KEY,
+ competition_id text NOT NULL,
+ engine text NOT NULL CHECK(engine IN ('ace','legacy')),
+ player1_id text NOT NULL,
+ player2_id text NOT NULL CHECK(player1_id<>player2_id),
+ feeder1 text REFERENCES ace_review.finalization_claims(match_id),
+ feeder2 text REFERENCES ace_review.finalization_claims(match_id),
+ CHECK(feeder1 IS DISTINCT FROM match_id AND feeder2 IS DISTINCT FROM match_id),
+ CHECK(feeder1 IS NULL OR feeder2 IS NULL OR feeder1<>feeder2)
+);
+CREATE TABLE ace_review.finalized_matches (
+ match_id text PRIMARY KEY REFERENCES ace_review.finalization_claims(match_id),
+ competition_id text NOT NULL,
+ payload jsonb NOT NULL
+);
+CREATE TABLE ace_review.finalized_competitions (
+ competition_id text PRIMARY KEY REFERENCES ace_review.settlement_exports(competition_id),
+ payload jsonb NOT NULL
+);
+CREATE TABLE ace_review.finalized_prizes (
+ player_id text NOT NULL,
+ idempotency_key text NOT NULL,
+ competition_id text NOT NULL REFERENCES ace_review.finalized_competitions(competition_id),
+ payload jsonb NOT NULL,
+ PRIMARY KEY(player_id,idempotency_key)
+);
+ALTER TABLE ace_review.finalization_claims ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ace_review.finalized_matches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ace_review.finalized_competitions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ace_review.finalized_prizes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY worker_claims ON ace_review.finalization_claims TO ace_review_worker USING(true) WITH CHECK(true);
+CREATE POLICY worker_final_matches ON ace_review.finalized_matches TO ace_review_worker USING(true) WITH CHECK(true);
+CREATE POLICY worker_final_comp ON ace_review.finalized_competitions TO ace_review_worker USING(true) WITH CHECK(true);
+CREATE POLICY worker_final_prizes ON ace_review.finalized_prizes TO ace_review_worker USING(true) WITH CHECK(true);
+GRANT SELECT,INSERT ON ace_review.finalization_claims,ace_review.finalized_matches,ace_review.finalized_competitions,ace_review.finalized_prizes TO ace_review_worker;
+CREATE FUNCTION ace_review.claim_finalization(p_match text,p_comp text,p_engine text,p_p1 text,p_p2 text,p_f1 text DEFAULT NULL,p_f2 text DEFAULT NULL) RETURNS text
+LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog,ace_review AS $claim$
+DECLARE prior ace_review.finalization_claims%ROWTYPE;
+BEGIN
+ IF p_match IS NULL OR p_match='' OR p_comp IS NULL OR p_comp='' OR p_p1 IS NULL OR p_p2 IS NULL OR p_p1='' OR p_p2='' THEN RAISE EXCEPTION 'invalid claim'; END IF;
+ INSERT INTO ace_review.finalization_claims VALUES(p_match,p_comp,p_engine,p_p1,p_p2,p_f1,p_f2) ON CONFLICT DO NOTHING;
+ IF FOUND THEN RETURN 'claimed'; END IF;
+ SELECT * INTO STRICT prior FROM ace_review.finalization_claims WHERE match_id=p_match;
+ IF ROW(prior.competition_id,prior.engine,prior.player1_id,prior.player2_id,prior.feeder1,prior.feeder2) IS DISTINCT FROM ROW(p_comp,p_engine,p_p1,p_p2,p_f1,p_f2) THEN RAISE EXCEPTION 'finalization ownership conflict'; END IF;
+ RETURN 'already_claimed';
+END $claim$;
+CREATE FUNCTION ace_review.finalize_staged_competition(p_comp text) RETURNS text
+LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog,ace_review AS $finalize$
+DECLARE export jsonb; m jsonb; prize jsonb; claim ace_review.finalization_claims%ROWTYPE; feeder jsonb;
+BEGIN
+ -- All competing finalize requests serialize for the same competition.
+ PERFORM pg_advisory_xact_lock(hashtextextended(p_comp,91023));
+ IF EXISTS(SELECT 1 FROM ace_review.finalized_competitions WHERE competition_id=p_comp) THEN RETURN 'already_finalized'; END IF;
+ SELECT payload INTO STRICT export FROM ace_review.settlement_exports WHERE competition_id=p_comp;
+ IF export->>'participant_order_verified' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'participant order not verified'; END IF;
+ IF (SELECT count(*) FROM ace_review.finalization_claims WHERE competition_id=p_comp)<>jsonb_array_length(export->'matches') THEN RAISE EXCEPTION 'incomplete match claims'; END IF;
+ FOR m IN SELECT value FROM jsonb_array_elements(export->'matches') LOOP
+  SELECT * INTO STRICT claim FROM ace_review.finalization_claims WHERE match_id=m->>'match_id';
+  IF claim.engine<>'ace' OR claim.competition_id<>p_comp OR m->>'competition_id' IS DISTINCT FROM p_comp OR claim.player1_id IS DISTINCT FROM m->>'player1_id' OR claim.player2_id IS DISTINCT FROM m->>'player2_id' OR m->>'status' IS DISTINCT FROM 'completed' OR m->>'winner_id' IS NULL OR m->>'winner_id' NOT IN(claim.player1_id,claim.player2_id) THEN RAISE EXCEPTION 'finalization claim mismatch'; END IF;
+  IF claim.feeder1 IS NOT NULL THEN
+   SELECT payload INTO STRICT feeder FROM ace_review.finalized_matches WHERE match_id=claim.feeder1 AND competition_id=p_comp;
+   IF feeder->>'winner_id' IS DISTINCT FROM claim.player1_id THEN RAISE EXCEPTION 'first feeder mismatch'; END IF;
+  END IF;
+  IF claim.feeder2 IS NOT NULL THEN
+   SELECT payload INTO STRICT feeder FROM ace_review.finalized_matches WHERE match_id=claim.feeder2 AND competition_id=p_comp;
+   IF feeder->>'winner_id' IS DISTINCT FROM claim.player2_id THEN RAISE EXCEPTION 'second feeder mismatch'; END IF;
+  END IF;
+  INSERT INTO ace_review.finalized_matches VALUES(claim.match_id,p_comp,m);
+ END LOOP;
+ INSERT INTO ace_review.finalized_competitions VALUES(p_comp,export);
+ FOR prize IN SELECT value FROM jsonb_array_elements(export->'transactions') LOOP
+  IF prize->>'source_id' IS DISTINCT FROM p_comp OR prize->>'idempotency_key' IS DISTINCT FROM 'tournament-prize:'||p_comp||':'||(prize->>'player_id') OR (prize->>'amount')::bigint<=0 THEN RAISE EXCEPTION 'invalid prize'; END IF;
+  INSERT INTO ace_review.finalized_prizes VALUES(prize->>'player_id',prize->>'idempotency_key',p_comp,prize);
+ END LOOP;
+ RETURN 'finalized_review';
+END $finalize$;
+REVOKE ALL ON FUNCTION ace_review.claim_finalization(text,text,text,text,text,text,text),ace_review.finalize_staged_competition(text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION ace_review.claim_finalization(text,text,text,text,text,text,text),ace_review.finalize_staged_competition(text) TO ace_review_worker;
 COMMIT;

@@ -28,7 +28,7 @@ const reordered=require('./official-settlement-review.cjs').project(s,{officialM
 for(const m of reordered.matches){const original=exportPayload.matches.find(x=>x.match_id===m.match_id);assert.equal(m.player1_id,original.player2_id);assert.equal(m.winner_id,original.winner_id);assert.equal(m.sets[0].player1_games,original.sets[0].player2_games);assert.deepEqual(m.stats[0],original.stats[1]);}
 assert.throws(()=>require('./official-settlement-review.cjs').project(s,{officialMatches:officialMatches.map((m,i)=>i===0?{...m,player1_id:'wrong'}:m)}),/participant mismatch/);
 const badPoint=JSON.parse(JSON.stringify(s));badPoint.draw.scheduler.jobs[0].fixture.checkpoint.events.find(x=>x.kind==='point').points=[99,99];assert.throws(()=>require('./official-settlement-review.cjs').project(badPoint),/Point score mismatch/);
-module.exports={exportPayload};
+module.exports={exportPayload,reordered};
 const grand={...snapshot,competition:{...snapshot.competition,category_code:'grand_slam_2000'},ranking_rules:snapshot.ranking_rules.map(x=>({...x,category_code:'grand_slam_2000'}))};
 assert.equal(bridge.create(grand,p,policy,raw(0,1,1,9),options).draw.mainBestOf,5);
 console.log('PASS official-shaped snapshot mapping, schedule and reward validation, catalogue wear, ATP format, private results and source receipt mapping');
