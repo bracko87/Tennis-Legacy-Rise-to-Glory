@@ -1,0 +1,9 @@
+# Ace tactical v0.4 calibration (isolated pilot)
+
+New local fixtures use ace-tactical-0.4. Existing fixtures keep their checkpoint version. Legacy engine tests remain unchanged. No production integration.
+
+Contextual bonuses/penalties depend on relative skills, fatigue, focus and surface. Net direct tactical adjustment to conditional point-win probability is capped at ±6.5 percentage points; serve first-in, ace and double-fault probabilities are separate tradeoffs, and accumulated fatigue can also affect later points. This is not a literal 55/20/15/10 weighting system. Both sides use identical formulas. A manager can submit changes only for the next game. Aggression and targeting can produce differentiated exertion; error/ace reactions influence focus and confidence. Point outcome and error classification remain the prototype's existing mechanism, not a fully calibrated shot-by-shot model.
+
+Pre-commit experiment: 60 paired seeds, equal balanced profiles, hard court, best-of-three, one instruction after game four, opponent unchanged. Old/new changed winners: backhand 14/29, forehand 9/23, power serve 11/16, aggressive 4/9, defensive 5/21, safe first serve 8/14, attack second serve 7/9, safe return 1/19, shorten 0/1, extend 1/2. Each engine ran 660 matches (including controls). This is exploratory, not a win-rate guarantee. Equal-profile rally-length choice has little immediate edge; tired-vs-fresh matchup is materially different. At a fresh balanced matchup backhand targeting yields about +2.33 pp per point, aggression +1.36 pp; on grass power-server vs defensive profile, power serving +2.68 pp per service point; on clay fresh (15 fatigue) vs tired (55 fatigue) equal skills, extend rallies +3.9 pp.
+
+Still needed: larger held-out matchup sweeps and production statistical targets, tactical AI calibration, weather/equipment/injuries, real career integration and stronger-vs-weaker calibration. No production data was accessed.

@@ -16,7 +16,7 @@ function render(s){
  if(state?.id!==s.id)dirty=false;state=s;
  $('match').hidden=false;$('setup').hidden=!admin||s.status!=='completed';
  $('status').textContent=s.status.toUpperCase()+(s.phase==='between-games'?' • Change of game':' • Game '+s.gameNumber);
- $('start').textContent=(s.surface||'hard').toUpperCase()+' • '+(s.opponentType==='human'?(s.opponentOnline?'Opponent online':'Opponent offline'):'AI opponent')+' • Start '+new Date(s.startAt).toLocaleTimeString();
+ $('start').textContent=(s.surface||'hard').toUpperCase()+' • '+(s.opponentType==='human'?(s.opponentOnline?'Opponent online':'Opponent offline'):'AI opponent')+' • '+(s.engineVersion==='ace-tactical-0.4'?'Tactical v0.4':'Legacy model')+' • Start '+new Date(s.startAt).toLocaleTimeString();
  for(const id of ['score','conditions','statistics','activeTactics','advice','history'])$(id).replaceChildren();
  const head=el('div',undefined,'scoreline');head.append(el('span','Player'),...['Set 1','Set 2','Set 3','Games','Point'].map(x=>el('b',x)));$('score').append(head);
  s.players.forEach((p,i)=>{

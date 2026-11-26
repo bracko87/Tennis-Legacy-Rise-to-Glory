@@ -1,5 +1,6 @@
 'use strict';
 // Project Ace v0.1: isolated synthetic singles POC. No database, clock, or production imports.
+const tactical=require('./tactical-v2.cjs');
 const clamp=(x,lo,hi)=>Math.max(lo,Math.min(hi,x));
 const clone=x=>JSON.parse(JSON.stringify(x));
 const modes={approach:['Defensive','Balanced','Aggressive'],rally:['Shorten points','Balanced rallies','Extend rallies'],serve:['Safe first serve','Balanced','Power serving'],returnGame:['Safe return','Balanced','Attack second serve'],target:['Automatic','Backhand','Forehand','Movement','Stamina']};
@@ -18,9 +19,10 @@ function profile(p){
  return o;
 }
 function draw(s){s.rng=(Math.imul(s.rng,1664525)+1013904223)>>>0;return s.rng/4294967296;}
-function createMatch({players,seed=1,surface='hard',bestOf=3}){
+function createMatch({players,seed=1,surface='hard',bestOf=3,version='ace-poc-0.1'}){
+ if(!['ace-poc-0.1','ace-tactical-0.4'].includes(version))throw Error('Unknown engine version');
  if(!Array.isArray(players)||players.length!==2||!Number.isInteger(seed)||seed<0||seed>4294967295||!['hard','grass','clay'].includes(surface)||![3,5].includes(bestOf))throw Error('Invalid match setup');
- const s={version:'ace-poc-0.1',surface,bestOf,rng:seed,players:players.map(profile),tactics:[{...balanced},{...balanced}],pending:[null,null],sets:[0,0],games:[0,0],completedSets:[],gameNumber:0,totalPoints:0,stats:players.map(()=>({points:0,servicePoints:0,firstIn:0,aces:0,doubleFaults:0,unforcedErrors:0})),events:[],winner:null,status:'ready'};
+ const s={version,surface,bestOf,rng:seed,players:players.map(profile),tactics:[{...balanced},{...balanced}],pending:[null,null],sets:[0,0],games:[0,0],completedSets:[],gameNumber:0,totalPoints:0,stats:players.map(()=>({points:0,servicePoints:0,firstIn:0,aces:0,doubleFaults:0,unforcedErrors:0})),events:[],winner:null,status:'ready'};
  s.nextServer=draw(s)<.5?0:1;return s;
 }
 function queueTactics(state,side,patch){
@@ -42,6 +44,7 @@ function wing(t,opp){
  return 0;
 }
 function probabilities(s,server,first){
+ if(s.version==='ace-tactical-0.4')return tactical.probabilities(s,server,first,effective);
  const receiver=1-server,a=s.players[server],b=s.players[receiver],ta=s.tactics[server],tb=s.tactics[receiver],x=effective(a,ta),y=effective(b,tb);
  const surface=s.surface==='grass'?.035:s.surface==='clay'?-.020:.005;
  const diff=.65*(x.serve-y.ret)+.35*(x.rally-y.rally);
@@ -57,10 +60,11 @@ function point(s,server){
  const long=!ace&&!df&&rallyDraw<clamp(.22+.11*(lengths[0]+lengths[1]),.04,.55);
  s.totalPoints++;s.stats[server].servicePoints++;if(first)s.stats[server].firstIn++;if(ace)s.stats[server].aces++;if(df)s.stats[server].doubleFaults++;if(ue)s.stats[loser].unforcedErrors++;s.stats[winner].points++;
  for(let i=0;i<2;i++){
-  const p=s.players[i],cost=(ace||df?.035:long?.28:.115)*(1+(100-p.stamina)/100)* (1+(100-p.fitness)/200);
+  const p=s.players[i];let cost=(ace||df?.035:long?.28:.115)*(1+(100-p.stamina)/100)* (1+(100-p.fitness)/200);
+  if(s.version==='ace-tactical-0.4')cost*=tactical.exertion(p,s.players[1-i],s.tactics[i],s.tactics[1-i],long,ace||df);
   p.fatigue=clamp(p.fatigue+cost,0,100);
-  p.focus=clamp(p.focus+(i===winner?.12:-.12)-cost*.15,0,100);
-  p.confidence=clamp(p.confidence+(i===winner?.22:-.22),0,100);
+  p.focus=clamp(p.focus+(i===winner?.12:-.12)-cost*.15-(s.version==='ace-tactical-0.4'&&i===loser&&ue?.18:0),0,100);
+  p.confidence=clamp(p.confidence+(i===winner?.22:-.22)+(s.version==='ace-tactical-0.4'?(i===winner&&ace?.15:i===loser&&(df||ue)?-.12:0):0),0,100);
  }
  return {kind:'point',number:s.totalPoints,server,winner,first,ace,df,ue,long,probability:q.serverWin,conditions:conditions(s)};
 }
