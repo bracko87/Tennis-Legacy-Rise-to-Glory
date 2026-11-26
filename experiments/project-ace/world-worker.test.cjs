@@ -16,7 +16,7 @@ tick(2100000,at(2)+3600);assert.equal(s.completed.length,3);assert.equal(s.draw.
 tick(2200000,at(3));assert.equal(s.admissions.length,5);
 const mine=s.draw.scheduler.jobs.find(j=>j.playerKeys.includes('p0')&&j.status==='live');
 const peer=s.draw.scheduler.jobs.find(j=>j.playerKeys.includes('p2')&&j.status==='live');
-assert.ok(mine&&peer);assert.equal(w.matchView(s,mine.id,p,policy,2200000).managed,true);assert.equal(w.matchView(s,peer.id,q,policy,2200000).managed,true);
+assert.ok(mine&&peer);assert.throws(()=>w.matchView(s,mine.id,p,policy,2200001),/Fresh world clock/);assert.throws(()=>w.command(s,mine.id,p,policy,2200001,'coach',2,{serve:'Power serving'}),/Fresh world clock/);assert.equal(w.matchView(s,mine.id,p,policy,2200000).managed,true);assert.equal(w.matchView(s,peer.id,q,policy,2200000).managed,true);
 s=w.command(s,mine.id,p,policy,2200000,'coach',2,{serve:'Power serving'});
 assert.equal(w.matchView(s,mine.id,p,policy,2200000).ownPending.serve,'Power serving');
 assert.throws(()=>w.command(s,mine.id,q,policy,2200000,'coach',2,{serve:'Power serving'}),/Not your match/);

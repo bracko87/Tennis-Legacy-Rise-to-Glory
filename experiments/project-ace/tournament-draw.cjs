@@ -26,7 +26,7 @@ function create({entrants,mainSlots,qualification=[],courts,startAt,seed=1,surfa
  const direct=slots.filter(s=>s.player).map(s=>s.player),refs=slots.filter(s=>s.qualifier).map(s=>s.qualifier);
  const all=[...direct,...groups.flatMap(g=>g.players)];
  if(new Set(all).size!==all.length||all.length!==ids.length||all.some(id=>!ids.includes(id))||refs.length!==groups.length||new Set(refs).size!==refs.length||refs.some(id=>!groups.some(g=>g.id===id))||all.length-1>100)fail('Invalid or duplicate draw slots');
- const s={version:1,kind:'draw',owner:principal.id,...(worldMode===true?{worldMode:true}:{}),managedPlayer,managedMode,peerPlayer,peerMode,peerOwner:peerPlayer===null?null:policy.syntheticId,seed,surface,mainBestOf,pace,roundGapMs,courts:[...courts],roster,slots,groups,phase:groups.length?'qualification':'main_draw',round:1,stage:[],matches:[],conditionEvents:[],processed:[],champion:null,completedAt:null,scheduler:t.create(now)};
+ const s={version:1,kind:'draw',owner:principal.id,...(worldMode===true?{worldMode:true}:{}),managedPlayer,managedMode,peerPlayer,peerMode,peerOwner:peerPlayer===null?null:policy.syntheticId,seed,surface,mainBestOf,pace,roundGapMs,courts:[...courts],roster,slots,groups,phase:groups.length?'qualification':'main_draw',round:1,stage:[],matches:[],conditionEvents:[],processed:[],champion:null,completedAt:null,scheduler:t.create(now,worldMode===true?{courtRestMs:0,playerRestMs:0}:undefined)};
  enqueue(s,groups.length?groups.map(g=>({group:g.id,players:g.players})): [{group:'main',players:direct}],startAt,principal,policy,now);
  return s;
 }

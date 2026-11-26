@@ -59,11 +59,13 @@ function tick(state,raw,p,policy){
 }
 function sampleAt(s,now){return {server_now:new Date(now).toISOString(),game_total_seconds:c.at(s.anchor,now),speed_multiplier:s.anchor.speed};}
 function advance(s,p,policy,now){return tick(s,sampleAt(s,now),p,policy);}
+function observed(s,now){if(now!==s.clock.realMs)fail('Fresh world clock tick required',409);}
 function summary(s,p,policy,now){
+ observed(s,now);
  const who=access(s,p,policy),v=d.summary(s.draw,p,policy,now),player=who.player;
  const game=s.clock.gameSeconds,career=s.draw.worldSupport.players[player];
  return {...v,world:{season:Math.floor(game/(c.DAY*c.SEASON))+1,absoluteDay:Math.floor(game/c.DAY),minute:Math.floor(game/60)%1440,speed:s.clock.speed,synthetic:true},matches:v.matches.map(m=>({...m,gameSlot:s.config.slots.find(x=>x.id===m.id),gate:s.gates.find(x=>x.id===m.id)?.status??'waiting'})),career:{points:l.points(s.ledger,player),results:s.ledger.results.filter(x=>x.player===player),transactions:s.ledger.transactions.filter(x=>x.player===player),balance:s.ledger.balances.find(x=>x.player===player)?.balance??s.config.openingBalances?.[player]??0,condition:s.draw.roster.find(x=>x.id===player)?.profile.fatigue??null,support:career?{inventory:career.inventory,loadout:career.loadout,events:s.draw.worldSupport.events.filter(x=>x.playerId===player)}:null}};
 }
-function matchView(s,id,p,policy,now){const v=d.matchView(s.draw,id,p,policy,now);return {...v,gameSlot:s.config.slots.find(x=>x.id===id),gate:s.gates.find(x=>x.id===id)?.status??'waiting'};}
-function command(s,id,p,policy,now,action,targetGame,patch){const next=clone(s);next.draw=d.command(next.draw,id,p,policy,now,action,targetGame,patch);return next;}
+function matchView(s,id,p,policy,now){observed(s,now);const v=d.matchView(s.draw,id,p,policy,now);return {...v,gameSlot:s.config.slots.find(x=>x.id===id),gate:s.gates.find(x=>x.id===id)?.status??'waiting'};}
+function command(s,id,p,policy,now,action,targetGame,patch){observed(s,now);const next=clone(s);next.draw=d.command(next.draw,id,p,policy,now,action,targetGame,patch);return next;}
 module.exports={create,tick,advance,summary,matchView,command,access};
