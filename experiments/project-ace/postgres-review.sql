@@ -200,4 +200,32 @@ BEGIN
 END $finalize$;
 REVOKE ALL ON FUNCTION ace_review.claim_finalization(text,text,text,text,text,text,text),ace_review.finalize_staged_competition(text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION ace_review.claim_finalization(text,text,text,text,text,text,text),ace_review.finalize_staged_competition(text) TO ace_review_worker;
+-- Career proposals are immutable and depend on a finalized review competition.
+CREATE TABLE ace_review.career_exports (
+ competition_id text PRIMARY KEY REFERENCES ace_review.finalized_competitions(competition_id),
+ payload jsonb NOT NULL CHECK ((payload->>'schema'='ace-career-settlement-review-v1' AND payload->>'review_only'='true' AND payload->>'production_ready'='false' AND payload->>'competition_id'=competition_id) IS TRUE)
+);
+ALTER TABLE ace_review.career_exports ENABLE ROW LEVEL SECURITY;
+CREATE POLICY worker_career ON ace_review.career_exports TO ace_review_worker USING(true) WITH CHECK(true);
+GRANT SELECT,INSERT ON ace_review.career_exports TO ace_review_worker;
+CREATE FUNCTION ace_review.stage_career(p_payload jsonb) RETURNS text
+LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog,ace_review AS $career$
+DECLARE v_id text:=p_payload->>'competition_id'; prior jsonb; final jsonb; a jsonb; r jsonb;
+BEGIN
+ SELECT payload INTO STRICT final FROM ace_review.finalized_competitions WHERE competition_id=v_id;
+ IF jsonb_typeof(p_payload->'accounts') IS DISTINCT FROM 'array' OR jsonb_typeof(p_payload->'taxes') IS DISTINCT FROM 'array' OR jsonb_typeof(p_payload->'injury_rolls') IS DISTINCT FROM 'array' THEN RAISE EXCEPTION 'invalid career arrays'; END IF;
+ FOR a IN SELECT value FROM jsonb_array_elements(p_payload->'accounts') LOOP
+  IF (a->>'gross_prize')::bigint IS DISTINCT FROM (SELECT coalesce(sum((x->>'amount')::bigint),0) FROM jsonb_array_elements(final->'transactions') x WHERE x->>'player_id'=a->>'player_id') OR (a->>'balance_before_tax')::bigint IS DISTINCT FROM (a->>'opening_balance')::bigint+(a->>'gross_prize')::bigint THEN RAISE EXCEPTION 'career prize mismatch'; END IF;
+ END LOOP;
+ FOR r IN SELECT value FROM jsonb_array_elements(p_payload->'injury_rolls') LOOP
+  IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(final->'matches') m WHERE m->>'match_id'=r->>'match_id' AND coalesce(m->>'completion_reason','')<>'health_walkover' AND r->>'player_id' IN(m->>'player1_id',m->>'player2_id')) THEN RAISE EXCEPTION 'invalid career injury source'; END IF;
+ END LOOP;
+ INSERT INTO ace_review.career_exports VALUES(v_id,p_payload) ON CONFLICT DO NOTHING;
+ IF FOUND THEN RETURN 'staged'; END IF;
+ SELECT payload INTO STRICT prior FROM ace_review.career_exports WHERE competition_id=v_id;
+ IF prior IS DISTINCT FROM p_payload THEN RAISE EXCEPTION 'career export conflict'; END IF;
+ RETURN 'already_staged';
+END $career$;
+REVOKE ALL ON FUNCTION ace_review.stage_career(jsonb) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION ace_review.stage_career(jsonb) TO ace_review_worker;
 COMMIT;
