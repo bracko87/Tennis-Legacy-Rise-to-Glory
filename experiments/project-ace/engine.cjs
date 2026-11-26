@@ -60,7 +60,7 @@ function point(s,server){
   p.focus=clamp(p.focus+(i===winner?.12:-.12)-cost*.15,0,100);
   p.confidence=clamp(p.confidence+(i===winner?.22:-.22),0,100);
  }
- return {kind:'point',number:s.totalPoints,server,winner,first,ace,df,ue,long,probability:q.serverWin};
+ return {kind:'point',number:s.totalPoints,server,winner,first,ace,df,ue,long,probability:q.serverWin,conditions:conditions(s)};
 }
 function stepGame(state,expectedGame=state.gameNumber){
  if(state.status==='completed')return clone(state);
@@ -86,5 +86,8 @@ function stepGame(state,expectedGame=state.gameNumber){
  }
  return s;
 }
-function observable(s){return {status:s.status,gameNumber:s.gameNumber,totalPoints:s.totalPoints,sets:[...s.sets],games:[...s.games],completedSets:clone(s.completedSets),winner:s.winner,players:s.players.map((p,i)=>({name:p.name,energy:100-p.fatigue,fatigue:p.fatigue,focus:p.focus,confidence:p.confidence,movement:p.movement*(1-p.fatigue*.002),serve:effective(p,s.tactics[i]).serve})),stats:clone(s.stats),events:clone(s.events)};}
+function conditions(s){
+ return s.players.map((p,i)=>({name:p.name,energy:100-p.fatigue,fatigue:p.fatigue,focus:p.focus,confidence:p.confidence,movement:p.movement*(1-p.fatigue*.002),serve:clamp(effective(p,s.tactics[i]).serve,0,100),rally:clamp(effective(p,s.tactics[i]).rally,0,100)}));
+}
+function observable(s){return {status:s.status,gameNumber:s.gameNumber,totalPoints:s.totalPoints,sets:[...s.sets],games:[...s.games],completedSets:clone(s.completedSets),winner:s.winner,players:conditions(s),stats:clone(s.stats),events:clone(s.events)};}
 module.exports={createMatch,queueTactics,stepGame,observable,probabilities};
