@@ -13,7 +13,7 @@ function demo({surface='hard',pace='standard',delaySeconds=60,mode='hybrid',peer
 function handler({auth,getStore,createStore,privatePlayer=null,reactDir=null,driver=d,now=Date.now,port=8766}){
  const host='127.0.0.1:'+port,origin='http://'+host;
  const send=(res,status,x)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(x));};
- async function body(req){let b='';for await(const c of req){b+=c;if(Buffer.byteLength(b)>8192)throw Object.assign(Error('Body too large'),{status:413});}try{return JSON.parse(b||'{}')}catch{throw Object.assign(Error('Invalid JSON'),{status:400});}}
+ async function body(req){let b='';for await(const c of req){b+=c;if(Buffer.byteLength(b)>8192)throw Object.assign(Error('Body too large'),{status:413});}try{const x=JSON.parse(b||'{}');if(!x||typeof x!=='object'||Array.isArray(x))throw Error('Expected JSON object');return x}catch{throw Object.assign(Error('Invalid JSON'),{status:400});}}
  return async(req,res)=>{try{
   if(req.headers.host!==host||(req.headers.origin&&req.headers.origin!==origin))return send(res,403,{error:'Forbidden origin'});
   const url=new URL(req.url,origin);
@@ -27,6 +27,10 @@ function handler({auth,getStore,createStore,privatePlayer=null,reactDir=null,dri
   if(url.pathname==='/api/login'&&req.method==='POST'){const x=await body(req),session=await auth.login(x.email,x.password);return session&&(session.admin||auth.policy.multiplayerTest)?send(res,200,{...session,profileSource:session.admin&&privatePlayer?'private-import':'synthetic',peerEnabled:auth.policy.multiplayerTest===true}):send(res,403,{error:'Local tournament account required'});}
   const p=await auth.authenticate(req.headers.authorization);if(!canUse(p,auth.policy)&&!(auth.policy.enabled&&auth.policy.multiplayerTest&&p?.verified===true&&p.synthetic===true&&p.id===auth.policy.syntheticId))return send(res,403,{error:'Forbidden'});
   const x=req.method==='POST'?await body(req):{},t=now(),store=getStore();
+  if(url.pathname==='/api/coach'&&req.method==='POST'){
+   const fields={approach:['Defensive','Balanced','Aggressive'],rally:['Shorten points','Balanced rallies','Extend rallies'],serve:['Safe first serve','Balanced','Power serving'],returnGame:['Safe return','Balanced','Attack second serve'],target:['Automatic','Backhand','Forehand','Movement','Stamina']};
+   if(!Number.isSafeInteger(x.targetGame)||x.targetGame<1||!x.tactics||typeof x.tactics!=='object'||Array.isArray(x.tactics)||!Object.keys(x.tactics).length||Object.entries(x.tactics).some(([k,v])=>!Object.hasOwn(fields,k)||!fields[k].includes(v)))return send(res,400,{error:'Invalid coaching instructions'});
+  }
   if(url.pathname==='/api/draw'&&req.method==='POST'){
    if(!canUse(p,auth.policy))return send(res,403,{error:'Only the administrator can create a tournament'});
    if(store)return send(res,409,{error:'Existing tournament retained; use a separate state directory for another tournament'});

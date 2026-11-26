@@ -1,0 +1,40 @@
+'use strict';
+// Native CPU and memory benchmark, not a production throughput claim.
+const assert=require('node:assert/strict'),{performance}=require('node:perf_hooks'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
+const t=require('./tournament-lifecycle.cjs'),a=require('./match-service.cjs'),{fixtureProfiles}=require('./profiles.cjs'),{open}=require('./tournament-store.cjs');
+const p={id:'a',verified:true,isAdmin:true},policy={enabled:true,adminId:'a'};
+const n=200,players=fixtureProfiles(),initial=t.create(0,{maxJobs:256,courtRestMs:0,playerRestMs:0});
+const before=performance.now();let s=initial;
+for(let i=0;i<n;i++)s=t.schedule(s,{id:'m'+i,courtKey:'c'+i,playerKeys:['p'+2*i,'p'+(2*i+1)],players,seed:Math.imul(i+1,2654435761)>>>0,pace:'standard',startAt:1000,coachingModes:['auto','auto']},p,policy,0);
+const scheduleMs=performance.now()-before;
+s=t.advance(s,1000);assert.equal(s.jobs.filter(j=>j.status==='live').length,n);
+assert.equal(new Set(s.jobs.map(j=>j.courtKey)).size,n);
+assert.equal(s.receipts.length,0);
+const original=JSON.stringify(s),sample=s.jobs[0];
+assert.equal(t.view(s,sample.id,p,policy,1000).events.length,0);
+assert.throws(()=>t.view(s,sample.id,{id:'b',verified:true,isAdmin:true},policy,1000),/Forbidden/);
+const start=performance.now(),end=t.advance(s,10000000),runMs=performance.now()-start;
+assert.equal(JSON.stringify(s),original);
+assert.equal(end.receipts.length,n);assert.equal(new Set(end.receipts.map(x=>x.matchId)).size,n);
+assert.ok(end.jobs.every(j=>j.status==='completed'));
+assert.ok(end.receipts.every(x=>x.totalPoints>0&&x.completedAt>=x.startedAt));
+const mid=t.advance(s,90000),dir=fs.mkdtempSync(path.join(os.tmpdir(),'ace-stress-'));let disk;
+const restartStart=performance.now();
+try{
+ disk=open(dir,mid);
+ assert.throws(()=>open(dir),/EEXIST/);
+ const saved=JSON.stringify(disk.read());
+ assert.throws(()=>disk.save({...mid,kind:'wrong'}),/state kind/);
+ const cyclic={...mid};cyclic.self=cyclic;
+ assert.throws(()=>disk.save(cyclic),/circular/i);
+ assert.equal(JSON.stringify(disk.read()),saved);
+ disk.close();disk=open(dir);
+ const restored=disk.tick(10000000);
+ assert.deepEqual(restored,end);
+ assert.equal(disk.tick(10000001).receipts.length,n);
+ disk.close();
+}finally{disk?.close();fs.rmSync(dir,{recursive:true,force:true});}
+const restartMs=performance.now()-restartStart;
+let points=0;for(const r of end.receipts)points+=r.totalPoints;
+console.log('ACE_STRESS_METRICS '+JSON.stringify({matches:n,simultaneous:n,points,scheduleMs:Math.round(scheduleMs),completionMs:Math.round(runMs),restartMs:Math.round(restartMs),serializedMiB:Math.round(Buffer.byteLength(JSON.stringify(end))/1048576*100)/100,peakRssMiB:Math.round(process.resourceUsage().maxRSS/1024)}));
+console.log('PASS 200 simultaneous matches, immutable inputs, unique receipts, atomic save rejection, writer exclusion and exact restart equivalence');

@@ -10,8 +10,10 @@ function open(dir,initial,{advance=lifecycle.advance,kind=null}={}){
  const check=()=>{if(closed)throw Error('Store closed');};
  const read=()=>{check();return JSON.parse(fs.readFileSync(file,'utf8'));};
  const save=s=>{
-  check();const tmp=file+'.'+crypto.randomUUID()+'.tmp';let f;
-  try{f=fs.openSync(tmp,'wx',0o600);fs.writeFileSync(f,JSON.stringify(s));fs.fsyncSync(f);fs.closeSync(f);f=undefined;fs.renameSync(tmp,file);}
+  check();if(!s||s.version!==1||(s.kind??null)!==kind)throw Error('Unexpected state kind');
+  const serialized=JSON.stringify(s);if(typeof serialized!=='string')throw Error('Invalid state');
+  const tmp=file+'.'+crypto.randomUUID()+'.tmp';let f;
+  try{f=fs.openSync(tmp,'wx',0o600);fs.writeFileSync(f,serialized);fs.fsyncSync(f);fs.closeSync(f);f=undefined;fs.renameSync(tmp,file);}
   finally{if(f!==undefined)fs.closeSync(f);if(fs.existsSync(tmp))fs.unlinkSync(tmp);}
  };
  const close=()=>{if(!closed){closed=true;fs.closeSync(fd);fs.unlinkSync(lock);}};

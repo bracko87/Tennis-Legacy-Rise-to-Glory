@@ -6,14 +6,15 @@ const error=(message,status=400)=>{const e=Error(message);e.status=status;throw 
 const time=n=>{if(!Number.isSafeInteger(n)||n<0)error('Invalid clock');return n;};
 const key=(s)=>{if(typeof s!=='string'||!(/^[A-Za-z0-9][A-Za-z0-9:_-]{0,79}$/).test(s))error('Invalid resource key');return s;};
 const admin=(p,policy)=>{if(!a.canUse(p,policy))error('Forbidden',403);};
-function create(now,{courtRestMs=15000,playerRestMs=60000}={}){
+function create(now,{courtRestMs=15000,playerRestMs=60000,maxJobs=100}={}){
  time(now);for(const n of [courtRestMs,playerRestMs])if(!Number.isSafeInteger(n)||n<0||n>86400000)error('Invalid rest policy');
- return {version:1,lastNow:now,courtRestMs,playerRestMs,jobs:[],receipts:[]};
+ if(!Number.isInteger(maxJobs)||maxJobs<1||maxJobs>256)error('Invalid scheduler capacity');
+ return {version:1,lastNow:now,courtRestMs,playerRestMs,...(maxJobs===100?{}:{maxJobs}),jobs:[],receipts:[]};
 }
 function schedule(state,input,principal,policy,now){
  admin(principal,policy);time(now);if(now<state.lastNow)error('Clock moved backwards',409);
  const s=advance(state,now),id=key(input.id),court=key(input.courtKey),startAt=time(input.startAt);
- if(startAt<now||s.jobs.some(j=>j.id===id)||s.jobs.length>=100)error('Invalid or duplicate scheduled match',409);
+ if(startAt<now||s.jobs.some(j=>j.id===id)||s.jobs.length>=(s.maxJobs??100))error('Invalid or duplicate scheduled match',409);
  if(!Array.isArray(input.playerKeys)||input.playerKeys.length!==2)error('Two player keys required');
  const players=input.playerKeys.map(key);if(players[0]===players[1])error('Duplicate player');
  // Validate and freeze the full match setup now; no games are calculated until admission.
@@ -47,6 +48,8 @@ function advance(state,now){
  for(let loops=0;loops<50000;loops++){
   // Settle all active match boundaries before admitting a new match.
   for(const j of s.jobs.filter(x=>x.status==='live')){
+   // The scheduler owns this cloned state. No match event is due before its boundary.
+   if(boundary(j)>cursor){j.fixture.lastNow=cursor;continue;}
    j.fixture=a.advance(j.fixture,cursor);
    if(j.fixture.checkpoint.status==='completed')settle(s,j,cursor);
   }
