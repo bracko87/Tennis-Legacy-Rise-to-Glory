@@ -30,6 +30,11 @@ async function run(){
   assert.equal(a2.activeTactics.serve,'Power serving');assert.equal(b2.activeTactics.rally,'Shorten points');assert.equal(a2.activeTactics.rally,'Balanced rallies');
   now=5000000;const finA=(await req('/api/draw','GET',undefined,A.token)).body,finB=(await req('/api/draw','GET',undefined,B.token)).body;
   assert.equal(finA.phase,'completed');assert.equal(finA.champion,finB.champion);assert.equal(finA.results.length,3);assert.deepEqual(finA.results,finB.results);assert.ok(finB.conditions.every(x=>x.playerId==='p1'));assert.ok(finA.conditions.every(x=>x.playerId==='p0'));
+  const opposite=d.create({entrants,mainSlots:['p0','p2','p1','p3'],courts:['c1','c2'],startAt:now+1000,seed:43,pace:'fast',managedPlayer:'p0',peerPlayer:'p1'},admin,auth.policy,now);
+  const peer={id:auth.policy.syntheticId,verified:true,synthetic:true};
+  const peerOnly=d.matchView(opposite,'draw-2',peer,auth.policy,now+1000);
+  assert.equal(peerOnly.side,1);assert.equal(peerOnly.opponentType,'ai');assert.equal(peerOnly.opponentOnline,false);
+  assert.equal(d.matchView(opposite,'draw-2',admin,auth.policy,now+1000).managed,false);
  }finally{await new Promise(r=>server.close(r));}
  console.log('PASS two authenticated tournament managers, own-match commands, simultaneous tactical activation, spectator isolation and shared champion');
 }

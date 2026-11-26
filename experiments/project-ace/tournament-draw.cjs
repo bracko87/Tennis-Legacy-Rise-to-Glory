@@ -102,6 +102,7 @@ function matchView(state,id,p,policy,now){
  const managed=!!info.player&&m.players.includes(info.player);
  const v=t.view(s.scheduler,id,managed?p:info.worker,policy,now);
  if(!managed){delete v.ownHistory;delete v.ownPending;delete v.ownTactics;delete v.activeTactics;delete v.recommendations;delete v.opponentOnline;delete v.opponentType;v.coachingMode='auto';v.side=null;}
+ if(managed&&v.status!=='scheduled'){const other=m.players.find(id=>id!==info.player);v.opponentType=(other===s.managedPlayer||other===s.peerPlayer)?'human':'ai';if(v.opponentType==='ai')v.opponentOnline=false;}
  return {...v,managed,drawPhase:m.phase,drawRound:m.round};
 }
 function command(state,id,p,policy,now,action,targetGame,patch){
