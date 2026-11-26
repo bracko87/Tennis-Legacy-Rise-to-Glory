@@ -3,8 +3,8 @@ const assert=require('node:assert/strict'),a=require('./match-service.cjs'),{imp
 const raw=require('./sample-legacy-snapshot.json'),copy=x=>JSON.parse(JSON.stringify(x));
 const s=importSnapshot(raw);assert.equal(s.bestOf,5);assert.equal(s.surface,'hard');assert.equal(s.players[1].hand,'left');assert.equal('player_id' in s.players[0],false);
 const w=copy(raw);w.match.world='WTA';assert.equal(importSnapshot(w).bestOf,3);
-const q=copy(raw);q.match.draw_type='qualifying';assert.equal(importSnapshot(q).bestOf,3);
-for(const mutate of [x=>x.match.status='completed',x=>x.players[0].skills.player_id='wrong',x=>delete x.players[0].skills.lob,x=>x.players[0].skills.serve=101,x=>x.match.scheduled_day=8]){const x=copy(raw);mutate(x);assert.throws(()=>importSnapshot(x));}
+const q=copy(raw);q.match.draw_type='qualification';assert.equal(importSnapshot(q).bestOf,3);
+for(const mutate of [x=>x.match.status='completed',x=>x.match.draw_type='main',x=>x.players[0].skills.player_id='wrong',x=>delete x.players[0].skills.lob,x=>x.players[0].skills.serve=101,x=>x.match.scheduled_day=8]){const x=copy(raw);mutate(x);assert.throws(()=>importSnapshot(x));}
 const admin={id:'a',verified:true,isAdmin:true},policy={enabled:true,adminId:'a'};
 let r=a.createFixture({...s,id:'private',seed:7,startAt:10000,pace:'standard'},admin,policy,0);
 let v=a.replayView(r,admin,policy,9999);assert.equal(v.status,'prepared');assert.equal(v.events.length,0);
