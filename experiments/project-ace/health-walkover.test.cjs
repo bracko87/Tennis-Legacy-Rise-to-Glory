@@ -18,7 +18,8 @@ function create(injuries){
  return w.create({draw,config,support:injuries},p,policy,{...raw(0,1),game_total_seconds:c.slot(1,1,1,600)-300});
 }
 async function run(){
- const initial=create(support([injury(2)]));
+ const matchDay=Math.floor(c.slot(1,1,1,600)/c.DAY);
+ const initial=create(support([injury(matchDay+1)]));
  const paused=w.tick(initial,raw(5000,1,0),p,policy);
  assert.equal(paused.draw.scheduler.receipts.length,0);
  const s=w.tick(paused,raw(5001,1),p,policy);
@@ -31,8 +32,8 @@ async function run(){
  assert.equal(w.summary(s,p,policy,5001).career.healthNotices.length,1);assert.deepEqual(w.summary(s,q,policy,5001).career.healthNotices,[]);
  assert.throws(()=>w.command(s,'draw-1',p,policy,5001,'coach',2,{}),/Match not live/);
  const replay=w.tick(JSON.parse(JSON.stringify(s)),raw(5002,1),p,policy);assert.deepEqual(replay.draw.scheduler.receipts,s.draw.scheduler.receipts);assert.deepEqual(replay.ledger,s.ledger);assert.deepEqual(replay.draw.healthNotices,s.draw.healthNotices);
- const both=w.tick(create(support([injury(3)],[injury(2)])),raw(5000,1),p,policy);assert.equal(both.draw.champion,'p2');assert.equal(both.draw.healthNotices.length,2);assert.equal(both.draw.healthNotices.find(n=>n.playerId==='p2').advanced,true);
- const cleared=w.tick(create(support([injury(0)])),raw(5000,1),p,policy);assert.equal(cleared.admissions.length,1);assert.equal(cleared.draw.scheduler.receipts.length,0);
+ const both=w.tick(create(support([injury(matchDay+2)],[injury(matchDay+1)])),raw(5000,1),p,policy);assert.equal(both.draw.champion,'p2');assert.equal(both.draw.healthNotices.length,2);assert.equal(both.draw.healthNotices.find(n=>n.playerId==='p2').advanced,true);
+ const cleared=w.tick(create(support([injury(matchDay)])),raw(5000,1),p,policy);assert.equal(cleared.admissions.length,1);assert.equal(cleared.draw.scheduler.receipts.length,0);
  if(process.env.ACE_REVIEW_DB==='1'){
   const {open}=require('./postgres-store.cjs'),store=open('medical-walkover-ci');
   assert.equal(await store.save(-1,initial),0);assert.equal(await store.save(0,s),1);
