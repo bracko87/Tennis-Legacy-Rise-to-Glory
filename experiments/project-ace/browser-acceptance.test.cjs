@@ -66,7 +66,35 @@ async function run(){
   await restored.page.getByText(new RegExp('Published ranking points: '+own.points+' ·')).waitFor();
   await restored.page.getByText('racket r1: '+gear.condition+'% condition',{exact:true}).waitFor();
   assert.deepEqual((await store.read()).state.ledger,ledger);
-  await restored.ctx.close();assert.deepEqual(external,[]);assert.deepEqual(errors,[]);
+  await restored.ctx.close();
+  // A separate disposable world with an injury-blocked final exercises the W/O UI.
+  ms=0;game=c.slot(1,1,1,600)-300;
+  const medicalStore=open('browser-medical-ci'),draw=demo({delaySeconds:5,pace:'fast'},0,33,null,true);
+  const absoluteDay=Math.floor(c.slot(1,1,1,600)/c.DAY);
+  const initial=require('./world-worker.cjs').create({
+   draw:{...draw,entrants:draw.entrants.filter(x=>['p0','p2'].includes(x.id)),mainSlots:['p0','p2'],qualification:[],courts:['court-1']},
+   config:{competition:'browser-medical',series:'browser-medical',season:1,lastWeek:1,medicalWalkovers:true,slots:[{id:'draw-1',phase:'main_draw',week:1,day:1,minute:600,firstWeek:1,lastWeek:1,court:1}],rewards:[{stage_code:'winner',ranking_points:100,prize_money_usd:1000},{stage_code:'runner_up',ranking_points:60,prize_money_usd:500}]},
+   support:{p0:{injuries:[{status:'active',tournamentReturnDay:absoluteDay+1,fullRecoveryDay:absoluteDay+2}]}}
+  },p,auth.policy,{server_now:new Date(ms).toISOString(),game_total_seconds:game,speed_multiplier:60});
+  await medicalStore.save(-1,initial);
+  server.removeListener('request',g.handler);
+  const mg=gateway({auth,store:medicalStore,port,reactDir:path.join(__dirname,'react-dist'),now:()=>ms,clock:()=>({server_now:new Date(ms).toISOString(),game_total_seconds:game,speed_multiplier:60})});
+  server.on('request',mg.handler);
+  const MA=await context(),MB=await context();
+  await login(MA.page,'admin@example.invalid','admin-pass');await login(MB.page,'ace-peer@example.invalid','peer-pass');
+  ms=5000;game=c.slot(1,1,1,600);await mg.tick();
+  for(const page of [MA.page,MB.page]){
+   await page.getByText('main draw · R1 · W/O',{exact:true}).waitFor();
+   await page.getByText('main draw · R1 · W/O',{exact:true}).click();
+   await page.getByRole('heading',{name:'Medical walkover (W/O)',exact:true}).waitFor();
+   await page.getByText('Winner: Power Server',{exact:true}).last().waitFor({state:'visible'});
+   assert.equal(await page.getByRole('button',{name:'Send next-game instructions'}).count(),0);
+   await page.getByRole('button',{name:'Career',exact:true}).click();
+  }
+  await MA.page.getByText('You were medically unavailable and the opponent advanced.',{exact:true}).waitFor();
+  assert.equal(await MB.page.getByText('You were medically unavailable and the opponent advanced.',{exact:true}).count(),0);
+  await MA.ctx.close();await MB.ctx.close();
+  assert.deepEqual(external,[]);assert.deepEqual(errors,[]);
  }finally{if(browser)await browser.close();await new Promise(r=>server.close(r));}
  console.log('PASS Chromium two-manager browser acceptance, live coaching, offline completion, database restoration, equipment, prize and ranking display; no external requests');
 }

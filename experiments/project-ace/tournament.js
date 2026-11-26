@@ -15,6 +15,13 @@ function pointLabel(a,b,tb){if(tb)return String(a);if(a>=3&&b>=3)return a===b?'4
 function render(s){
  if(state?.id!==s.id)dirty=false;state=s;
  $('match').hidden=false;$('setup').hidden=true;
+ if(s.completionReason==='health_walkover'){
+  for(const id of ['score','conditions','statistics','activeTactics','advice','history','events'])$(id).replaceChildren();
+  $('status').textContent='Medical walkover (W/O)';$('start').textContent='No match was played';
+  $('matchDetail').textContent=s.drawPhase?s.drawPhase.replace('_',' ')+' • Round '+s.drawRound:'';
+  $('score').append(el('strong','Winner: '+s.players[s.winner].name));
+  $('current').textContent='Coaching unavailable';$('coach').hidden=true;return;
+ }
  $('status').textContent=s.status.toUpperCase()+(s.phase==='between-games'?' • Change of game':' • Game '+s.gameNumber);
  $('start').textContent=(s.surface||'hard').toUpperCase()+' • '+(s.opponentType==='human'?(s.opponentOnline?'Opponent online':'Opponent offline'):'AI opponent')+' • '+(s.engineVersion==='ace-context-0.5'?'Context v0.5':s.engineVersion==='ace-tactical-0.4'?'Tactical v0.4':'Legacy model')+(s.weather?' • '+s.weather.temperatureC+'°C / '+s.weather.windKmh+' km/h':'')+' • Start '+new Date(s.startAt).toLocaleTimeString();
  for(const id of ['score','conditions','statistics','activeTactics','advice','history'])$(id).replaceChildren();
@@ -57,7 +64,7 @@ function renderDraw(d){
   $('matchSelect').replaceChildren(...d.matches.map(m=>{const o=el('option',m.players.map(p=>names[p]).join(' vs ')+' • '+m.status);o.value=m.id;return o;}));$('matchSelect').dataset.signature=signature;
  }
  $('matchSelect').value=selected||current;
- $('drawMatches').replaceChildren(...d.matches.map(m=>el('li',m.phase.replace('_',' ')+' R'+m.round+' • '+m.players.map(p=>names[p]).join(' vs ')+' • '+m.court+' • '+m.status+(m.winner?' • Winner: '+names[m.winner]:''))));
+ $('drawMatches').replaceChildren(...d.matches.map(m=>el('li',m.phase.replace('_',' ')+' R'+m.round+' • '+m.players.map(p=>names[p]).join(' vs ')+' • '+m.court+' • '+(m.completionReason==='health_walkover'?'W/O':m.status)+(m.winner?' • Winner: '+names[m.winner]:''))));
 }
 function showMatch(s){if(s.status==='scheduled'){$('match').hidden=true;state=null;notice(s.delayed?'Waiting for court or player availability.':'Match scheduled for '+new Date(s.requestedAt).toLocaleTimeString());return;}render(s);}
 async function refresh(){if(!token||busy)return;busy=true;const run=epoch;try{
