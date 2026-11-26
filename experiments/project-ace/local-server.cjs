@@ -6,6 +6,7 @@ const crypto=require('node:crypto');
 const a=require('./match-service.cjs');
 const {makeAuth}=require('./local-auth.cjs');
 const {fixtureProfiles}=require('./profiles.cjs');
+const {environment,metadata}=require('./match-context.cjs');
 function createStore(dir){
  fs.mkdirSync(dir,{recursive:true,mode:0o700});
  const lock=path.join(dir,'writer.lock'),file=path.join(dir,'fixture.json');
@@ -47,8 +48,8 @@ function makeHandler({store,auth,now=Date.now,host='127.0.0.1',port=8765}){
     if(!Number.isInteger(delay)||delay<5||delay>86400)return send(res,400,{error:'Delay must be 5–86400 seconds'});
     const human=body.humanOpponent===true;
     if(human&&(!auth.policy.multiplayerTest||!auth.policy.syntheticId))return send(res,400,{error:'Synthetic peer not configured'});
-    const surface=body.surface??'hard';let players;try{players=fixtureProfiles(body.playerPreset??'balanced',body.opponentPreset??'balanced',surface,human);}catch{return send(res,400,{error:'Invalid surface or profile preset'});}
-    r=a.createFixture({id:crypto.randomUUID(),players,surface,pace:body.pace??'standard',seed:crypto.randomInt(0,4294967296),startAt:t+delay*1000,opponentId:human?auth.policy.syntheticId:null,coachingModes:[body.mode??'hybrid',human?(body.peerMode??'hybrid'):'auto']},principal,auth.policy,t);
+    const surface=body.surface??'hard';let players,weather;try{weather=environment(body.weather??'normal');players=fixtureProfiles(body.playerPreset??'balanced',body.opponentPreset??'balanced',surface,human,{hands:[body.playerHand??'right',body.opponentHand??'right'],equipment:[body.playerEquipment??'standard',body.opponentEquipment??'standard']});players.forEach(metadata);}catch{return send(res,400,{error:'Invalid surface, weather or profile preset'});}
+    r=a.createFixture({id:crypto.randomUUID(),players,surface,weather,pace:body.pace??'standard',seed:crypto.randomInt(0,4294967296),startAt:t+delay*1000,opponentId:human?auth.policy.syntheticId:null,coachingModes:[body.mode??'hybrid',human?(body.peerMode??'hybrid'):'auto']},principal,auth.policy,t);
     store.save(r);return send(res,201,a.view(r,principal,auth.policy,t));
    }
    if(!r)return send(res,404,{error:'No fixture'});

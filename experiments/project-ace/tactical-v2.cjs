@@ -16,8 +16,8 @@ function rally(p,q,t,surface){
  if(t.rally==='Shorten points')return clamp(-.65*edge+.001*(Math.max(p.serve,p.forehand)-p.rally-5)+(surface==='grass'?.005:surface==='clay'?-.003:0),-.035,.035);
  return 0;
 }
-function target(p,q,t){
- if(t.target==='Backhand'||t.target==='Forehand')return clamp(.0048*((q.forehand+q.backhand)/2-q[t.target.toLowerCase()]),-.04,.04);
+function target(p,q,t,contextual=false){
+ if(t.target==='Backhand'||t.target==='Forehand')return clamp(.0048*((q.forehand+q.backhand)/2-q[t.target.toLowerCase()])+(contextual&&t.target==='Backhand'&&p.hand!==q.hand?.004:0),-.04,.04);
  if(t.target==='Movement')return clamp(.0014*(62-q.movement*(1-q.fatigue*.002)),-.025,.035);
  if(t.target==='Stamina')return clamp(.001*(60-q.stamina)+.00045*(q.fatigue-p.fatigue),-.03,.04);
  return 0;
@@ -39,7 +39,7 @@ function probabilities(s,server,first,effective){
  const surface=s.surface==='grass'?.035:s.surface==='clay'?-.020:.005;
  const diff=.65*(x.serve-y.ret)+.35*(x.rally-y.rally);
  const base=(first?.67:.52)+(first?.0045:.0038)*diff+surface*(first?1:.5)+(y.ue-x.ue)*.2;
- const contribution=approach(a,b,ta)-approach(b,a,tb)+rally(a,b,ta,s.surface)-rally(b,a,tb,s.surface)+target(a,b,ta)-target(b,a,tb)+serve(a,ta,first)-ret(b,a,tb,first);
+ const contribution=approach(a,b,ta)-approach(b,a,tb)+rally(a,b,ta,s.surface)-rally(b,a,tb,s.surface)+target(a,b,ta,s.version==='ace-context-0.5')-target(b,a,tb,s.version==='ace-context-0.5')+serve(a,ta,first)-ret(b,a,tb,first);
  const tacticalDelta=clamp(contribution,-.065,.065);
  const firstIn=clamp(x.first-.04*power,.45,.80);
  const doubleFault=clamp(x.df+.012*power,.004,.15);

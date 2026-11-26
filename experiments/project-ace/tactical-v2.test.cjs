@@ -33,7 +33,7 @@ const legacy=create(fixtureProfiles(),'hard','ace-poc-0.1');
 assert.equal(e.stepGame(legacy).version,'ace-poc-0.1');
 assert.equal('tacticalDelta' in e.probabilities(legacy,0,true),false);
 const admin={id:'a',verified:true,isAdmin:true},policy={enabled:true,adminId:'a'};
-const fixture=a.createFixture({id:'v4',players:fixtureProfiles(),seed:6,startAt:1000},admin,policy,0);
+const fixture=a.createFixture({id:'v4',players:fixtureProfiles(),seed:6,startAt:1000,engineVersion:'ace-tactical-0.4'},admin,policy,0);
 assert.equal(fixture.checkpoint.version,'ace-tactical-0.4');
 assert.equal(a.view(fixture,admin,policy,1000).engineVersion,'ace-tactical-0.4');
 const oldFixture={...fixture,checkpoint:legacy};assert.equal(a.advance(oldFixture,1000).active.after.version,'ace-poc-0.1');

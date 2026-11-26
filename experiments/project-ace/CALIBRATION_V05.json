@@ -1,0 +1,110 @@
+{
+  "N": 60,
+  "rows": [
+    {
+      "surface": "hard",
+      "gap": 0,
+      "wins": 23,
+      "N": 60,
+      "first": 71.1,
+      "aces": 2.8,
+      "df": 0.7,
+      "fatigue": 48.8,
+      "games": 26.7
+    },
+    {
+      "surface": "hard",
+      "gap": 12,
+      "wins": 52,
+      "N": 60,
+      "first": 72.5,
+      "aces": 2.8,
+      "df": 0.6,
+      "fatigue": 43.3,
+      "games": 22.9
+    },
+    {
+      "surface": "hard",
+      "gap": 28,
+      "wins": 60,
+      "N": 60,
+      "first": 74.1,
+      "aces": 2.9,
+      "df": 0.6,
+      "fatigue": 33.6,
+      "games": 17.1
+    },
+    {
+      "surface": "clay",
+      "gap": 0,
+      "wins": 32,
+      "N": 60,
+      "first": 71.2,
+      "aces": 1.6,
+      "df": 0.7,
+      "fatigue": 44.9,
+      "games": 23.5
+    },
+    {
+      "surface": "clay",
+      "gap": 12,
+      "wins": 52,
+      "N": 60,
+      "first": 72.3,
+      "aces": 1.7,
+      "df": 0.6,
+      "fatigue": 45.2,
+      "games": 23.6
+    },
+    {
+      "surface": "clay",
+      "gap": 28,
+      "wins": 60,
+      "N": 60,
+      "first": 74.1,
+      "aces": 2.4,
+      "df": 0.6,
+      "fatigue": 33.9,
+      "games": 17
+    },
+    {
+      "surface": "grass",
+      "gap": 0,
+      "wins": 29,
+      "N": 60,
+      "first": 71.1,
+      "aces": 4.1,
+      "df": 0.7,
+      "fatigue": 48.3,
+      "games": 27.2
+    },
+    {
+      "surface": "grass",
+      "gap": 12,
+      "wins": 50,
+      "N": 60,
+      "first": 72.6,
+      "aces": 4,
+      "df": 0.6,
+      "fatigue": 42.5,
+      "games": 23.3
+    },
+    {
+      "surface": "grass",
+      "gap": 28,
+      "wins": 60,
+      "N": 60,
+      "first": 74.1,
+      "aces": 3.8,
+      "df": 0.6,
+      "fatigue": 34.9,
+      "games": 18.3
+    }
+  ],
+  "auto": {
+    "N": 60,
+    "baseWins": 39,
+    "aiWins": 54,
+    "flips": 21
+  }
+}

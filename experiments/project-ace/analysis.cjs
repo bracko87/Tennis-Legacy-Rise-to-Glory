@@ -11,3 +11,21 @@ function recommendations(players,stats,side,total){
  return out;
 }
 module.exports={recommendations};
+
+ // New model uses the same observed evidence for automatic and human coaching.
+function contextualAdvice(players,stats,side,total,events,surface,weather){
+ const p=players[side],q=players[1-side];
+ const recent=events.filter(e=>e.kind==='point').slice(-48);
+ const sample=[0,1].map(i=>({servicePoints:0,firstIn:0,doubleFaults:0,unforcedErrors:0}));
+ for(const e of recent){sample[e.server].servicePoints++;if(e.first)sample[e.server].firstIn++;if(e.df)sample[e.server].doubleFaults++;if(e.ue)sample[1-e.winner].unforcedErrors++;}
+ const st=recent.length>=24?sample:stats;
+ const out=recommendations(players,st,side,recent.length>=24?recent.length:total);
+ const add=(title,reason,patch)=>{if(!out.some(a=>Object.keys(patch).some(k=>Object.hasOwn(a.patch,k))))out.push({title,reason,patch});};
+ if(p.fatigue>=50||weather?.temperatureC>=32&&p.fatigue>=35)add('Manage physical load','Current fatigue and conditions favor conserving energy.',{rally:'Shorten points'});
+ if(p.fatigue>=55)add('Reduce aggression','Fatigue reduces the payoff from aggressive play.',{approach:'Defensive'});
+ if(p.fatigue<=25&&p.focus>=68)add('Use early energy','Freshness and focus support an attacking approach.',{approach:'Aggressive'});
+ if(p.style==='Serve & Volley'&&surface==='grass'&&p.fatigue<40)add('Use short points on grass','Your public playing style favors short points on this surface.',{rally:'Shorten points'});
+ if(p.serve>=75&&p.fatigue<35)add('Use strong serving','Observed serve effectiveness and energy support power serving.',{serve:'Power serving'});
+ return out;
+}
+module.exports.contextualAdvice=contextualAdvice;
