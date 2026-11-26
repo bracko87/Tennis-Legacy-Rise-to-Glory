@@ -2,7 +2,7 @@
 
 ## Verified
 - Seven match-service test groups passed against fetched committed sources in an isolated JavaScript runtime with assertions: default deny; scheduled start and elapsed-only projection; simultaneous opposing tactics; stale window rejection; offline completion and deterministic reconnect; hybrid/AI decisions; clock rollback and immutable reads.
-- Local auth adapter tests passed in Node 22 with mocked HTTP auth responses and a copied source/test pair. URL restriction, publishable-only config, expired/anonymous/ordinary user rejection, exact identity allowlist, admin RPC verification, revocation and optional synthetic peer tested.
+- Correction: the local auth adapter test was committed, but the isolated JavaScript runner lacked the Node URL API; native Node execution was not verified in the previous step. Do not count this as a pass until the native test runs.
 - Original engine seven groups remain the previous verified baseline; engine file unchanged.
 - local-server.cjs syntax parsed; actual HTTP server, real Supabase authentication, file persistence and UI not yet run end-to-end.
 

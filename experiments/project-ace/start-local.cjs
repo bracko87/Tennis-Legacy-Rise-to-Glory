@@ -29,8 +29,9 @@ async function main(){
  else{const admin=await ensure(email),peer=await ensure('ace-peer@example.invalid');await request('/rest/v1/app_admins','POST',{user_id:admin.id,role:'admin'});credentials={admin,peer};fs.writeFileSync(credFile,JSON.stringify(credentials),{mode:0o600,flag:'wx'});}
  console.log('LOCAL ONLY: http://127.0.0.1:8765');
  console.log('Admin email: '+credentials.admin.email+'\nLocal password: '+credentials.admin.password);
- console.log('Optional synthetic peer: '+credentials.peer.email+'\nLocal peer password: '+credentials.peer.password);
- const child=spawn(process.execPath,[path.join(__dirname,'local-server.cjs')],{stdio:'inherit',env:{...process.env,ACE_LOCAL_ENABLED:'1',ACE_PORT:'8765',ACE_SUPABASE_URL:u.origin,ACE_SUPABASE_ANON_KEY:anon,ACE_ADMIN_USER_ID:credentials.admin.id,ACE_MULTIPLAYER_TEST:'1',ACE_SYNTHETIC_USER_ID:credentials.peer.id,ACE_STATE_DIR:path.join(root,'state')}});
+ const multiplayer=process.env.ACE_MULTIPLAYER_TEST==='1';
+ if(multiplayer)console.log('Optional synthetic peer: '+credentials.peer.email+'\nLocal peer password: '+credentials.peer.password);
+ const child=spawn(process.execPath,[path.join(__dirname,'local-server.cjs')],{stdio:'inherit',env:{...process.env,ACE_LOCAL_ENABLED:'1',ACE_PORT:'8765',ACE_SUPABASE_URL:u.origin,ACE_SUPABASE_ANON_KEY:anon,ACE_ADMIN_USER_ID:credentials.admin.id,ACE_MULTIPLAYER_TEST:multiplayer?'1':'0',ACE_SYNTHETIC_USER_ID:multiplayer?credentials.peer.id:'',ACE_STATE_DIR:path.join(root,'state')}});
  child.on('exit',code=>{process.exitCode=code??1;});for(const sig of ['SIGINT','SIGTERM'])process.on(sig,()=>child.kill(sig));
 }
 main().catch(e=>{console.error(e.message);process.exitCode=1;});
