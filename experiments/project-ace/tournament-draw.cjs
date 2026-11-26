@@ -51,6 +51,11 @@ function process(s,principal,policy,now){
   const m=s.matches.find(x=>x.id===receipt.matchId);
   if(!m||!m.players.includes(receipt.winnerKey))fail('Invalid draw receipt',409);
   m.winner=receipt.winnerKey;
+  if(receipt.completionReason==='health_walkover'){
+   m.completionReason=receipt.completionReason;
+   s.processed.push(m.id);
+   continue;
+  }
   for(const id of m.players){
    const p=player(s,id),won=id===m.winner;
    let delta=c.apply(p.profile,receipt,won,s.surface);

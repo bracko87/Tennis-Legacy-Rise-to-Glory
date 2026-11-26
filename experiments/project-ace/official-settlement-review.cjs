@@ -8,6 +8,7 @@ function unique(rows,k){requireThat(Array.isArray(rows)&&new Set(rows.map(x=>x[k
 function project(s,{officialMatches=null}={}){
  requireThat(s?.kind==='world'&&s.source?.schema==='ace-official-review-v1','Official review snapshot required');
  requireThat(s.draw.phase==='completed','Tournament not complete');
+ requireThat(!s.draw.scheduler.receipts.some(r=>r.completionReason==='health_walkover'),'Official medical walkover settlement requires separate review');
  unique(s.source.players,'source');unique(s.source.players,'local');unique(s.source.matches,'source');unique(s.source.matches,'local');unique(s.draw.scheduler.receipts,'matchId');
  const map=(rows,id)=>{const row=rows.find(x=>x.local===id);requireThat(row&&typeof row.source==='string'&&row.source.length,'Missing source mapping');return row.source;};
  const player=id=>map(s.source.players,id),match=id=>map(s.source.matches,id);

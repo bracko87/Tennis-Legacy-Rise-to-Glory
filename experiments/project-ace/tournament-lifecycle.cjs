@@ -26,7 +26,7 @@ function conflicts(x,y){return {court:x.courtKey===y.courtKey,player:x.playerKey
 function readyAt(s,j,now){
  let at=j.requestedAt;
  for(const x of s.jobs){
-  if(x.id===j.id||x.status==='scheduled')continue;
+  if(x.id===j.id||x.status==='scheduled'||(x.status==='completed'&&x.actualStartAt===null))continue;
   const c=conflicts(x,j);if(!c.court&&!c.player)continue;
   if(x.status==='live')return Infinity;
   at=Math.max(at,x.completedAt+Math.max(c.court?s.courtRestMs:0,c.player?s.playerRestMs:0));
@@ -78,6 +78,8 @@ function view(state,id,principal,policy,now){
  const before=find(state,id);authorized(before,principal,policy);
  const s=advance(state,now),j=find(s,id);
  if(j.status==='scheduled')return {id,status:'scheduled',requestedAt:j.requestedAt,delayed:j.requestedAt<=now,actualStartAt:null,players:j.fixture.checkpoint.players.map(p=>({name:p.name})),winner:null};
+ const walkover=s.receipts.find(r=>r.matchId===id&&r.completionReason==='health_walkover');
+ if(walkover)return {id,status:'completed',completionReason:walkover.completionReason,score:'W/O',winner:j.playerKeys.indexOf(walkover.winnerKey),players:j.fixture.checkpoint.players.map(p=>({name:p.name})),requestedAt:j.requestedAt,actualStartAt:null,completedAt:j.completedAt,revision:j.fixture.revision,totalPoints:0,totalGames:0,sets:[]};
  return {...a.view(j.fixture,principal,policy,now),requestedAt:j.requestedAt,actualStartAt:j.actualStartAt,completedAt:j.completedAt};
 }
 function command(state,id,principal,policy,now,action,targetGame,patch){

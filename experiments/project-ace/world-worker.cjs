@@ -2,6 +2,7 @@
 // One private state owns calendar, draw, career support and reward ledger.
 // Every mutation returns a new state; caller saves the entire state atomically.
 const d=require('./tournament-draw.cjs'),c=require('./world-clock.cjs'),g=require('./schedule-gate.cjs'),l=require('./isolated-settlement.cjs'),h=require('./world-career.cjs'),a=require('./match-service.cjs');
+const medical=require('./health-walkover.cjs');
 const clone=x=>JSON.parse(JSON.stringify(x));
 const fail=(m,status=400)=>{const e=Error(m);e.status=status;throw e;};
 function create(args,p,policy,raw){
@@ -45,9 +46,17 @@ function tick(state,raw,p,policy){
   if(j.requestedAt>now){gateStatus(s,item.id,'waiting_round_gap');continue;}
   const live=s.admissions.filter(x=>!s.completed.some(y=>y.id===x.id)).map(x=>({...x,status:'live'}));
   const earlier=held.filter(x=>x.id!==item.id&&s.draw.scheduler.jobs.find(j=>j.id===x.id).held&&!['waiting_live_conflict','blocked_injury','blocked'].includes(s.gates.find(g=>g.id===x.id)?.status)).map(x=>({...x,startMinute:c.slot(x.season,x.week,x.day,x.minute)/60}));
-  const result=g.plan(item,[...live,...s.completed,...earlier],clock.gameSeconds,clock.speed);gateStatus(s,item.id,result.status);
+  const result=g.plan(item,[...live,...s.completed.filter(x=>x.completionReason!=='health_walkover'),...earlier],clock.gameSeconds,clock.speed);gateStatus(s,item.id,result.status);
   if(result.status==='rescheduled'){Object.assign(s.config.slots.find(x=>x.id===item.id),{week:result.week,day:result.day,minute:result.minute,court:result.court});continue;}
   if(result.status!=='ready')continue;
+  if(s.config.medicalWalkovers===true){
+   const receipt=medical.resolve(s.draw,j,day,now);
+   if(receipt){
+    gateStatus(s,item.id,'health_walkover');
+    s.completed.push({id:item.id,competition:item.competition,court:result.court,players:item.players,startMinute:result.gameMinute,completedGameMinute:result.gameMinute,status:'completed',durationMinutes:0,completionReason:'health_walkover'});
+    continue;
+   }
+  }
   const health=h.prepare(s.draw,j,day);
   if(health.status!=='ready'){gateStatus(s,item.id,health.status);continue;}
   j.held=false;j.requestedAt=now;j.courtKey=s.draw.courts[result.court-1];
@@ -64,7 +73,7 @@ function summary(s,p,policy,now){
  observed(s,now);
  const who=access(s,p,policy),v=d.summary(s.draw,p,policy,now),player=who.player;
  const game=s.clock.gameSeconds,career=s.draw.worldSupport.players[player];
- return {...v,world:{season:Math.floor(game/(c.DAY*c.SEASON))+1,absoluteDay:Math.floor(game/c.DAY),minute:Math.floor(game/60)%1440,speed:s.clock.speed,synthetic:true},matches:v.matches.map(m=>({...m,gameSlot:s.config.slots.find(x=>x.id===m.id),gate:s.gates.find(x=>x.id===m.id)?.status??'waiting'})),career:{points:l.points(s.ledger,player),results:s.ledger.results.filter(x=>x.player===player),transactions:s.ledger.transactions.filter(x=>x.player===player),balance:s.ledger.balances.find(x=>x.player===player)?.balance??s.config.openingBalances?.[player]??0,condition:s.draw.roster.find(x=>x.id===player)?.profile.fatigue??null,support:career?{inventory:career.inventory,loadout:career.loadout,events:s.draw.worldSupport.events.filter(x=>x.playerId===player)}:null}};
+ return {...v,world:{season:Math.floor(game/(c.DAY*c.SEASON))+1,absoluteDay:Math.floor(game/c.DAY),minute:Math.floor(game/60)%1440,speed:s.clock.speed,synthetic:true},matches:v.matches.map(m=>({...m,gameSlot:s.config.slots.find(x=>x.id===m.id),gate:s.gates.find(x=>x.id===m.id)?.status??'waiting'})),career:{...(s.config.medicalWalkovers===true?{healthNotices:(s.draw.healthNotices??[]).filter(n=>n.playerId===player)}:{}),points:l.points(s.ledger,player),results:s.ledger.results.filter(x=>x.player===player),transactions:s.ledger.transactions.filter(x=>x.player===player),balance:s.ledger.balances.find(x=>x.player===player)?.balance??s.config.openingBalances?.[player]??0,condition:s.draw.roster.find(x=>x.id===player)?.profile.fatigue??null,support:career?{inventory:career.inventory,loadout:career.loadout,events:s.draw.worldSupport.events.filter(x=>x.playerId===player)}:null}};
 }
 function matchView(s,id,p,policy,now){observed(s,now);const v=d.matchView(s.draw,id,p,policy,now);return {...v,gameSlot:s.config.slots.find(x=>x.id===id),gate:s.gates.find(x=>x.id===id)?.status??'waiting'};}
 function command(s,id,p,policy,now,action,targetGame,patch){observed(s,now);const next=clone(s);next.draw=d.command(next.draw,id,p,policy,now,action,targetGame,patch);return next;}
