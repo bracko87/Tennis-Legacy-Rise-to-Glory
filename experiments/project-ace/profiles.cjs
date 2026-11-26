@@ -14,13 +14,14 @@ function adapt(name,s,surface='hard'){
 const common={serve:64,forehand:65,backhand:55,return_skill:58,volley:54,slice:57,drop_shot:49,lob:51,smash:56,fitness:65,stamina:68,recovery:62,movement:62,fatigue:10,sharpness:75,morale:70,confidence:70,focus:75,preferred_surface:'hard'};
 const presets={
  balanced:common,
+ aggressive:{...common,serve:69,forehand:77,backhand:67,return_skill:61,stamina:61,movement:66},
  defensive:{...common,serve:56,return_skill:70,forehand:60,backhand:66,stamina:79,movement:73,preferred_surface:'clay'},
  power:{...common,serve:82,forehand:76,backhand:49,volley:69,smash:73,stamina:52,movement:55,preferred_surface:'grass'}
 };
 function fixtureProfiles(first='balanced',second='balanced',surface='hard',human=false,settings=null){
  if(!Object.hasOwn(presets,first)||!Object.hasOwn(presets,second))throw Error('Unknown profile preset');
  const players=[adapt('Ace Admin',presets[first],surface),adapt(human?'Ace Human Peer':'Ace Test AI',presets[second],surface)];
- if(settings){const styleFor=x=>x==='defensive'?'Defensive Baseliner':x==='power'?'Serve & Volley':'All-court';
+ if(settings){const styleFor=x=>x==='defensive'?'Defensive Baseliner':x==='power'?'Serve & Volley':x==='aggressive'?'Aggressive Baseliner':'All-court';
  players.forEach((p,i)=>Object.assign(p,{style:styleFor([first,second][i]),hand:settings.hands?.[i]??'right',equipment:settings.equipment?.[i]??'standard'}));}
  return players;
 }

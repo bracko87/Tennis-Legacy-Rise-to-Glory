@@ -29,5 +29,6 @@ jobs:
           node experiments/project-ace/pacing.test.cjs
           node experiments/project-ace/tactical-v2.test.cjs
           node experiments/project-ace/context.test.cjs
+          node experiments/project-ace/calibrate-v05.cjs --verify
           node --check experiments/project-ace/ace.js
           node --check experiments/project-ace/start-local.cjs

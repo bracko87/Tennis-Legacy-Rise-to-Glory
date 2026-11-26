@@ -47,7 +47,7 @@ function advice(s,players,stats,side,total,events){return s.version==='ace-conte
 function ai(s,i){
  const base=engine.observable(s);
  const result={approach:'Balanced',rally:'Balanced rallies',serve:'Balanced',returnGame:'Balanced',target:'Automatic'};
- for(const advice of advice(s,base.players,base.stats,i,base.totalPoints,base.events))Object.assign(result,advice.patch);
+ for(const item of advice(s,base.players,base.stats,i,base.totalPoints,base.events))Object.assign(result,item.patch);
  return result;
 }
 function startGame(r,at){

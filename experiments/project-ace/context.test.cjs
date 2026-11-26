@@ -19,4 +19,8 @@ const admin={id:'a',verified:true,isAdmin:true},policy={enabled:true,adminId:'a'
 const r=a.createFixture({id:'context',players:make().players,seed:6,startAt:1000,weather:c.environment('hot')},admin,policy,0);
 const v=a.view(r,admin,policy,1000);assert.equal(v.engineVersion,'ace-context-0.5');assert.equal(v.weather.temperatureC,34);
 assert.equal('equipment' in v.players[0],false);
+assert.equal(fixtureProfiles('aggressive','balanced','hard',false,{})[0].style,'Aggressive Baseliner');
+const automatic=a.advance(r,1000);
+assert.ok(automatic.applied[1]);
+assert.equal(automatic.applied[1].game,1);
 console.log('PASS context validation, weather, equipment, handedness without baseline bonus, restart, visible advice and default engine');
