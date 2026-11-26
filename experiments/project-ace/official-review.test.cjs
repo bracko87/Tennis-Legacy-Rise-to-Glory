@@ -21,8 +21,13 @@ const receipt=bridge.receipts(s);assert.equal(receipt.length,3);assert.ok(receip
 s=w.tick(s,raw(2200000,2,1,10),p,policy);const summary=w.summary(s,p,policy,2200000);
 assert.ok([100,165,250].includes(summary.career.points));assert.ok(summary.career.balance>1500);assert.equal('source' in summary,false);
 const exportPayload=require('./official-settlement-review.cjs').project(s);
-assert.equal(exportPayload.matches.length,3);assert.equal(exportPayload.results.length,4);assert.equal(exportPayload.transactions.length,1);assert.equal(exportPayload.transactions[0].idempotency_key,'tournament-prize:source-competition:source-p0');assert.ok(exportPayload.matches.every(m=>m.stats.every(x=>x.winners===null&&x.break_points_total===null)));assert.equal(exportPayload.production_ready,false);
+assert.equal(exportPayload.matches.length,3);assert.equal(exportPayload.results.length,4);assert.equal(exportPayload.transactions.length,1);assert.equal(exportPayload.transactions[0].idempotency_key,'tournament-prize:source-competition:source-p0');assert.ok(exportPayload.matches.every(m=>m.stats.every(x=>Number.isInteger(x.winners)&&Number.isInteger(x.break_points_total)&&x.break_points_won<=x.break_points_total)));assert.equal(exportPayload.conditions.length,6);assert.ok(exportPayload.support_events.length>=1);assert.equal(exportPayload.production_ready,false);
 const altered=JSON.parse(JSON.stringify(s));altered.ledger.transactions[0].amount++;assert.throws(()=>require('./official-settlement-review.cjs').project(altered),/ledger mismatch/);
+const officialMatches=exportPayload.matches.map(m=>({match_id:m.match_id,competition_id:m.competition_id,player1_id:m.player2_id,player2_id:m.player1_id,status:'scheduled'}));
+const reordered=require('./official-settlement-review.cjs').project(s,{officialMatches});assert.equal(reordered.participant_order_verified,true);
+for(const m of reordered.matches){const original=exportPayload.matches.find(x=>x.match_id===m.match_id);assert.equal(m.player1_id,original.player2_id);assert.equal(m.winner_id,original.winner_id);assert.equal(m.sets[0].player1_games,original.sets[0].player2_games);assert.deepEqual(m.stats[0],original.stats[1]);}
+assert.throws(()=>require('./official-settlement-review.cjs').project(s,{officialMatches:officialMatches.map((m,i)=>i===0?{...m,player1_id:'wrong'}:m)}),/participant mismatch/);
+const badPoint=JSON.parse(JSON.stringify(s));badPoint.draw.scheduler.jobs[0].fixture.checkpoint.events.find(x=>x.kind==='point').points=[99,99];assert.throws(()=>require('./official-settlement-review.cjs').project(badPoint),/Point score mismatch/);
 module.exports={exportPayload};
 const grand={...snapshot,competition:{...snapshot.competition,category_code:'grand_slam_2000'},ranking_rules:snapshot.ranking_rules.map(x=>({...x,category_code:'grand_slam_2000'}))};
 assert.equal(bridge.create(grand,p,policy,raw(0,1,1,9),options).draw.mainBestOf,5);
