@@ -33,5 +33,7 @@ jobs:
           node experiments/project-ace/legacy-bridge.test.cjs
           node experiments/project-ace/tournament-lifecycle.test.cjs
           node experiments/project-ace/tournament-draw.test.cjs
+          node experiments/project-ace/tournament-http.test.cjs
+          node --check experiments/project-ace/tournament.js
           node --check experiments/project-ace/ace.js
           node --check experiments/project-ace/start-local.cjs

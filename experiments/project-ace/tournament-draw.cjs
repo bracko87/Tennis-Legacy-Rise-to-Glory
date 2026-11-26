@@ -6,7 +6,7 @@ const fail=(m,status=400)=>{const x=Error(m);x.status=status;throw x;};
 const admin=(p,policy)=>{if(!a.canUse(p,policy))fail('Forbidden',403);};
 const key=x=>{if(typeof x!=='string'||!/^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$/.test(x))fail('Invalid entrant or court key');return x;};
 const size=(x,min,max)=>Array.isArray(x)&&x.length>=min&&x.length<=max&&(x.length&(x.length-1))===0;
-function create({entrants,mainSlots,qualification=[],courts,startAt,seed=1,surface='hard',mainBestOf=3,pace='standard',roundGapMs=60000},principal,policy,now){
+function create({entrants,mainSlots,qualification=[],courts,startAt,seed=1,surface='hard',mainBestOf=3,pace='standard',roundGapMs=60000,managedPlayer=null,managedMode='hybrid'},principal,policy,now){
  admin(principal,policy);
  if(!size(mainSlots,2,32)||!Array.isArray(qualification)||qualification.length>16||!Array.isArray(courts)||!courts.length||courts.length>16||!Array.isArray(entrants)||entrants.length>100||!Number.isSafeInteger(startAt)||startAt<=now||!Number.isInteger(seed)||seed<0||seed>4294967295||!['hard','clay','grass'].includes(surface)||![3,5].includes(mainBestOf)||!Object.hasOwn(a.PACES,pace)||!Number.isInteger(roundGapMs)||roundGapMs<1||roundGapMs>86400000)fail('Invalid draw setup');
  const roster=entrants.map(({id,profile})=>{
@@ -17,6 +17,7 @@ function create({entrants,mainSlots,qualification=[],courts,startAt,seed=1,surfa
   return {id,profile:clone(profile)};
  });
  const ids=roster.map(x=>x.id);
+ if(managedPlayer!==null&&(!ids.includes(managedPlayer)||!['manual','hybrid','auto'].includes(managedMode)))fail('Invalid managed player');
  if(new Set(ids).size!==ids.length||new Set(courts.map(key)).size!==courts.length)fail('Duplicate resource');
  const groups=qualification.map(g=>{if(!size(g.players,2,8))fail('Invalid qualifying section');return {id:key(g.id),players:g.players.map(key),winner:null};});
  if(new Set(groups.map(g=>g.id)).size!==groups.length)fail('Duplicate qualifying section');
@@ -24,7 +25,7 @@ function create({entrants,mainSlots,qualification=[],courts,startAt,seed=1,surfa
  const direct=slots.filter(s=>s.player).map(s=>s.player),refs=slots.filter(s=>s.qualifier).map(s=>s.qualifier);
  const all=[...direct,...groups.flatMap(g=>g.players)];
  if(new Set(all).size!==all.length||all.length!==ids.length||all.some(id=>!ids.includes(id))||refs.length!==groups.length||new Set(refs).size!==refs.length||refs.some(id=>!groups.some(g=>g.id===id))||all.length-1>100)fail('Invalid or duplicate draw slots');
- const s={version:1,kind:'draw',owner:principal.id,seed,surface,mainBestOf,pace,roundGapMs,courts:[...courts],roster,slots,groups,phase:groups.length?'qualification':'main_draw',round:1,stage:[],matches:[],conditionEvents:[],processed:[],champion:null,completedAt:null,scheduler:t.create(now)};
+ const s={version:1,kind:'draw',owner:principal.id,managedPlayer,managedMode,seed,surface,mainBestOf,pace,roundGapMs,courts:[...courts],roster,slots,groups,phase:groups.length?'qualification':'main_draw',round:1,stage:[],matches:[],conditionEvents:[],processed:[],champion:null,completedAt:null,scheduler:t.create(now)};
  enqueue(s,groups.length?groups.map(g=>({group:g.id,players:g.players})): [{group:'main',players:direct}],startAt,principal,policy,now);
  return s;
 }
@@ -36,7 +37,8 @@ function enqueue(s,groups,startAt,principal,policy,now){
    const pair=g.players.slice(i,i+2),id='draw-'+(s.matches.length+1);
    const meta={id,phase:s.phase,round:s.round,group:g.group,players:pair,winner:null};
    const seed=(s.seed^Math.imul(s.matches.length+1,2654435761))>>>0;
-   s.scheduler=t.schedule(s.scheduler,{id,courtKey:s.courts[s.stage.length%s.courts.length],playerKeys:pair,players:pair.map(p=>player(s,p).profile),startAt,seed,surface:s.surface,bestOf:s.phase==='qualification'?3:s.mainBestOf,pace:s.pace,coachingModes:['auto','auto']},principal,policy,now);
+   const managed=pair.includes(s.managedPlayer),ordered=managed&&pair[1]===s.managedPlayer?[pair[1],pair[0]]:pair;
+   s.scheduler=t.schedule(s.scheduler,{id,courtKey:s.courts[s.stage.length%s.courts.length],playerKeys:ordered,players:ordered.map(p=>player(s,p).profile),startAt,seed,surface:s.surface,bestOf:s.phase==='qualification'?3:s.mainBestOf,pace:s.pace,coachingModes:[managed?s.managedMode:'auto','auto']},principal,policy,now);
    s.matches.push(meta);s.stage.push(id);
   }
  }
@@ -85,6 +87,19 @@ function advance(state,principal,policy,now){
 }
 function summary(state,principal,policy,now){
  const s=advance(state,principal,policy,now);
- return {phase:s.phase,round:s.round,champion:s.champion,completedAt:s.completedAt,qualifiers:s.groups.map(g=>({id:g.id,winner:g.winner})),matches:s.matches.map(m=>{const j=s.scheduler.jobs.find(x=>x.id===m.id);return {...m,status:j.status,court:j.courtKey,requestedAt:j.requestedAt,actualStartAt:j.actualStartAt,completedAt:j.completedAt};}),results:clone(s.scheduler.receipts),conditions:clone(s.conditionEvents)};
+ return {managedPlayer:s.managedPlayer??null,entrants:s.roster.map(p=>({id:p.id,name:p.profile.name})),phase:s.phase,round:s.round,champion:s.champion,completedAt:s.completedAt,qualifiers:s.groups.map(g=>({id:g.id,winner:g.winner})),matches:s.matches.map(m=>{const j=s.scheduler.jobs.find(x=>x.id===m.id);return {...m,status:j.status,court:j.courtKey,requestedAt:j.requestedAt,actualStartAt:j.actualStartAt,completedAt:j.completedAt};}),results:clone(s.scheduler.receipts),conditions:clone(s.conditionEvents)};
 }
-module.exports={create,advance,summary};
+function matchView(state,id,p,policy,now){
+ const s=advance(state,p,policy,now);
+ const m=s.matches.find(x=>x.id===id);if(!m)fail('Unknown local match',404);
+ const v=t.view(s.scheduler,id,p,policy,now),managed=m.players.includes(s.managedPlayer);
+ if(!managed){delete v.ownHistory;delete v.ownPending;delete v.ownTactics;delete v.activeTactics;delete v.recommendations;v.coachingMode='auto';v.side=null;}
+ return {...v,managed,drawPhase:m.phase,drawRound:m.round};
+}
+function command(state,id,p,policy,now,action,targetGame,patch){
+ const s=advance(state,p,policy,now),m=s.matches.find(x=>x.id===id);
+ if(!m||!m.players.includes(s.managedPlayer))fail('Not your match',403);
+ s.scheduler=t.command(s.scheduler,id,p,policy,now,action,targetGame,patch);
+ return s;
+}
+module.exports={create,advance,summary,matchView,command};
