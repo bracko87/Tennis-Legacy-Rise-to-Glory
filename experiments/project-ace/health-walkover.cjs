@@ -18,6 +18,8 @@ function resolve(draw,job,day,now){
  const outcome=decide(meta.players,draw.worldSupport.players,day);
  if(!outcome)return null;
  const receipt={matchId:job.id,...outcome,completionReason:'health_walkover',score:'W/O',sets:[],stats:[],totalPoints:0,totalGames:0,engineVersion:null,startedAt:null,completedAt:now,absoluteDay:day};
+ draw.medicalEvidence??=[];
+ draw.medicalEvidence.push({matchId:job.id,absoluteDay:day,players:JSON.parse(JSON.stringify(meta.players)),health:meta.players.map(id=>({playerId:id,records:(draw.worldSupport.players[id]?.injuries??[]).map(x=>({status:x.status,tournamentReturnDay:x.tournamentReturnDay,fullRecoveryDay:x.fullRecoveryDay}))}))});
  draw.scheduler.receipts.push(receipt);
  Object.assign(job,{status:'completed',held:false,completedAt:now});
  draw.healthNotices??=[];

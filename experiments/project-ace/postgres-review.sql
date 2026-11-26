@@ -186,6 +186,9 @@ BEGIN
    SELECT payload INTO STRICT feeder FROM ace_review.finalized_matches WHERE match_id=claim.feeder2 AND competition_id=p_comp;
    IF feeder->>'winner_id' IS DISTINCT FROM claim.player2_id THEN RAISE EXCEPTION 'second feeder mismatch'; END IF;
   END IF;
+  IF m->>'completion_reason'='health_walkover' THEN
+   IF m->>'score' IS DISTINCT FROM 'W/O' OR m->'actual_duration_minutes' IS DISTINCT FROM 'null'::jsonb OR m->'sets' IS DISTINCT FROM '[]'::jsonb OR m->'stats' IS DISTINCT FROM '[]'::jsonb OR m->'engine_version' IS DISTINCT FROM 'null'::jsonb OR m->>'started_at' IS DISTINCT FROM m->>'completed_at' OR jsonb_typeof(m->'medically_unavailable_player_ids') IS DISTINCT FROM 'array' OR jsonb_array_length(m->'medically_unavailable_player_ids') NOT BETWEEN 1 AND 2 OR EXISTS(SELECT 1 FROM jsonb_array_elements(export->'conditions') x WHERE x->>'match_id'=claim.match_id) OR EXISTS(SELECT 1 FROM jsonb_array_elements(export->'support_events') x WHERE x->>'match_id'=claim.match_id) THEN RAISE EXCEPTION 'invalid medical finalization'; END IF;
+  END IF;
   INSERT INTO ace_review.finalized_matches VALUES(claim.match_id,p_comp,m);
  END LOOP;
  INSERT INTO ace_review.finalized_competitions VALUES(p_comp,export);
