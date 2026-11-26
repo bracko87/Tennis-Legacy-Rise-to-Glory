@@ -24,6 +24,17 @@ function makeHandler({store,auth,now=Date.now,host='127.0.0.1',port=8765}){
   try{
    if(req.headers.host!==host+':'+port||(req.headers.origin&&req.headers.origin!==origin))return send(res,403,{error:'Forbidden origin'});
    const url=new URL(req.url,origin);
+   if(req.method==='GET'&&['/','/ace.js','/ace.css'].includes(url.pathname)){
+    const file=url.pathname==='/'?'ace.html':url.pathname.slice(1);
+    const types={'ace.html':'text/html; charset=utf-8','ace.js':'text/javascript; charset=utf-8','ace.css':'text/css; charset=utf-8'};
+    res.writeHead(200,{'Content-Type':types[file],'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"});
+    return res.end(fs.readFileSync(path.join(__dirname,file)));
+   }
+   if(url.pathname==='/api/login'&&req.method==='POST'){
+    if(req.headers.origin!==origin||!/^application\/json(?:;|$)/i.test(req.headers['content-type']||''))return send(res,403,{error:'Forbidden login request'});
+    const b=await readBody(req),session=await auth.login(b.email,b.password);
+    return session?send(res,200,session):send(res,403,{error:'Local pilot access denied'});
+   }
    if(!['/api/fixture','/api/coach','/api/heartbeat'].includes(url.pathname))return send(res,404,{error:'Not found'});
    const principal=await auth.authenticate(req.headers.authorization);
    if(!principal)return send(res,403,{error:'Forbidden'});
@@ -36,6 +47,7 @@ function makeHandler({store,auth,now=Date.now,host='127.0.0.1',port=8765}){
     const delay=body.delaySeconds??10;
     if(!Number.isInteger(delay)||delay<5||delay>86400)return send(res,400,{error:'Delay must be 5–86400 seconds'});
     const human=body.humanOpponent===true;
+    if(human&&(!auth.policy.multiplayerTest||!auth.policy.syntheticId))return send(res,400,{error:'Synthetic peer not configured'});
     r=a.createFixture({id:crypto.randomUUID(),players:[p,{...q,name:human?'Ace Human Peer':'Ace Test AI'}],seed:crypto.randomInt(0,4294967296),startAt:t+delay*1000,opponentId:human?auth.policy.syntheticId:null,coachingModes:[body.mode??'hybrid',human?(body.peerMode??'hybrid'):'auto']},principal,auth.policy,t);
     store.save(r);return send(res,201,a.view(r,principal,auth.policy,t));
    }

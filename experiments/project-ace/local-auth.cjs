@@ -29,6 +29,15 @@ function makeAuth({url,key,adminId,syntheticId=null,multiplayerTest=false,fetche
   if(multiplayerTest&&user.id===syntheticId)return {id:user.id,verified:true,synthetic:true};
   return null;
  }
- return {policy,authenticate,origin};
+ async function login(email,password){
+  if(typeof email!=='string'||typeof password!=='string'||email.length>320||password.length>1024)return null;
+  const res=await fetcher(origin+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({email,password}),redirect:'error',signal:AbortSignal.timeout(5000)});
+  if(!res.ok)return null;
+  const data=await res.json(),token=data.access_token;
+  const principal=await authenticate('Bearer '+token);
+  if(!principal)return null;
+  return {token,admin:principal.isAdmin===true};
+ }
+ return {policy,authenticate,origin,login};
 }
 module.exports={localBackend,makeAuth};
