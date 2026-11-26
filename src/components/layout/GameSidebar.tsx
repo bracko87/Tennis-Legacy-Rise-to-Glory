@@ -25,6 +25,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import { useAuth } from '../../auth/AuthContext'
+import { aceReviewEnabled } from '../../lib/aceReviewFlag'
 import { useGuestTrialDisplay } from '../../hooks/useGuestTrialDisplay'
 import BugReportButton from '../dashboard/BugReportButton'
 import { useTennisClubAlerts } from '../../hooks/useTennisClubAlerts'
@@ -202,6 +203,7 @@ export default function GameSidebar({
           <>
             {!collapseNav && <div className="tlg-v2-nav-label">Administration</div>}
             <nav className="tlg-v2-nav tlg-v2-nav-admin" aria-label="Administration">
+              {aceReviewEnabled && <Link to="/game/admin/project-ace" onClick={onMobileClose} className={clsx('tlg-v2-nav-link', location.pathname==='/game/admin/project-ace' && 'tlg-v2-nav-link-active')} title="Project Ace review"><span className="tlg-v2-nav-icon"><Activity size={17}/></span>{!collapseNav&&<span className="tlg-v2-nav-copy"><strong>Project Ace</strong><small>Isolated review only</small></span>}</Link>}
               {adminItems.filter((item) => item.key === 'admin-analytics').map((item) => {
                 const active = location.pathname === item.to
                 return (

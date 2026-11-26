@@ -20,6 +20,10 @@ if (isProd && (configuredUrl || configuredKey)) {
 if (!isProd && !configuredUrl) {
   console.warn('LOCALHOST NOTICE: Connecting to the existing LIVE Supabase project. Test purchases, travel and finance actions here will affect live game records. Use npm run dev:private-life only when you intentionally want the isolated local database.')
 }
+const aceReview = process.env.TL_ACE_REVIEW === '1'
+if (aceReview && (isProd || !/^http:\/\/127\.0\.0\.1:\d+$/.test(configuredUrl) || !configuredKey)) {
+  throw new Error('Project Ace review requires an explicit loopback Supabase backend and a non-production build.')
+}
 const browserBackendUrl = configuredUrl || 'https://cwfznmroiqcyhfkfcrow.supabase.co'
 const browserBackendKey = configuredKey || 'sb_publishable_FpDi8rEB6r1Ai49UMS_R2Q__UAGburi'
 
@@ -55,6 +59,7 @@ const esbuildOpts = {
   },
   // esbuild substitutes these at compile time, without browser-exposed secrets.
   define: {
+    __TL_ACE_REVIEW__: JSON.stringify(aceReview),
     __TL_SUPABASE_URL__: JSON.stringify(browserBackendUrl),
     __TL_SUPABASE_PUBLISHABLE_KEY__: JSON.stringify(browserBackendKey),
   },

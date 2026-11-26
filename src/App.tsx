@@ -7,6 +7,8 @@
  */
 
 import { useLayoutEffect } from 'react'
+import { aceReviewEnabled } from './lib/aceReviewFlag'
+import AceReviewPage from './pages/manager/AceReview'
 import './styles/globals.css'
 import './styles/premium.css'
 import './styles/onboarding-enhancements.css'
@@ -257,6 +259,7 @@ export default function App() {
           <Route path="/game/contact" element={<RequirePlayer><ContactUsPage /></RequirePlayer>} />
           <Route path="/game/invite-friends" element={<RequirePlayer><InviteFriendsPage /></RequirePlayer>} />
           <Route path="/game/referral-admin" element={<RequirePlayer><ReferralAdminPage /></RequirePlayer>} />
+          {aceReviewEnabled && <Route path="/game/admin/project-ace" element={<RequireAdmin><AceReviewPage /></RequireAdmin>} />}
           <Route path="/game/admin/system-health" element={<RequireAdmin><AdminSystemHealthPage /></RequireAdmin>} />
           <Route path="/game/admin/analytics" element={<RequireAdmin><AdminAnalyticsPage /></RequireAdmin>} />
           <Route path="/game/admin/guest-preview" element={<RequireAdmin><GuestModePreviewPage /></RequireAdmin>} />
