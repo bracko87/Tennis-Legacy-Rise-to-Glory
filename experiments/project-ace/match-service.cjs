@@ -19,13 +19,13 @@ function sideFor(record,principal,policy){
  fail('Forbidden',403);
 }
 function time(n){if(!Number.isSafeInteger(n)||n<0)fail('Invalid time',400);return n;}
-function createFixture({id,players,seed,startAt,opponentId=null,coachingModes=['hybrid','auto']},principal,policy,now){
+function createFixture({id,players,seed,startAt,opponentId=null,surface='hard',coachingModes=['hybrid','auto']},principal,policy,now){
  if(!canUse(principal,policy))fail('Forbidden',403);
  time(now);time(startAt);if(startAt<now)fail('Start is in past',400);
  if(typeof id!=='string'||!id||!Array.isArray(coachingModes)||coachingModes.length!==2||coachingModes.some(m=>!modes.includes(m)))fail('Invalid fixture',400);
  if(opponentId!==null&&(!policy.multiplayerTest||opponentId!==policy.syntheticId||opponentId===principal.id))fail('Forbidden opponent',403);
  if(opponentId===null&&coachingModes[1]!=='auto')fail('AI must use automatic coaching',400);
- return {id,owners:[principal.id,opponentId],modes:[...coachingModes],lastSeen:[null,null],lastNow:now,startAt,nextAt:startAt,checkpoint:engine.createMatch({players,seed}),active:null,queued:[null,null],applied:[null,null],revision:0};
+ return {id,owners:[principal.id,opponentId],modes:[...coachingModes],lastSeen:[null,null],lastNow:now,startAt,nextAt:startAt,checkpoint:engine.createMatch({players,seed,surface}),active:null,queued:[null,null],applied:[null,null],revision:0};
 }
 function ai(s,i){
  const base=engine.observable(s);
@@ -94,6 +94,6 @@ function view(record,principal,policy,now){
  const ownHistory=[...s.events,...(r.active?r.active.after.events.slice(s.events.length).filter(e=>e.kind==='tactics'):[])].filter(e=>e.kind==='tactics'&&e.side===side).map(e=>({game:e.game,tactics:copy(e.tactics)}));
  const tb=!!r.active&&s.games[0]===6&&s.games[1]===6;
  const n=visible.length,server=r.active?(tb&&n>0?(Math.floor((n-1)/2)%2===0?1-s.nextServer:s.nextServer):s.nextServer):null;
- return {id:r.id,side,revision:r.revision,status:s.status==='completed'?'completed':now<r.startAt?'scheduled':'live',startAt:r.startAt,gameNumber:s.gameNumber+(r.active?1:0),sets:base.sets,games:base.games,points:last?last.points:[0,0],tiebreak:tb,server,phase:s.status==='completed'?'completed':now<r.startAt?'scheduled':r.active?'playing':'between-games',completedSets:base.completedSets,winner:base.winner,players,stats:base.stats,recommendations:s.status==='completed'?[]:recommendations(players,base.stats,side,base.totalPoints+visible.length),ownHistory,activeTactics:copy(r.applied[side]?.tactics||s.tactics[side]),totalPoints:base.totalPoints+visible.length,events,ownTactics:copy(r.applied[side]),ownPending:copy(r.queued[side]),coachingMode:r.modes[side],nextCoachingGame:s.status==='completed'?null:s.gameNumber+(r.active?2:1)};
+ return {id:r.id,side,surface:s.surface,opponentType:r.owners[1]?'human':'ai',opponentOnline:r.owners[1]!==null&&r.lastSeen[1-side]!==null&&now-r.lastSeen[1-side]<=PRESENCE_MS,revision:r.revision,status:s.status==='completed'?'completed':now<r.startAt?'scheduled':'live',startAt:r.startAt,gameNumber:s.gameNumber+(r.active?1:0),sets:base.sets,games:base.games,points:last?last.points:[0,0],tiebreak:tb,server,phase:s.status==='completed'?'completed':now<r.startAt?'scheduled':r.active?'playing':'between-games',completedSets:base.completedSets,winner:base.winner,players,stats:base.stats,recommendations:s.status==='completed'?[]:recommendations(players,base.stats,side,base.totalPoints+visible.length),ownHistory,activeTactics:copy(r.applied[side]?.tactics||s.tactics[side]),totalPoints:base.totalPoints+visible.length,events,ownTactics:copy(r.applied[side]),ownPending:copy(r.queued[side]),coachingMode:r.modes[side],nextCoachingGame:s.status==='completed'?null:s.gameNumber+(r.active?2:1)};
 }
 module.exports={createFixture,advance,heartbeat,coach,view,canUse,POINT_MS,BREAK_MS};

@@ -25,5 +25,6 @@ jobs:
           node experiments/project-ace/local-http.test.cjs
           node experiments/project-ace/offline.test.cjs
           node experiments/project-ace/experience.test.cjs
+          node experiments/project-ace/multiplayer-profile.test.cjs
           node --check experiments/project-ace/ace.js
           node --check experiments/project-ace/start-local.cjs

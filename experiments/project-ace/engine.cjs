@@ -14,6 +14,7 @@ function profile(p){
  for(const k of ['serve','return','rally','forehand','backhand','fitness','stamina','movement','fatigue','focus','confidence']){
   if(!Number.isFinite(p[k])||p[k]<0||p[k]>100)throw Error('Invalid player '+k);o[k]=p[k];
  }
+ for(const k of ['rawServe','sharpness','morale','surfaceMultiplier'])if(p[k]!==undefined){const hi=k==='surfaceMultiplier'?1.05:100,lo=k==='surfaceMultiplier'?.95:0;if(!Number.isFinite(p[k])||p[k]<lo||p[k]>hi)throw Error('Invalid player '+k);o[k]=p[k];}
  return o;
 }
 function draw(s){s.rng=(Math.imul(s.rng,1664525)+1013904223)>>>0;return s.rng/4294967296;}
@@ -28,10 +29,11 @@ function queueTactics(state,side,patch){
  s.pending[side]={...s.pending[side],...patch};return s;
 }
 function effective(p,t){
- const expression=clamp((1-.22*(p.fatigue/100)**1.5)*(.96+.0004*p.focus),.65,1);
+ const expression=p.sharpness===undefined?clamp((1-.22*(p.fatigue/100)**1.5)*(.96+.0004*p.focus),.65,1):(1-.12*(p.fatigue/100)**1.35)*(.94+.06*p.sharpness/100)*(.96+.04*(p.focus*.45+p.confidence*.30+p.morale*.25)/100)*(p.surfaceMultiplier??1);
+ const rawServe=p.rawServe??p.serve;
  const agg=t.approach==='Aggressive'?1:t.approach==='Defensive'?-1:0;
  const power=t.serve==='Power serving'?1:t.serve==='Safe first serve'?-1:0;
- return {serve:(p.serve+.35*agg+.65*power)*expression,ret:(p.return+.2*agg)*expression,rally:(p.rally+.55*agg)*expression,first:clamp(.54+p.serve*.002+p.focus*.0007-p.fatigue*.0004-.035*power,.47,.78),df:clamp(.025+Math.max(0,55-p.serve)*.001+p.fatigue*.00025-p.focus*.00015+.009*power,.006,.14),aceDelta:.014*power,ue:clamp(.12+p.fatigue*.001+.025*agg,.06,.34)};
+ return {serve:(p.serve+.35*agg+.65*power)*expression,ret:(p.return+.2*agg)*expression,rally:(p.rally+.55*agg)*expression,first:clamp(.54+rawServe*.002+p.focus*.0007-p.fatigue*.0004-.035*power,.47,.78),df:clamp(.025+Math.max(0,55-rawServe)*.001+p.fatigue*.00025-p.focus*.00015+.009*power,.006,.14),aceDelta:.014*power,ue:clamp(.12+p.fatigue*.001+.025*agg,.06,.34)};
 }
 function wing(t,opp){
  if(t.target==='Backhand'||t.target==='Forehand')return clamp(((opp.forehand+opp.backhand)/2-opp[t.target.toLowerCase()])*.0015,-.01,.01);

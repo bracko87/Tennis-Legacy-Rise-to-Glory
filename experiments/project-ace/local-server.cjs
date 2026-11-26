@@ -5,8 +5,7 @@ const path=require('node:path');
 const crypto=require('node:crypto');
 const a=require('./match-service.cjs');
 const {makeAuth}=require('./local-auth.cjs');
-const p={name:'Ace Admin',serve:62,return:58,rally:60,forehand:65,backhand:55,fitness:65,stamina:68,movement:62,fatigue:10,focus:75,confidence:70};
-const q={...p,name:'Ace Test Opponent',backhand:42,stamina:55};
+const {fixtureProfiles}=require('./profiles.cjs');
 function createStore(dir){
  fs.mkdirSync(dir,{recursive:true,mode:0o700});
  const lock=path.join(dir,'writer.lock'),file=path.join(dir,'fixture.json');
@@ -33,7 +32,7 @@ function makeHandler({store,auth,now=Date.now,host='127.0.0.1',port=8765}){
    if(url.pathname==='/api/login'&&req.method==='POST'){
     if(req.headers.origin!==origin||!/^application\/json(?:;|$)/i.test(req.headers['content-type']||''))return send(res,403,{error:'Forbidden login request'});
     const b=await readBody(req),session=await auth.login(b.email,b.password);
-    return session?send(res,200,session):send(res,403,{error:'Local pilot access denied'});
+    return session?send(res,200,{...session,multiplayerEnabled:auth.policy.multiplayerTest===true}):send(res,403,{error:'Local pilot access denied'});
    }
    if(!['/api/fixture','/api/coach','/api/heartbeat'].includes(url.pathname))return send(res,404,{error:'Not found'});
    const principal=await auth.authenticate(req.headers.authorization);
@@ -48,10 +47,13 @@ function makeHandler({store,auth,now=Date.now,host='127.0.0.1',port=8765}){
     if(!Number.isInteger(delay)||delay<5||delay>86400)return send(res,400,{error:'Delay must be 5–86400 seconds'});
     const human=body.humanOpponent===true;
     if(human&&(!auth.policy.multiplayerTest||!auth.policy.syntheticId))return send(res,400,{error:'Synthetic peer not configured'});
-    r=a.createFixture({id:crypto.randomUUID(),players:[p,{...q,name:human?'Ace Human Peer':'Ace Test AI'}],seed:crypto.randomInt(0,4294967296),startAt:t+delay*1000,opponentId:human?auth.policy.syntheticId:null,coachingModes:[body.mode??'hybrid',human?(body.peerMode??'hybrid'):'auto']},principal,auth.policy,t);
+    const surface=body.surface??'hard';let players;try{players=fixtureProfiles(body.playerPreset??'balanced',body.opponentPreset??'balanced',surface,human);}catch{return send(res,400,{error:'Invalid surface or profile preset'});}
+    r=a.createFixture({id:crypto.randomUUID(),players,surface,seed:crypto.randomInt(0,4294967296),startAt:t+delay*1000,opponentId:human?auth.policy.syntheticId:null,coachingModes:[body.mode??'hybrid',human?(body.peerMode??'hybrid'):'auto']},principal,auth.policy,t);
     store.save(r);return send(res,201,a.view(r,principal,auth.policy,t));
    }
    if(!r)return send(res,404,{error:'No fixture'});
+   if(principal.synthetic===true&&r.owners[1]!==principal.id)return send(res,404,{error:'Waiting for assigned peer fixture'});
+   if(url.pathname==='/api/coach'&&body.fixtureId!==undefined&&body.fixtureId!==r.id)return send(res,409,{error:'Stale fixture'});
    // Check authorization before persisting any advancement.
    a.view(r,principal,auth.policy,t);
    if(url.pathname==='/api/fixture'&&req.method==='GET')r=a.advance(r,t);
