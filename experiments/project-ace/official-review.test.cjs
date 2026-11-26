@@ -20,6 +20,10 @@ s=w.tick(s,raw(1100000,1,2,10),p,policy);s=w.tick(s,raw(2100000,1,2,11),p,policy
 const receipt=bridge.receipts(s);assert.equal(receipt.length,3);assert.ok(receipt.every(r=>r.match_id.startsWith('source-m')&&r.winner_id.startsWith('source-p')&&r.review_only));
 s=w.tick(s,raw(2200000,2,1,10),p,policy);const summary=w.summary(s,p,policy,2200000);
 assert.ok([100,165,250].includes(summary.career.points));assert.ok(summary.career.balance>1500);assert.equal('source' in summary,false);
+const exportPayload=require('./official-settlement-review.cjs').project(s);
+assert.equal(exportPayload.matches.length,3);assert.equal(exportPayload.results.length,4);assert.equal(exportPayload.transactions.length,1);assert.equal(exportPayload.transactions[0].idempotency_key,'tournament-prize:source-competition:source-p0');assert.ok(exportPayload.matches.every(m=>m.stats.every(x=>x.winners===null&&x.break_points_total===null)));assert.equal(exportPayload.production_ready,false);
+const altered=JSON.parse(JSON.stringify(s));altered.ledger.transactions[0].amount++;assert.throws(()=>require('./official-settlement-review.cjs').project(altered),/ledger mismatch/);
+module.exports={exportPayload};
 const grand={...snapshot,competition:{...snapshot.competition,category_code:'grand_slam_2000'},ranking_rules:snapshot.ranking_rules.map(x=>({...x,category_code:'grand_slam_2000'}))};
 assert.equal(bridge.create(grand,p,policy,raw(0,1,1,9),options).draw.mainBestOf,5);
 console.log('PASS official-shaped snapshot mapping, schedule and reward validation, catalogue wear, ATP format, private results and source receipt mapping');

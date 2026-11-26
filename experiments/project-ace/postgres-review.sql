@@ -95,4 +95,25 @@ BEGIN
 END $$;
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA ace_review FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION ace_review.load_world(text),ace_review.commit_world(text,bigint,jsonb) TO ace_review_worker;
+-- Review-only settlement staging. No public game tables touched.
+CREATE TABLE ace_review.settlement_exports (
+ competition_id text PRIMARY KEY,
+ payload jsonb NOT NULL CHECK (payload->>'schema'='ace-settlement-review-v1' AND payload->>'review_only'='true' AND payload->>'production_ready'='false' AND payload->>'competition_id'=competition_id)
+);
+ALTER TABLE ace_review.settlement_exports ENABLE ROW LEVEL SECURITY;
+CREATE POLICY worker_export ON ace_review.settlement_exports TO ace_review_worker USING (true) WITH CHECK (true);
+GRANT SELECT,INSERT ON ace_review.settlement_exports TO ace_review_worker;
+CREATE FUNCTION ace_review.stage_settlement(p_payload jsonb) RETURNS text
+LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog,ace_review AS $
+DECLARE v_id text:=p_payload->>'competition_id'; v_prior jsonb;
+BEGIN
+ IF v_id IS NULL OR v_id='' OR jsonb_typeof(p_payload->'matches') IS DISTINCT FROM 'array' OR jsonb_array_length(p_payload->'matches')=0 THEN RAISE EXCEPTION 'invalid settlement export'; END IF;
+ INSERT INTO ace_review.settlement_exports(competition_id,payload) VALUES(v_id,p_payload) ON CONFLICT DO NOTHING;
+ IF FOUND THEN RETURN 'staged'; END IF;
+ SELECT payload INTO v_prior FROM ace_review.settlement_exports WHERE competition_id=v_id;
+ IF v_prior IS DISTINCT FROM p_payload THEN RAISE EXCEPTION 'settlement export conflict'; END IF;
+ RETURN 'already_staged';
+END $;
+REVOKE ALL ON FUNCTION ace_review.stage_settlement(jsonb) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION ace_review.stage_settlement(jsonb) TO ace_review_worker;
 COMMIT;
