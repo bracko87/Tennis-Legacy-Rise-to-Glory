@@ -1,0 +1,82 @@
+{
+  "schema": "ace-legacy-snapshot-v1",
+  "match": {
+    "status": "scheduled",
+    "surface": "Hard",
+    "world": "ATP",
+    "category_code": "grand_slam_2000",
+    "draw_type": "main",
+    "tournament_name": "Synthetic Grand Slam",
+    "city": "Test City",
+    "country_code": "XX",
+    "round_label": "Round 1",
+    "scheduled_season_week": 5,
+    "scheduled_day": 2,
+    "scheduled_start_minute": 600,
+    "court_number": 1
+  },
+  "players": [
+    {
+      "player": {
+        "id": "synthetic-0",
+        "first_name": "Synthetic",
+        "last_name": "Player",
+        "playing_hand": "right"
+      },
+      "skills": {
+        "serve": 64,
+        "forehand": 65,
+        "backhand": 55,
+        "return_skill": 58,
+        "volley": 54,
+        "slice": 57,
+        "drop_shot": 49,
+        "lob": 51,
+        "smash": 56,
+        "fitness": 65,
+        "stamina": 68,
+        "recovery": 62,
+        "movement": 62,
+        "fatigue": 10,
+        "sharpness": 75,
+        "morale": 70,
+        "confidence": 70,
+        "focus": 75,
+        "preferred_surface": "Hard",
+        "playing_style": "All-court",
+        "player_id": "synthetic-0"
+      }
+    },
+    {
+      "player": {
+        "id": "synthetic-1",
+        "first_name": "Synthetic",
+        "last_name": "Opponent",
+        "playing_hand": "left"
+      },
+      "skills": {
+        "serve": 64,
+        "forehand": 65,
+        "backhand": 55,
+        "return_skill": 58,
+        "volley": 54,
+        "slice": 57,
+        "drop_shot": 49,
+        "lob": 51,
+        "smash": 56,
+        "fitness": 65,
+        "stamina": 68,
+        "recovery": 62,
+        "movement": 62,
+        "fatigue": 10,
+        "sharpness": 75,
+        "morale": 70,
+        "confidence": 70,
+        "focus": 75,
+        "preferred_surface": "Hard",
+        "playing_style": "All-court",
+        "player_id": "synthetic-1"
+      }
+    }
+  ]
+}

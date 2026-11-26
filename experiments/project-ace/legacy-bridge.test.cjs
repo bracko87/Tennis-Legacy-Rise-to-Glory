@@ -1,0 +1,20 @@
+'use strict';
+const assert=require('node:assert/strict'),a=require('./match-service.cjs'),{importSnapshot}=require('./legacy-snapshot.cjs');
+const raw=require('./sample-legacy-snapshot.json'),copy=x=>JSON.parse(JSON.stringify(x));
+const s=importSnapshot(raw);assert.equal(s.bestOf,5);assert.equal(s.surface,'hard');assert.equal(s.players[1].hand,'left');assert.equal('player_id' in s.players[0],false);
+const w=copy(raw);w.match.world='WTA';assert.equal(importSnapshot(w).bestOf,3);
+const q=copy(raw);q.match.draw_type='qualifying';assert.equal(importSnapshot(q).bestOf,3);
+for(const mutate of [x=>x.match.status='completed',x=>x.players[0].skills.player_id='wrong',x=>delete x.players[0].skills.lob,x=>x.players[0].skills.serve=101,x=>x.match.scheduled_day=8]){const x=copy(raw);mutate(x);assert.throws(()=>importSnapshot(x));}
+const admin={id:'a',verified:true,isAdmin:true},policy={enabled:true,adminId:'a'};
+let r=a.createFixture({...s,id:'private',seed:7,startAt:10000,pace:'standard'},admin,policy,0);
+let v=a.replayView(r,admin,policy,9999);assert.equal(v.status,'prepared');assert.equal(v.events.length,0);
+r=a.advance(r,10000);const at=r.active.revealAt[0];
+v=a.replayView(r,admin,policy,at-1);assert.equal(v.events.length,1);assert.equal(v.winner_id,null);assert.equal(v.final_score,null);assert.equal(v.replay_duration_seconds,null);
+v=a.replayView(r,admin,policy,at);assert.equal(v.events.length,2);assert.equal(v.events[1].offset_seconds,(at-10000)/1000);assert.ok(v.events.every(e=>!('probability' in e)&&!('tactics' in e)));
+assert.throws(()=>a.replayView(r,{id:'other',verified:true,isAdmin:true},policy,at));
+const done=a.advance(r,10000000),final=a.replayView(done,admin,policy,10000000);
+assert.equal(final.status,'completed');assert.equal(final.winner_id,'private:p'+(done.checkpoint.winner+1));assert.equal(final.events.filter(e=>e.kind==='set_end').length,done.checkpoint.completedSets.length);assert.equal(Math.max(...done.checkpoint.sets),3);
+assert.equal(final.last_event.kind,'match_end');assert.equal(final.replay_duration_seconds,final.last_event.offset_seconds);
+assert.ok(final.events.every((e,i)=>!i||e.offset_seconds>=final.events[i-1].offset_seconds));
+assert.deepEqual(final,a.replayView(JSON.parse(JSON.stringify(done)),admin,policy,10000000));
+console.log('PASS schema snapshot import, format selection, local replay contract, elapsed-only privacy and final result');

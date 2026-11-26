@@ -31,7 +31,7 @@ async function run(){
   assert.equal(x.status,200);assert.equal(y.status,200);
   now+=12000;const a=(await req('/api/fixture','GET',undefined,A.token)).body,b=(await req('/api/fixture','GET',undefined,B.token)).body;
   assert.deepEqual(a.events,b.events);assert.deepEqual(a.players,b.players);assert.equal(a.opponentOnline,true);assert.equal(b.opponentOnline,true);
-  assert.equal(a.activeTactics.serve,'Power serving');assert.equal(b.activeTactics.rally,'Shorten points');assert.equal(JSON.stringify(a).includes('Shorten points'),false);
+  assert.equal(a.activeTactics.serve,'Power serving');assert.equal(b.activeTactics.rally,'Shorten points');assert.equal(a.ownHistory.length,1);assert.equal(a.ownHistory[0].tactics.rally,'Balanced rallies');assert.equal(a.ownPending,null);assert.equal(a.activeTactics.rally,'Balanced rallies');assert.ok(a.events.every(e=>e.kind!=='tactics'&&!('probability' in e)&&!('conditions' in e)));assert.equal(b.ownHistory[0].tactics.rally,'Shorten points');
   now+=2000000;const final=(await req('/api/fixture','GET',undefined,A.token)).body;
   const peerFinal=(await req('/api/fixture','GET',undefined,B.token)).body;assert.equal(final.status,'completed');assert.equal(final.winner,peerFinal.winner);assert.deepEqual(final.completedSets,peerFinal.completedSets);
  }finally{await new Promise(r=>server.close(r));store.close();fs.rmSync(dir,{recursive:true,force:true});}

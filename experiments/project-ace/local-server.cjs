@@ -7,6 +7,7 @@ const a=require('./match-service.cjs');
 const {makeAuth}=require('./local-auth.cjs');
 const {fixtureProfiles}=require('./profiles.cjs');
 const {environment,metadata}=require('./match-context.cjs');
+const {importSnapshot}=require('./legacy-snapshot.cjs');
 function createStore(dir){
  fs.mkdirSync(dir,{recursive:true,mode:0o700});
  const lock=path.join(dir,'writer.lock'),file=path.join(dir,'fixture.json');
@@ -16,7 +17,7 @@ function createStore(dir){
  function save(record){const tmp=file+'.'+crypto.randomUUID()+'.tmp';try{fs.writeFileSync(tmp,JSON.stringify(record),{mode:0o600,flag:'wx'});fs.renameSync(tmp,file);}finally{if(fs.existsSync(tmp))fs.unlinkSync(tmp);}}
  return {read,save,close};
 }
-function makeHandler({store,auth,now=Date.now,host='127.0.0.1',port=8765}){
+function makeHandler({store,auth,snapshot=null,now=Date.now,host='127.0.0.1',port=8765}){
  const origin='http://'+host+':'+port;
  const send=(res,status,obj)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(obj));};
  const readBody=async req=>{let body='';for await(const chunk of req){body+=chunk;if(Buffer.byteLength(body)>8192){const e=Error('Body too large');e.status=413;throw e;}}try{return JSON.parse(body||'{}')}catch{const e=Error('Invalid JSON');e.status=400;throw e;}};
@@ -33,9 +34,9 @@ function makeHandler({store,auth,now=Date.now,host='127.0.0.1',port=8765}){
    if(url.pathname==='/api/login'&&req.method==='POST'){
     if(req.headers.origin!==origin||!/^application\/json(?:;|$)/i.test(req.headers['content-type']||''))return send(res,403,{error:'Forbidden login request'});
     const b=await readBody(req),session=await auth.login(b.email,b.password);
-    return session?send(res,200,{...session,multiplayerEnabled:auth.policy.multiplayerTest===true}):send(res,403,{error:'Local pilot access denied'});
+    return session?send(res,200,{...session,multiplayerEnabled:auth.policy.multiplayerTest===true,snapshotAvailable:session.admin===true&&!!snapshot}):send(res,403,{error:'Local pilot access denied'});
    }
-   if(!['/api/fixture','/api/coach','/api/heartbeat'].includes(url.pathname))return send(res,404,{error:'Not found'});
+   if(!['/api/fixture','/api/coach','/api/heartbeat','/api/replay'].includes(url.pathname))return send(res,404,{error:'Not found'});
    const principal=await auth.authenticate(req.headers.authorization);
    if(!principal)return send(res,403,{error:'Forbidden'});
    let body={};if(req.method==='POST'){if(!/^application\/json(?:;|$)/i.test(req.headers['content-type']||''))return send(res,415,{error:'JSON required'});body=await readBody(req);}
@@ -48,8 +49,10 @@ function makeHandler({store,auth,now=Date.now,host='127.0.0.1',port=8765}){
     if(!Number.isInteger(delay)||delay<5||delay>86400)return send(res,400,{error:'Delay must be 5–86400 seconds'});
     const human=body.humanOpponent===true;
     if(human&&(!auth.policy.multiplayerTest||!auth.policy.syntheticId))return send(res,400,{error:'Synthetic peer not configured'});
-    const surface=body.surface??'hard';let players,weather;try{weather=environment(body.weather??'normal');players=fixtureProfiles(body.playerPreset??'balanced',body.opponentPreset??'balanced',surface,human,{hands:[body.playerHand??'right',body.opponentHand??'right'],equipment:[body.playerEquipment??'standard',body.opponentEquipment??'standard']});players.forEach(metadata);}catch{return send(res,400,{error:'Invalid surface, weather or profile preset'});}
-    r=a.createFixture({id:crypto.randomUUID(),players,surface,weather,pace:body.pace??'standard',seed:crypto.randomInt(0,4294967296),startAt:t+delay*1000,opponentId:human?auth.policy.syntheticId:null,coachingModes:[body.mode??'hybrid',human?(body.peerMode??'hybrid'):'auto']},principal,auth.policy,t);
+    let surface=body.surface??'hard',bestOf=body.bestOf??3,detail=null;let players,weather;try{weather=environment(body.weather??'normal');players=fixtureProfiles(body.playerPreset??'balanced',body.opponentPreset??'balanced',surface,human,{hands:[body.playerHand??'right',body.opponentHand??'right'],equipment:[body.playerEquipment??'standard',body.opponentEquipment??'standard']});players.forEach(metadata);}catch{return send(res,400,{error:'Invalid surface, weather or profile preset'});}
+    if(body.useSnapshot===true){if(!snapshot)return send(res,400,{error:'No local snapshot configured'});({players,surface,weather,bestOf,detail}=snapshot);}
+    if(![3,5].includes(bestOf))return send(res,400,{error:'Invalid match format'});
+    r=a.createFixture({id:crypto.randomUUID(),players,surface,weather,bestOf,detail,pace:body.pace??'standard',seed:crypto.randomInt(0,4294967296),startAt:t+delay*1000,opponentId:human?auth.policy.syntheticId:null,coachingModes:[body.mode??'hybrid',human?(body.peerMode??'hybrid'):'auto']},principal,auth.policy,t);
     store.save(r);return send(res,201,a.view(r,principal,auth.policy,t));
    }
    if(!r)return send(res,404,{error:'No fixture'});
@@ -57,6 +60,7 @@ function makeHandler({store,auth,now=Date.now,host='127.0.0.1',port=8765}){
    if(url.pathname==='/api/coach'&&body.fixtureId!==undefined&&body.fixtureId!==r.id)return send(res,409,{error:'Stale fixture'});
    // Check authorization before persisting any advancement.
    a.view(r,principal,auth.policy,t);
+   if(url.pathname==='/api/replay'&&req.method==='GET')return send(res,200,a.replayView(r,principal,auth.policy,t));
    if(url.pathname==='/api/fixture'&&req.method==='GET')r=a.advance(r,t);
    else if(url.pathname==='/api/heartbeat'&&req.method==='POST')r=a.heartbeat(r,principal,auth.policy,t);
    else if(url.pathname==='/api/coach'&&req.method==='POST')r=a.coach(r,principal,auth.policy,t,body.targetGame,body.tactics);
@@ -75,7 +79,9 @@ function start(){
  return serveLocal({auth,dir,port});
 }
 function serveLocal({auth,dir,port=8765}){
- const store=createStore(dir),server=http.createServer(makeHandler({store,auth,port}));
+ const source=process.env.ACE_SNAPSHOT_FILE;
+ const snapshot=source?importSnapshot(JSON.parse(fs.readFileSync(source,'utf8'))):null;
+ const store=createStore(dir),server=http.createServer(makeHandler({store,auth,port,snapshot}));
  const tick=setInterval(()=>{try{const r=store.read();if(r&&r.checkpoint.status!=='completed'){const n=a.advance(r,Date.now());if(n.revision!==r.revision)store.save(n);}}catch(e){console.error('Ace local tick failed:',e.message);}},500);
  let closing=false;function close(){if(closing)return;closing=true;clearInterval(tick);server.close(()=>{store.close();});}
  process.on('SIGINT',close);process.on('SIGTERM',close);server.on('error',e=>{console.error(e.message);clearInterval(tick);store.close();process.exitCode=1;});
