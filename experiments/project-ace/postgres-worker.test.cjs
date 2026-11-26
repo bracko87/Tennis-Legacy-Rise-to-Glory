@@ -6,7 +6,7 @@ const raw=(ms,day,hour=10)=>({server_now:new Date(ms).toISOString(),game_total_s
 const clone=x=>JSON.parse(JSON.stringify(x));
 async function run(){
  const db=connection(),store=open('world-ci',db),args=drawArgs({pace:'fast',delaySeconds:5},0,33);
- let expected=demo.create(args,p,policy,0);
+ let expected=clone(demo.create(args,p,policy,0));
  assert.equal(await store.read(),null);assert.equal(await store.save(-1,expected),0);
  assert.deepEqual((await store.read()).state,expected);
  const a=await store.read(),b=await open('world-ci').read();
