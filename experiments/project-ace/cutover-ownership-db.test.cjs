@@ -1,0 +1,61 @@
+'use strict';
+const assert=require('node:assert/strict'),{spawn}=require('node:child_process'),{connection}=require('./postgres-store.cjs');
+const db=connection();
+function engine(role,query){
+ assert.ok(['ace','legacy','external'].includes(role));
+ assert.equal(process.env.ACE_REVIEW_DB,'1');
+ const port=Number(process.env.ACE_REVIEW_DB_PORT||55432);assert.ok(Number.isInteger(port)&&port>=1024&&port<=65535);
+ return new Promise((resolve,reject)=>{
+  const p=spawn('psql',['-X','-qAt','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p',String(port),'-U','ace_cutover_'+role,'-d','ace_review','-w'],{env:{PATH:process.env.PATH,PGPASSWORD:'ace-disposable-'+role,PGCONNECT_TIMEOUT:'5',PGSSLMODE:'disable'},stdio:['pipe','pipe','pipe']});
+  let out='',err='';const t=setTimeout(()=>{p.kill();reject(Error('cutover timeout'));},15000);
+  p.stdout.on('data',x=>out+=x);p.stderr.on('data',x=>err+=x);p.stdin.on('error',()=>{});
+  p.on('error',e=>{clearTimeout(t);reject(e);});p.on('close',code=>{clearTimeout(t);code===0?resolve(out.trim()):reject(Error(err));});p.stdin.end(query+'\n');
+ });
+}
+const q=(role,sql)=>engine(role,'SELECT ace_cutover_review.'+sql+';');
+const claim=async(role,id)=>JSON.parse(await q(role,"claim('"+id+"')"));
+const seed=(id,scope='singles',sim='none',status='scheduled',started=false)=>db.sql("SELECT ace_cutover_review.seed_match('"+id+"','canary','"+scope+"',true,'"+status+"','"+sim+"',"+started+",'p1','p2');");
+const configure=on=>db.sql("SELECT ace_cutover_review.configure("+on+",ARRAY['canary']);");
+const start=(role,id,rev)=>q(role,"start_match('"+id+"',"+rev+")");
+const finish=(role,id,rev,w='p1')=>q(role,"finish_match('"+id+"',"+rev+",'"+w+"','{\"score\":\"6-3 6-4\"}'::jsonb)");
+async function run(){
+ for(const id of ['default','race','drain','handoff','live-handoff','fresh'])await seed(id);
+ await seed('prepared','singles','prepared');await seed('doubles','doubles');await seed('historical','singles','completed','completed',true);
+ assert.equal((await claim('ace','default')).status,'wrong_engine');assert.equal((await claim('legacy','default')).status,'claimed');
+ await configure(true);
+ assert.equal((await claim('ace','prepared')).status,'wrong_engine');assert.equal((await claim('legacy','prepared')).status,'claimed');
+ assert.equal((await claim('ace','doubles')).status,'wrong_engine');assert.equal((await claim('legacy','historical')).status,'terminal');
+ const race=await Promise.all([claim('ace','race'),claim('legacy','race'),claim('ace','race')]);
+ assert.deepEqual(race.map(x=>x.status).sort(),['already_claimed','claimed','wrong_engine']);
+ await assert.rejects(start('legacy','race',1),/wrong engine/);
+ assert.deepEqual((await Promise.all([start('ace','race',1),start('ace','race',1)])).sort(),['already_started','started']);
+ await assert.rejects(finish('ace','race',1),/invalid completion/);
+ assert.deepEqual((await Promise.all([finish('ace','race',2),finish('ace','race',2)])).sort(),['already_completed','completed']);
+ await assert.rejects(finish('ace','race',2,'p2'),/conflicting receipt/);
+ await assert.rejects(finish('legacy','race',2),/wrong engine/);
+ await assert.rejects(engine('legacy',"UPDATE ace_cutover_review.matches SET owner='legacy' WHERE id='race';"),/permission denied/);
+ await assert.rejects(engine('ace',"INSERT INTO ace_cutover_review.effects VALUES('fresh','ace','p1','{}');"),/permission denied/);
+ await assert.rejects(q('ace',"configure(false,ARRAY['canary'])"),/permission denied/);
+ await assert.rejects(q('external',"claim('fresh')"),/permission denied/);
+ assert.equal((await claim('ace','handoff')).status,'claimed');
+ assert.equal(await q('external',"request_handoff('handoff','guest1','guest_retirement')"),'queued');
+ assert.equal(await q('external',"request_handoff('handoff','guest1','guest_retirement')"),'already_requested');
+ await assert.rejects(q('external',"request_handoff('handoff','guest1','travel_no_show')"),/conflicting handoff/);
+ assert.equal(await start('ace','handoff',1),'handoff_pending');
+ await assert.rejects(q('legacy',"resolve_handoff('handoff','guest1',1,'walkover','p2')"),/wrong engine/);
+ assert.equal(await q('ace',"resolve_handoff('handoff','guest1',1,'walkover','p2')"),'resolved');
+ assert.equal(await q('ace',"resolve_handoff('handoff','guest1',1,'walkover','p2')"),'already_resolved');
+ assert.equal((await claim('ace','live-handoff')).status,'claimed');assert.equal(await start('ace','live-handoff',1),'started');
+ assert.equal(await q('external',"request_handoff('live-handoff','repair1','admin_repair')"),'manual_review');
+ assert.equal(await finish('ace','live-handoff',2),'handoff_pending');
+ await assert.rejects(q('ace',"resolve_handoff('live-handoff','repair1',2,'cancelled',NULL)"),/invalid handoff/);
+ assert.equal((await claim('ace','drain')).status,'claimed');
+ await configure(false);
+ assert.equal((await claim('ace','fresh')).status,'wrong_engine');assert.equal((await claim('legacy','fresh')).status,'claimed');
+ assert.equal((await claim('ace','drain')).status,'already_claimed');assert.equal(await start('ace','drain',1),'started');assert.equal(await finish('ace','drain',2),'completed');
+ assert.equal(await db.sql("SELECT count(*) FROM ace_cutover_review.effects;"),'2');
+ assert.equal(await db.sql("SELECT count(*) FROM ace_cutover_review.matches WHERE owner='ace' AND status IN ('scheduled','in_progress');"),'1');
+ assert.equal(await db.sql("SELECT count(*) FROM ace_cutover_review.effects WHERE match_id='handoff';"),'0');
+ console.log('PASS separate database identities, concurrent exclusive claims/start/finalization, stale revision rejection, direct write denial, handoff and disable-new-admissions drain');
+}
+run().catch(e=>{console.error(e);process.exitCode=1});
