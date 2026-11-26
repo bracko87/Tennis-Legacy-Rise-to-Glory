@@ -13,10 +13,11 @@ const privatePlayer=playerFile?JSON.parse(fs.readFileSync(playerFile,'utf8')):nu
 if(privatePlayer){if(privatePlayer.schema!=='ace-player-v1')throw Error('Invalid private player schema');require('./legacy-snapshot.cjs').importPlayer(privatePlayer,'hard');}
 const reactDir=path.join(__dirname,'react-dist');
 const useReact=['index.html','react.js','react.css'].every(f=>fs.existsSync(path.join(reactDir,f)));
+const world=process.env.ACE_WORLD_TEST==='1';
 const password=crypto.randomBytes(18).toString('base64url');
 const peerPassword=process.env.ACE_TOURNAMENT_PEER==='1'?crypto.randomBytes(18).toString('base64url'):null;
 if(peerPassword)console.log('Synthetic peer: ace-peer@example.invalid\nTemporary local peer password: '+peerPassword);
 console.log('Private tournament login: '+email+'\nTemporary local password: '+password);
-serve({auth:makeOfflineAuth({email,password,peerPassword}),dir:path.join(root,(privatePlayer?'private-player-draw-v1':'draw-v1')+(peerPassword?'-multiplayer':'')),privatePlayer,reactDir:useReact?reactDir:null});
-if(useReact)console.log('Tennis Legacy React pilot: http://127.0.0.1:8766/react');
+serve({auth:makeOfflineAuth({email,password,peerPassword}),driver:world?require('./world-demo.cjs'):undefined,stateKind:world?'world':'draw',port:world?8767:8766,dir:path.join(root,(world?'world-v1-':'')+(privatePlayer?'private-player-draw-v1':'draw-v1')+(peerPassword?'-multiplayer':'')),privatePlayer,reactDir:useReact?reactDir:null});
+if(useReact)console.log('Tennis Legacy React pilot: http://127.0.0.1:'+(world?8767:8766)+'/react');
 console.log(privatePlayer?'Private imported profile (new isolated draw only)':'Synthetic test profiles');

@@ -10,7 +10,7 @@ function demo({surface='hard',pace='standard',delaySeconds=60,mode='hybrid',peer
  if(privatePlayer)entrants[0].profile=importPlayer(privatePlayer,surface);
  return {entrants,mainSlots:['p0',{qualifier:'Q1'},'p1','p2'],qualification:[{id:'Q1',players:['p3','p4','p5','p6']}],courts:['court-1','court-2'],startAt:now+delaySeconds*1000,seed,surface,pace,mainBestOf:3,roundGapMs:60000,managedPlayer:'p0',managedMode:mode,peerPlayer:peerEnabled?'p2':null,peerMode};
 }
-function handler({auth,getStore,createStore,privatePlayer=null,reactDir=null,now=Date.now,port=8766}){
+function handler({auth,getStore,createStore,privatePlayer=null,reactDir=null,driver=d,now=Date.now,port=8766}){
  const host='127.0.0.1:'+port,origin='http://'+host;
  const send=(res,status,x)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(x));};
  async function body(req){let b='';for await(const c of req){b+=c;if(Buffer.byteLength(b)>8192)throw Object.assign(Error('Body too large'),{status:413});}try{return JSON.parse(b||'{}')}catch{throw Object.assign(Error('Invalid JSON'),{status:400});}}
@@ -30,27 +30,27 @@ function handler({auth,getStore,createStore,privatePlayer=null,reactDir=null,now
   if(url.pathname==='/api/draw'&&req.method==='POST'){
    if(!canUse(p,auth.policy))return send(res,403,{error:'Only the administrator can create a tournament'});
    if(store)return send(res,409,{error:'Existing tournament retained; use a separate state directory for another tournament'});
-   const state=d.create(demo(x,t,crypto.randomInt(0,4294967296),privatePlayer,auth.policy.multiplayerTest===true),p,auth.policy,t);
-   createStore(state);return send(res,201,d.summary(state,p,auth.policy,t));
+   const state=driver.create(demo(x,t,crypto.randomInt(0,4294967296),privatePlayer,auth.policy.multiplayerTest===true),p,auth.policy,t);
+   createStore(state);return send(res,201,driver.summary(state,p,auth.policy,t));
   }
   if(!store)return send(res,404,{error:'No private tournament'});
-  const raw=store.read(),info=d.access(raw,p,auth.policy);let s=d.advance(raw,info.worker,auth.policy,t);
-  if(url.pathname==='/api/draw'&&req.method==='GET'){store.save(s);return send(res,200,d.summary(s,p,auth.policy,t));}
+  const raw=store.read(),info=driver.access(raw,p,auth.policy);let s=driver.advance(raw,info.worker,auth.policy,t);
+  if(url.pathname==='/api/draw'&&req.method==='GET'){store.save(s);return send(res,200,driver.summary(s,p,auth.policy,t));}
   const id=url.searchParams.get('id');
-  if(url.pathname==='/api/match'&&req.method==='GET'){const v=d.matchView(s,id,p,auth.policy,t);store.save(s);return send(res,200,v);}
+  if(url.pathname==='/api/match'&&req.method==='GET'){const v=driver.matchView(s,id,p,auth.policy,t);store.save(s);return send(res,200,v);}
   if(['/api/heartbeat','/api/coach'].includes(url.pathname)&&req.method==='POST'){
-   s=d.command(s,id,p,auth.policy,t,url.pathname==='/api/coach'?'coach':'heartbeat',x.targetGame,x.tactics);
-   store.save(s);return send(res,200,d.matchView(s,id,p,auth.policy,t));
+   s=driver.command(s,id,p,auth.policy,t,url.pathname==='/api/coach'?'coach':'heartbeat',x.targetGame,x.tactics);
+   store.save(s);return send(res,200,driver.matchView(s,id,p,auth.policy,t));
   }
   return send(res,404,{error:'Unknown endpoint'});
  }catch(e){return send(res,e.status||500,{error:e.status?e.message:'Local tournament request failed'});}};
 }
-function serve({auth,dir,port=8766,privatePlayer=null,reactDir=null}){
+function serve({auth,dir,port=8766,privatePlayer=null,reactDir=null,driver=d,stateKind='draw'}){
  const principal={id:auth.policy.adminId,verified:true,isAdmin:true};
- const opts={kind:'draw',advance:(s,n)=>d.advance(s,principal,auth.policy,n)};
+ const opts={kind:stateKind,advance:(s,n)=>driver.advance(s,principal,auth.policy,n)};
  let store=fs.existsSync(path.join(dir,'tournament.json'))?open(dir,null,opts):null;
- const server=http.createServer(handler({auth,port,privatePlayer,reactDir,getStore:()=>store,createStore:s=>{store=open(dir,s,opts);}}));
- const timer=setInterval(()=>{try{if(store){const old=store.read();if(old.phase!=='completed'){const s=d.advance(old,principal,auth.policy,Date.now());if(s.scheduler.receipts.length!==old.scheduler.receipts.length||s.scheduler.jobs.some((j,i)=>j.fixture.revision!==old.scheduler.jobs[i]?.fixture.revision))store.save(s);}}}catch(e){console.error('Private draw tick:',e.message);}},500);
+ const server=http.createServer(handler({auth,port,privatePlayer,reactDir,driver,getStore:()=>store,createStore:s=>{store=open(dir,s,opts);}}));
+ const timer=setInterval(()=>{try{if(store){const old=store.read();if(stateKind==='world'){store.save(driver.advance(old,principal,auth.policy,Date.now()));}else if(old.phase!=='completed'){const s=driver.advance(old,principal,auth.policy,Date.now());if(s.scheduler.receipts.length!==old.scheduler.receipts.length||s.scheduler.jobs.some((j,i)=>j.fixture.revision!==old.scheduler.jobs[i]?.fixture.revision))store.save(s);}}}catch(e){console.error('Private draw tick:',e.message);}},500);
  let closing=false;const close=()=>{if(closing)return;closing=true;clearInterval(timer);server.close(()=>store?.close());};
  process.on('SIGINT',close);process.on('SIGTERM',close);
  server.on('error',e=>{console.error(e.message);clearInterval(timer);store?.close();process.exitCode=1;});

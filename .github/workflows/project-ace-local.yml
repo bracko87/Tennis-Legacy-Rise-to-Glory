@@ -40,6 +40,7 @@ jobs:
           node experiments/project-ace/world-integration.test.cjs
           node experiments/project-ace/multiplayer-draw.test.cjs
           node experiments/project-ace/career-support.test.cjs
+          node experiments/project-ace/world-worker.test.cjs
           node --check experiments/project-ace/tournament.js
           node --check experiments/project-ace/ace.js
           node --check experiments/project-ace/start-local.cjs

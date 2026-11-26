@@ -18,7 +18,7 @@ function schedule(state,input,principal,policy,now){
  const players=input.playerKeys.map(key);if(players[0]===players[1])error('Duplicate player');
  // Validate and freeze the full match setup now; no games are calculated until admission.
  const fixture=a.createFixture({...input,id,startAt},principal,policy,now);
- s.jobs.push({id,courtKey:court,playerKeys:players,requestedAt:startAt,actualStartAt:null,completedAt:null,fixture,status:'scheduled'});
+ s.jobs.push({id,courtKey:court,playerKeys:players,requestedAt:startAt,actualStartAt:null,completedAt:null,fixture,status:'scheduled',...(input.held===true?{held:true}:{})});
  return s;
 }
 function conflicts(x,y){return {court:x.courtKey===y.courtKey,player:x.playerKeys.some(p=>y.playerKeys.includes(p))};}
@@ -51,7 +51,7 @@ function advance(state,now){
    if(j.fixture.checkpoint.status==='completed')settle(s,j,cursor);
   }
   // Deterministic order, including simultaneous starts. Active resources are exclusive.
-  const due=s.jobs.filter(j=>j.status==='scheduled'&&j.requestedAt<=cursor).sort((x,y)=>x.requestedAt-y.requestedAt||(x.id<y.id?-1:x.id>y.id?1:0));
+  const due=s.jobs.filter(j=>j.status==='scheduled'&&!j.held&&j.requestedAt<=cursor).sort((x,y)=>x.requestedAt-y.requestedAt||(x.id<y.id?-1:x.id>y.id?1:0));
   for(const j of due){
    if(readyAt(s,j,cursor)>cursor)continue;
    j.status='live';j.actualStartAt=cursor;
@@ -61,7 +61,7 @@ function advance(state,now){
   if(cursor===now){s.lastNow=now;return s;}
   let next=now;
   for(const j of s.jobs){
-   const n=j.status==='live'?boundary(j):j.status==='scheduled'?readyAt(s,j,cursor):Infinity;
+   const n=j.status==='live'?boundary(j):j.status==='scheduled'&&!j.held?readyAt(s,j,cursor):Infinity;
    if(n>cursor)next=Math.min(next,n);
   }
   if(next<=cursor)error('Scheduler failed to advance',503);
@@ -94,7 +94,7 @@ function summary(state,principal,policy,now){
 function nextEventAt(s){
  let next=Infinity;
  for(const j of s.jobs){
-  const at=j.status==='live'?boundary(j):j.status==='scheduled'?readyAt(s,j,s.lastNow):Infinity;
+  const at=j.status==='live'?boundary(j):j.status==='scheduled'&&!j.held?readyAt(s,j,s.lastNow):Infinity;
   if(at>s.lastNow)next=Math.min(next,at);
  }
  return next;
