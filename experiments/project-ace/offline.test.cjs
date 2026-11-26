@@ -31,7 +31,7 @@ async function run(){
   const login=await req('/api/login','POST',{email,password});assert.equal(login.status,200);
   const t=login.body.token;
   assert.equal((await req('/api/fixture','POST',{humanOpponent:true},t)).status,400);
-  assert.equal((await req('/api/fixture','POST',{delaySeconds:5,mode:'manual'},t)).status,201);
+  assert.equal((await req('/api/fixture','POST',{pace:'fast',delaySeconds:5,mode:'manual'},t)).status,201);
   assert.equal((await req('/api/coach','POST',{targetGame:1,tactics:{approach:'Aggressive'}},t)).status,200);
   now=8000;const v=await req('/api/fixture','GET',undefined,t);assert.equal(v.body.totalPoints,1);
   assert.equal(v.body.ownTactics.tactics.approach,'Aggressive');

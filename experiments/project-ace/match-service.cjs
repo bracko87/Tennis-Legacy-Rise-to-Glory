@@ -7,6 +7,8 @@ const copy=x=>JSON.parse(JSON.stringify(x));
 const fail=(message,status)=>{const e=Error(message);e.status=status;throw e;};
 const modes=['manual','auto','hybrid'];
 const POINT_MS=2000, BREAK_MS=5000, PRESENCE_MS=30000;
+const PACES=Object.freeze({fast:Object.freeze({pointMs:2000,breakMs:5000}),coaching:Object.freeze({pointMs:6000,breakMs:20000}),extended:Object.freeze({pointMs:8000,breakMs:30000})});
+const paceFor=r=>PACES[r.pace??'fast'];
 function canUse(principal,policy){
  return !!(policy.enabled && principal && principal.verified===true && principal.isAdmin===true && principal.id===policy.adminId);
 }
@@ -19,13 +21,14 @@ function sideFor(record,principal,policy){
  fail('Forbidden',403);
 }
 function time(n){if(!Number.isSafeInteger(n)||n<0)fail('Invalid time',400);return n;}
-function createFixture({id,players,seed,startAt,opponentId=null,surface='hard',coachingModes=['hybrid','auto']},principal,policy,now){
+function createFixture({id,players,seed,startAt,opponentId=null,surface='hard',pace='fast',coachingModes=['hybrid','auto']},principal,policy,now){
  if(!canUse(principal,policy))fail('Forbidden',403);
+ if(!Object.hasOwn(PACES,pace))fail('Invalid match pace',400);
  time(now);time(startAt);if(startAt<now)fail('Start is in past',400);
  if(typeof id!=='string'||!id||!Array.isArray(coachingModes)||coachingModes.length!==2||coachingModes.some(m=>!modes.includes(m)))fail('Invalid fixture',400);
  if(opponentId!==null&&(!policy.multiplayerTest||opponentId!==policy.syntheticId||opponentId===principal.id))fail('Forbidden opponent',403);
  if(opponentId===null&&coachingModes[1]!=='auto')fail('AI must use automatic coaching',400);
- return {id,owners:[principal.id,opponentId],modes:[...coachingModes],lastSeen:[null,null],lastNow:now,startAt,nextAt:startAt,checkpoint:engine.createMatch({players,seed,surface}),active:null,queued:[null,null],applied:[null,null],revision:0};
+ return {id,pace,owners:[principal.id,opponentId],modes:[...coachingModes],lastSeen:[null,null],lastNow:now,startAt,nextAt:startAt,checkpoint:engine.createMatch({players,seed,surface}),active:null,queued:[null,null],applied:[null,null],revision:0};
 }
 function ai(s,i){
  const base=engine.observable(s);
@@ -44,7 +47,7 @@ function startGame(r,at){
  }
  const after=engine.stepGame(s),events=after.events.slice(s.events.length);
  const points=events.filter(e=>e.kind==='point');
- r.active={startAt:at,endAt:at+points.length*POINT_MS,after,points};
+ r.active={startAt:at,endAt:at+points.length*paceFor(r).pointMs,after,points};
  r.nextAt=null;r.revision++;
 }
 function advance(record,now){
@@ -55,7 +58,7 @@ function advance(record,now){
    if(now<r.active.endAt)return r;
    const end=r.active.endAt;r.checkpoint=r.active.after;r.active=null;r.revision++;
    if(r.checkpoint.status==='completed'){r.nextAt=null;return r;}
-   r.nextAt=end+BREAK_MS;
+   r.nextAt=end+paceFor(r).breakMs;
   }
   if(r.checkpoint.status==='completed'||r.nextAt===null||now<r.nextAt)return r;
   startGame(r,r.nextAt);
@@ -83,7 +86,7 @@ function cleanEvent(e){
 function view(record,principal,policy,now){
  const side=sideFor(record,principal,policy),r=advance(record,now),s=r.checkpoint;
  const base=engine.observable(s);
- const visible=r.active?r.active.points.slice(0,Math.floor((now-r.active.startAt)/POINT_MS)):[];
+ const visible=r.active?r.active.points.slice(0,Math.floor((now-r.active.startAt)/paceFor(r).pointMs)):[];
  // Use only revealed point results to increment stats; conditions update at game end.
  for(const e of visible){const st=base.stats[e.server];st.servicePoints++;if(e.first)st.firstIn++;if(e.ace)st.aces++;if(e.df)st.doubleFaults++;if(e.ue)base.stats[1-e.winner].unforcedErrors++;base.stats[e.winner].points++;}
  const events=[...base.events,...visible].map(cleanEvent).filter(Boolean);
@@ -94,6 +97,10 @@ function view(record,principal,policy,now){
  const ownHistory=[...s.events,...(r.active?r.active.after.events.slice(s.events.length).filter(e=>e.kind==='tactics'):[])].filter(e=>e.kind==='tactics'&&e.side===side).map(e=>({game:e.game,tactics:copy(e.tactics)}));
  const tb=!!r.active&&s.games[0]===6&&s.games[1]===6;
  const n=visible.length,server=r.active?(tb&&n>0?(Math.floor((n-1)/2)%2===0?1-s.nextServer:s.nextServer):s.nextServer):null;
- return {id:r.id,side,surface:s.surface,opponentType:r.owners[1]?'human':'ai',opponentOnline:r.owners[1]!==null&&r.lastSeen[1-side]!==null&&now-r.lastSeen[1-side]<=PRESENCE_MS,revision:r.revision,status:s.status==='completed'?'completed':now<r.startAt?'scheduled':'live',startAt:r.startAt,gameNumber:s.gameNumber+(r.active?1:0),sets:base.sets,games:base.games,points:last?last.points:[0,0],tiebreak:tb,server,phase:s.status==='completed'?'completed':now<r.startAt?'scheduled':r.active?'playing':'between-games',completedSets:base.completedSets,winner:base.winner,players,stats:base.stats,recommendations:s.status==='completed'?[]:recommendations(players,base.stats,side,base.totalPoints+visible.length),ownHistory,activeTactics:copy(r.applied[side]?.tactics||s.tactics[side]),totalPoints:base.totalPoints+visible.length,events,ownTactics:copy(r.applied[side]),ownPending:copy(r.queued[side]),coachingMode:r.modes[side],nextCoachingGame:s.status==='completed'?null:s.gameNumber+(r.active?2:1)};
+ const timing=paceFor(r);
+ const nextPointAt=r.active?r.active.startAt+(visible.length+1)*timing.pointMs:null;
+ // Never expose the hidden game end timestamp or the number of unrevealed points.
+ const nextGameAt=r.active?null:r.nextAt;
+ return {id:r.id,side,pace:r.pace??'fast',pointMs:timing.pointMs,breakMs:timing.breakMs,serverNow:now,nextPointAt,nextGameAt,surface:s.surface,opponentType:r.owners[1]?'human':'ai',opponentOnline:r.owners[1]!==null&&r.lastSeen[1-side]!==null&&now-r.lastSeen[1-side]<=PRESENCE_MS,revision:r.revision,status:s.status==='completed'?'completed':now<r.startAt?'scheduled':'live',startAt:r.startAt,gameNumber:s.gameNumber+(r.active?1:0),sets:base.sets,games:base.games,points:last?last.points:[0,0],tiebreak:tb,server,phase:s.status==='completed'?'completed':now<r.startAt?'scheduled':r.active?'playing':'between-games',completedSets:base.completedSets,winner:base.winner,players,stats:base.stats,recommendations:s.status==='completed'?[]:recommendations(players,base.stats,side,base.totalPoints+visible.length),ownHistory,activeTactics:copy(r.applied[side]?.tactics||s.tactics[side]),totalPoints:base.totalPoints+visible.length,events,ownTactics:copy(r.applied[side]),ownPending:copy(r.queued[side]),coachingMode:r.modes[side],nextCoachingGame:s.status==='completed'?null:s.gameNumber+(r.active?2:1)};
 }
-module.exports={createFixture,advance,heartbeat,coach,view,canUse,POINT_MS,BREAK_MS};
+module.exports={createFixture,advance,heartbeat,coach,view,canUse,POINT_MS,BREAK_MS,PACES};

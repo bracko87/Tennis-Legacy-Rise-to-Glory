@@ -33,7 +33,7 @@ async function run(){
   const token=sign.body.token;
   const peer=await req('/api/login',{method:'POST',body:{email:'peer@test.invalid',password:'fixture-password'}});assert.equal(peer.body.admin,false);
   assert.equal((await req('/api/fixture',{method:'POST',token:'peer',body:{}})).status,403);
-  const created=await req('/api/fixture',{method:'POST',token,body:{delaySeconds:5,humanOpponent:true,mode:'manual',peerMode:'manual'}});assert.equal(created.status,201);assert.equal(created.body.status,'scheduled');
+  const created=await req('/api/fixture',{method:'POST',token,body:{pace:'fast',delaySeconds:5,humanOpponent:true,mode:'manual',peerMode:'manual'}});assert.equal(created.status,201);assert.equal(created.body.status,'scheduled');
   assert.equal((await req('/api/fixture',{method:'POST',token,body:{}})).status,409);
   const [a,b]=await Promise.all([req('/api/coach',{method:'POST',token,body:{targetGame:1,tactics:{rally:'Extend rallies'}}}),req('/api/coach',{method:'POST',token:'peer',body:{targetGame:1,tactics:{rally:'Shorten points'}}})]);
   assert.equal(a.status,200);assert.equal(b.status,200);

@@ -48,7 +48,7 @@ function makeHandler({store,auth,now=Date.now,host='127.0.0.1',port=8765}){
     const human=body.humanOpponent===true;
     if(human&&(!auth.policy.multiplayerTest||!auth.policy.syntheticId))return send(res,400,{error:'Synthetic peer not configured'});
     const surface=body.surface??'hard';let players;try{players=fixtureProfiles(body.playerPreset??'balanced',body.opponentPreset??'balanced',surface,human);}catch{return send(res,400,{error:'Invalid surface or profile preset'});}
-    r=a.createFixture({id:crypto.randomUUID(),players,surface,seed:crypto.randomInt(0,4294967296),startAt:t+delay*1000,opponentId:human?auth.policy.syntheticId:null,coachingModes:[body.mode??'hybrid',human?(body.peerMode??'hybrid'):'auto']},principal,auth.policy,t);
+    r=a.createFixture({id:crypto.randomUUID(),players,surface,pace:body.pace??'coaching',seed:crypto.randomInt(0,4294967296),startAt:t+delay*1000,opponentId:human?auth.policy.syntheticId:null,coachingModes:[body.mode??'hybrid',human?(body.peerMode??'hybrid'):'auto']},principal,auth.policy,t);
     store.save(r);return send(res,201,a.view(r,principal,auth.policy,t));
    }
    if(!r)return send(res,404,{error:'No fixture'});
