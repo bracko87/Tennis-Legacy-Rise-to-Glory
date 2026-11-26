@@ -69,6 +69,9 @@ function start(){
  const auth=makeAuth({url:process.env.ACE_SUPABASE_URL,key:process.env.ACE_SUPABASE_ANON_KEY,adminId:process.env.ACE_ADMIN_USER_ID,syntheticId:process.env.ACE_SYNTHETIC_USER_ID||null,multiplayerTest:process.env.ACE_MULTIPLAYER_TEST==='1'});
  const dir=process.env.ACE_STATE_DIR;
  if(!dir||!path.isAbsolute(dir))throw Error('Set absolute private ACE_STATE_DIR outside repository');
+ return serveLocal({auth,dir,port});
+}
+function serveLocal({auth,dir,port=8765}){
  const store=createStore(dir),server=http.createServer(makeHandler({store,auth,port}));
  const tick=setInterval(()=>{try{const r=store.read();if(r&&r.checkpoint.status!=='completed'){const n=a.advance(r,Date.now());if(n.revision!==r.revision)store.save(n);}}catch(e){console.error('Ace local tick failed:',e.message);}},500);
  let closing=false;function close(){if(closing)return;closing=true;clearInterval(tick);server.close(()=>{store.close();});}
@@ -76,4 +79,4 @@ function start(){
  server.listen(port,'127.0.0.1',()=>console.log('Local Ace API at http://127.0.0.1:'+port));
 }
 if(require.main===module)start();
-module.exports={createStore,makeHandler};
+module.exports={createStore,makeHandler,serveLocal};

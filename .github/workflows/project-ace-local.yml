@@ -23,5 +23,6 @@ jobs:
           node experiments/project-ace/match-service.test.cjs
           node experiments/project-ace/local-auth.test.cjs
           node experiments/project-ace/local-http.test.cjs
+          node experiments/project-ace/offline.test.cjs
           node --check experiments/project-ace/ace.js
           node --check experiments/project-ace/start-local.cjs
