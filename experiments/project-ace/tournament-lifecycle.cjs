@@ -90,4 +90,13 @@ function summary(state,principal,policy,now){
  admin(principal,policy);const s=advance(state,now);
  return {lastNow:s.lastNow,matches:s.jobs.map(j=>({id:j.id,courtKey:j.courtKey,status:j.status,requestedAt:j.requestedAt,actualStartAt:j.actualStartAt,completedAt:j.completedAt,delayed:j.status==='scheduled'&&j.requestedAt<=now})),results:clone(s.receipts)};
 }
-module.exports={create,schedule,advance,view,command,summary};
+// Call on a state already advanced to its lastNow.
+function nextEventAt(s){
+ let next=Infinity;
+ for(const j of s.jobs){
+  const at=j.status==='live'?boundary(j):j.status==='scheduled'?readyAt(s,j,s.lastNow):Infinity;
+  if(at>s.lastNow)next=Math.min(next,at);
+ }
+ return next;
+}
+module.exports={create,schedule,advance,view,command,summary,nextEventAt};

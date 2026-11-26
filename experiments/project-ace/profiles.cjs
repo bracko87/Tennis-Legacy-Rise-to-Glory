@@ -9,7 +9,7 @@ function adapt(name,s,surface='hard'){
  if(typeof name!=='string'||!name.trim()||!Object.hasOwn(weights,surface)||!s||keys.some(k=>!Number.isFinite(s[k])||s[k]<0||s[k]>100)||!Object.hasOwn(weights,s.preferred_surface))throw Error('Invalid player profile');
  const serve=round(sum(s,{serve:.62,forehand:.14,backhand:.08,volley:.06,smash:.05,movement:.05}));
  const ret=round(sum(s,{return_skill:.50,movement:.18,forehand:.13,backhand:.13,slice:.03,lob:.03}));
- return {name,serve,return:ret,rally:round(sum(s,weights[surface])),forehand:s.forehand,backhand:s.backhand,fitness:s.fitness,stamina:s.stamina,movement:s.movement,fatigue:s.fatigue,focus:s.focus,confidence:s.confidence,rawServe:s.serve,sharpness:s.sharpness,morale:s.morale,surfaceMultiplier:s.preferred_surface===surface?1.015:.995};
+ return {name,serve,return:ret,rally:round(sum(s,weights[surface])),forehand:s.forehand,backhand:s.backhand,fitness:s.fitness,stamina:s.stamina,recovery:s.recovery,movement:s.movement,fatigue:s.fatigue,focus:s.focus,confidence:s.confidence,rawServe:s.serve,sharpness:s.sharpness,morale:s.morale,surfaceMultiplier:s.preferred_surface===surface?1.015:.995};
 }
 const common={serve:64,forehand:65,backhand:55,return_skill:58,volley:54,slice:57,drop_shot:49,lob:51,smash:56,fitness:65,stamina:68,recovery:62,movement:62,fatigue:10,sharpness:75,morale:70,confidence:70,focus:75,preferred_surface:'hard'};
 const presets={
