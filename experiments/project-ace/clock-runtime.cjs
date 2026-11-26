@@ -19,7 +19,7 @@ function tick(state,raw,p,policy){
  for(const target of s.pending.sort((x,y)=>c.slot(x.season,x.week,x.day,x.minute)-c.slot(y.season,y.week,y.day,y.minute)||x.id.localeCompare(y.id))){
   if(target.status!=='scheduled')continue;
   const live=s.admissions.filter(x=>!s.completed.some(y=>y.id===x.id)).map(x=>({...x,status:'live'}));
-  const earlier=s.pending.filter(x=>x.id!==target.id&&x.status==='scheduled').map(x=>({...x,startMinute:c.slot(x.season,x.week,x.day,x.minute)/60}));
+  const earlier=s.pending.filter(x=>x.id!==target.id&&x.status==='scheduled'&&x.lastGate!=='waiting_live_conflict').map(x=>({...x,startMinute:c.slot(x.season,x.week,x.day,x.minute)/60}));
   const result=g.plan(target,[...live,...s.completed,...earlier],clock.gameSeconds,clock.speed);
   target.lastGate=result.status;
   if(result.status==='rescheduled'){Object.assign(target,{week:result.week,day:result.day,minute:result.minute,court:result.court});continue;}

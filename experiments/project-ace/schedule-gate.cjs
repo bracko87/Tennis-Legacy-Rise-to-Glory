@@ -28,7 +28,7 @@ function plan(target,others,gameSeconds,speed){
   return true;
  }
  // Keep due original slot only on the original day and within the phase.
- if(current<=(last+1)*1440-1&&Math.floor(current/1440)===Math.floor(original/1440)&&available(current,preferred))return {status:'ready',court:preferred,gameMinute:current};
+ if(current<=(last+1)*1440-1&&Math.floor(current/1440)===Math.floor(original/1440)&&current%1440>=600&&current%1440<=1290&&available(current,preferred))return {status:'ready',court:preferred,gameMinute:current};
  // Unknown live finish is a reason to hold, not to fabricate an end time.
  if(relevant.some(x=>x.status==='live'&&(x.players.some(p=>target.players.includes(p))||x.competition===target.competition&&max===1)))return {status:'waiting_live_conflict'};
  for(let day=Math.max(Math.floor(original/1440),Math.floor(current/1440),first);day<=last;day++){
@@ -37,6 +37,7 @@ function plan(target,others,gameSeconds,speed){
    for(let i=0;i<max;i++){const court=(preferred-1+i)%max+1;if(available(abs,court))return {status:'rescheduled',court,gameMinute:abs,week:target.firstWeek+Math.floor((day-first)/7),day:(day-first)%7+1,minute};}
   }
  }
+ if(current<=(last+1)*1440-1&&relevant.some(x=>x.status==='live'&&x.competition===target.competition))return {status:'waiting_live_conflict'};
  return {status:'blocked',reason:'no_safe_slot_in_phase'};
 }
 module.exports={plan,duration};

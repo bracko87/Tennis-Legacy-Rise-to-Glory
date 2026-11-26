@@ -17,6 +17,8 @@ s=w.tick(s,raw(1000000,base,0),p,policy);assert.equal(s.completed.length,2);asse
 s=w.tick(s,raw(1000001,base+3600*5,6),p,policy);assert.equal(s.admissions.length,3);
 assert.throws(()=>w.tick(s,raw(1000002,base,6),p,policy),/rollback/);
 assert.equal(g.duration(20,120),116);
+assert.notEqual(g.plan(target,[],base+12*3600,6).status,'ready');
+assert.equal(g.plan(target,[],base+8*86400,6).status,'blocked');
 const entrants=Array.from({length:7},(_,i)=>({id:'p'+i,profile:{...fixtureProfiles()[0],name:'Synthetic '+i}}));
 let draw=d.create({entrants,mainSlots:['p0',{qualifier:'Q'},'p1','p2'],qualification:[{id:'Q',players:['p3','p4','p5','p6']}],courts:['c1','c2'],startAt:1000,pace:'fast',seed:5},p,policy,0);
 draw=d.advance(draw,p,policy,10000000);
