@@ -56,6 +56,7 @@ jobs:
           node experiments/project-ace/health-field-effects.test.cjs
           node experiments/project-ace/medical-settlement.test.cjs
           node experiments/project-ace/career-settlement.test.cjs
+          node experiments/project-ace/cutover-ownership.test.cjs
       - name: Build isolated browser and install pinned Chromium driver
         run: |
           npm ci --ignore-scripts

@@ -28,5 +28,9 @@ Established 2026-11-26.
 - [ ] Verify scheduler isolation and no official side effects.
 - [ ] Only after local acceptance and verified fresh database recovery: review production integration, performance, migration/rollback and explicit release approval.
 
+## Migration preparation (v0.24-A)
+- See experiments/project-ace/PRODUCTION_MIGRATION_PREPARATION.md for known mutation paths, disabled-default ownership policy and rollback design.
+- Backup/restore proof, current schema audit, real ownership guards, source-ID health parity, authoritative career effects and explicit production authorization remain open.
+
 ## Acceptance
 Admin can schedule and complete an isolated match, issue tactical changes during play, inspect live state and view recorded replay. Past events remain immutable, new commands affect only subsequent games, and non-designated identities are denied even via direct API. No real tournament data or account progression changes. Feature remains disabled outside the pilot.
