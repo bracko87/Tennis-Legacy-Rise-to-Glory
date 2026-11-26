@@ -1,6 +1,6 @@
 'use strict';
 // Opt-in private career support, applied only in the unified world pilot.
-const h=require('./career-support.cjs');
+const h=require('./career-support.cjs'),{wearUnits}=require('./official-equipment.cjs');
 const clone=x=>JSON.parse(JSON.stringify(x));
 function prepare(s,job,day){
  for(let i=0;i<2;i++){
@@ -26,7 +26,7 @@ function complete(s,p,receipt,delta){
  const active=h.eligibility(support.injuries,s.worldSupport.day).active;
  const risk=h.injuryRisk({...p.profile,...after},{minutes:delta.minutes,heat:0,activeInjuries:active,support:support.staff});
  const event={matchId:receipt.matchId,playerId:p.id,day:s.worldSupport.day,injuryRiskPercent:risk,wear:[]};
- if(support.inventory){const r=h.wear(support.inventory,support.loadout,support.wearPerMatch);support.inventory=r.inventory;support.loadout=r.loadout;event.wear=r.events;}
+ if(support.inventory){const r=h.wear(support.inventory,support.loadout,support.catalogWear?wearUnits(support.inventory,support.loadout,s.surface,support.bagProtectionPct):support.wearPerMatch);support.inventory=r.inventory;support.loadout=r.loadout;event.wear=r.events;}
  s.worldSupport.events.push(event);
  return {...delta,gain,after};
 }
@@ -36,7 +36,7 @@ function validate(config,ids,day){
   if(!ids.includes(id)||!input||typeof input!=='object')throw Error('Invalid career support player');
   const staff=h.staff(input.staff),injuries=clone(input.injuries??[]);h.eligibility(injuries,day);
   const entry={staff,injuries};
-  if(input.inventory!==undefined){h.resolveGear(input.inventory,input.loadout);h.wear(input.inventory,input.loadout,input.wearPerMatch??{});Object.assign(entry,{inventory:clone(input.inventory),loadout:clone(input.loadout),wearPerMatch:clone(input.wearPerMatch??{})});}
+  if(input.inventory!==undefined){h.resolveGear(input.inventory,input.loadout);h.wear(input.inventory,input.loadout,input.wearPerMatch??{});Object.assign(entry,{inventory:clone(input.inventory),loadout:clone(input.loadout),wearPerMatch:clone(input.wearPerMatch??{})});if(input.catalogWear){wearUnits(entry.inventory,entry.loadout,input.surface,input.bagProtectionPct);Object.assign(entry,{catalogWear:true,bagProtectionPct:input.bagProtectionPct??0});}}
   players[id]=entry;
  }
  return {day,players,events:[]};

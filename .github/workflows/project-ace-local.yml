@@ -42,6 +42,7 @@ jobs:
           node experiments/project-ace/career-support.test.cjs
           node experiments/project-ace/world-worker.test.cjs
           node experiments/project-ace/world-http.test.cjs
+          node experiments/project-ace/official-review.test.cjs
           node experiments/project-ace/world-security.test.cjs
           node experiments/project-ace/scheduler-stress.test.cjs
           node --check experiments/project-ace/tournament.js

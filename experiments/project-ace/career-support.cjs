@@ -7,7 +7,7 @@ const clone=x=>JSON.parse(JSON.stringify(x));
 const categories=['racket','shoes','apparel'];
 function resolveGear(inventory,loadout){
  if(!Array.isArray(inventory)||new Set(inventory.map(i=>i.id)).size!==inventory.length)throw Error('Invalid equipment inventory');
- for(const i of inventory){if(typeof i.id!=='string'||!i.id||!categories.includes(i.type))throw Error('Invalid item');integer(i.condition,0,100,'condition');}
+ for(const i of inventory){if(typeof i.id!=='string'||!i.id||!categories.includes(i.type))throw Error('Invalid item');finite(i.condition,0,100,'condition');}
  const selected={};for(const type of categories){
   const item=inventory.find(i=>i.id===loadout[type]&&i.type===type&&i.condition>0);
   selected[type]=item??null;
@@ -19,8 +19,8 @@ function resolveGear(inventory,loadout){
 function wear(inventory,loadout,units){
  const before=resolveGear(inventory,loadout),items=clone(inventory),next={...loadout},events=[];
  for(const k of categories){
-  const item=items.find(i=>i.id===before.selected[k]?.id);const n=integer(units[k]??0,0,100,'wear');if(!item||!n)continue;
-  const old=item.condition;item.condition=Math.max(0,old-n);
+  const item=items.find(i=>i.id===before.selected[k]?.id);const n=finite(units[k]??0,0,100,'wear');if(!item||!n)continue;
+  const old=item.condition;item.condition=Math.max(0,Math.round((old-n)*100)/100);
   if(item.condition===0){const replacement=items.filter(i=>i.type===k&&i.id!==item.id&&i.condition>0).sort((a,b)=>b.condition-a.condition||a.id.localeCompare(b.id))[0];next[k]=replacement?.id??null;events.push({type:'broken',id:item.id,replacement:next[k]});}
   else if(old>=20&&item.condition<20)events.push({type:'low',id:item.id});
  }

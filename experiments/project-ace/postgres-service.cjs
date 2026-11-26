@@ -2,6 +2,7 @@
 // Trusted server-side service for a disposable PostgreSQL review world.
 // No production URL, user-supplied clock, or public HTTP endpoints.
 const w=require('./world-worker.cjs'),a=require('./match-service.cjs'),c=require('./world-clock.cjs');
+const {isDeepStrictEqual}=require('node:util');
 const conflict=e=>e?.code==='ACE_REVISION_CONFLICT';
 const fail=(message,status,code)=>Object.assign(Error(message),{status,code});
 function createService({store,principal,policy,now=Date.now,clock=(s,ms)=>({server_now:new Date(ms).toISOString(),game_total_seconds:c.at(s.anchor,ms),speed_multiplier:s.anchor.speed})}){
@@ -17,7 +18,7 @@ function createService({store,principal,policy,now=Date.now,clock=(s,ms)=>({serv
   // and takes a fresh server-side clock sample. No stale commands are replayed.
   for(let n=0;n<3;n++){
    const row=await read();const state=next(row);
-   if(JSON.stringify(state)===JSON.stringify(row.state))return {revision:row.revision,changed:false};
+   if(isDeepStrictEqual(state,row.state))return {revision:row.revision,changed:false};
    try{return {revision:await store.save(row.revision,state),changed:true};}
    catch(e){if(!conflict(e)||n===2)throw e;}
   }
