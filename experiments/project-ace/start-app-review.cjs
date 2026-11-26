@@ -8,9 +8,10 @@ async function main(){
  if(old){if(old.state.draw.owner!==principal.id||old.state.draw.peerOwner)throw Error('Review world owner mismatch');}
  else{const now=Date.now();await store.save(-1,world.create(demo({pace:'fast',delaySeconds:60},now,33),principal,auth.policy,now));}
  const worker=createService({store,principal,policy:auth.policy}),loop=startLoop(worker,{onError:e=>console.error('Review worker:',e.code||e.message)});
- const server=serve({auth,store,appOrigin:process.env.ACE_REVIEW_APP_ORIGIN||'http://127.0.0.1:8000'});
+ const coaching=process.env.ACE_REVIEW_COACHING==='1';
+ const server=serve({auth,store,coaching,appOrigin:process.env.ACE_REVIEW_APP_ORIGIN||'http://127.0.0.1:8000'});
  server.on('error',e=>{console.error(e.message);void loop.stop();process.exitCode=1;});
  const stop=async()=>{await loop.stop();server.close();};process.once('SIGINT',stop);process.once('SIGTERM',stop);
- console.log('Read-only Project Ace app review gateway: 127.0.0.1:8769');
+ console.log('Project Ace app review gateway: 127.0.0.1:8769 · '+(coaching?'private coaching enabled':'read-only'));
 }
 main().catch(e=>{console.error(e.message);process.exitCode=1});

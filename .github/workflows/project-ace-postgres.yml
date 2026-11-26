@@ -47,3 +47,4 @@ jobs:
           node experiments/project-ace/postgres-service.test.cjs
           node experiments/project-ace/postgres-http.test.cjs
           node experiments/project-ace/app-review.test.cjs
+          node experiments/project-ace/app-coaching.test.cjs
