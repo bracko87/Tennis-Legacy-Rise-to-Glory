@@ -10,10 +10,20 @@ engine() { env -i PATH="$PATH" PGPASSWORD=ace-disposable-ace PGCONNECT_TIMEOUT=5
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 sql ace_review -f recovery-fingerprint.sql > "$tmp/source-before"
-admin pg_dump -h 127.0.0.1 -p 55432 -U postgres -d ace_review --format=custom --file="$tmp/review.dump"
+if [[ -n "${ACE_REVIEW_CONTAINER:-}" ]]; then
+  [[ "${GITHUB_ACTIONS:-}" == true && "$ACE_REVIEW_CONTAINER" =~ ^[a-f0-9]{64}$ ]] || exit 1
+  [[ "$(docker exec -e PGPASSWORD=ace-disposable-admin "$ACE_REVIEW_CONTAINER" psql -X -qAt -h 127.0.0.1 -U postgres -d ace_review -c 'SELECT marker FROM ace_migration_fixture.guard WHERE singleton')" == ace-disposable-ci-v025 ]] || exit 1
+  docker exec -e PGPASSWORD=ace-disposable-admin "$ACE_REVIEW_CONTAINER" pg_dump -h 127.0.0.1 -U postgres -d ace_review --format=custom > "$tmp/review.dump"
+else
+  admin pg_dump -h 127.0.0.1 -p 55432 -U postgres -d ace_review --format=custom --file="$tmp/review.dump"
+fi
 sha256sum "$tmp/review.dump"
 sql ace_review -c 'CREATE DATABASE ace_review_recovery TEMPLATE template0'
-admin pg_restore -h 127.0.0.1 -p 55432 -U postgres -d ace_review_recovery --exit-on-error --single-transaction "$tmp/review.dump"
+if [[ -n "${ACE_REVIEW_CONTAINER:-}" ]]; then
+  docker exec -i -e PGPASSWORD=ace-disposable-admin "$ACE_REVIEW_CONTAINER" pg_restore -h 127.0.0.1 -U postgres -d ace_review_recovery --exit-on-error --single-transaction < "$tmp/review.dump"
+else
+  admin pg_restore -h 127.0.0.1 -p 55432 -U postgres -d ace_review_recovery --exit-on-error --single-transaction "$tmp/review.dump"
+fi
 sql ace_review_recovery -f recovery-fingerprint.sql > "$tmp/restored"
 diff -u "$tmp/source-before" "$tmp/restored"
 [[ "$(sql ace_review_recovery -c "SELECT NOT enabled FROM ace_cutover_review.policy WHERE singleton")" == t ]]
