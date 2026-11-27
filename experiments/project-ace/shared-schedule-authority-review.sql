@@ -10,6 +10,20 @@ CREATE TABLE ace_shared_schedule_fixture.inventory(
  start_second bigint NOT NULL CHECK(start_second>=0), duration_minutes int NOT NULL CHECK(duration_minutes BETWEEN 60 AND 420));
 ALTER TABLE ace_shared_schedule_fixture.inventory ADD COLUMN actual_end_second bigint;
 ALTER TABLE ace_shared_schedule_fixture.inventory ADD CHECK ((status='completed')=(actual_end_second IS NOT NULL));
+-- Explicit feeder graph: identities are match IDs, not predicted winners.
+CREATE TABLE ace_shared_schedule_fixture.feeders(
+ feeder_id text REFERENCES ace_shared_schedule_fixture.inventory(id),
+ downstream_id text REFERENCES ace_shared_schedule_fixture.inventory(id),
+ PRIMARY KEY(feeder_id,downstream_id), CHECK(feeder_id<>downstream_id)
+);
+CREATE FUNCTION ace_shared_schedule_fixture.guard_feeder_graph() RETURNS trigger
+LANGUAGE plpgsql SET search_path=pg_catalog,ace_shared_schedule_fixture AS $fn$
+BEGIN
+ PERFORM pg_advisory_xact_lock(91029001);
+ IF EXISTS(WITH RECURSIVE reach(id) AS (SELECT NEW.downstream_id UNION SELECT f.downstream_id FROM ace_shared_schedule_fixture.feeders f JOIN reach r ON f.feeder_id=r.id) SELECT 1 FROM reach WHERE id=NEW.feeder_id) THEN RAISE EXCEPTION 'cyclic feeder graph'; END IF;
+ RETURN NEW;
+END $fn$;
+CREATE TRIGGER feeder_graph_guard BEFORE INSERT OR UPDATE ON ace_shared_schedule_fixture.feeders FOR EACH ROW EXECUTE FUNCTION ace_shared_schedule_fixture.guard_feeder_graph();
 CREATE FUNCTION ace_shared_schedule_fixture.change_slot(p_id text,p_revision bigint,p_start bigint,p_court int,p_start_live boolean) RETURNS text
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_shared_schedule_fixture AS $fn$
 DECLARE m ace_shared_schedule_fixture.inventory%ROWTYPE; actor text;
@@ -27,6 +41,8 @@ BEGIN
  (x.venue=m.venue AND x.court=p_court AND p_start<coalesce(x.actual_end_second,x.start_second+x.duration_minutes*60)+900 AND x.start_second<p_start+(m.duration_minutes+15)*60) OR
  ((x.player1 IN (m.player1,m.player2) OR x.player2 IN (m.player1,m.player2)) AND p_start<coalesce(x.actual_end_second,x.start_second+x.duration_minutes*60)+3600 AND x.start_second<p_start+(m.duration_minutes+60)*60)))))
  THEN RAISE EXCEPTION 'shared resource conflict'; END IF;
+ IF EXISTS(SELECT 1 FROM ace_shared_schedule_fixture.feeders f JOIN ace_shared_schedule_fixture.inventory x ON x.id=f.feeder_id WHERE f.downstream_id=m.id AND (p_start<coalesce(x.actual_end_second,x.start_second+x.duration_minutes*60)+3600 OR (p_start_live AND x.status<>'completed'))) THEN RAISE EXCEPTION 'feeder not ready'; END IF;
+ IF EXISTS(SELECT 1 FROM ace_shared_schedule_fixture.feeders f JOIN ace_shared_schedule_fixture.inventory x ON x.id=f.downstream_id WHERE f.feeder_id=m.id AND (x.status<>'scheduled' OR x.start_second<p_start+(m.duration_minutes+60)*60)) THEN RAISE EXCEPTION 'downstream chronology conflict'; END IF;
  UPDATE ace_shared_schedule_fixture.inventory SET start_second=p_start,court=p_court,status=CASE WHEN p_start_live THEN 'live' ELSE status END,revision=revision+1 WHERE id=p_id;
  RETURN CASE WHEN p_start_live THEN 'started_review' ELSE 'rescheduled_review' END;
 END $fn$;
@@ -102,7 +118,7 @@ BEGIN
   BEGIN
    PERFORM ace_shared_schedule_fixture.change_slot(p_target,m.revision,candidate.second,candidate.court,false);
   EXCEPTION WHEN raise_exception THEN
-   IF SQLERRM<>'shared resource conflict' THEN RAISE; END IF;
+   IF SQLERRM NOT IN ('shared resource conflict','feeder not ready','downstream chronology conflict') THEN RAISE; END IF;
    CONTINUE;
   END;
   INSERT INTO ace_shared_schedule_fixture.resolutions VALUES(p_source,p_target,candidate.second,candidate.court,m.revision+1) RETURNING * INTO prior;

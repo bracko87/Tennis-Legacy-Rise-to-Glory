@@ -47,6 +47,19 @@ async function main(){
  const resolved=JSON.parse(await sql(role,resolve));
  assert.equal(resolved.status,'resolved_review');assert.equal(resolved.revised_second,122400);assert.equal(resolved.revised_court,1);
  assert.equal(JSON.parse(await sql(role,resolve)).status,'already_resolved_review');
+ // Feeder identities protect future participants even when placeholder players differ.
+ await sql('postgres',"INSERT INTO ace_shared_schedule_fixture.inventory(id,owner,status,revision,venue,court,player1,player2,start_second,duration_minutes) VALUES ('round1','ace','scheduled',0,'bracket',1,'b1','b2',208800,60),('round2','ace','scheduled',0,'bracket',2,'b3','b4',223200,60),('round3','legacy','scheduled',0,'bracket',3,'b5','b6',237600,60); INSERT INTO ace_shared_schedule_fixture.feeders VALUES ('round1','round2'),('round2','round3')");
+ await assert.rejects(sql('postgres',"INSERT INTO ace_shared_schedule_fixture.feeders VALUES ('round3','round1')"),/cyclic feeder graph/);
+ await assert.rejects(sql(a,call('round1',0,219601,1)),/downstream chronology conflict/);
+ await assert.rejects(sql(a,call('round2',0,223200,2,true)),/feeder not ready/);
+ await assert.rejects(sql(a,call('round2',0,216000-1,2)),/feeder not ready/);
+ assert.equal(await sql(l,call('round3',0,252000,3)),'rescheduled_review');
+ assert.equal(await sql(a,call('round2',0,234000,2)),'rescheduled_review');
+ assert.equal(await sql(a,call('round1',0,226800,1)),'rescheduled_review');
+ assert.equal(await sql(a,call('round1',1,226800,1,true)),'started_review');
+ assert.equal(await sql(a,"SELECT ace_shared_schedule_fixture.finish_slot('round1',2,230400)"),'completed_review');
+ assert.equal(await sql(a,call('round2',1,234000,2,true)),'started_review');
+ console.log('PASS feeder chronology, cycle prevention, reverse-order coordinated moves and activation gate');
  console.log('PASS explicit phase bounds, owner-only automatic slot selection, no-slot escalation and exact retry');
  console.log('PASS actual completion, exact retry, conflicting completion rejection and court recovery boundary');
  console.log('PASS both engine roles share slot authority, external inventory blocks conflicts, concurrent court collision and stale revision rejected');
