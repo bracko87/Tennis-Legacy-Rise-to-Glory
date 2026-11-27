@@ -90,6 +90,19 @@ async function main(){
  assert.equal(await sql('postgres',"SELECT sum(revision) FROM ace_shared_schedule_fixture.inventory WHERE id LIKE 'reconcile%'"),'2');
  assert.equal(await sql('postgres',"SELECT start_second FROM ace_shared_schedule_fixture.inventory WHERE id='reconcile2'"),'568800');
  assert.equal(await sql('postgres',"SELECT count(*) FROM ace_shared_schedule_fixture.reconciliations WHERE target_id='reconcile1'"),'1');
+ // All four earlier obligations were enqueued automatically. Rollback includes queue state and receipts.
+ const drain="SELECT ace_shared_schedule_fixture.drain_schedule_queue(10)";
+ await assert.rejects(sql(a,drain),/permission denied/);
+ await assert.rejects(sql(worker,"SELECT ace_shared_schedule_fixture.drain_schedule_queue(0)"),/invalid queue limit/);
+ const beforeQueue=await sql('postgres',"SELECT jsonb_agg(to_jsonb(q) ORDER BY source_id,target_id) FROM ace_shared_schedule_fixture.queue q");
+ await sql(worker,"BEGIN; "+drain+"; ROLLBACK;");
+ assert.equal(await sql('postgres',"SELECT jsonb_agg(to_jsonb(q) ORDER BY source_id,target_id) FROM ace_shared_schedule_fixture.queue q"),beforeQueue);
+ const dr=JSON.parse(await sql(worker,drain));assert.equal(dr.processed,4);
+ assert.equal(await sql('postgres',"SELECT count(*) FROM ace_shared_schedule_fixture.queue WHERE state='resolved'"),'2');
+ assert.equal(await sql('postgres',"SELECT count(*) FROM ace_shared_schedule_fixture.queue WHERE state='review_required'"),'2');
+ assert.equal(JSON.parse(await sql(worker,drain)).processed,0);
+ assert.equal(await sql('postgres',"SELECT sum(attempts) FROM ace_shared_schedule_fixture.queue"),'4');
+ console.log('PASS durable scheduling queue, bounded drain, transaction rollback and terminal retry protection');
  console.log('PASS obligation-driven planning, external protection and durable reconciliation retry');
  console.log('PASS automatic feeder propagation, speculative rollback and concurrent request recovery');
  console.log('PASS atomic cross-engine round plan, rollback, permission guard and concurrent retry');

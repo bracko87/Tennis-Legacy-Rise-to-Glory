@@ -255,4 +255,46 @@ BEGIN
 END $fn$;
 REVOKE ALL ON FUNCTION ace_shared_schedule_fixture.reconcile_obligation(text,text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION ace_shared_schedule_fixture.reconcile_obligation(text,text) TO ace_review_worker;
+-- Durable bounded queue; completion and obligation creation enqueue in the same transaction.
+CREATE TABLE ace_shared_schedule_fixture.queue(
+ source_id text NOT NULL,target_id text NOT NULL,
+ state text NOT NULL DEFAULT 'pending' CHECK(state IN ('pending','resolved','review_required')),
+ attempts int NOT NULL DEFAULT 0 CHECK(attempts BETWEEN 0 AND 5),
+ next_attempt_at timestamptz NOT NULL DEFAULT clock_timestamp(), report jsonb,
+ PRIMARY KEY(source_id,target_id),
+ FOREIGN KEY(source_id,target_id) REFERENCES ace_shared_schedule_fixture.obligations(source_id,target_id)
+);
+CREATE FUNCTION ace_shared_schedule_fixture.enqueue_obligation() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_shared_schedule_fixture AS $fn$
+BEGIN
+ INSERT INTO ace_shared_schedule_fixture.queue(source_id,target_id) VALUES(NEW.source_id,NEW.target_id);
+ RETURN NEW;
+END $fn$;
+CREATE TRIGGER queue_obligation AFTER INSERT ON ace_shared_schedule_fixture.obligations FOR EACH ROW EXECUTE FUNCTION ace_shared_schedule_fixture.enqueue_obligation();
+REVOKE ALL ON FUNCTION ace_shared_schedule_fixture.enqueue_obligation() FROM PUBLIC;
+CREATE FUNCTION ace_shared_schedule_fixture.drain_schedule_queue(p_limit int) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_shared_schedule_fixture AS $fn$
+DECLARE j ace_shared_schedule_fixture.queue%ROWTYPE; r jsonb; outcome text; processed int:=0;
+BEGIN
+ IF session_user<>'ace_review_worker' THEN RAISE EXCEPTION 'coordinator required'; END IF;
+ IF p_limit IS NULL OR p_limit NOT BETWEEN 1 AND 10 THEN RAISE EXCEPTION 'invalid queue limit'; END IF;
+ -- Same global lock ordering as match activation and planning.
+ IF NOT pg_try_advisory_xact_lock(91029001) THEN RETURN jsonb_build_object('status','busy','processed',0); END IF;
+ FOR j IN SELECT * FROM ace_shared_schedule_fixture.queue WHERE state='pending' AND next_attempt_at<=clock_timestamp() ORDER BY next_attempt_at,source_id,target_id LIMIT p_limit FOR UPDATE SKIP LOCKED LOOP
+  BEGIN
+   r:=ace_shared_schedule_fixture.reconcile_obligation(j.source_id,j.target_id);
+   outcome:=CASE WHEN r->>'status' IN ('resolved_review','satisfied_review') THEN 'resolved' ELSE 'review_required' END;
+  EXCEPTION WHEN OTHERS THEN
+   r:=jsonb_build_object('status','retry_error','sqlstate',SQLSTATE);
+   outcome:=CASE WHEN j.attempts>=4 THEN 'review_required' ELSE 'pending' END;
+  END;
+  UPDATE ace_shared_schedule_fixture.queue SET state=outcome,attempts=attempts+1,report=r,
+   next_attempt_at=clock_timestamp()+make_interval(secs=>5*power(2,j.attempts)::int)
+  WHERE source_id=j.source_id AND target_id=j.target_id;
+  processed:=processed+1;
+ END LOOP;
+ RETURN jsonb_build_object('status','processed_review','processed',processed);
+END $fn$;
+REVOKE ALL ON FUNCTION ace_shared_schedule_fixture.drain_schedule_queue(int) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION ace_shared_schedule_fixture.drain_schedule_queue(int) TO ace_review_worker;
 COMMIT;
