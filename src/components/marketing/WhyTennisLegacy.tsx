@@ -1,16 +1,20 @@
 import { useEffect } from 'react'
 import { Link, useParams } from 'react-router'
 import { ArrowLeft, ArrowRight, MessageCircle } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
 import { useLocalization } from '../../i18n/LocalizationProvider'
-import { getGameManual } from '../../content/manual'
 import MarketingHeader from '../layout/MarketingHeader'
 import MarketingFooter from '../layout/MarketingFooter'
+import en from './why-tennis/en'
+import de from './why-tennis/de'
+import sr from './why-tennis/sr'
+import es from './why-tennis/es'
+import fr from './why-tennis/fr'
+import it from './why-tennis/it'
+import pt from './why-tennis/pt'
+import ru from './why-tennis/ru'
 import '../../styles/home-why-tennis.css'
 
 const DISCORD_INVITE = 'https://discord.gg/RBBtXgZey2'
-
-// Public marketing copy, based on the existing game manual, not experimental branches.
 export const TENNIS_FEATURES = [
   [
     "career",
@@ -200,31 +204,138 @@ export const TENNIS_FEATURES = [
   ]
 ] as const
 
+// The shared feature IDs are stable; each locale supplies the same 20 complete
+// five-field entries: title, lead, mechanics, decisions and career value.
+const CONTENT = { en, de, sr, es, fr, it, pt, ru } as const
 const COPY = {
-  en: ['Why', 'Discover the decisions that shape your professional tennis career, on and off the court.', 'More info', 'Back to all features'],
-  de: ['Warum', 'Entdecke die Entscheidungen, die deine professionelle Tenniskarriere auf und neben dem Platz prägen.', 'Mehr erfahren', 'Zurück zu allen Funktionen'],
-  sr: ['Zašto', 'Otkrij odluke koje oblikuju tvoju profesionalnu tenisku karijeru, na terenu i van njega.', 'Saznaj više', 'Nazad na sve funkcije'],
-  es: ['Por qué', 'Descubre las decisiones que definen tu carrera profesional dentro y fuera de la pista.', 'Más información', 'Volver a las funciones'],
-  fr: ['Pourquoi', 'Découvrez les décisions qui façonnent votre carrière professionnelle sur et en dehors du court.', 'En savoir plus', 'Retour aux fonctionnalités'],
-  it: ['Perché', 'Scopri le decisioni che plasmano la tua carriera professionale dentro e fuori dal campo.', 'Scopri di più', 'Torna alle funzionalità'],
-  pt: ['Porquê', 'Descobre as decisões que moldam a tua carreira profissional dentro e fora do court.', 'Mais informações', 'Voltar às funcionalidades'],
-  ru: ['Почему', 'Откройте для себя решения, определяющие вашу профессиональную карьеру на корте и за его пределами.', 'Подробнее', 'К списку возможностей'],
+  "en": [
+    "Why",
+    "Discover the decisions that shape your professional tennis career, on and off the court.",
+    "More info",
+    "Back to all features",
+    "How it works",
+    "Your decisions",
+    "Why it matters",
+    "Explore more features",
+    "Feature not found",
+    "Official community",
+    "Tennis Legacy Discord",
+    "Join our official Discord community to discuss careers, tournaments and tactics, ask questions, report bugs, share ideas and follow game development.",
+    "Join Tennis Legacy Discord"
+  ],
+  "de": [
+    "Warum",
+    "Entdecke die Entscheidungen, die deine professionelle Tenniskarriere auf und neben dem Platz prägen.",
+    "Mehr erfahren",
+    "Zurück zu allen Funktionen",
+    "So funktioniert es",
+    "Deine Entscheidungen",
+    "Warum es wichtig ist",
+    "Weitere Funktionen entdecken",
+    "Funktion nicht gefunden",
+    "Offizielle Community",
+    "Tennis Legacy Discord",
+    "Tritt unserer offiziellen Discord-Community bei, diskutiere Karrieren, Turniere und Taktiken, stelle Fragen, melde Fehler, teile Ideen und verfolge die Spielentwicklung.",
+    "Tennis Legacy Discord beitreten"
+  ],
+  "sr": [
+    "Zašto",
+    "Otkrij odluke koje oblikuju tvoju profesionalnu tenisku karijeru, na terenu i van njega.",
+    "Saznaj više",
+    "Nazad na sve funkcije",
+    "Kako funkcioniše",
+    "Tvoje odluke",
+    "Zašto je važno",
+    "Istraži ostale funkcije",
+    "Funkcija nije pronađena",
+    "Zvanična zajednica",
+    "Tennis Legacy Discord",
+    "Pridruži se našoj zvaničnoj Discord zajednici, razgovaraj o karijerama, turnirima i taktici, postavljaj pitanja, prijavljuj greške, deli ideje i prati razvoj igre.",
+    "Pridruži se Tennis Legacy Discordu"
+  ],
+  "es": [
+    "Por qué",
+    "Descubre las decisiones que definen tu carrera profesional dentro y fuera de la pista.",
+    "Más información",
+    "Volver a las funciones",
+    "Cómo funciona",
+    "Tus decisiones",
+    "Por qué importa",
+    "Explora más funciones",
+    "Función no encontrada",
+    "Comunidad oficial",
+    "Discord de Tennis Legacy",
+    "Únete a nuestra comunidad oficial en Discord para hablar de carreras, torneos y tácticas, hacer preguntas, informar de errores, compartir ideas y seguir el desarrollo del juego.",
+    "Únete al Discord de Tennis Legacy"
+  ],
+  "fr": [
+    "Pourquoi",
+    "Découvrez les décisions qui façonnent votre carrière professionnelle sur et en dehors du court.",
+    "En savoir plus",
+    "Retour aux fonctionnalités",
+    "Comment ça fonctionne",
+    "Vos décisions",
+    "Pourquoi c’est important",
+    "Découvrez d’autres fonctionnalités",
+    "Fonctionnalité introuvable",
+    "Communauté officielle",
+    "Discord de Tennis Legacy",
+    "Rejoignez notre communauté officielle sur Discord pour discuter des carrières, tournois et tactiques, poser des questions, signaler des bugs, partager vos idées et suivre le développement du jeu.",
+    "Rejoindre le Discord de Tennis Legacy"
+  ],
+  "it": [
+    "Perché",
+    "Scopri le decisioni che plasmano la tua carriera professionale dentro e fuori dal campo.",
+    "Scopri di più",
+    "Torna alle funzionalità",
+    "Come funziona",
+    "Le tue decisioni",
+    "Perché è importante",
+    "Esplora altre funzionalità",
+    "Funzionalità non trovata",
+    "Comunità ufficiale",
+    "Discord di Tennis Legacy",
+    "Unisciti alla nostra comunità ufficiale su Discord per discutere carriere, tornei e tattiche, fare domande, segnalare errori, condividere idee e seguire lo sviluppo del gioco.",
+    "Unisciti al Discord di Tennis Legacy"
+  ],
+  "pt": [
+    "Porquê",
+    "Descobre as decisões que moldam a tua carreira profissional dentro e fora do court.",
+    "Mais informações",
+    "Voltar às funcionalidades",
+    "Como funciona",
+    "As tuas decisões",
+    "Porque é importante",
+    "Explora mais funcionalidades",
+    "Funcionalidade não encontrada",
+    "Comunidade oficial",
+    "Discord do Tennis Legacy",
+    "Junta-te à nossa comunidade oficial no Discord para discutir carreiras, torneios e táticas, fazer perguntas, comunicar erros, partilhar ideias e acompanhar o desenvolvimento do jogo.",
+    "Entrar no Discord do Tennis Legacy"
+  ],
+  "ru": [
+    "Почему",
+    "Откройте для себя решения, определяющие вашу профессиональную карьеру на корте и за его пределами.",
+    "Подробнее",
+    "К списку возможностей",
+    "Как это работает",
+    "Ваши решения",
+    "Почему это важно",
+    "Другие возможности игры",
+    "Возможность не найдена",
+    "Официальное сообщество",
+    "Discord Tennis Legacy",
+    "Присоединяйтесь к нашему официальному сообществу в Discord: обсуждайте карьеры, турниры и тактику, задавайте вопросы, сообщайте об ошибках, делитесь идеями и следите за разработкой игры.",
+    "Присоединиться к Discord Tennis Legacy"
+  ]
 } as const
-
-type Feature = typeof TENNIS_FEATURES[number]
-
-function featureCopy(feature: Feature, locale: keyof typeof COPY) {
-  const chapter = locale === 'de' || locale === 'sr'
-    ? getGameManual(locale).chapters.find(item => item.id === feature[4][0])
-    : undefined
-  return { title: chapter?.title ?? feature[1], summary: chapter?.summary ?? feature[2], lang: chapter ? locale : 'en' }
-}
 
 export function WhyTennisLegacy() {
   const { locale } = useLocalization()
   const copy = COPY[locale] ?? COPY.en
+  const features = CONTENT[locale] ?? CONTENT.en
   return (
-    <section id="features" className="tlg-why-tennis" aria-labelledby="tlg-why-title">
+    <section id="features" className="tlg-why-tennis" aria-labelledby="tlg-why-title" lang={locale}>
       <div className="tlg-section">
         <div id="how-it-works" className="tlg-why-heading">
           <span className="tlg-section-eyebrow">{copy[0]} Tennis Legacy</span>
@@ -232,18 +343,12 @@ export function WhyTennisLegacy() {
           <p className="tlg-section-description">{copy[1]}</p>
         </div>
         <div className="tlg-why-grid">
-          {TENNIS_FEATURES.map(feature => {
-            const item = featureCopy(feature, locale)
+          {TENNIS_FEATURES.map((feature, index) => {
+            const item = features[index]
             return (
-              <Link key={feature[0]} to={`/features/${feature[0]}`} className="tlg-why-card" aria-label={`${copy[2]}: ${item.title}`}>
-                <span className="tlg-why-card-copy" lang={item.lang}>
-                  <strong>{item.title}</strong>
-                  <span>{item.summary}</span>
-                </span>
-                <span className="tlg-why-card-action" aria-hidden="true">
-                  <ArrowRight size={19} />
-                  <span>{copy[2]}</span>
-                </span>
+              <Link key={feature[0]} to={`/features/${feature[0]}`} className="tlg-why-card" aria-label={`${copy[2]}: ${item[0]}`}>
+                <span className="tlg-why-card-copy"><strong>{item[0]}</strong><span>{item[1]}</span></span>
+                <span className="tlg-why-card-action" aria-hidden="true"><ArrowRight size={19} /><span>{copy[2]}</span></span>
               </Link>
             )
           })}
@@ -254,19 +359,20 @@ export function WhyTennisLegacy() {
 }
 
 export function TennisDiscordSection() {
-  const { t } = useTranslation()
+  const { locale } = useLocalization()
+  const copy = COPY[locale] ?? COPY.en
   return (
-    <section id="discord" className="tlg-content-section tlg-content-section-alt" aria-labelledby="tlg-discord-title">
+    <section id="discord" className="tlg-discord-section" aria-labelledby="tlg-discord-title" lang={locale}>
       <div className="tlg-section">
         <div className="tlg-discord-card">
-          <span className="tlg-discord-mark" aria-hidden="true"><MessageCircle size={34} /></span>
+          <span className="tlg-discord-mark" aria-hidden="true"><MessageCircle size={38} /></span>
           <div className="tlg-discord-copy">
-            <span className="tlg-section-eyebrow">{t('supportPages.forum.official')}</span>
-            <h2 id="tlg-discord-title" className="tlg-section-title">{t('supportPages.forum.name')}</h2>
-            <p className="tlg-section-description">{t('supportPages.forum.intro')}</p>
+            <span className="tlg-section-eyebrow">{copy[9]}</span>
+            <h2 id="tlg-discord-title" className="tlg-section-title">{copy[10]}</h2>
+            <p className="tlg-section-description">{copy[11]}</p>
           </div>
           <a className="tlg-discord-button" href={DISCORD_INVITE} target="_blank" rel="noopener noreferrer">
-            {t('supportPages.forum.join')} <ArrowRight size={18} aria-hidden="true" />
+            {copy[12]} <ArrowRight size={18} aria-hidden="true" />
           </a>
         </div>
       </div>
@@ -278,33 +384,48 @@ export function TennisFeatureDetail() {
   const { featureId } = useParams()
   const { locale } = useLocalization()
   const copy = COPY[locale] ?? COPY.en
-  const feature = TENNIS_FEATURES.find(item => item[0] === featureId)
+  const features = CONTENT[locale] ?? CONTENT.en
+  const index = TENNIS_FEATURES.findIndex(item => item[0] === featureId)
+  const item = features[index]
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'auto' }) }, [featureId])
-  const item = feature ? featureCopy(feature, locale) : undefined
-  const chapters = feature ? feature[4].map(id => getGameManual(locale).chapters.find(chapter => chapter.id === id)).filter(Boolean) : []
   return (
     <div className="tlg-marketing-page">
       <MarketingHeader />
-      <main className="tlg-home-main">
-        <section className="tlg-content-section tlg-why-detail">
+      <main className="tlg-home-main tlg-why-detail-main" lang={locale}>
+        <section className="tlg-why-detail">
           <div className="tlg-section">
             <a className="tlg-why-back" href="/#features"><ArrowLeft size={18} aria-hidden="true" /> {copy[3]}</a>
-            {feature && item ? (
-              <article className="tlg-why-detail-panel">
-                <span className="tlg-section-eyebrow">Tennis Legacy: Rise to Glory</span>
-                <h1 lang={item.lang} className="tlg-section-title">{item.title}</h1>
-                <p lang={item.lang} className="tlg-section-description">{item.summary}</p>
-                <p lang="en" className="tlg-why-detail-body">{feature[3]}</p>
-                {chapters.map(chapter => chapter && (
-                  <div className="tlg-why-detail-topic" key={chapter.id} lang={locale === 'de' || locale === 'sr' ? locale : 'en'}>
-                    <h2>{chapter.title}</h2><p>{chapter.summary}</p>
-                  </div>
-                ))}
-              </article>
-            ) : <h1 className="tlg-section-title" lang="en">Feature not found</h1>}
+            {item ? (
+              <div className="tlg-why-detail-layout">
+                <article className="tlg-why-detail-panel">
+                  <header className="tlg-why-detail-header">
+                    <span className="tlg-section-eyebrow">Tennis Legacy: Rise to Glory · {String(index + 1).padStart(2, '0')} / {TENNIS_FEATURES.length}</span>
+                    <h1 className="tlg-section-title">{item[0]}</h1>
+                    <p className="tlg-section-description">{item[1]}</p>
+                  </header>
+                  {([4, 5, 6] as const).map((labelIndex, sectionIndex) => (
+                    <section className="tlg-why-detail-topic" key={labelIndex}>
+                      <span className="tlg-why-topic-number" aria-hidden="true">{String(sectionIndex + 1).padStart(2, '0')}</span>
+                      <div><h2>{copy[labelIndex]}</h2><p>{item[sectionIndex + 2]}</p></div>
+                    </section>
+                  ))}
+                  <nav className="tlg-why-detail-pagination" aria-label={copy[7]}>
+                    {index > 0 && <Link to={`/features/${TENNIS_FEATURES[index - 1][0]}`}><ArrowLeft size={17} aria-hidden="true" /> {features[index - 1][0]}</Link>}
+                    {index < TENNIS_FEATURES.length - 1 && <Link to={`/features/${TENNIS_FEATURES[index + 1][0]}`}>{features[index + 1][0]} <ArrowRight size={17} aria-hidden="true" /></Link>}
+                  </nav>
+                </article>
+                <aside className="tlg-why-related">
+                  <h2>{copy[7]}</h2>
+                  <nav aria-label={copy[7]}>
+                    {TENNIS_FEATURES.map((feature, i) => (
+                      <Link key={feature[0]} to={`/features/${feature[0]}`} aria-current={i === index ? 'page' : undefined}>{features[i][0]}<ArrowRight size={15} aria-hidden="true" /></Link>
+                    ))}
+                  </nav>
+                </aside>
+              </div>
+            ) : <h1 className="tlg-section-title">{copy[8]}</h1>}
           </div>
         </section>
-        <WhyTennisLegacy />
       </main>
       <MarketingFooter />
     </div>

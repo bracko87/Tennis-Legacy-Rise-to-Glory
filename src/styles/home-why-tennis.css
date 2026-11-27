@@ -12,21 +12,51 @@
 .tlg-why-card:hover,.tlg-why-card:focus-visible{border-color:#72b9f8}
 .tlg-why-card:focus-visible,.tlg-why-back:focus-visible,.tlg-discord-button:focus-visible{outline:2px solid #8ecbff;outline-offset:3px}
 @media (hover:hover) and (pointer:fine){.tlg-why-card:hover .tlg-why-card-action,.tlg-why-card:focus-visible .tlg-why-card-action{width:42%;background:#77bcfa;color:#061526}.tlg-why-card:hover .tlg-why-card-action>span,.tlg-why-card:focus-visible .tlg-why-card-action>span{display:block}}
-.tlg-discord-card{display:flex;align-items:center;gap:22px;border:1px solid rgba(135,145,255,.45);border-radius:16px;background:linear-gradient(115deg,#1a2350,#111d37);padding:24px;color:#fff}
-.tlg-discord-mark{display:grid;place-items:center;flex:0 0 62px;height:62px;border-radius:16px;background:#5865f2;color:#fff}
+
+/* Explicit contrast against global light-section typography. */
+.tlg-why-tennis .tlg-why-heading .tlg-section-title{color:#fff}
+.tlg-why-tennis .tlg-why-heading .tlg-section-eyebrow{color:#8ecbff}
+.tlg-why-tennis .tlg-why-heading .tlg-section-description{color:#d7e5f4}
+.tlg-why-tennis .tlg-why-card{color:#fff}
+.tlg-why-tennis .tlg-why-card-copy strong{color:#fff}
+
+/* Discord: the entire full-width section is branded, not an isolated dark box. */
+.tlg-discord-section{padding:64px 0;background:linear-gradient(115deg,#4752c4 0%,#5865f2 65%,#4752c4 100%);color:#fff}
+.tlg-discord-section .tlg-discord-card{display:flex;align-items:center;gap:26px;padding:8px 0;background:transparent;color:#fff}
+.tlg-discord-mark{display:grid;place-items:center;flex:0 0 72px;height:72px;border-radius:18px;background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.3)}
 .tlg-discord-copy{flex:1;min-width:0}
-.tlg-discord-copy .tlg-section-title{font-size:clamp(1.35rem,2.5vw,1.9rem);margin:5px 0 7px}
-.tlg-discord-copy .tlg-section-description{margin:0;color:#d4ddec}
-.tlg-discord-button{display:inline-flex;align-items:center;justify-content:center;gap:10px;flex-shrink:0;padding:13px 18px;background:#5865f2;border-radius:9px;color:#fff;text-decoration:none;font-weight:650;text-align:center}
-.tlg-discord-button:hover{background:#4752c4;color:#fff}
-.tlg-why-detail{min-height:420px;color:#fff}
-.tlg-why-back{display:inline-flex;align-items:center;gap:8px;color:#8ecbff;text-decoration:none;margin-bottom:22px}
-.tlg-why-detail-panel{max-width:880px;border:1px solid rgba(111,185,247,.2);border-radius:16px;background:#0d203a;padding:clamp(20px,4vw,42px)}
-.tlg-why-detail-panel h1{margin:10px 0 15px}
-.tlg-why-detail-body,.tlg-why-detail-topic p{line-height:1.7;color:#d5e3f1;margin:14px 0}
-.tlg-why-detail-topic{border-top:1px solid rgba(255,255,255,.12);margin-top:20px;padding-top:16px}
-.tlg-why-detail-topic h2{font-size:1.1rem;margin:0}
+.tlg-discord-section .tlg-discord-copy .tlg-section-eyebrow{color:#fff;margin:0 0 8px}
+.tlg-discord-section .tlg-discord-copy .tlg-section-title{color:#fff;font-size:clamp(1.55rem,3vw,2.4rem);margin:0 0 10px;font-weight:680}
+.tlg-discord-section .tlg-discord-copy .tlg-section-description{max-width:720px;margin:0;color:#fff;line-height:1.65}
+.tlg-discord-section .tlg-discord-button{display:inline-flex;align-items:center;justify-content:center;gap:10px;flex-shrink:0;max-width:100%;padding:14px 20px;background:#fff;border-radius:9px;color:#3944b6;text-decoration:none;font-weight:700;text-align:center;line-height:1.4}
+.tlg-discord-section .tlg-discord-button:hover{background:#eef0ff;color:#283493}
+.tlg-discord-section .tlg-discord-button:focus-visible{outline:3px solid #fff;outline-offset:4px}
+
+/* White editorial detail page, with a separate light navigation column. */
+.tlg-why-detail-main,.tlg-why-detail{background:#fff;color:#152337}
+.tlg-why-detail{min-height:420px;padding:54px 0 72px}
+.tlg-why-detail .tlg-why-back{display:inline-flex;align-items:center;gap:8px;color:#075aaf;text-decoration:none;margin-bottom:24px;font-weight:600}
+.tlg-why-detail-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,300px);gap:clamp(26px,4vw,56px);align-items:start}
+.tlg-why-detail .tlg-why-detail-panel{min-width:0;background:#fff;color:#152337;border:1px solid #dce6f1;border-radius:14px;padding:clamp(20px,4vw,42px);box-shadow:0 8px 28px rgba(21,48,80,.05)}
+.tlg-why-detail .tlg-why-detail-header{padding-bottom:24px;border-bottom:1px solid #dce6f1}
+.tlg-why-detail .tlg-section-eyebrow{color:#075aaf;margin:0 0 10px}
+.tlg-why-detail .tlg-section-title{color:#0b2e55;font-size:clamp(1.8rem,3.3vw,2.8rem);line-height:1.16;font-weight:690;margin:0 0 12px;overflow-wrap:anywhere}
+.tlg-why-detail .tlg-section-description{color:#34465a;font-size:1.1rem;line-height:1.6;margin:0;max-width:none}
+.tlg-why-detail .tlg-why-detail-topic{display:grid;grid-template-columns:42px minmax(0,1fr);gap:15px;padding:24px 0;border-bottom:1px solid #e2eaf2}
+.tlg-why-topic-number{display:grid;place-items:center;align-self:start;width:42px;height:42px;border-radius:10px;background:#eaf3fc;color:#075aaf;font-size:.85rem;font-weight:700}
+.tlg-why-detail .tlg-why-detail-topic h2{color:#075aaf;font-size:1.22rem;margin:0 0 8px;font-weight:680;line-height:1.4}
+.tlg-why-detail .tlg-why-detail-topic p{color:#202f41;font-size:1rem;line-height:1.8;margin:0;overflow-wrap:anywhere}
+.tlg-why-detail-pagination{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;margin-top:24px}
+.tlg-why-detail-pagination a{display:inline-flex;align-items:center;gap:8px;color:#075aaf;background:#f3f8fd;border:1px solid #dce6f1;border-radius:8px;padding:10px 14px;text-decoration:none;font-size:.85rem;font-weight:600;max-width:100%;overflow-wrap:anywhere}
+.tlg-why-related{min-width:0;border:1px solid #dce6f1;border-radius:12px;padding:19px;background:#f6f9fd;color:#152337}
+.tlg-why-detail .tlg-why-related h2{color:#0b2e55;font-size:1.12rem;line-height:1.4;margin:0 0 12px;font-weight:680}
+.tlg-why-related nav{display:grid;gap:3px}
+.tlg-why-related nav a{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 8px;border-radius:6px;color:#234c77;text-decoration:none;font-size:.85rem;line-height:1.4;overflow-wrap:anywhere}
+.tlg-why-related nav a svg,.tlg-why-detail-pagination a svg{flex-shrink:0}
+.tlg-why-related nav a:hover,.tlg-why-detail-pagination a:hover{background:#e2effc;color:#075aaf}
+.tlg-why-related nav a[aria-current=page]{background:#dcecff;color:#064b94;font-weight:700}
+.tlg-why-detail a:focus-visible{outline:2px solid #075aaf;outline-offset:2px}
 @media(max-width:1150px){.tlg-why-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:820px){.tlg-why-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tlg-discord-card{flex-wrap:wrap}.tlg-discord-button{margin-left:84px}}
-@media(max-width:520px){.tlg-why-tennis{padding:28px 0}.tlg-why-grid{grid-template-columns:1fr}.tlg-why-card{min-height:74px}.tlg-discord-card{display:grid;grid-template-columns:1fr;padding:18px;gap:14px}.tlg-discord-button{margin-left:0;width:100%}}
+@media(max-width:820px){.tlg-why-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tlg-discord-section{padding:40px 0}.tlg-discord-section .tlg-discord-card{flex-wrap:wrap}.tlg-discord-section .tlg-discord-button{margin-left:98px}.tlg-why-detail-layout{grid-template-columns:1fr}.tlg-why-related nav{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.tlg-why-tennis{padding:28px 0}.tlg-why-grid{grid-template-columns:1fr}.tlg-why-card{min-height:74px}.tlg-discord-section .tlg-discord-card{display:grid;grid-template-columns:1fr;gap:14px}.tlg-discord-section .tlg-discord-button{margin-left:0;width:100%}.tlg-why-detail{padding:30px 0 44px}.tlg-why-detail .tlg-why-detail-topic{grid-template-columns:32px minmax(0,1fr);gap:10px}.tlg-why-topic-number{width:32px;height:32px}.tlg-why-related nav{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.tlg-why-card,.tlg-why-card-action{transition:none}}

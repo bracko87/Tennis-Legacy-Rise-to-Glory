@@ -24,3 +24,32 @@ for(const [slug,title,summary,detail,chapters] of data){
 }
 assert.ok(data.find(item=>item[0]==='private-life')[3].includes('Premium'))
 console.log('PASS: 20 unique public feature pages, homepage order, navigation anchors, official Discord invite and manual chapter references')
+
+const locales = ['en','de','sr','es','fr','it','pt','ru']
+const labels = JSON.parse(feature.split('const COPY = ')[1].split(' as const')[0])
+const all = Object.fromEntries(locales.map(locale => {
+  const source = read('src/components/marketing/why-tennis/'+locale+'.ts')
+  const rows = JSON.parse(source.split('export default ')[1].split(' as const')[0])
+  assert.equal(rows.length,20,locale)
+  assert.equal(labels[locale].length,13,locale)
+  assert.ok(labels[locale].every(value=>value.trim().length>0),locale)
+  assert.ok(rows.every(row=>row.length===5&&row.every(value=>typeof value==='string'&&value.trim().length>0)),locale)
+  assert.ok(rows.every(row=>row.slice(2).join(' ').split(/\s+/).length>=35),locale)
+  assert.equal(new Set(rows.map(row=>row[0])).size,20,locale)
+  assert.ok(feature.includes("import "+locale+" from './why-tennis/"+locale+"'"),locale)
+  return [locale,rows]
+}))
+for (const locale of locales.filter(locale=>locale!=='en')) {
+  for(let i=0;i<20;i++) for(let j=0;j<5;j++) assert.notEqual(all[locale][i][j],all.en[i][j],locale+' '+i+' '+j)
+}
+assert.ok(!feature.includes('getGameManual'))
+assert.ok(!feature.includes('lang="en"'))
+assert.ok(feature.includes('className="tlg-discord-section"'))
+assert.ok(feature.includes('className="tlg-why-detail-layout"'))
+assert.ok(feature.includes('aria-current={i === index'))
+const css=read('src/styles/home-why-tennis.css')
+assert.ok(css.includes('.tlg-discord-section{padding:64px 0;background:linear-gradient'))
+assert.ok(css.includes('.tlg-why-detail-main,.tlg-why-detail{background:#fff;color:#152337}'))
+assert.ok(css.includes('.tlg-why-detail .tlg-section-title{color:#0b2e55'))
+assert.ok(css.includes('.tlg-why-detail .tlg-why-detail-topic p{color:#202f41'))
+console.log('PASS: 160 complete localized feature entries, 104 localized UI strings, branded full-width Discord, white detail layout')
