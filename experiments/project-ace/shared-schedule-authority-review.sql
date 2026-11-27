@@ -220,4 +220,39 @@ BEGIN
 END $fn$;
 REVOKE ALL ON FUNCTION ace_shared_schedule_fixture.plan_rounds(text,text,bigint,bigint) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION ace_shared_schedule_fixture.plan_rounds(text,text,bigint,bigint) TO ace_review_worker;
+-- Reconciliation receipts are derived from the current schedule, not caller-supplied success.
+CREATE TABLE ace_shared_schedule_fixture.reconciliations(
+ source_id text NOT NULL,target_id text NOT NULL,target_revision bigint NOT NULL,
+ report jsonb NOT NULL,PRIMARY KEY(source_id,target_id,target_revision),
+ FOREIGN KEY(source_id,target_id) REFERENCES ace_shared_schedule_fixture.obligations(source_id,target_id)
+);
+CREATE FUNCTION ace_shared_schedule_fixture.reconcile_obligation(p_source text,p_target text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_shared_schedule_fixture AS $fn$
+DECLARE o ace_shared_schedule_fixture.obligations%ROWTYPE; m ace_shared_schedule_fixture.inventory%ROWTYPE; r jsonb; k text;
+BEGIN
+ PERFORM pg_advisory_xact_lock(91029001);
+ IF session_user<>'ace_review_worker' THEN RAISE EXCEPTION 'coordinator required'; END IF;
+ SELECT * INTO STRICT o FROM ace_shared_schedule_fixture.obligations WHERE source_id=p_source AND target_id=p_target;
+ SELECT * INTO STRICT m FROM ace_shared_schedule_fixture.inventory WHERE id=p_target FOR UPDATE;
+ SELECT report INTO r FROM ace_shared_schedule_fixture.reconciliations WHERE source_id=p_source AND target_id=p_target AND target_revision=m.revision;
+ IF FOUND THEN RETURN r||jsonb_build_object('replayed',true); END IF;
+ IF m.owner='external' OR m.owner<>o.target_owner THEN
+  RETURN jsonb_build_object('status','external_review_required');
+ END IF;
+ IF m.status<>'scheduled' THEN RETURN jsonb_build_object('status','terminal_or_live_review_required'); END IF;
+ IF m.start_second>=o.earliest_second THEN
+  r:=jsonb_build_object('status','satisfied_review','revision',m.revision,'second',m.start_second);
+ ELSE
+  k:='obligation:'||md5(jsonb_build_array(p_source,p_target,m.revision)::text);
+  r:=ace_shared_schedule_fixture.plan_rounds(k,p_target,m.revision,o.earliest_second);
+  IF r->>'status' NOT IN ('applied_review','already_planned_review') THEN RETURN r; END IF;
+  SELECT * INTO STRICT m FROM ace_shared_schedule_fixture.inventory WHERE id=p_target;
+  IF m.start_second<o.earliest_second THEN RAISE EXCEPTION 'unsatisfied scheduling obligation'; END IF;
+  r:=jsonb_build_object('status','resolved_review','revision',m.revision,'second',m.start_second,'planning',r);
+ END IF;
+ INSERT INTO ace_shared_schedule_fixture.reconciliations VALUES(p_source,p_target,m.revision,r);
+ RETURN r;
+END $fn$;
+REVOKE ALL ON FUNCTION ace_shared_schedule_fixture.reconcile_obligation(text,text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION ace_shared_schedule_fixture.reconcile_obligation(text,text) TO ace_review_worker;
 COMMIT;

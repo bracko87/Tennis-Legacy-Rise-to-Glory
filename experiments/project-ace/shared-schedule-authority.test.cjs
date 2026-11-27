@@ -80,6 +80,17 @@ async function main(){
  assert.deepEqual(autoPlan.map(x=>[x.id,x.second]),[['auto1',475200],['auto2',482400],['auto3',489600]]);
  assert.equal(await sql('postgres',"SELECT sum(revision) FROM ace_shared_schedule_fixture.inventory WHERE id LIKE 'auto%'"),'3');
  await assert.rejects(sql(worker,automatic('auto-test',477000)),/conflicting planning retry/);
+ await sql('postgres',"INSERT INTO ace_shared_schedule_fixture.inventory(id,owner,status,revision,venue,court,player1,player2,start_second,duration_minutes) VALUES ('reconcile1','ace','scheduled',0,'reconcile-venue',1,'r1','r2',554400,60),('reconcile2','legacy','scheduled',0,'reconcile-venue',2,'r3','r4',561600,60); INSERT INTO ace_shared_schedule_fixture.feeders VALUES ('reconcile1','reconcile2'); INSERT INTO ace_shared_schedule_fixture.phase_policy VALUES ('reconcile1',6,6,2),('reconcile2',6,6,2); INSERT INTO ace_shared_schedule_fixture.obligations VALUES ('"+winner+"','reconcile1','ace',0,true,false,561600,554400)");
+ const reconcile=(target)=>"SELECT ace_shared_schedule_fixture.reconcile_obligation('"+winner+"','"+target+"')";
+ await assert.rejects(sql(a,reconcile('reconcile1')),/permission denied/);
+ assert.equal(JSON.parse(await sql(worker,reconcile('affected-player'))).status,'external_review_required');
+ const rr=await Promise.all([sql(worker,reconcile('reconcile1')),sql(worker,reconcile('reconcile1'))]);
+ assert.ok(rr.every(x=>JSON.parse(x).status==='resolved_review'));
+ assert.equal(rr.filter(x=>JSON.parse(x).replayed===true).length,1);
+ assert.equal(await sql('postgres',"SELECT sum(revision) FROM ace_shared_schedule_fixture.inventory WHERE id LIKE 'reconcile%'"),'2');
+ assert.equal(await sql('postgres',"SELECT start_second FROM ace_shared_schedule_fixture.inventory WHERE id='reconcile2'"),'568800');
+ assert.equal(await sql('postgres',"SELECT count(*) FROM ace_shared_schedule_fixture.reconciliations WHERE target_id='reconcile1'"),'1');
+ console.log('PASS obligation-driven planning, external protection and durable reconciliation retry');
  console.log('PASS automatic feeder propagation, speculative rollback and concurrent request recovery');
  console.log('PASS atomic cross-engine round plan, rollback, permission guard and concurrent retry');
  console.log('PASS feeder chronology, cycle prevention, reverse-order coordinated moves and activation gate');
