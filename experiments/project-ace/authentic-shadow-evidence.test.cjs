@@ -36,6 +36,10 @@ try{
  const manifest={schema:'ace-shadow-package-v1',review_only:true,restore_id:capture.restore_id,restore:{catalog:put('restore.json',restore.bytes),receipt:put('restore-receipt.json',restore.receipt)},reference:{catalog:put('reference.json',reference.bytes),receipt:put('reference-receipt.json',reference.receipt)},cases:[put('case-1.json',entry)]};
  const save=()=>put('manifest.json',manifest);save();
  assert.equal(load(dir).status,'linked_cohort_review_only');
+ const rawManifest=Buffer.from(JSON.stringify(manifest,null,2)+'\n');fs.writeFileSync(path.join(dir,'manifest.json'),rawManifest);
+ assert.equal(load(dir).package_manifest_sha256,crypto.createHash('sha256').update(rawManifest).digest('hex'));
+ manifest.cases[0].sha256=null;save();assert.throws(()=>load(dir),/descriptor hash/);
+ manifest.cases=[put('case-1.json',entry)];save();
  fs.appendFileSync(path.join(dir,'case-1.json'),' ');
  assert.throws(()=>load(dir),/integrity/);
  manifest.cases=[put('case-1.json',entry)];save();
@@ -45,3 +49,10 @@ try{
  if(process.platform!=='win32'){fs.renameSync(path.join(dir,'case-1.json'),path.join(dir,'original.json'));fs.symlinkSync('original.json',path.join(dir,'case-1.json'));assert.throws(()=>load(dir));}
  console.log('PASS offline evidence package ingestion, raw file integrity, traversal, duplicate files and symlink rejection');
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
+
+const multi=clone(capture);multi.routines[0].signature='public.simulate_tournament_match_v1(uuid, text)';
+const multiCatalog=clone(catalog);multiCatalog.routines.push({name:'public.simulate_tournament_match_v1',signature:multi.routines[0].signature,hash:multi.routines[0].definition_md5,execute:Object.fromEntries(roles.map(r=>[r,r==='service_role']))});
+const mr=bundle(multiCatalog,'restore','multi-restore'),mf=bundle(multiCatalog,'reference','multi-reference');
+const me={...entry,capture:multi,link:{...link(multi),restored_catalog_sha256:mr.receipt.sha256,reference_catalog_sha256:mf.receipt.sha256}};
+assert.equal(evaluate({restore:mr,reference:mf,restore_id:multi.restore_id,cases:[me]}).status,'linked_cohort_review_only');
+console.log('PASS catalog-consistent multiargument routine fingerprint and mandatory raw package hashes');

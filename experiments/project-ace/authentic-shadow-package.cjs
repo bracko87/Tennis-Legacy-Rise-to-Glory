@@ -10,24 +10,28 @@ function load(directory){
  function read(name,expected,max){
   check(typeof name==='string'&&/^[A-Za-z0-9_-]{1,100}\.json$/.test(name),'Invalid package filename');
   check(!seen.has(name),'Duplicate package filename');seen.add(name);
-  const fd=fs.openSync(path.join(root,name),fs.constants.O_RDONLY| (fs.constants.O_NOFOLLOW||0));
+  const filename=path.join(root,name);
+  check(fs.lstatSync(filename).isFile(),'Package file must be a regular file');
+  const fd=fs.openSync(filename,fs.constants.O_RDONLY|(fs.constants.O_NOFOLLOW||0)|(fs.constants.O_NONBLOCK||0));
   try{
    const st=fs.fstatSync(fd);check(st.isFile()&&st.size>0&&st.size<=max,'Invalid package file size or type');
    total+=st.size;check(total<=256*1024*1024,'Package exceeds size limit');
-   const b=fs.readFileSync(fd);check(b.length===st.size,'Package changed during reading');
+   const b=Buffer.alloc(st.size);let pos=0;
+   while(pos<b.length){const count=fs.readSync(fd,b,pos,b.length-pos,null);check(count>0,'Package changed during reading');pos+=count;}
+   check(fs.readSync(fd,Buffer.alloc(1),0,1,null)===0&&fs.fstatSync(fd).size===st.size,'Package changed during reading');
    if(expected!==null)check(typeof expected==='string'&&hash(b)===expected,'Package file integrity mismatch');
    return b;
   }finally{fs.closeSync(fd);}
  }
- const manifest=JSON.parse(read('manifest.json',null,4*1024*1024));
+ const manifestBytes=read('manifest.json',null,4*1024*1024),manifest=JSON.parse(manifestBytes);
  check(manifest.schema==='ace-shadow-package-v1'&&manifest.review_only===true,'Invalid package manifest');
  check(Array.isArray(manifest.cases)&&manifest.cases.length>0&&manifest.cases.length<=10000,'Invalid package inventory');
- const item=(x,max)=>{check(x&&typeof x==='object','Missing file descriptor');return read(x.file,x.sha256,max);};
+ const item=(x,max)=>{check(x&&typeof x==='object'&&typeof x.sha256==='string'&&/^[a-f0-9]{64}$/.test(x.sha256),'Invalid file descriptor hash');return read(x.file,x.sha256,max);};
  const catalog=x=>({bytes:item(x.catalog,64*1024*1024),receipt:JSON.parse(item(x.receipt,4*1024*1024))});
  const restore=catalog(manifest.restore),reference=catalog(manifest.reference);
  const cases=manifest.cases.map(x=>JSON.parse(item(x,2*1024*1024)));
  const r=evaluate({restore,reference,restore_id:manifest.restore_id,cases});
- return {...r,package_manifest_sha256:hash(Buffer.from(JSON.stringify(manifest))),package_bytes:total};
+ return {...r,package_manifest_sha256:hash(manifestBytes),package_bytes:total};
 }
 if(require.main===module){
  try{
