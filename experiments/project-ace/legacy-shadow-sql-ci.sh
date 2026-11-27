@@ -89,3 +89,17 @@ reader -f - < "$tmp/cohort-query.sql" > "$tmp/cohort-results.jsonl"
 node historical-legacy-cohort.test.cjs "$tmp"
 [[ "$before" == "$(fingerprint)" ]]
 [[ "$profiles_before" == "$(profile_fingerprint)" ]]
+
+# Current scheduling comparison in a separate disposable database in the same network-none container.
+admin -c 'CREATE DATABASE ace_ops_shadow'
+ops(){ docker exec -i -e PGPASSWORD=ace-shadow-disposable-admin "$name" psql -X -qAt -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55433 -U postgres -d ace_ops_shadow "$@"; }
+# Minimal dependencies, independent of historical fixtures.
+ops <<'SQL'
+CREATE TABLE public.tournament_matches(id uuid PRIMARY KEY,competition_id uuid,player1_id uuid,player2_id uuid,status text,draw_type text,scheduled_season_week integer,scheduled_day integer,scheduled_start_minute integer,court_number integer,actual_duration_minutes integer);
+CREATE TABLE public.tournament_match_simulations(match_id uuid PRIMARY KEY,total_games integer,total_points integer);
+CREATE FUNCTION public.simulated_tennis_duration_minutes_v1(integer,integer) RETURNS integer LANGUAGE sql IMMUTABLE AS $$ SELECT least(420,greatest(60,round(greatest($1,0)*5.0+greatest($2,0)*0.13)::integer)) $$;
+SQL
+node operational-schedule-sql.cjs "$tmp"
+sed -i "s/current_database()<>'ace_legacy_shadow'/current_database()<>'ace_ops_shadow'/" "$tmp/operational-schedule.sql"
+ops < "$tmp/operational-schedule.sql" > "$tmp/operational-schedule-results.jsonl"
+node operational-schedule-sql.cjs "$tmp" verify
