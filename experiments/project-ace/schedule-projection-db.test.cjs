@@ -76,8 +76,8 @@ async function run(){
  await assert.rejects(extended('bad-court',0,1,2,720,5),/rejected/);
  await assert.rejects(extended('occupied',0,1,1,720,2),/rejected/);
  // Day 4, court 4 has no frozen bracket occupancy.
- assert.equal(await extended('delay',0,1,4,720,4),'applied_review');
- assert.equal(await extended('delay',0,1,4,720,4),'already_applied_review');
+ const race=await Promise.all([extended('delay',0,1,4,720,4),extended('delay',0,1,4,720,4)]);
+ assert.deepEqual(race.sort(),['already_applied_review','applied_review']);
  await assert.rejects(extended('delay',0,1,4,750,4),/rejected/);
  assert.equal((await effective()).scheduled_start_minute,720);
  assert.equal((await effective()).scheduled_day,4);

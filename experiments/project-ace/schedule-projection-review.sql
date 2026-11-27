@@ -19,7 +19,7 @@ CREATE TABLE ace_cutover_review.schedule_phase_policy(
  PRIMARY KEY(competition_id,phase)
 );
 CREATE FUNCTION ace_cutover_review.bind_schedule_phase(p_comp text,p_phase text,p_first int,p_last int,p_courts int) RETURNS text
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $$
 DECLARE old ace_cutover_review.schedule_phase_policy%ROWTYPE;
 BEGIN
  PERFORM pg_advisory_xact_lock(hashtextextended(p_comp,91023));
@@ -31,9 +31,9 @@ BEGIN
  IF p_first IS NULL OR p_last IS NULL OR p_courts IS NULL OR NOT EXISTS(SELECT 1 FROM ace_cutover_review.source_slots WHERE competition_id=p_comp AND slot->>'draw_type'=p_phase) OR EXISTS(SELECT 1 FROM ace_cutover_review.source_slots WHERE competition_id=p_comp AND slot->>'draw_type'=p_phase AND ((slot->>'scheduled_season_week')::int NOT BETWEEN p_first AND p_last OR (slot->>'court_number')::int NOT BETWEEN 1 AND p_courts)) THEN RAISE EXCEPTION 'invalid phase inventory'; END IF;
  INSERT INTO ace_cutover_review.schedule_phase_policy VALUES(p_comp,p_phase,p_first,p_last,p_courts);
  RETURN 'bound_review';
-END $;
+END $$;
 CREATE FUNCTION ace_cutover_review.validate_schedule_candidate(p_id text,p_week int,p_day int,p_min int,p_court int) RETURNS bigint
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $$
 DECLARE s ace_cutover_review.source_slots%ROWTYPE; pol ace_cutover_review.schedule_phase_policy%ROWTYPE; season int;
 BEGIN
  SELECT * INTO STRICT s FROM ace_cutover_review.source_slots WHERE match_id=p_id;
@@ -41,7 +41,7 @@ BEGIN
  IF p_week IS NULL OR p_day IS NULL OR p_min IS NULL OR p_court IS NULL OR p_week NOT BETWEEN pol.first_week AND pol.last_week OR p_day NOT BETWEEN 1 AND 7 OR p_min NOT BETWEEN 600 AND 1290 OR p_court NOT BETWEEN 1 AND pol.court_count THEN RAISE EXCEPTION 'candidate outside phase or venue capacity'; END IF;
  SELECT (contract->>'season_number')::int INTO STRICT season FROM ace_cutover_review.source_contracts WHERE competition_id=s.competition_id;
  RETURN ((season-1)::bigint*366+2+(p_week-1)*7+p_day-1)*86400+p_min*60;
-END $;
+END $$;
 REVOKE ALL ON FUNCTION ace_cutover_review.bind_schedule_phase(text,text,int,int,int),ace_cutover_review.validate_schedule_candidate(text,int,int,int,int) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION ace_cutover_review.bind_schedule_phase(text,text,int,int,int),ace_cutover_review.validate_schedule_candidate(text,int,int,int,int) TO ace_review_worker;
 GRANT SELECT ON ace_cutover_review.schedule_phase_policy TO ace_review_worker;

@@ -107,6 +107,7 @@ jobs:
         run: |
           psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_review -f experiments/project-ace/followup-persistence-review.sql
           psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_review -f experiments/project-ace/followup-persistence-test.sql
+          node -e 'const s=require("node:fs").readFileSync("experiments/project-ace/schedule-projection-review.sql","utf8");if(s.split(/\r?\n/).some(l=>l.endsWith(" AS "+String.fromCharCode(36))||l==="END "+String.fromCharCode(36)+";"))throw Error("Invalid SQL dollar delimiter")'
           psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_review -f experiments/project-ace/schedule-projection-review.sql
           psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_review -f experiments/project-ace/schedule-projection-smoke.sql
           ACE_REVIEW_DB=1 ACE_REVIEW_DB_PASSWORD=ace-disposable-worker ACE_REVIEW_DB_PORT=55432 node experiments/project-ace/schedule-projection-db.test.cjs
