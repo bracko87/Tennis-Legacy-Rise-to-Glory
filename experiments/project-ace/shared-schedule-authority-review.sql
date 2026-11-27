@@ -56,7 +56,8 @@ CREATE TABLE ace_shared_schedule_fixture.obligations(
  target_owner text NOT NULL, target_revision bigint NOT NULL,
  player_conflict boolean NOT NULL, court_conflict boolean NOT NULL,
  earliest_second bigint NOT NULL, observed_start bigint NOT NULL,
- PRIMARY KEY(source_id,target_id), CHECK(source_id<>target_id), CHECK(player_conflict OR court_conflict)
+ feeder_conflict boolean NOT NULL DEFAULT false,
+ PRIMARY KEY(source_id,target_id), CHECK(source_id<>target_id), CHECK(player_conflict OR court_conflict OR feeder_conflict)
 );
 CREATE FUNCTION ace_shared_schedule_fixture.finish_slot(p_id text,p_revision bigint,p_end bigint) RETURNS text
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_shared_schedule_fixture AS $fn$
@@ -81,6 +82,12 @@ BEGIN
  AND ((x.player1 IN(m.player1,m.player2) OR x.player2 IN(m.player1,m.player2)) AND x.start_second<p_end+3600
  OR (x.venue=m.venue AND x.court=m.court AND x.start_second<p_end+900))
  AND p_end>m.start_second+m.duration_minutes*60;
+ -- Detect downstream dependencies even if participants and courts differ.
+ INSERT INTO ace_shared_schedule_fixture.obligations(source_id,target_id,target_owner,target_revision,player_conflict,court_conflict,earliest_second,observed_start,feeder_conflict)
+ SELECT m.id,x.id,x.owner,x.revision,false,false,p_end+3600,x.start_second,true
+ FROM ace_shared_schedule_fixture.feeders f JOIN ace_shared_schedule_fixture.inventory x ON x.id=f.downstream_id
+ WHERE f.feeder_id=m.id AND x.status='scheduled' AND x.start_second<p_end+3600
+ ON CONFLICT(source_id,target_id) DO UPDATE SET feeder_conflict=true,earliest_second=greatest(ace_shared_schedule_fixture.obligations.earliest_second,EXCLUDED.earliest_second);
  RETURN 'completed_review';
 END $fn$;
 REVOKE ALL ON FUNCTION ace_shared_schedule_fixture.finish_slot(text,bigint,bigint) FROM PUBLIC;

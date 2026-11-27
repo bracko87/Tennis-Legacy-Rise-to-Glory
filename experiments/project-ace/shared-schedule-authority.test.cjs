@@ -102,6 +102,15 @@ async function main(){
  assert.equal(await sql('postgres',"SELECT count(*) FROM ace_shared_schedule_fixture.queue WHERE state='review_required'"),'2');
  assert.equal(JSON.parse(await sql(worker,drain)).processed,0);
  assert.equal(await sql('postgres',"SELECT sum(attempts) FROM ace_shared_schedule_fixture.queue"),'4');
+ // A feeder overrun must enqueue a successor even without known matching player IDs.
+ await sql('postgres',"INSERT INTO ace_shared_schedule_fixture.inventory(id,owner,status,revision,venue,court,player1,player2,start_second,duration_minutes) VALUES ('late-feeder','ace','scheduled',0,'late-venue',1,'lf1','lf2',727200,60),('late-semi','legacy','scheduled',0,'late-venue',2,'unknown1','unknown2',734400,60),('late-final','legacy','scheduled',0,'late-venue',3,'unknown3','unknown4',741600,60); INSERT INTO ace_shared_schedule_fixture.feeders VALUES ('late-feeder','late-semi'),('late-semi','late-final'); INSERT INTO ace_shared_schedule_fixture.phase_policy VALUES ('late-semi',8,8,3),('late-final',8,8,3)");
+ assert.equal(await sql(a,call('late-feeder',0,727200,1,true)),'started_review');
+ assert.equal(await sql(a,"SELECT ace_shared_schedule_fixture.finish_slot('late-feeder',1,738000)"),'completed_review');
+ assert.equal(await sql('postgres',"SELECT feeder_conflict AND NOT player_conflict AND NOT court_conflict FROM ace_shared_schedule_fixture.obligations WHERE source_id='late-feeder' AND target_id='late-semi'"),'t');
+ assert.equal(JSON.parse(await sql(worker,drain)).processed,1);
+ assert.equal(await sql('postgres',"SELECT string_agg(id||':'||start_second,',' ORDER BY id) FROM ace_shared_schedule_fixture.inventory WHERE id IN ('late-semi','late-final')"),'late-final:748800,late-semi:741600');
+ assert.equal(await sql('postgres',"SELECT state FROM ace_shared_schedule_fixture.queue WHERE target_id='late-semi'"),'resolved');
+ console.log('PASS actual feeder overrun automatically queues and coordinates successor and final with unknown participants');
  console.log('PASS durable scheduling queue, bounded drain, transaction rollback and terminal retry protection');
  console.log('PASS obligation-driven planning, external protection and durable reconciliation retry');
  console.log('PASS automatic feeder propagation, speculative rollback and concurrent request recovery');
