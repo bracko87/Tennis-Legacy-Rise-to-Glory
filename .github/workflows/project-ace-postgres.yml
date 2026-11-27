@@ -43,6 +43,7 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_review -f experiments/project-ace/cutover-guest-review.sql
           psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_review -f experiments/project-ace/cutover-surrender-review.sql
           psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_review -f experiments/project-ace/cutover-cancellation-review.sql
+          psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_review -f experiments/project-ace/cutover-special-closure-review.sql
           psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_review -c "DO \$\$ BEGIN IF has_schema_privilege('anon','ace_review','USAGE') OR has_schema_privilege('authenticated','ace_review','USAGE') OR has_table_privilege('anon','ace_review.matches','SELECT') OR has_table_privilege('authenticated','ace_review.worlds','SELECT') THEN RAISE EXCEPTION 'Unexpected client grant'; END IF; END \$\$;"
       - name: Native database worker integration
         env:
@@ -72,6 +73,7 @@ jobs:
           node experiments/project-ace/cutover-surrender-db.test.cjs
           node experiments/project-ace/cancellation-refund-review.test.cjs
           node experiments/project-ace/cutover-cancellation-db.test.cjs
+          node experiments/project-ace/cutover-special-closure-db.test.cjs
       - name: Build isolated browser and install pinned Chromium driver
         run: |
           npm ci --ignore-scripts
