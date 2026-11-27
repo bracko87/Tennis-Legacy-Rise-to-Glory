@@ -36,6 +36,18 @@ async function main(){
  assert.equal(await sql(other,call(loser,1,83700,4,true)),'started_review');
  await assert.rejects(sql(role,"SELECT ace_shared_schedule_fixture.finish_slot('"+winner+"',2,82900)"),/invalid completion evidence/);
  assert.equal(await sql('postgres',"SELECT actual_end_second FROM ace_shared_schedule_fixture.inventory WHERE id='"+winner+"'"),'82800');
+ // Separate owner-controlled obligation, next tournament day, with explicit phase bounds.
+ await sql('postgres',"INSERT INTO ace_shared_schedule_fixture.inventory(id,owner,status,revision,venue,court,player1,player2,start_second,duration_minutes) VALUES ('resolve-target','"+(winner==='a'?'ace':'legacy')+"','scheduled',0,'venue-z',1,'z1','z2',81000,60); INSERT INTO ace_shared_schedule_fixture.obligations VALUES ('"+winner+"','resolve-target','"+(winner==='a'?'ace':'legacy')+"',0,true,false,86400,81000)");
+ const resolve="SELECT ace_shared_schedule_fixture.resolve_slot('"+winner+"','resolve-target')";
+ await assert.rejects(sql(other,resolve),/wrong scheduling owner/);
+ assert.equal(JSON.parse(await sql(role,resolve)).status,'phase_policy_required');
+ await sql('postgres',"INSERT INTO ace_shared_schedule_fixture.phase_policy VALUES ('resolve-target',0,0,2)");
+ assert.equal(JSON.parse(await sql(role,resolve)).status,'no_safe_slot_review');
+ await sql('postgres',"UPDATE ace_shared_schedule_fixture.phase_policy SET last_day=1 WHERE match_id='resolve-target'");
+ const resolved=JSON.parse(await sql(role,resolve));
+ assert.equal(resolved.status,'resolved_review');assert.equal(resolved.revised_second,122400);assert.equal(resolved.revised_court,1);
+ assert.equal(JSON.parse(await sql(role,resolve)).status,'already_resolved_review');
+ console.log('PASS explicit phase bounds, owner-only automatic slot selection, no-slot escalation and exact retry');
  console.log('PASS actual completion, exact retry, conflicting completion rejection and court recovery boundary');
  console.log('PASS both engine roles share slot authority, external inventory blocks conflicts, concurrent court collision and stale revision rejected');
 }

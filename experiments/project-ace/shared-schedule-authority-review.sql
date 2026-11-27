@@ -73,4 +73,43 @@ INSERT INTO ace_shared_schedule_fixture.inventory(id,owner,status,revision,venue
  ('a','ace','scheduled',0,'venue',1,'p1','p2',36000,60),
  ('l','legacy','scheduled',0,'venue',2,'p3','p4',36000,60),
  ('e','external','scheduled',0,'venue',3,'p1','p5',54000,60);
+CREATE TABLE ace_shared_schedule_fixture.phase_policy(
+ match_id text PRIMARY KEY REFERENCES ace_shared_schedule_fixture.inventory(id),
+ first_day int NOT NULL CHECK(first_day>=0), last_day int NOT NULL,
+ court_count int NOT NULL CHECK(court_count BETWEEN 1 AND 32),
+ CHECK(last_day BETWEEN first_day AND first_day+14)
+);
+CREATE TABLE ace_shared_schedule_fixture.resolutions(
+ source_id text NOT NULL,target_id text NOT NULL, revised_second bigint NOT NULL,revised_court int NOT NULL,revised_revision bigint NOT NULL,
+ PRIMARY KEY(source_id,target_id), FOREIGN KEY(source_id,target_id) REFERENCES ace_shared_schedule_fixture.obligations(source_id,target_id)
+);
+CREATE FUNCTION ace_shared_schedule_fixture.resolve_slot(p_source text,p_target text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_shared_schedule_fixture AS $fn$
+DECLARE m ace_shared_schedule_fixture.inventory%ROWTYPE; o ace_shared_schedule_fixture.obligations%ROWTYPE; policy ace_shared_schedule_fixture.phase_policy%ROWTYPE; prior ace_shared_schedule_fixture.resolutions%ROWTYPE; actor text; candidate record; earliest bigint;
+BEGIN
+ PERFORM pg_advisory_xact_lock(91029001);
+ actor:=CASE session_user WHEN 'ace_cutover_ace' THEN 'ace' WHEN 'ace_cutover_legacy' THEN 'legacy' ELSE NULL END;
+ SELECT * INTO STRICT m FROM ace_shared_schedule_fixture.inventory WHERE id=p_target FOR UPDATE;
+ IF actor IS NULL OR actor<>m.owner THEN RAISE EXCEPTION 'wrong scheduling owner'; END IF;
+ SELECT * INTO STRICT o FROM ace_shared_schedule_fixture.obligations WHERE source_id=p_source AND target_id=p_target;
+ SELECT * INTO prior FROM ace_shared_schedule_fixture.resolutions WHERE source_id=p_source AND target_id=p_target;
+ IF FOUND THEN RETURN to_jsonb(prior)||jsonb_build_object('status','already_resolved_review'); END IF;
+ IF m.status<>'scheduled' OR m.revision<>o.target_revision THEN RETURN jsonb_build_object('status','stale_obligation_review'); END IF;
+ SELECT * INTO policy FROM ace_shared_schedule_fixture.phase_policy WHERE match_id=p_target;
+ IF NOT FOUND THEN RETURN jsonb_build_object('status','phase_policy_required'); END IF;
+ SELECT greatest(m.start_second,max(earliest_second)) INTO earliest FROM ace_shared_schedule_fixture.obligations WHERE target_id=p_target AND target_revision=m.revision;
+ FOR candidate IN SELECT d::bigint*86400+minute*60 AS second,c AS court FROM generate_series(greatest(policy.first_day,(earliest/86400)::int),policy.last_day) d CROSS JOIN generate_series(600,1290,30) minute CROSS JOIN generate_series(1,policy.court_count) c WHERE d::bigint*86400+minute*60>=earliest ORDER BY d,(c<>m.court),minute,c LOOP
+  BEGIN
+   PERFORM ace_shared_schedule_fixture.change_slot(p_target,m.revision,candidate.second,candidate.court,false);
+  EXCEPTION WHEN raise_exception THEN
+   IF SQLERRM<>'shared resource conflict' THEN RAISE; END IF;
+   CONTINUE;
+  END;
+  INSERT INTO ace_shared_schedule_fixture.resolutions VALUES(p_source,p_target,candidate.second,candidate.court,m.revision+1) RETURNING * INTO prior;
+  RETURN to_jsonb(prior)||jsonb_build_object('status','resolved_review');
+ END LOOP;
+ RETURN jsonb_build_object('status','no_safe_slot_review');
+END $fn$;
+REVOKE ALL ON FUNCTION ace_shared_schedule_fixture.resolve_slot(text,text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION ace_shared_schedule_fixture.resolve_slot(text,text) TO ace_cutover_ace,ace_cutover_legacy;
 COMMIT;
