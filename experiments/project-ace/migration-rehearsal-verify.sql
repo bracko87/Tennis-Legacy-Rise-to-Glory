@@ -3,7 +3,7 @@ DO $$
 DECLARE n integer; role_name text; t record; p record;
 BEGIN
  IF current_database()<>'ace_review' OR NOT EXISTS(SELECT 1 FROM ace_migration_fixture.guard WHERE singleton AND marker='ace-disposable-ci-v025') THEN RAISE EXCEPTION 'wrong rehearsal database'; END IF;
- IF (SELECT count(*) FROM ace_migration_journal.installed)<>15 THEN RAISE EXCEPTION 'missing migration journal entries'; END IF;
+ IF (SELECT count(*) FROM ace_migration_journal.installed)<>16 THEN RAISE EXCEPTION 'missing migration journal entries'; END IF;
  IF NOT EXISTS(SELECT 1 FROM ace_cutover_review.policy WHERE singleton AND NOT enabled AND cardinality(competitions)=0) THEN RAISE EXCEPTION 'routing is not disabled by default'; END IF;
  IF (SELECT count(*) FROM ace_cutover_review.matches)<>0 OR (SELECT count(*) FROM ace_review.finalized_prizes)<>0 THEN RAISE EXCEPTION 'unexpected initial rows'; END IF;
  FOREACH role_name IN ARRAY ARRAY['anon','authenticated'] LOOP
