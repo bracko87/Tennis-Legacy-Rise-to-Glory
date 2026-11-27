@@ -18,3 +18,5 @@ const b=reconcile(late,382);assert.equal(b.totals['["ATP","p"]'],175);assert.equ
 assert.throws(()=>reconcile(b.state,375),/rollback/);
 const duplicate=JSON.parse(JSON.stringify(state));duplicate.contributions.push(duplicate.contributions[0]);assert.throws(()=>reconcile(duplicate,375),/Duplicate contribution/);
 console.log('PASS Monday gate, replacement, absent player, cancellation, world isolation, expiration, delayed completion, replay and rollback protection');
+
+module.exports={state};

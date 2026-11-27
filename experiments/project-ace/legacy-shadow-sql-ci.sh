@@ -115,3 +115,10 @@ ops < "$tmp/replay-validator-cases.sql" > "$tmp/replay-validator-results"
 [[ "$(wc -l < "$tmp/replay-validator-results" | tr -d ' ')" == 405 ]]
 [[ "$(grep -c '^t$' "$tmp/replay-validator-results")" == 405 ]]
 echo 'PASS 400 generated replay arrays and five rejection controls against original Legacy SQL validator'
+
+# Original ranking publisher against synthetic isolated ranking inventories.
+admin -c 'CREATE DATABASE ace_rank_shadow'
+rankdb(){ docker exec -i -e PGPASSWORD=ace-shadow-disposable-admin "$name" psql -X -qAt -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55433 -U postgres -d ace_rank_shadow "$@"; }
+node ranking-defence-sql.cjs "$tmp"
+rankdb < "$tmp/ranking-shadow.sql" > "$tmp/ranking-shadow.jsonl"
+node ranking-defence-sql.cjs "$tmp" verify
