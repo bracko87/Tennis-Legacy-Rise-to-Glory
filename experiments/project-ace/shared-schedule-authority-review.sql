@@ -8,6 +8,8 @@ CREATE TABLE ace_shared_schedule_fixture.inventory(
  revision bigint NOT NULL DEFAULT 0, venue text NOT NULL, court int NOT NULL CHECK(court>0),
  player1 text NOT NULL, player2 text NOT NULL CHECK(player2<>player1),
  start_second bigint NOT NULL CHECK(start_second>=0), duration_minutes int NOT NULL CHECK(duration_minutes BETWEEN 60 AND 420));
+ALTER TABLE ace_shared_schedule_fixture.inventory ADD COLUMN actual_end_second bigint;
+ALTER TABLE ace_shared_schedule_fixture.inventory ADD CHECK ((status='completed')=(actual_end_second IS NOT NULL));
 CREATE FUNCTION ace_shared_schedule_fixture.change_slot(p_id text,p_revision bigint,p_start bigint,p_court int,p_start_live boolean) RETURNS text
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_shared_schedule_fixture AS $fn$
 DECLARE m ace_shared_schedule_fixture.inventory%ROWTYPE; actor text;
@@ -22,8 +24,8 @@ BEGIN
  IF EXISTS(SELECT 1 FROM ace_shared_schedule_fixture.inventory x WHERE x.id<>m.id AND (
  (x.status='live' AND p_start_live AND ((x.venue=m.venue AND x.court=p_court) OR x.player1 IN (m.player1,m.player2) OR x.player2 IN (m.player1,m.player2))) OR
  (x.status IN ('scheduled','live','completed') AND (
- (x.venue=m.venue AND x.court=p_court AND p_start<x.start_second+(x.duration_minutes+15)*60 AND x.start_second<p_start+(m.duration_minutes+15)*60) OR
- ((x.player1 IN (m.player1,m.player2) OR x.player2 IN (m.player1,m.player2)) AND p_start<x.start_second+(x.duration_minutes+60)*60 AND x.start_second<p_start+(m.duration_minutes+60)*60)))))
+ (x.venue=m.venue AND x.court=p_court AND p_start<coalesce(x.actual_end_second,x.start_second+x.duration_minutes*60)+900 AND x.start_second<p_start+(m.duration_minutes+15)*60) OR
+ ((x.player1 IN (m.player1,m.player2) OR x.player2 IN (m.player1,m.player2)) AND p_start<coalesce(x.actual_end_second,x.start_second+x.duration_minutes*60)+3600 AND x.start_second<p_start+(m.duration_minutes+60)*60)))))
  THEN RAISE EXCEPTION 'shared resource conflict'; END IF;
  UPDATE ace_shared_schedule_fixture.inventory SET start_second=p_start,court=p_court,status=CASE WHEN p_start_live THEN 'live' ELSE status END,revision=revision+1 WHERE id=p_id;
  RETURN CASE WHEN p_start_live THEN 'started_review' ELSE 'rescheduled_review' END;
@@ -32,7 +34,22 @@ REVOKE ALL ON SCHEMA ace_shared_schedule_fixture FROM PUBLIC;
 REVOKE ALL ON FUNCTION ace_shared_schedule_fixture.change_slot(text,bigint,bigint,int,boolean) FROM PUBLIC;
 GRANT USAGE ON SCHEMA ace_shared_schedule_fixture TO ace_cutover_ace,ace_cutover_legacy;
 GRANT EXECUTE ON FUNCTION ace_shared_schedule_fixture.change_slot(text,bigint,bigint,int,boolean) TO ace_cutover_ace,ace_cutover_legacy;
-INSERT INTO ace_shared_schedule_fixture.inventory VALUES
+CREATE FUNCTION ace_shared_schedule_fixture.finish_slot(p_id text,p_revision bigint,p_end bigint) RETURNS text
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_shared_schedule_fixture AS $fn$
+DECLARE m ace_shared_schedule_fixture.inventory%ROWTYPE; actor text;
+BEGIN
+ PERFORM pg_advisory_xact_lock(91029001);
+ actor:=CASE session_user WHEN 'ace_cutover_ace' THEN 'ace' WHEN 'ace_cutover_legacy' THEN 'legacy' ELSE NULL END;
+ SELECT * INTO STRICT m FROM ace_shared_schedule_fixture.inventory WHERE id=p_id FOR UPDATE;
+ IF actor IS NULL OR actor<>m.owner THEN RAISE EXCEPTION 'wrong scheduling owner'; END IF;
+ IF m.status='completed' AND p_revision=m.revision-1 AND p_end=m.actual_end_second THEN RETURN 'already_completed_review'; END IF;
+ IF m.status<>'live' OR p_revision IS DISTINCT FROM m.revision OR p_end IS NULL OR p_end<m.start_second+3600 OR p_end>m.start_second+25200 THEN RAISE EXCEPTION 'invalid completion evidence'; END IF;
+ UPDATE ace_shared_schedule_fixture.inventory SET status='completed',actual_end_second=p_end,revision=revision+1 WHERE id=p_id;
+ RETURN 'completed_review';
+END $fn$;
+REVOKE ALL ON FUNCTION ace_shared_schedule_fixture.finish_slot(text,bigint,bigint) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION ace_shared_schedule_fixture.finish_slot(text,bigint,bigint) TO ace_cutover_ace,ace_cutover_legacy;
+INSERT INTO ace_shared_schedule_fixture.inventory(id,owner,status,revision,venue,court,player1,player2,start_second,duration_minutes) VALUES
  ('a','ace','scheduled',0,'venue',1,'p1','p2',36000,60),
  ('l','legacy','scheduled',0,'venue',2,'p3','p4',36000,60),
  ('e','external','scheduled',0,'venue',3,'p1','p5',54000,60);

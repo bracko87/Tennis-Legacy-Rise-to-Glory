@@ -14,6 +14,19 @@ async function main(){
  await assert.rejects(sql(role,call(winner,0,72000,4)),/invalid schedule revision/);
  assert.equal(await sql(role,call(winner,1,72000,4,true)),'started_review');
  assert.equal(await sql('postgres',"SELECT count(*) FROM ace_shared_schedule_fixture.inventory WHERE status='live'"),'1');
+ const loser=winner==='a'?'l':'a',other=winner==='a'?l:a;
+ await assert.rejects(sql(other,"SELECT ace_shared_schedule_fixture.finish_slot('"+winner+"',2,82800)"),/wrong scheduling owner/);
+ await assert.rejects(sql(role,"SELECT ace_shared_schedule_fixture.finish_slot('"+winner+"',2,72001)"),/invalid completion evidence/);
+ // Three-hour actual duration overrides the one-hour estimate.
+ const finish="SELECT ace_shared_schedule_fixture.finish_slot('"+winner+"',2,82800)";
+ const retries=await Promise.all([sql(role,finish),sql(role,finish)]);
+ assert.deepEqual(retries.sort(),['already_completed_review','completed_review']);
+ await assert.rejects(sql(other,call(loser,0,83699,4)),/shared resource conflict/);
+ assert.equal(await sql(other,call(loser,0,83700,4)),'rescheduled_review');
+ assert.equal(await sql(other,call(loser,1,83700,4,true)),'started_review');
+ await assert.rejects(sql(role,"SELECT ace_shared_schedule_fixture.finish_slot('"+winner+"',2,82900)"),/invalid completion evidence/);
+ assert.equal(await sql('postgres',"SELECT actual_end_second FROM ace_shared_schedule_fixture.inventory WHERE id='"+winner+"'"),'82800');
+ console.log('PASS actual completion, exact retry, conflicting completion rejection and court recovery boundary');
  console.log('PASS both engine roles share slot authority, external inventory blocks conflicts, concurrent court collision and stale revision rejected');
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
