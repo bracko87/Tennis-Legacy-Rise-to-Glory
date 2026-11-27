@@ -30,6 +30,9 @@ async function run(size=8){
  const frozen=freezeSource({schema:'ace-source-admission-v1',complete_export:true,competition:{id:c,scope:'singles',field_locked:true,qualification_required:false,status:'published',season_number:1,draw_size:size},players,matches:slots,results:[],simulations:[]});
  await control('import_source_contract('+json(frozen)+')');await control('bind_source_venue('+[lit(c),lit(c+'-venue')].join(',')+')');await control('enable_source_career_review('+lit(c)+",'hard')");await control('configure(true,ARRAY['+lit(c)+'])');
  for(const p of players)await control('observe_source_career('+[lit(p.id),-1,json({profile:{...profile},staff:{matchFatigueReduction:.1},injuries:[],inventory:[{id:p.id+'-r',type:'racket',condition:80,wear_per_match:2}],loadout:{racket:p.id+'-r',shoes:null,apparel:null}})].join(',')+')');
+ const lifecycle=()=>control('source_lifecycle('+lit(c)+')').then(JSON.parse);
+ const initial=await lifecycle();assert.equal(initial.not_admitted,size-1);assert.equal(initial.status,'blocked_review');assert.ok(initial.blockers.some(x=>x.kind==='not_admitted'));
+ await assert.rejects(q('ace','source_lifecycle('+lit(c)+')'),/permission denied/);
  const played=[],conditions=[],support_events=[],winners=new Map(),counts=new Map();
  const rewards=[['round_16',25,1000],['quarterfinal',50,2000],['semifinal',100,4000],['runner_up',165,5000],['winner',250,10000]].map(([stage_code,ranking_points,prize_money_usd])=>({stage_code,ranking_points,prize_money_usd}));
  const results=[],transactions=[];
@@ -56,7 +59,7 @@ async function run(size=8){
    const receipt={match_id:id,competition_id:c,player1_id:p1,player2_id:p2,winner_id:winner,status:'completed',actual_duration_minutes:duration(s.gameNumber,s.totalPoints),score:s.completedSets.map(z=>z.games.join('-')).join(' '),sets:s.completedSets.map((z,i)=>({match_id:id,set_number:i+1,player1_games:z.games[0],player2_games:z.games[1],player1_tiebreak_points:z.tiebreak?.[0]??null,player2_tiebreak_points:z.tiebreak?.[1]??null,status:'completed'})),stats:calculate(s.events.filter(z=>z.kind==='point')).map((z,i)=>({match_id:id,player_id:ids[i],...z})),engine_version:'ace-integrated-review',started_at:'2026-01-01T10:00:00Z',completed_at:'2026-01-01T12:00:00Z'};
    assert.equal(await q('ace','finish_match('+[lit(id),2,lit(winner),json(receipt)].join(',')+')'),'completed');
    played.push(receipt);winners.set(id,winner);
-   if(played.length===1){await assert.rejects(settle(payload()),/incomplete imported source inventory/);await assert.rejects(auditClosure({...contract,matches:contract.matches.slice(0,1)}),/rejected/);}
+   if(played.length===1){const audit=await lifecycle();assert.equal(audit.terminal_matches,1);assert.ok(audit.blockers.some(x=>x.match_id===id&&x.kind==='result_sync_pending'));assert.ok(audit.blockers.some(x=>x.match_id===id&&x.kind==='career_effects_pending'));await assert.rejects(settle(payload()),/incomplete imported source inventory/);await assert.rejects(auditClosure({...contract,matches:contract.matches.slice(0,1)}),/rejected/);}
    await control('sync_source_event('+lit(id)+',2)');await control('sync_source_event('+lit(id)+',3)');
    const match={...receipt,owner:'ace',revision:3},proposal=propose({match,receipt,snapshot});
    const applied=JSON.parse(await control('apply_source_career('+[lit(id),json(snapshot),json(receipt),json(proposal)].join(',')+')'));assert.equal(applied.status,'applied_review');
@@ -80,10 +83,11 @@ async function run(size=8){
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.active_source_resources a JOIN ace_cutover_review.source_slots s USING(match_id) WHERE s.competition_id='+lit(c)+';'),'0');
  const observed={competition_id:c,complete_export:true,season_number:1,tournament_series_id:c+'-series',world:'ATP',observed_absolute_day:8,results:results.map((x,i)=>({...x,id:c+'-result-'+i})),prizes:transactions.map((x,i)=>({...x,id:c+'-prize-'+i})),contributions:[]};
  const reconcile=(key,s)=>control('reconcile_rewards('+[lit(c),lit(key),json(s)].join(',')+')').then(JSON.parse);
- const pending=await reconcile('before-publication',observed);assert.equal(pending.status,'matched_review');assert.ok(pending.players.every(x=>x.ranking==='pending_not_due'));
+ const before=await lifecycle();assert.ok(before.blockers.some(x=>x.kind==='reward_reconciliation_missing'));assert.equal(before.finalized_review,true);
+ const pending=await reconcile('before-publication',observed);assert.equal(pending.status,'matched_review');const clean=await lifecycle();assert.equal(clean.status,'matched_review');assert.deepEqual(clean.blockers,[]);assert.equal(clean.terminal_matches,size-1);assert.equal(clean.production_ready,false);assert.ok(pending.players.every(x=>x.ranking==='pending_not_due'));
  const published=clone(observed);published.observed_absolute_day=9;published.results.forEach(x=>x.ranking_publish_status='published');published.contributions=published.results.map((x,i)=>({id:c+'-contribution-'+i,source_result_id:x.id,competition_id:c,player_id:x.player_id,tournament_series_id:published.tournament_series_id,world:'ATP',season_number:1,ranking_points:x.ranking_points_earned,awarded_absolute_day:9,expires_absolute_day:375,is_active:true}));
  const active=await reconcile('published',published);assert.equal(active.status,'matched_review');assert.ok(active.players.every(x=>x.ranking==='already_active'));assert.deepEqual(await reconcile('published',published),active);
- const missing=clone(published);missing.contributions.pop();assert.equal((await reconcile('missing-contribution',missing)).status,'blocked_review');
+ const missing=clone(published);missing.contributions.pop();assert.equal((await reconcile('missing-contribution',missing)).status,'blocked_review');const unresolved=await lifecycle();assert.equal(unresolved.status,'blocked_review');assert.ok(unresolved.blockers.some(x=>x.kind==='reward_reconciliation_unresolved'));
  const doubled=clone(published);doubled.prizes.push({...doubled.prizes[0],id:c+'-duplicate'});await assert.rejects(reconcile('duplicate-prize',doubled),/rejected/);
  console.log('PASS '+size+'-player actual Ace engine draw, '+(size-1)+' owned matches, '+(2*(size-1))+' career effects, complete closure, prize and ranking reconciliation');
 }
