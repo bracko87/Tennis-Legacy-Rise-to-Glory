@@ -45,6 +45,20 @@ async function run(){
 
  const target=await setup('ops-projection-target','ops-projection-venue','opsproj');
  const source='ops-projection-source';
+ const duration=(id)=>control('projected_schedule_duration('+lit(id)+')');
+ const bindDuration=(id,minutes,key)=>control('bind_schedule_duration('+[lit(id),minutes,lit(key)].join(',')+')');
+ const overlap=(a,ad,b,bd,buffer)=>control('projected_overlap('+[a,ad,b,bd,buffer].join(',')+')');
+ assert.equal(await duration(target.id),'420');
+ await assert.rejects(bindDuration(target.id,59,'bad'),/rejected/);
+ assert.equal(await bindDuration(target.id,150,'synthetic-estimate-v1'),'bound_review');
+ assert.equal(await bindDuration(target.id,150,'synthetic-estimate-v1'),'already_bound');
+ await assert.rejects(bindDuration(target.id,151,'synthetic-estimate-v1'),/rejected/);
+ assert.equal(await duration(target.id),'150');
+ assert.equal(await overlap(0,150,165*60,420,15),'f');
+ assert.equal(await overlap(0,150,165*60-1,420,15),'t');
+ assert.equal(await overlap(210*60,420,0,150,60),'f');
+ assert.equal(await overlap(210*60-1,420,0,150,60),'t');
+ console.log('PASS explicit bounded duration evidence, conservative fallback and directional exact recovery boundaries');
  const bind=(first,last,courts)=>control('bind_schedule_phase('+[lit(target.c),lit('main_draw'),first,last,courts].join(',')+')');
  const candidate=(week,day,minute,court)=>control('validate_schedule_candidate('+[lit(target.id),week,day,minute,court].join(',')+')');
  await assert.rejects(candidate(1,2,600,2),/rejected/);

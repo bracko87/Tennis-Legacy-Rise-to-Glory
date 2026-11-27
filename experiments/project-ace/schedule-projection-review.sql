@@ -80,6 +80,38 @@ BEGIN
  UPDATE ace_cutover_review.source_readiness SET match_revision=-1 WHERE match_id=p_target;
  RETURN 'applied_review';
 END $$;
+-- Explicit, immutable review estimates. Unknown matches retain the conservative bound.
+CREATE TABLE ace_cutover_review.schedule_duration_evidence(
+ match_id text PRIMARY KEY REFERENCES ace_cutover_review.source_slots(match_id),
+ estimate_minutes integer NOT NULL CHECK(estimate_minutes BETWEEN 60 AND 420),
+ evidence_key text NOT NULL CHECK(length(btrim(evidence_key)) BETWEEN 1 AND 120)
+);
+CREATE FUNCTION ace_cutover_review.bind_schedule_duration(p_id text,p_minutes int,p_key text) RETURNS text
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $duration$
+DECLARE prior ace_cutover_review.schedule_duration_evidence%ROWTYPE;
+BEGIN
+ PERFORM pg_advisory_xact_lock(91026001);
+ SELECT * INTO prior FROM ace_cutover_review.schedule_duration_evidence WHERE match_id=p_id;
+ IF FOUND THEN
+  IF ROW(prior.estimate_minutes,prior.evidence_key) IS DISTINCT FROM ROW(p_minutes,p_key) THEN RAISE EXCEPTION 'conflicting duration evidence'; END IF;
+  RETURN 'already_bound';
+ END IF;
+ IF EXISTS(SELECT 1 FROM ace_cutover_review.matches WHERE id=p_id AND status<>'scheduled') OR EXISTS(SELECT 1 FROM ace_cutover_review.schedule_revisions WHERE match_id=p_id) THEN RAISE EXCEPTION 'duration evidence too late'; END IF;
+ INSERT INTO ace_cutover_review.schedule_duration_evidence VALUES(p_id,p_minutes,p_key);
+ RETURN 'bound_review';
+END $duration$;
+CREATE FUNCTION ace_cutover_review.projected_schedule_duration(p_id text) RETURNS integer
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $duration$
+ SELECT coalesce((SELECT estimate_minutes FROM ace_cutover_review.schedule_duration_evidence WHERE match_id=p_id),420)
+$duration$;
+CREATE FUNCTION ace_cutover_review.projected_overlap(p_a bigint,p_a_minutes integer,p_b bigint,p_b_minutes integer,p_buffer integer) RETURNS boolean
+LANGUAGE sql IMMUTABLE STRICT SECURITY INVOKER AS $duration$
+ SELECT p_a<p_b+(p_b_minutes+p_buffer)::bigint*60 AND p_b<p_a+(p_a_minutes+p_buffer)::bigint*60
+$duration$;
+REVOKE ALL ON FUNCTION ace_cutover_review.bind_schedule_duration(text,int,text),ace_cutover_review.projected_schedule_duration(text),ace_cutover_review.projected_overlap(bigint,int,bigint,int,int) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION ace_cutover_review.bind_schedule_duration(text,int,text),ace_cutover_review.projected_schedule_duration(text),ace_cutover_review.projected_overlap(bigint,int,bigint,int,int) TO ace_review_worker;
+GRANT SELECT ON ace_cutover_review.schedule_duration_evidence TO ace_review_worker;
+
 CREATE FUNCTION ace_cutover_review.apply_followup_slot(p_source text,p_target text,p_key text,p_expected bigint,p_week integer,p_day integer,p_minute integer,p_court integer) RETURNS text
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $$
 DECLARE m ace_cutover_review.matches%ROWTYPE; j ace_cutover_review.followup_jobs%ROWTYPE; old jsonb; prior ace_cutover_review.schedule_revisions%ROWTYPE; rev bigint; c ace_cutover_review.source_clock%ROWTYPE; due bigint; season int; venue text; court_key text; old_due bigint; revised jsonb;
@@ -108,8 +140,8 @@ BEGIN
  PERFORM pg_advisory_xact_lock(91026001);
  IF EXISTS(SELECT 1 FROM ace_cutover_review.active_source_resources a WHERE (a.resource_kind='player' AND a.resource_key IN(m.player1,m.player2)) OR (a.resource_kind='court' AND a.resource_key=court_key)) THEN RAISE EXCEPTION 'active resource conflict'; END IF;
  IF EXISTS(SELECT 1 FROM ace_cutover_review.source_rest_history h WHERE h.resource_kind='court' AND h.resource_key=court_key AND due<h.ready_second) THEN RAISE EXCEPTION 'court recovery conflict'; END IF;
- -- Conservative projected occupancy: reserve 420 minutes plus recovery around
- -- other known scheduled matches at the same physical venue or for same players.
+ -- Explicit estimates are directional; missing evidence retains 420 minutes.
+ -- Actual start checks continue to enforce live resource and recovery safety.
  IF EXISTS(
  SELECT 1 FROM ace_cutover_review.source_slots s JOIN ace_cutover_review.source_contracts sc USING(competition_id)
  LEFT JOIN ace_cutover_review.matches x ON x.id=s.match_id
@@ -117,8 +149,8 @@ BEGIN
  CROSS JOIN LATERAL (SELECT ace_cutover_review.effective_schedule(s.match_id) AS sl) q
  CROSS JOIN LATERAL (SELECT (( (sc.contract->>'season_number')::bigint-1)*366+2+((q.sl->>'scheduled_season_week')::int-1)*7+(q.sl->>'scheduled_day')::int-1)*86400+(q.sl->>'scheduled_start_minute')::int*60 AS at_second) z
  WHERE s.match_id<>p_target AND coalesce(x.status,'scheduled')='scheduled'
- AND ((v.venue_id=venue AND (q.sl->>'court_number')::int=p_court AND abs(z.at_second-due)<435*60)
- OR ((coalesce(x.player1,q.sl->>'player1_id') IN(m.player1,m.player2) OR coalesce(x.player2,q.sl->>'player2_id') IN(m.player1,m.player2)) AND (abs(z.at_second-due)<480*60 OR (s.competition_id<>m.competition AND z.at_second/86400=due/86400))))
+ AND ((v.venue_id=venue AND (q.sl->>'court_number')::int=p_court AND ace_cutover_review.projected_overlap(due,ace_cutover_review.projected_schedule_duration(p_target),z.at_second,ace_cutover_review.projected_schedule_duration(s.match_id),15))
+ OR ((coalesce(x.player1,q.sl->>'player1_id') IN(m.player1,m.player2) OR coalesce(x.player2,q.sl->>'player2_id') IN(m.player1,m.player2)) AND (ace_cutover_review.projected_overlap(due,ace_cutover_review.projected_schedule_duration(p_target),z.at_second,ace_cutover_review.projected_schedule_duration(s.match_id),60) OR (s.competition_id<>m.competition AND z.at_second/86400=due/86400))))
  ) THEN RAISE EXCEPTION 'projected schedule conflict'; END IF;
  revised:=old||jsonb_build_object('scheduled_season_week',p_week,'scheduled_day',p_day,'scheduled_start_minute',p_minute,'court_number',p_court);
  IF c.paused OR clock_timestamp()-c.captured_at>interval '60 seconds' OR due<=c.game_second+600 THEN RAISE EXCEPTION 'clock or delay not safe'; END IF;
