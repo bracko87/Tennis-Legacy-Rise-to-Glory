@@ -34,6 +34,7 @@ async function prepare(x,{wrongFeeder=false,legacyFirst=false}={}){
   await control('bind_feeders('+[m.match_id,f(m.player1_id),f(m.player2_id)].map(lit).join(',')+')');
   const role=i===0&&legacyFirst?'legacy':'ace';
   assert.equal(JSON.parse(await q(role,'claim('+lit(m.match_id)+')')).status,'claimed');
+  if(wrongFeeder&&i===2){await assert.rejects(q(role,'start_match('+lit(m.match_id)+',1)'),/feeder not ready or winner mismatch/);continue;}
   assert.equal(await q(role,'start_match('+lit(m.match_id)+',1)'),'started');
   assert.equal(await q(role,'finish_match('+[lit(m.match_id),'2',lit(m.winner_id),json(m)].join(',')+')'),'completed');
  }
@@ -56,7 +57,7 @@ async function run(){
  const late=clone(x);late.results[0].ranking_points_earned++;await assert.rejects(settle('ace',late),/settlement export conflict/);
  assert.deepEqual(await counts(x.competition_id),[3,1,3,1,1,0]);
  const bad=fixture('owned-feeder-conflict');await prepare(bad,{wrongFeeder:true});
- await assert.rejects(settle('ace',bad),/feeder mismatch/);assert.deepEqual(await counts(bad.competition_id),[0,0,0,0,0,0]);
+ await assert.rejects(settle('ace',bad),/query returned no rows/);assert.deepEqual(await counts(bad.competition_id),[0,0,0,0,0,0]);
  const mixed=fixture('owned-mixed');await prepare(mixed,{legacyFirst:true});
  await assert.rejects(settle('ace',mixed),/owned receipt mismatch/);assert.deepEqual(await counts(mixed.competition_id),[0,0,0,0,0,0]);
  await control("configure(false,ARRAY[]::text[])");
