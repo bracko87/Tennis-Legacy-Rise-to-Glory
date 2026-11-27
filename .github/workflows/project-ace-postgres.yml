@@ -110,6 +110,25 @@ jobs:
           node experiments/project-ace/cutover-source-qualification-exceptions-db.test.cjs
           node experiments/project-ace/cutover-pilot-preflight-db.test.cjs
           node experiments/project-ace/cutover-pilot-control-db.test.cjs
+      - name: Read-only production integration inventory rehearsal
+        env:
+          PGPASSWORD: ace-disposable-admin
+        run: |
+          psql -X -qAt -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_review -c 'CREATE DATABASE ace_integration_inventory'
+          sql() { psql -X -qAt -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_integration_inventory "$@"; }
+          sql <<'SQL'
+          CREATE TABLE public.tournament_matches(id text);
+          INSERT INTO public.tournament_matches VALUES('fixture-private-data');
+          ALTER TABLE public.tournament_matches ENABLE ROW LEVEL SECURITY;
+          GRANT TRUNCATE ON public.tournament_matches TO authenticated;
+          CREATE FUNCTION public.fixture_match_update() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RETURN NEW; END $$;
+          REVOKE ALL ON FUNCTION public.fixture_match_update() FROM PUBLIC;
+          CREATE TRIGGER fixture_match_trigger BEFORE UPDATE ON public.tournament_matches FOR EACH ROW EXECUTE FUNCTION public.fixture_match_update();
+          SQL
+          before="$(sql -c 'SELECT md5(jsonb_agg(to_jsonb(t))::text) FROM public.tournament_matches t')"
+          sql -f experiments/project-ace/production-integration-inventory.sql > "$RUNNER_TEMP/ace-integration-inventory.json"
+          node experiments/project-ace/production-integration-inventory.test.cjs "$RUNNER_TEMP/ace-integration-inventory.json"
+          test "$before" = "$(sql -c 'SELECT md5(jsonb_agg(to_jsonb(t))::text) FROM public.tournament_matches t')"
       - name: Isolated match permission hardening rehearsal
         env:
           PGPASSWORD: ace-disposable-admin

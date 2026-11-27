@@ -1,0 +1,12 @@
+'use strict';
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const a=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+assert.equal(a.schema,'ace-integration-inventory-v1');assert.equal(a.review_only,true);assert.equal(a.production_ready,false);assert.equal(a.server_major,17);
+assert.ok(a.roles.includes('authenticated'));assert.ok(a.relations.find(r=>r.name==='tournament_matches').present);
+const match=a.relations.find(r=>r.name==='tournament_matches');
+assert.equal(match.grants.authenticated.truncate,true);assert.equal(match.grants.authenticated.update,false);
+assert.equal(a.relations.find(r=>r.name==='player_rankings').present,false);
+assert.ok(a.routines.some(r=>r.signature==='public.fixture_match_update()'&&r.execute.authenticated===false));
+assert.ok(a.triggers.some(t=>t.relation==='public.tournament_matches'&&t.name==='fixture_match_trigger'&&/^[a-f0-9]{32}$/.test(t.routine_md5)));
+assert.ok(!JSON.stringify(a).includes('fixture-private-data'));
+console.log('PASS read-only integration inventory, missing relation reporting, TRUNCATE detection, routine ACL and trigger fingerprint without row data');
