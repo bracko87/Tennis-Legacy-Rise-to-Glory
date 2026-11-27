@@ -166,4 +166,58 @@ END $fn$;
 REVOKE ALL ON FUNCTION ace_shared_schedule_fixture.apply_round_plan(text,jsonb) FROM PUBLIC;
 GRANT USAGE ON SCHEMA ace_shared_schedule_fixture TO ace_review_worker;
 GRANT EXECUTE ON FUNCTION ace_shared_schedule_fixture.apply_round_plan(text,jsonb) TO ace_review_worker;
+-- Conservative forward planner: builds a bounded plan from feeder topology.
+-- All speculative changes stay in a subtransaction; only the validated batch is committed.
+CREATE TABLE ace_shared_schedule_fixture.auto_receipts(
+ request_key text PRIMARY KEY, root_id text NOT NULL, root_revision bigint NOT NULL,
+ earliest_second bigint NOT NULL, report jsonb NOT NULL
+);
+CREATE FUNCTION ace_shared_schedule_fixture.plan_rounds(p_key text,p_root text,p_revision bigint,p_earliest bigint) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_shared_schedule_fixture AS $fn$
+DECLARE prior ace_shared_schedule_fixture.auto_receipts%ROWTYPE; m ace_shared_schedule_fixture.inventory%ROWTYPE; policy ace_shared_schedule_fixture.phase_policy%ROWTYPE; node record; candidate record; earliest bigint; plan jsonb:='[]'; report jsonb; found_slot boolean; total int;
+BEGIN
+ PERFORM pg_advisory_xact_lock(91029001);
+ IF session_user<>'ace_review_worker' THEN RAISE EXCEPTION 'coordinator required'; END IF;
+ IF p_key IS NULL OR length(p_key) NOT BETWEEN 1 AND 100 OR p_earliest IS NULL OR p_earliest<0 OR p_earliest>316224000000 THEN RAISE EXCEPTION 'invalid planning request'; END IF;
+ SELECT * INTO prior FROM ace_shared_schedule_fixture.auto_receipts WHERE request_key=p_key;
+ IF FOUND THEN
+  IF ROW(prior.root_id,prior.root_revision,prior.earliest_second) IS DISTINCT FROM ROW(p_root,p_revision,p_earliest) THEN RAISE EXCEPTION 'conflicting planning retry'; END IF;
+  RETURN prior.report||jsonb_build_object('status','already_planned_review');
+ END IF;
+ SELECT * INTO STRICT m FROM ace_shared_schedule_fixture.inventory WHERE id=p_root FOR UPDATE;
+ IF m.revision IS DISTINCT FROM p_revision OR m.status<>'scheduled' OR m.owner NOT IN ('ace','legacy') THEN RAISE EXCEPTION 'invalid planning root'; END IF;
+ WITH RECURSIVE reachable(id) AS (SELECT p_root UNION SELECT f.downstream_id FROM ace_shared_schedule_fixture.feeders f JOIN reachable r ON f.feeder_id=r.id) SELECT count(*) INTO total FROM reachable;
+ IF total>32 THEN RETURN jsonb_build_object('status','plan_limit_review'); END IF;
+ BEGIN
+ FOR node IN WITH RECURSIVE paths(id,depth) AS (SELECT p_root,0 UNION SELECT f.downstream_id,p.depth+1 FROM ace_shared_schedule_fixture.feeders f JOIN paths p ON f.feeder_id=p.id) SELECT id,max(depth) AS depth FROM paths GROUP BY id ORDER BY max(depth),id LOOP
+  SELECT * INTO STRICT m FROM ace_shared_schedule_fixture.inventory WHERE id=node.id FOR UPDATE;
+  SELECT greatest(m.start_second,CASE WHEN m.id=p_root THEN p_earliest ELSE 0 END,coalesce(max(coalesce(x.actual_end_second,x.start_second+x.duration_minutes*60)+3600),0)) INTO earliest FROM ace_shared_schedule_fixture.feeders f JOIN ace_shared_schedule_fixture.inventory x ON x.id=f.feeder_id WHERE f.downstream_id=m.id;
+  SELECT greatest(earliest,coalesce(max(o.earliest_second),0)) INTO earliest FROM ace_shared_schedule_fixture.obligations o WHERE o.target_id=m.id AND o.target_revision=m.revision;
+  IF m.id<>p_root AND earliest<=m.start_second THEN CONTINUE; END IF;
+  IF m.status<>'scheduled' OR m.owner NOT IN ('ace','legacy') THEN RAISE EXCEPTION USING ERRCODE='P2901',MESSAGE='protected downstream match'; END IF;
+  SELECT * INTO policy FROM ace_shared_schedule_fixture.phase_policy WHERE match_id=m.id;
+  IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P2901',MESSAGE='missing phase policy'; END IF;
+  found_slot:=false;
+  FOR candidate IN SELECT d::bigint*86400+minute*60 AS second,c AS court FROM generate_series(greatest(policy.first_day,(earliest/86400)::int),policy.last_day) d CROSS JOIN generate_series(600,1290,30) minute CROSS JOIN generate_series(1,policy.court_count) c WHERE d::bigint*86400+minute*60>=earliest ORDER BY d,(c<>m.court),minute,c LOOP
+   IF EXISTS(SELECT 1 FROM ace_shared_schedule_fixture.inventory x WHERE x.id<>m.id AND (
+    (x.venue=m.venue AND x.court=candidate.court AND candidate.second<coalesce(x.actual_end_second,x.start_second+x.duration_minutes*60)+900 AND x.start_second<candidate.second+m.duration_minutes*60+900)
+    OR ((x.player1 IN(m.player1,m.player2) OR x.player2 IN(m.player1,m.player2)) AND candidate.second<coalesce(x.actual_end_second,x.start_second+x.duration_minutes*60)+3600 AND x.start_second<candidate.second+m.duration_minutes*60+3600))) THEN CONTINUE; END IF;
+   plan:=plan||jsonb_build_array(jsonb_build_object('id',m.id,'owner',m.owner,'revision',m.revision,'second',candidate.second,'court',candidate.court));
+   UPDATE ace_shared_schedule_fixture.inventory SET start_second=candidate.second,court=candidate.court WHERE id=m.id;
+   found_slot:=true; EXIT;
+  END LOOP;
+  IF NOT found_slot THEN RAISE EXCEPTION USING ERRCODE='P2901',MESSAGE='no safe replacement slot'; END IF;
+ END LOOP;
+ -- Deliberately roll back speculative writes, retaining the PL/pgSQL plan variable.
+ RAISE EXCEPTION USING ERRCODE='P2902',MESSAGE='planning complete';
+ EXCEPTION WHEN SQLSTATE 'P2902' THEN NULL;
+ WHEN SQLSTATE 'P2901' THEN RETURN jsonb_build_object('status','manual_review_required','reason',SQLERRM);
+ END;
+ report:=ace_shared_schedule_fixture.apply_round_plan('auto:'||p_key,plan);
+ report:=report||jsonb_build_object('plan',plan);
+ INSERT INTO ace_shared_schedule_fixture.auto_receipts VALUES(p_key,p_root,p_revision,p_earliest,report);
+ RETURN report;
+END $fn$;
+REVOKE ALL ON FUNCTION ace_shared_schedule_fixture.plan_rounds(text,text,bigint,bigint) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION ace_shared_schedule_fixture.plan_rounds(text,text,bigint,bigint) TO ace_review_worker;
 COMMIT;
