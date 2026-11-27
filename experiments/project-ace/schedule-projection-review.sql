@@ -40,7 +40,7 @@ BEGIN
  IF ace_cutover_review.note_followup_attempt(p_source,p_target,p_key,'rescheduled')<>'recorded_review' THEN RAISE EXCEPTION 'unavailable attempt'; END IF;
  INSERT INTO ace_cutover_review.schedule_revisions VALUES(p_target,rev+1,old,jsonb_set(old,'{scheduled_start_minute}',to_jsonb(p_minute)),p_source,p_key);
  -- Force fresh readiness without changing lifecycle revisions (which are contiguous).
- DELETE FROM ace_cutover_review.source_readiness WHERE match_id=p_target;
+ UPDATE ace_cutover_review.source_readiness SET match_revision=-1 WHERE match_id=p_target;
  RETURN 'applied_review';
 END $$;
 CREATE OR REPLACE FUNCTION ace_cutover_review.start_source(p_id text,p_match_rev bigint,p_ready_rev bigint,p_clock_rev bigint) RETURNS text
