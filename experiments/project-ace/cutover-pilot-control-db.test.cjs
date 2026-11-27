@@ -43,8 +43,18 @@ async function run(){
  await assert.rejects(control("configure(false,ARRAY[]::text[])"),/rejected operation/);
  await assert.rejects(control("configure(true,ARRAY['other'])"),/rejected operation/);
  assert.equal((await monitor()).state,'active_isolated');
+ const health=()=>control('pilot_health('+lit(c)+',900)').then(JSON.parse);
+ const normal=await health();assert.equal(normal.recommendation,'no_detected_integrity_alert');assert.equal(normal.clock_state,'observed');assert.equal(normal.automatic_stop,false);assert.equal(normal.worker_heartbeat_verified,false);
+ await assert.rejects(q('ace','pilot_health('+lit(c)+',900)'),/permission denied/);
+ await assert.rejects(control('pilot_health('+lit(c)+',1)'),/rejected operation/);
+
  const admit=(role,id)=>q(role,'admit_source('+lit(id)+',0)').then(JSON.parse);
  assert.equal((await admit('ace',matches[0].id)).status,'admitted');
+ await control('publish_source_clock('+[lit(c),0,due+901,false].join(',')+')');
+ const late=await health();assert.equal(late.recommendation,'operator_investigation');assert.ok(late.alerts.some(a=>a.kind==='scheduled_match_overdue'&&a.match_id===matches[0].id));assert.equal(late.state,'active_isolated');
+ await control('publish_source_clock('+[lit(c),1,due+901,true].join(',')+')');
+ const paused=await health();assert.equal(paused.clock_state,'paused');assert.equal(paused.alerts.some(a=>a.kind==='scheduled_match_overdue'),false);
+
  assert.equal((await stop('synthetic operator stop')).status,'admissions_stopped');
  assert.equal((await stop('synthetic operator stop')).status,'already_stopped');
  await assert.rejects(stop('different'),/rejected operation/);

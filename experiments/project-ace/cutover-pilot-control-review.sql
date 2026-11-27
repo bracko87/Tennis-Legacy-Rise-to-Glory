@@ -76,4 +76,39 @@ BEGIN
 END $fn$;
 REVOKE ALL ON FUNCTION ace_cutover_review.guard_pilot_policy(),ace_cutover_review.guard_stopped_pilot_admission(),ace_cutover_review.activate_pilot(text,jsonb,jsonb),ace_cutover_review.stop_pilot(text,text),ace_cutover_review.pilot_monitor(text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION ace_cutover_review.activate_pilot(text,jsonb,jsonb),ace_cutover_review.stop_pilot(text,text),ace_cutover_review.pilot_monitor(text) TO ace_review_worker;
+-- Health classification is advisory only; no automatic stop or transfer of ownership.
+-- Default grace is a provisional review threshold, not an approved production SLA.
+CREATE FUNCTION ace_cutover_review.pilot_health(p_comp text,p_grace_seconds integer DEFAULT 900) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $health$
+DECLARE mon jsonb; c ace_cutover_review.source_clock%ROWTYPE; contract jsonb; alerts jsonb; clock_state text; stale boolean; critical int; warnings int;
+BEGIN
+ IF p_grace_seconds IS NULL OR p_grace_seconds NOT BETWEEN 60 AND 86400 THEN RAISE EXCEPTION 'invalid monitoring grace'; END IF;
+ mon:=ace_cutover_review.pilot_monitor(p_comp);
+ SELECT * INTO c FROM ace_cutover_review.source_clock WHERE competition_id=p_comp;
+ SELECT s.contract INTO STRICT contract FROM ace_cutover_review.source_contracts s WHERE competition_id=p_comp;
+ stale:=c.competition_id IS NULL OR c.captured_at<statement_timestamp()-interval '60 seconds' OR c.captured_at>statement_timestamp();
+ clock_state:=CASE WHEN stale THEN 'missing_or_stale' WHEN c.paused THEN 'paused' ELSE 'observed' END;
+ WITH integrity AS (
+ SELECT x->>'kind' AS kind,x->>'match_id' AS match_id,
+ CASE WHEN x->>'kind' IN ('ownership_mismatch','active_resource_mismatch','terminal_resource_leak','nonplay_activity','finalization_inventory_mismatch') THEN 'critical' ELSE 'warning' END AS severity
+ FROM jsonb_array_elements(mon->'lifecycle'->'blockers') x
+ WHERE x->>'kind' IN ('ownership_mismatch','active_resource_mismatch','terminal_resource_leak','nonplay_activity','finalization_inventory_mismatch','result_sync_pending','played_recovery_evidence_missing','career_effects_pending','handoff_pending','reward_reconciliation_unresolved')
+ ), overdue AS (
+ SELECT CASE WHEN m.status='in_progress' THEN 'live_match_overdue' ELSE 'scheduled_match_overdue' END AS kind,m.id AS match_id,'warning'::text AS severity
+ FROM ace_cutover_review.matches m JOIN ace_cutover_review.source_slots s ON s.match_id=m.id
+ LEFT JOIN ace_cutover_review.source_starts st ON st.match_id=m.id
+ WHERE m.competition=p_comp AND m.owner='ace' AND NOT stale AND NOT c.paused
+ AND ((m.status='in_progress' AND st.game_second IS NOT NULL AND c.game_second>st.game_second+25200+p_grace_seconds)
+ OR (m.status='scheduled' AND c.game_second>((((contract->>'season_number')::bigint-1)*366+2+((s.slot->>'scheduled_season_week')::bigint-1)*7+(s.slot->>'scheduled_day')::bigint-1)*86400+(s.slot->>'scheduled_start_minute')::bigint*60+p_grace_seconds)))
+ ), all_alerts AS (
+ SELECT * FROM integrity UNION ALL SELECT * FROM overdue
+ UNION ALL SELECT 'clock_missing_or_stale',NULL::text,'warning' WHERE stale
+ )
+ SELECT coalesce(jsonb_agg(jsonb_build_object('kind',kind,'match_id',match_id,'severity',severity) ORDER BY severity,kind,match_id),'[]'::jsonb),count(*) FILTER(WHERE severity='critical'),count(*) FILTER(WHERE severity='warning') INTO alerts,critical,warnings FROM all_alerts;
+ RETURN jsonb_build_object('schema','ace-pilot-health-v1','competition_id',p_comp,'review_only',true,'production_ready',false,'state',mon->>'state','clock_state',clock_state,'clock_revision',c.revision,'grace_game_seconds',p_grace_seconds,'alerts',alerts,'critical_count',critical,'warning_count',warnings,
+ 'recommendation',CASE WHEN critical>0 THEN 'operator_stop_review' WHEN warnings>0 THEN 'operator_investigation' ELSE 'no_detected_integrity_alert' END,
+ 'can_retire_pilot',mon->'can_retire_pilot','worker_heartbeat_verified',false,'automatic_stop',false);
+END $health$;
+REVOKE ALL ON FUNCTION ace_cutover_review.pilot_health(text,integer) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION ace_cutover_review.pilot_health(text,integer) TO ace_review_worker;
 COMMIT;
