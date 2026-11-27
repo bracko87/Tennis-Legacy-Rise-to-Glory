@@ -3,8 +3,8 @@
 .tlg-why-heading{max-width:850px;margin-bottom:22px;scroll-margin-top:90px}
 .tlg-why-heading .tlg-section-title{margin:7px 0 8px;font-size:clamp(1.65rem,3vw,2.4rem);font-weight:600}
 .tlg-why-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
-.tlg-why-card{position:relative;display:flex;align-items:center;min-height:92px;min-width:0;overflow:hidden;border:1px solid rgba(154,202,244,.2);border-radius:12px;background:linear-gradient(130deg,#192f4e,#08192f);padding:12px 48px 12px 14px;color:#fff;text-decoration:none;transition:border-color .2s}
-.tlg-why-card-copy{display:grid;gap:3px;min-width:0;overflow-wrap:anywhere}
+.tlg-why-card{position:relative;display:flex;align-items:center;min-height:74px;min-width:0;overflow:hidden;border:1px solid rgba(154,202,244,.2);border-radius:12px;background:linear-gradient(130deg,#192f4e,#08192f);padding:12px 48px 12px 14px;color:#fff;text-decoration:none;transition:border-color .2s}
+.tlg-why-card-copy{display:grid;gap:3px;min-width:0;max-width:100%;overflow-wrap:anywhere}
 .tlg-why-card-copy strong{font-size:.89rem;line-height:1.35;font-weight:650}
 .tlg-why-card-copy>span{font-size:.75rem;line-height:1.45;color:#c6d6e9}
 .tlg-why-card-action{position:absolute;inset:0 0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;width:38px;gap:4px;border-left:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);transition:background .2s,width .25s;color:#d5e6f8}
@@ -60,3 +60,6 @@
 @media(max-width:820px){.tlg-why-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tlg-discord-section{padding:40px 0}.tlg-discord-section .tlg-discord-card{flex-wrap:wrap}.tlg-discord-section .tlg-discord-button{margin-left:98px}.tlg-why-detail-layout{grid-template-columns:1fr}.tlg-why-related nav{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.tlg-why-tennis{padding:28px 0}.tlg-why-grid{grid-template-columns:1fr}.tlg-why-card{min-height:74px}.tlg-discord-section .tlg-discord-card{display:grid;grid-template-columns:1fr;gap:14px}.tlg-discord-section .tlg-discord-button{margin-left:0;width:100%}.tlg-why-detail{padding:30px 0 44px}.tlg-why-detail .tlg-why-detail-topic{grid-template-columns:32px minmax(0,1fr);gap:10px}.tlg-why-topic-number{width:32px;height:32px}.tlg-why-related nav{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.tlg-why-card,.tlg-why-card-action{transition:none}}
+
+/* Keep concise captions on one line on desktop; allow natural wrapping on smaller screens. */
+@media(min-width:1151px){.tlg-why-card-copy>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tlg-why-card:hover .tlg-why-card-copy,.tlg-why-card:focus-visible .tlg-why-card-copy{max-width:60%}}
