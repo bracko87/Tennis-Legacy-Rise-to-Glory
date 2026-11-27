@@ -222,6 +222,7 @@ CREATE TABLE ace_cutover_review.followup_outbox(
  attempts integer NOT NULL DEFAULT 0 CHECK(attempts>=0),
  state text NOT NULL DEFAULT 'pending' CHECK(state IN ('pending','discovered','review_required')),
  last_error text,
+ next_attempt_at timestamptz NOT NULL DEFAULT clock_timestamp(),
  report jsonb,
  CHECK((state='pending') OR report IS NOT NULL)
 );
@@ -241,7 +242,7 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review 
 DECLARE j ace_cutover_review.followup_outbox%ROWTYPE; r jsonb; new_state text; err text;
 BEGIN
  SELECT * INTO STRICT j FROM ace_cutover_review.followup_outbox WHERE source_id=p_id FOR UPDATE;
- IF j.state<>'pending' THEN RETURN jsonb_build_object('state',j.state,'attempts',j.attempts,'report',j.report); END IF;
+ IF j.state<>'pending' OR j.next_attempt_at>clock_timestamp() THEN RETURN jsonb_build_object('state',j.state,'attempts',j.attempts,'report',j.report); END IF;
  BEGIN
   r:=ace_cutover_review.discover_followups(p_id);
   IF EXISTS(SELECT 1 FROM jsonb_array_elements(r->'candidates') x WHERE x->>'outcome'='stage_requires_retry') THEN
@@ -252,12 +253,36 @@ BEGIN
  EXCEPTION WHEN OTHERS THEN
   new_state:='pending'; err:=SQLSTATE; r:=NULL;
  END;
- UPDATE ace_cutover_review.followup_outbox SET attempts=attempts+1,state=new_state,last_error=err,report=r WHERE source_id=p_id RETURNING * INTO j;
+ IF new_state='pending' AND j.attempts+1>=5 THEN
+  new_state:='review_required';
+  r:=coalesce(r,jsonb_build_object('source_id',p_id,'review_only',true))||jsonb_build_object('retry_exhausted',true,'error',err);
+ END IF;
+ UPDATE ace_cutover_review.followup_outbox SET attempts=attempts+1,state=new_state,last_error=err,report=r,next_attempt_at=clock_timestamp()+make_interval(secs=>least(300,5*power(2,least(j.attempts,6)))::int) WHERE source_id=p_id RETURNING * INTO j;
  RETURN jsonb_build_object('state',j.state,'attempts',j.attempts,'report',j.report);
 END $outbox$;
 REVOKE ALL ON FUNCTION ace_cutover_review.enqueue_followup_completion(),ace_cutover_review.process_followup_outbox(text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION ace_cutover_review.process_followup_outbox(text) TO ace_review_worker;
 GRANT SELECT ON ace_cutover_review.followup_outbox TO ace_review_worker;
+
+-- Polling entrypoint. Transaction locks release automatically on worker disconnect.
+CREATE INDEX followup_outbox_pending_idx ON ace_cutover_review.followup_outbox(next_attempt_at,source_id) WHERE state='pending';
+CREATE FUNCTION ace_cutover_review.drain_followup_outbox(p_limit integer) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $drain$
+DECLARE item record; results jsonb:='[]'; r jsonb;
+BEGIN
+ IF p_limit IS NULL OR p_limit NOT BETWEEN 1 AND 20 THEN RAISE EXCEPTION 'invalid batch limit'; END IF;
+ -- Single drain per transaction; individual processors also lock their rows.
+ IF NOT pg_try_advisory_xact_lock(91028001) THEN RETURN jsonb_build_object('status','busy_review','processed',0,'items',results); END IF;
+ FOR item IN SELECT source_id FROM ace_cutover_review.followup_outbox WHERE state='pending' AND next_attempt_at<=clock_timestamp()
+ ORDER BY next_attempt_at,source_id LIMIT p_limit FOR UPDATE SKIP LOCKED
+ LOOP
+  r:=ace_cutover_review.process_followup_outbox(item.source_id);
+  results:=results||jsonb_build_array(jsonb_build_object('source_id',item.source_id,'result',r));
+ END LOOP;
+ RETURN jsonb_build_object('status','processed_review','processed',jsonb_array_length(results),'items',results);
+END $drain$;
+REVOKE ALL ON FUNCTION ace_cutover_review.drain_followup_outbox(integer) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION ace_cutover_review.drain_followup_outbox(integer) TO ace_review_worker;
 
 CREATE OR REPLACE FUNCTION ace_cutover_review.start_source(p_id text,p_match_rev bigint,p_ready_rev bigint,p_clock_rev bigint) RETURNS text
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $$
