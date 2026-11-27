@@ -126,7 +126,41 @@ async function run(){
  assert.equal(JSON.parse(rollback).processed,1);
  assert.equal(await db.sql('SELECT attempts FROM ace_cutover_review.followup_outbox WHERE source_id='+lit(target.id)+';'),'0');
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.followup_discovery WHERE source_id='+lit(target.id)+';'),'0');
- const batch=await drain(1);
+ // Kill a real psql client after its drain returns but before commit.
+ const child=spawn('psql',['-X','-qAt','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p',String(process.env.ACE_REVIEW_DB_PORT||55432),'-U','ace_review_worker','-d','ace_review','-w'],{env:{PATH:process.env.PATH,PGPASSWORD:process.env.ACE_REVIEW_DB_PASSWORD,PGCONNECT_TIMEOUT:'5',PGSSLMODE:'disable'},stdio:['pipe','pipe','pipe']});
+ try{
+  const observed=new Promise((resolve,reject)=>{
+   let out='',err='';
+   const timer=setTimeout(()=>reject(Error('interruption fixture timeout: '+err)),10000);
+   child.stdout.on('data',d=>{out+=d;if(out.includes('ACE_UNCOMMITTED_DRAIN')){clearTimeout(timer);resolve(out);}});
+   child.stderr.on('data',d=>err+=d);
+   child.once('error',e=>{clearTimeout(timer);reject(e);});
+   child.once('close',()=>{clearTimeout(timer);reject(Error('unexpected fixture exit'));});
+  });
+  child.stdin.write("BEGIN; SELECT ace_cutover_review.drain_followup_outbox(1); SELECT 'ACE_UNCOMMITTED_DRAIN';\n");
+  const out=await observed;
+  assert.equal(JSON.parse(out.split('\n')[0]).processed,1);
+  assert.equal((await drain(1)).status,'busy_review');
+  const exited=new Promise(resolve=>child.once('close',(code,signal)=>resolve(signal)));
+  child.kill('SIGKILL');assert.equal(await exited,'SIGKILL');
+ }finally{if(child.exitCode===null&&child.signalCode===null)child.kill('SIGKILL');}
+ // Restart the actual periodic Node worker against the surviving obligation.
+ const {isolatedPoller}=require('./followup-poller.cjs');
+ let errors=[];
+ const poller=isolatedPoller({...process.env,ACE_FOLLOWUP_REVIEW:'disposable-ci-only'},e=>errors.push(e));
+ try{
+  poller.start();
+  const deadline=Date.now()+10000;
+  while(await db.sql('SELECT state FROM ace_cutover_review.followup_outbox WHERE source_id='+lit(target.id)+';')==='pending'){
+   if(Date.now()>deadline)throw Error('restart did not recover obligation');
+   await new Promise(r=>setTimeout(r,100));
+  }
+ }finally{await poller.stop();}
+ assert.deepEqual(errors,[]);
+ assert.equal(await db.sql('SELECT attempts FROM ace_cutover_review.followup_outbox WHERE source_id='+lit(target.id)+';'),'1');
+ assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.followup_discovery WHERE source_id='+lit(target.id)+';'),'1');
+ const batch={processed:1,items:[{source_id:target.id,result:await processOutbox(target.id)}]};
+ console.log('PASS killed psql transaction, lock release and actual periodic worker recovery of pending obligation');
  assert.equal(batch.processed,1);
  assert.equal(batch.items[0].source_id,target.id);
  const processed=batch.items[0].result;
