@@ -120,6 +120,12 @@ async function run(){
  const drain=n=>control('drain_followup_outbox('+n+')').then(JSON.parse);
  await assert.rejects(drain(0),/rejected/);
  await assert.rejects(drain(21),/rejected/);
+ // A separate transaction performs a drain then rolls back, modeling a worker
+ // disconnect before commit. Its queue obligation must remain pending.
+ const rollback=await db.sql('BEGIN; SELECT ace_cutover_review.drain_followup_outbox(1); ROLLBACK;');
+ assert.equal(JSON.parse(rollback).processed,1);
+ assert.equal(await db.sql('SELECT attempts FROM ace_cutover_review.followup_outbox WHERE source_id='+lit(target.id)+';'),'0');
+ assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.followup_discovery WHERE source_id='+lit(target.id)+';'),'0');
  const batch=await drain(1);
  assert.equal(batch.processed,1);
  assert.equal(batch.items[0].source_id,target.id);
