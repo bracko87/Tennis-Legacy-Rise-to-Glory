@@ -23,21 +23,21 @@ async function register(id){await control('register_competition('+lit(id)+')');a
 async function seed(id,m,a=null,b=null){await control('seed_match('+[m.match_id,id,'singles'].map(lit).join(',')+",true,'scheduled','none',false,"+[m.player1_id,m.player2_id].map(lit).join(',')+')');await control('bind_feeders('+[m.match_id,a,b].map(lit).join(',')+')');}
 const {freeze:freezeSource}=require('./source-admission-review.cjs');
 const {fixture:qualificationFixture}=require('./source-qualification-review.test.cjs'),{freezeQualification}=require('./source-qualification-review.cjs');
-async function run(){
- const input=qualificationFixture('qualification-source-ci'),c=input.competition.id,f=freezeQualification(input);
+async function run(qr){
+ const input=qualificationFixture('qualification-source-ci-'+qr,qr),c=input.competition.id,f=freezeQualification(input);
  const imp=x=>control('import_source_qualification('+json(x)+')');
- const bad=clone(f);bad.matches[3].feeder1=bad.matches[2].feeder1;await assert.rejects(imp(bad),/rejected/);
+ const main=f.matches.filter(x=>x.draw_type==='main_draw');const bad=clone(f);bad.matches.find(x=>x.match_id===main[1].match_id).feeder1=main[0].feeder1;await assert.rejects(imp(bad),/rejected/);
  assert.equal(await imp(f),'imported');assert.equal(await imp(f),'already_imported');
  await control('bind_source_venue('+[lit(c),lit(c+'-venue')].join(',')+')');await control('configure(true,ARRAY['+lit(c)+'])');
  const winners=new Map(),played=[],results=[],transactions=[],conditions=[],support_events=[];
- const rewards=[['qualifying_final_loss',7,100],['qualified_bonus',13,0],['quarterfinal',50,200],['semifinal',100,400],['runner_up',165,500],['winner',250,1000]].map(([stage_code,ranking_points,prize_money_usd])=>({stage_code,ranking_points,prize_money_usd}));
+ const rewards=[['qualifying_round_1_loss',1,20],['qualifying_round_2_loss',3,50],['qualifying_final_loss',7,100],['qualified_bonus',13,0],['quarterfinal',50,200],['semifinal',100,400],['runner_up',165,500],['winner',250,1000]].map(([stage_code,ranking_points,prize_money_usd])=>({stage_code,ranking_points,prize_money_usd}));
  const admit=(id,rev=0)=>q('ace','admit_source('+lit(id)+','+rev+')').then(JSON.parse);
  const observe=(id,p1,p2)=>control('observe_source('+[lit(id),0,json({player1_id:p1,player2_id:p2,status:'scheduled',simulation:'none',started:false,winner_id:null})].join(',')+')');
  const sync=async id=>{await control('sync_source_event('+lit(id)+',2)');await control('sync_source_event('+lit(id)+',3)');};
- assert.equal((await admit(f.matches[4].match_id)).status,'qualification_sync_pending');
+ assert.equal((await admit(main[2].match_id)).status,'qualification_sync_pending');
  let cr=-1;
- for(const [phase,round] of [['qualification',1],['main_draw',1],['main_draw',2],['main_draw',3]]){
-  const day=phase==='qualification'?2:8+round;
+ for(const [phase,round] of [...Array.from({length:qr},(_,i)=>['qualification',i+1]),['main_draw',1],['main_draw',2],['main_draw',3]]){
+  const day=phase==='qualification'?round+1:8+round;
   assert.equal(await control('publish_source_clock('+[lit(c),cr,day*86400+36000,false].join(',')+')'),String(++cr));
   for(const s of f.matches.filter(x=>x.draw_type===phase&&x.round_number===round)){
    const id=s.match_id,p1=s.feeder1?winners.get(s.feeder1):s.player1_id,p2=s.feeder2?winners.get(s.feeder2):s.player2_id,rev=s.feeder1||s.feeder2?1:0;
@@ -48,16 +48,16 @@ async function run(){
    assert.equal(await q('ace','start_source('+lit(id)+',1,0,'+cr+')'),'started');
    const m={match_id:id,competition_id:c,player1_id:p1,player2_id:p2,winner_id:p1,status:'completed',score:'6-0 6-0',actual_duration_minutes:68,sets:[{match_id:id,set_number:1,player1_games:6,player2_games:0},{match_id:id,set_number:2,player1_games:6,player2_games:0}],stats:[{match_id:id,player_id:p1,total_points_won:48},{match_id:id,player_id:p2,total_points_won:10}]};
    await q('ace','finish_match('+[lit(id),2,lit(p1),json(m)].join(',')+')');played.push(m);winners.set(id,p1);
-   if(phase==='qualification'&&played.length===2)assert.equal((await admit(f.matches[4].match_id)).status,'qualification_sync_pending');
+   if(phase==='qualification'&&played.length===2*(2**qr-1))assert.equal((await admit(main[2].match_id)).status,'qualification_sync_pending');
    await sync(id);
   }
  }
- const contract={matches:f.matches.map(x=>({match_id:x.match_id,phase:x.draw_type,round_number:x.round_number,round_label:x.draw_type==='qualification'?'Final Qualifying':['Quarterfinal','Semifinal','Final'][x.round_number-1]})),players:input.players.map(p=>({player_id:p.id,player_type:'ai'})),rewards,ranking_publish_absolute_day:16};
- const audit=JSON.parse(await control('audit_special_closure('+lit(c)+','+json(contract)+')'));assert.equal(audit.status,'normal_legacy_candidates');assert.equal(audit.legacy_result_candidates.length,10);assert.equal(audit.legacy_result_candidates.filter(x=>x.result_stage_code==='qualifying_final_loss').length,2);assert.equal(audit.legacy_result_candidates.filter(x=>x.qualifying_bonus_points===13).length,2);assert.equal(audit.champion_candidate_id,input.players[0].id);
- results.push(...audit.legacy_result_candidates.map(x=>({...x,result_code:x.result_stage_code==='winner'?'champion':x.result_stage_code==='qualifying_final_loss'?'qualifying':x.result_stage_code})));
+ const contract={matches:f.matches.map(x=>({match_id:x.match_id,phase:x.draw_type,round_number:x.round_number,round_label:x.draw_type==='qualification'?(x.round_number===qr?'Final Qualifying':'Qualifying Round '+x.round_number):['Quarterfinal','Semifinal','Final'][x.round_number-1]})),players:input.players.map(p=>({player_id:p.id,player_type:'ai'})),rewards,ranking_publish_absolute_day:16};
+ const audit=JSON.parse(await control('audit_special_closure('+lit(c)+','+json(contract)+')'));assert.equal(audit.status,'normal_legacy_candidates');assert.equal(audit.legacy_result_candidates.length,input.players.length);assert.equal(audit.legacy_result_candidates.filter(x=>x.result_stage_code==='qualifying_final_loss').length,2);assert.equal(audit.legacy_result_candidates.filter(x=>x.qualifying_bonus_points===13).length,2);assert.equal(audit.champion_candidate_id,input.players[0].id);for(let r=1;r<qr;r++)assert.equal(audit.legacy_result_candidates.filter(x=>x.result_stage_code==='qualifying_round_'+r+'_loss').length,2*2**(qr-r));
+ results.push(...audit.legacy_result_candidates.map(x=>({...x,result_code:x.result_stage_code==='winner'?'champion':x.result_stage_code.startsWith('qualifying_')?'qualifying':x.result_stage_code})));
  const payload={schema:'ace-settlement-review-v1',review_only:true,production_ready:false,participant_order_verified:true,competition_id:c,matches:played,results,transactions,conditions,support_events};
  assert.equal(await settle(payload),'finalized_review');assert.equal(await settle(payload),'already_finalized');
- assert.equal(await db.sql('SELECT count(*) FROM ace_review.finalized_matches WHERE competition_id='+lit(c)+';'),'9');
- await control("configure(false,ARRAY[]::text[])");console.log('PASS imported single-round qualification, synchronized winners, exact main slots, qualified bonus, final loss and full review settlement');
+ assert.equal(await db.sql('SELECT count(*) FROM ace_review.finalized_matches WHERE competition_id='+lit(c)+';'),String(f.matches.length));
+ await control("configure(false,ARRAY[]::text[])");console.log('PASS imported '+qr+'-round qualification, synchronized winners, exact main slots, qualified bonus, final loss and full review settlement');
 }
-run().catch(e=>{console.error(e);process.exitCode=1});
+(async()=>{for(const qr of [1,2,3])await run(qr);})().catch(e=>{console.error(e);process.exitCode=1});
