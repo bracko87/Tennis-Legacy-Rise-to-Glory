@@ -59,10 +59,13 @@ function validateResult(result,frozen,legacy=false){
   points+=s.total_points_won;served+=s.first_serves_total;classified+=s.aces+s.double_faults+s.winners+s.unforced_errors;
  }
  for(let i=0;i<2;i++){const a=result.stats[i],b=result.stats[1-i];check(a.total_points_won===a.first_serve_points_won+a.second_serve_points_won+b.first_serves_total-b.first_serve_points_won-b.second_serve_points_won,'Inconsistent points won');}
- check(points===served&&points===classified&&points>=games*4,'Inconsistent match point totals');
+ // Historical base-v1.1/v2.0 classification removes forced errors from winners
+ // without recording a separate aggregate field. Preserve the residual explicitly.
+ const forcedOmitted=legacy&&['base-v1.1','base-v2.0'].includes(result.engine_version);
+ check(points===served&&(forcedOmitted?classified<=points:classified===points)&&points>=games*4,'Inconsistent match point totals');
  check(integer(result.actual_duration_minutes,1,1440),'Invalid observed duration');
  if(!legacy)check(result.actual_duration_minutes===duration(games,points),'Ace duration mismatch');
- return {games,points,minutes:result.actual_duration_minutes,first_serve_rate:result.stats.reduce((n,s)=>n+s.first_serves_in,0)/served,ace_rate:result.stats.reduce((n,s)=>n+s.aces,0)/points,double_fault_rate:result.stats.reduce((n,s)=>n+s.double_faults,0)/points};
+ return {games,points,minutes:result.actual_duration_minutes,first_serve_rate:result.stats.reduce((n,s)=>n+s.first_serves_in,0)/served,ace_rate:result.stats.reduce((n,s)=>n+s.aces,0)/points,double_fault_rate:result.stats.reduce((n,s)=>n+s.double_faults,0)/points,unclassified_point_rate:(points-classified)/points};
 }
 function compare(frozen,legacy){
  verify(frozen);

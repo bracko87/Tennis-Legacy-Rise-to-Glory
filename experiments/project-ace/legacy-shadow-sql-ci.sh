@@ -67,4 +67,13 @@ cmp "$tmp/historical-result.json" "$tmp/historical-repeat.json"
 node historical-legacy-shadow.test.cjs "$tmp"
 [[ "$before" == "$(fingerprint)" ]]
 [[ "$(admin -c "SELECT status FROM public.tournament_matches WHERE id='00000000-0000-4000-8000-000000000005'")" == scheduled ]]
+admin < "$tmp/historical-later.sql"
+before="$(fingerprint)"
+for version in v1 v2; do
+ reader -c "BEGIN READ ONLY; SELECT public.simulate_tournament_match_${version}('00000000-0000-4000-8000-000000000005','321'); ROLLBACK;" > "$tmp/historical-${version}.json"
+ reader -c "BEGIN READ ONLY; SELECT public.simulate_tournament_match_${version}('00000000-0000-4000-8000-000000000005','321'); ROLLBACK;" > "$tmp/historical-${version}-repeat.json"
+ cmp "$tmp/historical-${version}.json" "$tmp/historical-${version}-repeat.json"
+done
+node historical-legacy-later.test.cjs "$tmp"
+[[ "$before" == "$(fingerprint)" ]]
 
