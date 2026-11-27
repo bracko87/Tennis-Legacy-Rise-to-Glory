@@ -90,6 +90,7 @@ jobs:
           node experiments/project-ace/cutover-special-closure-db.test.cjs
           node experiments/project-ace/cutover-reconciliation-db.test.cjs
           node experiments/project-ace/cutover-drain-db.test.cjs
+          node experiments/project-ace/cutover-identity-db.test.cjs
       - name: Build isolated browser and install pinned Chromium driver
         run: |
           npm ci --ignore-scripts

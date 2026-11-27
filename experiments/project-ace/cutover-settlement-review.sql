@@ -31,6 +31,10 @@ BEGIN
  PERFORM pg_advisory_xact_lock(hashtextextended(NEW.competition,91023));
  IF EXISTS(SELECT 1 FROM ace_cutover_review.protected_competitions WHERE competition_id=NEW.competition)
  AND EXISTS(SELECT 1 FROM ace_review.finalized_competitions WHERE competition_id=NEW.competition) THEN RAISE EXCEPTION 'competition finalized'; END IF;
+ IF EXISTS(SELECT 1 FROM ace_cutover_review.protected_competitions WHERE competition_id=NEW.competition) THEN
+  PERFORM pg_advisory_xact_lock(hashtextextended(NEW.id,91024));
+  IF EXISTS(SELECT 1 FROM ace_review.finalization_claims WHERE match_id=NEW.id) OR EXISTS(SELECT 1 FROM ace_review.finalized_matches WHERE match_id=NEW.id) THEN RAISE EXCEPTION 'preexisting finalization identity'; END IF;
+ END IF;
  RETURN NEW;
 END $$;
 CREATE TRIGGER cutover_seed BEFORE INSERT ON ace_cutover_review.matches FOR EACH ROW EXECUTE FUNCTION ace_cutover_review.guard_seed();
@@ -52,6 +56,11 @@ BEGIN
  PERFORM pg_advisory_xact_lock(hashtextextended(NEW.competition_id,91023));
  IF EXISTS(SELECT 1 FROM ace_cutover_review.protected_competitions WHERE competition_id=NEW.competition_id)
  AND session_user<>'ace_cutover_ace' THEN RAISE EXCEPTION 'protected competition requires Ace ownership'; END IF;
+ IF TG_TABLE_NAME IN ('finalization_claims','finalized_matches') THEN
+  PERFORM pg_advisory_xact_lock(hashtextextended(NEW.match_id,91024));
+  IF EXISTS(SELECT 1 FROM ace_cutover_review.matches m JOIN ace_cutover_review.protected_competitions p ON p.competition_id=m.competition WHERE m.id=NEW.match_id AND m.competition<>NEW.competition_id) THEN RAISE EXCEPTION 'foreign protected match identity'; END IF;
+  IF EXISTS(SELECT 1 FROM ace_cutover_review.protected_competitions WHERE competition_id=NEW.competition_id) AND NOT EXISTS(SELECT 1 FROM ace_cutover_review.matches WHERE id=NEW.match_id AND competition=NEW.competition_id) THEN RAISE EXCEPTION 'missing protected match identity'; END IF;
+ END IF;
  RETURN NEW;
 END $$;
 CREATE TRIGGER cutover_protected_export BEFORE INSERT ON ace_review.settlement_exports FOR EACH ROW EXECUTE FUNCTION ace_cutover_review.guard_settlement_insert();

@@ -54,6 +54,7 @@ jobs:
           node experiments/project-ace/world-security.test.cjs
           node experiments/project-ace/scheduler-stress.test.cjs
           node experiments/project-ace/restored-schema-gate.test.cjs
+          node experiments/project-ace/source-admission-review.test.cjs
           node --check experiments/project-ace/tournament.js
           node --check experiments/project-ace/ace.js
           node --check experiments/project-ace/start-local.cjs

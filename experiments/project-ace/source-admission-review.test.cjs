@@ -1,0 +1,22 @@
+'use strict';
+const assert=require('node:assert/strict'),{freeze,assess}=require('./source-admission-review.cjs');
+const copy=x=>JSON.parse(JSON.stringify(x)),c='source-cup',players=Array.from({length:8},(_,i)=>({id:'p'+i})),matches=[];
+for(let round=1;round<=3;round++)for(let number=1;number<=8/2**round;number++)matches.push({id:'m'+round+'-'+number,competition_id:c,draw_type:'main_draw',round_number:round,match_number:number,status:'scheduled',started_at:null,completed_at:null,winner_id:null,player1_id:round===1?'p'+(number*2-2):null,player2_id:round===1?'p'+(number*2-1):null,scheduled_season_week:1,scheduled_day:round,scheduled_start_minute:600,court_number:number});
+const source={schema:'ace-source-admission-v1',complete_export:true,competition:{id:c,scope:'singles',field_locked:true,qualification_required:false,status:'published',draw_size:8},players,matches,results:[],simulations:[]};
+const frozen=freeze(source),obs={complete_export:true,competition_id:c,matches,simulations:[]},on={enabled:true,competitions:[c]};
+assert.deepEqual(freeze({...source,matches:[...matches].reverse()}),frozen);
+assert.equal(assess(frozen,obs,{enabled:false}).rows.filter(x=>x.status==='routing_disabled').length,7);
+assert.equal(assess(frozen,obs,on).rows.filter(x=>x.status==='review_candidate').length,4);
+assert.deepEqual(frozen.matches.find(x=>x.match_id==='m2-1').feeder1,'m1-1');
+assert.throws(()=>freeze({...source,simulations:[{match_id:'m1-1'}]}),/legacy/);
+assert.throws(()=>freeze({...source,matches:matches.slice(1)}),/Incomplete/);
+const changed=copy(obs);changed.matches[0].court_number=99;assert.throws(()=>assess(frozen,changed,on),/topology changed/);
+const altered=copy(frozen);altered.matches[0].player1_id='other';assert.throws(()=>assess(altered,obs,on),/contract changed/);
+const progressed=copy(obs);for(let i=0;i<2;i++){progressed.matches[i].status='completed';progressed.matches[i].winner_id=progressed.matches[i].player1_id;}
+const next=progressed.matches.find(x=>x.id==='m2-1');next.player1_id='p0';next.player2_id='p2';
+assert.equal(assess(frozen,progressed,on).rows.find(x=>x.match_id==='m2-1').status,'owner_receipt_verification_required');
+next.player2_id='p3';assert.equal(assess(frozen,progressed,on).rows.find(x=>x.match_id==='m2-1').status,'feeder_winner_mismatch');
+progressed.matches[0].status='cancelled';progressed.matches[0].winner_id=null;
+assert.equal(assess(frozen,progressed,on).rows.find(x=>x.match_id==='m2-1').status,'special_result_review');
+assert.equal(assess(frozen,{...obs,simulations:[{match_id:'m1-1'}]},on).rows[0].status,'legacy_or_existing_state');
+console.log('PASS source inventory, exact schedule and topology, default disabled, prepared exclusion, feeder checks and immutable source fingerprint');
