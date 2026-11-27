@@ -105,3 +105,13 @@ node operational-schedule-sql.cjs "$tmp"
 sed -i "s/current_database()<>'ace_legacy_shadow'/current_database()<>'ace_ops_shadow'/" "$tmp/operational-schedule.sql"
 ops < "$tmp/operational-schedule.sql" > "$tmp/operational-schedule-results.jsonl"
 node operational-schedule-sql.cjs "$tmp" verify
+
+# Original historical replay validator against actual Ace generated event arrays.
+node official-replay-validator-fixture.cjs "$tmp"
+node official-replay-engine.test.cjs "$tmp"
+ops -c 'CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN;'
+ops < "$tmp/replay-validator.sql"
+ops < "$tmp/replay-validator-cases.sql" > "$tmp/replay-validator-results"
+[[ "$(wc -l < "$tmp/replay-validator-results" | tr -d ' ')" == 405 ]]
+[[ "$(grep -c '^t$' "$tmp/replay-validator-results")" == 405 ]]
+echo 'PASS 400 generated replay arrays and five rejection controls against original Legacy SQL validator'

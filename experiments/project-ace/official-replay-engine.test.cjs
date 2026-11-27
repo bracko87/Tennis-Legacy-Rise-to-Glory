@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),a=require('./engine.cjs'),{calculate}=require('./official-statistics.cjs'),{fromCheckpoint}=require('./official-replay-adapter.cjs'),{duration}=require('./schedule-gate.cjs'),{project}=require('./official-simulation-payload-review.cjs');
 const p={name:'Ace Admin',serve:62,return:58,rally:60,forehand:65,backhand:55,fitness:65,stamina:68,movement:62,fatigue:10,focus:75,confidence:70},q={...p,name:'Ace Test AI',backhand:42,stamina:55};
-let count=0,tiebreaks=0,deciding=0;
+let count=0,tiebreaks=0,deciding=0; const sqlRows=[];
 for(const bestOf of [3,5])for(let seed=1;seed<=100;seed++){
  let s=a.createMatch({players:[p,q],seed,bestOf});while(s.status!=='completed')s=a.stepGame(s);
  const ids=['p1','p2'],stats=calculate(s.events.filter(e=>e.kind==='point'));
@@ -14,8 +14,15 @@ for(const bestOf of [3,5])for(let seed=1;seed<=100;seed++){
   const payload=project(m,{match_id:'m',player1_id:m.player1_id,player2_id:m.player2_id,engine_seed:String(seed),estimated_match_minutes:150,weather:{heat_index:24},weather_source:'synthetic',replay:r});
   assert.equal(payload.simulation.final_score.score,m.score);assert.equal(payload.simulation.total_points,s.totalPoints);assert.equal(payload.production_ready,false);
   assert.throws(()=>fromCheckpoint({...m,winner_id:'foreign'},s,ids,seconds),/identity/);
+  if(process.argv[2]){const encoded=Buffer.from(JSON.stringify(r.events)).toString('base64');sqlRows.push("SELECT public.validate_match_replay_events_v1(convert_from(decode('"+encoded+"','base64'),'UTF8')::jsonb,"+seconds+")");}
   count++;
  }
 }
 assert.equal(count,400);assert.ok(tiebreaks>0);assert.ok(deciding>0);
 console.log(JSON.stringify({passed:count,tiebreaks,deciding,production_ready:false}));
+
+if(process.argv[2]){
+ const fs=require('node:fs'),path=require('node:path');
+ const negatives=["SELECT NOT public.validate_match_replay_events_v1('[]',480)","SELECT NOT public.validate_match_replay_events_v1('[{\"offset_seconds\":1.5}]',480)","SELECT NOT public.validate_match_replay_events_v1('[{\"offset_seconds\":5},{\"offset_seconds\":4}]',480)","SELECT NOT public.validate_match_replay_events_v1('[{\"offset_seconds\":481}]',480)","SELECT NOT public.validate_match_replay_events_v1('[{}]',480)"];
+ fs.writeFileSync(path.join(process.argv[2],'replay-validator-cases.sql'),[...sqlRows,...negatives].map(x=>x+';').join('\n')+'\n');
+}
