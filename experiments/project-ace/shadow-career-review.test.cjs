@@ -50,3 +50,18 @@ for(const [label,stage] of [['Round of 128','round_128'],['Round of 64','round_6
  const missing=clone(cx);delete missing.rewards[stage];assert.throws(()=>freezeCareer(i,missing),/reward rules/);
 }
 console.log('PASS six main draw elimination stages, advancing winner no prize or ranking, qualified bonus, tax and missing rules rejection');
+
+for(const [round,total,label,stage] of [[1,3,'Qualifying Round 1','qualifying_round_1_loss'],[2,3,'Qualification Round 2','qualifying_round_2_loss'],[3,3,'Qualifying Final','qualifying_final_loss']]){
+ const snap=clone(snapshot);snap.match.draw_type='qualification';snap.match.round_label=label;
+ const i=freeze({match_id:'qual-'+round,competition_id:'career-c',source_revision:4,snapshot:snap,seed:24321});
+ const cx=clone(context.context);cx.qualification={round,total_rounds:total};cx.rewards[stage]={ranking_points:8,prize_money_usd:400};cx.players.forEach(p=>p.qualified=false);
+ const frozen=freezeCareer(i,cx),res=simulate(i),out=project(i,res,frozen);
+ const winner=out.players.find(p=>p.won),loser=out.players.find(p=>!p.won);
+ assert.equal(winner.ranking,null);assert.equal(winner.finance.prize_transactions.length,0);
+ assert.equal(winner.qualified_for_main_draw,round===total);assert.equal(loser.qualified_for_main_draw,false);
+ assert.equal(loser.ranking.stage,stage);assert.equal(loser.ranking.qualifying_bonus_points,0);assert.equal(loser.ranking.ranking_points,8);
+ assert.equal(loser.finance.prize_transactions[0].amount,400);
+ const bad=clone(cx);bad.players[0].qualified=true;assert.throws(()=>freezeCareer(i,bad),/already be qualified/);
+ const absent=clone(cx);delete absent.qualification;assert.throws(()=>freezeCareer(i,absent),/bracket evidence/);
+}
+console.log('PASS qualification elimination rewards, final advancement, no premature prize or bonus, explicit bracket evidence and invalid qualification rejection');
