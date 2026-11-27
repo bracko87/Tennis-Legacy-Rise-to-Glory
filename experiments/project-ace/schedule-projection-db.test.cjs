@@ -113,7 +113,25 @@ async function run(){
  assert.equal(await end(target),'completed');
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.schedule_revisions WHERE match_id='+lit(target.id)+';'),'1');
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.followup_attempts WHERE source_id='+lit(source)+';'),'1');
+ const discover=id=>control('discover_followups('+lit(id)+')').then(JSON.parse);
+ await assert.rejects(discover(source),/rejected/);
+ const noOverrun=await discover(target.id);
+ assert.equal(noOverrun.actual_minutes,60);
+ assert.equal(noOverrun.estimate_minutes,150);
+ assert.deepEqual(noOverrun.candidates,[]);
+ assert.deepEqual(await discover(target.id),noOverrun);
+ const long=await setup('ops-discovery-long','ops-discovery-venue','opsdis');
+ const affected=await setup('ops-discovery-affected','ops-discovery-other','opsaff',1,'ace',long.p1);
+ assert.equal(await begin(long),'started');
+ assert.equal(await q('ace','finish_match('+[lit(long.id),2,lit(long.p1),json({actual_duration_minutes:180,winner_id:long.p1})].join(',')+')'),'completed');
+ const found=await discover(long.id);
+ assert.equal(found.actual_minutes,180);
+ assert.equal(found.estimate_minutes,150);
+ assert.ok(found.candidates.some(x=>x.match_id===affected.id&&x.outcome==='staged_review'));
+ assert.deepEqual(await discover(long.id),found);
+ assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.followup_jobs WHERE source_id='+lit(long.id)+' AND target_id='+lit(affected.id)+';'),'1');
  await control("configure(false,ARRAY[]::text[])");
+ console.log('PASS committed completion discovery, no-overrun exclusion, shared-player follow-up staging and immutable replay');
  console.log('PASS multi-day alternative court projection, stale and unsafe rollback, exact retry, immutable original, refreshed readiness, revised activation and resource reservation');
 }
 run().catch(e=>{console.error(e);process.exitCode=1});

@@ -158,6 +158,64 @@ BEGIN
 END $delay$;
 REVOKE ALL ON FUNCTION ace_cutover_review.apply_followup_slot(text,text,text,bigint,int,int,int,int) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION ace_cutover_review.apply_followup_slot(text,text,text,bigint,int,int,int,int) TO ace_review_worker;
+-- Discovery is explicit replay of committed review evidence; no production trigger.
+CREATE TABLE ace_cutover_review.followup_discovery(
+ source_id text PRIMARY KEY REFERENCES ace_cutover_review.effects(match_id),
+ report jsonb NOT NULL
+);
+CREATE FUNCTION ace_cutover_review.discover_followups(p_id text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $discover$
+DECLARE m ace_cutover_review.matches%ROWTYPE; e ace_cutover_review.effects%ROWTYPE; st ace_cutover_review.source_starts%ROWTYPE; sl jsonb; season int; actual int; estimate int; original_start bigint; ending bigint; r record; rows jsonb:='[]'; report jsonb; outcome text;
+BEGIN
+ PERFORM pg_advisory_xact_lock(hashtextextended(p_id,91027));
+ SELECT d.report INTO report FROM ace_cutover_review.followup_discovery d WHERE source_id=p_id;
+ IF FOUND THEN RETURN report; END IF;
+ SELECT * INTO STRICT m FROM ace_cutover_review.matches WHERE id=p_id;
+ SELECT * INTO STRICT e FROM ace_cutover_review.effects WHERE match_id=p_id;
+ IF m.status<>'completed' OR NOT m.started OR m.owner IS DISTINCT FROM 'ace' OR e.engine<>'ace' THEN RAISE EXCEPTION 'played Ace completion required'; END IF;
+ SELECT * INTO STRICT st FROM ace_cutover_review.source_starts WHERE match_id=p_id;
+ SELECT (contract->>'season_number')::int INTO STRICT season FROM ace_cutover_review.source_contracts WHERE competition_id=m.competition;
+ sl:=ace_cutover_review.effective_schedule(p_id);
+ IF sl IS NULL OR jsonb_typeof(e.receipt->'actual_duration_minutes') IS DISTINCT FROM 'number' THEN RAISE EXCEPTION 'missing duration evidence'; END IF;
+ actual:=(e.receipt->>'actual_duration_minutes')::int;
+ IF actual NOT BETWEEN 60 AND 420 THEN RAISE EXCEPTION 'invalid played duration'; END IF;
+ SELECT coalesce((SELECT estimate_minutes FROM ace_cutover_review.schedule_duration_evidence WHERE match_id=p_id),150) INTO estimate;
+ original_start:=((season-1)::bigint*366+2+((sl->>'scheduled_season_week')::int-1)*7+(sl->>'scheduled_day')::int-1)*86400+(sl->>'scheduled_start_minute')::int*60;
+ SELECT max(end_second) INTO ending FROM ace_cutover_review.source_rest_history WHERE match_id=p_id AND resource_kind='player';
+ IF ending IS NULL OR ending<st.game_second+actual::bigint*60 OR (SELECT count(*) FROM ace_cutover_review.source_rest_history WHERE match_id=p_id AND resource_kind='player')<>2 THEN RAISE EXCEPTION 'incomplete recovery evidence'; END IF;
+ IF actual>estimate THEN
+ FOR r IN
+ SELECT s.match_id,x.revision,x.owner,x.status,
+ (( (sc.contract->>'season_number')::bigint-1)*366+2+((q.sl->>'scheduled_season_week')::int-1)*7+(q.sl->>'scheduled_day')::int-1)*86400+(q.sl->>'scheduled_start_minute')::int*60 AS due
+ FROM ace_cutover_review.source_slots s JOIN ace_cutover_review.source_contracts sc USING(competition_id)
+ LEFT JOIN ace_cutover_review.matches x ON x.id=s.match_id
+ LEFT JOIN ace_cutover_review.source_observations o ON o.match_id=s.match_id
+ CROSS JOIN LATERAL (SELECT ace_cutover_review.effective_schedule(s.match_id) AS sl) q
+ WHERE s.match_id<>p_id AND coalesce(x.status,o.payload->>'status')='scheduled'
+ AND (coalesce(x.player1,o.payload->>'player1_id') IN(m.player1,m.player2) OR coalesce(x.player2,o.payload->>'player2_id') IN(m.player1,m.player2))
+ ORDER BY due,s.match_id
+ LOOP
+ IF r.due BETWEEN original_start AND ending+3600 THEN
+  IF r.owner='ace' THEN
+   BEGIN
+    outcome:=ace_cutover_review.stage_followup(p_id,r.match_id,r.revision);
+   EXCEPTION WHEN OTHERS THEN outcome:='stage_requires_retry'; END;
+  ELSE outcome:='external_or_unadmitted_review'; END IF;
+  rows:=rows||jsonb_build_array(jsonb_build_object('match_id',r.match_id,'due_second',r.due,'outcome',outcome));
+ END IF;
+ END LOOP;
+ END IF;
+ report:=jsonb_build_object('source_id',p_id,'actual_minutes',actual,'estimate_minutes',estimate,'window_start',original_start,'window_end',ending+3600,'candidates',rows,'review_only',true,'production_ready',false);
+ -- Do not freeze transient staging failures; replay can retry.
+ IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(rows) x WHERE x->>'outcome'='stage_requires_retry') THEN
+ INSERT INTO ace_cutover_review.followup_discovery VALUES(p_id,report);
+ END IF;
+ RETURN report;
+END $discover$;
+REVOKE ALL ON FUNCTION ace_cutover_review.discover_followups(text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION ace_cutover_review.discover_followups(text) TO ace_review_worker;
+GRANT SELECT ON ace_cutover_review.followup_discovery TO ace_review_worker;
+
 CREATE OR REPLACE FUNCTION ace_cutover_review.start_source(p_id text,p_match_rev bigint,p_ready_rev bigint,p_clock_rev bigint) RETURNS text
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $$
 DECLARE m ace_cutover_review.matches%ROWTYPE; a ace_cutover_review.source_admissions%ROWTYPE; c ace_cutover_review.source_clock%ROWTYPE; rd ace_cutover_review.source_readiness%ROWTYPE; s ace_cutover_review.source_slots%ROWTYPE; prior ace_cutover_review.source_starts%ROWTYPE; season int; due bigint; outcome text;

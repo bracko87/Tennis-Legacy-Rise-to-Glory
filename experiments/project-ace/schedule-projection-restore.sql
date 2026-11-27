@@ -1,3 +1,5 @@
+DROP FUNCTION ace_cutover_review.discover_followups(text);
+DROP TABLE ace_cutover_review.followup_discovery;
 DROP FUNCTION ace_cutover_review.apply_followup_slot(text,text,text,bigint,int,int,int,int);
 DROP FUNCTION ace_cutover_review.bind_schedule_duration(text,int,text),ace_cutover_review.projected_schedule_duration(text),ace_cutover_review.projected_overlap(bigint,int,bigint,int,int);
 DROP TABLE ace_cutover_review.schedule_duration_evidence;
