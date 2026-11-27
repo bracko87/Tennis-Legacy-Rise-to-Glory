@@ -22,8 +22,8 @@ const pairs=cases.map(({input,cohort,focal_player_id})=>{
  return {input,reference,cohort,focal_player_id,reference_kind:'historical_sql_control'};
 });
 const r=report(pairs);
-assert.equal(r.paired_matches,1080);assert.equal(r.historical_sql_pairs,1080);assert.equal(r.synthetic_pairs,0);assert.equal(r.supplied_legacy_pairs,0);assert.equal(r.cohorts.length,36);assert.equal(r.adequate_cohorts,36);assert.equal(r.production_ready,false);
-for(const c of r.cohorts){assert.equal(c.n,30);assert.ok(c.focal_player_win_rate);assert.ok(c.focal_player_win_rate.approximate_95pct_mean_delta_interval);assert.equal(c.metrics.unclassified_point_rate.ace.mean,0);assert.ok(c.metrics.unclassified_point_rate.reference.mean>=0);}
+const expected=36*Number(process.env.ACE_HISTORICAL_COHORT_SIZE||30);assert.equal(r.paired_matches,expected);assert.equal(r.historical_sql_pairs,expected);assert.equal(r.synthetic_pairs,0);assert.equal(r.supplied_legacy_pairs,0);assert.equal(r.cohorts.length,36);assert.equal(r.adequate_cohorts,36);assert.equal(r.production_ready,false);
+for(const c of r.cohorts){assert.equal(c.n,expected/36);assert.ok(c.focal_player_win_rate);assert.ok(c.focal_player_win_rate.approximate_95pct_mean_delta_interval);assert.equal(c.metrics.unclassified_point_rate.ace.mean,0);assert.ok(c.metrics.unclassified_point_rate.reference.mean>=0);}
 fs.writeFileSync(path.join(dir,'historical-cohort-report.json'),JSON.stringify(r,null,2));
 const metrics=Object.fromEntries(['games','points','minutes','first_serve_rate','ace_rate','double_fault_rate','unclassified_point_rate'].map(k=>[k,{ace:r.cohorts.reduce((n,c)=>n+c.metrics[k].ace.mean,0)/36,legacy:r.cohorts.reduce((n,c)=>n+c.metrics[k].reference.mean,0)/36}]));
 console.log(JSON.stringify({schema:'ace-historical-cohort-summary-v1',historical_sql_pairs:r.historical_sql_pairs,cohorts:r.cohorts.length,metrics,report_sha256:digest(r),duration_kind:'historical estimated versus Ace modeled',production_ready:false}));
@@ -35,4 +35,10 @@ const skill_groups=[0,12,28].map(gap=>{
 console.log(JSON.stringify({schema:'ace-historical-skill-review-v1',skill_groups,cohorts_with_30_cases:r.adequate_cohorts,production_ready:false}));
 const currentLegacyMean=results.reduce((n,x)=>n+x.current_duration_minutes,0)/results.length;
 console.log(JSON.stringify({schema:'ace-current-duration-review-v1',source_pin:require('./current-legacy-source-pin.json').reference_sha,matched_same_input_cases:results.length,boundary_cases:boundaries.length,legacy_current_formula_mean_minutes:currentLegacyMean,ace_modeled_mean_minutes:metrics.minutes.ace,legacy_historical_estimate_mean_minutes:metrics.minutes.legacy,production_ready:false}));
-console.log('PASS 1080 historical V2 SQL and independent Ace comparisons, 36 cohorts, exact profile/statistics checks and focal-player win rates, no policy clearance');
+// Screen duration using the current pinned formula, not the obsolete historical estimate.
+const current=report(pairs.map(pair=>({...pair,reference:{...pair.reference,actual_duration_minutes:byId.get(pair.input.match_id).current_duration_minutes}})));
+const screening=require('./shadow-screening.cjs').assess(current);
+assert.equal(screening.cohorts.length,36);assert.equal(screening.production_ready,false);
+fs.writeFileSync(path.join(dir,'historical-screening-report.json'),JSON.stringify(screening,null,2));
+console.log(JSON.stringify({schema:'ace-historical-screening-summary-v1',pairs:expected,counts:screening.counts,metrics:Object.fromEntries(Object.keys(require('./shadow-screening.cjs').defaults.margins).map(k=>[k,Object.fromEntries(['within_provisional_band','outside_provisional_band','inconclusive','insufficient_sample','missing_metric'].map(s=>[s,screening.cohorts.filter(c=>c.metrics.some(m=>m.metric===k&&m.status===s)).length]))])),duration_kind:'current pinned formula on both engines',report_sha256:digest(screening),production_ready:false}));
+console.log('PASS '+expected+' historical V2 SQL and independent Ace comparisons, 36 cohorts, statistical screening, no policy clearance');

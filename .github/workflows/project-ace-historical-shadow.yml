@@ -11,7 +11,7 @@ permissions:
 jobs:
   historical-shadow:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,4 +20,5 @@ jobs:
       - name: Historical SQL and isolated comparison
         env:
           ACE_SHADOW_SQL_REHEARSAL: disposable-ci-only
+          ACE_HISTORICAL_COHORT_SIZE: '100'
         run: bash experiments/project-ace/legacy-shadow-sql-ci.sh
