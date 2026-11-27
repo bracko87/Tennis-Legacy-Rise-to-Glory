@@ -28,3 +28,20 @@ assert.throws(()=>evaluate({...args,cases:[{...entry,capture:synthetic}]}),/Synt
 const drift=clone(catalog);drift.routines[0].hash='f'.repeat(32);
 assert.equal(evaluate({...args,restore:bundle(drift,'restore','restore')}).status,'blocked_catalog_review');
 console.log('PASS linked catalog and capture cohort, tampering, duplicate, synthetic-label and schema drift rejection (synthetic fixture only)');
+
+const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),{load}=require('./authentic-shadow-package.cjs');
+const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ace-shadow-package-'));
+try{
+ const put=(name,value)=>{const bytes=Buffer.isBuffer(value)?value:Buffer.from(JSON.stringify(value));fs.writeFileSync(path.join(dir,name),bytes);return {file:name,sha256:crypto.createHash('sha256').update(bytes).digest('hex')};};
+ const manifest={schema:'ace-shadow-package-v1',review_only:true,restore_id:capture.restore_id,restore:{catalog:put('restore.json',restore.bytes),receipt:put('restore-receipt.json',restore.receipt)},reference:{catalog:put('reference.json',reference.bytes),receipt:put('reference-receipt.json',reference.receipt)},cases:[put('case-1.json',entry)]};
+ const save=()=>put('manifest.json',manifest);save();
+ assert.equal(load(dir).status,'linked_cohort_review_only');
+ fs.appendFileSync(path.join(dir,'case-1.json'),' ');
+ assert.throws(()=>load(dir),/integrity/);
+ manifest.cases=[put('case-1.json',entry)];save();
+ manifest.cases[0].file='../case-1.json';save();assert.throws(()=>load(dir),/filename/);
+ manifest.cases=[put('case-1.json',entry),put('case-1.json',entry)];save();assert.throws(()=>load(dir),/Duplicate package filename/);
+ manifest.cases=[put('case-1.json',entry)];save();
+ if(process.platform!=='win32'){fs.renameSync(path.join(dir,'case-1.json'),path.join(dir,'original.json'));fs.symlinkSync('original.json',path.join(dir,'case-1.json'));assert.throws(()=>load(dir));}
+ console.log('PASS offline evidence package ingestion, raw file integrity, traversal, duplicate files and symlink rejection');
+}finally{fs.rmSync(dir,{recursive:true,force:true});}
