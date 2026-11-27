@@ -128,6 +128,13 @@ jobs:
           ACE_FOLLOWUP_REVIEW=disposable-ci-only ACE_REVIEW_DB=1 ACE_REVIEW_DB_PASSWORD=ace-disposable-worker ACE_REVIEW_DB_PORT=55432 node experiments/project-ace/followup-poller-db.test.cjs
           psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_review -f experiments/project-ace/schedule-projection-restore.sql
           psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_review -c 'DROP TABLE ace_cutover_review.followup_attempts,ace_cutover_review.followup_jobs; DROP FUNCTION ace_cutover_review.stage_followup(text,text,bigint),ace_cutover_review.note_followup_attempt(text,text,text,text);'
+      - name: Disposable shared scheduling authority experiment
+        env:
+          PGPASSWORD: ace-disposable-admin
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_review -f experiments/project-ace/shared-schedule-authority-review.sql
+          node experiments/project-ace/shared-schedule-authority.test.cjs
+          psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_review -c 'DROP SCHEMA ace_shared_schedule_fixture CASCADE'
       - name: Network-isolated legacy capture SQL rehearsal
         env:
           ACE_SHADOW_SQL_REHEARSAL: disposable-ci-only
