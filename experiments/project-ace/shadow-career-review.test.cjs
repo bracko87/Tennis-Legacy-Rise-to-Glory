@@ -34,3 +34,19 @@ const badTax=clone(later);badTax.players[0].finance.settled_periods[0].tax_amoun
 const hole=clone(later);hole.players[0].finance.settled_periods.splice(1,1);assert.throws(()=>freezeCareer(input,hole),/Missing earlier/);
 const unlinked=clone(later);unlinked.players[0].finance.settled_periods=[];assert.throws(()=>freezeCareer(input,unlinked),/Unlinked/);
 console.log('PASS historical tax reconciliation, changed rates, prior zero periods, missing receipts and season rollover without duplicate charges');
+
+for(const [label,stage] of [['Round of 128','round_128'],['Round of 64','round_64'],['Round of 32','round_32'],['Round of 16','round_16'],['Quarterfinal','quarterfinal'],['Semifinal','semifinal']]){
+ const snap=clone(snapshot);snap.match.round_label=label;
+ const i=freeze({match_id:'career-'+stage,competition_id:'career-c',source_revision:4,snapshot:snap,seed:24321});
+ const cx=clone(context.context);cx.rewards[stage]={ranking_points:42,prize_money_usd:2000};
+ const frozen=freezeCareer(i,cx),res=simulate(i),out=project(i,res,frozen);
+ const winner=out.players.find(p=>p.won),loser=out.players.find(p=>!p.won);
+ assert.equal(winner.ranking,null);assert.equal(winner.finance.prize_transactions.length,0);
+ assert.equal(loser.ranking.stage,stage);assert.equal(loser.ranking.ranking_points,42+(loser.player_id===i.player_ids[0]?13:0));
+ assert.equal(loser.finance.prize_transactions[0].amount,2000);
+ assert.equal(loser.finance.prize_transactions[0].idempotency_key,'tournament-prize:career-c:'+loser.player_id);
+ assert.equal(loser.finance.closing_balance,2640);
+ assert.ok(winner.condition.fatigue>10);
+ const missing=clone(cx);delete missing.rewards[stage];assert.throws(()=>freezeCareer(i,missing),/reward rules/);
+}
+console.log('PASS six main draw elimination stages, advancing winner no prize or ranking, qualified bonus, tax and missing rules rejection');

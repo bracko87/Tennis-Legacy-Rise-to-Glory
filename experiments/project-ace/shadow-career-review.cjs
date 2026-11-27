@@ -4,11 +4,20 @@ const {compare,digest}=require('./shadow-comparison.cjs'),{propose}=require('./s
 const check=(v,m)=>{if(!v)throw Error(m)},copy=x=>JSON.parse(JSON.stringify(x)),int=(x,min=0,max=Number.MAX_SAFE_INTEGER)=>Number.isSafeInteger(x)&&x>=min&&x<=max;
 const {verifySettled}=require('./historical-tax-review.cjs');
 const conditions=['fatigue','sharpness','morale','confidence','focus','fitness','stamina','recovery','movement'];
+function eliminationStage(input){
+ const label=input.snapshot.match.round_label.trim().toLowerCase();
+ if(label==='final')return 'runner_up';
+ if(['semifinal','semi-final','semifinals','semi-finals'].includes(label))return 'semifinal';
+ if(['quarterfinal','quarter-final','quarterfinals','quarter-finals'].includes(label))return 'quarterfinal';
+ const m=/^round of (16|32|64|128)$/.exec(label);
+ check(m,'Explicit supported elimination round required');return 'round_'+m[1];
+}
 function freezeCareer(input,context){
- check(input?.schema==='ace-shadow-input-v1'&&input.format.draw_type==='main_draw'&&input.snapshot.match.round_label.toLowerCase()==='final','Main final only');
+ check(input?.schema==='ace-shadow-input-v1'&&input.format.draw_type==='main_draw'&&typeof input.snapshot.match.round_label==='string','Main draw match required');
  const c=copy(context);
  check(c&&int(c.absolute_day,0,3659999)&&int(c.through_day,c.absolute_day,3659999)&&int(c.ranking_publish_absolute_day,c.absolute_day,3659999)&&Array.isArray(c.players)&&c.players.length===2&&Array.isArray(c.injury_catalog)&&c.injury_catalog.length>0,'Explicit career and reward context required');
- check(c.rewards&&['winner','runner_up'].every(k=>int(c.rewards[k]?.ranking_points)&&int(c.rewards[k]?.prize_money_usd))&&int(c.rewards.qualified_bonus),'Invalid final reward rules');
+ const stage=eliminationStage(input);
+ check(c.rewards&&[stage,...(stage==='runner_up'?['winner']:[])].every(k=>int(c.rewards[k]?.ranking_points)&&int(c.rewards[k]?.prize_money_usd))&&int(c.rewards.qualified_bonus),'Invalid round reward rules');
  for(let i=0;i<2;i++){
   const p=c.players[i],raw=input.snapshot.players[i];
   check(p.player_id===input.player_ids[i]&&int(p.career_revision)&&typeof p.human==='boolean'&&typeof p.qualified==='boolean','Ordered career identity required');
@@ -34,14 +43,16 @@ function project(input,result,context){
  const snapshot={match_id:input.match_id,competition_id:input.competition_id,start_revision:2,absolute_day:c.absolute_day,surface:input.format.surface,players:c.players.map(({player_id,career_revision,profile,inventory,loadout,staff,injuries})=>({player_id,career_revision,profile,inventory,loadout,staff,injuries}))};
  const career=propose({match:{...receipt,owner:'ace',revision:3},receipt,snapshot});
  const players=career.players.map((x,i)=>{
-  const p=c.players[i],won=x.player_id===result.winner_id,stage=won?'winner':'runner_up',rule=c.rewards[stage],bonus=p.qualified?c.rewards.qualified_bonus:0;
-  const ranking={stage,ranking_points:rule.ranking_points+bonus,qualifying_bonus_points:bonus,prize_money:rule.prize_money_usd,publish_absolute_day:c.ranking_publish_absolute_day,status:'pending'};
+  const p=c.players[i],won=x.player_id===result.winner_id,loserStage=eliminationStage(input),stage=won?(loserStage==='runner_up'?'winner':null):loserStage,rule=stage===null?null:c.rewards[stage],bonus=stage!==null&&p.qualified?c.rewards.qualified_bonus:0;
+  const ranking=rule===null?null:{stage,ranking_points:rule.ranking_points+bonus,qualifying_bonus_points:bonus,prize_money:rule.prize_money_usd,publish_absolute_day:c.ranking_publish_absolute_day,status:'pending'};
   const roll=injuryReview({player_id:p.player_id,match_id:input.match_id,absolute_day:c.absolute_day,risk_percent:x.injury_risk_percent,catalog:c.injury_catalog}).result;
   const injury=roll.injury?recoveryReview(roll.injury,c.through_day):null;
   let finance=null;
   if(p.human){
-   const f=p.finance,prize=rule.prize_money_usd,key='tournament-prize:'+input.competition_id+':'+p.player_id;
+   const f=p.finance,prize=rule?.prize_money_usd??0,key='tournament-prize:'+input.competition_id+':'+p.player_id;
    check(!f.transactions.some(t=>t.idempotency_key===key),'Prize already posted in opening history');
+   const period=periodOf(c.absolute_day);
+   if(prize>0)check(!f.settled_periods.some(x=>x.season===period.season&&x.month===period.month),'Prize would amend settled tax month');
    const addition=prize>0?[{player_id:p.player_id,idempotency_key:key,amount:prize,game_absolute_day:c.absolute_day,is_taxable:true,balance_before:f.balance,balance_after:f.balance+prize}]:[];
    const tax=taxReview({...f,player_id:p.player_id,human:true,through_day:c.through_day,balance:f.balance+prize,transactions:[...f.transactions,...addition]});
    finance={opening_balance:f.balance,prize_transactions:addition,tax_periods:tax.periods,tax_transactions:tax.transactions,closing_balance:tax.balance};
@@ -62,6 +73,6 @@ function review(input,legacy,context,observation){
  const cmp=compare(input,legacy),ace=project(input,cmp.ace_result,context),legacyOutcome=project(input,legacy,context);
  check(observation?.schema==='ace-shadow-career-observation-v1'&&observation.input_sha256===input.input_sha256&&observation.context_sha256===context.context_sha256&&observation.legacy_observation_sha256===digest(legacy)&&Array.isArray(observation.players)&&observation.players.length===2&&observation.players.every((p,i)=>p.player_id===input.player_ids[i]),'Career observation identity mismatch');
  const expected=legacyOutcome.players,delta=differences(expected,observation.players);
- return {schema:'ace-shadow-career-comparison-v1',review_only:true,production_ready:false,input_sha256:input.input_sha256,context_sha256:context.context_sha256,observation_sha256:digest(observation),winner_agreement:cmp.winner_agreement,ace_outcome:ace,legacy_outcome_replay:legacyOutcome,outcome_differences:differences(ace.players,expected),processing_differences:delta,status:delta.length?'processing_difference_review':'matched_review',legacy_authority_verified:false,limitations:['Model uses Ace duration formula for both outcomes; observed duration retained separately','Final-match scenario only; supplied reward rules and qualified flags not authoritative','Tax requires complete chronological ledger and reconciled historical settlements; late corrections require manual review','Injury source-ID roll and recovery are modeled, not official','Ranking is pending reward proposal, not actual publication']};
+ return {schema:'ace-shadow-career-comparison-v1',review_only:true,production_ready:false,input_sha256:input.input_sha256,context_sha256:context.context_sha256,observation_sha256:digest(observation),winner_agreement:cmp.winner_agreement,ace_outcome:ace,legacy_outcome_replay:legacyOutcome,outcome_differences:differences(ace.players,expected),processing_differences:delta,status:delta.length?'processing_difference_review':'matched_review',legacy_authority_verified:false,limitations:['Model uses Ace duration formula for both outcomes; observed duration retained separately','Supported main-draw elimination rounds only; supplied reward rules and qualified flags not authoritative','Tax requires complete chronological ledger and reconciled historical settlements; late corrections require manual review','Injury source-ID roll and recovery are modeled, not official','Ranking is pending reward proposal, not actual publication']};
 }
 module.exports={freezeCareer,review,project};
