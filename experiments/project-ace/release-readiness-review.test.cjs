@@ -14,3 +14,11 @@ for(const mutate of [x=>x.branch='main',x=>x.workflows.push(x.workflows[0]),x=>x
  const x=clone(supplied);mutate(x);assert.throws(()=>review(x));
 }
 console.log('PASS candidate-bound CI evidence, missing/pending/failed/wrong-commit checks, duplicate and stale receipt rejection, external evidence never self-approves release');
+
+for(const kind of ['shared_production_schedule_authority','official_career_and_ranking_authority','statistical_uncertainty_disposition','match_permission_reconciliation']){
+ assert.ok(requiredEvidence.includes(kind));
+ assert.ok(review(full).blockers.some(b=>b.name===kind&&b.status==='missing'));
+ const suppliedOnly={...full,evidence:[{kind,status:'supplied_for_manual_review',artifact_sha256:'d'.repeat(64),reference:'fixture only',candidate_sha:sha}]};
+ assert.ok(review(suppliedOnly).blockers.some(b=>b.name===kind&&b.status==='manual_verification_required'));
+}
+console.log('PASS explicit scheduling, career authority, statistical uncertainty and permission evidence gates');

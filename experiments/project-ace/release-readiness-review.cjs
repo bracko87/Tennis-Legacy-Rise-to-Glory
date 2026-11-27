@@ -2,7 +2,7 @@
 // Offline candidate evidence review only. No network, deployment or activation capability.
 const fs=require('node:fs'),{digest}=require('./shadow-comparison.cjs');
 const requiredWorkflows=['Ace local prototype verification','Ace isolated PostgreSQL review','Ace historical SQL shadow verification'];
-const requiredEvidence=['approved_current_reference_catalog','authorized_isolated_restore','current_engine_shadow_comparison','official_input_provenance','official_reward_reconciliation','forced_error_and_statistic_contract','exception_reward_policy','operational_monitoring_and_rollback','explicit_release_authorization'];
+const requiredEvidence=['approved_current_reference_catalog','authorized_isolated_restore','current_engine_shadow_comparison','official_input_provenance','official_reward_reconciliation','forced_error_and_statistic_contract','exception_reward_policy','shared_production_schedule_authority','official_career_and_ranking_authority','statistical_uncertainty_disposition','match_permission_reconciliation','operational_monitoring_and_rollback','explicit_release_authorization'];
 const check=(v,m)=>{if(!v)throw Error(m);};
 const sha=x=>typeof x==='string'&&/^[a-f0-9]{40}$/.test(x);
 const sha256=x=>typeof x==='string'&&/^[a-f0-9]{64}$/.test(x);
