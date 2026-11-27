@@ -23,14 +23,22 @@ async function register(id){await control('register_competition('+lit(id)+')');a
 async function seed(id,m,a=null,b=null){await control('seed_match('+[m.match_id,id,'singles'].map(lit).join(',')+",true,'scheduled','none',false,"+[m.player1_id,m.player2_id].map(lit).join(',')+')');await control('bind_feeders('+[m.match_id,a,b].map(lit).join(',')+')');}
 const {freeze:freezeSource}=require('./source-admission-review.cjs');
 const {propose}=require('./source-career-proposal.cjs'),{duration}=require('./schedule-gate.cjs'),engineCore=require('./engine.cjs'),{calculate}=require('./official-statistics.cjs');
-async function run(size=8){
- assert.ok([8,16].includes(size));const rounds=Math.log2(size),c='integrated-'+size+'-ci',players=Array.from({length:size},(_,i)=>({id:c+'-p'+i})),slots=[];
+async function run(size=8,pilot=false){
+ assert.ok([8,16].includes(size));const rounds=Math.log2(size),c=pilot?'integrated-pilot-ci':'integrated-'+size+'-ci',players=Array.from({length:size},(_,i)=>({id:c+'-p'+i})),slots=[];
  const profile={fatigue:30,sharpness:60,morale:60,confidence:60,focus:60,fitness:65,stamina:65,recovery:65,movement:65};
  for(let round=1;round<=rounds;round++)for(let number=1;number<=size/2**round;number++)slots.push({id:c+'-'+round+'-'+number,competition_id:c,draw_type:'main_draw',round_number:round,match_number:number,status:'scheduled',started_at:null,completed_at:null,winner_id:null,player1_id:round===1?players[number*2-2].id:null,player2_id:round===1?players[number*2-1].id:null,scheduled_season_week:1,scheduled_day:round,scheduled_start_minute:600,court_number:number});
  const frozen=freezeSource({schema:'ace-source-admission-v1',complete_export:true,competition:{id:c,scope:'singles',field_locked:true,qualification_required:false,status:'published',season_number:1,draw_size:size},players,matches:slots,results:[],simulations:[]});
- await control('import_source_contract('+json(frozen)+')');await control('bind_source_venue('+[lit(c),lit(c+'-venue')].join(',')+')');await control('enable_source_career_review('+lit(c)+",'hard')");await control('configure(true,ARRAY['+lit(c)+'])');
+ await control('import_source_contract('+json(frozen)+')');await control('bind_source_venue('+[lit(c),lit(c+'-venue')].join(',')+')');await control('enable_source_career_review('+lit(c)+",'hard')");if(!pilot)await control('configure(true,ARRAY['+lit(c)+'])');else await control("configure(false,ARRAY[]::text[])");
  for(const p of players)await control('observe_source_career('+[lit(p.id),-1,json({profile:{...profile},staff:{matchFatigueReduction:.1},injuries:[],inventory:[{id:p.id+'-r',type:'racket',condition:80,wear_per_match:2}],loadout:{racket:p.id+'-r',shoes:null,apparel:null}})].join(',')+')');
  const lifecycle=()=>control('source_lifecycle('+lit(c)+')').then(JSON.parse);
+ const monitor=()=>control('pilot_monitor('+lit(c)+')').then(JSON.parse);
+ if(pilot){
+  await control('publish_source_clock('+[lit(c),-1,2*86400+35999,false].join(',')+')');
+  const preflight=JSON.parse(await control('pilot_preflight('+lit(c)+')'));assert.equal(preflight.status,'isolated_preflight_matched');
+  const approval={schema:'ace-isolated-pilot-approval-v1',competition_id:c,scope:'disposable-synthetic-only',explicit_approval:true,rollback_rehearsed:true,monitoring_ready:true,approval_reference:'synthetic-ci-full-tournament'};
+  assert.equal(JSON.parse(await control('activate_pilot('+[lit(c),json(preflight),json(approval)].join(',')+')')).status,'activated_isolated');
+  assert.equal((await monitor()).state,'active_isolated');assert.equal((await monitor()).can_retire_pilot,false);
+ }
  const initial=await lifecycle();assert.equal(initial.not_admitted,size-1);assert.equal(initial.status,'blocked_review');assert.ok(initial.blockers.some(x=>x.kind==='not_admitted'));
  await assert.rejects(q('ace','source_lifecycle('+lit(c)+')'),/permission denied/);
  const played=[],conditions=[],support_events=[],winners=new Map(),counts=new Map();
@@ -42,15 +50,16 @@ async function run(size=8){
  const auditClosure=p=>control('audit_special_closure('+lit(c)+','+json(p)+')').then(JSON.parse);
  const payload=()=>({schema:'ace-settlement-review-v1',review_only:true,production_ready:false,participant_order_verified:true,competition_id:c,matches:played,results,transactions,conditions,support_events});
  for(let round=1;round<=rounds;round++){
-  assert.equal(await control('publish_source_clock('+[lit(c),round-2,(round+1)*86400+36000,false].join(',')+')'),String(round-1));
+  const clockRev=round-1+Number(pilot);
+  assert.equal(await control('publish_source_clock('+[lit(c),clockRev-1,(round+1)*86400+36000,false].join(',')+')'),String(clockRev));
   for(const slot of frozen.matches.filter(x=>x.round_number===round)){
    const id=slot.match_id,p1=round===1?slot.player1_id:winners.get(slot.feeder1),p2=round===1?slot.player2_id:winners.get(slot.feeder2);
    const sr=round===1?0:1;
    if(sr)assert.equal(await control('observe_source('+[lit(id),0,json({player1_id:p1,player2_id:p2,status:'scheduled',simulation:'none',started:false,winner_id:null})].join(',')+')'),'1');
    assert.equal(JSON.parse(await q('ace','admit_source('+lit(id)+','+sr+')')).status,'admitted');
    const ready={player1_id:p1,player2_id:p2,complete_health_export:true,health1:[],health2:[],travel_ready:true,resources_ready:true};
-   await control('freeze_source_readiness('+[lit(id),-1,1,sr,round-1,json(ready)].join(',')+')');
-   assert.equal(await q('ace','start_source('+lit(id)+',1,0,'+(round-1)+')'),'started');
+   await control('freeze_source_readiness('+[lit(id),-1,1,sr,clockRev,json(ready)].join(',')+')');
+   assert.equal(await q('ace','start_source('+lit(id)+',1,0,'+clockRev+')'),'started');
    const snapshot=JSON.parse(await db.sql('SELECT snapshot FROM ace_cutover_review.source_career_starts WHERE match_id='+lit(id)+';'));
    const profiles=snapshot.players.map((p,i)=>({name:p.player_id,serve:62+i,return:58,rally:60,forehand:65,backhand:55,...p.profile}));
    let s=engineCore.createMatch({players:profiles,seed:100+played.length,bestOf:3});
@@ -59,6 +68,7 @@ async function run(size=8){
    const receipt={match_id:id,competition_id:c,player1_id:p1,player2_id:p2,winner_id:winner,status:'completed',actual_duration_minutes:duration(s.gameNumber,s.totalPoints),score:s.completedSets.map(z=>z.games.join('-')).join(' '),sets:s.completedSets.map((z,i)=>({match_id:id,set_number:i+1,player1_games:z.games[0],player2_games:z.games[1],player1_tiebreak_points:z.tiebreak?.[0]??null,player2_tiebreak_points:z.tiebreak?.[1]??null,status:'completed'})),stats:calculate(s.events.filter(z=>z.kind==='point')).map((z,i)=>({match_id:id,player_id:ids[i],...z})),engine_version:'ace-integrated-review',started_at:'2026-01-01T10:00:00Z',completed_at:'2026-01-01T12:00:00Z'};
    assert.equal(await q('ace','finish_match('+[lit(id),2,lit(winner),json(receipt)].join(',')+')'),'completed');
    played.push(receipt);winners.set(id,winner);
+   if(pilot){const m=await monitor();assert.equal(m.lifecycle.terminal_matches,played.length);assert.equal(m.can_retire_pilot,false);}
    if(played.length===1){const audit=await lifecycle();assert.equal(audit.terminal_matches,1);assert.ok(audit.blockers.some(x=>x.match_id===id&&x.kind==='result_sync_pending'));assert.ok(audit.blockers.some(x=>x.match_id===id&&x.kind==='career_effects_pending'));await assert.rejects(settle(payload()),/incomplete imported source inventory/);await assert.rejects(auditClosure({...contract,matches:contract.matches.slice(0,1)}),/rejected/);}
    await control('sync_source_event('+lit(id)+',2)');await control('sync_source_event('+lit(id)+',3)');
    const match={...receipt,owner:'ace',revision:3},proposal=propose({match,receipt,snapshot});
@@ -74,7 +84,11 @@ async function run(size=8){
  const wrongPlayers=clone(contract);wrongPlayers.players[0].player_id='foreign';await assert.rejects(auditClosure(wrongPlayers),/rejected/);
  const audit=await auditClosure(contract);assert.equal(audit.status,'normal_legacy_candidates');assert.equal(audit.champion_candidate_id,played.at(-1).winner_id);
  const bad=clone(payload());bad.results[0].ranking_points_earned++;await assert.rejects(settle(bad),/imported closure audit or reward mismatch/);
- await control("configure(false,ARRAY[]::text[])");
+ if(pilot){
+  const m=await monitor();assert.equal(m.lifecycle.terminal_matches,7);assert.equal(m.lifecycle.not_admitted,0);assert.equal(m.can_retire_pilot,false);
+  assert.equal(JSON.parse(await control('stop_pilot('+[lit(c),lit('all seven matches completed')].join(',')+')')).status,'admissions_stopped');
+  const stopped=await monitor();assert.equal(stopped.state,'admissions_stopped');assert.equal(stopped.drain.can_stop_match_worker,true);assert.equal(stopped.can_retire_pilot,false);
+ }else await control("configure(false,ARRAY[]::text[])");
  assert.deepEqual((await Promise.all([settle(payload()),settle(payload())])).sort(),['already_finalized','finalized_review']);
  for(const p of players){const row=JSON.parse(await db.sql('SELECT to_jsonb(t) FROM ace_cutover_review.source_career_players t WHERE player_id='+lit(p.id)+';'));assert.equal(row.revision,counts.get(p.id));assert.equal(row.state.inventory[0].condition,80-2*counts.get(p.id));assert.equal(row.state.profile.fitness,65);}
  assert.equal(await db.sql('SELECT count(*) FROM ace_review.finalized_matches WHERE competition_id='+lit(c)+';'),String(size-1));
@@ -87,8 +101,14 @@ async function run(size=8){
  const pending=await reconcile('before-publication',observed);assert.equal(pending.status,'matched_review');const clean=await lifecycle();assert.equal(clean.status,'matched_review');assert.deepEqual(clean.blockers,[]);assert.equal(clean.terminal_matches,size-1);assert.equal(clean.production_ready,false);assert.ok(pending.players.every(x=>x.ranking==='pending_not_due'));
  const published=clone(observed);published.observed_absolute_day=9;published.results.forEach(x=>x.ranking_publish_status='published');published.contributions=published.results.map((x,i)=>({id:c+'-contribution-'+i,source_result_id:x.id,competition_id:c,player_id:x.player_id,tournament_series_id:published.tournament_series_id,world:'ATP',season_number:1,ranking_points:x.ranking_points_earned,awarded_absolute_day:9,expires_absolute_day:375,is_active:true}));
  const active=await reconcile('published',published);assert.equal(active.status,'matched_review');assert.ok(active.players.every(x=>x.ranking==='already_active'));assert.deepEqual(await reconcile('published',published),active);
+ if(pilot){
+  const final=await monitor();assert.equal(final.state,'admissions_stopped');assert.equal(final.lifecycle.status,'matched_review');assert.equal(final.lifecycle.terminal_matches,7);assert.equal(final.drain.can_retire_review_runtime,true);assert.equal(final.can_retire_pilot,true);assert.equal(final.production_ready,false);
+  assert.deepEqual(await monitor(),final);
+  console.log('PASS guarded isolated pilot: 7 actual matches, 14 career effects, 1 human prize, 8 ranking contributions, stopped routing and clean retirement review');
+  return;
+ }
  const missing=clone(published);missing.contributions.pop();assert.equal((await reconcile('missing-contribution',missing)).status,'blocked_review');const unresolved=await lifecycle();assert.equal(unresolved.status,'blocked_review');assert.ok(unresolved.blockers.some(x=>x.kind==='reward_reconciliation_unresolved'));
  const doubled=clone(published);doubled.prizes.push({...doubled.prizes[0],id:c+'-duplicate'});await assert.rejects(reconcile('duplicate-prize',doubled),/rejected/);
  console.log('PASS '+size+'-player actual Ace engine draw, '+(size-1)+' owned matches, '+(2*(size-1))+' career effects, complete closure, prize and ranking reconciliation');
 }
-(async()=>{await run(8);await run(16);})().catch(e=>{console.error(e);process.exitCode=1});
+(async()=>{await run(8);await run(16);await run(8,true);})().catch(e=>{console.error(e);process.exitCode=1});
