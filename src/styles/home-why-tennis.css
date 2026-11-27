@@ -62,4 +62,6 @@
 @media(prefers-reduced-motion:reduce){.tlg-why-card,.tlg-why-card-action{transition:none}}
 
 /* Keep concise captions on one line on desktop; allow natural wrapping on smaller screens. */
-@media(min-width:1151px){.tlg-why-card-copy>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tlg-why-card:hover .tlg-why-card-copy,.tlg-why-card:focus-visible .tlg-why-card-copy{max-width:60%}}
+@media(min-width:1151px){.tlg-why-card-copy strong,.tlg-why-card-copy>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+/* The expanding action overlays the copy without resizing it or changing card height. */
+.tlg-why-card-action{z-index:1}
