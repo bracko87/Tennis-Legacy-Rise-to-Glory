@@ -1,0 +1,10 @@
+'use strict';
+const assert=require('node:assert/strict'),{options}=require('./capture-authentic-catalog.cjs');
+const env={ACE_CATALOG_APPROVAL:'metadata-only-approved',ACE_CATALOG_MODE:'restore',ACE_CATALOG_SOURCE_LABEL:'isolated-restore',PGSERVICE:'ace_restore'};
+assert.equal(options(['restore','out.json'],env).mode,'restore');
+assert.throws(()=>options(['reference','out.json'],env),/approval/);
+assert.throws(()=>options(['restore','out.json'],{}),/approval/);
+assert.throws(()=>options(['restore','out.json'],{...env,PGPASSWORD:'secret'}),/overrides/);
+assert.throws(()=>options(['restore','out.json'],{...env,PGSERVICE:'postgresql://secret'}),/profile/);
+assert.throws(()=>options(['restore','out.json','extra'],env),/Usage/);
+console.log('PASS metadata capture authorization, profile and connection override guards');
