@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),{execFile}=require('node:child_process'),{promisify}=require('node:util'),run=promisify(execFile);
-function sql(role,query){const password=role==='postgres'?'ace-disposable-admin':role==='ace_cutover_ace'?'ace-disposable-ace':'ace-disposable-legacy';return run('psql',['-X','-qAt','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p','55432','-U',role,'-d','ace_review','-c',query],{env:{...process.env,PGPASSWORD:password}}).then(r=>r.stdout.trim());}
+function sql(role,query){const password=role==='postgres'?'ace-disposable-admin':role==='ace_cutover_ace'?'ace-disposable-ace':role==='ace_review_worker'?'ace-disposable-worker':'ace-disposable-legacy';return run('psql',['-X','-qAt','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p','55432','-U',role,'-d','ace_review','-c',query],{env:{...process.env,PGPASSWORD:password}}).then(r=>r.stdout.trim());}
 const a='ace_cutover_ace',l='ace_cutover_legacy',call=(id,rev,start,court,live=false)=>"SELECT ace_shared_schedule_fixture.change_slot('"+id+"',"+rev+","+start+","+court+","+live+");";
 async function main(){
  await assert.rejects(sql(l,call('a',0,36000,1)),/wrong scheduling owner/);
@@ -59,6 +59,17 @@ async function main(){
  assert.equal(await sql(a,call('round1',1,226800,1,true)),'started_review');
  assert.equal(await sql(a,"SELECT ace_shared_schedule_fixture.finish_slot('round1',2,230400)"),'completed_review');
  assert.equal(await sql(a,call('round2',1,234000,2,true)),'started_review');
+ await sql('postgres',"INSERT INTO ace_shared_schedule_fixture.inventory(id,owner,status,revision,venue,court,player1,player2,start_second,duration_minutes) VALUES ('batch1','ace','scheduled',0,'batch',1,'c1','c2',381600,60),('batch2','legacy','scheduled',0,'batch',2,'c3','c4',388800,60),('batch3','legacy','scheduled',0,'batch',3,'c5','c6',396000,60); INSERT INTO ace_shared_schedule_fixture.feeders VALUES ('batch1','batch2'),('batch2','batch3'); INSERT INTO ace_shared_schedule_fixture.phase_policy VALUES ('batch1',4,5,3),('batch2',4,5,3),('batch3',4,5,3)");
+ const worker='ace_review_worker',plan=[{id:'batch1',owner:'ace',revision:0,second:388800,court:1},{id:'batch2',owner:'legacy',revision:0,second:396000,court:2},{id:'batch3',owner:'legacy',revision:0,second:403200,court:3}];
+ const batch=(key,rows)=>"SELECT ace_shared_schedule_fixture.apply_round_plan('"+key+"','"+JSON.stringify(rows)+"'::jsonb)";
+ await assert.rejects(sql(a,batch('valid',plan)),/permission denied/);
+ await assert.rejects(sql(worker,batch('invalid',plan.slice(0,2))),/round plan feeder conflict/);
+ assert.equal(await sql('postgres',"SELECT sum(revision) FROM ace_shared_schedule_fixture.inventory WHERE id LIKE 'batch%'"),'0');
+ const applied=await Promise.all([sql(worker,batch('valid',plan)),sql(worker,batch('valid',plan))]);
+ assert.deepEqual(applied.map(x=>JSON.parse(x).status).sort(),['already_applied_review','applied_review']);
+ assert.equal(await sql('postgres',"SELECT sum(revision) FROM ace_shared_schedule_fixture.inventory WHERE id LIKE 'batch%'"),'3');
+ await assert.rejects(sql(worker,batch('valid',plan.slice(0,2))),/conflicting round plan retry/);
+ console.log('PASS atomic cross-engine round plan, rollback, permission guard and concurrent retry');
  console.log('PASS feeder chronology, cycle prevention, reverse-order coordinated moves and activation gate');
  console.log('PASS explicit phase bounds, owner-only automatic slot selection, no-slot escalation and exact retry');
  console.log('PASS actual completion, exact retry, conflicting completion rejection and court recovery boundary');

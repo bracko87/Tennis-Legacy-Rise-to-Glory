@@ -128,4 +128,42 @@ BEGIN
 END $fn$;
 REVOKE ALL ON FUNCTION ace_shared_schedule_fixture.resolve_slot(text,text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION ace_shared_schedule_fixture.resolve_slot(text,text) TO ace_cutover_ace,ace_cutover_legacy;
+-- A bounded, explicitly authorized batch. All changes are applied or rolled back together.
+CREATE TABLE ace_shared_schedule_fixture.batch_receipts(
+ batch_key text PRIMARY KEY, plan jsonb NOT NULL, report jsonb NOT NULL
+);
+CREATE FUNCTION ace_shared_schedule_fixture.apply_round_plan(p_key text,p_plan jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_shared_schedule_fixture AS $fn$
+DECLARE prior ace_shared_schedule_fixture.batch_receipts%ROWTYPE; item jsonb; m ace_shared_schedule_fixture.inventory%ROWTYPE; policy ace_shared_schedule_fixture.phase_policy%ROWTYPE; n int; result jsonb;
+BEGIN
+ PERFORM pg_advisory_xact_lock(91029001);
+ IF session_user<>'ace_review_worker' THEN RAISE EXCEPTION 'coordinator required'; END IF;
+ IF p_key IS NULL OR length(p_key) NOT BETWEEN 1 AND 120 OR jsonb_typeof(p_plan) IS DISTINCT FROM 'array' THEN RAISE EXCEPTION 'invalid round plan'; END IF;
+ n:=jsonb_array_length(p_plan);
+ IF n NOT BETWEEN 1 AND 32 THEN RAISE EXCEPTION 'invalid round plan size'; END IF;
+ SELECT * INTO prior FROM ace_shared_schedule_fixture.batch_receipts WHERE batch_key=p_key;
+ IF FOUND THEN
+  IF prior.plan IS DISTINCT FROM p_plan THEN RAISE EXCEPTION 'conflicting round plan retry'; END IF;
+  RETURN prior.report||jsonb_build_object('status','already_applied_review');
+ END IF;
+ IF (SELECT count(DISTINCT x->>'id') FROM jsonb_array_elements(p_plan) x)<>n THEN RAISE EXCEPTION 'duplicate or missing plan match'; END IF;
+ FOR item IN SELECT value FROM jsonb_array_elements(p_plan) LOOP
+  SELECT * INTO STRICT m FROM ace_shared_schedule_fixture.inventory WHERE id=item->>'id' FOR UPDATE;
+  SELECT * INTO STRICT policy FROM ace_shared_schedule_fixture.phase_policy WHERE match_id=m.id;
+  IF m.owner NOT IN ('ace','legacy') OR m.status<>'scheduled' OR m.revision IS DISTINCT FROM (item->>'revision')::bigint OR m.owner IS DISTINCT FROM item->>'owner' OR (item->>'second')::bigint IS NULL OR (item->>'court')::int IS NULL THEN RAISE EXCEPTION 'invalid round plan ownership or revision'; END IF;
+  IF (item->>'second')::bigint<m.start_second OR (item->>'second')::bigint/86400 NOT BETWEEN policy.first_day AND policy.last_day OR (item->>'second')::bigint%86400 NOT BETWEEN 36000 AND 77400 OR (item->>'second')::bigint%1800<>0 OR (item->>'court')::int NOT BETWEEN 1 AND policy.court_count THEN RAISE EXCEPTION 'round plan outside phase policy'; END IF;
+  UPDATE ace_shared_schedule_fixture.inventory SET start_second=(item->>'second')::bigint,court=(item->>'court')::int,revision=revision+1 WHERE id=m.id;
+ END LOOP;
+ -- Validate the final state, not the transient order of the proposed changes.
+ IF EXISTS(SELECT 1 FROM ace_shared_schedule_fixture.feeders f JOIN ace_shared_schedule_fixture.inventory a ON a.id=f.feeder_id JOIN ace_shared_schedule_fixture.inventory b ON b.id=f.downstream_id WHERE (a.id IN(SELECT x->>'id' FROM jsonb_array_elements(p_plan) x) OR b.id IN(SELECT x->>'id' FROM jsonb_array_elements(p_plan) x)) AND b.start_second<coalesce(a.actual_end_second,a.start_second+a.duration_minutes*60)+3600) THEN RAISE EXCEPTION 'round plan feeder conflict'; END IF;
+ IF EXISTS(SELECT 1 FROM ace_shared_schedule_fixture.inventory a JOIN ace_shared_schedule_fixture.inventory b ON a.id<>b.id WHERE a.id IN(SELECT x->>'id' FROM jsonb_array_elements(p_plan) x) AND (
+ (a.venue=b.venue AND a.court=b.court AND a.start_second<coalesce(b.actual_end_second,b.start_second+b.duration_minutes*60)+900 AND b.start_second<a.start_second+a.duration_minutes*60+900)
+ OR ((b.player1 IN(a.player1,a.player2) OR b.player2 IN(a.player1,a.player2)) AND a.start_second<coalesce(b.actual_end_second,b.start_second+b.duration_minutes*60)+3600 AND b.start_second<a.start_second+a.duration_minutes*60+3600))) THEN RAISE EXCEPTION 'round plan resource conflict'; END IF;
+ result:=jsonb_build_object('status','applied_review','count',n,'batch_key',p_key,'production_ready',false);
+ INSERT INTO ace_shared_schedule_fixture.batch_receipts VALUES(p_key,p_plan,result);
+ RETURN result;
+END $fn$;
+REVOKE ALL ON FUNCTION ace_shared_schedule_fixture.apply_round_plan(text,jsonb) FROM PUBLIC;
+GRANT USAGE ON SCHEMA ace_shared_schedule_fixture TO ace_review_worker;
+GRANT EXECUTE ON FUNCTION ace_shared_schedule_fixture.apply_round_plan(text,jsonb) TO ace_review_worker;
 COMMIT;
