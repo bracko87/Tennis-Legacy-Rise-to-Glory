@@ -33,6 +33,7 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review 
 DECLARE comp text:=p->>'competition_id'; size int; rounds int; rr int; nn int; s jsonb; a text; b text; prior jsonb;
 BEGIN
  IF p->>'schema' IS DISTINCT FROM 'ace-frozen-source-admission-v1' OR comp IS NULL OR comp='' OR coalesce(p->>'sha256','') !~ '^[a-f0-9]{64}$' OR jsonb_typeof(p->'matches') IS DISTINCT FROM 'array' OR jsonb_typeof(p->'draw_size') IS DISTINCT FROM 'number' THEN RAISE EXCEPTION 'invalid source contract'; END IF;
+ IF jsonb_typeof(p->'season_number') IS DISTINCT FROM 'number' OR coalesce((p->>'season_number')::int,0) NOT BETWEEN 1 AND 10000 THEN RAISE EXCEPTION 'invalid source season'; END IF;
  size:=(p->>'draw_size')::int;
  IF size NOT IN (8,16,32,64,128) OR jsonb_array_length(p->'matches')<>size-1 OR (SELECT count(DISTINCT x->>'match_id') FROM jsonb_array_elements(p->'matches') x)<>size-1 THEN RAISE EXCEPTION 'invalid source inventory'; END IF;
  PERFORM pg_advisory_xact_lock(hashtextextended(comp,91023));
@@ -46,7 +47,7 @@ BEGIN
   FOR nn IN 1..(size/power(2,rr)::int) LOOP
    SELECT x INTO STRICT s FROM jsonb_array_elements(p->'matches') x WHERE x->'round_number'=to_jsonb(rr) AND x->'match_number'=to_jsonb(nn);
    IF s->>'competition_id' IS DISTINCT FROM comp OR s->>'draw_type' IS DISTINCT FROM 'main_draw' OR s->>'match_id'='' OR NOT(s ?& ARRAY['player1_id','player2_id','feeder1','feeder2']) OR
-    coalesce((s->>'scheduled_season_week')::int,0) NOT BETWEEN 1 AND 53 OR coalesce((s->>'scheduled_day')::int,0) NOT BETWEEN 1 AND 7 OR coalesce((s->>'scheduled_start_minute')::int,-1) NOT BETWEEN 0 AND 1439 OR coalesce((s->>'court_number')::int,0)<1 THEN RAISE EXCEPTION 'invalid source slot'; END IF;
+    coalesce((s->>'scheduled_season_week')::int,0) NOT BETWEEN 1 AND 52 OR coalesce((s->>'scheduled_day')::int,0) NOT BETWEEN 1 AND 7 OR coalesce((s->>'scheduled_start_minute')::int,-1) NOT BETWEEN 0 AND 1439 OR coalesce((s->>'court_number')::int,0)<1 THEN RAISE EXCEPTION 'invalid source slot'; END IF;
    IF rr=1 THEN
     IF s->>'player1_id' IS NULL OR s->>'player2_id' IS NULL OR s->>'player1_id'='' OR s->>'player2_id'='' OR s->>'player1_id'=s->>'player2_id' OR s->>'feeder1' IS NOT NULL OR s->>'feeder2' IS NOT NULL OR EXISTS(SELECT 1 FROM ace_cutover_review.source_slots z WHERE z.competition_id=comp AND (z.slot->>'player1_id' IN(s->>'player1_id',s->>'player2_id') OR z.slot->>'player2_id' IN(s->>'player1_id',s->>'player2_id'))) THEN RAISE EXCEPTION 'invalid initial participants'; END IF;
    ELSE

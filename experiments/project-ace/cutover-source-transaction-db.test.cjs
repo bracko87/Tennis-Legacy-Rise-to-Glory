@@ -25,7 +25,7 @@ const {freeze:freezeSource}=require('./source-admission-review.cjs');
 async function run(){
  const c='transaction-source-ci',players=Array.from({length:8},(_,i)=>({id:'p'+i})),matches=[];
  for(let round=1;round<=3;round++)for(let number=1;number<=8/2**round;number++)matches.push({id:c+'-'+round+'-'+number,competition_id:c,draw_type:'main_draw',round_number:round,match_number:number,status:'scheduled',started_at:null,completed_at:null,winner_id:null,player1_id:round===1?'p'+(number*2-2):null,player2_id:round===1?'p'+(number*2-1):null,scheduled_season_week:1,scheduled_day:round,scheduled_start_minute:600,court_number:number});
- const source=freezeSource({schema:'ace-source-admission-v1',complete_export:true,competition:{id:c,scope:'singles',field_locked:true,qualification_required:false,status:'published',draw_size:8},players,matches,results:[],simulations:[]});
+ const source=freezeSource({schema:'ace-source-admission-v1',complete_export:true,competition:{id:c,scope:'singles',field_locked:true,qualification_required:false,status:'published',season_number:1,draw_size:8},players,matches,results:[],simulations:[]});
  const imp=p=>control('import_source_contract('+json(p)+')');
  const key=(a,b)=>c+'-'+a+'-'+b;
  const obs=(id,rev,p)=>control('observe_source('+[lit(id),rev,json(p)].join(',')+')');
@@ -51,16 +51,46 @@ async function run(){
  assert.deepEqual(race.map(x=>x.status).sort(),['admitted','already_admitted','wrong_engine']);
  await assert.rejects(obs(key(1,1),0,observation('p0','p1','prepared')),/rejected/);
  assert.equal((await admit('ace',key(1,2))).status,'admitted');
- for(const [id,w] of [[key(1,1),'p0'],[key(1,2),'p2']]){await start(id);await q('ace','finish_match('+[lit(id),2,lit(w),json({score:'6-0 6-0'})].join(',')+')');}
+ const clock=(expected,second,paused=false)=>control('publish_source_clock('+[lit(c),expected,second,paused].join(',')+')');
+ const evidence=(p1,p2,health1=[],travel_ready=true,resources_ready=true)=>({player1_id:p1,player2_id:p2,complete_health_export:true,health1,health2:[],travel_ready,resources_ready});
+ const ready=(id,expected,sourceRev,clockRev,p)=>control('freeze_source_readiness('+[lit(id),expected,1,sourceRev,clockRev,json(p)].join(',')+')');
+ const begin=(id,rev,cr,role='ace')=>q(role,'start_source('+[lit(id),1,rev,cr].join(',')+')');
+ const due=2*86400+600*60;
+ await assert.rejects(start(key(1,1)),/dedicated source start required/);
+ await assert.rejects(q('ace','publish_source_clock('+[lit(c),-1,due,false].join(',')+')'),/permission denied/);
+ assert.equal(await clock(-1,due-1),'0');
+ assert.equal(await ready(key(1,1),-1,0,0,evidence('p0','p1')),'0');
+ assert.equal(await begin(key(1,1),0,0),'not_due');
+ assert.equal(await clock(0,due,true),'1');
+ await assert.rejects(begin(key(1,1),0,0),/stale readiness or clock/);
+ assert.equal(await ready(key(1,1),0,0,1,evidence('p0','p1')),'1');
+ assert.equal(await begin(key(1,1),1,1),'clock_paused');
+ await assert.rejects(clock(1,due-1),/rejected/);
+ assert.equal(await clock(1,due),'2');
+ const injury=[{status:'active',tournamentReturnDay:3,fullRecoveryDay:4}];
+ assert.equal(await ready(key(1,1),1,0,2,evidence('p0','p1',injury)),'2');
+ assert.equal(await begin(key(1,1),2,2),'medical_review_required');
+ assert.equal(await ready(key(1,1),2,0,2,evidence('p0','p1',[],false)),'3');
+ assert.equal(await begin(key(1,1),3,2),'travel_not_ready');
+ assert.equal(await ready(key(1,1),3,0,2,evidence('p0','p1',[],true,false)),'4');
+ assert.equal(await begin(key(1,1),4,2),'resources_not_ready');
+ assert.equal(await ready(key(1,1),4,0,2,evidence('p0','p1')),'5');
+ await assert.rejects(begin(key(1,1),5,2,'legacy'),/wrong engine/);
+ assert.deepEqual((await Promise.all([begin(key(1,1),5,2),begin(key(1,1),5,2)])).sort(),['already_started','started']);
+ assert.equal(await ready(key(1,2),-1,0,2,evidence('p2','p3')),'0');
+ assert.equal(await begin(key(1,2),0,2),'started');
+ for(const [id,w] of [[key(1,1),'p0'],[key(1,2),'p2']]){await q('ace','finish_match('+[lit(id),2,lit(w),json({score:'6-0 6-0'})].join(',')+')');}
  assert.equal(await obs(key(2,1),1,observation('p0','p3')),'2');
  assert.equal((await admit('ace',key(2,1),2)).status,'feeder_receipts_pending_or_mismatch');
  assert.equal(await obs(key(2,1),2,observation('p0','p2')),'3');
- assert.equal((await admit('ace',key(2,1),3)).status,'admitted');assert.equal(await start(key(2,1)),'started');
+ assert.equal((await admit('ace',key(2,1),3)).status,'admitted');assert.equal(await clock(2,due+86400),'3');assert.equal(await ready(key(2,1),-1,3,3,evidence('p0','p2')),'0');assert.equal(await begin(key(2,1),0,3),'started');
  await control("configure(false,ARRAY[]::text[])");
  assert.equal((await admit('ace',key(2,1),3)).status,'already_admitted');
  assert.equal((await admit('legacy',key(1,3))).status,'admitted');
  assert.equal((await admit('ace',key(1,3))).status,'wrong_engine');
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.source_admissions a JOIN ace_cutover_review.source_slots s USING(match_id) WHERE s.competition_id='+lit(c)+';'),'4');
+ assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.source_runtime_events e JOIN ace_cutover_review.source_slots s USING(match_id) WHERE s.competition_id='+lit(c)+';'),'5');
+ console.log('PASS source readiness, due time, pause, clock rollback, health/travel/resource holds, exact start retry and runtime mirror');
  console.log('PASS atomic source import rollback, null future slots, stale observations, concurrent exclusive claim, feeder receipt check, direct bypass rejection and disable routing');
 }
 run().catch(e=>{console.error(e);process.exitCode=1});

@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),{freeze,assess}=require('./source-admission-review.cjs');
 const copy=x=>JSON.parse(JSON.stringify(x)),c='source-cup',players=Array.from({length:8},(_,i)=>({id:'p'+i})),matches=[];
 for(let round=1;round<=3;round++)for(let number=1;number<=8/2**round;number++)matches.push({id:'m'+round+'-'+number,competition_id:c,draw_type:'main_draw',round_number:round,match_number:number,status:'scheduled',started_at:null,completed_at:null,winner_id:null,player1_id:round===1?'p'+(number*2-2):null,player2_id:round===1?'p'+(number*2-1):null,scheduled_season_week:1,scheduled_day:round,scheduled_start_minute:600,court_number:number});
-const source={schema:'ace-source-admission-v1',complete_export:true,competition:{id:c,scope:'singles',field_locked:true,qualification_required:false,status:'published',draw_size:8},players,matches,results:[],simulations:[]};
+const source={schema:'ace-source-admission-v1',complete_export:true,competition:{id:c,scope:'singles',field_locked:true,qualification_required:false,status:'published',season_number:1,draw_size:8},players,matches,results:[],simulations:[]};
 const frozen=freeze(source),obs={complete_export:true,competition_id:c,matches,simulations:[]},on={enabled:true,competitions:[c]};
 assert.deepEqual(freeze({...source,matches:[...matches].reverse()}),frozen);
 assert.equal(assess(frozen,obs,{enabled:false}).rows.filter(x=>x.status==='routing_disabled').length,7);

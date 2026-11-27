@@ -12,6 +12,7 @@ function freeze(source){
  check(source?.schema==='ace-source-admission-v1'&&source.complete_export===true,'Complete source export required');
  const c=source.competition;
  check(c&&id(c.id)&&c.scope==='singles'&&c.field_locked===true&&c.qualification_required===false&&c.status==='published','New locked main-draw singles only');
+ check(natural(c.season_number)&&c.season_number<=10000,'Explicit source season required');
  check(natural(c.draw_size)&&[8,16,32,64,128].includes(c.draw_size),'Unsupported full draw size');
  check(Array.isArray(source.results)&&source.results.length===0&&Array.isArray(source.simulations)&&source.simulations.length===0,'Existing results or simulations require legacy');
  const players=unique(source.players,x=>x.id),matches=unique(source.matches,x=>x.id),pos=unique(source.matches,position);
@@ -21,7 +22,7 @@ function freeze(source){
  for(let round=1;round<=rounds;round++)for(let number=1;number<=c.draw_size/2**round;number++){
   const m=pos.get(round+':'+number);
   check(m&&m.competition_id===c.id&&m.draw_type==='main_draw'&&m.status==='scheduled'&&m.started_at===null&&m.completed_at===null&&m.winner_id===null,'Existing or foreign match state');
-  check(natural(m.scheduled_season_week)&&m.scheduled_season_week<=53&&natural(m.scheduled_day)&&m.scheduled_day<=7&&Number.isSafeInteger(m.scheduled_start_minute)&&m.scheduled_start_minute>=0&&m.scheduled_start_minute<1440&&natural(m.court_number),'Invalid schedule');
+  check(natural(m.scheduled_season_week)&&m.scheduled_season_week<=52&&natural(m.scheduled_day)&&m.scheduled_day<=7&&Number.isSafeInteger(m.scheduled_start_minute)&&m.scheduled_start_minute>=0&&m.scheduled_start_minute<1440&&natural(m.court_number),'Invalid schedule');
   let feeder1=null,feeder2=null;
   if(round===1){
    for(const p of [m.player1_id,m.player2_id]){check(players.has(p)&&!entries.has(p),'Invalid first-round participant');entries.add(p);}
@@ -32,7 +33,7 @@ function freeze(source){
   }
   ordered.push({match_id:m.id,competition_id:c.id,round_number:round,match_number:number,draw_type:m.draw_type,scheduled_season_week:m.scheduled_season_week,scheduled_day:m.scheduled_day,scheduled_start_minute:m.scheduled_start_minute,court_number:m.court_number,player1_id:m.player1_id,player2_id:m.player2_id,feeder1,feeder2});
  }
- const body={schema:'ace-frozen-source-admission-v1',competition_id:c.id,draw_size:c.draw_size,matches:ordered};
+ const body={schema:'ace-frozen-source-admission-v1',competition_id:c.id,season_number:c.season_number,draw_size:c.draw_size,matches:ordered};
  return {...body,sha256:createHash('sha256').update(JSON.stringify(body)).digest('hex')};
 }
 function assess(frozen,observation,policy){
