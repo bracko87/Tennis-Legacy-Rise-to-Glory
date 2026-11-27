@@ -89,6 +89,7 @@ jobs:
           node experiments/project-ace/cutover-cancellation-db.test.cjs
           node experiments/project-ace/cutover-special-closure-db.test.cjs
           node experiments/project-ace/cutover-reconciliation-db.test.cjs
+          node experiments/project-ace/cutover-drain-db.test.cjs
       - name: Build isolated browser and install pinned Chromium driver
         run: |
           npm ci --ignore-scripts
@@ -101,3 +102,7 @@ jobs:
           ACE_REVIEW_DB_PASSWORD: ace-disposable-worker
           ACE_REVIEW_DB_PORT: '55432'
         run: NODE_PATH="$RUNNER_TEMP/ace-browser/node_modules" node experiments/project-ace/browser-acceptance.test.cjs
+      - name: Disposable database backup and isolated recovery rehearsal
+        env:
+          ACE_MIGRATION_REHEARSAL: disposable-ci-only
+        run: bash experiments/project-ace/recovery-rehearsal.sh
