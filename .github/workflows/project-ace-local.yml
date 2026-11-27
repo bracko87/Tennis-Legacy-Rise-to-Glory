@@ -55,6 +55,7 @@ jobs:
           node experiments/project-ace/scheduler-stress.test.cjs
           node experiments/project-ace/restored-schema-gate.test.cjs
           node experiments/project-ace/capture-authentic-catalog.test.cjs
+          node experiments/project-ace/compare-authentic-catalogs.test.cjs
           node experiments/project-ace/source-admission-review.test.cjs
           node experiments/project-ace/source-qualification-review.test.cjs
           node experiments/project-ace/source-career-proposal.test.cjs

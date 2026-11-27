@@ -1,0 +1,20 @@
+'use strict';
+const assert=require('node:assert/strict'),crypto=require('node:crypto'),{verify,assess}=require('./compare-authentic-catalogs.cjs'),{inspect}=require('./restored-schema-gate.cjs'),c=require('./restored-schema-contract.json');
+const roles=c.roles,grants=Object.fromEntries(roles.map(r=>[r,{select:false,insert:false,update:false,delete:false,truncate:false}]));
+const catalog={schema:'ace-restored-catalog-v1',server_major:'16',roles,tables:Object.entries(c.tables).map(([name,cols])=>({name,columns:cols.map(name=>({name,type:'text'})),grants})),routines:c.routines.map(x=>({name:x.split('(')[0],signature:x.includes('(')?x:x+'()',hash:'0'.repeat(32),execute:Object.fromEntries(roles.map(r=>[r,r==='service_role']))})),triggers:[],policies:[],migration_history:[{version:'20261120',name:'fixture'}],has_history:true,has_cron:true,cron:[{name:'game',schedule:'* * * * *',active:false}]};
+function pack(s,mode,label){const bytes=Buffer.from(JSON.stringify(s));return [bytes,{schema:'ace-catalog-receipt-v1',mode,source_label:label,captured_at:'2026-11-27T00:00:00.000Z',sha256:crypto.createHash('sha256').update(bytes).digest('hex'),issues:inspect(s),production_ready:false,provenance:'operator_supplied_not_authenticated'}];}
+const a=pack(catalog,'restore','restore'),b=pack(catalog,'reference','reference');
+const r=verify(...a,'restore'),ref=verify(...b,'reference');
+assert.equal(assess(r,ref).status,'catalog_match_review_only');
+assert.equal(assess(r,ref).production_ready,false);
+assert.equal(assess(r,ref).source_identity_verified,false);
+assert.throws(()=>verify(Buffer.concat([a[0],Buffer.from(' ')]),a[1],'restore'),/integrity/);
+assert.throws(()=>verify(...a,'reference'),/receipt/);
+assert.throws(()=>verify(a[0],{...a[1],issues:[{kind:'fake'}]},'restore'),/findings/);
+assert.throws(()=>verify(a[0],{...a[1],production_ready:true},'restore'),/receipt/);
+assert.throws(()=>assess(r,{...ref,receipt:{...ref.receipt,source_label:'RESTORE'}}),/Separate/);
+const drift=JSON.parse(JSON.stringify(catalog));drift.routines[0].hash='1'.repeat(32);
+assert.equal(assess(verify(...pack(drift,'restore','restore'),'restore'),ref).status,'blocked_catalog_review');
+const active=JSON.parse(JSON.stringify(catalog));active.cron[0].active=true;
+assert.equal(assess(verify(...pack(active,'restore','restore'),'restore'),ref).status,'blocked_catalog_review');
+console.log('PASS catalog receipt integrity, source separation, drift, active scheduler and nonauthorization');
