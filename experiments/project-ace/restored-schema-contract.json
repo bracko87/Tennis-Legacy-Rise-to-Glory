@@ -1,0 +1,108 @@
+{
+  "tables": {
+    "public.tournament_matches": [
+      "id",
+      "competition_id",
+      "status",
+      "player1_id",
+      "player2_id",
+      "winner_id",
+      "started_at",
+      "completed_at",
+      "actual_duration_minutes",
+      "completion_reason",
+      "draw_type",
+      "round_label",
+      "round_number"
+    ],
+    "public.tournament_match_simulations": [
+      "match_id",
+      "simulation_status"
+    ],
+    "public.tournament_match_sets": [
+      "match_id"
+    ],
+    "public.tournament_match_player_stats": [
+      "match_id"
+    ],
+    "public.player_tournament_results": [
+      "id",
+      "player_id",
+      "competition_id",
+      "result_stage_code",
+      "ranking_points_earned",
+      "prize_money_earned",
+      "ranking_publish_status",
+      "ranking_publish_absolute_day"
+    ],
+    "public.career_finance_transactions": [
+      "id",
+      "player_id",
+      "idempotency_key",
+      "source_id",
+      "amount",
+      "balance_before",
+      "balance_after"
+    ],
+    "public.player_ranking_contributions": [
+      "source_result_id",
+      "competition_id",
+      "ranking_points",
+      "is_active",
+      "expires_absolute_day"
+    ],
+    "public.tournament_world_competitions": [
+      "id",
+      "status"
+    ],
+    "public.tournament_entries": [
+      "competition_id",
+      "player_id",
+      "entry_status"
+    ],
+    "public.players": [
+      "id",
+      "owner_user_id",
+      "player_type"
+    ],
+    "control_center_private.tennis_guest_trials_v1": [
+      "user_id",
+      "expires_at",
+      "converted_at",
+      "retired_at"
+    ],
+    "public.tournament_cancellations": [
+      "competition_id"
+    ]
+  },
+  "routines": [
+    "public.finalize_match_replay_v1(uuid)",
+    "public.start_due_match_replays_v1()",
+    "public.finalize_due_match_replays_v1",
+    "public.prepare_tournament_match_simulation_v1(uuid)",
+    "public.process_due_match_engine_v1",
+    "public.run_tournament_operations_watchdog_v1",
+    "public.resolve_tournament_travel_no_show_v1",
+    "public.surrender_tournament_match_v1(uuid)",
+    "public.finalize_player_tournament_result_v1(uuid, uuid)",
+    "public.finalize_completed_tournament_match_v1()",
+    "public.process_weekly_rankings_v1()",
+    "public.finalize_tournament_cancellation_v1",
+    "control_center_private.retire_expired_tennis_guests_v1(integer)"
+  ],
+  "internal": [
+    "public.finalize_match_replay_v1",
+    "public.start_due_match_replays_v1",
+    "public.finalize_due_match_replays_v1",
+    "public.prepare_tournament_match_simulation_v1",
+    "public.process_due_match_engine_v1",
+    "public.resolve_tournament_travel_no_show_v1",
+    "public.finalize_player_tournament_result_v1",
+    "control_center_private.retire_expired_tennis_guests_v1"
+  ],
+  "roles": [
+    "anon",
+    "authenticated",
+    "service_role"
+  ]
+}

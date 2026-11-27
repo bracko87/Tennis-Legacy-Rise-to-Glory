@@ -106,3 +106,9 @@ jobs:
         env:
           ACE_MIGRATION_REHEARSAL: disposable-ci-only
         run: bash experiments/project-ace/recovery-rehearsal.sh
+      - name: Read-only restored catalog negative control
+        env:
+          PGPASSWORD: ace-disposable-admin
+        run: |
+          psql -X -qAt -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_review_recovery -f experiments/project-ace/capture-restored-schema.sql > "$RUNNER_TEMP/ace-catalog.json"
+          node experiments/project-ace/restored-schema-gate.test.cjs "$RUNNER_TEMP/ace-catalog.json"
