@@ -64,6 +64,7 @@ jobs:
           node experiments/project-ace/release-readiness-review.test.cjs
           node experiments/project-ace/current-legacy-source-pin.test.cjs
           node experiments/project-ace/operational-schedule.test.cjs
+          node experiments/project-ace/followup-reconciliation.test.cjs
           node --check experiments/project-ace/tournament.js
           node --check experiments/project-ace/ace.js
           node --check experiments/project-ace/start-local.cjs
