@@ -76,14 +76,58 @@ BEGIN
 END $fn$;
 REVOKE ALL ON FUNCTION ace_cutover_review.guard_pilot_policy(),ace_cutover_review.guard_stopped_pilot_admission(),ace_cutover_review.activate_pilot(text,jsonb,jsonb),ace_cutover_review.stop_pilot(text,text),ace_cutover_review.pilot_monitor(text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION ace_cutover_review.activate_pilot(text,jsonb,jsonb),ace_cutover_review.stop_pilot(text,text),ace_cutover_review.pilot_monitor(text) TO ace_review_worker;
+-- Review-only heartbeat epoch fences restarted worker instances.
+CREATE TABLE ace_cutover_review.pilot_worker_heartbeat (
+ competition_id text PRIMARY KEY REFERENCES ace_cutover_review.pilot_sessions,
+ generation bigint NOT NULL CHECK(generation>=0),
+ sequence bigint NOT NULL DEFAULT -1 CHECK(sequence>=-1),
+ observed_at timestamptz,
+ CHECK((sequence=-1)=(observed_at IS NULL))
+);
+GRANT SELECT ON ace_cutover_review.pilot_worker_heartbeat TO ace_review_worker;
+CREATE FUNCTION ace_cutover_review.register_pilot_worker(p_comp text,p_expected bigint) RETURNS bigint
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $hb$
+DECLARE h ace_cutover_review.pilot_worker_heartbeat%ROWTYPE;
+BEGIN
+ PERFORM 1 FROM ace_cutover_review.pilot_sessions WHERE competition_id=p_comp FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'unknown pilot'; END IF;
+ SELECT * INTO h FROM ace_cutover_review.pilot_worker_heartbeat WHERE competition_id=p_comp FOR UPDATE;
+ IF NOT FOUND THEN
+  IF p_expected IS DISTINCT FROM -1 THEN RAISE EXCEPTION 'stale worker generation'; END IF;
+  INSERT INTO ace_cutover_review.pilot_worker_heartbeat(competition_id,generation) VALUES(p_comp,0);
+  RETURN 0;
+ END IF;
+ IF p_expected IS DISTINCT FROM h.generation THEN RAISE EXCEPTION 'stale worker generation'; END IF;
+ UPDATE ace_cutover_review.pilot_worker_heartbeat SET generation=generation+1,sequence=-1,observed_at=NULL WHERE competition_id=p_comp RETURNING generation INTO h.generation;
+ RETURN h.generation;
+END $hb$;
+CREATE FUNCTION ace_cutover_review.pilot_worker_pulse(p_comp text,p_generation bigint,p_sequence bigint) RETURNS text
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $hb$
+DECLARE h ace_cutover_review.pilot_worker_heartbeat%ROWTYPE;
+BEGIN
+ IF session_user<>'ace_cutover_ace' THEN RAISE EXCEPTION 'wrong heartbeat role'; END IF;
+ SELECT * INTO STRICT h FROM ace_cutover_review.pilot_worker_heartbeat WHERE competition_id=p_comp FOR UPDATE;
+ IF p_generation IS DISTINCT FROM h.generation OR p_sequence IS NULL OR p_sequence<0 THEN RAISE EXCEPTION 'invalid or stale worker pulse'; END IF;
+ IF p_sequence=h.sequence THEN RETURN 'already_observed'; END IF;
+ IF p_sequence<>h.sequence+1 THEN RAISE EXCEPTION 'out-of-order worker pulse'; END IF;
+ UPDATE ace_cutover_review.pilot_worker_heartbeat SET sequence=p_sequence,observed_at=clock_timestamp() WHERE competition_id=p_comp;
+ RETURN 'observed';
+END $hb$;
+REVOKE ALL ON FUNCTION ace_cutover_review.register_pilot_worker(text,bigint),ace_cutover_review.pilot_worker_pulse(text,bigint,bigint) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION ace_cutover_review.register_pilot_worker(text,bigint) TO ace_review_worker;
+GRANT EXECUTE ON FUNCTION ace_cutover_review.pilot_worker_pulse(text,bigint,bigint) TO ace_cutover_ace;
+
 -- Health classification is advisory only; no automatic stop or transfer of ownership.
 -- Default grace is a provisional review threshold, not an approved production SLA.
 CREATE FUNCTION ace_cutover_review.pilot_health(p_comp text,p_grace_seconds integer DEFAULT 900) RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $health$
-DECLARE mon jsonb; c ace_cutover_review.source_clock%ROWTYPE; contract jsonb; alerts jsonb; clock_state text; stale boolean; critical int; warnings int;
+DECLARE mon jsonb; c ace_cutover_review.source_clock%ROWTYPE; contract jsonb; alerts jsonb; clock_state text; stale boolean; critical int; warnings int; hb ace_cutover_review.pilot_worker_heartbeat%ROWTYPE; heartbeat_state text; needs_worker boolean;
 BEGIN
  IF p_grace_seconds IS NULL OR p_grace_seconds NOT BETWEEN 60 AND 86400 THEN RAISE EXCEPTION 'invalid monitoring grace'; END IF;
  mon:=ace_cutover_review.pilot_monitor(p_comp);
+ SELECT * INTO hb FROM ace_cutover_review.pilot_worker_heartbeat WHERE competition_id=p_comp;
+ needs_worker:=mon->>'state'='active_isolated' OR mon->'drain'->'can_stop_match_worker' IS DISTINCT FROM 'true'::jsonb;
+ heartbeat_state:=CASE WHEN hb.observed_at IS NULL THEN 'missing' WHEN hb.observed_at<statement_timestamp()-interval '60 seconds' OR hb.observed_at>statement_timestamp() THEN 'stale' ELSE 'fresh' END;
  SELECT * INTO c FROM ace_cutover_review.source_clock WHERE competition_id=p_comp;
  SELECT s.contract INTO STRICT contract FROM ace_cutover_review.source_contracts s WHERE competition_id=p_comp;
  stale:=c.competition_id IS NULL OR c.captured_at<statement_timestamp()-interval '60 seconds' OR c.captured_at>statement_timestamp();
@@ -103,11 +147,12 @@ BEGIN
  ), all_alerts AS (
  SELECT * FROM integrity UNION ALL SELECT * FROM overdue
  UNION ALL SELECT 'clock_missing_or_stale',NULL::text,'warning' WHERE stale
+ UNION ALL SELECT 'worker_heartbeat_'||heartbeat_state,NULL::text,CASE WHEN jsonb_array_length(mon->'drain'->'unfinished_matches')>0 THEN 'critical' ELSE 'warning' END WHERE needs_worker AND heartbeat_state<>'fresh'
  )
  SELECT coalesce(jsonb_agg(jsonb_build_object('kind',kind,'match_id',match_id,'severity',severity) ORDER BY severity,kind,match_id),'[]'::jsonb),count(*) FILTER(WHERE severity='critical'),count(*) FILTER(WHERE severity='warning') INTO alerts,critical,warnings FROM all_alerts;
  RETURN jsonb_build_object('schema','ace-pilot-health-v1','competition_id',p_comp,'review_only',true,'production_ready',false,'state',mon->>'state','clock_state',clock_state,'clock_revision',c.revision,'grace_game_seconds',p_grace_seconds,'alerts',alerts,'critical_count',critical,'warning_count',warnings,
  'recommendation',CASE WHEN critical>0 THEN 'operator_stop_review' WHEN warnings>0 THEN 'operator_investigation' ELSE 'no_detected_integrity_alert' END,
- 'can_retire_pilot',mon->'can_retire_pilot','worker_heartbeat_verified',false,'automatic_stop',false);
+ 'can_retire_pilot',mon->'can_retire_pilot','worker_heartbeat_verified',false,'heartbeat_state',heartbeat_state,'heartbeat_generation',hb.generation,'heartbeat_sequence',hb.sequence,'heartbeat_observed_at',hb.observed_at,'automatic_stop',false);
 END $health$;
 REVOKE ALL ON FUNCTION ace_cutover_review.pilot_health(text,integer) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION ace_cutover_review.pilot_health(text,integer) TO ace_review_worker;
