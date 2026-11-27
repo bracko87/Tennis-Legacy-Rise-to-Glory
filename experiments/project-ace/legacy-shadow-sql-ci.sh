@@ -109,7 +109,7 @@ node operational-schedule-sql.cjs "$tmp" verify
 # Original historical replay validator against actual Ace generated event arrays.
 node official-replay-validator-fixture.cjs "$tmp"
 node official-replay-engine.test.cjs "$tmp"
-ops -c 'CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN;'
+ops -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='anon') THEN CREATE ROLE anon NOLOGIN; END IF; IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF; END \$\$;"
 ops < "$tmp/replay-validator.sql"
 ops < "$tmp/replay-validator-cases.sql" > "$tmp/replay-validator-results"
 [[ "$(wc -l < "$tmp/replay-validator-results" | tr -d ' ')" == 405 ]]
