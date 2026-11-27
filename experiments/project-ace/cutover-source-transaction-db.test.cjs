@@ -80,7 +80,7 @@ async function run(){
  assert.deepEqual((await Promise.all([begin(key(1,1),5,2),begin(key(1,1),5,2)])).sort(),['already_started','started']);
  assert.equal(await ready(key(1,2),-1,0,2,evidence('p2','p3')),'0');
  assert.equal(await begin(key(1,2),0,2),'started');
- for(const [id,w] of [[key(1,1),'p0'],[key(1,2),'p2']]){await q('ace','finish_match('+[lit(id),2,lit(w),json({score:'6-0 6-0'})].join(',')+')');}
+ for(const [id,w] of [[key(1,1),'p0'],[key(1,2),'p2']]){await q('ace','finish_match('+[lit(id),2,lit(w),json({score:'6-0 6-0',actual_duration_minutes:60})].join(',')+')');}
  assert.equal(await obs(key(2,1),1,observation('p0','p3')),'2');
  assert.equal((await admit('ace',key(2,1),2)).status,'feeder_receipts_pending_or_mismatch');
  assert.equal(await obs(key(2,1),2,observation('p0','p2')),'3');

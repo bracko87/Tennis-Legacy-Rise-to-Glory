@@ -36,10 +36,11 @@ async function run(){
   assert.equal(await control('publish_source_clock('+[lit(c),-1,due,false].join(',')+')'),'0');
   const e={player1_id:players[0].id,player2_id:players[1].id,complete_health_export:true,health1:[],health2:[],travel_ready:true,resources_ready:true};
   assert.equal(await control('freeze_source_readiness('+[lit(id),-1,1,0,0,json(e)].join(',')+')'),'0');
-  return {id,role,p1:players[0].id};
+  return {id,role,c,p1:players[0].id,p2:players[1].id,rev:0};
  }
- const begin=m=>q(m.role,'start_source('+lit(m.id)+',1,0,0)');
- const end=m=>q(m.role,'finish_match('+[lit(m.id),2,lit(m.p1),json({score:'6-0 6-0',winner_id:m.p1})].join(',')+')');
+ const begin=m=>q(m.role,'start_source('+lit(m.id)+',1,'+m.rev+','+m.rev+')');
+ const advance=async(m,second)=>{assert.equal(await control('publish_source_clock('+[lit(m.c),m.rev,second,false].join(',')+')'),String(m.rev+1));const e={player1_id:m.p1,player2_id:m.p2,complete_health_export:true,health1:[],health2:[],travel_ready:true,resources_ready:true};assert.equal(await control('freeze_source_readiness('+[lit(m.id),m.rev,1,0,m.rev+1,json(e)].join(',')+')'),String(m.rev+1));m.rev++;};
+ const end=m=>q(m.role,'finish_match('+[lit(m.id),2,lit(m.p1),json({score:'6-0 6-0',winner_id:m.p1,actual_duration_minutes:60})].join(',')+')');
  const sync=(m,rev)=>control('sync_source_event('+lit(m.id)+','+rev+')').then(JSON.parse);
  const a=await setup('resource-a-ci','shared-physical-venue','ra');
  const b=await setup('resource-b-ci','shared-physical-venue','rb',1,'legacy');
@@ -50,13 +51,13 @@ async function run(){
  const won=race[0].status==='fulfilled'?a:b,wait=won===a?b:a;
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.active_source_resources WHERE match_id='+lit(won.id)+';'),'3');
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.source_starts WHERE match_id='+lit(wait.id)+';'),'0');
- assert.equal(await end(won),'completed');assert.equal(await begin(wait),'started');assert.equal(await end(wait),'completed');
+ assert.equal(await end(won),'completed');await assert.rejects(begin(wait),/source recovery conflict: court/);await advance(wait,due+4500-1);await assert.rejects(begin(wait),/source recovery conflict: court/);await advance(wait,due+4500);assert.equal(await begin(wait),'started');assert.equal(await end(wait),'completed');
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.active_source_resources WHERE match_id IN ('+[a,b].map(x=>lit(x.id)).join(',')+');'),'0');
  // Independent same-player conflict across venues and engines, then release/retry.
  const e=await setup('resource-e-ci','third-venue','re',1,'legacy',a.p1);
- assert.equal(await begin(d),'started');await assert.rejects(begin(e),/source resource conflict: player/);
+ await assert.rejects(begin(d),/source recovery conflict: player/);await advance(d,due+86400);assert.equal(await begin(d),'started');await advance(e,due+86400);await assert.rejects(begin(e),/source resource conflict: player/);
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.active_source_resources WHERE match_id='+lit(e.id)+';'),'0');
- assert.equal(await end(d),'completed');assert.equal(await begin(e),'started');assert.equal(await end(e),'completed');
+ assert.equal(await end(d),'completed');await advance(e,due+86400+7200);await assert.rejects(begin(e),/source recovery conflict: player/);await advance(e,due+2*86400);assert.equal(await begin(e),'started');assert.equal(await end(e),'completed');
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.source_resource_history WHERE match_id IN ('+[a,b,d,e].map(x=>lit(x.id)).join(',')+') AND terminal_revision=3;'),'12');
  await assert.rejects(sync(a,3),/rejected/);
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.source_result_projection WHERE match_id='+lit(a.id)+';'),'0');
@@ -67,6 +68,8 @@ async function run(){
  assert.equal(await db.sql('SELECT status FROM ace_cutover_review.source_result_projection WHERE match_id='+lit(a.id)+';'),'completed');
  assert.equal(await db.sql("SELECT payload->>'status' FROM ace_cutover_review.source_observations WHERE match_id="+lit(a.id)+';'),'scheduled');
  await control("configure(false,ARRAY[]::text[])");
+ assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.source_rest_history WHERE match_id IN ('+[a,b,d,e].map(x=>lit(x.id)).join(',')+');'),'12');
+ console.log('PASS player recovery, court turnaround, same-day cross-competition hold, exact boundary and retry');
  console.log('PASS shared physical court and cross-venue player exclusion, rollback/retry, exact resource release, ordered immutable source result projection');
 }
 run().catch(e=>{console.error(e);process.exitCode=1});

@@ -1,0 +1,13 @@
+'use strict';
+const assert=require('node:assert/strict'),{propose}=require('./source-career-proposal.cjs'),{duration}=require('./schedule-gate.cjs');
+const match={match_id:'m',competition_id:'c',player1_id:'a',player2_id:'b',winner_id:'a',owner:'ace',status:'completed',revision:3};
+const receipt={...match,sets:[1,2].map(set_number=>({match_id:'m',set_number,player1_games:6,player2_games:0})),stats:[{match_id:'m',player_id:'a',total_points_won:48},{match_id:'m',player_id:'b',total_points_won:10}],actual_duration_minutes:duration(12,58)};
+const profile={fatigue:30,sharpness:60,morale:60,confidence:60,focus:60,fitness:65,stamina:65,recovery:65,movement:65};
+const snapshot={match_id:'m',competition_id:'c',start_revision:2,absolute_day:2,surface:'hard',players:['a','b'].map(player_id=>({player_id,career_revision:7,profile:{...profile},staff:{matchFatigueReduction:.1},injuries:[],inventory:[{id:player_id+'r',type:'racket',condition:21,wear_per_match:2}],loadout:{racket:player_id+'r',shoes:null,apparel:null}}))};
+const input={match,receipt,snapshot},before=JSON.stringify(input),out=propose(input);assert.deepEqual(propose(input),out);assert.equal(JSON.stringify(input),before);
+assert.equal(out.players.length,2);assert.ok(out.players.every(x=>x.after.fatigue>x.before.fatigue&&x.equipment_after[0].condition===19&&x.wear_events[0].type==='low'));assert.equal(out.players[0].expected_career_revision,7);assert.equal(out.production_ready,false);
+assert.throws(()=>propose({...input,receipt:{...receipt,actual_duration_minutes:1}}),/duration/);
+assert.throws(()=>propose({...input,snapshot:{...snapshot,start_revision:1}}),/snapshot/);
+assert.throws(()=>propose({...input,receipt:{...receipt,winner_id:'b'}}),/identity/);
+const no=propose({...input,receipt:{...receipt,completion_reason:'health_walkover',actual_duration_minutes:null,sets:[],stats:[]}});assert.equal(no.status,'no_play_no_effects');assert.deepEqual(no.players,[]);
+console.log('PASS revision-bound pure career proposal, fatigue and catalogue wear, no-play exclusion, deterministic replay, no mutation');
