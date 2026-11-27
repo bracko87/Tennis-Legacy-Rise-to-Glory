@@ -25,4 +25,21 @@ function adapt(match,source,durationSeconds){
  check(events.at(-1).p1_sets===a&&events.at(-1).p2_sets===b&&(a>b?match.player1_id:match.player2_id)===match.winner_id,'Replay winner mismatch');
  return {player1_id:match.player1_id,player2_id:match.player2_id,winner_id:match.winner_id,final_score:match.score,schema_version:1,duration_seconds:durationSeconds,events};
 }
-module.exports={adapt};
+
+ // Convert a completed engine checkpoint with explicitly bound official participant order.
+function fromCheckpoint(match,checkpoint,sourcePlayers,durationSeconds){
+ check(checkpoint?.status==='completed'&&Array.isArray(sourcePlayers)&&sourcePlayers.length===2&&new Set(sourcePlayers).size===2,'Completed checkpoint and unique source players required');
+ const order=[sourcePlayers.indexOf(match.player1_id),sourcePlayers.indexOf(match.player2_id)];
+ check(order.every(i=>i>=0)&&order[0]!==order[1]&&sourcePlayers[checkpoint.winner]===match.winner_id,'Checkpoint identity mismatch');
+ const {calculate}=require('./official-statistics.cjs');
+ const stats=calculate(checkpoint.events.filter(e=>e.kind==='point'));
+ const {isDeepStrictEqual}=require('node:util');
+ check(order.every((i,k)=>{const {match_id,player_id,...official}=match.stats[k];return player_id===sourcePlayers[i]&&isDeepStrictEqual(official,stats[i]);}),'Checkpoint statistics mismatch');
+ check(checkpoint.completedSets.length===match.sets.length&&checkpoint.completedSets.every((s,i)=>{const t=match.sets[i];return s.games[order[0]]===t.player1_games&&s.games[order[1]]===t.player2_games&&(s.tiebreak?.[order[0]]??null)===(t.player1_tiebreak_points??null)&&(s.tiebreak?.[order[1]]??null)===(t.player2_tiebreak_points??null); }),'Checkpoint set mismatch');
+ const view={...checkpoint,id:'review',startAt:0,serverNow:0,breakMs:1000};
+ const replay=require('./replay-bridge.cjs').project(view,()=>1000);
+ const events=replay.events.map(e=>order[0]===0?e:{...e,p1_sets:e.p2_sets,p2_sets:e.p1_sets,p1_games:e.p2_games,p2_games:e.p1_games,p1_points:e.p2_points,p2_points:e.p1_points});
+ return adapt(match,{...replay,player1_id:match.player1_id,player2_id:match.player2_id,winner_id:sourcePlayers[checkpoint.winner],final_score:{score:match.sets.map(s=>s.player1_games+'-'+s.player2_games).join(' ')},events},durationSeconds);
+}
+module.exports={adapt,fromCheckpoint};
+
