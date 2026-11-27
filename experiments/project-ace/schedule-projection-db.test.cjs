@@ -115,6 +115,12 @@ async function run(){
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.followup_attempts WHERE source_id='+lit(source)+';'),'1');
  const discover=id=>control('discover_followups('+lit(id)+')').then(JSON.parse);
  await assert.rejects(discover(source),/rejected/);
+ const processOutbox=id=>control('process_followup_outbox('+lit(id)+')').then(JSON.parse);
+ assert.equal(await db.sql('SELECT state FROM ace_cutover_review.followup_outbox WHERE source_id='+lit(target.id)+';'),'pending');
+ const processed=await processOutbox(target.id);
+ assert.equal(processed.state,'discovered');
+ assert.equal(processed.attempts,1);
+ assert.deepEqual(await processOutbox(target.id),processed);
  const noOverrun=await discover(target.id);
  assert.equal(noOverrun.actual_minutes,60);
  assert.equal(noOverrun.estimate_minutes,150);
@@ -124,6 +130,11 @@ async function run(){
  const affected=await setup('ops-discovery-affected','ops-discovery-other','opsaff',1,'ace',long.p1);
  assert.equal(await begin(long),'started');
  assert.equal(await q('ace','finish_match('+[lit(long.id),2,lit(long.p1),json({actual_duration_minutes:180,winner_id:long.p1})].join(',')+')'),'completed');
+ assert.equal(await db.sql('SELECT state FROM ace_cutover_review.followup_outbox WHERE source_id='+lit(long.id)+';'),'pending');
+ const attempts=await Promise.all([processOutbox(long.id),processOutbox(long.id)]);
+ assert.deepEqual(attempts[0],attempts[1]);
+ assert.equal(attempts[0].attempts,1);
+ assert.equal(attempts[0].state,'discovered');
  const found=await discover(long.id);
  assert.equal(found.actual_minutes,180);
  assert.equal(found.estimate_minutes,150);

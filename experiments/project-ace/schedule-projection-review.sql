@@ -216,6 +216,49 @@ REVOKE ALL ON FUNCTION ace_cutover_review.discover_followups(text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION ace_cutover_review.discover_followups(text) TO ace_review_worker;
 GRANT SELECT ON ace_cutover_review.followup_discovery TO ace_review_worker;
 
+-- Transactional outbox: completion creates an obligation, discovery runs separately.
+CREATE TABLE ace_cutover_review.followup_outbox(
+ source_id text PRIMARY KEY REFERENCES ace_cutover_review.effects(match_id),
+ attempts integer NOT NULL DEFAULT 0 CHECK(attempts>=0),
+ state text NOT NULL DEFAULT 'pending' CHECK(state IN ('pending','discovered','review_required')),
+ last_error text,
+ report jsonb,
+ CHECK((state='pending') OR report IS NOT NULL)
+);
+CREATE FUNCTION ace_cutover_review.enqueue_followup_completion() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $outbox$
+BEGIN
+ IF OLD.status IS DISTINCT FROM NEW.status AND NEW.status='completed' AND NEW.started AND NEW.owner='ace'
+ AND EXISTS(SELECT 1 FROM ace_cutover_review.source_admissions WHERE match_id=NEW.id)
+ AND EXISTS(SELECT 1 FROM ace_cutover_review.source_starts WHERE match_id=NEW.id) THEN
+ INSERT INTO ace_cutover_review.followup_outbox(source_id) VALUES(NEW.id) ON CONFLICT DO NOTHING;
+ END IF;
+ RETURN NEW;
+END $outbox$;
+CREATE TRIGGER zz_followup_completion AFTER UPDATE OF status ON ace_cutover_review.matches FOR EACH ROW EXECUTE FUNCTION ace_cutover_review.enqueue_followup_completion();
+CREATE FUNCTION ace_cutover_review.process_followup_outbox(p_id text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $outbox$
+DECLARE j ace_cutover_review.followup_outbox%ROWTYPE; r jsonb; new_state text; err text;
+BEGIN
+ SELECT * INTO STRICT j FROM ace_cutover_review.followup_outbox WHERE source_id=p_id FOR UPDATE;
+ IF j.state<>'pending' THEN RETURN jsonb_build_object('state',j.state,'attempts',j.attempts,'report',j.report); END IF;
+ BEGIN
+  r:=ace_cutover_review.discover_followups(p_id);
+  IF EXISTS(SELECT 1 FROM jsonb_array_elements(r->'candidates') x WHERE x->>'outcome'='stage_requires_retry') THEN
+   new_state:='pending'; err:='staging requires retry';
+  ELSIF EXISTS(SELECT 1 FROM jsonb_array_elements(r->'candidates') x WHERE x->>'outcome'='external_or_unadmitted_review') THEN
+   new_state:='review_required';
+  ELSE new_state:='discovered'; END IF;
+ EXCEPTION WHEN OTHERS THEN
+  new_state:='pending'; err:=SQLSTATE; r:=NULL;
+ END;
+ UPDATE ace_cutover_review.followup_outbox SET attempts=attempts+1,state=new_state,last_error=err,report=r WHERE source_id=p_id RETURNING * INTO j;
+ RETURN jsonb_build_object('state',j.state,'attempts',j.attempts,'report',j.report);
+END $outbox$;
+REVOKE ALL ON FUNCTION ace_cutover_review.enqueue_followup_completion(),ace_cutover_review.process_followup_outbox(text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION ace_cutover_review.process_followup_outbox(text) TO ace_review_worker;
+GRANT SELECT ON ace_cutover_review.followup_outbox TO ace_review_worker;
+
 CREATE OR REPLACE FUNCTION ace_cutover_review.start_source(p_id text,p_match_rev bigint,p_ready_rev bigint,p_clock_rev bigint) RETURNS text
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $$
 DECLARE m ace_cutover_review.matches%ROWTYPE; a ace_cutover_review.source_admissions%ROWTYPE; c ace_cutover_review.source_clock%ROWTYPE; rd ace_cutover_review.source_readiness%ROWTYPE; s ace_cutover_review.source_slots%ROWTYPE; prior ace_cutover_review.source_starts%ROWTYPE; season int; due bigint; outcome text;

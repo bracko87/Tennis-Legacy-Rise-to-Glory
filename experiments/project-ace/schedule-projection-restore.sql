@@ -1,3 +1,6 @@
+DROP TRIGGER zz_followup_completion ON ace_cutover_review.matches;
+DROP FUNCTION ace_cutover_review.enqueue_followup_completion(),ace_cutover_review.process_followup_outbox(text);
+DROP TABLE ace_cutover_review.followup_outbox;
 DROP FUNCTION ace_cutover_review.discover_followups(text);
 DROP TABLE ace_cutover_review.followup_discovery;
 DROP FUNCTION ace_cutover_review.apply_followup_slot(text,text,text,bigint,int,int,int,int);
