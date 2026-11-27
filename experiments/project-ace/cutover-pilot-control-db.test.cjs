@@ -71,6 +71,34 @@ async function run(){
  await control('publish_source_clock('+[lit(c),1,due+901,true].join(',')+')');
  const paused=await health();assert.equal(paused.clock_state,'paused');assert.equal(paused.alerts.some(a=>a.kind==='scheduled_match_overdue'),false);
 
+
+ // Exercise actual process termination during a database transaction, then let
+ // the last committed pulse expire naturally. No timestamp injection.
+ assert.equal(process.env.ACE_REVIEW_DB,'1');
+ const port=Number(process.env.ACE_REVIEW_DB_PORT||55432);
+ assert.ok(Number.isInteger(port)&&port>=1024&&port<=65535);
+ const child=spawn('psql',['-X','-qAt','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p',String(port),'-U','ace_cutover_ace','-d','ace_review','-w'],{env:{PATH:process.env.PATH,PGPASSWORD:'ace-disposable-ace',PGCONNECT_TIMEOUT:'5',PGSSLMODE:'disable'},stdio:['pipe','pipe','pipe']});
+ let out='',err='';child.stdout.on('data',v=>out+=v);child.stderr.on('data',v=>err+=v);child.stdin.on('error',()=>{});
+ const closed=new Promise((resolve,reject)=>{child.once('close',(code,signal)=>resolve({code,signal}));child.once('error',reject);});
+ const delay=ms=>new Promise(r=>setTimeout(r,ms));
+ const waitFor=async(fn,limit)=>{const end=Date.now()+limit;do{if(await fn())return;await delay(200);}while(Date.now()<end);throw Error('Heartbeat recovery observation timed out');};
+ const sql='SELECT ace_cutover_review.pilot_worker_pulse('+lit(c)+',1,';
+ child.stdin.write(sql+'1);\nBEGIN;\n'+sql+'2);\n\\echo PULSE_UNCOMMITTED\n');
+ let killed;
+ try{
+  await waitFor(()=>out.includes('PULSE_UNCOMMITTED')||child.exitCode!==null,10000);
+  assert.ok(out.includes('PULSE_UNCOMMITTED'),err);
+  assert.equal((await health()).heartbeat_sequence,1);
+ }finally{child.kill('SIGKILL');killed=await closed;}
+ assert.equal(killed.signal,'SIGKILL');
+ const committed=await health();assert.equal(committed.heartbeat_sequence,1);
+ assert.equal(await pulse(1,1),'already_observed');
+ assert.equal((await health()).heartbeat_observed_at,committed.heartbeat_observed_at);
+ await waitFor(async()=>(await health()).heartbeat_state==='stale',70000);
+ const expired=await health();assert.equal(expired.heartbeat_sequence,1);assert.equal(expired.recommendation,'operator_stop_review');assert.ok(expired.alerts.some(a=>a.kind==='worker_heartbeat_stale'&&a.severity==='critical'));
+ assert.equal(expired.state,'active_isolated');assert.equal(expired.automatic_stop,false);
+ assert.equal(await pulse(1,1),'already_observed');assert.equal((await health()).heartbeat_state,'stale');
+ console.log('PASS real worker connection killed during uncommitted pulse, committed sequence preserved, natural 60-second expiry, replay cannot revive liveness');
  assert.equal((await stop('synthetic operator stop')).status,'admissions_stopped');
  assert.equal((await stop('synthetic operator stop')).status,'already_stopped');
  await assert.rejects(stop('different'),/rejected operation/);
@@ -79,7 +107,12 @@ async function run(){
  assert.equal((await admit('ace',matches[1].id)).status,'wrong_engine');
  await assert.rejects(activate(),/rejected operation/);
  await assert.rejects(control('configure(true,ARRAY['+lit(c)+'])'),/rejected operation/);
- assert.equal(await pulse(1,1),'observed'); // Drain remains permitted after admissions stop.
+ assert.equal(await register(1),'2');
+ await assert.rejects(pulse(1,2),/stale worker pulse/);
+ assert.equal(await pulse(2,0),'observed'); // Replacement can report while draining.
+ const recovered=await health();assert.equal(recovered.heartbeat_state,'fresh');assert.equal(recovered.heartbeat_generation,2);assert.equal(recovered.state,'admissions_stopped');
+ assert.equal(await pulse(2,1),'observed');
+ console.log('PASS operator stop after heartbeat expiry, old generation fenced and replacement reports during protected drain');
  const m=await monitor();assert.equal(m.state,'admissions_stopped');assert.equal(m.drain.can_stop_match_worker,false);assert.equal(m.can_retire_pilot,false);assert.equal(m.lifecycle.not_admitted,6);
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.source_admissions a JOIN ace_cutover_review.source_slots s USING(match_id) WHERE s.competition_id='+lit(c)+';'),'1');
  console.log('PASS guarded isolated activation, exact replay, stop serialization, frozen new admissions, sticky existing ownership and retirement blocked');
