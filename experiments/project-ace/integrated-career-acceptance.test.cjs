@@ -11,7 +11,7 @@ function add(rawPlayer,id){
  players.set(id,{raw:x,player_id:id,career_revision:0,human:true,qualified:false,profile:Object.fromEntries(fields.map(k=>[k,x.skills[k]])),staff:{matchFatigueReduction:.1},injuries:[],inventory:[{id:id+'-r',type:'racket',condition:30,wear_per_match:2}],loadout:{racket:id+'-r',shoes:null,apparel:null},finance:{opening_day:0,balance:1000,tax_rate_basis_points:1800,settled_periods:[],transactions:[{player_id:id,idempotency_key:'opening',amount:1000,game_absolute_day:0,is_taxable:false,balance_before:0,balance_after:1000}]}});
 }
 ['p','q','r','s'].forEach((id,i)=>add(raw.players[i%2],id));
-const competition='integrated-cup',publish=37,results=[],seen=new Set();
+let competition='integrated-cup',publish=37;const results=[],seen=new Set();
 function play(id,ids,label,day,through,qualification=null){
  assert.ok(!seen.has(id));seen.add(id);
  const snapshot=clone(raw);snapshot.match.world='WTA';snapshot.match.draw_type=qualification?'qualification':'main_draw';snapshot.match.round_label=label;
@@ -22,11 +22,11 @@ function play(id,ids,label,day,through,qualification=null){
  assert.deepEqual(project(input,res,cx),out);
  for(const x of out.players){
   const p=players.get(x.player_id);assert.equal(x.career_revision,p.career_revision+1);assert.ok(x.equipment[0].condition<p.inventory[0].condition);
-  p.career_revision=x.career_revision;p.profile=x.condition;p.inventory=x.equipment;p.loadout=x.loadout;
-  if(x.injury_recovery)p.injuries.push(x.injury_recovery);
+  p.career_revision=x.career_revision;p.profile={...p.profile,...x.condition};p.inventory=x.equipment;p.loadout=x.loadout;
+  if(x.injury_recovery)p.injuries.push({status:x.injury_recovery.status,tournamentReturnDay:x.injury_recovery.tournament_return_absolute_day,fullRecoveryDay:x.injury_recovery.expected_full_recovery_absolute_day});
   if(x.qualified_for_main_draw)p.qualified=true;
   const f=p.finance;f.transactions.push(...x.finance.prize_transactions,...x.finance.tax_transactions);f.settled_periods.push(...x.finance.tax_periods);f.balance=x.finance.closing_balance;
-  if(x.ranking){assert.ok(!results.some(r=>r.player===x.player_id));results.push({id:'result-'+x.player_id,competition,player:x.player_id,points:x.ranking.ranking_points,publish_day:publish,status:'pending'});}
+  if(x.ranking){assert.ok(!results.some(r=>r.player===x.player_id&&r.competition===competition));results.push({id:'result-'+competition+'-'+x.player_id,competition,player:x.player_id,points:x.ranking.ranking_points,publish_day:publish,status:'pending'});}
  }
  return out.players.find(p=>p.won).player_id;
 }
@@ -46,3 +46,43 @@ const pre=reconcile(state,36);assert.equal(pre.state.contributions.length,0);
 const ranked=reconcile(pre.state,37);assert.equal(ranked.state.contributions.length,4);assert.equal(ranked.totals[JSON.stringify(['WTA',champion])],250+(champion===qualifier?13:0));
 assert.deepEqual(reconcile(ranked.state,37).state,ranked.state);
 console.log('PASS sequential qualification, semifinal and final career state carryover, unique gross prizes, monthly tax and ranking publication');
+
+const {taxReview,monthStart,recoveryReview}=require('./career-processing-review.cjs'),{verifySettled}=require('./historical-tax-review.cjs'),{dayOff,eligibility}=require('./career-support.cjs');
+function settleAll(day){
+ for(const p of players.values()){
+  const f=p.finance,plan=taxReview({...f,player_id:p.player_id,human:true,through_day:day});
+  f.transactions.push(...plan.transactions);f.settled_periods.push(...plan.periods);f.balance=plan.balance;
+  verifySettled(p.player_id,f,day);
+  assert.equal(f.balance,f.transactions.reduce((n,t)=>n+t.amount,0));
+  assert.equal(taxReview({...f,player_id:p.player_id,human:true,through_day:day}).transactions.length,0);
+ }
+}
+settleAll(31);
+for(const p of players.values())assert.equal(p.finance.transactions.filter(t=>t.idempotency_key==='monthly-tax:1:1').length,1);
+settleAll(366);
+for(const p of players.values()){
+ assert.equal(p.finance.settled_periods.length,12);
+ assert.equal(p.finance.settled_periods.at(-1).due_absolute_day,366);
+ p.qualified=false;
+ const before=p.profile;
+ p.profile=dayOff(before,p.staff);
+ assert.ok(p.profile.fatigue<=before.fatigue);
+ for(const k of ['fitness','stamina','recovery','movement'])assert.equal(p.profile[k],before[k]);
+ p.injuries=p.injuries.map(i=>i.fullRecoveryDay<=366?{...i,status:'recovered'}:i);
+ assert.equal(eligibility(p.injuries,366).eligible,true);
+}
+const injury={status:'active',onset_absolute_day:365,expected_full_recovery_absolute_day:368};
+assert.equal(recoveryReview(injury,366).status,'recovering');
+assert.equal(recoveryReview(injury,368).status,'recovered');
+assert.equal(eligibility([{status:'active',tournamentReturnDay:368,fullRecoveryDay:369}],366).eligible,false);
+assert.equal(eligibility([{status:'recovering',tournamentReturnDay:368,fullRecoveryDay:369}],368).eligible,true);
+competition='integrated-cup-season2';publish=375;
+const nextChampion=play('final-season2',[champion,players.get(champion).player_id==='s'?'r':'s'],'Final',370,371);
+const next=clone(ranked.state);next.editions.push({competition,series:'integrated-series',world:'WTA',season:2,publish_day:publish,status:'completed'});next.results.push(...results.filter(r=>r.competition===competition));
+const defended=reconcile(next,375);
+assert.equal(defended.state.contributions.filter(c=>c.active).length,2);
+assert.equal(defended.totals[JSON.stringify(['WTA',nextChampion])],250);
+assert.equal(defended.state.contributions.filter(c=>c.season===1&&c.active).length,0);
+for(const p of players.values())assert.equal(p.finance.transactions.filter(t=>t.idempotency_key==='monthly-tax:1:1').length,1);
+settleAll(monthStart(2,2));
+console.log('PASS all-player month settlement, twelve historical periods, recovery eligibility, season rollover and next-edition ranking defence');
