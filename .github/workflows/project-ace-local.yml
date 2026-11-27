@@ -52,6 +52,7 @@ jobs:
           node experiments/project-ace/world-http.test.cjs
           node experiments/project-ace/official-review.test.cjs
           node experiments/project-ace/official-simulation-payload-review.test.cjs
+          node experiments/project-ace/official-replay-adapter.test.cjs
           node experiments/project-ace/world-security.test.cjs
           node experiments/project-ace/scheduler-stress.test.cjs
           node experiments/project-ace/restored-schema-gate.test.cjs

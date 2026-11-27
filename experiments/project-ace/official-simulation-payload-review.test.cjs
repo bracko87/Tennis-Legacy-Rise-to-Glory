@@ -1,9 +1,9 @@
 'use strict';
 const assert=require('node:assert/strict'),{exportPayload,reordered}=require('./official-review.test.cjs'),{project}=require('./official-simulation-payload-review.cjs');
 const m=exportPayload.matches[0],points=m.stats.reduce((n,s)=>n+s.total_points_won,0);
-const evidence={match_id:m.match_id,player1_id:m.player1_id,player2_id:m.player2_id,engine_seed:'fixture',estimated_match_minutes:150,weather:{heat_index:24},weather_source:'synthetic-test',replay:{player1_id:m.player1_id,player2_id:m.player2_id,winner_id:m.winner_id,final_score:m.score,schema_version:1,duration_seconds:points+1,events:[{kind:'match_start',offset_seconds:0},...Array.from({length:points},(_,i)=>({kind:'point',offset_seconds:i+1})),{kind:'match_end',offset_seconds:points+1}]}};
+const evidence={match_id:m.match_id,player1_id:m.player1_id,player2_id:m.player2_id,engine_seed:'fixture',estimated_match_minutes:150,weather:{heat_index:24},weather_source:'synthetic-test',replay:{player1_id:m.player1_id,player2_id:m.player2_id,winner_id:m.winner_id,final_score:m.score,schema_version:1,duration_seconds:1800,events:[{kind:'match_start',offset_seconds:0},...Array.from({length:points},(_,i)=>({kind:'point',offset_seconds:i+1})),{kind:'match_end',offset_seconds:points+1}]}};
 const result=project(m,evidence);
-assert.equal(result.simulation.total_points,points);assert.equal(result.simulation.metadata.estimated_match_minutes,150);assert.equal(result.simulation.total_games,m.sets.reduce((n,s)=>n+s.player1_games+s.player2_games,0));assert.equal(result.production_ready,false);
+assert.equal(result.simulation.total_points,points);assert.equal(result.simulation.final_score.score,m.score);assert.throws(()=>project(m,{...evidence,replay:{...evidence.replay,duration_seconds:479}}),/Invalid replay duration/);assert.equal(result.simulation.metadata.estimated_match_minutes,150);assert.equal(result.simulation.total_games,m.sets.reduce((n,s)=>n+s.player1_games+s.player2_games,0));assert.equal(result.production_ready,false);
 assert.throws(()=>project(m,{...evidence,weather:null}),/weather/);
 assert.throws(()=>project(m,{...evidence,estimated_match_minutes:null}),/duration metadata/);
 assert.throws(()=>project(reordered.matches.find(x=>x.match_id===m.match_id),evidence),/participant order/);
