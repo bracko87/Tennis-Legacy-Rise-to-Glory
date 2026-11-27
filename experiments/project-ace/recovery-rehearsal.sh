@@ -9,6 +9,27 @@ engine() { env -i PATH="$PATH" PGPASSWORD=ace-disposable-ace PGCONNECT_TIMEOUT=5
 [[ "$(sql ace_review -c "SELECT count(*) FROM pg_database WHERE datname='ace_review_recovery'")" == 0 ]] || { echo 'Refusing existing recovery target'; exit 1; }
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
+# Negative control: equivalent explicit/default schema ACLs match, genuine
+# grants and grant options differ. All changes are rolled back on the CI source.
+sql ace_review <<'SQL'
+BEGIN;
+DO $acl$
+DECLARE owner_oid oid; expected jsonb; explicit_acl jsonb; changed jsonb;
+BEGIN
+ SELECT nspowner INTO STRICT owner_oid FROM pg_namespace WHERE nspname='ace_migration_journal';
+ SELECT jsonb_agg(to_jsonb(a) ORDER BY a.grantor,a.grantee,a.privilege_type,a.is_grantable)
+ INTO expected FROM aclexplode(acldefault('n',owner_oid)) a;
+ SELECT jsonb_agg(to_jsonb(a) ORDER BY a.grantor,a.grantee,a.privilege_type,a.is_grantable)
+ INTO explicit_acl FROM pg_namespace n CROSS JOIN LATERAL aclexplode(coalesce(n.nspacl,acldefault('n',n.nspowner))) a WHERE n.nspname='ace_migration_journal';
+ IF explicit_acl IS DISTINCT FROM expected THEN RAISE EXCEPTION 'unexpected migration journal grants'; END IF;
+ GRANT USAGE ON SCHEMA ace_migration_journal TO ace_review_worker WITH GRANT OPTION;
+ SELECT jsonb_agg(to_jsonb(a) ORDER BY a.grantor,a.grantee,a.privilege_type,a.is_grantable)
+ INTO changed FROM pg_namespace n CROSS JOIN LATERAL aclexplode(coalesce(n.nspacl,acldefault('n',n.nspowner))) a WHERE n.nspname='ace_migration_journal';
+ IF changed IS NOT DISTINCT FROM expected THEN RAISE EXCEPTION 'genuine schema grant not detected'; END IF;
+END $acl$;
+ROLLBACK;
+SQL
+echo 'PASS schema ACL normalization and genuine grant negative control'
 sql ace_review -f recovery-fingerprint.sql > "$tmp/source-before"
 if [[ -n "${ACE_REVIEW_CONTAINER:-}" ]]; then
   [[ "${GITHUB_ACTIONS:-}" == true && "$ACE_REVIEW_CONTAINER" =~ ^[a-f0-9]{64}$ ]] || exit 1

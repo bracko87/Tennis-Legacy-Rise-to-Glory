@@ -19,5 +19,12 @@ WHERE n.nspname IN ('ace_review','ace_cutover_review','ace_migration_journal','a
 SELECT n.nspname,c.relname,i.relname,pg_get_indexdef(i.oid),x.indisvalid,x.indisready
 FROM pg_index x JOIN pg_class c ON c.oid=x.indrelid JOIN pg_class i ON i.oid=x.indexrelid JOIN pg_namespace n ON n.oid=c.relnamespace
 WHERE n.nspname IN ('ace_review','ace_cutover_review','ace_migration_journal','ace_migration_fixture') ORDER BY 1,2,3;
-SELECT nspname,coalesce(nspacl::text,'default') FROM pg_namespace
+-- pg_dump may restore an explicit owner-only ACL as NULL (default).
+-- Compare normalized grants, not representation or array order. Preserve grantor,
+-- grantee, privilege and grant option; distinguish explicit empty ACL from default.
+SELECT n.nspname,pg_get_userbyid(n.nspowner),
+ coalesce((SELECT jsonb_agg(jsonb_build_array(pg_get_userbyid(a.grantor),CASE WHEN a.grantee=0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END,a.privilege_type,a.is_grantable)
+ ORDER BY a.grantor,a.grantee,a.privilege_type,a.is_grantable)
+ FROM aclexplode(coalesce(n.nspacl,acldefault('n',n.nspowner))) a),'[]'::jsonb)
+FROM pg_namespace n
 WHERE nspname IN ('ace_review','ace_cutover_review','ace_migration_journal','ace_migration_fixture') ORDER BY 1;
