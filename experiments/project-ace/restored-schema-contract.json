@@ -13,11 +13,20 @@
       "completion_reason",
       "draw_type",
       "round_label",
-      "round_number"
+      "round_number",
+      "scheduled_season_week",
+      "scheduled_day",
+      "scheduled_start_minute",
+      "court_number",
+      "estimated_duration_minutes",
+      "updated_at"
     ],
     "public.tournament_match_simulations": [
       "match_id",
-      "simulation_status"
+      "simulation_status",
+      "total_games",
+      "total_points",
+      "live_ends_at"
     ],
     "public.tournament_match_sets": [
       "match_id"
@@ -53,7 +62,8 @@
     ],
     "public.tournament_world_competitions": [
       "id",
-      "status"
+      "status",
+      "tournament_edition_id"
     ],
     "public.tournament_entries": [
       "competition_id",
@@ -73,6 +83,28 @@
     ],
     "public.tournament_cancellations": [
       "competition_id"
+    ],
+    "public.tournament_editions": [
+      "id",
+      "season_number",
+      "tournament_series_id"
+    ],
+    "public.tournament_series": [
+      "id",
+      "category_code"
+    ],
+    "public.tournament_match_scheduling_rules": [
+      "category_code",
+      "court_count"
+    ],
+    "public.tournament_schedule_slots": [
+      "tournament_edition_id",
+      "phase",
+      "season_week"
+    ],
+    "public.game_clock": [
+      "id",
+      "speed_multiplier"
     ]
   },
   "routines": [
@@ -88,7 +120,12 @@
     "public.finalize_completed_tournament_match_v1()",
     "public.process_weekly_rankings_v1()",
     "public.finalize_tournament_cancellation_v1",
-    "control_center_private.retire_expired_tennis_guests_v1(integer)"
+    "control_center_private.retire_expired_tennis_guests_v1(integer)",
+    "public.ensure_safe_singles_start_v1(uuid, bigint)",
+    "public.reschedule_following_player_matches_v1(uuid)",
+    "public.simulated_tennis_duration_minutes_v1(integer, integer)",
+    "public.current_game_second_v1()",
+    "public.tournament_match_feeders_ready_v1(uuid)"
   ],
   "internal": [
     "public.finalize_match_replay_v1",
@@ -98,7 +135,10 @@
     "public.process_due_match_engine_v1",
     "public.resolve_tournament_travel_no_show_v1",
     "public.finalize_player_tournament_result_v1",
-    "control_center_private.retire_expired_tennis_guests_v1"
+    "control_center_private.retire_expired_tennis_guests_v1",
+    "public.ensure_safe_singles_start_v1",
+    "public.reschedule_following_player_matches_v1",
+    "public.simulated_tennis_duration_minutes_v1"
   ],
   "roles": [
     "anon",

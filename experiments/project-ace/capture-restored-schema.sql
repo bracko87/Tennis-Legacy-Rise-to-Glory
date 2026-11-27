@@ -17,7 +17,7 @@ rels AS (
  SELECT c.oid,n.nspname||'.'||c.relname AS name,c.relrowsecurity,c.relforcerowsecurity,c.relkind
  FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
  WHERE c.relkind IN ('r','p','v','m') AND n.nspname IN ('public','control_center_private')
- AND (c.relname ~ '^(tournament_|player_|career_|ranking_|tennis_guest|national_)' OR c.relname='players')
+ AND (c.relname ~ '^(tournament_|player_|career_|ranking_|tennis_guest|national_)' OR c.relname IN ('players','game_clock'))
 ), routines AS (
  SELECT p.oid,n.nspname||'.'||p.proname AS name,n.nspname||'.'||p.proname||'('||oidvectortypes(p.proargtypes)||')' AS signature,p.prosecdef,p.provolatile,md5(pg_get_functiondef(p.oid)) AS hash
  FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE p.prokind IN ('f','p') AND n.nspname IN ('public','control_center_private')
