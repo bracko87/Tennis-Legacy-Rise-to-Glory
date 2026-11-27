@@ -1,0 +1,14 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),{freeze,digest}=require('./shadow-comparison.cjs'),{normalized}=require('./legacy-shadow-capture.cjs'),raw=require('./sample-legacy-snapshot.json');
+const capture=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+const id=n=>'00000000-0000-4000-8000-00000000000'+n;
+const snapshot=JSON.parse(JSON.stringify(raw));snapshot.match.world='WTA';
+snapshot.players.forEach((p,i)=>{p.player.id=id(i+3);p.skills.player_id=id(i+3);});
+const input=freeze({match_id:id(1),competition_id:id(2),source_revision:0,snapshot,seed:321});
+assert.equal(capture.restore_id,'synthetic-ci-restore');assert.equal(capture.simulation.engine_version,'synthetic-sql-control');assert.equal(capture.routines.length,5);
+const link={schema:'ace-legacy-shadow-link-v1',input_sha256:input.input_sha256,capture_sha256:digest(capture),restore_id:capture.restore_id,legacy_engine_seed:capture.simulation.engine_seed,routine_inventory_sha256:digest(capture.routines),pre_match_capture_attested:true};
+const report=normalized(input,capture,link);
+assert.equal(report.status,'linked_capture_review');assert.equal(report.legacy_authority_verified,false);assert.equal(report.production_ready,false);
+assert.equal(report.comparison.metrics.legacy.games,12);assert.equal(report.comparison.metrics.legacy.points,48);assert.equal(report.comparison.metrics.legacy.minutes,66);
+assert.deepEqual(report.observation.sets,[{games:[6,0],tiebreak:null},{games:[6,0],tiebreak:null}]);assert.equal(report.observation.winner_id,id(3));
+console.log('PASS SQL-generated capture passes exact offline normalization and comparison');
