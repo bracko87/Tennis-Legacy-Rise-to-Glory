@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+const read = path => readFileSync(new URL('../'+path, import.meta.url), 'utf8')
+const home=read('src/pages/Home.tsx')
+const feature=read('src/components/marketing/WhyTennisLegacy.tsx')
+const app=read('src/App.tsx')
+const data=JSON.parse(feature.split('export const TENNIS_FEATURES = ')[1].split(' as const')[0])
+assert.equal(data.length,20)
+assert.equal(new Set(data.map(item=>item[0])).size,20)
+assert.ok(home.indexOf('<WhyTennisLegacy />') > home.indexOf('className="tlg-hero"'))
+assert.ok(home.indexOf('<WhyTennisLegacy />') < home.indexOf('className="tlg-statistics-section"'))
+assert.ok(home.indexOf('<TennisDiscordSection />') < home.indexOf('id="game-world"'))
+assert.ok(!home.includes('journeySteps'))
+assert.ok(!home.includes('managementFeatures'))
+assert.ok(app.includes('path="/features/:featureId"'))
+assert.ok(feature.includes('id="features"'))
+assert.ok(feature.includes('id="how-it-works"'))
+assert.ok(feature.includes('https://discord.gg/RBBtXgZey2'))
+assert.ok(read('src/pages/manager/CommunitySupport.tsx').includes('https://discord.gg/RBBtXgZey2'))
+const manual=['core','competition','career'].map(name=>read('src/content/manual/manual.en.'+name+'.ts')).join('\n')
+for(const [slug,title,summary,detail,chapters] of data){
+ assert.ok(/^[a-z-]+$/.test(slug)&&title&&summary&&detail)
+ for(const chapter of chapters)assert.ok(manual.includes("id: '"+chapter+"'"),chapter)
+}
+assert.ok(data.find(item=>item[0]==='private-life')[3].includes('Premium'))
+console.log('PASS: 20 unique public feature pages, homepage order, navigation anchors, official Discord invite and manual chapter references')

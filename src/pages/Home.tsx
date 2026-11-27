@@ -12,19 +12,14 @@ import { Link } from 'react-router'
 import {
   Activity,
   ArrowRight,
-  BarChart3,
-  Brain,
   CalendarDays,
   Check,
-  CircleDollarSign,
   Clock3,
   Dumbbell,
   Globe2,
   MapPin,
-  Package,
   ShieldCheck,
   Sparkles,
-  Target,
   Trophy,
   UserRound,
   UsersRound,
@@ -43,6 +38,7 @@ import HomepagePlayerReviews from '../components/marketing/HomepagePlayerReviews
 import HomeScreenshotGallery from '../components/marketing/HomeScreenshotGallery'
 import HomeVideoShowcase from '../components/marketing/HomeVideoShowcase'
 import DesktopDownloads from '../components/marketing/DesktopDownloads'
+import { WhyTennisLegacy, TennisDiscordSection } from '../components/marketing/WhyTennisLegacy'
 import { supabase } from '../lib/supabase'
 import usePublicRegistrationStatus from '../hooks/usePublicRegistrationStatus'
 import useTennisGuestAvailability from '../hooks/useTennisGuestAvailability'
@@ -98,25 +94,10 @@ const statistics = [
   { labelKey: 'home.stats.countries', value: '—', icon: Globe2 },
 ] as const
 
-const journeySteps = [
-  { number: '01', icon: UserRound, titleKey: 'home.journey.createTitle', descriptionKey: 'home.journey.createBody' },
-  { number: '02', icon: Dumbbell, titleKey: 'home.journey.trainTitle', descriptionKey: 'home.journey.trainBody' },
-  { number: '03', icon: Target, titleKey: 'home.journey.competeTitle', descriptionKey: 'home.journey.competeBody' },
-  { number: '04', icon: Trophy, titleKey: 'home.journey.legacyTitle', descriptionKey: 'home.journey.legacyBody' },
-] as const
-
-const managementFeatures = [
-  { icon: Dumbbell, titleKey: 'home.features.developmentTitle', descriptionKey: 'home.features.developmentBody' },
-  { icon: CalendarDays, titleKey: 'home.features.calendarTitle', descriptionKey: 'home.features.calendarBody' },
-  { icon: Brain, titleKey: 'home.features.prepTitle', descriptionKey: 'home.features.prepBody' },
-  { icon: Package, titleKey: 'home.features.equipmentTitle', descriptionKey: 'home.features.equipmentBody' },
-  { icon: CircleDollarSign, titleKey: 'home.features.financeTitle', descriptionKey: 'home.features.financeBody' },
-  { icon: BarChart3, titleKey: 'home.features.statsTitle', descriptionKey: 'home.features.statsBody' },
-  { icon: Globe2, titleKey: 'home.features.rankingsTitle', descriptionKey: 'home.features.rankingsBody' },
-  { icon: UsersRound, titleKey: 'home.features.multiplayerTitle', descriptionKey: 'home.features.multiplayerBody' },
-] as const
-
 export default function HomePage() {
+  useEffect(() => {
+    if (window.location.hash === '#features') document.getElementById('features')?.scrollIntoView({ block: 'start' })
+  }, [])
   const registrationAvailability = usePublicRegistrationStatus()
   const guestAvailable = useTennisGuestAvailability()
   const { user, authLoading } = useAuth()
@@ -305,6 +286,8 @@ export default function HomePage() {
           </div>
         </section>
 
+        <WhyTennisLegacy />
+
         <section
           className="tlg-statistics-section"
           aria-label={t('home.liveWorld.aria')}
@@ -374,53 +357,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section
-          id="how-it-works"
-          className="tlg-content-section tlg-content-section-alt"
-        >
-          <div className="tlg-section">
-            <div className="tlg-section-heading tlg-section-heading-centered">
-              <span className="tlg-section-eyebrow">
-                {t('home.journey.eyebrow')}
-              </span>
-
-              <h2 className="tlg-section-title">
-                {t('home.journey.title')}
-              </h2>
-
-              <p className="tlg-section-description">
-                {t('home.journey.description')}
-              </p>
-            </div>
-
-            <div className="tlg-journey-grid">
-              {journeySteps.map((step) => {
-                const Icon = step.icon
-
-                return (
-                  <article
-                    key={step.number}
-                    className="tlg-journey-card"
-                  >
-                    <div className="tlg-journey-card-top">
-                      <span className="tlg-journey-number">
-                        {step.number}
-                      </span>
-
-                      <span className="tlg-journey-icon">
-                        <Icon size={21} />
-                      </span>
-                    </div>
-
-                    <h3>{t(step.titleKey)}</h3>
-
-                    <p>{t(step.descriptionKey)}</p>
-                  </article>
-                )
-              })}
-            </div>
-          </div>
-        </section>
+        <TennisDiscordSection />
 
         <section
           id="game-world"
@@ -462,52 +399,6 @@ export default function HomePage() {
         </section>
 
         <DesktopDownloads />
-
-        <section
-          id="features"
-          className="tlg-content-section tlg-content-section-alt"
-        >
-          <div className="tlg-section">
-            <div className="tlg-section-heading tlg-section-heading-centered">
-              <span className="tlg-section-eyebrow">
-                {t('home.features.eyebrow')}
-              </span>
-
-              <h2 className="tlg-section-title">
-                {t('home.features.title')}
-              </h2>
-
-              <p className="tlg-section-description">
-                {t('home.features.description')}
-              </p>
-            </div>
-
-            <div className="tlg-feature-grid">
-              {managementFeatures.map((feature) => {
-                const Icon = feature.icon
-
-                return (
-                  <article
-                    key={feature.titleKey}
-                    className="tlg-feature-card"
-                  >
-                    <span className="tlg-feature-icon">
-                      <Icon size={22} />
-                    </span>
-
-                    <h3>{t(feature.titleKey)}</h3>
-
-                    <p>{t(feature.descriptionKey)}</p>
-
-                    <span className="tlg-feature-arrow">
-                      <ArrowRight size={17} />
-                    </span>
-                  </article>
-                )
-              })}
-            </div>
-          </div>
-        </section>
 
         <HomeVideoShowcase />
 
