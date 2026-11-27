@@ -7,6 +7,10 @@ for(const c of r.cohorts){assert.equal(c.n,10);assert.equal(c.adequate_sample,fa
 const small=sample.slice(0,2);
 assert.deepEqual(report(small),report([...small].reverse()));
 assert.throws(()=>report([small[0],small[0]]),/Duplicate source case/);
+const focused=small.map(x=>({...x,focal_player_id:x.input.player_ids[0]}));
+const fr=report(focused).cohorts[0];assert.equal(fr.focal_player_win_rate.ace.mean,fr.first_slot_win_rate.ace);assert.equal(fr.focal_player_win_rate.reference.mean,fr.first_slot_win_rate.reference);
+assert.throws(()=>report([{...small[0],focal_player_id:'foreign'}]),/Unknown focal player/);
+assert.throws(()=>report([focused[0],small[1]]),/Incomplete focal designation/);
 assert.throws(()=>report([{...small[0],reference_kind:'supplied_legacy_observation'}]),/mislabeled/);
 assert.throws(()=>report(small,{minimumPerCohort:1}),/at least 30/);
 assert.deepEqual(paired(Array(30).fill(2),Array(30).fill(1)).approximate_95pct_mean_delta_interval,[1,1]);
