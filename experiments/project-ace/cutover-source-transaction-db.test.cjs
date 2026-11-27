@@ -36,6 +36,7 @@ async function run(){
  await assert.rejects(imp(bad),/rejected/);
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.source_contracts WHERE competition_id='+lit(c)+';'),'0');
  assert.equal(await imp(source),'imported');assert.equal(await imp(source),'already_imported');
+ assert.equal(await control('bind_source_venue('+lit(c)+",'transaction-ci-venue')"),'bound');
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.matches WHERE competition='+lit(c)+';'),'0');
  assert.equal((await admit('ace',key(1,1))).status,'wrong_engine');
  await assert.rejects(seed(c,{match_id:key(1,1),player1_id:'p0',player2_id:'p1'}),/rejected/);
