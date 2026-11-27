@@ -26,7 +26,7 @@ async function run(){
  const due=2*86400+600*60;
  async function setup(c,venue,prefix,firstCourt=1,role='ace',shared=null){
   const players=Array.from({length:8},(_,i)=>({id:i===0&&shared?shared:prefix+i})),matches=[];
-  for(let round=1;round<=3;round++)for(let number=1;number<=8/2**round;number++)matches.push({id:c+'-'+round+'-'+number,competition_id:c,draw_type:'main_draw',round_number:round,match_number:number,status:'scheduled',started_at:null,completed_at:null,winner_id:null,player1_id:round===1?players[number*2-2].id:null,player2_id:round===1?players[number*2-1].id:null,scheduled_season_week:1,scheduled_day:round,scheduled_start_minute:600,court_number:number===1?firstCourt:number});
+  for(let round=1;round<=3;round++)for(let number=1;number<=8/2**round;number++)matches.push({id:c+'-'+round+'-'+number,competition_id:c,draw_type:'main_draw',round_number:round,match_number:number,status:'scheduled',started_at:null,completed_at:null,winner_id:null,player1_id:round===1?players[number*2-2].id:null,player2_id:round===1?players[number*2-1].id:null,scheduled_season_week:1,scheduled_day:round===1?1:round+3,scheduled_start_minute:600,court_number:number===1?firstCourt:number});
   const source=freezeSource({schema:'ace-source-admission-v1',complete_export:true,competition:{id:c,scope:'singles',field_locked:true,qualification_required:false,status:'published',season_number:1,draw_size:8},players,matches,results:[],simulations:[]});
   await control('import_source_contract('+json(source)+')');
   assert.equal(await control('bind_source_venue('+[lit(c),lit(venue)].join(',')+')'),'bound');
@@ -89,6 +89,9 @@ async function run(){
  await assert.rejects(extended('bad-phase',0,3,1,720,2),/rejected/);
  await assert.rejects(extended('bad-court',0,1,2,720,5),/rejected/);
  await assert.rejects(extended('occupied',0,1,1,720,2),/rejected/);
+ await assert.rejects(extended('after-feeder',0,1,7,720,4),/rejected/);
+ await assert.rejects(apply('same-day-unsafe',0,605),/rejected/);
+ assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.schedule_revisions WHERE match_id='+lit(target.id)+';'),'0');
  // Day 4, court 4 has no frozen bracket occupancy.
  const race=await Promise.all([extended('delay',0,1,4,720,4),extended('delay',0,1,4,720,4)]);
  assert.deepEqual(race.sort(),['already_applied_review','applied_review']);

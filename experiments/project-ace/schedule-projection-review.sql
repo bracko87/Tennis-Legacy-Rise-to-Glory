@@ -52,34 +52,7 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_revi
 $$;
 -- Deliberately narrow first adapter: same-day delay, same court. Moving to
 -- another day/court needs authoritative phase and venue-capacity evidence.
-CREATE FUNCTION ace_cutover_review.apply_followup_delay(p_source text,p_target text,p_key text,p_expected bigint,p_minute integer) RETURNS text
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $$
-DECLARE m ace_cutover_review.matches%ROWTYPE; j ace_cutover_review.followup_jobs%ROWTYPE; old jsonb; prior ace_cutover_review.schedule_revisions%ROWTYPE; rev bigint; c ace_cutover_review.source_clock%ROWTYPE; due bigint; season int;
-BEGIN
- SELECT * INTO STRICT m FROM ace_cutover_review.matches WHERE id=p_target FOR UPDATE;
- SELECT * INTO STRICT j FROM ace_cutover_review.followup_jobs WHERE source_id=p_source AND target_id=p_target FOR UPDATE;
- SELECT * INTO prior FROM ace_cutover_review.schedule_revisions WHERE source_id=p_source AND match_id=p_target AND attempt_key=p_key;
- IF FOUND THEN
-  IF prior.revision<>p_expected+1 OR (prior.revised_slot->>'scheduled_start_minute')::int IS DISTINCT FROM p_minute THEN RAISE EXCEPTION 'conflicting schedule retry'; END IF;
-  RETURN 'already_applied_review';
- END IF;
- IF m.status<>'scheduled' OR m.started OR m.revision<>j.target_revision OR m.owner IS DISTINCT FROM 'ace' THEN RAISE EXCEPTION 'stale or ineligible target'; END IF;
- IF EXISTS(SELECT 1 FROM ace_cutover_review.source_starts WHERE match_id=p_target) THEN RAISE EXCEPTION 'target already started'; END IF;
- SELECT coalesce(max(revision),0) INTO rev FROM ace_cutover_review.schedule_revisions WHERE match_id=p_target;
- IF rev IS DISTINCT FROM p_expected THEN RAISE EXCEPTION 'stale schedule revision'; END IF;
- old:=ace_cutover_review.effective_schedule(p_target);
- IF old IS NULL OR p_minute IS NULL OR p_minute<= (old->>'scheduled_start_minute')::int OR p_minute NOT BETWEEN 600 AND 1290 THEN RAISE EXCEPTION 'invalid same-day delay'; END IF;
- SELECT * INTO STRICT c FROM ace_cutover_review.source_clock WHERE competition_id=m.competition FOR SHARE;
- SELECT (contract->>'season_number')::int INTO STRICT season FROM ace_cutover_review.source_contracts WHERE competition_id=m.competition;
- due:=((season-1)::bigint*366+2+((old->>'scheduled_season_week')::int-1)*7+(old->>'scheduled_day')::int-1)*86400+p_minute*60;
- IF c.paused OR clock_timestamp()-c.captured_at>interval '60 seconds' OR due<=c.game_second+600 THEN RAISE EXCEPTION 'clock or delay not safe'; END IF;
- IF EXISTS(SELECT 1 FROM ace_cutover_review.source_rest_history h WHERE h.resource_kind='player' AND h.resource_key IN(m.player1,m.player2) AND (due<h.ready_second OR (h.competition_id<>m.competition AND h.start_second/86400=due/86400))) THEN RAISE EXCEPTION 'player recovery conflict'; END IF;
- IF ace_cutover_review.note_followup_attempt(p_source,p_target,p_key,'rescheduled')<>'recorded_review' THEN RAISE EXCEPTION 'unavailable attempt'; END IF;
- INSERT INTO ace_cutover_review.schedule_revisions VALUES(p_target,rev+1,old,jsonb_set(old,'{scheduled_start_minute}',to_jsonb(p_minute)),p_source,p_key);
- -- Force fresh readiness without changing lifecycle revisions (which are contiguous).
- UPDATE ace_cutover_review.source_readiness SET match_revision=-1 WHERE match_id=p_target;
- RETURN 'applied_review';
-END $$;
+
 -- Explicit, immutable review estimates. Unknown matches retain the conservative bound.
 CREATE TABLE ace_cutover_review.schedule_duration_evidence(
  match_id text PRIMARY KEY REFERENCES ace_cutover_review.source_slots(match_id),
@@ -152,6 +125,13 @@ BEGIN
  AND ((v.venue_id=venue AND (q.sl->>'court_number')::int=p_court AND ace_cutover_review.projected_overlap(due,ace_cutover_review.projected_schedule_duration(p_target),z.at_second,ace_cutover_review.projected_schedule_duration(s.match_id),15))
  OR ((coalesce(x.player1,q.sl->>'player1_id') IN(m.player1,m.player2) OR coalesce(x.player2,q.sl->>'player2_id') IN(m.player1,m.player2)) AND (ace_cutover_review.projected_overlap(due,ace_cutover_review.projected_schedule_duration(p_target),z.at_second,ace_cutover_review.projected_schedule_duration(s.match_id),60) OR (s.competition_id<>m.competition AND z.at_second/86400=due/86400))))
  ) THEN RAISE EXCEPTION 'projected schedule conflict'; END IF;
+ -- Do not silently move a feeder behind its downstream match.
+ IF EXISTS(
+ SELECT 1 FROM ace_cutover_review.source_slots nxt
+ CROSS JOIN LATERAL (SELECT ace_cutover_review.effective_schedule(nxt.match_id) AS sl) q
+ WHERE (nxt.feeder1=p_target OR nxt.feeder2=p_target)
+ AND (((season-1)::bigint*366+2+((q.sl->>'scheduled_season_week')::int-1)*7+(q.sl->>'scheduled_day')::int-1)*86400+(q.sl->>'scheduled_start_minute')::int*60)<due+(ace_cutover_review.projected_schedule_duration(p_target)+60)::bigint*60
+ ) THEN RAISE EXCEPTION 'downstream feeder schedule conflict'; END IF;
  revised:=old||jsonb_build_object('scheduled_season_week',p_week,'scheduled_day',p_day,'scheduled_start_minute',p_minute,'court_number',p_court);
  IF c.paused OR clock_timestamp()-c.captured_at>interval '60 seconds' OR due<=c.game_second+600 THEN RAISE EXCEPTION 'clock or delay not safe'; END IF;
  IF EXISTS(SELECT 1 FROM ace_cutover_review.source_rest_history h WHERE h.resource_kind='player' AND h.resource_key IN(m.player1,m.player2) AND (due<h.ready_second OR (h.competition_id<>m.competition AND h.start_second/86400=due/86400))) THEN RAISE EXCEPTION 'player recovery conflict'; END IF;
@@ -161,6 +141,21 @@ BEGIN
  UPDATE ace_cutover_review.source_readiness SET match_revision=-1 WHERE match_id=p_target;
  RETURN 'applied_review';
 END $$;
+CREATE FUNCTION ace_cutover_review.apply_followup_delay(p_source text,p_target text,p_key text,p_expected bigint,p_minute integer) RETURNS text
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $delay$
+DECLARE sl jsonb; prior ace_cutover_review.schedule_revisions%ROWTYPE;
+BEGIN
+ -- Match lock precedes effective slot read, as in the extended path.
+ PERFORM 1 FROM ace_cutover_review.matches WHERE id=p_target FOR UPDATE;
+ SELECT * INTO prior FROM ace_cutover_review.schedule_revisions WHERE source_id=p_source AND match_id=p_target AND attempt_key=p_key;
+ IF FOUND THEN
+  sl:=prior.previous_slot;
+ ELSE
+  sl:=ace_cutover_review.effective_schedule(p_target);
+ END IF;
+ IF sl IS NULL OR p_minute IS NULL OR p_minute<=(sl->>'scheduled_start_minute')::int THEN RAISE EXCEPTION 'invalid same-day delay'; END IF;
+ RETURN ace_cutover_review.apply_followup_slot(p_source,p_target,p_key,p_expected,(sl->>'scheduled_season_week')::int,(sl->>'scheduled_day')::int,p_minute,(sl->>'court_number')::int);
+END $delay$;
 REVOKE ALL ON FUNCTION ace_cutover_review.apply_followup_slot(text,text,text,bigint,int,int,int,int) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION ace_cutover_review.apply_followup_slot(text,text,text,bigint,int,int,int,int) TO ace_review_worker;
 CREATE OR REPLACE FUNCTION ace_cutover_review.start_source(p_id text,p_match_rev bigint,p_ready_rev bigint,p_clock_rev bigint) RETURNS text
