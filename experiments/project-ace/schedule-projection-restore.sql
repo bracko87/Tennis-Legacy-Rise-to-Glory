@@ -1,3 +1,4 @@
+DROP FUNCTION ace_cutover_review.apply_followup_slot(text,text,text,bigint,int,int,int,int);
 CREATE OR REPLACE FUNCTION ace_cutover_review.start_source(p_id text,p_match_rev bigint,p_ready_rev bigint,p_clock_rev bigint) RETURNS text
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_cutover_review AS $$
 DECLARE m ace_cutover_review.matches%ROWTYPE; a ace_cutover_review.source_admissions%ROWTYPE; c ace_cutover_review.source_clock%ROWTYPE; rd ace_cutover_review.source_readiness%ROWTYPE; s ace_cutover_review.source_slots%ROWTYPE; prior ace_cutover_review.source_starts%ROWTYPE; season int; due bigint; outcome text;

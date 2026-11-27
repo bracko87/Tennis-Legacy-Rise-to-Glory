@@ -71,24 +71,32 @@ async function run(){
  await assert.rejects(apply('stale',1,720),/rejected/);
  await assert.rejects(apply('early',0,605),/rejected/);
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.followup_attempts WHERE source_id='+lit(source)+';'),'0');
- assert.equal(await apply('delay',0,720),'applied_review');
- assert.equal(await apply('delay',0,720),'already_applied_review');
- await assert.rejects(apply('delay',0,750),/rejected/);
+ const extended=(key,rev,week,day,minute,court)=>control('apply_followup_slot('+[lit(source),lit(target.id),lit(key),rev,week,day,minute,court].join(',')+')');
+ await assert.rejects(extended('bad-phase',0,3,1,720,2),/rejected/);
+ await assert.rejects(extended('bad-court',0,1,2,720,5),/rejected/);
+ await assert.rejects(extended('occupied',0,1,1,720,2),/rejected/);
+ // Day 4, court 4 has no frozen bracket occupancy.
+ assert.equal(await extended('delay',0,1,4,720,4),'applied_review');
+ assert.equal(await extended('delay',0,1,4,720,4),'already_applied_review');
+ await assert.rejects(extended('delay',0,1,4,750,4),/rejected/);
  assert.equal((await effective()).scheduled_start_minute,720);
+ assert.equal((await effective()).scheduled_day,4);
+ assert.equal((await effective()).court_number,4);
  assert.equal(await db.sql("SELECT slot->>'scheduled_start_minute' FROM ace_cutover_review.source_slots WHERE match_id="+lit(target.id)+';'),'600');
  assert.equal(await db.sql('SELECT match_revision FROM ace_cutover_review.source_readiness WHERE match_id='+lit(target.id)+';'),'-1');
  await assert.rejects(begin(target),/stale readiness or clock/);
  const evidence={player1_id:target.p1,player2_id:target.p2,complete_health_export:true,health1:[],health2:[],travel_ready:true,resources_ready:true};
  assert.equal(await control('freeze_source_readiness('+[lit(target.id),0,1,0,0,json(evidence)].join(',')+')'),'1');
  assert.equal(await q('ace','start_source('+lit(target.id)+',1,1,0)'),'not_due');
- assert.equal(await control('publish_source_clock('+[lit(target.c),0,due+7200,false].join(',')+')'),'1');
+ assert.equal(await control('publish_source_clock('+[lit(target.c),0,due+3*86400+7200,false].join(',')+')'),'1');
  assert.equal(await control('freeze_source_readiness('+[lit(target.id),1,1,0,1,json(evidence)].join(',')+')'),'2');
  assert.equal(await q('ace','start_source('+lit(target.id)+',1,2,1)'),'started');
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.active_source_resources WHERE match_id='+lit(target.id)+';'),'3');
+ assert.equal(await db.sql("SELECT resource_key FROM ace_cutover_review.active_source_resources WHERE resource_kind='court' AND match_id="+lit(target.id)+';'),JSON.stringify(['ops-projection-venue',4]).replace(',',', '));
  assert.equal(await end(target),'completed');
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.schedule_revisions WHERE match_id='+lit(target.id)+';'),'1');
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.followup_attempts WHERE source_id='+lit(source)+';'),'1');
  await control("configure(false,ARRAY[]::text[])");
- console.log('PASS same-day projection, stale and unsafe rollback, exact retry, immutable original, refreshed readiness, revised activation and resource reservation');
+ console.log('PASS multi-day alternative court projection, stale and unsafe rollback, exact retry, immutable original, refreshed readiness, revised activation and resource reservation');
 }
 run().catch(e=>{console.error(e);process.exitCode=1});
