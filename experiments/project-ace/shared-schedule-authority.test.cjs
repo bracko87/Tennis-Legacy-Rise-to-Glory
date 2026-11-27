@@ -17,10 +17,20 @@ async function main(){
  const loser=winner==='a'?'l':'a',other=winner==='a'?l:a;
  await assert.rejects(sql(other,"SELECT ace_shared_schedule_fixture.finish_slot('"+winner+"',2,82800)"),/wrong scheduling owner/);
  await assert.rejects(sql(role,"SELECT ace_shared_schedule_fixture.finish_slot('"+winner+"',2,72001)"),/invalid completion evidence/);
+ // Introduce authoritative scheduled inventory after activation, with slots safe under the initial estimate.
+ const sharedPlayer=winner==='a'?'p1':'p3';
+ await sql('postgres',"INSERT INTO ace_shared_schedule_fixture.inventory(id,owner,status,revision,venue,court,player1,player2,start_second,duration_minutes) VALUES ('affected-player','external','scheduled',0,'other-venue',1,'"+sharedPlayer+"','p6',81000,60),('affected-court','external','scheduled',0,'venue',4,'p7','p8',81000,60),('unaffected-boundary','external','scheduled',0,'other-venue',2,'"+sharedPlayer+"','p9',86400,60)");
  // Three-hour actual duration overrides the one-hour estimate.
  const finish="SELECT ace_shared_schedule_fixture.finish_slot('"+winner+"',2,82800)";
  const retries=await Promise.all([sql(role,finish),sql(role,finish)]);
  assert.deepEqual(retries.sort(),['already_completed_review','completed_review']);
+ const obligations=JSON.parse(await sql('postgres',"SELECT jsonb_agg(to_jsonb(o) ORDER BY target_id) FROM ace_shared_schedule_fixture.obligations o"));
+ assert.equal(obligations.length,2);
+ assert.deepEqual(obligations.map(o=>[o.target_id,o.player_conflict,o.court_conflict,o.earliest_second,o.target_owner]),[['affected-court',false,true,83700,'external'],['affected-player',true,false,86400,'external']]);
+ await assert.rejects(sql(other,"SELECT * FROM ace_shared_schedule_fixture.obligations"),/permission denied/);
+ await assert.rejects(sql(other,call('affected-court',0,90000,5)),/wrong scheduling owner/);
+ // Remove the synthetic external court blocker only as fixture administrator to isolate the recovery boundary.
+ await sql('postgres',"UPDATE ace_shared_schedule_fixture.inventory SET start_second=100000 WHERE id='affected-court'");
  await assert.rejects(sql(other,call(loser,0,83699,4)),/shared resource conflict/);
  assert.equal(await sql(other,call(loser,0,83700,4)),'rescheduled_review');
  assert.equal(await sql(other,call(loser,1,83700,4,true)),'started_review');

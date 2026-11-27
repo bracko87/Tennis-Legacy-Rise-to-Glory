@@ -34,6 +34,14 @@ REVOKE ALL ON SCHEMA ace_shared_schedule_fixture FROM PUBLIC;
 REVOKE ALL ON FUNCTION ace_shared_schedule_fixture.change_slot(text,bigint,bigint,int,boolean) FROM PUBLIC;
 GRANT USAGE ON SCHEMA ace_shared_schedule_fixture TO ace_cutover_ace,ace_cutover_legacy;
 GRANT EXECUTE ON FUNCTION ace_shared_schedule_fixture.change_slot(text,bigint,bigint,int,boolean) TO ace_cutover_ace,ace_cutover_legacy;
+CREATE TABLE ace_shared_schedule_fixture.obligations(
+ source_id text REFERENCES ace_shared_schedule_fixture.inventory(id),
+ target_id text REFERENCES ace_shared_schedule_fixture.inventory(id),
+ target_owner text NOT NULL, target_revision bigint NOT NULL,
+ player_conflict boolean NOT NULL, court_conflict boolean NOT NULL,
+ earliest_second bigint NOT NULL, observed_start bigint NOT NULL,
+ PRIMARY KEY(source_id,target_id), CHECK(source_id<>target_id), CHECK(player_conflict OR court_conflict)
+);
 CREATE FUNCTION ace_shared_schedule_fixture.finish_slot(p_id text,p_revision bigint,p_end bigint) RETURNS text
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,ace_shared_schedule_fixture AS $fn$
 DECLARE m ace_shared_schedule_fixture.inventory%ROWTYPE; actor text;
@@ -45,6 +53,18 @@ BEGIN
  IF m.status='completed' AND p_revision=m.revision-1 AND p_end=m.actual_end_second THEN RETURN 'already_completed_review'; END IF;
  IF m.status<>'live' OR p_revision IS DISTINCT FROM m.revision OR p_end IS NULL OR p_end<m.start_second+3600 OR p_end>m.start_second+25200 THEN RAISE EXCEPTION 'invalid completion evidence'; END IF;
  UPDATE ace_shared_schedule_fixture.inventory SET status='completed',actual_end_second=p_end,revision=revision+1 WHERE id=p_id;
+ INSERT INTO ace_shared_schedule_fixture.obligations
+ SELECT m.id,x.id,x.owner,x.revision,
+  (x.player1 IN(m.player1,m.player2) OR x.player2 IN(m.player1,m.player2)) AND x.start_second<p_end+3600,
+  (x.venue=m.venue AND x.court=m.court) AND x.start_second<p_end+900,
+  greatest(CASE WHEN x.player1 IN(m.player1,m.player2) OR x.player2 IN(m.player1,m.player2) THEN p_end+3600 ELSE 0 END,
+           CASE WHEN x.venue=m.venue AND x.court=m.court THEN p_end+900 ELSE 0 END),
+  x.start_second
+ FROM ace_shared_schedule_fixture.inventory x
+ WHERE x.id<>m.id AND x.status='scheduled' AND x.start_second>=m.start_second
+ AND ((x.player1 IN(m.player1,m.player2) OR x.player2 IN(m.player1,m.player2)) AND x.start_second<p_end+3600
+ OR (x.venue=m.venue AND x.court=m.court AND x.start_second<p_end+900))
+ AND p_end>m.start_second+m.duration_minutes*60;
  RETURN 'completed_review';
 END $fn$;
 REVOKE ALL ON FUNCTION ace_shared_schedule_fixture.finish_slot(text,bigint,bigint) FROM PUBLIC;
