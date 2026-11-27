@@ -192,6 +192,9 @@ BEGIN
   IF m->>'completion_reason'='travel_no_show' THEN
    IF m->>'score' IS DISTINCT FROM 'W/O' OR m->'actual_duration_minutes' IS DISTINCT FROM 'null'::jsonb OR m->'sets' IS DISTINCT FROM '[]'::jsonb OR m->'stats' IS DISTINCT FROM '[]'::jsonb OR m->'engine_version' IS DISTINCT FROM 'null'::jsonb OR m->>'started_at' IS DISTINCT FROM m->>'completed_at' OR jsonb_typeof(m->'travel_unavailable_player_ids') IS DISTINCT FROM 'array' OR jsonb_array_length(m->'travel_unavailable_player_ids') NOT BETWEEN 1 AND 2 OR EXISTS(SELECT 1 FROM jsonb_array_elements(export->'conditions') x WHERE x->>'match_id'=claim.match_id) OR EXISTS(SELECT 1 FROM jsonb_array_elements(export->'support_events') x WHERE x->>'match_id'=claim.match_id) THEN RAISE EXCEPTION 'invalid travel finalization'; END IF;
   END IF;
+  IF m->>'completion_reason'='health_surrender' THEN
+   IF m->>'score' IS DISTINCT FROM 'W/O' OR m->'actual_duration_minutes' IS DISTINCT FROM 'null'::jsonb OR m->'sets' IS DISTINCT FROM '[]'::jsonb OR m->'stats' IS DISTINCT FROM '[]'::jsonb OR m->'engine_version' IS DISTINCT FROM 'null'::jsonb OR m->>'started_at' IS DISTINCT FROM m->>'completed_at' OR m->>'surrendered_player_id' IS NULL OR m->>'surrendered_player_id' NOT IN(claim.player1_id,claim.player2_id) OR m->>'surrendered_player_id'=m->>'winner_id' OR EXISTS(SELECT 1 FROM jsonb_array_elements(export->'conditions') x WHERE x->>'match_id'=claim.match_id) OR EXISTS(SELECT 1 FROM jsonb_array_elements(export->'support_events') x WHERE x->>'match_id'=claim.match_id) THEN RAISE EXCEPTION 'invalid surrender finalization'; END IF;
+  END IF;
   INSERT INTO ace_review.finalized_matches VALUES(claim.match_id,p_comp,m);
  END LOOP;
  INSERT INTO ace_review.finalized_competitions VALUES(p_comp,export);
@@ -221,7 +224,7 @@ BEGIN
   IF (a->>'gross_prize')::bigint IS DISTINCT FROM (SELECT coalesce(sum((x->>'amount')::bigint),0) FROM jsonb_array_elements(final->'transactions') x WHERE x->>'player_id'=a->>'player_id') OR (a->>'balance_before_tax')::bigint IS DISTINCT FROM (a->>'opening_balance')::bigint+(a->>'gross_prize')::bigint THEN RAISE EXCEPTION 'career prize mismatch'; END IF;
  END LOOP;
  FOR r IN SELECT value FROM jsonb_array_elements(p_payload->'injury_rolls') LOOP
-  IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(final->'matches') m WHERE m->>'match_id'=r->>'match_id' AND coalesce(m->>'completion_reason','') NOT IN ('health_walkover','travel_no_show') AND r->>'player_id' IN(m->>'player1_id',m->>'player2_id')) THEN RAISE EXCEPTION 'invalid career injury source'; END IF;
+  IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(final->'matches') m WHERE m->>'match_id'=r->>'match_id' AND coalesce(m->>'completion_reason','') NOT IN ('health_walkover','travel_no_show','health_surrender') AND r->>'player_id' IN(m->>'player1_id',m->>'player2_id')) THEN RAISE EXCEPTION 'invalid career injury source'; END IF;
  END LOOP;
  INSERT INTO ace_review.career_exports VALUES(v_id,p_payload) ON CONFLICT DO NOTHING;
  IF FOUND THEN RETURN 'staged'; END IF;

@@ -85,6 +85,8 @@ BEGIN
    IF match_row.started OR NOT EXISTS(SELECT 1 FROM ace_cutover_review.medical_snapshots h WHERE h.match_id=match_row.id AND h.receipt=m) THEN RAISE EXCEPTION 'unverified medical receipt'; END IF;
   ELSIF m->>'completion_reason'='travel_no_show' THEN
    IF match_row.started OR NOT EXISTS(SELECT 1 FROM ace_cutover_review.travel_evidence t WHERE t.match_id=match_row.id AND t.receipt=m) THEN RAISE EXCEPTION 'unverified travel receipt'; END IF;
+  ELSIF m->>'completion_reason'='health_surrender' THEN
+   IF match_row.started OR NOT EXISTS(SELECT 1 FROM ace_cutover_review.surrender_evidence s WHERE s.match_id=match_row.id AND s.receipt=m) THEN RAISE EXCEPTION 'unverified surrender receipt'; END IF;
   ELSIF m->>'completion_reason' IS NOT NULL OR coalesce((m->>'actual_duration_minutes')::int,0)<=0 OR jsonb_typeof(m->'sets') IS DISTINCT FROM 'array' OR jsonb_array_length(m->'sets')=0 OR jsonb_typeof(m->'stats') IS DISTINCT FROM 'array' OR jsonb_array_length(m->'stats')<>2 THEN RAISE EXCEPTION 'unsupported terminal receipt'; END IF;
   PERFORM ace_review.claim_finalization(match_row.id,comp,'ace',match_row.player1,match_row.player2,f.feeder1,f.feeder2);
  END LOOP;
