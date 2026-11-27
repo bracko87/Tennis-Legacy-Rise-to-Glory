@@ -144,6 +144,8 @@ jobs:
           ACE_REVIEW_DB_PASSWORD: ace-disposable-worker
           ACE_REVIEW_DB_PORT: '55432'
         run: NODE_PATH="$RUNNER_TEMP/ace-browser/node_modules" node experiments/project-ace/browser-acceptance.test.cjs
+      - name: Existing Legacy replay modal acceptance with isolated RPC fixture
+        run: NODE_PATH="$RUNNER_TEMP/ace-browser/node_modules" node experiments/project-ace/legacy-replay-browser.test.cjs
       - name: Disposable database backup and isolated recovery rehearsal
         env:
           ACE_MIGRATION_REHEARSAL: disposable-ci-only
