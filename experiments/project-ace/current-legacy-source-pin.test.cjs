@@ -1,0 +1,10 @@
+'use strict';
+const assert=require('node:assert/strict'),path=require('node:path'),{execFileSync}=require('node:child_process'),{createHash}=require('node:crypto'),fs=require('node:fs'),pin=require('./current-legacy-source-pin.json');
+const cwd=path.resolve(__dirname,'../..'),git=(...args)=>execFileSync('git',args,{cwd,encoding:'utf8'}).trim();
+assert.equal(pin.schema,'ace-current-legacy-source-pin-v1');
+assert.equal(git('rev-parse','HEAD:supabase/migrations'),pin.migration_tree_sha,'Checked-in migrations changed; refresh source audit, no silent acceptance');
+assert.equal(git('ls-tree','-r','--name-only','HEAD','supabase/migrations').split('\n').length,pin.migration_file_count);
+const bytes=fs.readFileSync(path.join(cwd,pin.duration_migration)),blob=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+assert.equal(blob,pin.duration_blob_sha,'Current duration migration differs from reference');
+assert.equal(pin.production_catalog_verified,false);
+console.log('PASS source-pinned Legacy migration tree ('+pin.migration_file_count+' files), exact current duration SQL blob; not deployed schema verification');

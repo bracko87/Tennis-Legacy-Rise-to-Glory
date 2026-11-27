@@ -30,5 +30,12 @@ for(const surface of ['Hard','Clay','Grass'])for(const gap of [0,12,28])for(cons
 assert.equal(group,36);assert.equal(cases.length,1080);assert.equal(new Set(cases.map(c=>c.input.match_id)).size,1080);
 fs.writeFileSync(path.join(dir,'cohort-fixture.sql'),sql.join('\n'));
 fs.writeFileSync(path.join(dir,'cohort-input.json'),JSON.stringify(cases));
-fs.writeFileSync(path.join(dir,'cohort-query.sql'),"BEGIN READ ONLY;\nSET LOCAL statement_timeout='360s';\nWITH results AS MATERIALIZED (SELECT match_id,public.simulate_tournament_match_v2(match_id,seed) AS j FROM (VALUES "+queryRows.join(',')+") AS x(match_id,seed)) SELECT jsonb_build_object('match_id',match_id,'result',j-'events'-'final_score','forced_errors',(SELECT count(*) FROM jsonb_array_elements(j->'events') e WHERE e->>'kind'='point' AND e->>'description'='Rally ends with a forced error')) FROM results ORDER BY match_id;\nROLLBACK;\n");
+// Extract only the exact immutable November duration calculator; no scheduler/finalizer writes.
+const pin=require('./current-legacy-source-pin.json'),durationSource=fs.readFileSync(path.resolve(__dirname,'../..',pin.duration_migration));
+const blob=require('node:crypto').createHash('sha1').update('blob '+durationSource.length+'\0').update(durationSource).digest('hex');assert.equal(blob,pin.duration_blob_sha);
+const source=durationSource.toString('utf8'),prefix='CREATE OR REPLACE FUNCTION public.simulated_tennis_duration_minutes_v1(',start=source.indexOf(prefix),body=source.indexOf('$function$',start),end=source.indexOf('$function$;',body+10);
+assert.ok(start>=0&&body>start&&end>body);
+const definition=source.slice(start,end+'$function$;'.length);
+fs.writeFileSync(path.join(dir,'current-duration-fixture.sql'),definition+"\nREVOKE EXECUTE ON FUNCTION public.simulated_tennis_duration_minutes_v1(integer,integer) FROM PUBLIC,anon,authenticated;\nGRANT EXECUTE ON FUNCTION public.simulated_tennis_duration_minutes_v1(integer,integer) TO ace_shadow_reader;\n");
+fs.writeFileSync(path.join(dir,'cohort-query.sql'),"BEGIN READ ONLY;\nSET LOCAL statement_timeout='360s';\nWITH results AS MATERIALIZED (SELECT match_id,public.simulate_tournament_match_v2(match_id,seed) AS j FROM (VALUES "+queryRows.join(',')+") AS x(match_id,seed)) SELECT jsonb_build_object('match_id',match_id,'result',j-'events'-'final_score','current_duration_minutes',public.simulated_tennis_duration_minutes_v1((j->>'total_games')::integer,(j->>'total_points')::integer),'forced_errors',(SELECT count(*) FROM jsonb_array_elements(j->'events') e WHERE e->>'kind'='point' AND e->>'description'='Rally ends with a forced error')) FROM results ORDER BY match_id;\nROLLBACK;\n");
 console.log('Prepared 1080 historical V2 cases across 36 synthetic cohorts');

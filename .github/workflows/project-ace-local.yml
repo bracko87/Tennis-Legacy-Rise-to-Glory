@@ -62,6 +62,7 @@ jobs:
           node experiments/project-ace/shadow-career-review.test.cjs
           node experiments/project-ace/legacy-shadow-capture.test.cjs
           node experiments/project-ace/release-readiness-review.test.cjs
+          node experiments/project-ace/current-legacy-source-pin.test.cjs
           node --check experiments/project-ace/tournament.js
           node --check experiments/project-ace/ace.js
           node --check experiments/project-ace/start-local.cjs

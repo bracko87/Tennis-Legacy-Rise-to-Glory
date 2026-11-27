@@ -80,6 +80,8 @@ node historical-legacy-later.test.cjs "$tmp"
 # Large-sample historical V2 review, no production or external database.
 node historical-legacy-cohort-fixture.cjs "$tmp"
 admin < "$tmp/cohort-fixture.sql"
+admin < "$tmp/current-duration-fixture.sql"
+reader -c "SELECT jsonb_agg(jsonb_build_array(g,p,public.simulated_tennis_duration_minutes_v1(g,p)) ORDER BY g,p) FROM (VALUES (0,0),(12,48),(12,50),(20,150),(70,700),(100,1000)) x(g,p);" > "$tmp/current-duration-boundaries.json"
 before="$(fingerprint)"
 profile_fingerprint(){ admin -c "SELECT md5((SELECT jsonb_agg(to_jsonb(p) ORDER BY id)::text FROM public.players p)||(SELECT jsonb_agg(to_jsonb(s) ORDER BY player_id)::text FROM public.player_skills s))"; }
 profiles_before="$(profile_fingerprint)"

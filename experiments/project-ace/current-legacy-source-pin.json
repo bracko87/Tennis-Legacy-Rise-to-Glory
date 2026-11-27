@@ -1,0 +1,12 @@
+{
+  "schema": "ace-current-legacy-source-pin-v1",
+  "repository": "bracko87/Tennis-Legacy-Rise-to-Glory",
+  "reference_branch": "main",
+  "reference_sha": "ac1ca4b537598a7f19969d59e256329189e40d64",
+  "review_base_sha": "66a5bf8d2ab62621c72d75cac838b423f3041fa7",
+  "migration_tree_sha": "9a06aea97f5960ade40cbd994e5e28720f21a484",
+  "migration_file_count": 714,
+  "duration_migration": "supabase/migrations/20261117111500_simulated_match_duration_and_safe_start.sql",
+  "duration_blob_sha": "532856b2d13511389dd2a59701da051b16bde7cd",
+  "production_catalog_verified": false
+}

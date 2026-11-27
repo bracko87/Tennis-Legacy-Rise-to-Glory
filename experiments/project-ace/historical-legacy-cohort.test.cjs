@@ -2,6 +2,9 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),{report}=require('./shadow-cohort-review.cjs'),{digest}=require('./shadow-comparison.cjs');
 const dir=process.argv[2],cases=JSON.parse(fs.readFileSync(path.join(dir,'cohort-input.json'),'utf8')),results=fs.readFileSync(path.join(dir,'cohort-results.jsonl'),'utf8').trim().split('\n').map(JSON.parse);
 assert.equal(results.length,cases.length);const byId=new Map(results.map(x=>[x.match_id,x]));assert.equal(byId.size,cases.length);
+const {duration}=require('./schedule-gate.cjs'),boundaries=JSON.parse(fs.readFileSync(path.join(dir,'current-duration-boundaries.json'),'utf8'));
+assert.equal(boundaries.length,6);
+for(const [games,points,minutes] of boundaries)assert.equal(minutes,duration(games,points),'Current SQL duration boundary mismatch');
 const pairs=cases.map(({input,cohort,focal_player_id})=>{
  const row=byId.get(input.match_id);assert.ok(row);
  const legacy=row.result,p=legacy.metadata.profile_snapshot;
@@ -11,6 +14,7 @@ const pairs=cases.map(({input,cohort,focal_player_id})=>{
   for(const group of ['technical','physical','condition'])for(const [key,value] of Object.entries(profile[group]))if(Object.hasOwn(raw.skills,key))assert.equal(value,raw.skills[key]);
  }
  const reference={schema:'ace-shadow-legacy-observation-v1',input_sha256:input.input_sha256,match_id:input.match_id,competition_id:input.competition_id,source_revision:input.source_revision,player_ids:input.player_ids,engine_version:legacy.engine_version,status:'completed',winner_id:legacy.winner_id,sets:legacy.sets.map(s=>({games:[s.player1_games,s.player2_games],tiebreak:s.player1_tiebreak_points==null?null:[s.player1_tiebreak_points,s.player2_tiebreak_points]})),stats:[legacy.player1_stats,legacy.player2_stats],actual_duration_minutes:legacy.metadata.estimated_match_minutes};
+ assert.equal(row.current_duration_minutes,duration(legacy.total_games,legacy.total_points),'Current SQL duration mismatch');
  assert.equal(reference.sets.reduce((n,s)=>n+s.games[0]+s.games[1],0),legacy.total_games);
  assert.equal(reference.stats.reduce((n,s)=>n+s.total_points_won,0),legacy.total_points);
  assert.equal(legacy.total_points-reference.stats.reduce((n,s)=>n+s.aces+s.double_faults+s.winners+s.unforced_errors,0),row.forced_errors);
@@ -29,4 +33,6 @@ const skill_groups=[0,12,28].map(gap=>{
  return {skill_boost:gap,n:rows.reduce((n,c)=>n+c.n,0),focal_win_rate:{ace:avg(c=>c.focal_player_win_rate.ace.mean),legacy:avg(c=>c.focal_player_win_rate.reference.mean)},winner_agreement:avg(c=>c.winner_agreement)};
 });
 console.log(JSON.stringify({schema:'ace-historical-skill-review-v1',skill_groups,cohorts_with_30_cases:r.adequate_cohorts,production_ready:false}));
+const currentLegacyMean=results.reduce((n,x)=>n+x.current_duration_minutes,0)/results.length;
+console.log(JSON.stringify({schema:'ace-current-duration-review-v1',source_pin:require('./current-legacy-source-pin.json').reference_sha,matched_same_input_cases:results.length,boundary_cases:boundaries.length,legacy_current_formula_mean_minutes:currentLegacyMean,ace_modeled_mean_minutes:metrics.minutes.ace,legacy_historical_estimate_mean_minutes:metrics.minutes.legacy,production_ready:false}));
 console.log('PASS 1080 historical V2 SQL and independent Ace comparisons, 36 cohorts, exact profile/statistics checks and focal-player win rates, no policy clearance');
