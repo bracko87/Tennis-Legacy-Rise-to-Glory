@@ -100,6 +100,7 @@ jobs:
           node experiments/project-ace/cutover-source-qualification-db.test.cjs
           node experiments/project-ace/cutover-source-qualification-exceptions-db.test.cjs
           node experiments/project-ace/cutover-pilot-preflight-db.test.cjs
+          node experiments/project-ace/cutover-pilot-control-db.test.cjs
       - name: Network-isolated legacy capture SQL rehearsal
         env:
           ACE_SHADOW_SQL_REHEARSAL: disposable-ci-only
