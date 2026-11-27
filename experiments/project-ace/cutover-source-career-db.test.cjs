@@ -60,7 +60,7 @@ async function run(){
  await assert.rejects(a.apply(a.proposal,{...a.snapshot,surface:'grass'}),/rejected/);
  await assert.rejects(q('ace','apply_source_career('+[lit(a.id),json(a.snapshot),json(a.receipt),json(a.proposal)].join(',')+')'),/permission denied/);
  const race=await Promise.all([a.apply(),a.apply()]);assert.deepEqual(race[0],race[1]);assert.equal(race[0].status,'applied_review');
- for(const p of [a.p1,a.p2]){const x=await a.read(p);assert.equal(x.revision,1);assert.equal(x.state.inventory[0].condition,19);assert.ok(x.state.profile.fatigue>30);}
+ for(const p of [a.p1,a.p2]){const x=await a.read(p);assert.equal(x.revision,1);assert.equal(x.state.inventory[0].condition,19);assert.ok(x.state.profile.fatigue>30);for(const k of ['fitness','stamina','recovery','movement'])assert.equal(x.state.profile[k],65);}
  assert.equal(await db.sql('SELECT count(*) FROM ace_cutover_review.source_career_effects WHERE match_id='+lit(a.id)+';'),'2');
  const changed=clone(a.proposal);changed.players[0].fatigue_gain++;await assert.rejects(a.apply(changed),/rejected/);
  const b=await setup('career-stale-ci');await b.sync();

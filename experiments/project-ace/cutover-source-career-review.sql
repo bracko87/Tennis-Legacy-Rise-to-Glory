@@ -116,7 +116,7 @@ BEGIN
    IF x->'before'->k IS DISTINCT FROM current_row.state->'profile'->k OR jsonb_typeof(x->'after'->k) IS DISTINCT FROM 'number' OR (x->'after'->>k)::int NOT BETWEEN 0 AND 100 THEN RAISE EXCEPTION 'invalid condition delta'; END IF;
   END LOOP;
   IF jsonb_typeof(x->'fatigue_gain') IS DISTINCT FROM 'number' OR (x->>'fatigue_gain')::int NOT BETWEEN 0 AND 28 OR (x->'after'->>'fatigue')::int<>least(100,(x->'before'->>'fatigue')::int+(x->>'fatigue_gain')::int) THEN RAISE EXCEPTION 'invalid fatigue delta'; END IF;
-  next_state:=current_row.state||jsonb_build_object('profile',current_row.state->'profile'||x->'after','inventory',x->'equipment_after','loadout',x->'loadout_after');
+  next_state:=current_row.state||jsonb_build_object('profile',(current_row.state->'profile')||(x->'after'),'inventory',x->'equipment_after','loadout',x->'loadout_after');
   PERFORM ace_cutover_review.validate_source_career(next_state);
   FOR gear IN SELECT value FROM jsonb_array_elements(next_state->'inventory') LOOP
    SELECT z INTO STRICT original FROM jsonb_array_elements(current_row.state->'inventory') z WHERE z->>'id'=gear->>'id';
