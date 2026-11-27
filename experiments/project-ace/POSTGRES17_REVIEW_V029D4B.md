@@ -1,0 +1,3 @@
+# D4-B — PostgreSQL 17 compatibility rehearsal
+
+The connected Legacy project reports PostgreSQL major 17. The previous isolated CI server was major 16. Align both disposable integration and network-none historical SQL fixtures to major 17. Use major-17 pg_dump and pg_restore, and assert the actual server major before installing any fixtures. Retain all previous tests and isolation controls. The upstream Docker image does not reproduce Supabase extensions, patch build, managed roles or deployed schema; authentic metadata comparison remains required. No production connection, migration or upgrade. CI results pending.

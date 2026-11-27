@@ -8,7 +8,7 @@ tmp="$(mktemp -d)"
 created=0
 cleanup(){ if [[ "$created" == 1 ]]; then docker rm -f -v "$name" >/dev/null; fi; rm -rf "$tmp"; }
 trap cleanup EXIT
-docker run -d --name "$name" --network none -e POSTGRES_DB=ace_legacy_shadow -e POSTGRES_PASSWORD=ace-shadow-disposable-admin postgres:16 -p 55433 -c listen_addresses=127.0.0.1 >/dev/null
+docker run -d --name "$name" --network none -e POSTGRES_DB=ace_legacy_shadow -e POSTGRES_PASSWORD=ace-shadow-disposable-admin postgres:17 -p 55433 -c listen_addresses=127.0.0.1 >/dev/null
 created=1
 admin(){ docker exec -i -e PGPASSWORD=ace-shadow-disposable-admin "$name" psql -X -qAt -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55433 -U postgres -d ace_legacy_shadow "$@"; }
 reader(){ docker exec -i -e PGPASSWORD=ace-shadow-disposable-reader "$name" psql -X -qAt -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55433 -U ace_shadow_reader -d ace_legacy_shadow "$@"; }
@@ -18,6 +18,8 @@ for i in $(seq 1 60); do
  sleep 1
 done
 [[ "$ready" == 1 ]]
+[[ "$(admin -c 'SHOW server_version_num' | cut -c1-2)" == 17 ]]
+echo "PASS isolated PostgreSQL 17 server version"
 [[ "$(docker inspect -f '{{.HostConfig.NetworkMode}}' "$name")" == none ]]
 admin < legacy-shadow-fixture.sql
 match_id=00000000-0000-4000-8000-000000000001
