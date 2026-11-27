@@ -60,9 +60,11 @@ for(const name of ['get_match_engine_profile_for_match_v2','match_engine_first_s
 }
 const start=v2.indexOf('do $$',v2.indexOf('-- Clone the proven point engine')),end=v2.indexOf('create or replace function public.prepare_tournament_match_simulation_v1',start);
 assert.ok(start>=0&&end>start);const clones=v2.slice(start,end);assert.equal((clones.match(/execute d;/g)||[]).length,2);
-const deps=`CREATE FUNCTION public.get_effective_match_tactic_internal_v2(uuid,uuid) RETURNS jsonb LANGUAGE sql STABLE AS $SELECT '{"approach":"Balanced","rally":"Balanced rallies","serve":"Balanced","returnGame":"Balanced","target":"Automatic","courtPosition":"Normal baseline","risk":"Balanced"}'::jsonb$;
-CREATE FUNCTION public.calculate_tournament_match_weather_v1(uuid) RETURNS jsonb LANGUAGE sql STABLE AS $SELECT '{"environment":"outdoor","temperature_c":21,"wind_kmh":5,"precipitation":"none","heat_index":0,"wind_index":0}'::jsonb$;
-CREATE FUNCTION public.tournament_match_absolute_day_v2(uuid) RETURNS integer LANGUAGE sql STABLE AS $SELECT 30$;
-CREATE FUNCTION public.get_player_active_injury_effects_v1(uuid,integer) RETURNS jsonb LANGUAGE sql STABLE AS $SELECT '{"skill_modifiers":{}}'::jsonb$;`;
+const deps=`CREATE FUNCTION public.get_effective_match_tactic_internal_v2(uuid,uuid) RETURNS jsonb LANGUAGE sql STABLE AS $ace_fixture$SELECT '{"approach":"Balanced","rally":"Balanced rallies","serve":"Balanced","returnGame":"Balanced","target":"Automatic","courtPosition":"Normal baseline","risk":"Balanced"}'::jsonb$ace_fixture$;
+CREATE FUNCTION public.calculate_tournament_match_weather_v1(uuid) RETURNS jsonb LANGUAGE sql STABLE AS $ace_fixture$SELECT '{"environment":"outdoor","temperature_c":21,"wind_kmh":5,"precipitation":"none","heat_index":0,"wind_index":0}'::jsonb$ace_fixture$;
+CREATE FUNCTION public.tournament_match_absolute_day_v2(uuid) RETURNS integer LANGUAGE sql STABLE AS $ace_fixture$SELECT 30$ace_fixture$;
+CREATE FUNCTION public.get_player_active_injury_effects_v1(uuid,integer) RETURNS jsonb LANGUAGE sql STABLE AS $ace_fixture$SELECT '{"skill_modifiers":{}}'::jsonb$ace_fixture$;`;
+assert.equal((deps.match(/\$ace_fixture\$/g)||[]).length,8,'Four paired fixture SQL delimiters required');
+assert.ok(!/AS \$SELECT/.test(deps),'Invalid SQL fixture delimiter');
 fs.writeFileSync(path.join(out,'historical-later.sql'),[polish,deps,...later,clones,"REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC,anon,authenticated,ace_shadow_reader;","GRANT EXECUTE ON FUNCTION public.simulate_tournament_match_v1(uuid,text),public.simulate_tournament_match_v2(uuid,text) TO ace_shadow_reader;"].join('\n'));
 fs.writeFileSync(path.join(out,'historical-later-manifest.json'),JSON.stringify({classification_migration_sha256:sha(polish),v2_migration_sha256:sha(v2),classification_sha256:sha(polish),selected_definition_sha256:later.map(sha),clone_blocks_sha256:sha(clones),fixture_dependency_sha256:sha(deps)},null,2));

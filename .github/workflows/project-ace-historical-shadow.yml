@@ -1,0 +1,23 @@
+name: Ace historical SQL shadow verification
+on:
+  push:
+    branches: [project-ace]
+    paths:
+      - 'experiments/project-ace/**'
+      - '.github/workflows/project-ace-historical-shadow.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  historical-shadow:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Historical SQL and isolated comparison
+        env:
+          ACE_SHADOW_SQL_REHEARSAL: disposable-ci-only
+        run: bash experiments/project-ace/legacy-shadow-sql-ci.sh
