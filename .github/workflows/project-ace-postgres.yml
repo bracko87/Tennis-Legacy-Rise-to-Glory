@@ -69,7 +69,7 @@ jobs:
           grep -q 'review schemas already installed' "$RUNNER_TEMP/ace-repeat-install.log"
           test "$before" = "$(sql -c 'SELECT md5(jsonb_agg(to_jsonb(t) ORDER BY id)::text) FROM public.ace_legacy_rehearsal t')"
           sql -c 'SELECT ordinal,filename,sha256 FROM ace_migration_journal.installed ORDER BY ordinal'
-          sql -c 'SELECT jsonb_agg(jsonb_build_object(\'ordinal\',ordinal,\'filename\',filename,\'sha256\',sha256) ORDER BY ordinal) FROM ace_migration_journal.installed' > "$RUNNER_TEMP/ace-migration-journal.json"
+          sql -c "SELECT jsonb_agg(jsonb_build_object('ordinal',ordinal,'filename',filename,'sha256',sha256) ORDER BY ordinal) FROM ace_migration_journal.installed" > "$RUNNER_TEMP/ace-migration-journal.json"
           node experiments/project-ace/migration-package-review.cjs verify "$RUNNER_TEMP/ace-migration-manifest.json" "$RUNNER_TEMP/ace-migration-journal.json"
       - name: Native database worker integration
         env:
