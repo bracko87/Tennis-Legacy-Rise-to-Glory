@@ -13,8 +13,9 @@ CREATE TABLE ace_cutover_review.source_slots (
  slot jsonb NOT NULL,
  feeder1 text REFERENCES ace_cutover_review.source_slots(match_id),
  feeder2 text REFERENCES ace_cutover_review.source_slots(match_id),
- UNIQUE(competition_id,round_number,match_number)
+ CHECK(slot->>'draw_type' IN ('main_draw','qualification'))
 );
+CREATE UNIQUE INDEX source_phase_position ON ace_cutover_review.source_slots(competition_id,(slot->>'draw_type'),round_number,match_number);
 CREATE TABLE ace_cutover_review.source_observations (
  match_id text PRIMARY KEY REFERENCES ace_cutover_review.source_slots(match_id),
  revision bigint NOT NULL DEFAULT 0,
@@ -72,7 +73,7 @@ BEGIN
  IF o.revision IS DISTINCT FROM p_expected THEN RAISE EXCEPTION 'stale source observation'; END IF;
  IF jsonb_typeof(p) IS DISTINCT FROM 'object' OR NOT(p ?& ARRAY['player1_id','player2_id','status','simulation','started','winner_id']) OR coalesce(p->>'status','') NOT IN ('scheduled','in_progress','completed','walkover','bye','cancelled') OR coalesce(p->>'simulation','') NOT IN ('none','prepared','live','completed') OR jsonb_typeof(p->'started') IS DISTINCT FROM 'boolean' THEN RAISE EXCEPTION 'invalid source observation'; END IF;
  IF EXISTS(SELECT 1 FROM ace_cutover_review.source_admissions WHERE match_id=p_id) THEN RAISE EXCEPTION 'source already admitted; owner path required'; END IF;
- IF s.round_number=1 AND (p->>'player1_id' IS DISTINCT FROM s.slot->>'player1_id' OR p->>'player2_id' IS DISTINCT FROM s.slot->>'player2_id') THEN RAISE EXCEPTION 'source participants changed'; END IF;
+ IF s.round_number=1 AND ((s.feeder1 IS NULL AND p->>'player1_id' IS DISTINCT FROM s.slot->>'player1_id') OR (s.feeder2 IS NULL AND p->>'player2_id' IS DISTINCT FROM s.slot->>'player2_id')) THEN RAISE EXCEPTION 'source participants changed'; END IF;
  IF o.payload=p THEN RETURN o.revision; END IF;
  UPDATE ace_cutover_review.source_observations SET revision=revision+1,payload=p WHERE match_id=p_id RETURNING revision INTO o.revision;
  RETURN o.revision;
@@ -110,11 +111,9 @@ BEGIN
  IF engine<>chosen THEN RETURN jsonb_build_object('status','wrong_engine','owner',chosen); END IF;
  p1:=o.payload->>'player1_id';p2:=o.payload->>'player2_id';
  IF p1 IS NULL OR p2 IS NULL OR p1=p2 THEN RETURN jsonb_build_object('status','participants_pending'); END IF;
- IF s.round_number>1 THEN
-  IF NOT ace_cutover_review.feeder_winner(s.feeder1,s.competition_id,p1) OR NOT ace_cutover_review.feeder_winner(s.feeder2,s.competition_id,p2) THEN RETURN jsonb_build_object('status','feeder_receipts_pending_or_mismatch'); END IF;
-  -- Require owned predecessor records, not just claimed source winners.
-  IF NOT EXISTS(SELECT 1 FROM ace_cutover_review.source_admissions WHERE match_id=s.feeder1) OR NOT EXISTS(SELECT 1 FROM ace_cutover_review.source_admissions WHERE match_id=s.feeder2) THEN RAISE EXCEPTION 'missing source feeder admission'; END IF;
- END IF;
+ IF s.slot->>'draw_type'='main_draw' AND EXISTS(SELECT 1 FROM ace_cutover_review.source_slots qs WHERE qs.competition_id=s.competition_id AND qs.slot->>'draw_type'='qualification' AND NOT EXISTS(SELECT 1 FROM ace_cutover_review.matches qm JOIN ace_cutover_review.source_result_projection qp ON qp.match_id=qm.id AND qp.match_revision=qm.revision AND qp.status='completed' AND qp.owner='ace' WHERE qm.id=qs.match_id AND qm.owner='ace' AND qm.status='completed')) THEN RETURN jsonb_build_object('status','qualification_sync_pending'); END IF;
+ IF (s.feeder1 IS NOT NULL AND NOT ace_cutover_review.feeder_winner(s.feeder1,s.competition_id,p1)) OR (s.feeder2 IS NOT NULL AND NOT ace_cutover_review.feeder_winner(s.feeder2,s.competition_id,p2)) THEN RETURN jsonb_build_object('status','feeder_receipts_pending_or_mismatch'); END IF;
+ IF (s.feeder1 IS NOT NULL AND NOT EXISTS(SELECT 1 FROM ace_cutover_review.source_admissions WHERE match_id=s.feeder1)) OR (s.feeder2 IS NOT NULL AND NOT EXISTS(SELECT 1 FROM ace_cutover_review.source_admissions WHERE match_id=s.feeder2)) THEN RAISE EXCEPTION 'missing source feeder admission'; END IF;
  INSERT INTO ace_cutover_review.source_admissions VALUES(p_id,o.revision,o.payload,chosen);
  PERFORM ace_cutover_review.seed_match(p_id,s.competition_id,'singles',true,'scheduled','none',false,p1,p2);
  PERFORM ace_cutover_review.bind_feeders(p_id,s.feeder1,s.feeder2);

@@ -28,6 +28,7 @@ files=(
   cutover-source-career-review.sql
   cutover-source-exceptions-review.sql
   cutover-source-void-review.sql
+  cutover-source-qualification-review.sql
 )
 bundle="$(mktemp)"
 trap 'rm -f "$bundle"' EXIT
