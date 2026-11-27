@@ -5,7 +5,7 @@ SET LOCAL statement_timeout='20s';
 SET LOCAL lock_timeout='3s';
 WITH watched(name) AS (VALUES
  ('tournament_matches'),('tournament_match_simulations'),('tournament_match_sets'),('tournament_match_player_stats'),
- ('player_tournament_results'),('player_finance_transactions'),('player_ranking_contributions'),('player_rankings'),('ranking_defence_cycles'),('game_clock')
+ ('player_tournament_results'),('career_finance_transactions'),('player_ranking_contributions'),('player_rankings'),('ranking_defence_cycles'),('game_clock')
 ), roles AS (SELECT oid,rolname FROM pg_roles WHERE rolname IN ('anon','authenticated','service_role')),
 rels AS (
  SELECT w.name,c.oid,c.relrowsecurity,c.relforcerowsecurity FROM watched w
@@ -17,7 +17,7 @@ rels AS (
  FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
  WHERE p.prokind IN ('f','p') AND n.nspname IN ('public','control_center_private')
  AND (p.proname ~* '(match|tournament|ranking|tax|injur|equipment|guest|career|travel|schedule|watchdog)'
- OR p.prosrc ~* '(tournament_matches|tournament_match_simulations|player_tournament_results|player_finance_transactions|player_ranking_contributions|process_weekly_rankings_v1|finalize_match_replay_v1)')
+ OR p.prosrc ~* '(tournament_matches|tournament_match_simulations|player_tournament_results|career_finance_transactions|player_ranking_contributions|process_weekly_rankings_v1|finalize_match_replay_v1)')
 ), triggers AS (
  SELECT n.nspname||'.'||c.relname AS relation,t.tgname AS name,t.tgenabled AS enabled,
  md5(pg_get_triggerdef(t.oid)) AS definition_md5,md5(pg_get_functiondef(t.tgfoid)) AS routine_md5
