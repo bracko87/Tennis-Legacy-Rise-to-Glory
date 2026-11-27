@@ -66,6 +66,7 @@ jobs:
           node experiments/project-ace/shadow-cohort-review.test.cjs
           node experiments/project-ace/shadow-career-review.test.cjs
           node experiments/project-ace/legacy-shadow-capture.test.cjs
+          node experiments/project-ace/authentic-shadow-evidence.test.cjs
           node experiments/project-ace/release-readiness-review.test.cjs
           node experiments/project-ace/current-legacy-source-pin.test.cjs
           node experiments/project-ace/operational-schedule.test.cjs
