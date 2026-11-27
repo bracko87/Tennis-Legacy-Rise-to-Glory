@@ -57,3 +57,14 @@ cmp "$tmp/capture.json" "$tmp/repeat.json"
 node legacy-shadow-sql-ci.test.cjs "$tmp/capture.json"
 [[ "$before" == "$(fingerprint)" ]]
 echo 'PASS real PostgreSQL read-only capture, disabled cron, approval and endpoint guards, reader isolation, stable export and unchanged synthetic rows'
+# Independent historical source-code rehearsal, still inside the disposable network-none container.
+node historical-legacy-shadow-fixture.cjs "$tmp"
+admin < "$tmp/historical-fixture.sql"
+before="$(fingerprint)"
+reader -c "BEGIN READ ONLY; SELECT public.simulate_tournament_match_v1('00000000-0000-4000-8000-000000000005','321'); ROLLBACK;" > "$tmp/historical-result.json"
+reader -c "BEGIN READ ONLY; SELECT public.simulate_tournament_match_v1('00000000-0000-4000-8000-000000000005','321'); ROLLBACK;" > "$tmp/historical-repeat.json"
+cmp "$tmp/historical-result.json" "$tmp/historical-repeat.json"
+node historical-legacy-shadow.test.cjs "$tmp"
+[[ "$before" == "$(fingerprint)" ]]
+[[ "$(admin -c "SELECT status FROM public.tournament_matches WHERE id='00000000-0000-4000-8000-000000000005'")" == scheduled ]]
+
