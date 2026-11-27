@@ -4228,3 +4228,12 @@ body > #root:empty {
     text-align: left;
   }
 }
+
+/* Homepage desktop width matches ProPeloton's 1510px container with 48px gutters. */
+@media (min-width: 1024px) {
+  .tlg-home-main .tlg-section,
+  .tlg-marketing-page:has(> .tlg-home-main) .tlg-marketing-header-inner,
+  .tlg-marketing-page:has(> .tlg-home-main) .tlg-marketing-footer-inner {
+    width: min(100% - 96px, 1414px);
+  }
+}
