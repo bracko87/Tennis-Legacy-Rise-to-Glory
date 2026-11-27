@@ -18,3 +18,19 @@ const wrong=clone(observed);wrong.players.reverse();assert.throws(()=>review(inp
 const altered=clone(context);altered.context.players[0].profile.fatigue++;assert.throws(()=>review(input,legacy,altered,observed),/profile/);
 const balance=clone(context.context);balance.players[0].finance.balance++;assert.throws(()=>freezeCareer(input,balance),/balance/);
 console.log('PASS same-outcome career replay, distinct engine outcomes, wear, source-ID injury roll, prize, monthly tax, qualified bonus and observation drift detection');
+
+const later=clone(context.context);later.absolute_day=365;later.through_day=366;later.ranking_publish_absolute_day=370;
+for(const p of later.players){
+ const f=p.finance,player_id=p.player_id;
+ f.transactions.push({player_id,idempotency_key:'prior-prize',amount:1000,game_absolute_day:5,is_taxable:true,balance_before:1000,balance_after:2000});
+ f.transactions.push({player_id,idempotency_key:'monthly-tax:1:1',amount:-100,game_absolute_day:31,is_taxable:false,balance_before:2000,balance_after:1900});
+ f.balance=1900;
+ const {monthStart}=require('./career-processing-review.cjs');
+ f.settled_periods=Array.from({length:11},(_,i)=>({player_id,season:1,month:i+1,taxable_income:i===0?1000:0,tax_amount:i===0?100:0,tax_rate:.10,due_absolute_day:monthStart(1,i+2),settled_absolute_day:monthStart(1,i+2),transaction_key:i===0?'monthly-tax:1:1':null}));
+}
+const laterContext=freezeCareer(input,later),laterResult=project(input,legacy,laterContext);
+for(const p of laterResult.players){assert.equal(p.finance.tax_periods.length,1);assert.equal(p.finance.tax_periods[0].month,12);assert.equal(p.finance.tax_transactions[0].game_absolute_day,366);assert.equal(p.finance.closing_balance,1900+p.finance.prize_transactions[0].amount+p.finance.tax_transactions[0].amount);}
+const badTax=clone(later);badTax.players[0].finance.settled_periods[0].tax_amount++;assert.throws(()=>freezeCareer(input,badTax),/amount mismatch/);
+const hole=clone(later);hole.players[0].finance.settled_periods.splice(1,1);assert.throws(()=>freezeCareer(input,hole),/Missing earlier/);
+const unlinked=clone(later);unlinked.players[0].finance.settled_periods=[];assert.throws(()=>freezeCareer(input,unlinked),/Unlinked/);
+console.log('PASS historical tax reconciliation, changed rates, prior zero periods, missing receipts and season rollover without duplicate charges');

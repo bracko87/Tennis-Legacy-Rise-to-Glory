@@ -2,6 +2,7 @@
 // Controlled final-match career and reward review. No source mutation or legacy RPC.
 const {compare,digest}=require('./shadow-comparison.cjs'),{propose}=require('./source-career-proposal.cjs'),{duration}=require('./schedule-gate.cjs'),{taxReview,injuryReview,recoveryReview,periodOf}=require('./career-processing-review.cjs');
 const check=(v,m)=>{if(!v)throw Error(m)},copy=x=>JSON.parse(JSON.stringify(x)),int=(x,min=0,max=Number.MAX_SAFE_INTEGER)=>Number.isSafeInteger(x)&&x>=min&&x<=max;
+const {verifySettled}=require('./historical-tax-review.cjs');
 const conditions=['fatigue','sharpness','morale','confidence','focus','fitness','stamina','recovery','movement'];
 function freezeCareer(input,context){
  check(input?.schema==='ace-shadow-input-v1'&&input.format.draw_type==='main_draw'&&input.snapshot.match.round_label.toLowerCase()==='final','Main final only');
@@ -14,13 +15,14 @@ function freezeCareer(input,context){
   check(p.profile&&conditions.every(k=>int(p.profile[k],0,100)&&p.profile[k]===raw.skills[k]),'Career profile differs from frozen match');
   check(Array.isArray(p.inventory)&&p.loadout&&p.staff&&Array.isArray(p.injuries),'Incomplete career state');
   if(!p.human){check(p.finance===null,'AI finance must be absent');continue;}
-  const f=p.finance;check(f&&int(f.opening_day,0,c.absolute_day)&&int(f.balance,-Number.MAX_SAFE_INTEGER)&&int(f.tax_rate_basis_points,0,10000)&&Array.isArray(f.transactions)&&f.transactions.length>0&&Array.isArray(f.settled_periods)&&f.settled_periods.length===0,'Complete unsettled finance history required');
+  const f=p.finance;check(f&&int(f.opening_day,0,c.absolute_day)&&int(f.balance,-Number.MAX_SAFE_INTEGER)&&int(f.tax_rate_basis_points,0,10000)&&Array.isArray(f.transactions)&&f.transactions.length>0&&Array.isArray(f.settled_periods) ,'Complete finance history required');
   let balance=0;const seen=new Set();
   for(const t of f.transactions){
    check(t.player_id===p.player_id&&typeof t.idempotency_key==='string'&&!seen.has(t.idempotency_key)&&int(t.game_absolute_day,f.opening_day,c.absolute_day)&&int(t.amount,-Number.MAX_SAFE_INTEGER)&&typeof t.is_taxable==='boolean'&&t.balance_before===balance&&int(t.balance_after,-Number.MAX_SAFE_INTEGER)&&t.balance_after===balance+t.amount,'Invalid opening finance chain');
    seen.add(t.idempotency_key);balance=t.balance_after;
   }
   check(balance===f.balance&&f.transactions[0].game_absolute_day===f.opening_day&&f.transactions.every((t,j)=>j===0||t.game_absolute_day>=f.transactions[j-1].game_absolute_day),'Finance balance or chronology mismatch');
+  verifySettled(p.player_id,f,c.absolute_day);
  }
  const body={schema:'ace-shadow-career-context-v1',input_sha256:input.input_sha256,context:c};
  return {...body,context_sha256:digest(body)};
@@ -60,6 +62,6 @@ function review(input,legacy,context,observation){
  const cmp=compare(input,legacy),ace=project(input,cmp.ace_result,context),legacyOutcome=project(input,legacy,context);
  check(observation?.schema==='ace-shadow-career-observation-v1'&&observation.input_sha256===input.input_sha256&&observation.context_sha256===context.context_sha256&&observation.legacy_observation_sha256===digest(legacy)&&Array.isArray(observation.players)&&observation.players.length===2&&observation.players.every((p,i)=>p.player_id===input.player_ids[i]),'Career observation identity mismatch');
  const expected=legacyOutcome.players,delta=differences(expected,observation.players);
- return {schema:'ace-shadow-career-comparison-v1',review_only:true,production_ready:false,input_sha256:input.input_sha256,context_sha256:context.context_sha256,observation_sha256:digest(observation),winner_agreement:cmp.winner_agreement,ace_outcome:ace,legacy_outcome_replay:legacyOutcome,outcome_differences:differences(ace.players,expected),processing_differences:delta,status:delta.length?'processing_difference_review':'matched_review',legacy_authority_verified:false,limitations:['Model uses Ace duration formula for both outcomes; observed duration retained separately','Final-match scenario only; supplied reward rules and qualified flags not authoritative','Tax input restricted to complete unsettled finance chain','Injury source-ID roll and recovery are modeled, not official','Ranking is pending reward proposal, not actual publication']};
+ return {schema:'ace-shadow-career-comparison-v1',review_only:true,production_ready:false,input_sha256:input.input_sha256,context_sha256:context.context_sha256,observation_sha256:digest(observation),winner_agreement:cmp.winner_agreement,ace_outcome:ace,legacy_outcome_replay:legacyOutcome,outcome_differences:differences(ace.players,expected),processing_differences:delta,status:delta.length?'processing_difference_review':'matched_review',legacy_authority_verified:false,limitations:['Model uses Ace duration formula for both outcomes; observed duration retained separately','Final-match scenario only; supplied reward rules and qualified flags not authoritative','Tax requires complete chronological ledger and reconciled historical settlements; late corrections require manual review','Injury source-ID roll and recovery are modeled, not official','Ranking is pending reward proposal, not actual publication']};
 }
 module.exports={freezeCareer,review,project};
