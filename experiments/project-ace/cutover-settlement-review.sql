@@ -68,6 +68,7 @@ BEGIN
  IF comp IS NULL OR comp='' THEN RAISE EXCEPTION 'invalid competition'; END IF;
  PERFORM pg_advisory_xact_lock(hashtextextended(comp,91023));
  IF NOT EXISTS(SELECT 1 FROM ace_cutover_review.protected_competitions WHERE competition_id=comp) THEN RAISE EXCEPTION 'unregistered competition'; END IF;
+ IF EXISTS(SELECT 1 FROM ace_cutover_review.cancellations WHERE competition_id=comp) THEN RAISE EXCEPTION 'competition cancelled'; END IF;
  IF p_payload->>'schema' IS DISTINCT FROM 'ace-settlement-review-v1' OR p_payload->>'review_only' IS DISTINCT FROM 'true' OR p_payload->>'production_ready' IS DISTINCT FROM 'false' OR p_payload->>'participant_order_verified' IS DISTINCT FROM 'true'
  OR jsonb_typeof(p_payload->'matches') IS DISTINCT FROM 'array' OR jsonb_typeof(p_payload->'results') IS DISTINCT FROM 'array' OR jsonb_typeof(p_payload->'transactions') IS DISTINCT FROM 'array' THEN RAISE EXCEPTION 'invalid settlement'; END IF;
  IF jsonb_array_length(p_payload->'matches')=0 OR
