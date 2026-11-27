@@ -110,6 +110,10 @@ async function main(){
  assert.equal(JSON.parse(await sql(worker,drain)).processed,1);
  assert.equal(await sql('postgres',"SELECT string_agg(id||':'||start_second,',' ORDER BY id) FROM ace_shared_schedule_fixture.inventory WHERE id IN ('late-semi','late-final')"),'late-final:748800,late-semi:741600');
  assert.equal(await sql('postgres',"SELECT state FROM ace_shared_schedule_fixture.queue WHERE target_id='late-semi'"),'resolved');
+ // A historical obligation remains a conservative floor after the revision changes.
+ await assert.rejects(sql(l,call('late-semi',1,739800,2)),/outstanding scheduling obligation/);
+ assert.equal(await sql('postgres',"SELECT revision||':'||start_second FROM ace_shared_schedule_fixture.inventory WHERE id='late-semi'"),'1:741600');
+ console.log('PASS resolved scheduling obligation remains binding across subsequent revisions');
  console.log('PASS actual feeder overrun automatically queues and coordinates successor and final with unknown participants');
  console.log('PASS durable scheduling queue, bounded drain, transaction rollback and terminal retry protection');
  console.log('PASS obligation-driven planning, external protection and durable reconciliation retry');

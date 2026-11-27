@@ -34,6 +34,7 @@ BEGIN
  SELECT * INTO STRICT m FROM ace_shared_schedule_fixture.inventory WHERE id=p_id FOR UPDATE;
  IF actor IS NULL OR actor<>m.owner THEN RAISE EXCEPTION 'wrong scheduling owner'; END IF;
  IF m.status<>'scheduled' OR m.revision<>p_revision OR p_revision IS NULL OR p_start IS NULL OR p_start<0 OR p_court IS NULL OR p_court<1 OR p_start_live IS NULL THEN RAISE EXCEPTION 'invalid schedule revision'; END IF;
+ IF EXISTS(SELECT 1 FROM ace_shared_schedule_fixture.obligations o WHERE o.target_id=m.id AND p_start<o.earliest_second) THEN RAISE EXCEPTION 'outstanding scheduling obligation'; END IF;
  IF p_start_live AND (p_start<>m.start_second OR p_court<>m.court) THEN RAISE EXCEPTION 'start must use current slot'; END IF;
  IF EXISTS(SELECT 1 FROM ace_shared_schedule_fixture.inventory x WHERE x.id<>m.id AND (
  (x.status='live' AND p_start_live AND ((x.venue=m.venue AND x.court=p_court) OR x.player1 IN (m.player1,m.player2) OR x.player2 IN (m.player1,m.player2))) OR
@@ -120,12 +121,12 @@ BEGIN
  IF m.status<>'scheduled' OR m.revision<>o.target_revision THEN RETURN jsonb_build_object('status','stale_obligation_review'); END IF;
  SELECT * INTO policy FROM ace_shared_schedule_fixture.phase_policy WHERE match_id=p_target;
  IF NOT FOUND THEN RETURN jsonb_build_object('status','phase_policy_required'); END IF;
- SELECT greatest(m.start_second,max(earliest_second)) INTO earliest FROM ace_shared_schedule_fixture.obligations WHERE target_id=p_target AND target_revision=m.revision;
+ SELECT greatest(m.start_second,max(earliest_second)) INTO earliest FROM ace_shared_schedule_fixture.obligations WHERE target_id=p_target;
  FOR candidate IN SELECT d::bigint*86400+minute*60 AS second,c AS court FROM generate_series(greatest(policy.first_day,(earliest/86400)::int),policy.last_day) d CROSS JOIN generate_series(600,1290,30) minute CROSS JOIN generate_series(1,policy.court_count) c WHERE d::bigint*86400+minute*60>=earliest ORDER BY d,(c<>m.court),minute,c LOOP
   BEGIN
    PERFORM ace_shared_schedule_fixture.change_slot(p_target,m.revision,candidate.second,candidate.court,false);
   EXCEPTION WHEN raise_exception THEN
-   IF SQLERRM NOT IN ('shared resource conflict','feeder not ready','downstream chronology conflict') THEN RAISE; END IF;
+   IF SQLERRM NOT IN ('shared resource conflict','feeder not ready','downstream chronology conflict','outstanding scheduling obligation') THEN RAISE; END IF;
    CONTINUE;
   END;
   INSERT INTO ace_shared_schedule_fixture.resolutions VALUES(p_source,p_target,candidate.second,candidate.court,m.revision+1) RETURNING * INTO prior;
@@ -159,6 +160,7 @@ BEGIN
   SELECT * INTO STRICT policy FROM ace_shared_schedule_fixture.phase_policy WHERE match_id=m.id;
   IF m.owner NOT IN ('ace','legacy') OR m.status<>'scheduled' OR m.revision IS DISTINCT FROM (item->>'revision')::bigint OR m.owner IS DISTINCT FROM item->>'owner' OR (item->>'second')::bigint IS NULL OR (item->>'court')::int IS NULL THEN RAISE EXCEPTION 'invalid round plan ownership or revision'; END IF;
   IF (item->>'second')::bigint<m.start_second OR (item->>'second')::bigint/86400 NOT BETWEEN policy.first_day AND policy.last_day OR (item->>'second')::bigint%86400 NOT BETWEEN 36000 AND 77400 OR (item->>'second')::bigint%1800<>0 OR (item->>'court')::int NOT BETWEEN 1 AND policy.court_count THEN RAISE EXCEPTION 'round plan outside phase policy'; END IF;
+  IF EXISTS(SELECT 1 FROM ace_shared_schedule_fixture.obligations o WHERE o.target_id=m.id AND (item->>'second')::bigint<o.earliest_second) THEN RAISE EXCEPTION 'outstanding scheduling obligation'; END IF;
   UPDATE ace_shared_schedule_fixture.inventory SET start_second=(item->>'second')::bigint,court=(item->>'court')::int,revision=revision+1 WHERE id=m.id;
  END LOOP;
  -- Validate the final state, not the transient order of the proposed changes.
@@ -199,7 +201,7 @@ BEGIN
  FOR node IN WITH RECURSIVE paths(id,depth) AS (SELECT p_root,0 UNION SELECT f.downstream_id,p.depth+1 FROM ace_shared_schedule_fixture.feeders f JOIN paths p ON f.feeder_id=p.id) SELECT id,max(depth) AS depth FROM paths GROUP BY id ORDER BY max(depth),id LOOP
   SELECT * INTO STRICT m FROM ace_shared_schedule_fixture.inventory WHERE id=node.id FOR UPDATE;
   SELECT greatest(m.start_second,CASE WHEN m.id=p_root THEN p_earliest ELSE 0 END,coalesce(max(coalesce(x.actual_end_second,x.start_second+x.duration_minutes*60)+3600),0)) INTO earliest FROM ace_shared_schedule_fixture.feeders f JOIN ace_shared_schedule_fixture.inventory x ON x.id=f.feeder_id WHERE f.downstream_id=m.id;
-  SELECT greatest(earliest,coalesce(max(o.earliest_second),0)) INTO earliest FROM ace_shared_schedule_fixture.obligations o WHERE o.target_id=m.id AND o.target_revision=m.revision;
+  SELECT greatest(earliest,coalesce(max(o.earliest_second),0)) INTO earliest FROM ace_shared_schedule_fixture.obligations o WHERE o.target_id=m.id;
   IF m.id<>p_root AND earliest<=m.start_second THEN CONTINUE; END IF;
   IF m.status<>'scheduled' OR m.owner NOT IN ('ace','legacy') THEN RAISE EXCEPTION USING ERRCODE='P2901',MESSAGE='protected downstream match'; END IF;
   SELECT * INTO policy FROM ace_shared_schedule_fixture.phase_policy WHERE match_id=m.id;
@@ -241,7 +243,7 @@ BEGIN
  IF session_user<>'ace_review_worker' THEN RAISE EXCEPTION 'coordinator required'; END IF;
  SELECT * INTO STRICT o FROM ace_shared_schedule_fixture.obligations WHERE source_id=p_source AND target_id=p_target;
  SELECT * INTO STRICT m FROM ace_shared_schedule_fixture.inventory WHERE id=p_target FOR UPDATE;
- SELECT report INTO r FROM ace_shared_schedule_fixture.reconciliations WHERE source_id=p_source AND target_id=p_target AND target_revision=m.revision;
+ SELECT report INTO r FROM ace_shared_schedule_fixture.reconciliations WHERE source_id=p_source AND target_id=p_target;
  IF FOUND THEN RETURN r||jsonb_build_object('replayed',true); END IF;
  IF m.owner='external' OR m.owner<>o.target_owner THEN
   RETURN jsonb_build_object('status','external_review_required');
