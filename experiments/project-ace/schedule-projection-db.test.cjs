@@ -45,6 +45,19 @@ async function run(){
 
  const target=await setup('ops-projection-target','ops-projection-venue','opsproj');
  const source='ops-projection-source';
+ const bind=(first,last,courts)=>control('bind_schedule_phase('+[lit(target.c),lit('main_draw'),first,last,courts].join(',')+')');
+ const candidate=(week,day,minute,court)=>control('validate_schedule_candidate('+[lit(target.id),week,day,minute,court].join(',')+')');
+ await assert.rejects(candidate(1,2,600,2),/rejected/);
+ await assert.rejects(bind(1,1,3),/rejected/);
+ assert.equal(await bind(1,2,4),'bound_review');
+ assert.equal(await bind(1,2,4),'already_bound');
+ await assert.rejects(bind(1,3,4),/rejected/);
+ assert.equal(await candidate(1,2,600,2),String(due+86400));
+ assert.equal(await candidate(2,1,600,4),String(due+7*86400));
+ await assert.rejects(candidate(3,1,600,1),/rejected/);
+ await assert.rejects(candidate(1,1,600,5),/rejected/);
+ await assert.rejects(candidate(1,1,599,1),/rejected/);
+ console.log('PASS explicit phase and capacity evidence, alternative day/court candidate validation, fail closed on missing or conflicting evidence');
  await control('seed_match('+[source,'ops-projection-unprotected','singles'].map(lit).join(',')+",true,'scheduled','none',false,"+[target.p1,'ops-projection-other'].map(lit).join(',')+')');
  await control('configure(true,ARRAY['+lit('ops-projection-unprotected')+'])');
  assert.equal((await claim('ace',source)).status,'claimed');

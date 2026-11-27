@@ -46,3 +46,6 @@ BEGIN
 END $$;
 DROP FUNCTION ace_cutover_review.apply_followup_delay(text,text,text,bigint,integer),ace_cutover_review.effective_schedule(text);
 DROP TABLE ace_cutover_review.schedule_revisions;
+
+DROP FUNCTION ace_cutover_review.bind_schedule_phase(text,text,int,int,int),ace_cutover_review.validate_schedule_candidate(text,int,int,int,int);
+DROP TABLE ace_cutover_review.schedule_phase_policy;
