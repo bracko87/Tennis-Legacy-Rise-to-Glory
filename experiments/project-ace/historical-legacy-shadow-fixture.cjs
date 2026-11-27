@@ -55,10 +55,10 @@ const polishFile='20260904145737_polish_match_engine_point_classification_v1.sql
 const polish=fs.readFileSync(path.join(root,polishFile),'utf8'),v2=fs.readFileSync(path.join(root,v2File),'utf8');
 const later=[];
 for(const name of ['get_match_engine_profile_for_match_v2','match_engine_first_serve_in_probability_v2','match_engine_double_fault_probability_v2','match_engine_ace_probability_v2','match_engine_server_point_probability_v2']){
- const start=v2.indexOf('create or replace function public.'+name+'('),body=v2.indexOf('$',start),end=v2.indexOf('$;',body+2);
+ const start=v2.indexOf('create or replace function public.'+name+'('),body=v2.indexOf('$$',start),end=v2.indexOf('$$;',body+2);
  assert.ok(start>=0&&body>start&&end>body);later.push(v2.slice(start,end+3));
 }
-const start=v2.indexOf('do $',v2.indexOf('-- Clone the proven point engine')),end=v2.indexOf('create or replace function public.prepare_tournament_match_simulation_v1',start);
+const start=v2.indexOf('do $$',v2.indexOf('-- Clone the proven point engine')),end=v2.indexOf('create or replace function public.prepare_tournament_match_simulation_v1',start);
 assert.ok(start>=0&&end>start);const clones=v2.slice(start,end);assert.equal((clones.match(/execute d;/g)||[]).length,2);
 const deps=`CREATE FUNCTION public.get_effective_match_tactic_internal_v2(uuid,uuid) RETURNS jsonb LANGUAGE sql STABLE AS $SELECT '{"approach":"Balanced","rally":"Balanced rallies","serve":"Balanced","returnGame":"Balanced","target":"Automatic","courtPosition":"Normal baseline","risk":"Balanced"}'::jsonb$;
 CREATE FUNCTION public.calculate_tournament_match_weather_v1(uuid) RETURNS jsonb LANGUAGE sql STABLE AS $SELECT '{"environment":"outdoor","temperature_c":21,"wind_kmh":5,"precipitation":"none","heat_index":0,"wind_index":0}'::jsonb$;

@@ -77,3 +77,13 @@ done
 node historical-legacy-later.test.cjs "$tmp"
 [[ "$before" == "$(fingerprint)" ]]
 
+# Large-sample historical V2 review, no production or external database.
+node historical-legacy-cohort-fixture.cjs "$tmp"
+admin < "$tmp/cohort-fixture.sql"
+before="$(fingerprint)"
+profile_fingerprint(){ admin -c "SELECT md5((SELECT jsonb_agg(to_jsonb(p) ORDER BY id)::text FROM public.players p)||(SELECT jsonb_agg(to_jsonb(s) ORDER BY player_id)::text FROM public.player_skills s))"; }
+profiles_before="$(profile_fingerprint)"
+reader -f - < "$tmp/cohort-query.sql" > "$tmp/cohort-results.jsonl"
+node historical-legacy-cohort.test.cjs "$tmp"
+[[ "$before" == "$(fingerprint)" ]]
+[[ "$profiles_before" == "$(profile_fingerprint)" ]]
