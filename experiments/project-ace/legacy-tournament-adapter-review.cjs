@@ -10,7 +10,7 @@ function adapt(s){
  check(c&&e&&d&&l&&uuid(c.id)&&uuid(e.id)&&c.tournament_edition_id===e.id&&d.competition_id===c.id&&l.competition_id===c.id,'Competition linkage mismatch');
  check(['ATP','WTA'].includes(c.world)&&c.status==='registration_closed'&&['registration_closed','in_progress'].includes(e.status),'Unsupported competition or edition phase');
  check(time(l.field_locked_at)&&Number.isSafeInteger(l.field_locked_game_second)&&l.field_locked_game_second>=0,'Missing field lock');
- check(Number.isSafeInteger(d.main_draw_size)&&[8,16,32,64,128].includes(d.main_draw_size)&&d.qualifying_draw_size===0&&d.qualifier_slots===0,'Qualification or unsupported draw');
+ check(Number.isSafeInteger(d.main_draw_size)&&[8,16,32,64,128].includes(d.main_draw_size)&&d.qualifying_draw_size===0&&d.qualifier_slots===0&&time(d.published_at),'Qualification or unsupported draw or missing publication time');
  for(const k of ['entries','matches','results','simulations','cancellations'])check(Array.isArray(s[k]),'Missing complete '+k+' inventory');
  check(s.results.length===0&&s.simulations.length===0&&s.cancellations.length===0,'Existing results, simulations or cancellations');
  const size=d.main_draw_size;
@@ -29,7 +29,7 @@ function adapt(s){
   return Object.fromEntries(fields.map(k=>[k,m[k]]));
  });
  const frozen=freeze({schema:'ace-source-admission-v1',complete_export:true,competition:{id:c.id,scope:'singles',field_locked:true,qualification_required:false,status:'published',season_number:e.season_number,draw_size:size},players:[...players].sort().map(id=>({id})),matches,results:[],simulations:[]});
- const evidence={competition_id:c.id,edition_id:e.id,world:c.world,field_locked_at:l.field_locked_at,field_locked_game_second:l.field_locked_game_second,publication:{main_draw_size:size,qualifying_draw_size:d.qualifying_draw_size,qualifier_slots:d.qualifier_slots},matches:s.matches.map(m=>({id:m.id,updated_at:m.updated_at,round_label:m.round_label,estimated_duration_minutes:m.estimated_duration_minutes,schedule_reason:m.schedule_reason})).sort((a,b)=>a.id.localeCompare(b.id))};
+ const evidence={frozen_sha256:frozen.sha256,competition_status:c.status,edition_status:e.status,entries:s.entries.map(x=>({id:x.id,player_id:x.player_id,bracket_slot:x.bracket_slot})).sort((a,b)=>a.bracket_slot-b.bracket_slot),competition_id:c.id,edition_id:e.id,world:c.world,field_locked_at:l.field_locked_at,field_locked_game_second:l.field_locked_game_second,publication:{main_draw_size:size,qualifying_draw_size:d.qualifying_draw_size,qualifier_slots:d.qualifier_slots,published_at:d.published_at},matches:s.matches.map(m=>({id:m.id,updated_at:m.updated_at,round_label:m.round_label,estimated_duration_minutes:m.estimated_duration_minutes,schedule_reason:m.schedule_reason})).sort((a,b)=>a.id.localeCompare(b.id))};
  return {schema:'ace-legacy-tournament-adapter-review-v1',review_only:true,production_ready:false,activation_authorized:false,source_authenticated:false,source_sha256:digest(evidence),evidence,frozen};
 }
 module.exports={adapt};

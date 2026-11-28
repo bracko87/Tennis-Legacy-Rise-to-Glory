@@ -132,6 +132,30 @@ jobs:
           sql -f experiments/project-ace/production-integration-inventory.sql > "$RUNNER_TEMP/ace-integration-inventory.json"
           node experiments/project-ace/production-integration-inventory.test.cjs "$RUNNER_TEMP/ace-integration-inventory.json"
           test "$before" = "$(sql -c 'SELECT md5(jsonb_agg(to_jsonb(t))::text) FROM public.tournament_matches t')"
+      - name: Read-only Legacy tournament extraction rehearsal
+        env:
+          PGPASSWORD: ace-disposable-admin
+        run: |
+          psql -X -qAt -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_review -c 'CREATE DATABASE ace_tournament_capture'
+          sql() { psql -X -qAt -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_tournament_capture "$@"; }
+          sql -f experiments/project-ace/legacy-tournament-capture-fixture.sql
+          capture() { sql -v competition_id="$1" -f experiments/project-ace/capture-legacy-tournament.sql; }
+          id=00000000-0000-4000-8000-000000000001
+          before="$(sql -c 'SELECT md5(jsonb_agg(to_jsonb(m) ORDER BY id)::text) FROM public.tournament_matches m')"
+          capture "$id" > "$RUNNER_TEMP/tournament-good.json"
+          capture "$id" > "$RUNNER_TEMP/tournament-repeat.json"
+          test "$before" = "$(sql -c 'SELECT md5(jsonb_agg(to_jsonb(m) ORDER BY id)::text) FROM public.tournament_matches m')"
+          sql -c 'INSERT INTO public.tournament_match_simulations SELECT id FROM public.tournament_matches ORDER BY id LIMIT 1'
+          capture "$id" > "$RUNNER_TEMP/tournament-processed.json"
+          capture 00000000-0000-4000-8000-000000000999 > "$RUNNER_TEMP/tournament-unknown.json"
+          node experiments/project-ace/legacy-tournament-capture.test.cjs "$RUNNER_TEMP/tournament-good.json" "$RUNNER_TEMP/tournament-repeat.json" "$RUNNER_TEMP/tournament-processed.json" "$RUNNER_TEMP/tournament-unknown.json"
+          sql -c 'UPDATE cron.job SET active=true'
+          if capture "$id" > "$RUNNER_TEMP/tournament-refused.log" 2>&1; then echo 'Active cron unexpectedly permitted'; exit 1; fi
+          grep -q 'active scheduled jobs' "$RUNNER_TEMP/tournament-refused.log"
+          sql -c 'UPDATE cron.job SET active=false; UPDATE ace_shadow_guard.approval SET approved_read_only=false'
+          if capture "$id" > "$RUNNER_TEMP/tournament-refused.log" 2>&1; then echo 'Missing approval unexpectedly permitted'; exit 1; fi
+          grep -q 'capture not approved' "$RUNNER_TEMP/tournament-refused.log"
+          echo 'PASS active cron and missing approval rejected'
       - name: Isolated match permission hardening rehearsal
         env:
           PGPASSWORD: ace-disposable-admin
