@@ -8,7 +8,7 @@ SET LOCAL row_security=off;
 DO $guard$
 BEGIN
  IF inet_server_addr() IS DISTINCT FROM '127.0.0.1'::inet THEN RAISE EXCEPTION 'local isolated database required'; END IF;
- IF NOT ((current_database()='ace_legacy_shadow' AND inet_server_port()=55433) OR (current_database()='ace_tournament_capture' AND inet_server_port()=55432)) THEN RAISE EXCEPTION 'dedicated capture database required'; END IF;
+ IF NOT ((current_database()='ace_legacy_shadow' AND inet_server_port()=55433) OR (current_database()='ace_tournament_capture' AND inet_server_port()=5432)) THEN RAISE EXCEPTION 'dedicated capture database required'; END IF;
  IF to_regclass('ace_shadow_guard.approval') IS NULL OR to_regclass('cron.job') IS NULL THEN RAISE EXCEPTION 'missing isolation evidence'; END IF;
  IF NOT EXISTS(SELECT 1 FROM ace_shadow_guard.approval WHERE singleton AND approved_read_only AND restore_id IS NOT NULL AND marker=CASE WHEN current_database()='ace_tournament_capture' THEN 'ace-tournament-synthetic-ci-v029' ELSE 'ace-legacy-shadow-isolated-v027' END) THEN RAISE EXCEPTION 'capture not approved'; END IF;
  IF EXISTS(SELECT 1 FROM cron.job WHERE active IS DISTINCT FROM false) THEN RAISE EXCEPTION 'active scheduled jobs'; END IF;

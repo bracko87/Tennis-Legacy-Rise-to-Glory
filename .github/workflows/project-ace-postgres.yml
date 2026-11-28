@@ -135,11 +135,13 @@ jobs:
       - name: Read-only Legacy tournament extraction rehearsal
         env:
           PGPASSWORD: ace-disposable-admin
+          ACE_REVIEW_CONTAINER: ${{ job.services.postgres.id }}
         run: |
           psql -X -qAt -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_review -c 'CREATE DATABASE ace_tournament_capture'
           sql() { psql -X -qAt -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U postgres -d ace_tournament_capture "$@"; }
           sql -f experiments/project-ace/legacy-tournament-capture-fixture.sql
-          capture() { sql -v competition_id="$1" -f experiments/project-ace/capture-legacy-tournament.sql; }
+          test "$ACE_REVIEW_CONTAINER" != ""
+          capture() { docker exec -i -e PGPASSWORD=ace-disposable-admin "$ACE_REVIEW_CONTAINER" psql -X -qAt -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 5432 -U postgres -d ace_tournament_capture -v competition_id="$1" < experiments/project-ace/capture-legacy-tournament.sql; }
           id=00000000-0000-4000-8000-000000000001
           before="$(sql -c 'SELECT md5(jsonb_agg(to_jsonb(m) ORDER BY id)::text) FROM public.tournament_matches m')"
           capture "$id" > "$RUNNER_TEMP/tournament-good.json"
