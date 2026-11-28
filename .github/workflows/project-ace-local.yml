@@ -77,6 +77,7 @@ jobs:
           node experiments/project-ace/legacy-prematch-effects-review.test.cjs
           node experiments/project-ace/tactical-v3-review.test.cjs
           node experiments/project-ace/legacy-eligibility-review.test.cjs
+          node experiments/project-ace/legacy-shared-schedule-review.test.cjs
           node experiments/project-ace/current-legacy-source-pin.test.cjs
           node experiments/project-ace/operational-schedule.test.cjs
           node experiments/project-ace/followup-reconciliation.test.cjs

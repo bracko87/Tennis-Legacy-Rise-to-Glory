@@ -47,3 +47,12 @@ assert.deepEqual(eligibility.execute(source,eligibilityEvidence,g.eligibility_sh
 const rev=structuredClone(obs);rev[0].evidence_revision='other';assert.throws(()=>eligibility.execute(source,eligibilityEvidence,g.eligibility_sha256,context,rev,neutralV3.review_sha256),/revision/);
 const unavailable=structuredClone(eligibilityEvidence);unavailable.players[0].travel.actual_presence_confirmed=false;const held=eligibility.prepare(source,unavailable);assert.equal(eligibility.execute(source,unavailable,held.eligibility_sha256,context,obs,neutralV3.review_sha256).status,'held');
 console.log('PASS eligibility-gated v0.6 simulation, same evidence revision and travel hold');
+
+const shared=require('./legacy-shared-schedule-review.cjs'),{slot}=require('./world-clock.cjs');
+const scheduleEvidence={schema:'ace-legacy-shared-schedule-observation-v1',complete_inventory_attested:true,consistent_snapshot_attested:true,competition_id:m.competition_id,match_id:m.id,inventory_revision:'synthetic-v1',game_second:minute*60,speed:6,policy:{venue_id:id(800),first_week:1,last_week:1,court_count:4},inventory:source.matches.map(x=>({id:x.id,competition_id:x.competition_id,venue_id:id(800),kind:'singles',status:'scheduled',revision:x.updated_at,players:x.player1_id?[x.player1_id,x.player2_id]:[],start_minute:slot(2,x.scheduled_season_week,x.scheduled_day,x.scheduled_start_minute)/60,court:x.court_number,estimated_duration_minutes:x.estimated_duration_minutes,recovery_minutes:60,actual_end_minute:null,winner_id:null}))};
+const sched=shared.prepare(source,scheduleEvidence);
+const combined=shared.execute(source,scheduleEvidence,sched.schedule_sha256,eligibilityEvidence,g.eligibility_sha256,context,obs,neutralV3.review_sha256);
+assert.equal(combined.status,'simulated_review');assert.ok(combined.played_minutes>=60);assert.equal(combined.activation_authorized,false);
+assert.deepEqual(combined.eligibility_result.result,simulate(source,context,obs,neutralV3.review_sha256,v3));
+assert.throws(()=>shared.execute(source,scheduleEvidence,sched.schedule_sha256,{...eligibilityEvidence,observed_absolute_minute:minute+1},g.eligibility_sha256),/mismatch/);
+console.log('PASS shared scheduling and eligibility composed with deterministic match engine');
