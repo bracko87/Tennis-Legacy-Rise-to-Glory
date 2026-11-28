@@ -38,3 +38,12 @@ full[0].equipment.missing.shoes=true;
 const c=prepare(source,context,full,v3);assert.equal(c.blockers.length,0);
 const rc=simulate(source,context,full,c.review_sha256,v3);assert.equal(rc.tactics[0].servePlacement,'Wide');assert.equal(rc.tactics[0].risk,'Aggressive');assert.notEqual(rc.point_trace_sha256,r.point_trace_sha256);assert.deepEqual(simulate(source,context,full,c.review_sha256,v3),rc);
 console.log('PASS opt-in review v0.6: neutral trace parity, full tactical observation, digest version binding and deterministic execution');
+
+const eligibility=require('./legacy-eligibility-review.cjs');
+const day=368,minute=day*1440+m.scheduled_start_minute;
+const eligibilityEvidence={schema:'ace-legacy-match-eligibility-observation-v1',complete_health_attested:true,consistent_snapshot_attested:true,match_id:m.id,competition_id:m.competition_id,match_updated_at:m.updated_at,match_absolute_day:day,target_absolute_minute:minute,observed_absolute_minute:minute,players:obs.map(o=>({player_id:o.player_id,human:true,evidence_revision:o.evidence_revision,career_status:'active',health_records:[],travel:{status:'normal',basis:'planned_travel_leg',departure_absolute_minute:(day-1)*1440+540,arrival_absolute_minute:(day-1)*1440+840,ready_absolute_minute:(day-1)*1440+930,pre_match_arrival_buffer_minutes:90,target_absolute_minute:minute,actual_presence_confirmed:true}}))};
+const g=eligibility.prepare(source,eligibilityEvidence);
+assert.deepEqual(eligibility.execute(source,eligibilityEvidence,g.eligibility_sha256,context,obs,neutralV3.review_sha256).result,simulate(source,context,obs,neutralV3.review_sha256,v3));
+const rev=structuredClone(obs);rev[0].evidence_revision='other';assert.throws(()=>eligibility.execute(source,eligibilityEvidence,g.eligibility_sha256,context,rev,neutralV3.review_sha256),/revision/);
+const unavailable=structuredClone(eligibilityEvidence);unavailable.players[0].travel.actual_presence_confirmed=false;const held=eligibility.prepare(source,unavailable);assert.equal(eligibility.execute(source,unavailable,held.eligibility_sha256,context,obs,neutralV3.review_sha256).status,'held');
+console.log('PASS eligibility-gated v0.6 simulation, same evidence revision and travel hold');
