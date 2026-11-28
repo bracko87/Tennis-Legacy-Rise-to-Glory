@@ -2,15 +2,18 @@
 // Project Ace v0.1: isolated synthetic singles POC. No database, clock, or production imports.
 const tactical=require('./tactical-v2.cjs');
 const context=require('./match-context.cjs');
-const enhanced=s=>s.version==='ace-context-0.5';
+const extended=require('./tactical-v3-review.cjs');
+const reviewV3=s=>s.version==='ace-tactical-review-0.6';
+const enhanced=s=>s.version==='ace-context-0.5'||reviewV3(s);
 const modern=s=>enhanced(s)||s.version==='ace-tactical-0.4';
 const clamp=(x,lo,hi)=>Math.max(lo,Math.min(hi,x));
 const clone=x=>JSON.parse(JSON.stringify(x));
 const modes={approach:['Defensive','Balanced','Aggressive'],rally:['Shorten points','Balanced rallies','Extend rallies'],serve:['Safe first serve','Balanced','Power serving'],returnGame:['Safe return','Balanced','Attack second serve'],target:['Automatic','Backhand','Forehand','Movement','Stamina']};
 const balanced={approach:'Balanced',rally:'Balanced rallies',serve:'Balanced',returnGame:'Balanced',target:'Automatic'};
-function validateTactics(patch){
+function validateTactics(patch,version){
+ const allowed=reviewV3({version})?{...modes,...extended.options}:modes;
  if(!patch||typeof patch!=='object'||Array.isArray(patch)||!Object.keys(patch).length)throw Error('Invalid tactics');
- for(const [k,v] of Object.entries(patch))if(!Object.hasOwn(modes,k)||!modes[k].includes(v))throw Error('Invalid tactic '+k);
+ for(const [k,v] of Object.entries(patch))if(!Object.hasOwn(allowed,k)||!allowed[k].includes(v))throw Error('Invalid tactic '+k);
 }
 function profile(p){
  if(!p||typeof p.name!=='string'||!p.name.trim())throw Error('Missing player name');
@@ -23,15 +26,19 @@ function profile(p){
 }
 function draw(s){s.rng=(Math.imul(s.rng,1664525)+1013904223)>>>0;return s.rng/4294967296;}
 function createMatch({players,seed=1,surface='hard',bestOf=3,version='ace-poc-0.1',weather=context.environment()}){
- if(!['ace-poc-0.1','ace-tactical-0.4','ace-context-0.5'].includes(version))throw Error('Unknown engine version');
+ if(!['ace-poc-0.1','ace-tactical-0.4','ace-context-0.5','ace-tactical-review-0.6'].includes(version))throw Error('Unknown engine version');
  if(!Array.isArray(players)||players.length!==2||!Number.isInteger(seed)||seed<0||seed>4294967295||!['hard','grass','clay'].includes(surface)||![3,5].includes(bestOf))throw Error('Invalid match setup');
  const s={version,surface,bestOf,rng:seed,players:players.map(profile),tactics:[{...balanced},{...balanced}],pending:[null,null],sets:[0,0],games:[0,0],completedSets:[],gameNumber:0,totalPoints:0,stats:players.map(()=>({points:0,servicePoints:0,firstIn:0,aces:0,doubleFaults:0,unforcedErrors:0})),events:[],winner:null,status:'ready'};
  if(enhanced(s)){s.weather=context.validateWeather(weather);s.players.forEach((p,i)=>Object.assign(p,context.metadata(players[i])));}
+ if(reviewV3(s)){
+  s.tactics=s.tactics.map(t=>({...t,...extended.defaults}));
+  s.players.forEach((p,i)=>{const m=players[i].equipmentMultipliers??{serve:1,return:1,rally:1};if(p.equipment!=='standard'||!['serve','return','rally'].every(k=>Number.isFinite(m[k])&&m[k]>=.5&&m[k]<=1.04))throw Error('Invalid review equipment multipliers');p.equipmentMultipliers={serve:m.serve,return:m.return,rally:m.rally};});
+ }
  s.nextServer=draw(s)<.5?0:1;return s;
 }
 function queueTactics(state,side,patch){
  if(state.status==='completed'||![0,1].includes(side))throw Error('Cannot coach');
- validateTactics(patch);const s=clone(state);
+ validateTactics(patch,state.version);const s=clone(state);
  s.pending[side]={...s.pending[side],...patch};return s;
 }
 function effective(p,t){
@@ -47,8 +54,14 @@ function wing(t,opp){
  if(t.target==='Stamina')return clamp((50-opp.stamina)*.0003,-.015,.015);
  return 0;
 }
-function effectiveFor(s,p,t){return enhanced(s)?context.effective(p,t,s.weather,effective):effective(p,t);}
+function effectiveFor(s,p,t){
+ const x=enhanced(s)?context.effective(p,t,s.weather,effective):effective(p,t);
+ if(!reviewV3(s))return x;
+ const m=p.equipmentMultipliers;
+ return {...x,serve:clamp(x.serve*m.serve,0,100),ret:clamp(x.ret*m.return,0,100),rally:clamp(x.rally*m.rally,0,100)};
+}
 function probabilities(s,server,first){
+ if(reviewV3(s))return extended.probabilities(s,server,first,(p,t)=>effectiveFor(s,p,t));
  if(enhanced(s))return tactical.probabilities(s,server,first,(p,t)=>effectiveFor(s,p,t));
  if(s.version==='ace-tactical-0.4')return tactical.probabilities(s,server,first,effective);
  const receiver=1-server,a=s.players[server],b=s.players[receiver],ta=s.tactics[server],tb=s.tactics[receiver],x=effective(a,ta),y=effective(b,tb);
@@ -61,7 +74,8 @@ function point(s,server){
  const receiver=1-server, first=draw(s)<probabilities(s,server,true).firstIn, q=probabilities(s,server,first),special=draw(s),outcome=draw(s),error=draw(s),rallyDraw=draw(s);
  const ace=first&&special<q.ace,df=!first&&special<q.doubleFault;
  const winner=ace?server:df?receiver:outcome<q.serverWin?server:receiver;
- const loser=1-winner,ue=!ace&&!df&&error<effectiveFor(s,s.players[loser],s.tactics[loser]).ue;
+ const loser=1-winner,baseUE=effectiveFor(s,s.players[loser],s.tactics[loser]).ue;
+ const ue=!ace&&!df&&error<(reviewV3(s)?clamp(baseUE+extended.modifiers(s.players[loser],s.players[winner],s.tactics[loser]).ue,.04,.4):baseUE);
  const lengths=s.tactics.map(t=>t.rally==='Extend rallies'?1:t.rally==='Shorten points'?-1:0);
  const long=!ace&&!df&&rallyDraw<clamp(.22+.11*(lengths[0]+lengths[1]),.04,.55);
  s.totalPoints++;s.stats[server].servicePoints++;if(first)s.stats[server].firstIn++;if(ace)s.stats[server].aces++;if(df)s.stats[server].doubleFaults++;if(ue)s.stats[loser].unforcedErrors++;s.stats[winner].points++;

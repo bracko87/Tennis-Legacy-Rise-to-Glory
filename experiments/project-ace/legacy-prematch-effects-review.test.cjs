@@ -26,3 +26,15 @@ for(const [k,v] of Object.entries({serve:'Serve + 1',servePlacement:'Wide',retur
 assert.throws(()=>prepare(source,context,[...obs].reverse()));
 const stale=structuredClone(obs);stale[0].match_updated_at='stale';assert.throws(()=>prepare(source,context,stale));
 console.log('PASS source-shaped equipment modifiers, stacked penalties, identity and deterministic tactical simulation; seven unsupported tactic fields fail closed');
+
+const v3='ace-tactical-review-0.6';
+const neutralV3=prepare(source,context,obs,v3);
+assert.notEqual(neutralV3.review_sha256,a.review_sha256);
+assert.equal(simulate(source,context,obs,neutralV3.review_sha256,v3).point_trace_sha256,r.point_trace_sha256);
+assert.throws(()=>simulate(source,context,obs,neutralV3.review_sha256));
+const full=structuredClone(obs);
+Object.assign(full[0].tactic,{preset:'Attack',serve:'Serve + 1',servePlacement:'Wide',returnGame:'Aggressive return',returnPosition:'Closer',courtPosition:'Net attack',target:'Second serve',risk:'Aggressive'});
+full[0].equipment.missing.shoes=true;
+const c=prepare(source,context,full,v3);assert.equal(c.blockers.length,0);
+const rc=simulate(source,context,full,c.review_sha256,v3);assert.equal(rc.tactics[0].servePlacement,'Wide');assert.equal(rc.tactics[0].risk,'Aggressive');assert.notEqual(rc.point_trace_sha256,r.point_trace_sha256);assert.deepEqual(simulate(source,context,full,c.review_sha256,v3),rc);
+console.log('PASS opt-in review v0.6: neutral trace parity, full tactical observation, digest version binding and deterministic execution');
